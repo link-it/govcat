@@ -1,0 +1,169 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.TITLE.EditTaxonomy' | translate }}</h3>
+    <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewTaxonomy' | translate }}</h3>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls align-self-center d-flex">
+      <div role="group" class="gl-w-full btn-group- me-2" *ngIf="!_isEdit && !_spin">
+        <button aria-label="Show categories" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_onCategory()">
+          <span class="text-nowrap">{{ 'APP.BUTTON.Categories' | translate }}</span>
+        </button>
+      </div>
+      <div class="position-relative" *ngIf="!_isEdit && !_spin">
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditUser' | translate" (click)="_editTaxonomy()">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+      <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
+        <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+            <div class="gl-new-dropdown-inner">
+              <div class="gl-new-dropdown-contents">
+                <li role="presentation" class="gl-new-dropdown-item">
+                  <button role="menuitem" type="button" class="dropdown-item" (click)="_confirmDelection()">
+                    <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                      <i class="bi bi-trash text-danger"></i>
+                    </div>
+                    <div class="gl-new-dropdown-item-text-wrapper">
+                      <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.DeleteTaxonomy' | translate }}</p>
+                    </div>
+                  </button>
+                </li>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+      <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
+    <ui-box-message *ngIf="!taxonomy && !_spin && !_isNew"
+      [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate"
+      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings" *ngIf="(taxonomy && !_spin) || _isNew">
+      <div class="settings-content">
+        <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
+          {{ _errorMsg }}
+        </div>
+        <div class="edit-form">
+          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+            <div class="row gl-mt-3">
+              <div class="col-lg-4 mb-5">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.TAXONOMIES.TITLE.GeneralInformations' | translate }}</h4>
+                <div class="text-break" markdown>{{ 'APP.TAXONOMIES.TITLE.GeneralInformations_sub' | translate }}</div>
+              </div>
+              <div class="col-lg-8">
+                <div class="form-group">
+                  <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">
+                    <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="nome" context="TAXONOMIES"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="nome" [value]="taxonomy.nome">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="label-bold" for="descrizione">{{ 'APP.LABEL.Description' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <textarea aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" rows="3"></textarea>
+                    <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="descrizione" context="TAXONOMIES"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <span class="mt-1">{{ taxonomy.descrizione || '-' }}</span>
+                  </div>
+                </div>
+
+                <div class="row visibile obbligatorio mt-4">
+                  <div class="col-6">
+                    <div class="form-group">
+                      <div class="" *ngIf="_isEdit">
+                        <div class="form-check form-switch ml-3">
+                          <input class="form-check-input" type="checkbox" role="switch" id="obbligatorio" [checked]="taxonomy?.obbligatorio" formControlName="obbligatorio">
+                          <label class="form-check-label" for="obbligatorio">{{ 'APP.LABEL.obbligatorio' | translate }}</label>
+                        </div>
+                        <p *ngIf="f['obbligatorio'].invalid && (f['obbligatorio'].dirty || f['obbligatorio'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['obbligatorio'].errors && f['obbligatorio'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="obbligatorio" context="TAXONOMIES"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <div class="form-check form-switch ml-3">
+                          <input class="form-check-input" type="checkbox" role="switch" id="obbligatorio" [checked]="taxonomy?.obbligatorio" disabled>
+                          <label class="form-check-label" for="obbligatorio">{{ 'APP.LABEL.obbligatorio' | translate }}</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-6">
+                    <div class="form-group">
+                      <div class="" *ngIf="_isEdit && !_isNew">
+                        <div class="form-check form-switch ml-3">
+                          <input class="form-check-input" type="checkbox" role="switch" id="visibile" [checked]="taxonomy?.visibile" formControlName="visibile">
+                          <label class="form-check-label" for="visibile">{{ 'APP.LABEL.Abilitato' | translate }}</label>
+                        </div>
+                        <p *ngIf="f['visibile'].invalid && (f['visibile'].dirty || f['visibile'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['visibile'].errors && f['visibile'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="visibile" context="TAXONOMIES"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <div class="form-check form-switch ml-3">
+                          <input class="form-check-input" type="checkbox" role="switch" id="visibile" [checked]="taxonomy?.visibile" disabled>
+                          <label class="form-check-label" for="visibile">{{ 'APP.LABEL.Abilitato' | translate }}</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
+              {{ _errorMsg }}
+            </div>
+
+            <div class="row-content-block footer-block" *ngIf="_isEdit">
+              <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                {{ 'APP.BUTTON.Save' | translate }}
+              </button>
+              <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                {{ 'APP.BUTTON.Cancel' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+</div>

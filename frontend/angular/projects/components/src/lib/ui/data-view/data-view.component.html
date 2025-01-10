@@ -1,0 +1,85 @@
+<!-- <form> -->
+  <fieldset>
+    <div class="row">
+      <ng-container *ngFor="let _field of _detailsConfig;let last = last;">
+        <ng-container *ngIf="_showEmpty(_field)">
+          <div class="form-group- col-xs-12 col-sm-{{ _field.columns || _columns }} form-col-block" [class.mb-4]="!last && (_field.type !== 'space')" [class.mb-0]="last">
+            <ng-container *ngIf="_field.type !== 'image' && _field.download && _field.icon">
+              <label class="label-bold mb-0">{{ _field.label | translate }}</label>
+              <div class="form-control-plaintext">
+                <button type="button" class="btn btn-default btn-md gl-button button-action" (click)="__downloadClick(_field)">
+                  <i class="bi bi-{{ _field.icon }}"></i>
+                  {{ 'APP.BUTTON.Download' | translate }}
+                </button>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="_field.type === 'space'">
+              <span>&nbsp;</span>
+            </ng-container>
+            <ng-container *ngIf="(_field.type !== 'image') && (_field.type !== 'space') && !_field.download">
+              <label class="label-bold mb-0">{{ _field.label | translate }}</label>
+              <ng-container *ngIf="_field.accordion">
+                <ui-data-collapse
+                  [id]="_field.field"
+                  [opened]="_field.accordion.opened"
+                  [titleOpen]="_field.accordion.label"
+                  [titleClose]="_field.accordion.labelClose">
+                  <ui-data-type
+                    [data]="_data"
+                    [elem]="_field"
+                    [config]="_config">
+                  </ui-data-type>
+                </ui-data-collapse>
+                <!-- <div class="w-100">
+                  <button type="button" class="btn btn-default btn-md gl-button button-action" (click)="onShowHideAccordion()">{{ _field.accordion.label | translate }}</button>
+                </div>
+                <div class="mt-1" *ngIf="_accordionOpen">
+                  <ui-data-type
+                    [data]="_data"
+                    [elem]="_field"
+                    [config]="_config">
+                  </ui-data-type>
+                </div> -->
+              </ng-container>
+              <ng-container *ngIf="!_field.accordion">
+                <ng-container *ngIf="_field.group">
+                  <div class="box-area-status align-self-stretch d-flex justify-content-between">
+                    <div class="box-status align-self-stretch d-flex flex-column" [style.background-color]="_getBackground(_field.group)" [style.color]="_getColor(_field.group)">
+                      <div class="box-status-1">
+                        <ng-container *ngFor="let elem of _field.group.primaryText">
+                          <ui-data-type *ngIf="_showEmpty(elem)"
+                            [data]="_data"
+                            [elem]="elem"
+                            [config]="_config">
+                          </ui-data-type>
+                        </ng-container>  
+                      </div>
+                      <div class="box-status-2 box-status-meta mt-auto">
+                        <ng-container *ngFor="let elem of _field.group.metadata">
+                          <ui-data-type *ngIf="_showEmpty(elem)"
+                            [data]="_data"
+                            [elem]="elem"
+                            [config]="_config">
+                          </ui-data-type>
+                        </ng-container>  
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="!_field.group">
+                  <span class="form-control-plaintext">
+                    <ui-data-type
+                      [data]="_data"
+                      [elem]="_field"
+                      [config]="_config">
+                    </ui-data-type>
+                  </span>
+                </ng-container>
+              </ng-container>
+            </ng-container>
+          </div>
+        </ng-container>
+      </ng-container>
+    </div>
+  </fieldset>
+<!-- </form> -->

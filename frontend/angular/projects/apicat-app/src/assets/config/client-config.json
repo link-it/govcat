@@ -1,0 +1,61 @@
+{
+  "itemRow": {
+    "primaryText": [
+      { "field": "nome", "type": "text"},
+      { "field": "ambiente", "type": "tag", "options": "ambient" }
+    ],
+    "secondaryText": [
+      { "field": "dati_specifici.auth_type", "type": "label", "options": "authType", "emptySpace": true },
+      { "field": "stato", "type": "tag", "options": "status", "emptySpace": true }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "soggetto.nome", "type": "text" }
+      ],
+      "label": [
+      ]
+    },
+    "secondaryMetadata": [
+    ]
+  },
+
+  "details": [],
+
+  "options": {
+    "ambient": {
+      "label": "APP.CLIENT.LABEL.Ambient",
+      "small": true,
+      "values": {        
+        "collaudo": { "label": "APP.CLIENT.LABEL.Testing", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
+        "produzione": { "label": "APP.CLIENT.LABEL.Production", "background": "#22577a", "border": "#22577a", "color": "#ffffff" }
+      }
+    },
+    "status": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {
+        "nuovo": { "label": "APP.CLIENT.LABEL.NotConfigured", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "Non configurato": { "label": "APP.CLIENT.LABEL.NotConfigured", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "configurato": { "label": "APP.CLIENT.LABEL.Configured", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" }
+      }
+    },
+    "authType": {
+      "label": "APP.LABEL.AuthType",
+      "small": true,
+      "values": {
+        "http_basic": { "label": "APP.CLIENT.AUTH_TYPE.http_basic", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "pdnd": { "label": "APP.CLIENT.AUTH_TYPE.pdnd", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "https": { "label": "APP.CLIENT.AUTH_TYPE.https", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "sign": { "label": "APP.CLIENT.AUTH_TYPE.sign", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "https_sign": { "label": "APP.CLIENT.AUTH_TYPE.https_sign", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "https_pdnd": { "label": "APP.CLIENT.AUTH_TYPE.https_pdnd", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "sign_pdnd": { "label": "APP.CLIENT.AUTH_TYPE.sign_pdnd", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "https_pdnd_sign": { "label": "APP.CLIENT.AUTH_TYPE.https_pdnd_sign", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "oauth_client_credentials": { "label": "APP.CLIENT.AUTH_TYPE.oauth_client_credentials", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "oauth_authorization_code": { "label": "APP.CLIENT.AUTH_TYPE.oauth_authorization_code", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "indirizzo_ip": { "label": "APP.CLIENT.AUTH_TYPE.indirizzo_ip", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "no_dati": { "label": "APP.CLIENT.AUTH_TYPE.no_dati", "background": "#22577a", "border": "#22577a", "color": "#ffffff" }
+      }
+    }
+  }
+}

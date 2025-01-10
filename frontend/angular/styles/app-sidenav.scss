@@ -1,0 +1,89 @@
+mat-sidenav-container {
+  &.mat-drawer-container {
+    overflow: unset;
+  }
+}
+
+mat-list-item {
+  cursor: pointer;
+}
+
+.sidenav-opened {
+  margin-left: 310px;
+}
+
+.side-nav {
+  position: fixed !important;
+  width: $sidenavWidth;
+  border: 0 solid transparent;
+  background-color: $background-nth-color;
+
+  .side-nav-menu {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+  }
+
+  .side-nav-title {
+    padding: 3rem 1rem;
+
+    p {
+      // font-family: 'Titillium Web', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: $text-color;
+      margin: 1.5rem 0 0;
+    }
+  }
+
+  .gestore {
+    background-color: $background-color;
+    // min-height: 224px;
+  }
+
+  .sidenav-background-gestore {
+    width: 100%;
+    max-height: 240px;
+  }
+
+  .sidenav-logo-gestore {
+    width: auto;
+    height: 4rem;
+  }
+
+  .logo-govpay {
+    padding: 3rem 1rem 1rem;
+
+    p {
+      // font-family: 'Titillium Web', sans-serif;
+      font-size: .75rem;
+      font-weight: 400;
+    }
+
+    img {
+      &.govpay-prj {
+        display: block;
+        max-width: 9rem;
+        max-height: 4.8125rem;
+      }
+
+      &.main-icon {
+        display: block;
+        max-height: 4rem;
+        margin-bottom: 1.5rem;
+      }
+    }
+
+    .partners-group {
+      margin-bottom: 1rem;
+
+      img {
+        width: auto;
+        height: 2.0rem;
+      }
+    }
+  }
+}

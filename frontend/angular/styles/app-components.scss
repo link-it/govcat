@@ -1,0 +1,31 @@
+// ui-item-row | ui-item-type
+
+ui-item-row,
+.ui-item-row {
+  ui-item-type {
+    &:nth-child(n) {
+      &::after {
+        content: ' · ';
+      }
+    }
+
+    &:last-child {
+      &::after {
+        content: '';
+      }
+    }
+
+    &.block-space {
+      &::after {
+        content: ' ';
+        padding-left: 5px;
+      }
+    }
+
+    &.empty-space {
+      &::after {
+        content: ' ';
+      }
+    }
+  }
+}

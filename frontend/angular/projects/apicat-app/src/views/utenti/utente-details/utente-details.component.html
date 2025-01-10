@@ -1,0 +1,403 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.TITLE.EditUser' | translate }}</h3>
+    <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewUser' | translate }}</h3>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
+      <div class="nav-controls align-self-center d-flex">
+        <div class="position-relative" *ngIf="!_isEdit && !_spin">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditUser' | translate" (click)="_editUser()">
+            <i class="bi bi-pencil"></i>
+          </button>
+        </div>
+        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
+          <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
+            <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+              <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+                <div class="gl-new-dropdown-inner">
+                  <div class="gl-new-dropdown-contents">
+                    <li role="presentation" class="gl-new-dropdown-item">
+                      <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteUser()">
+                        <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                          <i class="bi bi-trash text-danger"></i>
+                        </div>
+                        <div class="gl-new-dropdown-item-text-wrapper">
+                          <p class="gl-new-dropdown-item-text-primary">{{ 'APP.USERS.BUTTON.DeleteUser' | translate }}</p>
+                        </div>
+                      </button>
+                    </li>
+                  </div>
+                </div>
+              </ul>
+            </div>
+          </div>
+        <!-- </ng-template> -->
+        <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+    <!-- </ng-template> -->
+  </div>
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
+    <ui-box-message *ngIf="!utente && !_spin && !_isNew"
+      [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate"
+      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings" *ngIf="(utente && !_spin) || _isNew">
+      <div class="settings-content">
+        <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
+          {{ _errorMsg }}
+        </div>
+        <div class="edit-form">
+          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+            <div class="row gl-mt-3">
+              <div class="col-lg-4 mb-5">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.USERS.TITLE.GeneralInformations' | translate }}</h4>
+                <div class="text-break" markdown>{{ 'APP.USERS.TITLE.GeneralInformations_sub' | translate }}</div>
+              </div>
+            </div>
+              
+            <div class="row nome cognome">  
+              <div class="col-6">
+                <!-- nome -->
+                <div class="form-group">
+                  <label class="label-bold" for="nome">{{ 'APP.USERS.LABEL.Nome' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">
+                    <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="nome" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="nome" [value]="utente.nome">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+
+              <div class="col-6">
+                <!-- cognome -->
+                <div class="form-group">
+                  <label class="label-bold" for="cognome">{{ 'APP.USERS.LABEL.Cognome' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'cognome'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cognome')" type="text" name="cognome" id="cognome" formControlName="cognome">
+                    <p *ngIf="f['cognome'].invalid && (f['cognome'].dirty || f['cognome'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['cognome'].errors && f['cognome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['cognome'].errors && f['cognome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['cognome'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="cognome" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="cognome" [value]="utente.cognome">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+            </div>
+
+            <div class="row telefono email"> 
+              <div class="col-6">
+                <!-- telefono -->
+                <div class="form-group">
+                  <label class="label-bold" for="telefono">{{ 'APP.USERS.LABEL.Phone' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono')" type="text" name="telefono" id="telefono" formControlName="telefono">
+                    <p *ngIf="f['telefono'].invalid && (f['telefono'].dirty || f['telefono'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['telefono'].errors && f['telefono'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['telefono'].errors && f['telefono'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['telefono'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="telefono" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="telefono" [value]="utente.telefono || '--'">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+
+              <div class="col-6">
+                <!-- email -->
+                <div class="form-group">
+                  <label class="label-bold" for="email">{{ 'APP.LABEL.email' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email')" type="text" name="email" id="email" formControlName="email">
+                    <p *ngIf="f['email'].invalid && (f['email'].dirty || f['email'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['email'].errors && f['email'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['email'].errors && f['email'].errors['email']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Email' | translate }}</span>
+                      <span *ngIf="f['email'].errors && f['email'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['email'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="email" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="email" [value]="utente.email || '--'">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+            </div>
+
+            <div class="row telefono_aziendale email_aziendale"> 
+              <div class="col-6">
+                <!-- telefono_aziendale -->
+                <div class="form-group">
+                  <label class="label-bold" for="telefono_aziendale">{{ 'APP.USERS.LABEL.CorporatePhone' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono_aziendale'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono_aziendale')" type="text" name="telefono_aziendale" id="telefono_aziendale" formControlName="telefono_aziendale">
+                    <p *ngIf="f['telefono_aziendale'].invalid && (f['telefono_aziendale'].dirty || f['telefono_aziendale'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['telefono_aziendale'].errors && f['telefono_aziendale'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['telefono_aziendale'].errors && f['telefono_aziendale'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['telefono_aziendale'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="telefono_aziendale" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="telefono_aziendale" [value]="utente.telefono_aziendale || '--'">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+            
+              <div class="col-6">
+                <!-- email_aziendale -->
+                <div class="form-group">
+                  <label class="label-bold" for="email_aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email_aziendale'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email_aziendale')" type="text" name="email_aziendale" id="email_aziendale" formControlName="email_aziendale">
+                    <p *ngIf="f['email_aziendale'].invalid && (f['email_aziendale'].dirty || f['email_aziendale'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['email_aziendale'].errors && f['email_aziendale'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['email_aziendale'].errors && f['email_aziendale'].errors['email']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Email' | translate }}</span>
+                      <span *ngIf="f['email_aziendale'].errors && f['email_aziendale'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['email_aziendale'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="email_aziendale" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="email_aziendale" [value]="utente.email_aziendale || '--'">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+            </div>
+
+            <div class="row stato ruolo">
+              <div class="col-6">
+                <!-- stato -->
+                <div class="form-group">
+                  <label class="label-bold" for="stato">{{ 'APP.USERS.LABEL.Status' | translate }} 
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'stato'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_changeRuolo($event)">
+                      <option *ngFor="let stato of _statoArr" [value]="stato">{{ stato }}</option>
+                    </select>  
+                    <p *ngIf="f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['stato'].errors && f['stato'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    </p>
+                    <ui-input-help field="stato" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit"><!-- 
+                    <input type="text" readonly class="form-control-plaintext" id="stato" [value]="utente.stato"> -->
+                    <ui-data-type *ngIf="utente"
+                      [data]="utente"
+                      [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                      [config]="config">
+                    </ui-data-type>
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+
+              <div class="col-6">
+                <!-- ruolo -->
+                <div class="form-group">
+                  <label class="label-bold" for="ruolo">{{ 'APP.USERS.LABEL.Role' | translate }} 
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <select class="form-select" id="ruolo" formControlName="ruolo" [class.gl-field-error-outline]="_hasControlError('ruolo')" (change)="_changeRuolo($event)">
+                      <option *ngFor="let ruolo of _ruoloArr" [value]="ruolo">{{ 'APP.USERS.ROLES.' + ruolo | translate }}</option>
+                    </select>  
+                    <p *ngIf="f['ruolo'].invalid && (f['ruolo'].dirty || f['ruolo'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['ruolo'].errors && f['ruolo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    </p>
+                    <ui-input-help field="ruolo" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    {{ 'APP.USERS.ROLES.' + utente.ruolo | translate }}
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+            </div>
+
+            <div class="row classi_utente id_organizzazione">
+              <div class="col-md-6">
+                <!-- classi_utente -->
+                <div class="form-group classi_utente">
+                  <label class="label-bold" for="classi_utente">{{ 'APP.USERS.LABEL.UserClasses' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi_utente'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <ng-select [class.gl-field-error-outline]="_hasControlError('classi_utente')"
+                      [items]="_classi_utente"
+                      [multiple]="true"
+                      [compareWith]="_compareClassiFn"
+                      bindLabel="nome"
+                      labelForId="classi_utente"
+                      [closeOnSelect]="false"
+                      formControlName="classi_utente">
+                      <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                        <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
+                      </ng-template>
+                    </ng-select>
+                    <p *ngIf="f['classi_utente'].invalid && (f['classi_utente'].dirty || f['classi_utente'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['classi_utente'].errors && f['classi_utente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    </p>
+                    <ui-input-help field="classi_utente" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="mt-1" *ngIf="!_isEdit">
+                    <!-- <input type="text" readonly class="form-control-plaintext" id="classi" [value]="data?.classi"> -->
+                    <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1" *ngFor="let classe of utente.classi_utente">{{ classe?.nome }}</span>
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+
+              <div class="col-6">
+                <!-- id_organizzazione -->
+                <div class="form-group">
+                  <label class="label-bold" for="id_organizzazione">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                      [items]="organizzazioni$ | async"
+                      [trackByFn]="trackByFn"
+                      [typeahead]="organizzazioniInput$"
+                      [minTermLength]="minLengthTerm" 
+                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                      bindValue="id_organizzazione"
+                      bindLabel="nome"
+                      labelForId="id_organizzazione"
+                      [editableSearchTerm]="true"
+                      formControlName="id_organizzazione">
+                      <ng-template ng-label-tmp let-item="item">
+                        {{ item.nome }}
+                      </ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                        <div class="fw-bold">{{ item.nome }}</div>
+                        <!-- <div class="">
+                          <span class="small text-muted">{{ item.nome }} - {{ item.id_organizzazione }}</span>
+                        </div> -->
+                      </ng-template>
+                    </ng-select>
+                    <p *ngIf="f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    </p>
+                    <ui-input-help field="id_organizzazione" context="SOGGETTI"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="id_organizzazione" [value]="utente.organizzazione?.nome || '--'">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+            </div>
+
+            <div class="row note username">
+              <div class="col-6">
+                <!-- note -->
+                <div class="form-group">
+                  <label class="label-bold" for="note">{{ 'APP.LABEL.note' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'note'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note">
+                    <p *ngIf="f['note'].invalid && (f['note'].dirty || f['note'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['note'].errors && f['note'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['note'].errors && f['note'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="note" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="note" [value]="utente.note || '--'">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+
+              <div class="col-6">
+                <!-- username -->
+                <div class="form-group">
+                  <label class="label-bold" for="username">{{ 'APP.CLIENT.LABEL.Username' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'username'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('username')" type="text" name="username" id="username" formControlName="username">
+                    <p *ngIf="f['username'].invalid && (f['username'].dirty || f['username'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['username'].errors && f['username'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['username'].errors && f['username'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['username'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="username" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="username" [value]="utente.username || '--'">
+                  </div>
+                </div>
+                <!--  -->
+              </div>
+            </div>
+
+            <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
+              {{ _errorMsg }}
+            </div>
+
+            <div class="row-content-block footer-block" *ngIf="_isEdit">
+              <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                {{ 'APP.BUTTON.Save' | translate }}
+              </button>
+              <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                {{ 'APP.BUTTON.Cancel' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!--
+    <ui-box-collapse *ngIf="utente && _classi_utente && !_spin"
+      [opened]="true"
+      [id]="'utente-authorizations'"
+      [title]="'APP.USERS.LABEL.UserClasses' | translate"
+      [subTitle]="''"> 
+      <pre>{{ _classi_utente | json }}</pre>
+    </ui-box-collapse>
+    -->
+
+  </section>
+</div>

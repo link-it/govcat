@@ -1,0 +1,70 @@
+{
+  "itemRow": {
+    "avatar": { "field": "logo", "type": "avatar-image", "mode": "cover", "alt": "nome" },
+    "primaryText": [
+      { "field": "nome", "type": "text", "emptySpace": true },
+      { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+      { "field": "versione", "type": "text", "options": "status", "badged": true }
+    ],
+    "secondaryText": [
+      { "field": "stato", "type": "label", "options": "status" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "descrizione_sintetica", "type": "text", "truncate": 160 }
+      ],
+      "label": [
+      ]
+    },
+    "secondaryMetadata": [
+      { "field": "visibilita", "type": "tag", "options": "visibility", "default": "nd", "hideAnonymous": true }
+    ]
+  },
+
+  "details": [
+    { "label": "APP.LABEL.ServiceName", "field": "nome", "type": "text" },
+    { "label": "APP.LABEL.versione", "field": "versione", "type": "tag", "options": "status", "badged": true },
+    { "label": "APP.LABEL.Description", "field": "descrizione", "type": "text" },
+    { "label": "APP.LABEL.Domain", "field": "group", "type": "text" },
+    { "label": "APP.LABEL.ApplicantFirstName", "field": "richiedente.first_name", "type": "text" },
+    { "label": "APP.LABEL.ApplicantLastName", "field": "richiedente.last_name", "type": "text" },
+    { "label": "APP.LABEL.stato", "field": "stato", "type": "tag", "options": "status", "badged": true },
+    { "label": "APP.LABEL.visibilita", "field": "visibilita", "type": "tag", "options": "visibility", "badged": true },
+    { "label": "APP.LABEL.CreationDate", "field": "data_creazione", "type": "date", "format": "DD-MM-YYYY" },
+    { "label": "APP.LABEL.Logo", "field": "image", "type": "image" }
+  ],
+
+  "options": {
+    "status": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {
+        "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "richiesto_collaudo": { "label": "APP.WORKFLOW.STATUS.richiesto_collaudo", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
+        "autorizzato_collaudo": { "label": "APP.WORKFLOW.STATUS.autorizzato_collaudo", "background": "#d4d700", "border": "#d4d700", "color": "#1f1f1f" },
+        "in_configurazione_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_collaudo", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" },
+        "pubblicato_collaudo": { "label": "APP.WORKFLOW.STATUS.pubblicato_collaudo", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
+        "richiesto_produzione": { "label": "APP.WORKFLOW.STATUS.richiesto_produzione", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+        "autorizzato_produzione": { "label": "APP.WORKFLOW.STATUS.autorizzato_produzione", "background": "#10cc99", "border": "#10cc99", "color": "#1f1f1f" },
+        "in_configurazione_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_produzione", "background": "#38a3a5", "border": "#38a3a5", "color": "#1f1f1f" },
+        "pubblicato_produzione": { "label": "APP.WORKFLOW.STATUS.pubblicato_produzione", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },        
+        "archiviato": { "label": "APP.WORKFLOW.STATUS.archiviato", "background": "#242F40", "border": "#242F40", "color": "#ffffff" }
+      }
+    },
+
+    "visibility": {
+      "label": "APP.LABEL.Visibility",
+      "small": true,
+      "values": {
+        "nd": { "label": "nd", "background": "#ffffff", "border": "#ffffff", "color": "#ffffff" },
+        "pubblico": { "label": "APP.VISIBILITY.public", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
+        "pubblico_dominio": { "label": "APP.VISIBILITY.pubblico_dominio", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
+        "privato": { "label": "APP.VISIBILITY.privato", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
+        "privato_dominio": { "label": "APP.VISIBILITY.privato_dominio", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
+        "riservato": { "label": "APP.VISIBILITY.riservato", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
+        "riservato_dominio": { "label": "APP.VISIBILITY.riservato_dominio", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
+        "componente": { "label": "APP.VISIBILITY.componente", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" }
+      }
+    }
+  }
+}

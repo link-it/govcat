@@ -1,0 +1,338 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.SOGGETTI.TITLE.EditSubject' | translate }}</h3>
+    <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.SOGGETTI.TITLE.NewSubject' | translate }}</h3>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
+      <div class="nav-controls align-self-center d-flex">
+
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" [routerLink]="['verifiche']" *ngIf="_updateMapper | mapper:_hasVerifica">
+          {{ 'APP.USERS.BUTTON.Check' | translate }}
+        </button>
+
+        <div class="position-relative" *ngIf="!_isEdit && !_spin">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditSubject' | translate" (click)="_editSoggetto()">
+            <i class="bi bi-pencil"></i>
+          </button>
+        </div>
+        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
+          <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
+            <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+              <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+                <div class="gl-new-dropdown-inner">
+                  <div class="gl-new-dropdown-contents">
+                    <li role="presentation" class="gl-new-dropdown-item">
+                      <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteSoggetto()">
+                        <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                          <i class="bi bi-trash text-danger"></i>
+                        </div>
+                        <div class="gl-new-dropdown-item-text-wrapper">
+                          <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.DeleteSubject' | translate }}</p>
+                        </div>
+                      </button>
+                    </li>
+                  </div>
+                </div>
+              </ul>
+            </div>
+          </div>
+        <!-- </ng-template> -->
+        <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+    <!-- </ng-template> -->
+  </div>
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
+    <ui-box-message *ngIf="!soggetto && !_spin && !_isNew"
+      [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate"
+      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings" *ngIf="(soggetto && !_spin) || _isNew">
+      <div class="settings-content">
+        <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
+          {{ _errorMsg }}
+        </div>
+
+        <div class="edit-form">
+          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
+            <div class="row gl-mt-3">
+              <div class="col-lg-4 mb-4">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.SOGGETTI.TITLE.GeneralInformations' | translate }}</h4>
+                <div class="text-break" markdown>{{ 'APP.SOGGETTI.TITLE.GeneralInformations_sub' | translate }}</div>
+              </div>
+              <div class="col-lg-8">
+
+                <div class="row nome">
+                  <!-- nome -->
+                  <div class="col-8">
+                    <div class="form-group">
+                      <label class="label-bold" for="nome">{{ 'APP.SOGGETTI.LABEL.Name' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">
+                        <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern: f['nome'].errors['pattern'].requiredPattern } }}</span>
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="nome" context="SOGGETTI"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="nome" [value]="soggetto.nome">
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+
+                <div class="row descrizione">
+                  <!-- descrizione -->
+                  <div class="col-8">
+                    <div class="form-group">
+                      <label class="label-bold" for="descrizione">{{ 'APP.SOGGETTI.LABEL.Description' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'" *ngIf="_isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione">
+                        <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.PrincipalPattern' | translate }}</span>
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="descrizione" context="SOGGETTI"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="descrizione" [value]="soggetto.descrizione || '--'">
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+
+                <div class="row organizzazione.nome">
+                  <div class="col-8">
+                    <div class="form-group">
+                      <label class="label-bold" for="organizzazione">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'organizzazione'" *ngIf="_isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('organizzazione')"
+                          [items]="organizzazioni$ | async"
+                          [trackByFn]="trackByFn"
+                          [typeahead]="organizzazioniInput$"
+                          [minTermLength]="minLengthTerm" 
+                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                          bindValue="id_organizzazione"
+                          bindLabel="organizzazione"
+                          labelForId="id_organizzazione"
+                          [editableSearchTerm]="true"
+                          formControlName="organizzazione"
+                          (change)="_onOrganizzazioneLoaded($event)">
+                          <ng-template ng-label-tmp let-item="item">
+                            {{ item.nome }}
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                            <div class="fw-bold">{{ item.nome }}</div>
+                            <!-- <div class="">
+                              <span class="small text-muted">{{ item.nome }} - {{ item.id_organizzazione }}</span>
+                            </div> -->
+                          </ng-template>
+                        </ng-select>
+                        <p *ngIf="f['organizzazione'].invalid && (f['organizzazione'].dirty || f['organizzazione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['organizzazione'].errors && f['organizzazione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="organizzazione" context="SOGGETTI"></ui-input-help>
+                      </div>
+                      <div class="form-group" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="organizzazione" [value]="soggetto.organizzazione.nome">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row aderente" *ngIf="_showAderente">
+                  <!-- aderente -->
+                  <div class="form-group col-md-6 mb-2">
+                    <label class="label-bold" for="aderente">{{ 'APP.SOGGETTI.LABEL.Aderente' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'aderente'" *ngIf="_isEdit"></span>
+                    </label>
+
+                    <div class="" *ngIf="_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="soggetto?.aderente" (click)="_changeAderente($event)" [disabled]="soggetto.vincola_aderente && soggetto.aderente">
+                        <!-- <label class="form-check-label" for="aderente">{{ 'APP.SOGGETTI.LABEL.Aderente' | translate }}</label> -->
+                      </div>
+                      <p *ngIf="f['aderente'].invalid && (f['aderente'].dirty || f['aderente'].touched)" class="form-text text-danger">
+                        <span *ngIf="f['aderente'].errors && f['aderente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      </p>
+                      <ui-input-help field="aderente" context="SOGGETTI"></ui-input-help>
+                    </div>
+                    <div class="" *ngIf="!_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="soggetto.aderente" (click)="_changeAderente($event)" disabled>
+                        <!-- <label class="form-check-label" for="aderente">{{ 'APP.SOGGETTI.LABEL.Aderente' | translate }}</label> -->
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+
+                <div class="row referente"  *ngIf="_showReferente">
+                  <!-- referente -->
+                  <div class="form-group col-md-6 mb-2">
+                    <label class="label-bold" for="referente">{{ 'APP.SOGGETTI.LABEL.Referente' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'" *ngIf="_isEdit"></span>
+                    </label>
+                    <div class="" *ngIf="_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="soggetto?.referente" (click)="_changeReferente($event)" [disabled]="soggetto.vincola_referente && soggetto.referente">
+                        <!-- <label class="form-check-label" for="referente">{{ 'APP.SOGGETTI.LABEL.Referente' | translate }}</label> -->
+                      </div>
+                      <p *ngIf="f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)" class="form-text text-danger">
+                        <span *ngIf="f['referente'].errors && f['referente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      </p>
+                      <ui-input-help field="referente" context="SOGGETTI"></ui-input-help>
+                    </div>
+                    <div class="" *ngIf="!_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="soggetto.referente" (click)="_changeReferente($event)" disabled>
+                        <!-- <label class="form-check-label" for="referente">{{ 'APP.SOGGETTI.LABEL.Referente' | translate }}</label> -->
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+    
+                <div class="row" *ngIf="_profiloGatewayAbilitato">
+                  <div class="col-12">
+                    <div class="form-group nome_gateway">
+                      <label class="label-bold" for="nome_gateway">{{ 'APP.LABEL.nome_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome_gateway'" *ngIf="_isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway">
+                        <p *ngIf="f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome_gateway'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="nome_gateway" context="API"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="nome_gateway" [value]="soggetto?.nome_gateway || '-'">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="form-group tipo_gateway">
+                      <label class="label-bold" for="tipo_gateway">{{ 'APP.LABEL.tipo_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tipo_gateway'" *ngIf="_isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <!-- <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('tipo_gateway')" type="text" name="tipo_gateway" id="tipo_gateway" formControlName="tipo_gateway" disablePermission> -->
+                        <select class="form-select form-control-sm" name="tipo_gateway" formControlName="tipo_gateway" id="tipo_gateway">
+                          <option value="">{{ '-' | translate }}</option>
+                          <option *ngFor="let tipo of _listaProfiliGateway" [value]="tipo">{{ tipo }}</option>
+                        </select>
+                        <p *ngIf="f['tipo_gateway'].invalid && (f['tipo_gateway'].dirty || f['tipo_gateway'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['tipo_gateway'].errors && f['tipo_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['tipo_gateway'].errors && f['tipo_gateway'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
+                        </p>
+                        <ui-input-help field="tipo_gateway" context="API"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="tipo_gateway" [value]="soggetto?.tipo_gateway || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="row gl-mt-3">
+              <div class="col-lg-4 mb-5">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.DOMINI.TITLE.UrlInvocazione' | translate }}</h4>
+                <div class="text-break" markdown>{{ 'APP.DOMINI.TITLE.UrlInvocazione_sub' | translate }}</div>
+              </div>
+              <div class="col-lg-8">
+                <div class="row">
+                  <div class="col-12"> 
+                    <div class="form-group">
+                      <label class="label-bold" for="url_invocazione">{{ 'APP.DOMINI.LABEL.UrlInvocazione' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_invocazione'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_invocazione')" type="text" name="url_invocazione" id="url_invocazione" formControlName="url_invocazione">
+                        <p *ngIf="f['url_invocazione'].invalid && (f['url_invocazione'].dirty || f['url_invocazione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['url_invocazione'].errors && f['url_invocazione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="url_invocazione" context="SOGGETTO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="url_invocazione" [value]="soggetto.url_invocazione || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="url_prefix_collaudo">{{ 'APP.DOMINI.LABEL.UrlPrefixCollaudo' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_prefix_collaudo'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_collaudo')" type="text" name="url_prefix_collaudo" id="url_prefix_collaudo" formControlName="url_prefix_collaudo">
+                        <p *ngIf="f['url_prefix_collaudo'].invalid && (f['url_prefix_collaudo'].dirty || f['url_prefix_collaudo'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['url_prefix_collaudo'].errors && f['url_prefix_collaudo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="url_prefix_collaudo" context="SOGGETTO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="url_prefix_collaudo" [value]="soggetto.url_prefix_collaudo || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="url_prefix_produzione">{{ 'APP.DOMINI.LABEL.UrlPrefixProduzione' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_prefix_collaudo'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_produzione')" type="text" name="url_prefix_produzione" id="url_prefix_produzione" formControlName="url_prefix_produzione">
+                        <p *ngIf="f['url_prefix_produzione'].invalid && (f['url_prefix_produzione'].dirty || f['url_descrizione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['url_prefix_produzione'].errors && f['url_prefix_produzione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="url_prefix_produzione" context="SOGGETTO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="url_prefix_produzione" [value]="soggetto.url_prefix_produzione || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
+              {{ _errorMsg }}
+            </div>
+
+            <div class="row-content-block footer-block" *ngIf="_isEdit">
+              <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                {{ 'APP.BUTTON.Save' | translate }}
+              </button>
+              <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                {{ 'APP.BUTTON.Cancel' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>

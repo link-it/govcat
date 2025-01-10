@@ -1,0 +1,98 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+              <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="taxonomies.length">{{ _paging.totalElements || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls align-self-center d-flex">
+      <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="!_spin">
+        <button aria-label="Add payment" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+          <span class="material-icons-outlined">add</span> <span class="ms-2">{{ 'APP.BUTTON.AddTaxonomy' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-google-form #searchGoogleForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="model"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [useCondition]="useCondition"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          [simple]="true"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search class="search-material-custom">
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+
+                <div class="row mb-1">
+                  <div class="col-2">
+                    <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                  </div>
+                  <div class="col-10">
+                    <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end pt-4">
+                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                  <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-google-form>
+      </div>
+    </div>
+  </section>
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false">
+    <div class="row">
+      <ui-box-message *ngIf="taxonomies.length == 0 && !_spin"
+        [size]="64"
+        [icon]="'report_problem'"
+        [image]="'./assets/images/illustrations/taxonomies.svg'"
+        [message]="_message | translate"
+        [subMessage]="_messageHelp | translate">
+      </ui-box-message>
+
+      <div class="row">
+        <div class="col-12">
+          <ui-item-row class="border-bottom" *ngFor="let item of taxonomies"
+            [data]="item"
+            [config]="taxonomiesConfig"
+            [hasLink]="true"
+            (itemClick)="_onEdit($event, item)">
+          </ui-item-row>
+        </div>
+      </div>
+
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+    </div>
+  </section>
+</div>

@@ -1,0 +1,109 @@
+<div id="route-section" class="">
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      <!-- <div class="position-relative" *ngIf="service">
+        <app-back-web [service_id]="service.id_servizio"></app-back-web>
+      </div> -->
+    </div>
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters" *ngIf="!_spin">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav-">
+          <ng-container class="nav-item" *ngFor="let tab of tabs">
+            <li class="nav-item" *ngIf="tab.enabled">
+              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === tab.link" (click)="_onTabs(tab.link)">
+                <span>{{ tab.label | translate }}</span>
+              </a>
+            </li>
+          </ng-container>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls">
+    </div>
+  </div>
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
+    <ui-box-message *ngIf="!data && !_spin && !_isNew"
+      [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate"
+      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings" *ngIf="(data && !_spin) || _isNew">
+      <div class="settings-content">
+
+        <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
+          {{ _errorMsg }}
+        </div>
+
+        <div class="" [hidden]="_currentTab !== 'InformazioniGenerali'">
+          <ng-container *ngFor="let section of config.sectionsDetails['InformazioniGenerali'];let index = index;">
+            <div class="settings" [class.border-0]="index == 0" *ngIf="(section.code !== 'InvocazioneApi') || (_hasInvocazioneApi && section.code === 'InvocazioneApi')">
+              <div class="row mt-5" [class.justify-content-center]="_isNew || _singleColumn">
+                <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
+                  <h4 class="gl-mt-0 text-break">{{ section.title | translate }}</h4>
+                  <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ section.title_sub | translate }}</div>
+                </div>
+                <div class="settings-content" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                  <!-- <pre>{{ section.details | json }}</pre> -->
+                  <ui-data-view
+                    [data]="data"
+                    [config]="config"
+                    [details]="section.details">
+                  </ui-data-view>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="" [hidden]="_currentTab !== 'InformazioniMittente'">
+          <ng-container *ngFor="let section of config.sectionsDetails['InformazioniMittente'];let index = index;">
+            <div class="settings" [class.border-0]="index == 0" *ngIf="(section.code !== 'Token') || (_hasInformazioniToken && section.code === 'Token')">
+              <div class="row mt-5" [class.justify-content-center]="_isNew || _singleColumn">
+                <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
+                  <h4 class="gl-mt-0 text-break">{{ section.title | translate }}</h4>
+                  <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ section.title_sub | translate }}</div>
+                </div>
+                <div class="settings-content" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                  <!-- <pre>{{ section.details | json }}</pre> -->
+                  <ui-data-view
+                    [data]="data"
+                    [config]="config"
+                    [details]="section.details">
+                  </ui-data-view>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="" [hidden]="_currentTab !== 'DettaglioMessaggio'">
+          <ng-container *ngFor="let section of config.sectionsDetails['DettaglioMessaggio'];let index = index;">
+            <div class="settings" [class.border-0]="index == 0">
+              <div class="row mt-5" [class.justify-content-center]="_isNew || _singleColumn">
+                <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
+                  <h4 class="gl-mt-0 text-break">{{ section.title | translate }}</h4>
+                  <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ section.title_sub | translate }}</div>
+                </div>
+                <div class="settings-content" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                  <!-- <pre>{{ section.details | json }}</pre> -->
+                  <ui-data-view
+                    [data]="data"
+                    [config]="config"
+                    [details]="section.details">
+                  </ui-data-view>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>

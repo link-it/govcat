@@ -1,0 +1,126 @@
+.app-body {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow-x: hidden;
+  min-height: 100vh;
+
+  .main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .bg-login {
+    background-color: var(--login-back-color, #4eb9ad);
+  }
+}
+
+.input-group-text {
+  background-color: #e9ecef;
+  border: 1px solid #868686;
+}
+
+.help-block {
+  font-size: .8rem;
+}
+
+// gl
+
+.navless-container {
+  margin-top: var(--header-height, 40px);
+  padding-top: 32px;
+}
+
+.fixed-top {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1030;
+}
+
+.navbar-empty {
+  justify-content: center;
+  height: var(--header-height, 40px);
+  background: #fff;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.login-page .container {
+  max-width: 960px !important;
+}
+
+.login-page .flash-container {
+  margin-bottom: 16px;
+  position: relative;
+  top: 8px;
+}
+
+.login-page .login-box,
+.login-page .omniauth-container {
+  box-shadow: 0 0 0 1px #dbdbdb;
+  border-radius: .25rem;
+}
+
+.login-page .brand-holder {
+  font-size: 18px;
+  line-height: 1.5;
+  text-align: center;
+  padding-top: 70px;
+}
+
+.login-page .brand-holder img {
+  max-width: 100%;
+  margin-bottom: 30px;
+}
+
+.login-page header img {
+  height: 32px;
+  width: auto;
+}
+
+.flash-container.sticky {
+  position: sticky;
+  top: 48px;
+  z-index: 251;
+}
+
+.login-page .flash-container {
+  margin-bottom: 16px;
+  position: relative;
+  top: 8px;
+}
+
+.flash-container .flash-alert,
+.flash-container .flash-notice,
+.flash-container .flash-success,
+.flash-container .flash-warning {
+  position: relative;
+  padding: 16px;
+  margin-top: 10px;
+}
+
+.flash-container .flash-alert {
+  background-color: #fcf1ef;
+}
+
+.flash-container .close-icon-wrapper {
+  padding: 16px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  cursor: pointer;
+}
+
+.login-page .submit-container {
+  margin-top: 16px;
+}
+
+.flash-container {
+  padding-bottom: 65px;
+}
+
+.navless-container {
+  padding: 0 15px 65px;
+}

@@ -1,0 +1,56 @@
+<div #wsdlui id="wsdlui" class="wsdl-ui d-block" *ngIf="api">
+  <!-- <pre>{{ api | json }}</pre> -->
+  <ng-container *ngIf="!_risorse && !_hasSpecifica && !_loading">
+    <div class="px-5 py-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</div>
+  </ng-container>
+  <ng-container *ngIf="!_risorse && _hasSpecifica && !_loading">
+    <div class="px-5 py-5 text-center">{{ 'APP.MESSAGE.NoResources' | translate }}</div>
+  </ng-container>
+  <ng-container *ngIf="_loading">
+    <div class="px-5 py-5 text-center"><span class="spinner-border spinner-border-sm"></span></div>
+  </ng-container>
+  <ng-container *ngFor="let item of _risorse;let index = index;">
+    <div class="accordion accordion-flush rounded-0" id="item-{{ index }}">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" [attr.data-bs-target]="'#collapse-' + index">
+            {{ item.port_type }}
+          </button>
+        </h2>
+        <div id="collapse-{{ index }}" class="accordion-collapse collapse show"> <!-- [attr.data-bs-parent]="'#item-' + index" -->
+          <div class="accordion-body">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th scope="col" class="text-center">{{ 'APP.WSDL.LABEL.Operation' | translate }}</th>
+                  <th scope="col" class="text-center">{{ 'APP.WSDL.LABEL.Pattern' | translate }}</th>
+                  <th scope="col" class="text-center">{{ 'APP.WSDL.LABEL.SOAPAction' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngIf="item.operations?.length === 0">
+                  <tr>
+                    <td class="text-center" [colSpan]="3">{{ 'APP.MESSAGE.NoOperations' | translate }}</td>
+                  </tr>
+                </ng-container>
+                <ng-container *ngFor="let operation of item.operations">
+                  <tr class="text-bg-light">
+                    <th scope="row">
+                      <span class="opblock-tag">{{ operation.nome }}</span>
+                    </th>
+                    <td class="text-center">
+                      <span class="opblock-tag">{{ operation.messaggio }}</span>
+                    </td>
+                    <td class="text-center text-break">
+                      <span class="opblock-tag">{{ operation.soap_action }}</span>
+                    </td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

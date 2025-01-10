@@ -1,0 +1,60 @@
+<div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+  <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="monitor_actions">
+    <i class="bi bi-three-dots-vertical"></i>
+  </button>
+  <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+    <div class="gl-new-dropdown-inner">
+      <div class="gl-new-dropdown-contents">
+        <ng-container *ngIf="_menuActions.length">
+          <ng-container *ngFor="let menu of _menuActions">
+            <ng-container *ngIf="menu.enabled">
+              <ng-container [ngSwitch]="menu.type">
+                <ng-container *ngSwitchCase="'divider'">
+                  <li class="gl-new-dropdown-divider">
+                    <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+                  </li>
+                </ng-container>
+                <ng-container *ngSwitchCase="'submenu'">
+                  <li class="pt-2 gl-dropdown-item">
+                    <label class="label-bold gl-px-4! mb-2">{{ menu.title | translate }}</label>
+                  </li>
+                  <ng-container *ngFor="let submenu of menu.submenus">
+                    <ng-container *ngIf="submenu.enabled">
+                      <li class="gl-new-dropdown-item">
+                        <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(submenu);">
+                          <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="submenu.icon">
+                            <i class="bi bi-{{ submenu.icon }}"></i>
+                          </div>
+                          <div class="gl-new-dropdown-item-text-wrapper">
+                            <p class="gl-new-dropdown-item-text-primary">{{ submenu.title | translate }}</p>
+                          </div>
+                        </button>
+                      </li>
+                    </ng-container>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="'label'">
+                  <li class="pt-2 gl-dropdown-item">
+                    <label class="label-bold gl-px-4! mb-2">{{ menu.title | translate }}</label>
+                  </li>
+                </ng-container>
+                <ng-container *ngSwitchDefault>
+                  <li class="gl-new-dropdown-item">
+                    <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(menu);">
+                      <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="menu.icon">
+                        <i class="bi bi-{{ menu.icon }}"></i>
+                      </div>
+                      <div class="gl-new-dropdown-item-text-wrapper">
+                        <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
+                      </div>
+                    </button>
+                  </li>
+                </ng-container>
+              </ng-container>
+            </ng-container>   
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </ul>
+</div>

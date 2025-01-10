@@ -1,0 +1,59 @@
+{
+  "simpleItem": {
+    "primaryText": [
+      { "field": "nome", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "visibilita", "type": "label", "options": "status" }
+    ],
+    "metadata": {
+      "text": [],
+      "label": []
+    },
+    "secondaryMetadata": [
+      { "field": "deprecato", "type": "tag", "options": "deprecato" }
+    ]
+  },
+
+  "itemRow": {
+    "primaryText": [
+      { "field": "nome", "type": "text"}
+    ],
+    "secondaryText": [
+      { "field": "visibilita", "type": "label", "options": "visibilita" }
+    ],
+    "metadata": {
+      "text": [ { "field": "soggetto_referente.nome", "type": "text", "tooltip": "subscriber" }],
+      "label": []
+    },
+    "secondaryMetadata": [
+      { "field": "deprecato", "type": "tag", "options": "deprecato" }
+    ]
+  },
+
+  "details": [
+    { "label": "APP.DOMINI.LABEL.Name", "field": "nome", "type": "text" },
+    { "label": "APP.DOMINI.LABEL.Visibility", "field": "visibilita", "type": "text" },
+    { "label": "APP.DOMINI.LABEL.ReferentSubject", "field": "soggetto_referente.nome", "type": "text"}
+  ],
+
+  "options": {
+    "visibilita": {
+      "label": "APP.DOMINI.LABEL.Visibility",
+      "small": true,
+      "values": {        
+        "pubblico": { "label": "APP.DOMINI.LABEL.Public", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
+        "riservato": { "label": "APP.DOMINI.LABEL.Reserved", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "privato": { "label": "APP.DOMINI.LABEL.Private", "background": "#dd2b0e", "border": "#dd2b0e", "color": "#ffffff" }
+      }
+    },
+    "deprecato": {
+      "label": "APP.DOMINI.LABEL.Deprecato",
+      "small": true,
+      "values": {
+        "true": { "label": "APP.DOMINI.LABEL.Deprecato", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "false": { "label": "", "background": "#ffffff", "border": "#ffffff", "color": "#ffffff" }
+      }
+    }
+  }
+}

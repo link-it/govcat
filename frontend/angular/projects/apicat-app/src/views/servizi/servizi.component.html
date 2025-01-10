@@ -1,0 +1,489 @@
+<div id="route-section" class="">
+    <div class="breadcrumbs-area container-fluid px-0" [class.container-limited]="_contentLimeted">
+        <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="_groupsView" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    </div>
+    <div class="top-area container-fluid px-0" [class.container-limited]="_contentLimeted">
+        <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
+            <div class="">
+                <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav" *ngIf="!_groupsView">
+                <li class="nav-item">
+                    <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()">
+                        <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || 0 }}</span>
+                    </a>
+                </li>
+                </ul>
+            </div>
+            <div class="nav-controls align-self-center" *ngIf="!_production && _groupsView">
+                <div role="group" class="btn-group">
+                    <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showImage" (click)="_showImage = !_showImage;refresh();">
+                        <i class="bi bi-image"></i><span class="ms-2 d-none d-lg-block">Show Image</span>
+                    </button>
+                    <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showEmptyImage" (click)="_showEmptyImage = !_showEmptyImage;refresh();">
+                        <i class="bi bi-square"></i><span class="ms-2 d-none d-lg-block">Show Empty Image</span>
+                    </button>
+                    <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.disabled]="_showMasonry" [class.btn-confirm]="_fillBox" (click)="_fillBox = !_fillBox;refresh();">
+                        <i class="bi bi-arrows-fullscreen"></i><span class="ms-2 d-none d-lg-block">Fill Box</span>
+                    </button>
+                </div>
+                <div role="group" class="btn-group ms-1">
+                    <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showMasonry" (click)="_showMasonry = !_showMasonry;_showEmptyImage = false;refresh();">
+                        <i class="bi bi-columns-gap"></i><span class="ms-2 d-none d-lg-block">Show Masonry</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="nav-controls align-self-center d-flex">
+            <!-- <div role="group" class="btn-group ms-3 me-5" *ngIf="!_production">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="numColoms" [checked]="_col === 4" (click)="_toggleCols()">
+                    <label class="form-check-label" for="numColoms">{{ '3 Col' | translate }}</label>
+                </div>
+            </div> -->
+            <!-- <div role="group" class="btn-group me-5" *ngIf="!_production">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="searchUI" [checked]="_useNewSearchUI" (click)="_toggleSearchUI()">
+                    <label class="form-check-label" for="searchUI">{{ 'New Search UI' | translate }}</label>
+                </div>
+            </div> -->
+            <div role="group" class="btn-group me-5" *ngIf="!_production">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="groupsView" [checked]="_groupsView" (click)="_toggleGroups()" disabled>
+                    <label class="form-check-label" for="groupsView">{{ 'Groups' | translate }}</label>
+                </div>
+            </div>
+            <div role="group" class="btn-group me-4" *ngIf="_updateMapper | mapper:_hasMyServiceMapper">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="myServices" [checked]="_isMyServices" (click)="_onMyServices()">
+                    <label class="form-check-label" for="myServices">{{ 'APP.LABEL.MyServices' | translate }}</label>
+                </div>
+            </div>
+            <div role="group" class="btn-group- me-2" *ngIf="elementsSelected.length && !uncheckAllInTheMenu">
+                <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="deselectAll()">
+                    {{ 'APP.BUTTON.DeselectAll' | translate }}
+                </button>
+            </div>
+            <div role="group" class="btn-group- me-2" *ngIf="hasMultiSelection && !_groupsView">
+                <div role="group" class="btn-group- d-inline-block" *ngIf="!_isEdit">
+                    <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="export">
+                        <button type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" id="export-actions">
+                            <i class="bi bi-download"></i>
+                            <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
+                            <i class="bi bi-chevron-down ms-2"></i>
+                        </button>
+                        <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                            <div class="gl-new-dropdown-inner">
+                                <div class="gl-new-dropdown-contents">
+                                    <li class="pt-2 gl-dropdown-item">
+                                        <label class="label-bold gl-px-4! mb-2">{{ 'APP.MENU.EsportServiceSubscriptions' | translate }}</label>
+                                    </li>
+                                    <li class="gl-new-dropdown-item">
+                                        <button role="menuitem" type="button" class="dropdown-item" (click)="_onExport('search')">
+                                            <!-- <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </div> -->
+                                            <div class="gl-new-dropdown-item-text-wrapper me-0">
+                                                <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
+                                                    <span>{{ 'APP.MENU.EsportSearch' | translate }}</span>
+                                                    <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ _allElements }}</span>
+                                                </p>
+                                            </div>
+                                        </button>
+                                    </li>
+                                    <li class="gl-new-dropdown-item">
+                                        <button role="menuitem" type="button" class="dropdown-item" (click)="_onExport('selection')" [disabled]="elementsSelected.length === 0">
+                                            <!-- <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </div> -->
+                                            <div class="gl-new-dropdown-item-text-wrapper me-0">
+                                                <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
+                                                    <span>{{ 'APP.MENU.EsportSelected' | translate }}</span>
+                                                    <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ elementsSelected.length }}</span>
+                                                </p>
+                                            </div>
+                                        </button>
+                                    </li>
+                                    <li class="gl-new-dropdown-divider" *ngIf="elementsSelected.length && uncheckAllInTheMenu">
+                                        <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+                                    </li>
+                                    <li class="gl-new-dropdown-item" *ngIf="elementsSelected.length && uncheckAllInTheMenu">
+                                        <button role="menuitem" type="button" class="dropdown-item" (click)="deselectAll()">
+                                            <div class="gl-new-dropdown-item-text-wrapper me-0">
+                                                <p class="gl-new-dropdown-item-text-primary d-flex justify-content-start">
+                                                    <span>{{ 'APP.MENU.DeselectAll' | translate }}</span>
+                                            </div>
+                                        </button>
+                                    </li>
+                                </div>
+                            </div>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div role="group" class="btn-group-">
+                <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroups()">
+                    <i class="bi bi-list-task" *ngIf="_groupsView"></i>
+                    <i class="bi bi-grid" *ngIf="!_groupsView && !_showMasonry"></i>
+                    <i class="bi bi-columns-gap" *ngIf="!_groupsView && _showMasonry"></i>
+                </button>
+            </div>
+            <div role="group" class="btn-group- ms-1" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
+                <div role="group" class="btn-group- d-inline-block" *ngIf="!_isEdit">
+                <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                        <div class="gl-new-dropdown-inner">
+                            <div class="gl-new-dropdown-contents">
+                                <li class="gl-new-dropdown-item">
+                                    <button role="menuitem" type="button" class="dropdown-item" (click)="_onNew()">
+                                        <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </div>
+                                        <div class="gl-new-dropdown-item-text-wrapper">
+                                            <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.AddService' | translate }}</p>
+                                        </div>
+                                    </button>
+                                </li>
+                            </div>
+                        </div>
+                    </ul>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <section class="search-bar container-fluid px-0" [class.container-limited]="_contentLimeted" *ngIf="_hasFilter">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <ui-search-google-form #searchGoogleForm
+                    [classBlock]="''"
+                    [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+                    [showHistory]="showHistory"
+                    [historyStore]="model"
+                    [showSearch]="showSearch"
+                    [searchFields]="searchFields"
+                    [useCondition]="useCondition"
+                    [showSorting]="showSorting"
+                    [sortField]="sortField"
+                    [sortDirection]="sortDirection"
+                    [sortFields]="sortFields"
+                    [formGroup]="_formGroup"
+                    [simple]="false"
+                    (onSearch)="_onSearch($event)"
+                    (onSort)="_onSort($event)"
+                >
+                    <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
+                        <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+                            <fieldset>
+                                <!-- <div class="row mb-1">
+                                <div class="col-2">
+                                    <label class="col-form-label">{{ 'APP.LABEL.Date' | translate }}</label>
+                                </div>
+                                <div class="col-sm-10 col-lg-6">
+                                    <div class="d-flex justify-content-between">
+                                    <div class="flex-fill d-flex">
+                                        <label for="creationDateFrom" class="col-form-label me-3">{{ 'APP.LABEL.From' | translate }}</label>
+                                        <input type="date" class="form-control form-control-sm" id="creationDateFrom" formControlName="creationDateFrom">
+                                    </div>
+                                    <div class="flex-fill d-flex">
+                                        <label for="creationDateTo" class="col-form-label mx-3">{{ 'APP.LABEL.To' | translate }}</label>
+                                        <input type="date" class="form-control form-control-sm" id="creationDateTo" formControlName="creationDateTo">
+                                    </div>
+                                    </div>
+                                </div>
+                                </div> -->
+                                <div class="row mb-1">
+                                    <div class="col-sm-2">
+                                        <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-12 col-md-6">
+                                        <div class="row mb-1">
+                                            <div class="col-sm-4">
+                                                <label class="col-form-label col-form-label-fix" for="stato">{{ 'APP.LABEL.stato' | translate }}</label>
+                                            </div>
+                                            <div class="col-sm-8 pt-2">
+                                                <select class="form-select form-control-sm" id="stato" formControlName="stato">
+                                                    <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                                                    <option *ngFor="let stato of _workflowStatiFiltered" [value]="stato.value">{{ 'APP.WORKFLOW.STATUS.' + stato.value | translate }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-12 col-md-6" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper )">
+                                        <div class="row mb-1">
+                                            <div class="col-sm-4">
+                                                <label class="col-form-label col-form-label-fix" for="visibilita">{{ 'APP.LABEL.visibilita' | translate }}</label>
+                                            </div>
+                                            <div class="col-sm-8 pt-2">
+                                                <select class="form-select form-control-sm" id="visibilita" formControlName="visibilita">
+                                                    <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                                                    <option *ngFor="let t of _tipiVisibilitaServizio" [value]="t.value">{{ 'APP.VISIBILITY.' + t.label | translate }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-1">
+                                    <div class="col-sm-2">
+                                        <label class="col-form-label col-form-label-fix" for="id_dominio">{{ 'APP.LABEL.id_dominio' | translate }}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                                            [items]="domini$ | async"
+                                            [trackByFn]="trackBySelectFn"
+                                            [typeahead]="dominiInput$"
+                                            [minTermLength]="minLengthTerm" 
+                                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                                            labelForId="id_dominio"
+                                            [editableSearchTerm]="true"
+                                            bindValue="id_dominio"
+                                            formControlName="id_dominio"
+                                            (change)="onChangeSearchDropdwon($event)"
+                                        >
+                                            <ng-template ng-label-tmp let-item="item">
+                                                {{ item?.nome }}
+                                            </ng-template>
+                                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                                <div class="fw-bold">{{ item.nome }}</div>
+                                                <div class="">
+                                                <span class="small text-muted">{{ item.descrizione }}</span>
+                                                </div>
+                                            </ng-template>
+                                        </ng-select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-1">
+                                    <div class="col-sm-2">
+                                        <label class="col-form-label col-form-label-fix" for="id_api">{{ 'APP.LABEL.id_api' | translate }}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                                            [items]="servizioApis$ | async"
+                                            [trackByFn]="trackBySelectFn"
+                                            [typeahead]="servizioApisInput$"
+                                            [minTermLength]="minLengthTerm" 
+                                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                                            labelForId="id_api"
+                                            [editableSearchTerm]="true"
+                                            bindValue="id_api"
+                                            formControlName="id_api"
+                                            (change)="onChangeSearchDropdwon($event)"
+                                        >
+                                            <ng-template ng-label-tmp let-item="item">
+                                                <span *ngIf="item">{{ item.nome }} v.{{ item.versione }} ({{ item.servizio?.dominio?.nome }})</span>
+                                            </ng-template>
+                                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                                <div class="fw-bold">{{ item.nome }} v.{{ item.versione }} ({{ item.servizio.dominio.nome }})</div>
+                                                <div class="">
+                                                <span class="small text-muted">{{ item.descrizione }}</span>
+                                                </div>
+                                            </ng-template>
+                                        </ng-select>
+                                    </div>
+                                </div>
+                                <div class="row mb-1">
+                                    <div class="col-sm-2">
+                                        <label class="col-form-label col-form-label-fix" for="tag">{{ 'APP.LABEL.tags' | translate }}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <ng-select
+                                            [items]="tags$ | async"
+                                            [trackByFn]="trackBySelectFn"
+                                            [typeahead]="tagsInput$"
+                                            [minTermLength]="minLengthTerm" 
+                                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                                            [multiple]="true"
+                                            bindValue="item"
+                                            bindLabel="item"
+                                            labelForId="tag"
+                                            [closeOnSelect]="false"
+                                            formControlName="tag"
+                                        >
+                                            <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                                                <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item }}
+                                            </ng-template>
+                                        </ng-select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-1 gruppo">
+                                    <div class="col-sm-2">
+                                        <label class="col-form-label col-form-label-fix" for="id_gruppo_padre_label">{{ 'APP.LABEL.Gruppo' | translate }}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control form-control-sm cursor-pointer" id="id_gruppo_padre_label" formControlName="id_gruppo_padre_label" readonly (click)="openChoiceGroupModal($event)">
+                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="clearGroup($event)" *ngIf="_formGroup.controls['id_gruppo_padre'].value"><i class="bi bi-x-lg"></i></button>
+                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceGroupModal($event)"><i class="bi bi-collection"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-1" *ngIf="_showTaxonomies">
+                                    <div class="col-sm-2">
+                                        <label class="col-form-label col-form-label-fix" for="categoriaLabel">{{ 'APP.LABEL.Tassonomie' | translate }}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <div class="d-flex flex-row mb-1 pb-1" (click)="openChoiceCategoriesModal($event)">
+                                            <div class="d-flex flex-wrap gap-1 px-0 py-1 cursor-pointer w-100 border-bottom">
+                                                <ui-tassonomia-token class="pb-1" *ngFor="let cat of _listaCategorie"
+                                                    [data]="cat"
+                                                    (delete)="onDeleteCategory($event)"
+                                                ></ui-tassonomia-token>
+                                            </div>
+                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ng-container *ngIf="_showTaxonomies && false">
+                                    <div class="fw-bold mb-2">{{ 'APP.LABEL.Tassonomie' | translate }}</div>
+                                    <div class="row mb-1" *ngFor="let taxonomy of taxonomies">
+                                        <div class="col-sm-2">
+                                            <label class="col-form-label col-form-label-fix text-truncate" for="tag">{{ taxonomy.nome }}</label>
+                                        </div>
+                                        <div class="col-sm-10">
+                                            <div class="input-group mb-3">
+                                                <input type="text" class="form-control form-control-sm cursor-pointer" id="categoriaLabel" formControlName="categoriaLabel" readonly (click)="openChoiceCategoriesModal($event)">
+                                                <input type="text" class="form-control form-control-sm cursor-pointer" id="categoria" formControlName="categoria" [placeholder]="'APP.PLACEHOLDER.SelectCategoria' | translate" hidden (click)="openChoiceCategoriesModal($event)">
+                                                <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag"></i></button>
+                                            </div>
+                                        </div>  
+                                    </div>
+                                </ng-container>
+
+                                <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
+                                    <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                                    <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+                                </div>
+                                <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
+                            </fieldset>
+                        </form>
+                    </div>
+                </ui-search-google-form>
+            </div>
+        </div>
+    </section>
+    <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-limited]="_contentLimeted" [class.container-scroller-no-search]="!_hasFilter" [class.pt-0]="_groupsView && groupsBreadcrumbs.length > 1" [ngStyle]="{ 'margin-top': fullScroll ? 'auto' : 'auto' }"
+        infiniteScroll
+        [infiniteScrollDistance]="2"
+        [infiniteScrollThrottle]="50"
+        (scrolled)="__loadMoreData()"
+        [infiniteScrollContainer]="fullScroll ? '#page-full-scroll-container' : ''"
+        [fromRoot]="fullScroll"
+        [scrollWindow]="false">
+
+        <ui-box-message *ngIf="(elements.length === 0) && (groups.length === 0) && !_spin"
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/'+model+'.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate"
+        ></ui-box-message>
+
+        <ng-container *ngIf="_groupsView">
+            <div class="row justify-content-center">
+                <div class="col-12" [class.col-lg-10-]="viewBoxed" *ngIf="!_showMasonry">
+                    <div class="row" style="padding-right: 8px;">
+                        <div *ngFor="let element of groups" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.dalign-items-stretch]="_fillBox">
+                            <ui-card class="extended" [class.flex-fill]="_fillBox"
+                                [type]="CardType.Extended"
+                                [primaryText]="element.primaryText" 
+                                [secondaryText]="element.secondaryText"
+                                [image]="element.logo"
+                                [showImage]="_showImage"
+                                [showEmptyImage]="_showEmptyImage"
+                                [metadata]="element.metadata"
+                                [backColor]="element.nome | mapper:_getHashColorMapper"
+                                [numberCharLogoText]="numberCharLogoText"
+                                [enabledImageLink]="enabledImageLink"
+                                [cardBs]="true"
+                                [data]="element.source"
+                                [config]="serviziConfig"
+                                [isAnonymous]="_updateMapper | mapper:_isAnonymousMapper"
+                                [showGroupIcon]="showGroupIcon"
+                                [showGroupLabel]="showGroupLabel"
+                                [groupLabel]="'APP.LABEL.Group' | translate"
+                                (simpleClick)="_onEditGroup($event, element)"
+                            ></ui-card>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12" [class.col-lg-10-]="viewBoxed" *ngIf="_showMasonry">
+                    <ngx-masonry class="position-relative" style="padding-right: 0px;"
+                        [options]="masonryOptions"
+                        [ordered]="true"
+                    >
+                        <div class="masonry-item mb-3" ngxMasonryItem [prepend]="false" style="width: 32%;" *ngFor="let element of groups">
+                            <ui-card class="extended" class=""
+                                [type]="CardType.Extended"
+                                [primaryText]="element.primaryText" 
+                                [secondaryText]="element.secondaryText"
+                                [image]="element.logo"
+                                [showImage]="_showImage"
+                                [showEmptyImage]="_showEmptyImage"
+                                [metadata]="element.metadata"
+                                [backColor]="element.nome | mapper:_getHashColorMapper"
+                                [numberCharLogoText]="numberCharLogoText"
+                                [enabledImageLink]="enabledImageLink"
+                                [cardBs]="true"
+                                [data]="element.source"
+                                [config]="serviziConfig"
+                                [isAnonymous]="_updateMapper | mapper:_isAnonymousMapper"
+                                [showGroupIcon]="showGroupIcon"
+                                [showGroupLabel]="showGroupLabel"
+                                [groupLabel]="'APP.LABEL.Group' | translate"
+                                (simpleClick)="_onEditGroup($event, element)"
+                            ></ui-card>
+                        </div>
+                    </ngx-masonry>
+                </div>
+            </div>
+        </ng-container>
+        
+        <ng-container *ngIf="!_groupsView">
+            <div class="row">
+                <div class="col-12">
+                    <form>
+                        <ng-container *ngFor="let element of elements">
+                            <div class="px-2 border-bottom">
+                                <div class="d-flex flex-column flex-md-row align-md-items-center">
+                                    <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection">
+                                        <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100">
+                                            <!-- <div class="notification-list-item-unread-indicator circle d-none d-md-block" [ngStyle]="{'margin-top': hasMultiSelection ? '0px' : '10px'}"></div> -->
+                                            <label class="ps-2 py-2 mb-0 clearfix" *ngIf="hasMultiSelection">
+                                                <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [value]="element.id" autocomplete="off" (click)="_onSelect($event, element)">
+                                            </label>
+                                        </div>
+                                        <ui-item-row class="flex-fill"
+                                            [data]="element"
+                                            [config]="serviziConfig"
+                                            [hasLink]="true"
+                                            [hostBackground]="'transparent'"
+                                            [isAnonymous]="_updateMapper | mapper:_isAnonymousMapper"
+                                            (itemClick)="_onEdit($event, element)"
+                                        ></ui-item-row>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                    </form>
+                </div>
+            </div>
+        </ng-container>
+
+        <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+    </section>
+</div>

@@ -1,0 +1,87 @@
+<ng-container *ngIf="compact">
+  <div class="d-flex flex-row align-items-center">
+    <div class="flex-grow-1 p-3">
+      <span class="fw-bold-600">{{ api.nome }} v.{{ api.versione }}</span>
+      <span class="ms-2" *ngIf="_showVesaDetails && !(_vesaEsito | mapper:_isValidOkMapper)">({{ 'APP.VERIFY.TITLE.ErogataDa' | translate }})</span>
+    </div>
+    <div class="box-status" [class.cursor-pointer]="showInfo && !(_vesaEsito | mapper:_isValidOkMapper)" (click)="_onVesaDetails($event, _vesaEsito)">
+      <span class="spinner-border spinner-border-sm" *ngIf="_loading"></span>
+      <span class="badge badge-pill bg-{{ _vesaEsito | mapper:_getColorMapper }}- fs-9 d-block-" [style.background-color]="_vesaEsito | mapper:_getColorHexMapper" *ngIf="!_loading">
+        {{ (_vesaEsito | mapper:_getLabelMapper) | translate }}<span class="bi" [class.ms-1]="_vesaEsito.esito" [style.color]="_vesaEsito | mapper:_getColorLabelHexMapper" [class.bi-chevron-down]="!_showVesaDetails" [class.bi-chevron-up]="_showVesaDetails" *ngIf="showInfo && !(_vesaEsito | mapper:_isValidOkMapper)"></span>
+      </span>
+    </div>
+  </div>
+  <ng-container class="ms-3" *ngFor="let item of _vesa">
+    <div [id]="uid" class="scroll-shadows" *ngIf="_showVesaDetails && !(_vesaEsito | mapper:_isValidOkMapper)">
+      <div class="ms-3">
+        <div [id]="item.uid" class="d-flex flex-row align-items-center py-3 border-top" [class.ms-3]="provider" [class.pb-3]="provider" [class.border-bottom]="provider" [class.mb-2]="provider">
+          <div class="flex-grow-1">
+            <span class="ms-2">{{ item.adhesion.soggetto.nome }}</span>
+          </div>
+          <div class="box-status" [class.cursor-pointer]="showInfo && !(item.result | mapper:_isValidOkMapper)" (click)="_onErrorDetails($event, item, item.uid)">
+            <span class="spinner-border spinner-border-sm" *ngIf="_loading"></span>
+            <span class="badge badge-pill bg-{{ item.result | mapper:_getColorMapper }}- fs-9 d-block-" [style.background-color]="item.result | mapper:_getColorHexMapper" *ngIf="!_loading">
+              {{ (item.result | mapper:_getLabelMapper) | translate }}<span class="bi bi-info-circle" [class.ms-1]="item.result.esito" [style.color]="item.result | mapper:_getColorLabelHexMapper" *ngIf="showInfo && !(item.result | mapper:_isValidOkMapper)"></span>
+            </span>
+          </div>
+        </div>
+        <!-- <pre>{{ item.result | json }}</pre> -->
+        <div class="p-1" *ngIf="item.open && !(item.result | mapper:_isValidOkMapper)">
+          <div class="p-1 border mb-2">
+            <textarea class="w-100 border-0" name="details" rows="7" readonly>{{ item.result.dettagli }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</ng-container>
+<ng-container *ngIf="!compact">
+  <ng-container *ngIf="reduced">
+    <div class="mb-1 d-flex flex-row">
+      <div class="flex-grow-1">
+        <h5 class="pb-1">
+          <span class="bi bi-{{ icon }} me-2" *ngIf="icon"></span>
+          <img class="me-2" [src]="iconSvg" width="24" height="24" *ngIf="iconSvg">
+          {{ title | translate }}
+        </h5>
+      </div>
+      <div class="text-end">
+        <div class="box-status" [class.cursor-pointer]="showInfo && !(_result | mapper:_isValidOkMapper)" (click)="_onDetails($event, _result)">
+          <span class="spinner-border spinner-border-sm" *ngIf="_loading"></span>
+          <span class="badge badge-pill bg-{{ _result | mapper:_getColorMapper }}- fs-9 d-block-" [style.background-color]="_result | mapper:_getColorHexMapper" *ngIf="!_loading">
+            {{ (_result | mapper:_getLabelMapper) | translate }}<span class="bi bi-info-circle" [class.ms-1]="_result.esito" [style.color]="_result | mapper:_getColorLabelHexMapper" *ngIf="showInfo && !(_result | mapper:_isValidOkMapper)"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="!reduced">
+    <!-- <div class="fw-bold-600 ms-3" *ngIf="provider">{{ 'Provider' | translate }}: {{ provider }}</div> -->
+    <div class="d-flex flex-row align-items-center" [class.ms-3]="provider" [class.pb-3]="provider" [class.border-bottom]="provider" [class.mb-2]="provider">
+      <div class="flex-grow-1">
+        <ui-item-row class="{{ config.itemRow.class }}" [style.background-color]="config.itemRow.background" *ngIf="!provider"
+          [data]="api"
+          [config]="config"
+          [hasLink]="false">
+        </ui-item-row>
+        <!-- <span>{{ api.nome }} v.{{ api.versione }}</span> -->
+        <span class="ms-2" *ngIf="provider">{{ provider }}</span>
+      </div>
+      <div class="box-status" [class.cursor-pointer]="showInfo && !(_result | mapper:_isValidOkMapper)" (click)="_onDetails($event, _result)">
+        <span class="spinner-border spinner-border-sm" *ngIf="_loading"></span>
+        <span class="badge badge-pill bg-{{ _result | mapper:_getColorMapper }}- fs-9 d-block-" [style.background-color]="_result | mapper:_getColorHexMapper" *ngIf="!_loading">
+          <!-- [tooltip]="(_showDetails ? 'APP.TOOLTIP.HideDetails' : 'APP.TOOLTIP.ShowDetails') | translate" container="body" -->
+          {{ (_result | mapper:_getLabelMapper) | translate }}<span class="bi bi-info-circle" [class.ms-1]="_result.esito" [style.color]="_result | mapper:_getColorLabelHexMapper" *ngIf="showInfo && !(_result | mapper:_isValidOkMapper)"></span>
+        </span>
+        <!-- <div class="d-block" *ngIf="!_loading && showInfo && !(_result | mapper:_isValidOkMapper)"><span class="bi bi-info-circle"></span></div> -->
+      </div>
+    </div>
+  </ng-container>
+  <div class="p-1" *ngIf="_showDetails && !(_result | mapper:_isValidOkMapper)">
+    <!-- <div class="p-2 mb-2 bg-lightest" *ngIf="type === 'backend'"><span class="fw-bold">{{ 'APP.LABEL.Url' | translate }}: </span>{{ environmentId === 'collaudo' ? api.dati_erogazione?.url_collaudo || '_url_collaudo_' : api.dati_erogazione?.url_produzione || '_url_produzione_' }}</div> -->
+    <div class="p-1 border mb-2" *ngIf="_showDetails">
+      <span class="spinner-border spinner-border-sm ms-2" *ngIf="_loading"></span>
+      <textarea class="w-100 border-0" name="details" rows="7" *ngIf="!_loading" readonly>{{ _result.dettagli }}</textarea>
+    </div>
+  </div>
+</ng-container>

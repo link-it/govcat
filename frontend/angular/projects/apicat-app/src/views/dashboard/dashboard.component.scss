@@ -1,0 +1,145 @@
+:host ::ng-deep {
+
+  --ui-border-width: 1px;
+  --ui-border-style: solid;
+  --ui-border-color: #ebedef;
+  --ui-border-color-translucent: rgba(0, 0, 21, 0.0875);
+  --border-start-color: #aaaaaa;
+  --progress-bg-color: #aaaaaa;
+  --bg-color: #aaaaaa;
+  --text-color: #aaaaaa;
+
+
+  .col-button {
+    padding-bottom: 10px;
+    cursor: pointer;
+
+    &.current-col-button,
+    &:hover {
+      background-color: #f1f1f1;
+    }
+
+    &.col-button-disabled {
+      cursor: default;
+
+      &:hover {
+        background-color: transparent;
+      }
+
+      .counter {
+        opacity: 0.5;
+      }
+    }
+  }
+
+  .details-container {
+    height: 400px;
+    transition: height 0.2s 0s, opacity 0.2s linear;
+
+    &.closed {
+      height: 0px;
+      transition: height 0.2s 0s, opacity 0.2s linear;
+      opacity: 0;
+    }
+  }
+
+  .card {
+    // height: calc(75%);
+    border: 1px solid rgba(0, 0, 21, 0.0875);
+    box-shadow: rgb(50 50 93 / 2%) 0 2px 5px -1px, rgb(0 0 0 / 5%) 0 1px 3px -1px;
+    border-radius: 0;
+  }
+
+  .text-color {
+    color: var(--text-color) !important;
+  }
+
+  .bg-color {
+    background-color: var(--bg-color) !important;
+  }
+
+  .border-start {
+    border-left: var(--ui-border-width) var(--ui-border-style) var(--ui-border-color) !important;
+  }
+
+  .border-start-color {
+    border-left-color: var(--border-start-color) !important;
+  }
+
+  .border-start-info {
+    border-left-color: #747af2 !important;
+  }
+
+  .border-start-danger {
+    border-left-color: #ef376e !important;
+  }
+
+  .border-start-warning {
+    border-left-color: #fc0 !important;
+  }
+
+  .border-start-success {
+    border-left-color: #51cc8a !important;
+  }
+
+  .border-start-4 {
+    border-left-width: 4px !important;
+  }
+
+  .bg-primary-gradient {
+    background-color: var(--ui-primary, #483fce);
+    background-image: linear-gradient(45deg, var(--ui-primary-start, #857eed) 0%, var(--ui-primary-stop, #483fce 100%));
+  }
+
+  .bg-warning-gradient {
+    background-color: var(--ui-warning, #e6b800);
+    background-image: linear-gradient(45deg, var(--ui-warning-start, #ffdb4d) 0%, var(--ui-warning-stop, #e6b800 100%));
+  }
+
+  .bg-danger-gradient {
+    background-color: var(--ui-danger, #d73263);
+    background-image: linear-gradient(45deg, var(--ui-danger-start, #f4739a) 0%, var(--ui-danger-stop, #d73263 100%));
+  }
+
+  .progress-thin {
+    height: 4px;
+  }
+
+  .text-medium-emphasis {
+    color: rgba(44, 56, 74, 0.681) !important;
+  }
+
+  .progress {
+    &.progress-white {
+      background-color: rgba(255, 255, 255, 0.2);
+
+      .progress-bar {
+        background-color: #fff;
+      }
+    }
+  }
+
+  .text-medium-emphasis-inverse {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  .icon {
+    display: inline-block;
+    color: inherit;
+    text-align: center;
+    // vertical-align: -0.125rem;
+    fill: currentColor;
+
+    &.icon-xl {
+      width: 1.5rem;
+      // height: 1.5rem;
+      font-size: 1.5rem !important;
+    }
+
+    &.icon-xxl {
+      width: 2rem;
+      // height: 2rem;
+      font-size: 2rem !important;
+    }
+  }
+}

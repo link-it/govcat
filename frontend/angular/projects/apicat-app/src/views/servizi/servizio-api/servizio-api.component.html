@@ -1,0 +1,109 @@
+<ng-template [ngIf]="!_isEdit">
+  <div id="route-section" class="">
+    <div class="top-area px-0">
+      <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+      <div class="d-flex flex-grow-1">&nbsp;</div>
+      <div class="nav-controls">
+        <!-- <div class="position-relative" *ngIf="service">
+          <app-back-web [service_id]="service.id_servizio"></app-back-web>
+        </div> -->
+        <app-monitor-dropdown *ngIf="service"
+          [showComunications]="false"
+          [showMonitoring]="false"
+          [returnWeb]="true"
+          [otherActions]="[]"
+          (action)="onActionMonitor($event)">
+        </app-monitor-dropdown>
+      </div>
+    </div>
+    <div class="top-area">
+      <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+        <div class="">
+          <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+            <!-- <li class="nav-item">
+              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+                <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApi.length">{{ _paging.totalElements || serviceApi.length }}</span>
+              </a>
+            </li> -->
+            <li class="nav-item" *ngIf="serviceApiDominio.length">
+              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isSoggettoDominio" (click)="_showSoggettoDominio()">
+                <span>
+                  {{ ('APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0)) | translate:{soggetto: service?.dominio?.soggetto_referente?.organizzazione?.nome } }}
+                </span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApiDominio.length">{{ _pagingDominio.totalElements || serviceApiDominio.length }}</span>
+              </a>
+            </li>
+            <li class="nav-item" *ngIf="serviceApiAderente.length">
+              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" [class.gp-tab-nav-item-active]="!_isSoggettoDominio" (click)="_showSoggettoAderente()">
+                <span>{{ ('APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)) | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApiAderente.length">{{ _pagingAderente.totalElements || serviceApiAderente.length }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="nav-controls align-self-center d-flex">
+        <div role="group" class="gl-w-full btn-group-">
+          <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'create'"> -->
+            <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
+              <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
+            </button>
+          <!-- </ng-template> -->
+        </div>
+      </div>
+    </div>
+    <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <ui-search-bar-form #searchBarForm
+            [classBlock]="''"
+            [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+            [showHistory]="showHistory"
+            [historyStore]="'journal_transactions'"
+            [showSearch]="showSearch"
+            [searchFields]="searchFields"
+            [showSorting]="showSorting"
+            [sortField]="sortField"
+            [sortDirection]="sortDirection"
+            [sortFields]="sortFields"
+            [formGroup]="_formGroup"
+            (onSearch)="_onSearch($event)"
+            (onSort)="_onSort($event)">
+            <div form-search>
+              <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+                <fieldset>
+                  <div class="row">
+                  </div>
+                  <button type="submit" class="d-none">hidden submit</button>
+                </fieldset>
+              </form>
+            </div>
+          </ui-search-bar-form>
+        </div>
+      </div>
+    </section>
+    <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+      infiniteScroll
+      [infiniteScrollDistance]="2"
+      [infiniteScrollThrottle]="50"
+      (scrolled)="__loadMoreData()"
+      [scrollWindow]="false">
+      <ui-box-message *ngIf="serviceApi.length == 0 && !_spin"
+        [size]="64"
+        [icon]="'report_problem'"
+        [image]="'./assets/images/illustrations/api.svg'"
+        [message]="_message | translate"
+        [subMessage]="_messageHelp | translate">
+      </ui-box-message>
+      <div class="row">
+        <div class="col-12">
+          <ui-item-row class="border-bottom" *ngFor="let sa of serviceApi"
+            [data]="sa"
+            [config]="apiConfig"
+            [hasLink]="true"
+            (itemClick)="_onEdit($event, sa)">
+          </ui-item-row>
+        </div>
+      </div>
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+    </section>
+  </div>
+</ng-template>

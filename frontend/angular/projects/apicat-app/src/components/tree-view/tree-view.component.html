@@ -1,0 +1,97 @@
+<div class="js-groups-list-holder" *ngIf="level === undefined">
+    <div>
+        <div data-qa-selector="groups_list_tree_container" class="groups-list-tree-container">
+            <ul class="groups-list group-list-tree gl-display-flex gl-flex-direction-column gl-m-0 tree">
+                <ng-container *ngTemplateOutlet="tree;context:{children:children,search:search,level:level}">
+                </ng-container>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<ng-container *ngIf="level !== undefined">
+    <ng-container *ngTemplateOutlet="tree;context:{children:children,search:search,level:level}">
+    </ng-container>
+</ng-container>
+
+<ng-template #tree let-children="children" let-search="search" let-level="level">
+    <ng-container *ngFor="let item of children">
+        <li class="group-row" [class.is-open]="item.isOpen" [class.has-children-]="item.hasChildren || item.children || item.figli" (click)="onAction($event, 'select', item)">
+            <div class="group-row-contents d-flex align-items-center py-2 pr-3" [class.not-selected]="isNotSelectable(item)" [class.group-over-display]="isEditable && !forceActions">
+                <div class="folder-toggle-wrap gl-mr-2 d-flex align-items-center">
+                    <span class="folder-caret gl-display-inline-block gl-text-secondary gl-w-5 gl-mr-2" (click)="(item.hasChildren || item.children || item.figli) && onOpen(item)">
+                        <i class="bi gl-icon-12" [ngClass]="!(item.hasChildren || item.children || item.figli) ? 'bi-dash-lg' : item.isOpen ? 'bi-' + iconOpen : 'bi-' + iconClose"></i>
+                    </span>
+                    <span class="item-type-icon gl-display-inline-block gl-text-secondary">
+                        <i class="bi gl-icon-12" [ngClass]="(item.hasChildren || item.children || item.figli) ? 'bi-' + iconFolder : item.isOpen ? 'bi-' + iconLeaf : 'bi-' + iconClose"></i>
+                    </span>
+                </div>
+                <a class="gl-display-none gl-text-decoration-none! gl-mr-3 gl-sm-display-flex" (click)="onAction($event, 'link', item)" *ngIf="!hideImage">
+                    <div class="gl-avatar gl-avatar-identicon gl-avatar-s32 gl-avatar-identicon-bg{{ level + 1 || 1 }}" *ngIf="!item.immagine">
+                        <span>{{ item.nome[0] }}</span>
+                    </div>
+                    <div class="gl-avatar gl-avatar-identicon gl-avatar-s32" *ngIf="item.immagine">
+                        <img class="" [src]="{ path: item | mapper:getLogoMapper } | httpImgSrc" style="width: 32px;height: auto;">
+                    </div>
+                </a>
+                <div class="group-text-container d-flex flex-fill align-items-center">
+                    <div class="group-text flex-grow-1 flex-shrink-1 align-items-center">
+                        <div class="gl-display-flex gl-align-items-center gl-flex-wrap title namespace-title gl-font-weight-bold gl-mr-3">
+                        <a [title]="item.nome" class="no-expand gl-mr-3 gl-text-gray-900!" (click)="onAction($event, 'link', item)">{{ item.nome }} {{ item.loading }}</a>
+                        </div>
+                        <div class="description" *ngIf="item.descrizione_sintetica || item.descrizione">
+                        <span class="text-muted">{{ item.descrizione_sintetica || item.descrizione }}</span>
+                        </div>
+                    </div>
+                    <div class="metadata gl-display-flex gl-flex-grow-1 gl-flex-shrink-0 gl-flex-wrap justify-content-md-between">
+                        <div class="stats gl-text-gray-500 group-stats gl-mt-2- gl-display-none gl-md-display-flex gl-align-items-center" [class.group-over-actions]="isEditable && !forceActions && !selectable">
+                            <!-- <span title="Subgroups" class="number-subgroups gl-ml-5" data-testid="subgroups-count">
+                                <i class="bi bi-folder gl-icon s16"></i>
+                                <span class="stat-value ms-1">{{ item.children!.length || 0 }}</span>
+                            </span> -->
+                            <!-- <span title="Projects" class="number-projects gl-ml-5">
+                                <i class="bi bi-chevron-right gl-icon-12"></i>
+                                <span class="stat-value"> 0 </span>
+                            </span>
+                            <span title="Direct members" class="number-users gl-ml-5">
+                                <i class="bi bi-person gl-icon-12"></i>
+                                <span class="stat-value"> 1 </span>
+                            </span> -->
+                            <button aria-label="Edit" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="onAction($event, 'edit', item)" [tooltip]="'APP.TOOLTIP.' + editTooltip | translate" container="body" *ngIf="isEditable && !selectable">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button aria-label="Add" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="onAction($event, 'add', item)" [tooltip]="'APP.TOOLTIP.' + addTooltip | translate" container="body" *ngIf="isEditable && !selectable">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                            <button aria-label="Remove" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="onAction($event, 'remove', item)" [tooltip]="'APP.TOOLTIP.' + removeTooltip | translate" container="body" *ngIf="isEditable && isRemovable && !selectable" [disabled]="item.hasChildren || item.children || item.figli">
+                                <i class="bi bi-trash text-danger" [ngStyle]="{'opacity': (item.hasChildren || item.children || item.figli) ? '0.5' : '1.0'}"></i>
+                            </button>
+                            <!-- <button aria-label="Add" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="onAction($event, 'select', item)" [tooltip]="'APP.TOOLTIP.Select' | translate" container="body" *ngIf="selectable">
+                                <i class="bi bi-check2"></i>
+                            </button> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <ul class="groups-list group-list-tree gl-display-flex gl-flex-direction-column gl-m-0" *ngIf="(item.children || item.figli) && item.isOpen"
+                recursive 
+                [children]="item.children || item.figli" 
+                [parent]="self" 
+                [level]="level !== undefined ? level + 1 : 1"
+                [search]="search"
+                [selectable]="selectable"
+                [notSelectable]="notSelectable"
+                [hideImage]="hideImage"
+                [editTooltip]="editTooltip"
+                [addTooltip]="addTooltip"
+                [removeTooltip]="removeTooltip"
+                [iconOpen]="iconOpen"
+                [iconClose]="iconClose"
+                [iconFolder]="iconFolder"
+                [iconLeaf]="iconLeaf"
+                (open)="onOpenInternal($event)"
+                (action)="onActionInternal($event)"
+            ></ul>
+        </li>
+    </ng-container>
+</ng-template>

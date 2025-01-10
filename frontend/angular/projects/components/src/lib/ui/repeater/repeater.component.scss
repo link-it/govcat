@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+.role-button {
+  width: 3rem;
+  min-width: 3rem;
+  color: var(--role-button-color, #fff);
+  background-color: var(--role-button-background-color, #000);
+}
+.role-button:focus:not(.disabled) {
+  background: var(--role-button-focus-color, #000);
+}
+.role-button.disabled {
+  opacity: .5;
+  pointer-events: none;
+}

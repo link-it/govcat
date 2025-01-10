@@ -1,0 +1,84 @@
+<div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+  <button aria-haspopup="true" aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions()">
+    <i class="bi bi-node-plus"></i>
+    <span class="ms-2 d-none d-md-block" *ngIf="showStatus">{{ 'APP.WORKFLOW.STATUS.' + _currentStatus | translate }}</span>
+    <span class="ms-2 d-none d-md-block" *ngIf="!showStatus">{{ 'APP.BUTTON.ChangeStatus' | translate }}</span>
+    <i class="bi bi-chevron-down ms-2"></i>
+  </button>
+  <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+    <div class="gl-new-dropdown-inner">
+      <div class="gl-new-dropdown-contents" *ngIf="_currentStatus !== _statoArchiviato.nome">
+        <ng-container *ngIf="_cambioStato.stato_precedente">
+          <li class="gl-new-dropdown-item">
+            <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_precedente);" [disabled]="!('stato_precedente' | mapper:_isActionEnabledMapper)">
+              <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                <i class="bi bi-backspace"></i>
+              </div>
+              <div class="gl-new-dropdown-item-text-wrapper">
+                <p class="gl-new-dropdown-item-text-primary">{{'APP.WORKFLOW.MENU.BACK.' + _cambioStato.stato_precedente.nome | translate}}</p>
+              </div>
+            </button>
+          </li>
+        </ng-container>
+        <ng-container *ngIf="_cambioStato.stato_successivo">
+          <li class="gl-new-dropdown-divider" *ngIf="_cambioStato.stato_precedente">
+            <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+          </li>
+          <li class="gl-new-dropdown-item">
+            <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_successivo);" [disabled]="!('stato_successivo' | mapper:_isActionEnabledMapper)">
+              <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                <i class="bi bi-arrow-right-square"></i>
+              </div>
+              <div class="gl-new-dropdown-item-text-wrapper">
+                <p class="gl-new-dropdown-item-text-primary">{{'APP.WORKFLOW.MENU.' + _cambioStato.stato_successivo.nome | translate}}</p>
+              </div>
+            </button>
+          </li>
+        </ng-container>
+        <ng-container *ngIf="_cambioStato.stati_ulteriori.length">
+          <li class="gl-new-dropdown-divider">
+            <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+          </li>
+          <li class="gl-new-dropdown-item" *ngFor="let status of _cambioStato.stati_ulteriori">
+            <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', status);" [disabled]="!('stati_ulteriori' | mapper:_isActionEnabledMapper:status.nome)">
+              <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                <i class="bi bi-archive" *ngIf="status.nome == _statoArchiviato.nome"></i>
+                <i class="bi bi-arrow-right-square" *ngIf="status.nome != _statoArchiviato.nome"></i>
+              </div>
+              <div class="gl-new-dropdown-item-text-wrapper">
+                <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + status.nome | translate }}</p>
+              </div>
+            </button>
+          </li>
+        </ng-container>
+        <ng-container *ngIf="isGestore()">
+          <li class="gl-new-dropdown-divider">
+            <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+          </li>
+          <li class="gl-new-dropdown-item archiviato">
+            <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _statoArchiviato);" [disabled]="!('' | mapper:_isGestoreMapper)">
+              <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                <i class="bi bi-archive"></i>
+              </div>
+              <div class="gl-new-dropdown-item-text-wrapper">
+                <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + _statoArchiviato.nome | translate }}</p>
+              </div>
+            </button>
+          </li>
+        </ng-container>
+      </div>
+      <div class="gl-new-dropdown-contents" *ngIf="_currentStatus === _statoArchiviato.nome">
+        <li class="gl-new-dropdown-item archiviato">
+          <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _previousStatus);" [disabled]="!('' | mapper:_isGestoreMapper)">
+            <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+              <i class="bi bi-arrow-left-square"></i>
+            </div>
+            <div class="gl-new-dropdown-item-text-wrapper">
+              <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + _previousStatus.nome | translate }}</p>
+            </div>
+          </button>
+        </li>
+      </div>
+    </div>
+  </ul>
+</div>

@@ -1,0 +1,5 @@
+<!-- <div #swaggerui id="swaggerui" class="d-block"></div> -->
+<div class="mt-5 text-center" *ngIf="loading"><span class="spinner-border spinner-border-sm text-primary"></span></div>
+<div class="mt-5" *ngIf="!loading && error">
+    <div class="alert alert-danger">{{ 'APP.SWAGGER.ERROR.Loading' | translate }}</div>
+</div>

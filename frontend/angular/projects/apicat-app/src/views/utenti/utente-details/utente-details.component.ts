@@ -1,0 +1,567 @@
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+
+import { TranslateService } from '@ngx-translate/core';
+import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+
+import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { Tools } from 'projects/tools/src/lib/tools.service';
+import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { OpenAPIService } from '@app/services/openAPI.service';
+import { FieldClass } from 'projects/components/src/lib/classes/definitions';
+
+import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+
+import { Utente } from './utente';
+
+import { concat, from, Observable, of, Subject, throwError } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
+
+import * as _ from 'lodash';
+
+@Component({
+  selector: 'app-utente-details',
+  templateUrl: 'utente-details.component.html',
+  styleUrls: ['utente-details.component.scss']
+})
+export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+  static readonly Name = 'UtenteDetailsComponent';
+  readonly model: string = 'utenti';
+
+  @Input() id: number | null = null;
+  @Input() utente: any = null;
+  @Input() config: any = null;
+
+  @Output() close: EventEmitter<any> = new EventEmitter<any>();
+  @Output() save: EventEmitter<any> = new EventEmitter<any>();
+
+  _title: string = '';
+
+  appConfig: any;
+
+  hasTab: boolean = true;
+  tabs: any[] = [
+    { label: 'Details', icon: 'details', link: 'details', enabled: true }
+  ];
+  _currentTab: string = 'details';
+
+  _informazioni: FieldClass[] = [];
+
+  _isDetails = true;
+
+  _isEdit = false;
+  _closeEdit = true;
+  _isNew = false;
+  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _utente: Utente = new Utente({});
+
+  _authorizations: any[] = [];
+
+  utenteProviders: any = null;
+
+  // anagrafiche: any = null;
+
+  _spin: boolean = true;
+  desktop: boolean = false;
+
+  _useRoute: boolean = true;
+
+  breadcrumbs: any[] = [];
+
+  _error: boolean = false;
+  _errorMsg: string = '';
+
+  _modalConfirmRef!: BsModalRef;
+
+  _classi_utente: any[] = [];
+  _statoArr: any[] = [];
+  _ruoloArr: any[] = [];
+
+  classiUtente$!: Observable<any[]>;
+  classiUtenteInput$ = new Subject<string>();
+  classiUtenteLoading: boolean = false;
+  selectedClassiUtente: any;
+
+  organizzazioni$!: Observable<any[]>;
+  organizzazioniInput$ = new Subject<string>();
+  organizzazioniLoading: boolean = false;
+  selectedOrganizzazione: any;
+
+  minLengthTerm = 1;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private translate: TranslateService,
+    private modalService: BsModalService,
+    private configService: ConfigService,
+    public tools: Tools,
+    public eventsManagerService: EventsManagerService,
+    public apiService: OpenAPIService
+  ) {
+    this.appConfig = this.configService.getConfiguration();
+  }
+
+  ngOnInit() {
+    this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
+    this._ruoloArr = [ 'nessun_ruolo','referente_servizio', 'gestore' ];
+
+    this.route.params.subscribe(params => {
+      if (params['id'] && params['id'] !== 'new') {
+        this.id = params['id'];
+        this._initBreadcrumb();
+        this._isDetails = true;
+        this.configService.getConfig(this.model).subscribe(
+          (config: any) => {
+            this.config = config;
+            this._loadAll();
+          }
+        );
+      } else {
+        this._isNew = true;
+        this._isEdit = true;
+
+        this._statoArr = [ 'abilitato', 'disabilitato' ];
+
+        this._initBreadcrumb();
+
+        this._loadClassiUtente();
+        this._initClassiUtenteSelect([]);
+        this._initOrganizzazioniSelect([]);
+        this._initForm({ ...this._utente });
+        this._spin = false;
+      }
+    });
+  }
+
+  ngOnDestroy() {
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.id) {
+      this.id = changes.id.currentValue;
+      this._loadAll();
+    }
+    if (changes.utente) {
+      const utente = changes.utente.currentValue;
+      this.utente = utente.source;
+      this.id = this.utente.id;
+    }
+  }
+
+  ngAfterContentChecked(): void {
+    this.desktop = (window.innerWidth >= 992);
+  }
+
+  _loadAll() {
+    this._loadUtente();
+    this._loadClassiUtente();
+  }
+
+  _hasControlError(name: string) {
+    return (this.f[name].errors && this.f[name].touched);
+  }
+
+  get f(): { [key: string]: AbstractControl } {
+    return this._formGroup.controls;
+  }
+
+  _initForm(data: any = null) {
+    if (data) {
+      let _group: any = {};
+      Object.keys(data).forEach((key) => {
+        let value = '';
+        switch (key) {
+          case 'email_aziendale':
+            value = data[key] ? data[key] : null;
+            _group[key] = new UntypedFormControl(value, [
+              Validators.required,
+              Validators.email,
+              Validators.maxLength(255)
+            ]);
+            break;
+          case 'email':
+            value = data[key] ? data[key] : null;
+            _group[key] = new UntypedFormControl(value, [
+              Validators.email,
+              Validators.maxLength(255)
+            ]);
+            break;
+          case 'nome':
+          case 'cognome':
+          case 'username':
+          case 'telefono_aziendale':
+            value = data[key] ? data[key] : null;
+            _group[key] = new UntypedFormControl(value, [
+              Validators.required,
+              Validators.maxLength(255)
+            ]);
+            break;
+          case 'stato':
+          case 'id_organizzazione':
+            value = data[key] ? data[key] : null;
+            _group[key] = new UntypedFormControl(value, [Validators.required]);
+            break;
+          case 'telefono':
+          case 'metadati':
+          case 'note':
+            value = data[key] ? data[key] : null;
+            _group[key] = new UntypedFormControl(value, [
+              Validators.maxLength(255)
+            ]);
+            break;
+          default:
+            value = data[key] ? data[key] : null;
+            _group[key] = new UntypedFormControl(value, []);
+            break;
+        }
+      });
+      this._formGroup = new UntypedFormGroup(_group);
+
+      if(this._isEdit) {
+        this._formGroup.controls.id_organizzazione.patchValue(this._utente.organizzazione?.id_organizzazione)
+        this._formGroup.controls.id_organizzazione.updateValueAndValidity();
+        this._formGroup.updateValueAndValidity();
+      } 
+
+      if(this._utente.stato == 'non configurato') {
+        this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
+      } else {
+        this._statoArr = [ 'abilitato', 'disabilitato' ];
+      }
+    }
+  }
+
+  __onSave(body: any) {
+    this._error = false;
+    this._spin = true;
+    
+    const _body = this._prapareData(body);
+
+    this.apiService.saveElement(this.model, _body).subscribe(
+      (response: any) => {
+        this.utente = new Utente({ ...response });
+        this._utente = new Utente({ ...response });
+        this.id = this.utente.id_utente;
+        this._initBreadcrumb();
+        const aux: any = {
+          id_classe_utente: this.utente?.classi_utente?.id_classe_utente || null,
+          nome: this.utente?.classi_utente?.nome || null
+        }
+        this._initClassiUtenteSelect([aux]);
+        const aux_org: any = {
+          id_organizzazione: this.utente?.id_organizzazione || null,
+          descrizione: null,
+          nome: null
+        }
+        this._initOrganizzazioniSelect([aux_org]);
+        this._spin = false;
+        this._isEdit = false;
+        this._isNew = false;
+        this.save.emit({ id: this.id, utente: response, update: false });
+        this.router.navigate([this.model, this.id], { replaceUrl: true });
+      },
+      (error: any) => {
+        this._error = true;
+        this._errorMsg = Tools.GetErrorMsg(error);
+        this._spin = false;
+      }
+    );
+  }
+
+  __onUpdate(id: number, body: any) {
+    this._error = false;
+    this._spin = true;
+
+    const _body = this._prapareData(body);
+
+    this.apiService.putElement(this.model, id, _body).subscribe(
+      (response: any) => {
+        this._isEdit = !this._closeEdit;
+        this.utente = new Utente({ ...response });
+        this._utente = new Utente({ ...response });
+        this.utente.ruolo = this._checkRuolo(response);
+        this._utente.ruolo = this._checkRuolo(response);
+        this.id = this.utente.id;
+        this._spin = false;
+        this.save.emit({ id: this.id, utente: response, update: true });
+      },
+      (error: any) => {
+        this._error = true;
+        this._errorMsg = Tools.GetErrorMsg(error);
+        this._spin = false;
+      }
+    );
+    
+  }
+
+  _prapareData(body: any) {
+    let _classi: any[] | null = null;
+    if (body.classi_utente?.length) {
+      _classi = body.classi_utente.map((item: any) => item.id_classe_utente);
+    }
+    const _newBody: any = {
+      ...body,
+      ruolo: (body.ruolo == 'nessun_ruolo') ? null : body.ruolo,
+      classi_utente: _classi
+    };
+    delete _newBody.organizzazione;
+    this._removeNullProperties(_newBody);
+
+    return _newBody;
+  }
+
+  _onSubmit(form: any, close: boolean = true) {
+    if (this._isEdit && this._formGroup.valid) {
+      this._closeEdit = close;
+      if (this._isNew) {
+        this.__onSave(form);
+      } else {
+        this.__onUpdate(this.utente.id_utente, form);
+      }
+    }
+  }
+
+  _deleteUser() {
+    const initialState = {
+      title: this.translate.instant('APP.TITLE.Attention'),
+      messages: [
+        this.translate.instant('APP.MESSAGE.AreYouSure')
+      ],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+      confirmColor: 'danger'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          this.apiService.deleteElement(this.model, this.utente.id_utente).subscribe(
+            (response) => {
+              this.router.navigate([this.model]);
+              // this.save.emit({ id: this.id, utente: response, update: false });
+            },
+            (error) => {
+              this._error = true;
+              this._errorMsg = Tools.GetErrorMsg(error);
+            }
+          );
+        }
+      }
+    );
+  }
+
+  _loadUtente() {
+    if (this.id) {
+      this.utente = null;
+      this.apiService.getDetails(this.model, this.id).subscribe({
+        next: (response: any) => {
+          this.utente = new Utente({ ...response });
+          this._utente = new Utente({ ...response });
+
+          this.utente.ruolo = this._checkRuolo(response);
+          this._utente.ruolo = this._checkRuolo(response);
+          // this._utente.ruolo = response?.ruolo || 'nessun_ruolo';
+          
+          const aux: any = {
+            id_classe_utente: this.utente.classi_utente?.id_classe_utente || null,
+            nome: this.utente.classi_utente?.nome || null
+          }
+          this._initClassiUtenteSelect([aux]);
+          const aux_org: any = {
+            id_organizzazione: this.utente.organizzazione?.id_organizzazione || null,
+            descrizione: this.utente.organizzazione?.descrizione || null,
+            nome: this.utente.organizzazione?.nome || null
+          }
+          if (this.utente.organizzazione) {
+            this._initOrganizzazioniSelect([aux_org])
+          } else {
+            this._initOrganizzazioniSelect([])
+          }
+          
+          this._spin = false;
+          // this.__initInformazioni();
+        },
+        error: (error: any) => {
+          Tools.OnError(error);
+          this._spin = false;
+        }
+      });
+    }
+  }
+
+  _initBreadcrumb() {
+    const _title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    this.breadcrumbs = [
+      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },
+      { label: `${_title}`, url: '', type: 'title' }
+    ];
+  }
+
+  _clickTab(tab: string) {
+    this._currentTab = tab;
+  }
+
+  _editUser() {
+    this._isEdit = true;
+    this._initForm({ ...this._utente });
+    this._utente.organizzazione ? this._initOrganizzazioniSelect([this._utente.organizzazione]) : this._initOrganizzazioniSelect([]);
+    this._error = false;
+    this._changeRuolo();
+  }
+
+  _onClose() {
+    this.close.emit({ id: this.id, utente: this._utente });
+  }
+
+  _onSave() {
+    this.save.emit({ id: this.id, utente: this._utente });
+  }
+
+  _onCancelEdit() {
+    this._isEdit = false;
+    this._error = false;
+    this._errorMsg = '';
+    if (this._isNew) {
+      if (this._useRoute) {
+        this.router.navigate([this.model]);
+      } else {
+        this.close.emit({ id: this.id, utente: null });
+      }
+    } else {
+      this._utente = new Utente({ ...this.utente });
+    }
+  }
+
+  onBreadcrumb(event: any) {
+    if (this._useRoute) {
+      this.router.navigate([event.url]);
+    } else {
+      this._onClose();
+    }
+  }
+
+  _loadClassiUtente() {
+    this.apiService.getList('classi-utente').subscribe({
+      next: (response: any) => {
+        this._classi_utente = response.content;
+      },
+      error: (error: any) => {
+        Tools.OnError(error);
+      }
+    });
+  }
+
+  trackByFn(item: any) {
+    return item.id;
+  }
+
+  _initClassiUtenteSelect(defaultValue: any[] = []) {
+    this.classiUtente$ = concat(
+      of(defaultValue),
+      this.classiUtenteInput$.pipe(
+        filter(res => {
+          return res !== null && res.length >= this.minLengthTerm
+        }),
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.classiUtenteLoading = true),
+        switchMap((term: any) => {
+          return this.getClassiUtente(term).pipe(
+            catchError(() => of([])), // empty list on error
+            tap(() => this.classiUtenteLoading = false)
+          )
+        })
+      )
+    );
+  }
+
+  getClassiUtente(term: string | null = null): Observable<any> {
+    const _options: any = { params: { q: term, referente: true } };
+    return this.apiService.getList('classi-utente', _options)
+      .pipe(map(resp => {
+        if (resp.Error) {
+          throwError(resp.Error);
+        } else {
+          const _items = resp.content.map((item: any) => {
+            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+            return item;
+          });
+          return _items;
+        }
+      })
+      );
+  }
+
+  _initOrganizzazioniSelect(defaultValue: any[] = []) {
+    this.organizzazioni$ = concat(
+      of(defaultValue),
+      this.organizzazioniInput$.pipe(
+        filter(res => {
+          return res !== null && res.length >= this.minLengthTerm
+        }),
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.organizzazioniLoading = true),
+        switchMap((term: any) => {
+          return this.getOrganizzazioni(term).pipe(
+            catchError(() => of([])), // empty list on error
+            tap(() => this.organizzazioniLoading = false)
+          )
+        })
+      )
+    );
+  }
+
+  getOrganizzazioni(term: string | null = null): Observable<any> {
+    const _options: any = { params: { q: term } };
+    return this.apiService.getList('organizzazioni', _options)
+      .pipe(map(resp => {
+        if (resp.Error) {
+          throwError(resp.Error);
+        } else {
+          const _items = resp.content.map((item: any) => {
+            return item;
+          });
+          return _items;
+        }
+      })
+      );
+  }
+
+  _compareClassiFn(item: any, selected: any) {
+    return item.id_classe_utente === selected.id_classe_utente;
+  }
+
+  _changeRuolo(event: Event|null = null) {
+    const role = this._formGroup.get('ruolo')?.value;
+    const organizationFormControl = this._formGroup.get('id_organizzazione');
+    if(!organizationFormControl){
+      console.warn('organizationFormControl does not exist');
+      return;
+    }
+    if(role === RuoloUtenteEnum.Gestore){
+      organizationFormControl.clearValidators();
+    }else{
+      organizationFormControl.setValidators([Validators.required]);
+    }
+    organizationFormControl.updateValueAndValidity();
+  }
+
+  _removeNullProperties(obj: any) {
+    Object.keys(obj).forEach((k: string) => {
+        _.isEmpty(obj[k]) ? delete obj[k] : null;
+      })
+  }
+
+  _checkRuolo(data: any) : string {
+    return data?.ruolo || 'nessun_ruolo';
+  }
+}

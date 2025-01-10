@@ -1,0 +1,86 @@
+<div class="layout-page login-page">
+  <div class="page-wrap">
+    <div class="container navless-container">
+      <div class="content">
+        <div class="flash-container flash-container-page sticky">
+          <div class="flash-alert mb-2" *ngIf="errorCode">
+            <i class="bi bi-exclamation-triangle s16 mr-2"></i>
+            <span>{{ 'APP.MESSAGE.LOGIN.login_' + errorCode | translate }}</span>
+            <div class="close-icon-wrapper js-close-icon" (click)="_closeAlert()">
+              <i class="bi bi-x-lg"></i>
+            </div>
+          </div>
+          <div class="flash-alert mb-2" *ngIf="!errorCode && error">
+            <i class="bi bi-exclamation-triangle s16 mr-2"></i>
+            <span>{{ (error.message || 'APP.MESSAGE.ERROR.Default') | translate }}</span>
+            <div class="close-icon-wrapper js-close-icon" (click)="_closeAlert()">
+              <i class="bi bi-x-lg"></i>
+            </div>
+          </div>
+        </div>
+        <div class="row justify-content-center mt-3">
+          <div class="col-sm-12 gl-text-center">
+            <img alt="Logo" class="" [src]="_logo">
+            <h1 class="mb-3 gl-font-size-h2">
+              {{ _title || "&nbsp;" }}
+            </h1>
+          </div>
+        </div>
+
+        <div class="row justify-content-center mt-5" *ngIf="showUserRegistration">
+          <div class="col-4">
+            <div *ngIf="idToken">
+              <h1 class="gl-font-size-h2 mb-3">User</h1>
+              <div class="mb-2">
+                <label class="mb-1 fw-bold">Nome</label>
+                <div>{{ claims.given_name }}</div>
+              </div>
+              <div class="mb-2">
+                <label class="mb-1 fw-bold">Cognome</label>
+                <div>{{ claims.family_name }}</div>
+              </div>
+              <div class="mb-2">
+                <label class="mb-1 fw-bold">E-mail</label>
+                <div>{{ claims.email }}</div>
+              </div>
+              <div class="mb-2">
+                <label class="mb-1 fw-bold">Website</label>
+                <div>{{ claims.website }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-4">
+            <h1 class="gl-font-size-h2 mb-3">Claims</h1>
+            <pre class="border p-3">{{ claims | json }}</pre>
+          </div>
+          <div class="col-4">
+            <h1 class="gl-font-size-h2 mb-3">Scopes</h1>
+            <pre class="border p-3">{{ scopes | json }}</pre>
+          </div>
+          <div class="col-12">
+            <h1 class="gl-font-size-h2">Id-Token</h1>
+            <p class="text-break">{{ idToken }}</p>
+          
+            <h1 class="gl-font-size-h2">Access Token</h1>
+            <p class="text-break">{{ accessToken }}</p>
+          </div>
+          <!-- <div class="col-4 gl-text-center">
+            <button type="button" class="btn btn-block btn-default gl-button" (click)="refresh()">Refresh</button>
+          </div> -->
+        </div>
+        <hr class="mb-5" *ngIf="showUserRegistration">
+
+        <div class="row justify-content-center mt-5">
+          <div class="col-sm-4 gl-text-center">
+            <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="loading"></ui-box-spinner>
+
+            <button type="button" class="btn btn-block btn-default gl-button" (click)="gotoHome()" *ngIf="!loading">
+              <i class="bi bi-home"></i>
+              <span>{{ 'APP.BUTTON.Continue' | translate }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

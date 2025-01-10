@@ -1,0 +1,26 @@
+<div class="gl-filtered-search-token gl-filtered-search-item">
+  <div class="gl-filtered-search-token-segment">
+    <span class="gl-filtered-search-token-type gl-token gl-token-default-variant gl-token-view-only gl-cursor-pointer">
+      <span class="gl-token-content">
+        <span class="">{{ data.nome_tassonomia }}</span>
+      </span>
+    </span>
+  </div>
+  <div class="gl-filtered-search-token-segment">
+    <span class="gl-filtered-search-token-operator gl-token gl-token-search-value-variant gl-token-view-only gl-cursor-pointer">
+      <span class="gl-token-content">:</span>
+    </span>
+  </div>
+  <div class="gl-filtered-search-token-segment">
+    <span class="gl-filtered-search-token-data gl-token gl-token-search-value-variant gl-cursor-pointer">
+      <span class="gl-token-content">
+        <span class="gl-token-content">
+          <span class="">{{ data.nome_categoria }}</span>
+        </span>
+        <button type="button" class="btn gl-token-close gl-close-btn-color-inherit btn-default btn-sm gl-button btn-default-tertiary btn-icon" (click)="deleteData($event, data)">
+          <i class="bi bi-x"></i>
+        </button>
+      </span>
+    </span>
+  </div>
+</div>

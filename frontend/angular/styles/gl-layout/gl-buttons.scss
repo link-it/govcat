@@ -1,0 +1,54 @@
+[type="button"]:not(:disabled),
+[type="reset"]:not(:disabled),
+[type="submit"]:not(:disabled),
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+.gp-button.gp-button,
+.gp-button.gp-button.btn-block {
+  border-width: 0;
+  padding: .5rem .75rem;
+  background-color: transparent;
+  line-height: 1rem;
+  color: #303030;
+  fill: currentColor;
+  box-shadow: inset 0 0 0 1px #bfbfbf;
+  justify-content: center;
+  align-items: center;
+  font-size: .875rem;
+  border-radius: .25rem;
+}
+
+.btn.btn-icon {
+  color: #525252;
+}
+
+.btn:not(:disabled):not(.disabled) {
+  cursor: pointer;
+}
+
+gp-button.gp-button.btn-default {
+  background-color: #fff;
+}
+
+.gp-button.gp-button.btn-block.btn-dashed,
+.gp-button.gp-button.btn-block.btn-default,
+.gp-button.gp-button.btn-dashed,
+.gp-button.gp-button.btn-default {
+  background-color: #fff;
+}
+
+.gp-button.gp-button.btn-block.btn-icon,
+.gp-button.gp-button.btn-icon {
+  padding: .5rem;
+  line-height: 1rem;
+}
+
+.gp-button.gp-button.btn-block.btn-dashed:hover,
+.gp-button.gp-button.btn-block.btn-default:hover,
+.gp-button.gp-button.btn-dashed:hover,
+.gp-button.gp-button.btn-default:hover {
+  box-shadow: inset 0 0 0 2px #868686, 0 2px 2px 0 rgb(0 0 0 / 8%);
+  background: #f0f0f0;
+}

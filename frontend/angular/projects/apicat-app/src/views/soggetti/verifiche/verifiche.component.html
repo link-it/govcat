@@ -1,0 +1,106 @@
+<div id="route-section" class="">
+  <div class="container-fluid top-area px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      <!-- <div class="position-relative" *ngIf="service">
+        <app-back-web [service_id]="service.id_servizio"></app-back-web>
+      </div> -->
+    </div>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
+              <span>{{ 'APP.FILTER.Testing' | translate }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()">
+              <span>{{ 'APP.FILTER.Production' | translate }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <section #myScroll class="container-fluid container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4">
+
+    <!-- <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner> -->
+    <div class="loading-area ps-3" *ngIf="_spin">
+      <ui-placeholder-loading
+        [type]="'list'"
+        [count]="3"
+        [title]="'Certificati'"
+        [icon]="'shield-check'"
+        [rounded]="true">
+      </ui-placeholder-loading>
+
+      <ui-placeholder-loading
+        [type]="'list'"
+        [count]="3"
+        [title]="'Connettività'"
+        [icon]="'server'"
+        [rounded]="true">
+      </ui-placeholder-loading>
+    </div>
+
+    <ui-box-message *ngIf="!data && !_spin" [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate" [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings-" *ngIf="(data && !_spin)">
+      <div class="settings-content-">
+
+        <div id="main">
+
+          <div class="container-fluid">
+            <div class="layout-container">
+              <div class="main mb-5 overflow-hidden">
+                <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_error">
+                  {{ _errorMsg }}
+                </div>
+                <div class="px-3 mb-5">
+                  <div class="row gx-lg-5">
+                    <div class="col-md-12" [class.col-xl-6]="_twoCol" [class.col-xl-12]="!_twoCol">
+                      <div class="result-area mt-5 mb-5" *ngIf="!_spin">
+                        <ui-verifica-soggetto-token
+                          [environmentId]="environmentId"
+                          [verifica]="'soggetti'"
+                          [pdnd]="_isPDND"
+                          [type]="'certificati'"
+                          [listTokenPolicy]="_listTokenPolicy"
+                          [icon]="'shield-check'"
+                          [title]="'APP.TITLE.Certificati'"
+                          [showInfo]="true">
+                        </ui-verifica-soggetto-token>
+                      </div>
+                    </div>
+                    <hr class="" *ngIf="_isPDND">
+                    <div class="col-md-12" [class.col-xl-6]="_twoCol" [class.border-start]="_twoCol" [class.col-xl-12]="!_twoCol" *ngIf="!_spin && _isPDND">
+                      <div class="result-area mt-3 pt-md-3" [class.pt-xl-0]="_twoCol">
+                        <ui-verifica-soggetto-token
+                          [environmentId]="environmentId"
+                          [verifica]="'token-policy'"
+                          [pdnd]="_isPDND"
+                          [type]="'backend'"
+                          [listTokenPolicy]="_listTokenPolicy"
+                          [icon]="'hdd-network'"
+                          [title]="'APP.TITLE.Connettivita'"
+                          [showInfo]="true">
+                        </ui-verifica-soggetto-token>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

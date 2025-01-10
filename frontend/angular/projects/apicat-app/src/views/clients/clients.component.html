@@ -1,0 +1,208 @@
+<ng-template [ngIf]="!_isEdit">
+  <div id="route-section" class="">
+    <div class="breadcrumbs-area">
+      <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    </div>
+    <div class="top-area">
+      <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+        <div class="">
+          <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+            <li class="nav-item">
+              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+                <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="clients.length">{{ _paging.totalElements || 0 }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="nav-controls align-self-center d-flex">
+        <div role="group" class="gl-w-full btn-group-">
+          <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+            <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddClient' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- search bar [start] -->
+    <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <ui-search-google-form #searchGoogleForm
+            [classBlock]="''"
+            [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+            [showHistory]="showHistory"
+            [historyStore]="'clients'"
+            [showSearch]="showSearch"
+            [searchFields]="searchFields"
+            [useCondition]="useCondition"
+            [showSorting]="showSorting"
+            [sortField]="sortField"
+            [sortDirection]="sortDirection"
+            [sortFields]="sortFields"
+            [formGroup]="_formGroup"
+            [simple]="false"
+            (onSearch)="_onSearch($event)"
+            (onSort)="_onSort($event)">
+            <div form-search [class.search-material-custom]="_useNewSearchUI">
+              <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+                <fieldset>
+
+                  <div class="row mb-1">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                    </div>
+                  </div>
+
+                  <div class="row mb-1">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="stato">{{ 'APP.LABEL.Status' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10">
+                      <select class="form-select form-control-sm" id="stato" formControlName="stato">
+                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                        <option *ngFor="let stato of _statiClient" [value]="stato.value">
+                          {{ 'APP.CLIENT.STATUS.' + stato.label | translate }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-sm-12 col-md-6">
+                      <div class="row mb-1">
+                        <div class="col-sm-4">
+                          <label class="col-form-label col-form-label-fix" for="auth_type">{{ 'APP.CLIENT.LABEL.Auth_type' | translate }}</label>
+                        </div>
+                        <div class="col-sm-8">
+                          <select class="form-select form-control-sm" id="auth_type" formControlName="auth_type">
+                            <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                            <option *ngFor="let at of _authTypeEnum" [value]="at">
+                              {{ 'APP.CLIENT.AUTH_TYPE.' + at | translate }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
+                      <div class="row mb-1">
+                        <div class="col-sm-4">
+                          <label class="col-form-label col-form-label-fix" for="ambiente">{{ 'APP.CLIENT.LABEL.Ambient' | translate }}</label>
+                        </div>
+                        <div class="col-sm-8">
+                          <select class="form-select form-control-sm" id="ambiente" formControlName="ambiente">
+                            <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                            <option *ngFor="let el of _ambienteEnum" [value]="el">
+                              {{ 'APP.CLIENT.LABEL.' + el | translate }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row mb-1">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="id_organizzazione">{{ 'APP.ADESIONI.LABEL.Organization' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10">
+                      <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                        [items]="organizzazioni$ | async"
+                        [trackByFn]="trackBySelectFn"
+                        [typeahead]="organizzazioniInput$"
+                        [minTermLength]="minLengthTerm" 
+                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                        labelForId="id_organizzazione"
+                        [editableSearchTerm]="true"
+                        bindValue="id_organizzazione"
+                        formControlName="id_organizzazione"
+                        (change)="onChangeSearchDropdwon($event, 'organizzazione')">
+                        <ng-template ng-label-tmp let-item="item">
+                          {{ item.nome }}
+                        </ng-template>
+                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                          <div class="fw-bold">{{ item.nome }}</div>
+                        </ng-template>
+                      </ng-select>
+                    </div>
+                  </div>
+
+                  <div class="row mb-1">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="id_soggetto">{{ 'APP.CLIENT.LABEL.Subject' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10">
+                      <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                        [items]="soggetti$ | async"
+                        [trackByFn]="trackBySelectFn"
+                        [typeahead]="soggettiInput$"
+                        [minTermLength]="minLengthTerm" 
+                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                        labelForId="id_soggetto"
+                        [editableSearchTerm]="true"
+                        bindValue="id_soggetto"
+                        formControlName="id_soggetto"
+                        (change)="onChangeSearchDropdwon($event, 'soggetto')">
+                        <ng-template ng-label-tmp let-item="item">
+                          {{ item.nome }}
+                        </ng-template>
+                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                          <div class="fw-bold">{{ item.nome }}</div>
+                        </ng-template>
+                      </ng-select>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
+                    <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                    <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+                  </div>
+                  <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
+                </fieldset>
+              </form>
+            </div>
+          </ui-search-google-form>
+        </div>
+      </div>
+    </section>
+    <!-- search bar [end] -->
+    
+    <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+      infiniteScroll
+      [infiniteScrollDistance]="2"
+      [infiniteScrollThrottle]="50"
+      (scrolled)="__loadMoreData()"
+      [scrollWindow]="false">
+
+      <ui-box-message *ngIf="clients.length == 0 && !_spin"
+        [size]="64"
+        [icon]="'report_problem'"
+        [image]="'./assets/images/illustrations/clients.svg'"
+        [message]="_message | translate"
+        [subMessage]="_messageHelp | translate">
+      </ui-box-message>
+
+      <div class="row">
+        <div class="col-12">
+          <ui-item-row class="border-bottom" *ngFor="let item of clients"
+            [data]="item"
+            [config]="clientsConfig"
+            [hasLink]="true"
+            (itemClick)="_onEdit($event, item)">
+          </ui-item-row>
+        </div>
+      </div>
+
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+    </section>
+  </div>
+</ng-template>
+
+<ng-template [ngIf]="_isEdit">
+  <app-journal-details [id]="_editCurrent.id" [config]="clientsConfig" (close)="_onCloseEdit()"></app-journal-details>
+</ng-template>

@@ -1,0 +1,26 @@
+<div #msgBar class="message-bar">
+  <form class="" [formGroup]="_formGroup" (submit)="__send(_formGroup.value)">
+    <div class="d-flex align-items-center position-relative">
+      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" (click)="__browse($event)" type="button" [tooltip]="'APP.TOOLTIP.AttachFiles' | translate" container="body" placement="right">
+        <i class="bi bi-paperclip fs-5"></i>
+        <input #browse type="file" hidden (change)="__onChange($event)">
+      </button>
+      <!-- <p #msg class="flex-grow-1 border" contenteditable ngfocus (input)="__inputChange($event)" (click)="__onClickText()" (blur)="__onBlur()">
+        {{ _placeholder }}
+      </p> -->
+      <div class="flex-grow-1 ">
+        <input #msg class="form-control form-control-sm" formControlName="messaggio" [placeholder]="'APP.PLACEHOLDER.TypeMessage' | translate">
+      </div>
+      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" type="submit" [disabled]="!_formGroup.valid">
+        <i class="bi bi-send fs-5"></i>
+      </button>
+    </div>
+    <div class="chips-list d-flex flex-wrap align-items-center">
+      <div class="chip d-flex align-items-center" *ngFor="let _allegato of _allegati; let i= index">
+        <i class="bi bi-file-earmark"></i>
+        <div class="chip-name">{{ _allegato.file }}</div>
+        <span class="btn btn-default btn-sm btn-icon" (click)="__chipClick(i)"><i class="bi bi-x-lg"></i></span>
+      </div>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,1046 @@
+@import 'gp-variables';
+
+.dropdown {
+  position: relative;
+
+  // Once the new design (https://gitlab.com/gitlab-org/gitlab-foss/-/issues/63499/designs)
+  // for Snippets is introduced and Clone button is relocated, we won't
+  // need this style.
+  // Issue for the refactoring: https://gitlab.com/gitlab-org/gitlab/-/issues/213327
+  &.gp-new-dropdown button.dropdown-toggle {
+    display: inline-flex;
+  }
+
+  .btn-link {
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+@mixin set-visible {
+  transform: translateY(0);
+  display: block;
+}
+@mixin set-invisible {
+  transform: translateY(-10px);
+  display: none;
+}
+
+.show.dropdown {
+  .dropdown-menu {
+    @include set-visible;
+    min-height: $dropdown-min-height;
+    // Prevents double scrollbar on dropdowns that also
+    // have max-height set on an inner scrollable element
+    max-height: $dropdown-max-height-lg;
+    overflow-y: auto;
+
+    &.dropdown-extended-height {
+      $extended-max-height: 400px;
+
+      max-height: $extended-max-height;
+
+      // See comment below for explanation
+      .gp-new-dropdown-inner {
+        max-height: $extended-max-height - 2px;
+      }
+    }
+    // @include media-breakpoint-down(xs) {
+    //   width: 100%;
+    // }
+
+    // `GlDropdown` specifies the `max-height` of `.gp-new-dropdown-inner`
+    // as `$dropdown-max-height`, but the `max-height` rule above forces
+    // the parent `.dropdown-menu` to be _slightly_ too small because of
+    // the 1px borders. The workaround below overrides the @gitlab/ui style
+    // to avoid a double scroll bar.
+    .gp-new-dropdown-inner {
+      max-height: $dropdown-max-height - 2px;
+    }
+  }
+
+  .dropdown-menu-toggle,
+  .dropdown-toggle {
+    border-color: $gray-darkest;
+  }
+
+  [data-toggle='dropdown'] {
+    outline: 0;
+  }
+}
+
+.dropdown-menu-close,
+.dropdown-menu-toggle,
+.dropdown-toggle {
+  &:active,
+  &:focus {
+    // @include gp-focus;
+  }
+}
+
+// Get search dropdown to line up with other nav dropdowns
+.search-input-container .dropdown-menu {
+  margin-top: 11px;
+}
+
+.confidential-merge-request-fork-group .dropdown-toggle,
+.dropdown-menu-toggle,
+.dropdown-toggle {
+  padding: 6px 8px 6px 10px;
+  background-color: $white;
+  color: $gp-text-color;
+  font-size: 14px;
+  text-align: left;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-base;
+  white-space: nowrap;
+
+  &:disabled.read-only {
+    color: $gp-text-color !important;
+  }
+
+  &.no-outline {
+    outline: 0;
+  }
+
+  &.large {
+    width: 200px;
+  }
+
+  &.wide {
+    width: 100%;
+
+    + .dropdown-select {
+      width: 100%;
+    }
+  }
+
+  // Allows dynamic-width text in the dropdown toggle.
+  // Resizes to allow long text without overflowing the container.
+  &.dynamic {
+    width: auto;
+    min-width: 160px;
+    max-width: 100%;
+    padding-right: 25px;
+  }
+
+  .fa {
+    color: $gray-darkest;
+  }
+
+  &:hover {
+    border-color: $gray-darkest;
+  }
+
+  &:focus:active {
+    border-color: $dropdown-toggle-active-border-color;
+    outline: 0;
+  }
+}
+
+// This is double classed to solve a specificity issue with the gitlab ui buttons
+.dropdown-menu-toggle.dropdown-menu-toggle {
+  justify-content: flex-start;
+  overflow: hidden;
+  padding-right: 25px;
+  position: relative;
+  text-overflow: ellipsis;
+  width: 160px;
+
+  .fa {
+    position: absolute;
+  }
+
+  .gp-spinner {
+    position: absolute;
+    top: 9px;
+    right: 8px;
+  }
+
+  .dropdown-menu-toggle-icon {
+    position: absolute;
+    right: $gp-padding-8;
+    color: $gray-darkest;
+  }
+}
+
+.labels {
+  // Prevent double scroll-bars for labels dropdown.
+  .dropdown-menu-toggle.wide + .dropdown-select {
+    max-height: unset;
+  }
+}
+
+.gp-dropdown .dropdown-menu-toggle {
+  padding-right: $gp-padding-8;
+
+  .gp-dropdown-toggle-text {
+    min-height: $gp-line-height-20;
+  }
+}
+@mixin dropdown-item-hover {
+  background-color: $gray-darker;
+  color: $gp-text-color;
+  outline: 0;
+}
+@mixin dropdown-link {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+  font-weight: $gp-font-weight-normal;
+  position: relative;
+  padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+  color: $gp-text-color;
+  line-height: $gp-btn-line-height;
+  white-space: normal;
+  overflow: hidden;
+  text-align: left;
+  width: 100%;
+
+  &.disable-hover {
+    text-decoration: none;
+  }
+
+  &.is-focused,
+  &:active,
+  &:focus,
+  &:not(.disable-hover):hover {
+    @include dropdown-item-hover;
+
+    text-decoration: none;
+  }
+
+  &.is-focused,
+  &:active,
+  &:focus,
+  &:focus:active {
+    // @include gp-focus($inset: true);
+  }
+
+  &.dropdown-menu-user-link {
+    line-height: 16px;
+    padding-top: 10px;
+    padding-bottom: 7px;
+    white-space: nowrap;
+
+    .dropdown-menu-user-username {
+      display: block;
+    }
+  }
+
+  .icon-play {
+    fill: $gp-text-color-secondary;
+    margin-right: 6px;
+    height: 12px;
+    width: 11px;
+  }
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  width: auto;
+  top: 100%;
+  z-index: $zindex-dropdown-menu;
+  min-width: 240px;
+  max-width: 500px;
+  margin-top: $dropdown-vertical-offset;
+  margin-bottom: 24px;
+  font-size: .875rem;
+  font-weight: $gp-font-weight-normal;
+  padding: 8px 0;
+  background-color: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-base;
+  box-shadow: 0 2px 4px $dropdown-shadow-color;
+
+  &.dropdown-open-top {
+    margin-bottom: $dropdown-vertical-offset;
+  }
+
+  &.dropdown-open-left {
+    right: 0;
+    left: auto;
+  }
+
+  &.is-loading {
+    .dropdown-content {
+      display: none;
+    }
+
+    .dropdown-loading {
+      display: block;
+    }
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    display: block;
+    text-align: left;
+    list-style: none;
+
+    > a,
+    .gp-button.btn-link,
+    .menu-item,
+    button {
+      @include dropdown-link;
+    }
+  }
+
+  .divider {
+    height: 1px;
+    margin: #{$grid-size / 2} 0;
+    padding: 0;
+    background-color: $dropdown-divider-bg;
+
+    &:hover {
+      background-color: $dropdown-divider-bg;
+    }
+  }
+
+  .separator {
+    width: 100%;
+    height: 1px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    background-color: $dropdown-divider-bg;
+  }
+
+  .dropdown-menu-empty-item a {
+    &:focus,
+    &:hover {
+      background-color: transparent;
+    }
+  }
+
+  .dropdown-header {
+    color: $black;
+    font-size: 13px;
+    font-weight: $gp-font-weight-bold;
+    line-height: $gp-line-height;
+    padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+  }
+
+  &.capitalize-header .dropdown-header {
+    text-transform: capitalize;
+  }
+
+  .dropdown-bold-header {
+    font-weight: $gp-font-weight-bold;
+    line-height: $gp-line-height;
+    padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+  }
+
+  .unclickable {
+    cursor: not-allowed;
+    padding: 5px 8px;
+    color: $gp-text-color-secondary;
+  }
+
+  .badge.badge-pill + span:not(.badge):not(.badge-pill) {
+    // Expects up to 3 digits on the badge
+    margin-right: 40px;
+  }
+
+  .dropdown-menu-content {
+    padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+  }
+}
+
+.dropdown-item {
+  @include dropdown-link;
+}
+
+.droplab-dropdown {
+  .dropdown-toggle > i,
+  .dropdown-toggle > svg {
+    pointer-events: none;
+  }
+
+  .dropdown-menu {
+    display: none;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+
+    li {
+      cursor: pointer;
+
+      &.droplab-item-active button {
+        @include dropdown-item-hover;
+      }
+
+       > a,
+       > button,
+      > .gp-button {
+        display: flex;
+        justify-content: flex-start;
+        margin: 0;
+        text-align: left;
+        text-overflow: inherit;
+
+        &.btn .fa:not(:last-child) {
+          margin-left: 5px;
+        }
+      }
+
+      > button.dropdown-epic-button {
+        flex-direction: column;
+
+        .reference {
+          color: $gray-300;
+          margin-top: $gp-padding-4;
+        }
+      }
+
+      &.droplab-item-selected i,
+      &.droplab-item-selected svg {
+        visibility: visible;
+      }
+
+      .icon {
+        visibility: hidden;
+      }
+
+      .description {
+        display: inline-block;
+        white-space: normal;
+        margin-left: 5px;
+
+        p {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+
+  .icon {
+    display: inline-block;
+    vertical-align: top;
+    padding-top: 2px;
+  }
+}
+
+.comment-type-dropdown.show .dropdown-menu {
+  display: block;
+}
+
+.filtered-search-box-input-container {
+  .dropdown-menu {
+    max-width: 280px;
+  }
+}
+
+.dropdown-menu-large {
+  width: 340px;
+}
+
+.dropdown-menu-full-width {
+  width: 100%;
+}
+
+.dropdown-menu-paging {
+  .dropdown-menu-back,
+  .dropdown-page-two {
+    display: none;
+  }
+
+  &.is-page-two {
+    .dropdown-page-one {
+      display: none;
+    }
+
+    .dropdown-menu-back,
+    .dropdown-page-two {
+      display: block;
+    }
+
+    .dropdown-content {
+      padding: 0 10px;
+    }
+  }
+}
+
+.dropdown-menu-user {
+  .avatar {
+    float: left;
+    width: 2 * $gp-padding;
+    height: 2 * $gp-padding;
+    margin: 0 10px 0 0;
+  }
+}
+
+.dropdown-menu-user-full-name {
+  display: block;
+  font-weight: $gp-font-weight-normal;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dropdown-menu-user-username {
+  display: block;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dropdown-select {
+  width: $dropdown-width;
+  @include media-breakpoint-down(sm) {
+    width: 100%;
+  }
+}
+
+.dropdown-menu-selectable {
+  li {
+    .dropdown-item:not(.open-with-link),
+    a,
+    button {
+      padding: 8px 40px;
+      position: relative;
+
+      &.is-active,
+      &.is-indeterminate {
+        color: $gp-text-color;
+
+        &.dropdown-menu-user-link::before {
+          top: 50%;
+          transform: translateY(-50%);
+        }
+      }
+
+      &.is-indeterminate::before {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        transform: translateY(-50%);
+        font-style: normal;
+        font-size: inherit;
+        text-rendering: auto;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        content: '—';
+      }
+
+      &.is-active {
+        position: relative;
+
+        &::before {
+          content: '';
+          display: block;
+          position: absolute;
+          top: .5rem;
+          left: 1rem;
+          width: 1rem;
+          height: 1rem;
+          mask-image: asset_url('icons-stacked.svg#check');
+          mask-repeat: no-repeat;
+          mask-size: cover;
+          mask-position: center center;
+          background: $black-normal;
+        }
+      }
+    }
+  }
+}
+
+.dropdown-title {
+  position: relative;
+  padding: $dropdown-item-padding-y $dropdown-item-padding-x #{2 * $dropdown-item-padding-y};
+  margin-bottom: $dropdown-item-padding-y;
+  font-weight: $gp-font-weight-bold;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid $dropdown-divider-bg;
+  overflow: hidden;
+}
+
+.dropdown-title-button {
+  padding: 0;
+  color: $dropdown-title-btn-color;
+  border: 0;
+  background: none;
+  outline: 0;
+
+  &:hover {
+    color: darken($dropdown-title-btn-color, 15%);
+  }
+}
+
+.dropdown-menu-back {
+  left: 10px;
+  top: $gp-padding-8;
+}
+
+.dropdown-input {
+  position: relative;
+  margin-bottom: 10px;
+  padding: 0 10px;
+
+  .dropdown-input-clear,
+  .dropdown-input-search,
+  .input-icon {
+    position: absolute;
+    top: $gp-padding-8;
+    right: 20px;
+    color: $gray-500;
+    font-size: 12px;
+    pointer-events: none;
+  }
+
+  .dropdown-input-clear {
+    display: none;
+    cursor: pointer;
+    pointer-events: all;
+    top: $gp-padding-8;
+    font-size: 14px;
+
+    &:not(.gp-icon) {
+      right: 22px;
+    }
+  }
+
+  &.has-value {
+    .dropdown-input-clear {
+      display: block;
+    }
+
+    .dropdown-input-search {
+      display: none;
+    }
+  }
+}
+
+.default-dropdown-input,
+.dropdown-input-field {
+  background-color: $input-bg;
+  display: block;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 7px;
+  color: $gray-700;
+  line-height: 30px;
+  border: 1px solid $dropdown-divider-bg;
+  border-radius: 2px;
+  outline: 0;
+
+  &:focus {
+    color: $gray-700;
+    border-color: $blue-300;
+    box-shadow: 0 0 4px $dropdown-input-focus-shadow;
+
+    ~ .dropdown-input-clear,
+    ~ .fa {
+      color: $gray-700;
+    }
+  }
+
+  &:hover {
+    ~ .dropdown-input-clear,
+    ~ .fa {
+      color: $gray-700;
+    }
+  }
+}
+
+.dropdown-content {
+  max-height: 252px;
+  overflow-y: auto;
+}
+
+.dropdown-info-note {
+  color: $gp-text-color-secondary;
+  text-align: center;
+}
+
+.dropdown-footer {
+  padding-top: 10px;
+  margin-top: 10px;
+  font-size: 13px;
+  border-top: 1px solid $dropdown-divider-bg;
+}
+
+.dropdown-footer-content {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.dropdown-footer-list {
+  font-size: 14px;
+
+  a {
+    cursor: pointer;
+    padding-left: 10px;
+  }
+}
+
+.dropdown-create-new-item-button {
+  @include dropdown-link;
+
+  width: 100%;
+  background-color: transparent;
+  border: 0;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+.dropdown-loading {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: none;
+  z-index: 9;
+  background-color: $dropdown-loading-bg;
+  font-size: 28px;
+
+  .fa {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: -14px;
+    margin-left: -14px;
+  }
+}
+
+.dropdown-label-box {
+  position: relative;
+  top: 0;
+  margin-right: 5px;
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: $border-radius-base;
+}
+
+.git-revision-dropdown {
+  .dropdown-content {
+    max-height: 215px;
+  }
+}
+
+.sidebar-move-issue-dropdown {
+  .dropdown-content {
+    max-height: 160px;
+  }
+}
+
+.dropdown-menu-author {
+  .dropdown-content {
+    max-height: 215px;
+  }
+}
+
+.dropdown-menu-labels {
+  .dropdown-content {
+    max-height: 128px;
+  }
+}
+
+.dropdown-menu-inner-title {
+  display: block;
+  color: $gp-text-color;
+  font-weight: $gp-font-weight-bold;
+}
+
+.dropdown-menu-inner-content {
+  display: block;
+  color: $gp-text-color-secondary;
+}
+
+.dropdown-toggle-text {
+  &.is-default {
+    color: $gp-text-color-secondary;
+  }
+}
+
+.pika-single.animate-picker.is-bound,
+.pika-single.animate-picker.is-bound.is-hidden {
+  /*
+   * Having `!important` is not recommended but
+   * since `pikaday` sets positioning inline
+   * there's no way it can be gracefully overridden
+   * using config options.
+   */
+  position: absolute !important;
+  display: block;
+}
+
+.pika-single.animate-picker.is-bound {
+  @include set-visible;
+
+  &.is-hidden {
+    @include set-invisible;
+    overflow: hidden;
+  }
+}
+@include media-breakpoint-down(xs) {
+  .navbar-gitlab {
+    li.dropdown {
+      position: static;
+
+      &.user-counter {
+        margin-left: 8px !important;
+
+        > a {
+          padding: 0 4px !important;
+        }
+      }
+    }
+  }
+
+  header.navbar-gitlab .dropdown {
+    .dropdown-menu {
+      width: 100%;
+      min-width: 100%;
+    }
+  }
+
+  header.navbar-gitlab-new .header-content .dropdown {
+    .dropdown-menu {
+      left: 0;
+      min-width: 100%;
+    }
+  }
+}
+
+.frequent-items-dropdown-container {
+  display: flex;
+  flex-direction: row;
+  height: $grid-size * 40;
+
+  .frequent-items-dropdown-content {
+    @include gp-pt-3;
+  }
+
+  .loading-animation {
+    color: $almost-black;
+  }
+
+  .frequent-items-dropdown-content {
+    position: relative;
+    width: 70%;
+  }
+
+  .frequent-items-list-container li.section-empty,
+  .section-header {
+    color: $gp-text-color-secondary;
+    font-size: $gp-font-size;
+  }
+
+  .frequent-items-list-container {
+    padding: 8px 0;
+    overflow-y: auto;
+
+    li.section-empty.section-failure {
+      color: $red-700;
+    }
+
+    .frequent-items-list-item-container .gp-button {
+      &.is-focused,
+      &:active,
+      &:focus,
+      &:focus:active {
+        // @include gp-focus($inset: true);
+      }
+    }
+
+    .frequent-items-list-item-container a {
+      display: flex;
+    }
+  }
+
+  .section-header {
+    font-weight: 700;
+    margin-top: 8px;
+  }
+}
+
+.frequent-items-list-item-container {
+  .frequent-items-item-metadata-container {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .frequent-items-item-namespace,
+  .frequent-items-item-title {
+    max-width: 250px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .frequent-items-item-title {
+    font-size: $gp-font-size;
+    font-weight: 400;
+    line-height: 16px;
+  }
+
+  .frequent-items-item-namespace {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 12px;
+    color: $gp-text-color-secondary;
+  }
+  @include media-breakpoint-down(xs) {
+    .frequent-items-item-metadata-container {
+      float: none;
+    }
+  }
+}
+
+.dropdown-content-faded-mask {
+  position: relative;
+
+  .dropdown-list {
+    max-height: $dropdown-max-height;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  &::after {
+    height: $dropdown-fade-mask-height;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    background: linear-gradient(to top, $white 0, rgba($white, 0));
+    transition: opacity $fade-mask-transition-duration $fade-mask-transition-curve;
+    content: '';
+    pointer-events: none;
+  }
+
+  &.fade-out::after {
+    opacity: 0;
+  }
+}
+
+.labels-select-wrapper {
+  &.is-standalone {
+    min-width: $input-md-width;
+
+    .labels-select-dropdown-contents {
+      max-height: 350px;
+
+      .dropdown-content {
+        height: 250px;
+      }
+    }
+  }
+
+  li {
+    &.is-focused,
+    &:hover {
+      .label-item {
+        @include dropdown-item-hover;
+
+        text-decoration: none;
+      }
+    }
+  }
+
+  .labels-select-dropdown-button {
+    .gp-button-text {
+      width: 100%;
+    }
+  }
+
+  .labels-select-dropdown-contents {
+    min-height: $dropdown-min-height;
+    max-height: 330px;
+    background-color: $white;
+    border: 1px solid $border-color;
+    box-shadow: 0 2px 4px $dropdown-shadow-color;
+    z-index: 2;
+
+    .dropdown-content {
+      height: 135px;
+    }
+  }
+
+  .labels-fetch-loading {
+    top: 0;
+    left: 0;
+    opacity: .5;
+    background-color: $white;
+    z-index: 1;
+  }
+
+  .dropdown-header-button {
+    .gp-icon {
+      color: $dropdown-title-btn-color;
+
+      &:hover {
+        color: $gray-300;
+      }
+    }
+  }
+
+  .label-item {
+    padding: 8px 20px;
+  }
+
+  .color-input-container {
+    .dropdown-label-color-preview {
+      border: 1px solid $gray-100;
+      border-right: 0;
+
+      &[style] {
+        border-color: transparent;
+      }
+    }
+  }
+}
+
+.bulk-update {
+  .dropdown-toggle-text {
+    &.is-default {
+      color: $gp-text-color;
+    }
+  }
+}
+
+// This class won't be needed once we can directly add utility classes to the child
+// https://github.com/bootstrap-vue/bootstrap-vue/issues/5669
+.gp-dropdown-text-py-0 {
+  .b-dropdown-text {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+// This class won't be needed once we can directly add utility classes to the child
+// https://github.com/bootstrap-vue/bootstrap-vue/issues/5669
+.gp-dropdown-text-block {
+  .b-dropdown-text {
+    display: block;
+  }
+}
+
+// This class won't be needed once we can add a prop for this in the GitLab UI component
+// https://gitlab.com/gitlab-org/gitlab-ui/-/issues/966
+.gp-new-dropdown {
+  .gp-dropdown-menu-wide {
+    width: $gp-dropdown-width-wide;
+  }
+}
+
+// This class won't be needed once we can add a prop for this in the GitLab UI component
+// https://gitlab.com/gitlab-org/gitlab-ui/-/issues/966
+.gp-new-dropdown.gp-dropdown-menu-full-width {
+  .dropdown-menu {
+    width: 100%;
+  }
+}

@@ -1,0 +1,144 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+:host:hover .e-card,
+:host:hover .primary-text {
+  background-color: var(--card-hover-background-color, #b0b0b0);
+  // border: 1px solid var(--card-border-color, #eaeaea);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.text-hover {
+  &:hover {
+    color: var(--link-hover-color, #111);
+  }
+}
+
+.card-image {
+  position: relative;
+  width: 100%;
+  background: no-repeat center center;
+  background-size: cover;
+  padding-top: 56.25%;
+  background-color: var(--card-background-color, #28af9b);
+
+  .logo-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5em;
+    color: #ffffff;
+  }
+}
+
+.edit-mode {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  padding: 1rem;
+  line-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+}
+
+.edit-mode mat-checkbox {
+  height: 20px;
+}
+
+.primary-text {
+  background-color: var(--card-background-color, #fff);
+  padding: .75rem;
+}
+
+.primary-text p {
+  margin: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Extended Card */
+:host:hover .e-card .bottom > .read-more > i,
+:host:hover .e-card .bottom > .read-more > p {
+  color: var(--e-card-link-hover-color, #b0b0b0);
+}
+
+.e-card {
+  height: 100%;
+  padding: .75rem;
+  overflow: hidden;
+  background-color: var(--card-background-color, #fff);
+  // border: 1px solid var(--card-border-color, #eaeaea);
+}
+
+.e-card ~ .edit-mode {
+  background-color: var(--card-background-color, #fff);
+}
+
+.e-card .bottom,
+.e-card .bottom {
+  display: inline-block;
+}
+
+.e-card .top > img {
+  /* display: block;
+      width: 100%;
+      height: auto; */
+  width: 95%;
+  height: 200px;
+  object-fit: contain;
+  /* margin: 0 0 1.5rem 0; */
+}
+
+.e-card .top > h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 .5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.e-card .top > h2 {
+  font-size: .9rem;
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: var(--e-card-secondary-text-color, rgba(0,0,0,.5));
+  margin: 0 0 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.e-card .top > p {
+  font-size: .9rem;
+  line-height: 1.5;
+  margin: 0 0 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.e-card .bottom > .read-more {
+  cursor: pointer;
+  white-space: nowrap !important;
+  overflow: hidden;
+}
+
+.e-card .bottom > .read-more > p {
+  font-size: 1rem;
+  margin: 0;
+  padding: 0 0 0 .625rem;
+}
+
+.card-img-top {
+  min-height: 150px;
+  background-color: #ffffff;
+}

@@ -1,0 +1,336 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.DOMINI.EditDomain' | translate }}</h3>
+    <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.DOMINI.NewDomain' | translate }}</h3>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
+      <div class="nav-controls">
+        <div class="position-relative me-2" *ngIf="!_spin && !_isEdit">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [routerLink]="['referenti']">
+            {{ 'APP.DOMINI.TITLE.ShowReferents' | translate }}
+          </button>
+        </div>
+        <div class="position-relative" *ngIf="!_isEdit && !_spin">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditDominio' | translate" (click)="_editDominio()">
+            <i class="bi bi-pencil"></i>
+          </button>
+        </div>
+        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
+          <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
+            <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+              <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+                <div class="gl-new-dropdown-inner">
+                  <div class="gl-new-dropdown-contents">
+                    <li role="presentation" class="gl-new-dropdown-item">
+                      <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteDominio()">
+                        <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                          <i class="bi bi-trash text-danger"></i>
+                        </div>
+                        <div class="gl-new-dropdown-item-text-wrapper">
+                          <p class="gl-new-dropdown-item-text-primary">{{ 'APP.DOMINI.DeleteDomain' | translate }}</p>
+                        </div>
+                      </button>
+                    </li>
+                  </div>
+                </div>
+              </ul>
+            </div>
+          </div>
+        <!-- </ng-template> -->
+        <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+    <!-- </ng-template> -->
+  </div>
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
+    <ui-box-message *ngIf="!dominio && !_spin && !_isNew"
+      [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate"
+      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings" *ngIf="(dominio && !_spin) || _isNew">
+      <div class="settings-content">
+        <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
+          {{ _errorMsg }}
+        </div>
+
+        <div class="edit-form">
+          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+            <div class="row gl-mt-3">
+              <div class="col-lg-4 mb-5">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.DOMINI.TITLE.GeneralInformations' | translate }}</h4>
+                <div class="text-break" markdown>{{ 'APP.DOMINI.TITLE.GeneralInformations_sub' | translate }}</div>
+              </div>
+              <div class="col-lg-8">
+
+                <div class="row nome">
+                  <!-- nome -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="nome">{{ 'APP.DOMINI.LABEL.Name' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nomeg" id="nome" formControlName="nome">
+                        <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="nome" context="DOMINIO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="nome" [value]="dominio.nome">
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+
+                <div class="row visibilita">
+                  <!-- visibilita -->
+                  <div class="form-group col-md-6 mb-2">
+                    <label class="label-bold" for="visibilita">{{ 'APP.DOMINI.LABEL.Visibility' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'" *ngIf="_isEdit"></span>
+                    </label>
+                    <div class="" *ngIf="_isEdit">
+                      <select class="form-select" id="visibilita" formControlName="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')">
+                        <option *ngFor="let visibilita of _visibilitaEnum" [value]="visibilita">{{ visibilita }}</option>
+                      </select>  
+                      <p *ngIf="f['visibilita'].invalid && (f['visibilita'].dirty || f['visibilita'].touched)" class="form-text text-danger">
+                        <span *ngIf="f['visibilita'].errors && f['visibilita'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      </p>
+                      <ui-input-help field="visibilita" context="DOMINIO"></ui-input-help>
+                    </div>
+                    <div class="" *ngIf="!_isEdit">
+                      <input type="text" readonly class="form-control-plaintext" id="visibilita" [value]="dominio.visibilita">
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="form-group classi" *ngIf="_isVisibilita('riservato')">
+                      <label class="label-bold" for="classi">{{ 'APP.DOMINI.LABEL.Classi' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'" *ngIf="_isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
+                          [items]="anagrafiche['classi-utente']"
+                          [multiple]="true"
+                          bindValue="id_classe_utente"
+                          bindLabel="nome"
+                          labelForId="classi"
+                          [closeOnSelect]="false"
+                          formControlName="classi">
+                          <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                            <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
+                          </ng-template>
+                        </ng-select>
+                        <p *ngIf="f['classi']?.invalid && (f['classi'].dirty || f['classi'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['classi'].errors && f['classi'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="classi" context="SERVICE"></ui-input-help>
+                      </div>
+                      <div class="mt-1" *ngIf="!_isEdit">
+                        <!-- <input type="text" readonly class="form-control-plaintext" id="classi" [value]="data?.classi"> -->
+                        <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1" *ngFor="let classe of dominio?.classi">{{ classe.nome }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+
+
+                <div class="row soggetto_referente">
+                  <!-- soggetto_referente -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="soggetto_referente">{{ 'APP.DOMINI.LABEL.ReferentSubject' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'soggetto_referente'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <ng-select class="select-custom" 
+                          [items]="soggetti$ | async"
+                          [trackByFn]="trackByFn"
+                          [typeahead]="soggettiInput$"
+                          [minTermLength]="minLengthTerm" 
+                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                          bindValue="id_soggetto"
+                          bindLabel="soggetto_referente"
+                          labelForId="id_soggetto"
+                          [editableSearchTerm]="true"
+                          formControlName="soggetto_referente">
+                          <ng-template ng-label-tmp let-item="item">
+                            {{ item.nome }}
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                            <div class="fw-bold">{{ item.nome }}</div>
+                          </ng-template>
+                        </ng-select>
+                        <p *ngIf="f['soggetto_referente'].invalid && (f['soggetto_referente'].dirty || f['soggetto_referente'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['soggetto_referente'].errors && f['soggetto_referente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="soggetto_referente" context="DOMINIO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="soggetto_referente" [value]="dominio.soggetto_referente.nome">
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+
+                <div class="row descrzione">
+                  <!-- descrizione -->
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="descrizione">{{ 'APP.DOMINI.LABEL.Description' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizioneg" id="descrizione" formControlName="descrizione">
+                        <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="descrizione" context="DOMINIO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="descrizione" [value]="dominio.descrizione || '-'">
+                      </div>
+                    </div>
+                  </div>
+                  <!--  -->
+                </div>
+
+                <div class="row tag">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="tag">{{ 'APP.DOMINI.LABEL.Tag' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tag'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('tag')" type="text" name="tagg" id="tag" formControlName="tag">
+                        <p *ngIf="f['tag'].invalid && (f['tag'].dirty || f['tag'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['tag'].errors && f['tag'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="tag" context="DOMINIO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="tag" [value]="dominio.tag || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row deprecato">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="deprecato">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'deprecato'" *ngIf="_isEdit"></span></label>
+                      <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
+                        <input class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" formControlName="deprecato">
+                        <label class="custom-control-label" for="deprecato"></label>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <div class="gl-form-checkbox custom-control custom-checkbox">
+                          <input class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" [checked]="dominio.deprecato" disabled>
+                          <label class="custom-control-label text-dark" for="deprecato"></label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div class="row gl-mt-3">
+              <div class="col-lg-4 mb-5">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.DOMINI.TITLE.UrlInvocazione' | translate }}</h4>
+                <div class="text-break" markdown>{{ 'APP.DOMINI.TITLE.UrlInvocazione_sub' | translate }}</div>
+              </div>
+              <div class="col-lg-8">
+                <div class="row">
+                  <div class="col-12"> 
+                    <div class="form-group">
+                      <label class="label-bold" for="url_invocazione">{{ 'APP.DOMINI.LABEL.UrlInvocazione' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_invocazione'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_invocazione')" type="text" name="url_invocazione" id="url_invocazione" formControlName="url_invocazione">
+                        <p *ngIf="f['url_invocazione'].invalid && (f['url_invocazione'].dirty || f['url_invocazione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['url_invocazione'].errors && f['url_invocazione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="url_invocazione" context="DOMINIO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="url_invocazione" [value]="dominio.url_invocazione || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="url_prefix_collaudo">{{ 'APP.DOMINI.LABEL.UrlPrefixCollaudo' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_prefix_collaudo'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_collaudo')" type="text" name="url_prefix_collaudo" id="url_prefix_collaudo" formControlName="url_prefix_collaudo">
+                        <p *ngIf="f['url_prefix_collaudo'].invalid && (f['url_prefix_collaudo'].dirty || f['url_prefix_collaudo'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['url_prefix_collaudo'].errors && f['url_prefix_collaudo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="url_prefix_collaudo" context="DOMINIO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="url_prefix_collaudo" [value]="dominio.url_prefix_collaudo || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12">
+                    <div class="form-group">
+                      <label class="label-bold" for="url_prefix_produzione">{{ 'APP.DOMINI.LABEL.UrlPrefixProduzione' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_prefix_collaudo'" *ngIf="_isEdit"></span>
+                      </label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_prefix_produzione')" type="text" name="url_prefix_produzione" id="url_prefix_produzione" formControlName="url_prefix_produzione">
+                        <p *ngIf="f['url_prefix_produzione'].invalid && (f['url_prefix_produzione'].dirty || f['url_descrizione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['url_prefix_produzione'].errors && f['url_prefix_produzione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="url_prefix_produzione" context="DOMINIO"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="url_prefix_produzione" [value]="dominio.url_prefix_produzione || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
+              {{ _errorMsg }}
+            </div>
+
+            <div class="row-content-block footer-block" *ngIf="_isEdit">
+              <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                {{ 'APP.BUTTON.Save' | translate }}
+              </button>
+              <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                {{ 'APP.BUTTON.Cancel' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>

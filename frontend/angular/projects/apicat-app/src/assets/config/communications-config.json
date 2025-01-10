@@ -1,0 +1,31 @@
+{
+  "itemRow": {
+    "primaryText": [
+      { "field": "stato", "type": "text", "emptySpace": true },
+      { "field": "oggetto", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "tipo", "type": "label", "options": "type" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "data", "type": "date", "format": "DD-MM-YYYY" },
+        { "field": "autore ", "type": "text" }
+      ],
+      "label": []
+    },
+    "secondaryMetadata": [
+    ]
+  },
+
+  "options": {
+    "type": {
+      "label": "APP.LABEL.Type",
+      "small": true,
+      "values": {
+        "cambio_stato": { "label": "APP.STATUS.cambio_stato", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "messaggio": { "label": "APP.STATUS.messaggio", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+      }
+    }
+  }
+}

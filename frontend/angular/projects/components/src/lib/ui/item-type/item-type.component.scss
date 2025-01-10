@@ -1,0 +1,22 @@
+.bg-avatar-image {
+    background-color: #fafafa;
+}
+
+.rounded-circle-no-image {
+    width: 100%;
+
+    .logo-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1em;
+        color: #ffffff;
+    }
+}
+
+.rounded-circle {
+    &.square {
+        border-radius: 0.25rem !important;
+    }
+}

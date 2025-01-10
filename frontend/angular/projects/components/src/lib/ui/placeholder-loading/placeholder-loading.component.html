@@ -1,0 +1,54 @@
+<div class="ph-item px-0 mb-4 border-0" *ngIf="title">
+  <div class="ph-col-12 p-0 m-0 mb-2">
+    <div class="ph-row">
+      <div class="ph-col-4 big bg-white" [class.rounded-4]="rounded">
+        <h5><span class="bi bi-{{ icon }} me-2" *ngIf="icon"></span>{{ title | translate }}</h5>
+      </div>
+      <div class="ph-col-8 empty big"></div>
+    </div>
+  </div>
+</div>
+<ng-container *ngIf="type === 'list'">
+  <div class="border-bottom mb-3 pb-0 ms-2" *ngFor="let item of range_arr">
+    <div class="ph-item p-0 m-0 border-0">
+      <div class="ph-col-12 p-0 m-0 mb-3">
+        <div class="ph-row">
+          <div class="ph-col-6 big" [class.rounded-4]="rounded"></div>
+          <div class="ph-col-4 empty big"></div>
+          <div class="ph-col-2 big" [class.rounded-4]="rounded"></div>
+          <div class="ph-col-4" [class.rounded-4]="rounded"></div>
+          <div class="ph-col-8 empty"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<ng-container *ngIf="type === 'card'">
+  <div class="row">
+    <div class="col-{{ col }}" *ngFor="let item of range_arr">
+      <div class="ph-item p-0 m-0 border-0">
+        <div class="ph-col-12">
+          <div class="ph-picture"></div>
+          <div class="ph-row">
+            <div class="ph-col-4"></div>
+            <div class="ph-col-8 empty"></div>
+            <div class="ph-col-12"></div>
+          </div>
+        </div>
+        <div class="ph-col-2">
+          <div class="ph-avatar"></div>
+        </div>
+        <div>
+          <div class="ph-row">
+            <div class="ph-col-12"></div>
+            <div class="ph-col-2"></div>
+            <div class="ph-col-10 empty"></div>
+            <div class="ph-col-8 big"></div>
+            <div class="ph-col-4 big empty"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>

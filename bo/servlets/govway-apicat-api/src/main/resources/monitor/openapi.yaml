@@ -1,0 +1,2936 @@
+openapi: 3.0.3
+info:
+  title: "GovCat - Catalogo API Monitoraggio"
+  description: "Registrazione e Adesione alle API"
+  x-summary: "Registrazione e Adesione alle API"
+  contact:
+    email: "info@link.it"
+  version: "1.5.0"
+  license:
+    name: "GPLv3"
+  termsOfService: "https://www.gnu.org/licenses/gpl-3.0.txt"
+tags:
+- name: "Verifica"
+- name: "Statistiche"
+- name: "Transazioni"
+paths:
+  /{ambiente}/applicativi/certificati/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+    get:
+      tags:
+        - Verifica
+      summary: Ritorna uno stato complessivo sui certificati presenti sugli applicativi
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResocontoVerificaCertificati'
+  /{ambiente}/applicativi/certificati/scaduti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di applicativi che possiedono certificati scaduti
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemApplicativiVerificati'
+  /{ambiente}/applicativi/certificati/in-scadenza:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di applicativi che possiedono certificati in scadenza
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemApplicativiVerificati'
+  /{ambiente}/applicativi/{tipo_verifica}/{soggetto}/{name}/certificati/scaduti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/TipoVerifica'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati scaduti degli applicativi
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiScaduti'
+  /{ambiente}/applicativi/{tipo_verifica}/{soggetto}/{name}/certificati/in-scadenza:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/TipoVerifica'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati in scadenza degli applicativi
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiInScadenza'
+  /{ambiente}/servizi/{soggetto}/certificati/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      summary: Ritorna uno stato complessivo sui certificati presenti sui servizi
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResocontoVerificaCertificati'
+  /{ambiente}/servizi/{soggetto}/certificati/scaduti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di servizi che possiedono certificati scaduti
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemServiziVerificati'
+  /{ambiente}/servizi/{soggetto}/certificati/in-scadenza:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di servizi che possiedono certificati in scadenza
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemServiziVerificati'
+  /{ambiente}/servizi/{soggetto}/backend/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      summary: Ritorna uno stato complessivo sulla connettività verso il backend per i servizi
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResocontoVerificaConnettivita'
+  /{ambiente}/servizi/{soggetto}/backend/details:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di servizi che presentano errori di connettività verso il backend
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemServiziVerificati'
+  /{ambiente}/servizi/{soggetto}/read-timeout/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      summary: Ritorna uno stato complessivo su eventi di read timeout per i servizi
+      parameters:
+        - $ref: "#/components/parameters/periodo1_data_inizio_verifica"
+        - $ref: "#/components/parameters/periodo1_data_fine_verifica"
+        - $ref: "#/components/parameters/periodo2_data_inizio_verifica"
+        - $ref: "#/components/parameters/periodo2_data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResocontoVerificaConnettivitaPeriodo'
+  /{ambiente}/servizi/{soggetto}/read-timeout/details:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di servizi che presentano errori di read timeout
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemServiziVerificati'
+  /{ambiente}/servizi/{soggetto}/connection-timeout/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      summary: Ritorna uno stato complessivo su eventi di connection timeout per i servizi
+      parameters:
+        - $ref: "#/components/parameters/periodo1_data_inizio_verifica"
+        - $ref: "#/components/parameters/periodo1_data_fine_verifica"
+        - $ref: "#/components/parameters/periodo2_data_inizio_verifica"
+        - $ref: "#/components/parameters/periodo2_data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResocontoVerificaConnettivitaPeriodo'
+  /{ambiente}/servizi/{soggetto}/connection-timeout/details:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di servizi che presentano errori di connection timeout
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemServiziVerificati'
+  /{ambiente}/servizi/{soggetto}/rate-limiting/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      summary: Ritorna uno stato complessivo su eventi di violazione rate-limiting per i servizi
+      parameters:
+        - $ref: "#/components/parameters/periodo1_data_inizio_verifica"
+        - $ref: "#/components/parameters/periodo1_data_fine_verifica"
+        - $ref: "#/components/parameters/periodo2_data_inizio_verifica"
+        - $ref: "#/components/parameters/periodo2_data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResocontoVerificaConnettivitaPeriodo'
+  /{ambiente}/servizi/{soggetto}/rate-limiting/details:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      x-spring-paginated: true
+      summary: Ritorna la lista di servizi che presentano errori di violazione rate-limiting
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemServiziVerificati'
+  /{ambiente}/erogazioni/{soggetto}/{name}/{version}/backend/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica connettività backend delle erogazioni
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaBackend'
+  /{ambiente}/erogazioni/{soggetto}/{name}/{version}/certificati/scaduti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati scaduti delle erogazioni
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiScaduti'
+  /{ambiente}/erogazioni/{soggetto}/{name}/{version}/certificati/in-scadenza:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati in scadenza delle erogazioni
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiInScadenza'
+  /{ambiente}/erogazioni/{soggetto}/{name}/{version}/read-timeout/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica se sono emersi errori di read timeout nell'erogazione
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaEventi'
+  /{ambiente}/erogazioni/{soggetto}/{name}/{version}/connection-timeout/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica se sono emersi errori di connection timeout nell'erogazione
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaEventi'
+  /{ambiente}/erogazioni/{soggetto}/{name}/{version}/rate-limiting/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica se sono emerse violazione di policy di rate limiting nell'erogazione
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaEventi'
+  /{ambiente}/erogazioni/{soggetto}/report/andamento-temporale:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report andamento temporale delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report_andamento_temporale'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report andamento temporale delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AndamentoTemporaleQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoIntervalloTemporale'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-esiti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per esiti delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report_andamento_temporale'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per esiti delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneEsitiQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneEsiti'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-errori:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per errori delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per errori delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneErroriQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneErrori'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-soggetto-remoto:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per soggetto remoto delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per soggetto remoto delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneSoggettoRemotoQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneSoggettoRemoto'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-api:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per API delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per API delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneApiQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneAPI'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-operazione:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per operazione delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per operazione delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneOperazioneQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneOperazione'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-applicativo:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per applicativo delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per applicativo delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneApplicativoQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneApplicativo'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-token-clientid:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per token info 'clientId' delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per token info ‘clientId’ delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneClientIdQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneTokenClientId'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-token-issuer:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per token info ‘issuer’ delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per token info ‘issuer’ delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneIssuerQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneTokenIssuer'
+  /{ambiente}/erogazioni/{soggetto}/report/distribuzione-ip:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per indirizzo IP delle erogazioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per IP delle erogazioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneIPQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneIndirizzoIP'
+  /{ambiente}/fruizioni/{soggetto}/report/andamento-temporale:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report andamento temporale delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report_andamento_temporale'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report andamento temporale delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AndamentoTemporaleQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoIntervalloTemporale'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-esiti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per esiti delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report_andamento_temporale'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per esiti delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneEsitiQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneEsiti'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-errori:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per errori delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per errori delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneErroriQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneErrori'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-soggetto-remoto:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per soggetto remoto delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per soggetto remoto delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneSoggettoRemotoQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneSoggettoRemoto'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-api:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per API delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per API delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneApiQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneAPI'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-operazione:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per operazione delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per operazione delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneOperazioneQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneOperazione'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-applicativo:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per applicativo delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per applicativo delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneApplicativoQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneApplicativo'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-principal:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per principal delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per principal delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzionePrincipalQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzionePrincipal'
+  /{ambiente}/fruizioni/{soggetto}/report/distribuzione-ip:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per indirizzo IP delle fruizioni
+      parameters:
+        - $ref: "#/components/parameters/id_servizio_query_required"
+        - $ref: "#/components/parameters/data_da"
+        - $ref: "#/components/parameters/data_a"
+        - $ref: "#/components/parameters/id_api_query_optional"
+        - $ref: "#/components/parameters/esito_transazione"
+        - $ref: '#/components/parameters/esito-lista-codici'
+        - $ref: "#/components/parameters/id_adesione_query_optional"
+        - $ref: "#/components/parameters/id_client_query_optional"
+        - $ref: '#/components/parameters/operazione'
+        - $ref: '#/components/parameters/unita_tempo_report'
+        - $ref: '#/components/parameters/tipo-intervallo-temporale'
+        - $ref: '#/components/parameters/unita-temporale'
+        - $ref: '#/components/parameters/tipo_report'
+        - $ref: '#/components/parameters/tipo_informazione_report'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportStatisticoBinario'
+    post:
+      tags:
+        - Statistiche
+      summary: Report distribuzione per indirizzo IP delle fruizioni
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DistribuzioneIPQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportStatisticoDistribuzioneIndirizzoIP'
+  /{ambiente}/fruizioni/{soggetto}/{provider}/{name}/{version}/backend/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/Erogatore'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica connettività backend delle fruizioni
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaBackend'
+  /{ambiente}/fruizioni/{soggetto}/{provider}/{name}/{version}/certificati/scaduti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/Erogatore'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati scaduti delle fruizioni
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiScaduti'
+  /{ambiente}/fruizioni/{soggetto}/{provider}/{name}/{version}/certificati/in-scadenza:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/Erogatore'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati in scadenza delle fruizioni
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiInScadenza'
+  /{ambiente}/fruizioni/{soggetto}/{provider}/{name}/{version}/read-timeout/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/Erogatore'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica se sono emersi errori di read timeout nella fruizione
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaEventi'
+  /{ambiente}/fruizioni/{soggetto}/{provider}/{name}/{version}/connection-timeout/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/Erogatore'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica se sono emersi errori di connection timeout nella fruizione
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaEventi'
+  /{ambiente}/fruizioni/{soggetto}/{provider}/{name}/{version}/rate-limiting/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: '#/components/parameters/Erogatore'
+      - $ref: '#/components/parameters/NomeEntita'
+      - $ref: '#/components/parameters/VersioneEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica se sono emerse violazione di policy di rate limiting nella fruizione
+      parameters:
+        - $ref: "#/components/parameters/data_inizio_verifica"
+        - $ref: "#/components/parameters/data_fine_verifica"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaEventi'
+  /{ambiente}/erogazioni/{soggetto}/diagnostica/lista-transazioni:
+    get:
+      tags:
+        - Transazioni
+      summary: Lista delle transazioni relative a erogazioni
+      x-spring-paginated: true
+      parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: "#/components/parameters/id_servizio_query_required"
+      - $ref: "#/components/parameters/data_da"
+      - $ref: "#/components/parameters/data_a"
+      - $ref: "#/components/parameters/id_api_query_optional"
+      - $ref: "#/components/parameters/esito_transazione"
+      - $ref: "#/components/parameters/esito_transazione_codici"
+      - $ref: "#/components/parameters/id_adesione_query_optional"
+      - $ref: "#/components/parameters/id_client_query_optional"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseResource'
+    post:
+      tags:
+        - Transazioni
+      summary: Lista delle transazioni relative a erogazioni
+      parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListaTransazioniQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemTransazione'
+  /{ambiente}/diagnostica/lista-transazioni-id:
+    get:
+      tags:
+        - Transazioni
+      summary: Lista delle transazioni per id relative a erogazioni
+      parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: "#/components/parameters/id_transazione_query_required"
+      - $ref: "#/components/parameters/id_servizio_query_required"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseResource'
+    post:
+      tags:
+        - Transazioni
+      summary: Lista delle transazioni relative a erogazioni
+      parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListaTransazioniIdQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemTransazione'
+  /{ambiente}/fruizioni/{soggetto}/diagnostica/lista-transazioni:
+    get:
+      tags:
+        - Transazioni
+      summary: Lista delle transazioni relative a fruizioni
+      x-spring-paginated: true
+      parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      - $ref: "#/components/parameters/id_servizio_query_required"
+      - $ref: "#/components/parameters/data_da"
+      - $ref: "#/components/parameters/data_a"
+      - $ref: "#/components/parameters/id_api_query_optional"
+      - $ref: "#/components/parameters/esito_transazione"
+      - $ref: "#/components/parameters/esito_transazione_codici"
+      - $ref: "#/components/parameters/id_adesione_query_optional"
+      - $ref: "#/components/parameters/id_client_query_optional"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseResource'
+    post:
+      tags:
+        - Transazioni
+      summary: Lista delle transazioni relative a fruizioni
+      parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListaTransazioniQuery'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelItemTransazione'
+  /{ambiente}/diagnostica/{id_transazione}:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/Ambiente'
+        - $ref: '#/components/parameters/IdTransazione'
+      tags:
+        - Transazioni
+      summary: Dettaglio della transazione
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transazione'
+  /{ambiente}/soggetti/{soggetto}/certificati/scaduti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati scaduti dei soggetti
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiScaduti'
+  /{ambiente}/soggetti/{soggetto}/certificati/in-scadenza:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/Soggetto'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati in scadenza dei soggetti
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiInScadenza'
+  /{ambiente}/token-policy/{name}/backend/stato:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/NomeEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica connettività backend delle token policy
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaBackend'
+  /{ambiente}/token-policy/{name}/certificati/scaduti:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/NomeEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati scaduti delle token policy
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiScaduti'
+  /{ambiente}/token-policy/{name}/certificati/in-scadenza:
+    parameters:
+      - $ref: '#/components/parameters/Ambiente'
+      - $ref: '#/components/parameters/NomeEntita'
+    get:
+      tags:
+        - Verifica
+      summary: Verifica certificati in scadenza delle token policy
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EsitoVerificaCertificatiInScadenza'
+components:
+  responses:
+    ReportStatisticoBinario:
+      description: "Report generato correttamente"
+      content:
+        text/csv:
+          schema:
+            type: "string"
+            format: "binary"
+        application/pdf:
+          schema:
+            type: "string"
+            format: "binary"
+        application/vnd.ms-excel:
+          schema:
+            type: "string"
+            format: "binary"
+  schemas:
+    Problem:
+      properties:
+        type:
+          description: URI reference of type definition
+          type: string
+        status:
+          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          example: 400
+          exclusiveMaximum: true
+          format: int32
+          maximum: 600
+          minimum: 100
+          type: integer
+        title:
+          description: A short, summary of the problem type. Written in english and readable
+          example: Service Unavailable
+          maxLength: 64
+          pattern: '^[ -~]{0,64}$'
+          type: string
+        correlationId:
+          description: Unique identifier of the request
+          example: '53af4f2d-0c87-41ef-a645-b726a821852b'
+          maxLength: 64
+          type: string
+        detail:
+          description: A human readable explanation of the problem.
+          example: Request took too long to complete.
+          maxLength: 4096
+          pattern: '^.{0,1024}$'
+          type: string
+        errors:
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/ProblemError'
+      additionalProperties: false
+      required:
+        - type
+        - status
+        - title
+        - errors
+    ProblemError:
+      properties:
+        code:
+          description: Internal code of the error
+          example: 123-4567
+          minLength: 8
+          maxLength: 8
+          pattern: '^[0-9]{3}-[0-9]{4}$'
+          type: string
+        detail:
+          description: A human readable explanation specific to this occurrence of the problem.
+          example: Parameter not valid
+          maxLength: 4096
+          pattern: '^.{0,1024}$'
+          type: string
+      required:
+        - code
+        - detail
+    ResponseResource:
+      type: "string"
+      format: "binary"
+    ResocontoVerificaCertificati:
+      type: object
+      required:
+        - scaduti
+        - in_scadenza
+      properties:
+        scaduti:
+          type: integer
+          format: int64
+        in_scadenza:
+          type: integer
+          format: int64
+    ResocontoVerificaConnettivita:
+      type: object
+      required:
+        - errori
+      properties:
+        errori:
+          type: integer
+          format: int64
+    ResocontoVerificaConnettivitaPeriodo:
+      type: object
+      required:
+        - periodo1
+        - periodo2
+      properties:
+        periodo1: # ultim'ora
+          type: integer
+          format: int64
+        periodo2: # ultime 24 ore
+          type: integer
+          format: int64
+    PagedModelItemApplicativiVerificati:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemApplicativoVerificato'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ItemApplicativoVerificato:
+      type: object
+      required:
+      - "id_client"
+      - "pdnd"
+      - "soggetto"
+      - "nome"
+      properties:
+        id_client:
+          type: string
+          format: uuid
+        pdnd:
+          type: boolean
+        soggetto:
+          type: string
+        nome:
+          type: string
+    PagedModelItemServiziVerificati:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemServizioVerificato'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ItemServizioVerificato:
+      type: object
+      required:
+      - "id_servizio"
+      - "nome"
+      - "versione"
+      properties:
+        id_servizio:
+          type: string
+          format: uuid
+        nome:
+          type: string
+        versione:
+          type: "integer"
+          format: "int32"
+    EsitoVerificaCertificatiScaduti:
+      type: object
+      required:
+        - esito
+      properties:
+        esito:
+          $ref: '#/components/schemas/EsitoVerificaCertificatiScadutiEnum'
+        dettagli:
+          type: string
+    EsitoVerificaCertificatiScadutiEnum:
+      type: string
+      enum:
+        - valido
+        - scaduto
+    EsitoVerificaCertificatiInScadenza:
+      type: object
+      required:
+        - esito
+      properties:
+        esito:
+          $ref: '#/components/schemas/EsitoVerificaCertificatiInScadenzaEnum'
+        dettagli:
+          type: string
+    EsitoVerificaCertificatiInScadenzaEnum:
+      type: string
+      enum:
+        - valido
+        - in_scadenza
+    EsitoVerificaBackend:
+      type: object
+      required:
+        - esito
+      properties:
+        esito:
+          $ref: '#/components/schemas/EsitoVerificaBackendEnum'
+        dettagli:
+          type: string
+    EsitoVerificaBackendEnum:
+      type: string
+      enum:
+        - ok
+        - errore
+    EsitoVerificaEventi:
+      type: object
+      required:
+        - esito
+      properties:
+        esito:
+          $ref: '#/components/schemas/EsitoVerificaEventiEnum'
+        dettagli:
+          type: string
+    EsitoVerificaEventiEnum:
+      type: string
+      enum:
+        - ok
+        - errore
+    ReportStatisticoIntervalloTemporale:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoIntervalloTemporaleItem'
+    ReportStatisticoIntervalloTemporaleItem:
+      type: object
+      required:
+        - data
+        - valore
+      properties:
+        data:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneEsiti:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneEsitiItem'
+    ReportStatisticoDistribuzioneEsitiItem:
+      type: object
+      required:
+        - data
+        - valore_ok
+      properties:
+        data:
+          type: string
+        valore_ok:
+          type: integer
+          format: int64
+        valore_fault:
+          type: integer
+          format: int64
+        valore_fallite:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneErrori:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneErroriItem'
+    ReportStatisticoDistribuzioneErroriItem:
+      type: object
+      required:
+        - esito
+        - descrizione
+        - valore
+      properties:
+        esito:
+          type: string
+        descrizione:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneSoggettoRemoto:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneSoggettoRemotoItem'
+    ReportStatisticoDistribuzioneSoggettoRemotoItem:
+      type: object
+      required:
+        - nome
+        - valore
+      properties:
+        nome:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneAPI:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneAPIItem'
+    ReportStatisticoDistribuzioneAPIItem:
+      type: object
+      required:
+        - nome
+        - erogatore
+        - valore
+      properties:
+        nome:
+          type: string
+          example: "nome_example"
+        erogatore:
+          type: string
+          example: "erogatore_example"
+        valore:
+          type: integer
+          format: int64
+          example: 1
+    ReportStatisticoDistribuzioneOperazione:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneOperazioneItem'
+    ReportStatisticoDistribuzioneOperazioneItem:
+      type: object
+      required:
+        - operazione
+        - api
+        - erogatore
+        - valore
+      properties:
+        operazione:
+          type: string
+        nome:
+          type: string
+        erogatore:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneApplicativo:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneApplicativoItem'
+    ReportStatisticoDistribuzioneApplicativoItem:
+      type: object
+      required:
+        - nome
+        - soggetto
+        - valore
+      properties:
+        nome:
+          type: string
+        soggetto:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneTokenClientId:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneTokenClientIdItem'
+    ReportStatisticoDistribuzioneTokenClientIdItem:
+      type: object
+      required:
+        - client_id
+        - valore
+      properties:
+        client_id:
+          type: string
+        soggetto: # opzionale
+          type: string
+        applicativo: # opzionale
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneTokenIssuer:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneTokenIssuerItem'
+    ReportStatisticoDistribuzioneTokenIssuerItem:
+      type: object
+      required:
+        - issuer
+        - valore
+      properties:
+        issuer:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzioneIndirizzoIP:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzioneIndirizzoIPItem'
+    ReportStatisticoDistribuzioneIndirizzoIPItem:
+      type: object
+      required:
+        - indirizzo
+        - valore
+      properties:
+        indirizzo:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ReportStatisticoDistribuzionePrincipal:
+      type: object
+      properties:
+        valori:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportStatisticoDistribuzionePrincipalItem'
+    ReportStatisticoDistribuzionePrincipalItem:
+      type: object
+      required:
+        - principal
+        - valore
+      properties:
+        indirizzo:
+          type: string
+        valore:
+          type: integer
+          format: int64
+    ListaTransazioniQuery:
+      type: object
+      required:
+        - api
+      properties:
+        api:
+          $ref: '#/components/schemas/FiltroApi'
+        esito:
+          $ref: '#/components/schemas/FiltroEsito'
+        operazione:
+          $ref: '#/components/schemas/NCName'
+        intervallo_temporale:
+          $ref: "#/components/schemas/TipoIntervalloTemporale"
+        paging:
+          $ref: "#/components/schemas/Pageable"
+    ListaTransazioniIdQuery:
+      type: object
+      required:
+        - api
+      properties:
+        id_transazione:
+          $ref: "#/components/schemas/StringUUID"
+        id_servizio:
+          $ref: "#/components/schemas/StringUUID"
+    AndamentoTemporaleQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report_andamento_temporale:
+            $ref: "#/components/schemas/TipoReportAndamentoTemporaleEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneEsitiQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report_andamento_temporale:
+            $ref: "#/components/schemas/TipoReportAndamentoTemporaleEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneErroriQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneSoggettoRemotoQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneApiQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneOperazioneQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneApplicativoQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneClientIdQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneIssuerQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzioneIPQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    DistribuzionePrincipalQuery:
+      allOf:
+      - $ref: '#/components/schemas/FiltroReportBase'
+      - type: object
+        properties:
+          tipo_report:
+            $ref: "#/components/schemas/TipoReportEnum"
+          tipo_informazione_report:
+            $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    FiltroReportBase:
+      type: object
+      required:
+        - api
+      properties:
+        api:
+          $ref: '#/components/schemas/FiltroApi'
+        esito:
+          $ref: '#/components/schemas/FiltroEsitoStatistiche'
+        operazione:
+          $ref: '#/components/schemas/NCName'
+        unita_tempo:
+          $ref: '#/components/schemas/UnitaTempoReportEnum'
+        intervallo_temporale:
+          $ref: "#/components/schemas/TipoIntervalloTemporale"
+    FiltroApi:
+      type: object
+      required:
+        - id_servizio
+      properties:
+        id_servizio:
+          $ref: '#/components/schemas/GenericId'
+        id_api:
+          $ref: '#/components/schemas/GenericId'
+        id_adesione:
+          $ref: '#/components/schemas/GenericId'
+        id_client:
+          $ref: '#/components/schemas/GenericId'
+    FiltroEsitoStatistiche:
+      required:
+        - tipo
+      type: object
+      properties:
+        tipo:
+          $ref: '#/components/schemas/EsitoTransazioneEnum'
+        codici:
+          type: array
+          items:
+            type: integer
+            format: int32
+    FiltroEsito:
+      required:
+        - tipo
+      type: object
+      properties:
+        tipo:
+          $ref: '#/components/schemas/EsitoTransazioneEnum'
+        codici:
+          type: array
+          items:
+            type: integer
+            format: int32
+    Pageable:
+      type: object
+      required:
+        - page
+        - size
+      properties:
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+          default: 50
+        sort:
+          type: array
+          items:
+            type: string
+    TipoIntervalloTemporale:
+      type: object
+      required:
+        - tipo_intervallo_temporale
+        - intervallo_temporale
+      properties:
+        tipo_intervallo_temporale:
+          $ref: '#/components/schemas/TipoIntervalloTemporaleEnum'
+      discriminator:
+        propertyName: tipo_intervallo_temporale
+        mapping:
+          ultime_ore: '#/components/schemas/UnitaTemporale'
+          ultimi_giorni: '#/components/schemas/UnitaTemporale'
+          ultimi_mesi: '#/components/schemas/UnitaTemporale'
+          personalizzato: '#/components/schemas/IntervalloTemporale'
+    TipoIntervalloTemporaleEnum:
+      type: string
+      enum:
+        - 'ultime_ore'
+        - 'ultimi_giorni'
+        - 'ultimi_mesi'
+        - 'personalizzato'
+    GenericId:
+      type: string
+      format: uuid
+    UnitaTemporale:
+      allOf:
+      - $ref: '#/components/schemas/TipoIntervalloTemporale'
+      - type: object
+        required:
+          - unita_temporale
+        properties:
+          unita_temporale:
+            type: integer
+            format: int32
+            example: 3
+    IntervalloTemporale:
+      allOf:
+      - $ref: '#/components/schemas/TipoIntervalloTemporale'
+      - type: object
+        required:
+          - data_inizio
+          - data_fine
+        properties:
+          data_inizio:
+            type: string
+            format: date-time
+            example: '2017-07-21T17:32:28Z'
+          data_fine:
+            type: string
+            format: date-time
+            example: '2017-07-21T17:32:28Z'
+    SimpleName:
+      maxLength: 255
+      pattern: ^[0-9A-Za-z][\-A-Za-z0-9]*$
+      type: string
+      description: Può iniziare solo con un carattere o cifra [0-9A-Za-z] e dev'essere formato solo da caratteri, cifre e '-'
+    NCName:
+      maxLength: 255
+      pattern: ^[_A-Za-z][\-\._A-Za-z0-9]*$
+      type: string
+      description: Può iniziare solo con un carattere [A-Za-z] o il simbolo '_' e dev'essere formato solo da caratteri, cifre, '_' , '-' e '.'
+    AmbienteEnum:
+      type: string
+      enum:
+        - collaudo
+        - produzione
+    Versione:
+      minimum: 1
+      type: integer
+      format: int32
+      example: 1
+      default: 1
+    EsitoTransazioneEnum:
+      type: string
+      enum:
+        - qualsiasi
+        - personalizzato
+        - ok
+        - fault
+        - fallite
+        - fallite_e_fault
+        # fallite senza le scartate
+        - fallite_escludi_scartate
+        - fallite_e_fault_escludi_scartate
+    UnitaTempoReportEnum:
+      type: string
+      example: orario
+      default: giornaliero
+      enum:
+        - orario
+        - giornaliero
+        - settimanale
+        - mensile
+    TipoReportAndamentoTemporaleEnum:
+      type: "string"
+      example: "line"
+      default: "table"
+      enum:
+      - "line"
+      - "bar"
+      - "table"
+    TipoReportEnum:
+      type: "string"
+      example: "pie"
+      default: "table"
+      enum:
+      - "pie"
+      - "bar"
+      - "table"
+    TipoInformazioneReportEnum:
+      type: "string"
+      example: "numero_transazioni"
+      default: "numero_transazioni"
+      enum:
+      - "numero_transazioni"
+      - "occupazione_banda"
+      - "tempo_medio_risposta"
+    Base64String:
+      type: "string"
+      #format: "base64" dovrebbe essere byte ma così non funziona il generatore
+    StringUUID:
+      type: "string"
+      format: uuid
+    String255:
+      type: "string"
+      minLength: 1
+      maxLength: 255
+    String4000:
+      type: "string"
+      minLength: 1
+      maxLength: 4000
+    PageMetadata:
+      type: object
+      properties:
+        size:
+          type: "integer"
+          format: int64
+        totalElements:
+          type: "integer"
+          format: int64
+        totalPages:
+          type: "integer"
+          format: int64
+        number:
+          type: "integer"
+          format: int64
+    PagedModelItemTransazione:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemTransazione'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    ItemTransazione:
+      required:
+      - "id_traccia"
+      - "data"
+      - "esito"
+      - "return_code_http"
+      - "tempo_elaborazione"
+      - "ruolo_component"
+      - "id_cluster"
+      - "api"
+      - "profilo"
+      type: "object"
+      properties:
+        id_traccia:
+          $ref: "#/components/schemas/String255"
+        data:
+          type: "string"
+          format: "date-time"
+        esito:
+          $ref: "#/components/schemas/TransazioneEsito"
+        return_code_http:
+          type: "integer"
+          format: int32
+        tempo_elaborazione:
+          type: "integer"
+          format: int64
+        tempo_risposta_servizio:
+          type: "integer"
+          format: int64
+        ruolo_component:
+          $ref: "#/components/schemas/RuoloAPIEnum"
+        id_cluster:
+          $ref: "#/components/schemas/String255"
+        api:
+          $ref: "#/components/schemas/TransazioneApi"
+        profilo:
+          $ref: "#/components/schemas/String255"
+        richiedente:
+          $ref: "#/components/schemas/String255"
+        id_applicativo:
+          $ref: "#/components/schemas/String255"
+    RuoloAPIEnum:
+      type: "string"
+      example: "erogato_soggetto_dominio"
+      enum:
+      - "erogato_soggetto_dominio"
+      - "erogato_soggetto_aderente"
+    Transazione:
+      required:
+      - "id_traccia"
+      - "data"
+      - "esito"
+      - "return_code_http"
+      - "tempo_elaborazione"
+      - "ruolo_component"
+      - "id_cluster"
+      - "api"
+      - "profilo"
+      - "dati_mittente"
+      - "richiesta"
+      - "risposta"
+      type: "object"
+      properties:
+        id_traccia:
+          $ref: "#/components/schemas/String255"
+        data:
+          type: "string"
+          format: "date-time"
+        esito:
+          $ref: "#/components/schemas/TransazioneEsito"
+        return_code_http:
+          type: "integer"
+          format: int32
+        tempo_elaborazione:
+          type: "integer"
+          format: int64
+        ruolo_component:
+          $ref: "#/components/schemas/RuoloAPIEnum"
+        id_cluster:
+          $ref: "#/components/schemas/String255"
+        api:
+          $ref: "#/components/schemas/TransazioneApi"
+        profilo:
+          $ref: "#/components/schemas/String255"
+        richiedente:
+          $ref: "#/components/schemas/String255"
+        id_applicativo:
+          $ref: "#/components/schemas/String255"
+        dettaglio_errore:
+          $ref: "#/components/schemas/Base64String"
+        richiesta:
+          $ref: "#/components/schemas/TransazioneRichiesta"
+        risposta:
+          $ref: "#/components/schemas/TransazioneRisposta"
+        mittente:
+          $ref: "#/components/schemas/TransazioneMittente"
+        dati_mittente:
+          $ref: "#/components/schemas/TransazioneDatiMittente"
+        connettore:
+          $ref: "#/components/schemas/String4000"
+        return_code_http_backend:
+          type: "integer"
+          format: int32
+        tempo_risposta_servizio:
+          type: "integer"
+          format: int64
+        token:
+          $ref: "#/components/schemas/TransazioneToken"
+    TransazioneRichiesta:
+      required:
+      - "data_ricezione"
+      type: "object"
+      properties:
+        data_ricezione:
+          type: "string"
+          format: "date-time"
+        data_consegna:
+          type: "string"
+          format: "date-time"
+        dimensione_ricezione:
+          type: "integer"
+          format: int64
+        dimensione_consegna:
+          type: "integer"
+          format: int64
+        id_messaggio:
+          $ref: "#/components/schemas/String255"
+        id_correlazione:
+          $ref: "#/components/schemas/String255"
+    TransazioneRisposta:
+      required:
+      - "data_consegna"
+      type: "object"
+      properties:
+        data_ricezione:
+          type: "string"
+          format: "date-time"
+        data_consegna:
+          type: "string"
+          format: "date-time"
+        dimensione_ricezione:
+          type: "integer"
+          format: int64
+        dimensione_consegna:
+          type: "integer"
+          format: int64
+        id_messaggio:
+          $ref: "#/components/schemas/String255"
+        id_correlazione:
+          $ref: "#/components/schemas/String255"
+        fault_ricezione:
+          $ref: "#/components/schemas/Base64String"
+        fault_consegna:
+          $ref: "#/components/schemas/Base64String"
+    TransazioneMittente:
+      required:
+      - "fruitore"
+      type: "object"
+      properties:
+        fruitore:
+          $ref: "#/components/schemas/ItemSoggetto"
+        applicativo:
+          $ref: "#/components/schemas/String255"
+    TransazioneDatiMittente:
+      required:
+      - "indirizzo_ip"
+      - "metodo_http"
+      - "url_invocazione"
+      type: "object"
+      properties:
+        indirizzo_ip_inoltrato:
+          $ref: "#/components/schemas/String255"
+        indirizzo_ip:
+          $ref: "#/components/schemas/String255"
+        principal:
+          $ref: "#/components/schemas/String4000"
+        credenziali:
+          $ref: "#/components/schemas/String4000"
+        url_invocazione:
+          $ref: "#/components/schemas/String4000"
+        metodo_http:
+          $ref: "#/components/schemas/String255"
+    TransazioneToken:
+      type: "object"
+      properties:
+        client_id:
+          $ref: "#/components/schemas/String255"
+        issuer:
+          $ref: "#/components/schemas/String255"
+        subject:
+          $ref: "#/components/schemas/String255"
+        username:
+          $ref: "#/components/schemas/String255"
+        email:
+          $ref: "#/components/schemas/String255"
+        applicativo:
+          $ref: "#/components/schemas/String255"
+        soggetto:
+          $ref: "#/components/schemas/String255"
+        token:
+          $ref: "#/components/schemas/Base64String"
+    TransazioneApi:
+      required:
+      - "erogatore"
+      - "tipologia"
+      - "nome"
+      - "versione"
+      type: "object"
+      properties:
+        tipologia:
+          $ref: "#/components/schemas/ProtocolloEnum"
+        nome:
+          $ref: "#/components/schemas/String255"
+        versione:
+          type: "integer"
+          format: "int32"
+        erogatore:
+          $ref: "#/components/schemas/ItemSoggetto"
+        operazione:
+          $ref: "#/components/schemas/String255"
+        tags:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/String255"
+        profilo_collaborazione:
+          $ref: "#/components/schemas/String255"
+    ProtocolloEnum:
+      type: "string"
+      example: "soap"
+      enum:
+      - "soap"
+      - "rest"
+    ItemSoggetto:
+      type: "object"
+      required:
+        - id_soggetto
+        - nome
+        - organizzazione
+        - referente
+        - aderente
+      properties:
+        id_soggetto:
+          $ref: "#/components/schemas/GenericId"
+        nome:
+          $ref: "#/components/schemas/String255"
+        descrizione:
+          $ref: "#/components/schemas/String255"
+        organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+        referente:
+          type: "boolean"
+          default: false
+        aderente:
+          type: "boolean"
+          default: false
+    ItemOrganizzazione:
+      type: "object"
+      required:
+        - "id_organizzazione"
+        - "nome"
+        - "referente"
+        - "aderente"
+      properties:
+        id_organizzazione:
+          $ref: "#/components/schemas/GenericId"
+        nome:
+          $ref: "#/components/schemas/String255"
+        descrizione:
+          $ref: "#/components/schemas/String255"
+        codice_ente:
+          $ref: "#/components/schemas/String255"
+        codice_fiscale_soggetto:
+          $ref: "#/components/schemas/String255"
+        id_tipo_utente:
+          $ref: "#/components/schemas/String255"
+        referente:
+          type: "boolean"
+          default: false
+        aderente:
+          type: "boolean"
+          default: false
+        multi_soggetto:
+          type: boolean
+    TransazioneEsito:
+      required:
+      - "codice"
+      type: "object"
+      properties:
+        codice:
+          $ref: "#/components/schemas/String255"
+        descrizione:
+          $ref: "#/components/schemas/String255"
+    TipoVerificaEnum:
+      type: "string"
+      example: "pdnd"
+      enum:
+        - "modi"
+        - "pdnd"
+  parameters:
+    api-nome:
+      name: api_nome
+      in: query
+      description: nome della API
+      required: false
+      schema:
+        $ref: '#/components/schemas/NCName'
+    api-versione:
+      name: api_versione
+      in: query
+      description: versione della API
+      required: false
+      schema:
+        $ref: '#/components/schemas/Versione'
+    api-erogatore:
+      name: api_erogatore
+      in: query
+      description: soggetto erogatore della API
+      required: false
+      schema:
+        $ref: '#/components/schemas/SimpleName'
+    api-fruitore:
+      name: api_fruitore
+      in: query
+      description: soggetto fruitore della API
+      required: false
+      schema:
+        $ref: '#/components/schemas/SimpleName'
+    offset:
+      name: offset
+      in: query
+      description: The zero-ary offset index into the results
+      required: false
+      schema:
+        type: integer
+        format: int32
+        default: 0
+    sort:
+      name: sort
+      in: query
+      description: Sorting order
+      required: false
+      schema:
+        type: string
+        example: +name
+    limit:
+      name: limit
+      in: query
+      description: How many items to return at one time (max 100)
+      required: false
+      schema:
+        type: integer
+        format: int32
+    operazione:
+      name: operazione
+      in: query
+      description: Nome azione/risorsa
+      required: false
+      schema:
+        $ref: '#/components/schemas/NCName'
+    tag:
+      name: tag
+      in: query
+      description: Identificativo del Tag
+      required: false
+      schema:
+        $ref: '#/components/schemas/NCName'
+    esito-transazione-tipo:
+      name: esito_transazione_tipo
+      in: query
+      description: '"Indica come sono state gestite le transazioni (ok, fallite, fallite_e_fault, errori_consegna, richieste_scartate)" '
+      required: false
+      schema:
+        $ref: '#/components/schemas/EsitoTransazioneEnum'
+    unita_tempo_report:
+      name: unita_tempo
+      in: query
+      description: L'unità di tempo con cui visualizzare i report
+      required: false
+      schema:
+        $ref: '#/components/schemas/UnitaTempoReportEnum'
+    tipo-intervallo-temporale:
+      name: tipo_intervallo_temporale
+      in: query
+      description: tipo di intervallo temporale
+      required: false
+      schema:
+        $ref: '#/components/schemas/TipoIntervalloTemporaleEnum'
+    unita-temporale:
+      name: unita_temporale
+      in: query
+      description: quantitativo di tempo con unità specificata nel tipo
+      required: false
+      schema:
+        type: integer
+        format: int32
+        example: 3
+    id_servizio_query_required:
+      name: "id_servizio"
+      in: "query"
+      description: "identificativo del servizio"
+      required: true
+      schema:
+        $ref: "#/components/schemas/GenericId"
+    id_transazione_query_required:
+      name: "id_transazione"
+      in: "query"
+      description: "identificativo della transazione"
+      required: true
+      schema:
+        $ref: "#/components/schemas/StringUUID"
+    id_adesione_query_optional:
+      name: "id_adesione"
+      in: "query"
+      description: "identificativo dell'adesione"
+      required: false
+      schema:
+        $ref: "#/components/schemas/GenericId"
+    data_da:
+      name: "data_da"
+      in: "query"
+      description: "Data di inizio"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+      example: "2019-09-21T17:32:28Z"
+    data_a:
+      name: "data_a"
+      in: "query"
+      description: "Data di fine"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+      example: "2019-09-21T17:32:28Z"
+    esito_transazione:
+      name: "esito"
+      in: "query"
+      description: "esito della transazione"
+      required: false
+      schema:
+        $ref: "#/components/schemas/EsitoTransazioneEnum"
+    esito_transazione_codici:
+      name: "esito_codici"
+      in: "query"
+      description: "esito della transazione"
+      required: false
+      schema:
+        type: array
+        items:
+          type: integer
+          format: int32
+    id_client_query_optional:
+      name: "id_client"
+      in: "query"
+      description: "identificativo del Client"
+      required: false
+      schema:
+        $ref: "#/components/schemas/GenericId"
+    id_api_query_optional:
+      name: "id_api"
+      in: "query"
+      description: "identificativo della API"
+      required: false
+      schema:
+        $ref: "#/components/schemas/GenericId"
+    data_inizio:
+      name: data_inizio
+      in: query
+      description: data inizio dell'intervallo di ricerca
+      required: false
+      schema:
+        type: string
+        format: date-time
+    data_fine:
+      name: data_fine
+      in: query
+      description: data inizio dell'intervallo di ricerca
+      required: false
+      schema:
+        type: string
+        format: date-time
+    tipo_report_andamento_temporale:
+      name: "tipo_report"
+      in: "query"
+      description: "Indica il tipo di grafico da voler visualizzare per un dato report\
+        \ statistico"
+      required: false
+      schema:
+        $ref: "#/components/schemas/TipoReportAndamentoTemporaleEnum"
+    tipo_report:
+      name: "tipo_report"
+      in: "query"
+      description: "Indica il tipo di grafico da voler visualizzare per un dato report\
+        \ statistico"
+      required: false
+      schema:
+        $ref: "#/components/schemas/TipoReportEnum"
+    tipo_informazione_report:
+      name: "tipo_informazione_report"
+      in: "query"
+      description: "Specifica l'informazione da visualizzare nel report"
+      required: false
+      schema:
+        $ref: "#/components/schemas/TipoInformazioneReportEnum"
+    esito-codice:
+      name: esito_codice
+      in: query
+      description: codice esito
+      schema:
+        type: integer
+        format: int32
+    esito-lista-codici:
+      name: esito_lista_codici
+      in: query
+      description: lista codici esito
+      schema:
+        type: array
+        items:
+          type: integer
+          format: int32
+    periodo1_data_inizio_verifica:
+      name: "periodo1_data_inizio_verifica"
+      in: "query"
+      description: "Definisce l'intervallo iniziale della verifica per il periodo 1"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+    periodo1_data_fine_verifica:
+      name: "periodo1_data_fine_verifica"
+      in: "query"
+      description: "Definisce l'intervallo finale della verifica per il periodo 1"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+    periodo2_data_inizio_verifica:
+      name: "periodo2_data_inizio_verifica"
+      in: "query"
+      description: "Definisce l'intervallo iniziale della verifica per il periodo 2"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+    periodo2_data_fine_verifica:
+      name: "periodo2_data_fine_verifica"
+      in: "query"
+      description: "Definisce l'intervallo finale della verifica per il periodo 2"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+    data_inizio_verifica:
+      name: "data_inizio_verifica"
+      in: "query"
+      description: "Definisce l'intervallo iniziale della verifica"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+    data_fine_verifica:
+      name: "data_fine_verifica"
+      in: "query"
+      description: "Definisce l'intervallo finale della verifica"
+      required: true
+      schema:
+        type: "string"
+        format: "date-time"
+    # Parametri del path
+    IdTransazione:
+      in: path
+      required: true
+      name: id_transazione
+      schema:
+        type: string
+        format: uuid
+    NomeEntita:
+      in: path
+      required: true
+      name: name
+      description: nome dell'entita
+      schema:
+        $ref: '#/components/schemas/NCName'
+    VersioneEntita:
+      in: path
+      required: true
+      name: version
+      description: versione dell'entita
+      schema:
+        $ref: '#/components/schemas/Versione'
+    Erogatore:
+      in: path
+      required: true
+      name: provider
+      description: nome dell'erogatore
+      schema:
+        $ref: '#/components/schemas/NCName'
+    Soggetto:
+      in: path
+      required: true
+      name: soggetto
+      description: nome del soggetto
+      schema:
+        $ref: '#/components/schemas/NCName'
+    Ambiente:
+      in: path
+      required: true
+      name: ambiente
+      description: nome dell'ambiente
+      schema:
+        $ref: '#/components/schemas/AmbienteEnum'
+    TipoVerifica:
+      in: path
+      required: true
+      name: tipo_verifica
+      description: tipo della verifica
+      schema:
+        $ref: '#/components/schemas/TipoVerificaEnum'

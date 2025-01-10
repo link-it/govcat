@@ -1,0 +1,139 @@
+<div id="route-section" class="">
+  <div class="breadcrumbs-area">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area">
+    <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self"
+              class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+              <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span>
+              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="categories.length">{{ categories.length }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls align-self-center d-flex">
+      <div role="group" class="" *ngIf="!_spin">
+        <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddCategory' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-bar-form #searchBarForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="'categories'"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search>
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+                <div class="row">
+                </div>
+                <button type="submit" class="d-none">hidden submit</button>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-bar-form>
+      </div>
+    </div>
+  </section>
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false">
+
+    <ui-box-message *ngIf="categories.length == 0 && !_spin"
+      [size]="64"
+      [icon]="'report_problem'"
+      [image]="'./assets/images/illustrations/categorie.svg'"
+      [message]="_message | translate"
+      [subMessage]="_messageHelp | translate">
+    </ui-box-message>
+
+    <div class="mt-0">
+      <container
+        recursiveCategory
+        [children]="categories"
+        [hideImage]="true"
+        [editTooltip]="'EditCategory'"
+        [addTooltip]="'AddCategory'"
+        [removeTooltip]="'RemoveCategory'"
+        [iconFolder]="'folder'"
+        [iconLeaf]="'tag'"
+        [enabled]="taxonomy?.visibile"
+        [countChildren]="taxonomy?.countChildren"
+        (open)="onOpen($event)"
+        (action)="onAction($event)">
+      </container>
+    </div>
+
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+  </section>
+</div>
+
+<ng-template #editTemplate>
+  <div class="modal-content">
+    <form [formGroup]="_editFormGroup" (submit)="saveModal(_editFormGroup.value)">
+      <div class="modal-header pb-2">
+        <h5 class="modal-title pull-left">
+          {{ ((_isNew ? 'APP.CATEGORIES.TITLE.Add' : 'APP.CATEGORIES.TITLE.Edit')) | translate }}
+          <span *ngIf="_currentCategory">{{ 'APP.TITLE.To' | translate }} "{{ _currentCategory.nome }}"</span>
+        </h5>
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary pull-right p-0-" aria-label="Close" (click)="closeModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="p-3">
+          <div class="form-group nome">
+            <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'nome'"></span></label>
+            <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">
+            <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
+              <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+              <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+            </p>
+            <ui-input-help field="nome" context="CATEGORIES"></ui-input-help>
+          </div>
+          <div class="form-group descrizione">
+            <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'descrizione'"></span></label>
+            <textarea aria-required="true" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" rows="4"></textarea>
+            <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
+              <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+              <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
+            </p>
+            <ui-input-help field="descrizione" context="CATEGORIES"></ui-input-help>
+          </div>
+        </div>
+        <div class="gl-alert gl-alert-danger" *ngIf="_error">
+          {{ _errorMsg }}
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+        <button type="submit" class="btn btn-confirm btn-md gl-button" [disabled]="_editFormGroup.invalid || _saving">
+          <span class="">{{ 'APP.BUTTON.Save' | translate }}</span><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_saving"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</ng-template>

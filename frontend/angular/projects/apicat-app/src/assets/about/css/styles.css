@@ -1,0 +1,42 @@
+:root {
+  /* --about-background-color: #07294d;
+  --about-text-color: #ffffff;
+  --news-background-color: #07294d;
+  --news-text-color: #ffffff;
+  --version-background-color: #07294d;
+  --version-text-color: #ffffff;
+
+  --version-button-hover-color: rgba(206, 206, 206, 0.08);
+  --version-button-hover-text-color: rgb(0, 0, 0); */
+}
+
+.about-area {
+  background-color: var(--about-background-color, inherit);
+  color: var(--about-text-color, inherit);
+}
+
+.news-area {
+  background-color: var(--news-background-color, inherit);
+  color: var(--news-text-color, inherit);
+}
+
+.version-area {
+  background-color: var(--version-background-color, inherit);
+  
+}
+.version-area .nav-icon-container i {
+  color: var(--version-text-color, inherit);
+}
+
+.version-area .version-text {
+  color: var(--version-text-color, inherit);
+}
+
+.nav-sidebar .version-area li > a:hover {
+  background-color: var(--version-button-hover-color, rgba(41, 41, 97, 0.08)) !important;
+  /* color: var(--version-button-hover-text-color, inherit) !important; */
+}
+
+.nav-sidebar .version-area li > a:hover .nav-icon-container i {
+  /* color: var(--version-text-color, inherit) !important; */
+}

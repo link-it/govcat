@@ -1,0 +1,54 @@
+{
+  "showAllAttachments": true,
+
+  "itemRow": {
+    "primaryText": [
+      { "field": "filename", "type": "text" }
+    ],
+    "secondaryText": [],
+    "metadata": {
+      "text": [
+        { "field": "data", "type": "date", "format": "DD-MM-YYYY" }
+      ],
+      "label": [
+        { "field": "visibilita", "type": "label", "options": "visibility"  }
+      ]
+    },
+    "secondaryMetadata": [
+      { "field": "tipologia", "type": "label", "options": "tipology" }
+    ]
+  },
+
+  "details": [
+    { "label": "APP.LABEL.ContactId", "field": "contact_id", "type": "text" },
+    { "label": "APP.LABEL.Email", "field": "business_email", "type": "markdown" },
+    { "label": "APP.LABEL.Phone", "field": "business_telefono", "type": "text"}
+  ],
+
+  "options": {
+    "tipology": {
+      "label": "APP.LABEL.ruolo",
+      "small": true,
+      "values": {
+        "generico": { "label": "APP.VISIBILITY.generico", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "specifica": { "label": "APP.VISIBILITY.specifica", "background": "#E82323", "border": "#A82323", "color": "#ffffff" },
+        "specifica_collaudo": { "label": "APP.VISIBILITY.specifica_collaudo", "background": "#4CAF50", "border": "#388E3C", "color": "#ffffff" },
+        "specifica_produzione": { "label": "APP.VISIBILITY.specifica_produzione", "background": "#2196F3", "border": "#1976D2", "color": "#ffffff" }
+      }
+    },
+    "visibility": {
+      "label": "APP.LABEL.visibilita",
+      "small": true,
+      "values": {
+        "pubblico": { "label": "APP.VISIBILITY.public", "background": "#b8e477", "border": "#b8e477", "color": "#1f1f1f" },
+        "private": { "label": "APP.VISIBILITY.private", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "riservato": { "label": "APP.VISIBILITY.riservato", "background": "#E82323", "border": "#A82323", "color": "#ffffff" },
+        "privato": { "label": "APP.VISIBILITY.privato", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "adesione": { "label": "APP.VISIBILITY.adesione", "background": "#108548", "border": "#108548", "color": "#ffffff" },
+        "referente": { "label": "APP.VISIBILITY.referente", "background": "#428fdc", "border": "#428fdc", "color": "#ffffff" },
+        "servizio": { "label": "APP.VISIBILITY.servizio", "background": "#428fdc", "border": "#428fdc", "color": "#ffffff" },
+        "gestore": { "label": "APP.VISIBILITY.gestore", "background": "#d12100", "border": "#d12100", "color": "#ffffff" }
+      }
+    }
+  }
+}

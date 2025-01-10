@@ -1,0 +1,13 @@
+<jboss-deployment-structure>
+    <deployment>
+        <exclude-subsystems>
+			<subsystem name="logging" />
+			<subsystem name="jaxrs" />
+            <subsystem name="webservices" />
+		</exclude-subsystems>
+		<dependencies>
+			<!-- moduli as da utilizzare -->
+		</dependencies>
+	</deployment>
+
+</jboss-deployment-structure>

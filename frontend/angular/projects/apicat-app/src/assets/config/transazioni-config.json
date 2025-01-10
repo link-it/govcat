@@ -1,0 +1,381 @@
+{
+  "viewBoxed": false,
+
+  "editSingleColumn": false,
+
+  "itemRow": {
+    "background_": "#f8f9fa",
+    "class": "mb-1 border-bottom border-white-",
+    "primaryText": [
+      { "field": "nome_erogatore", "type": "text", "emptySpace": true },
+      { "field": "v.", "type": "message", "tooltip_": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+      { "field": "api.versione", "type": "text", "emptySpace": true, "blockSpace": true },
+      { "field": "ruolo_component", "label": "APP.LABEL.ruolo_component", "type": "icon", "emptySpace": true, "blockSpace": true, "options": "erogazioneIcon", "tooltip": "APP.TOOLTIP.ruolo_component" },
+      { "field": "richiedente_custom", "type": "html", "hideEmpty": true },
+      { "field": "richiedente", "type": "text", "hideEmpty": true, "emptySpace": true, "blockSpace": true },
+      { "field": "richiedente_anonimo", "type": "icontext", "icon": "person-fill", "tooltip": "APP.TOOLTIP.richiedente_anonimo", "hideEmpty": true }
+    ],
+    "secondaryText": [
+      { "field": "api.tags", "type": "tags", "hideEmpty": true }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "data", "label": "APP.LABEL.Date", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "showLabel": true, "hideEmpty": true },
+        { "field": "id_cluster", "label": "APP.LABEL.IdCluster", "type": "text", "showLabel": true, "hideEmpty": true },
+        { "field": "api.operazione", "label": "APP.LABEL.Operazione", "type": "text", "showLabel": true, "hideEmpty": true },
+        { "field": "id_applicativo", "label": "APP.LABEL.IdApplicativo", "type": "text", "showLabel": true, "hideEmpty": true }
+      ],
+      "label": [
+      ]
+    },
+    "secondaryMetadata": [
+    ],
+    "boxStatus1": {
+      "color": "#333333",
+      "background": "#ececec",
+      "primaryText": [
+        { "field": "", "type": "iconBs", "icon": "clock", "tooltip_": "APP.TOOLTIP.TempoRispostaServizio" }
+      ],
+      "metadata": [
+        { "field": "tempo_elaborazione", "type": "mstime", "emptySpace": true, "tooltip_": "tempo_risposta_servizio" }
+      ],
+      "tooltip": {
+        "label": "APP.TOOLTIP.TempoRispostaServizio",
+        "field": "tempo_risposta_servizio",
+        "type": "mstime",
+        "placement": "left"
+      }
+    },
+    "boxStatus2": {
+      "color_": "#333333",
+      "color": { "field": "esito.codice", "options": "esitoIcon" },
+      "background_": "#ffe082",
+      "background": { "field": "esito.codice", "options": "esitoIcon" },
+      "primaryText": [
+        { "field": "esito.codice", "type": "icon", "icon": "check-lg", "options": "esitoIcon", "hideTooltip": true }
+      ],
+      "metadata": [
+        { "field": "esito.codice", "type": "labelI18n", "options": "esito", "emptySpace": true, "tooltip_": "", "appendValue": "return_code_http" }
+      ],
+      "tooltip": {
+        "label": "APP.TOOLTIP.ReturnCodeHttp",
+        "field": "esito.codice",
+        "type": "text",
+        "placement": "left",
+        "options": "esitoIcon"
+      }
+    }
+  },
+
+  "details": [
+    { "label": "APP.LABEL.Traccia", "field": "id_traccia", "type": "text" },
+    { "label": "APP.LABEL.return_code_http", "field": "return_code_http", "type": "text" },
+    { "label": "APP.LABEL.metodo_http", "field": "metodo_http", "type": "text" },
+    { "label": "APP.LABEL.return_code_http_backend", "field": "return_code_http_backend", "type": "text" },
+    { "label": "APP.LABEL.url_invocazione", "field": "url_invocazione", "type": "text" },
+    { "label": "APP.LABEL.tempo_elaborazione", "field": "tempo_elaborazione", "type": "text" },
+    { "label": "APP.LABEL.ServiceName", "field": "api.nome", "type": "text" },
+    { "label": "APP.LABEL.Version", "field": "api.versione", "type": "text" },
+    { "label": "APP.LABEL.Erogatore", "field": "api.erogatore.nome", "type": "text" },
+    { "label": "APP.LABEL.Operazione", "field": "api.operazione", "type": "text" },
+    { "label": "APP.LABEL.Esito", "field": "esito.codice", "type": "text" },
+    { "label": "APP.LABEL.ApplicantFirstName", "field": "richiedente.first_name", "type": "text" },
+    { "label": "APP.LABEL.ApplicantLastName", "field": "richiedente.last_name", "type": "text" },
+    { "label": "APP.LABEL.Status", "field": "stato", "type": "tag", "options": "status", "badged": true },
+    { "label": "APP.LABEL.visibilita", "field": "visibilita", "type": "tag", "options": "visibility", "badged": true },
+    { "label": "APP.LABEL.CreationDate", "field": "data_creazione", "type": "date", "format": "DD-MM-YYYY" },
+    { "label": "APP.LABEL.Logo", "field": "image", "type": "image" }
+  ],
+
+  "sectionsDetails": {
+    "InformazioniGenerali": [
+      {
+        "code": "InformazioniGenerali",
+        "title": "APP.TRANSACTIONS.TITLE.InformazioniGenerali",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.Date", "field": "data", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.IdTransazione", "field": "id_traccia", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.IdCluster", "field": "id_cluster", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.Tipologia", "field": "tipologia", "type": "text", "columns": 6, "hideEmpty": true },
+
+          { "label": "APP.LABEL.Esito", "field": "esito_composed", "type": "text", "columns": 6, "hideEmpty": true },
+
+          { "label": "APP.LABEL.DettaglioErrore", "field": "dettaglio_errore", "type": "text", "columns": 12, "class": "text-break border p-2 text-bg-gl", "hideEmpty": true, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": true }, "decode": false, "height": "300px" },
+
+          { "label": "APP.LABEL.Fruitore", "field": "mittente.fruitore.nome", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.Richiedente", "field": "richiedente", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.IpRichiedente", "field": "ip_richiedente", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.IdApplicativo", "field": "id_applicativo", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.ProfiloCollaborazione", "field": "profilo_collaborazione", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.LatenzaTotale", "field": "tempo_elaborazione", "type": "mstime", "hideEmpty": true }
+        ]
+      },
+      {
+        "code": "InvocazioneApi",
+        "title": "APP.TRANSACTIONS.TITLE.InvocazioneApi",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.tags", "field": "api.tags", "type": "tags", "hideEmpty": true },
+          { "label": "APP.LABEL.Erogatore", "field": "api.erogatore.nome", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.Azione", "field": "api.operazione", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.Connettore", "field": "connettore", "type": "text", "class": "text-break", "columns": 12, "hideEmpty": true },
+          { "label": "APP.LABEL.CodiceRisposta", "field": "return_code_http_backend", "type": "text", "class": "", "hideEmpty": true },
+          { "label": "APP.LABEL.TempoRisposta", "field": "tempo_risposta_servizio", "type": "mstime", "hideEmpty": true }
+        ]
+      }
+    ],
+    "InformazioniMittente": [
+      {
+        "code": "InformazioniMittente",
+        "title": "APP.TRANSACTIONS.TITLE.InformazioniMittente",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.Fruitore", "field": "mittente.fruitore.nome", "type": "text", "columns": 6, "hideEmpty": true },
+          { "label": "APP.LABEL.ApplicativoFruitore", "field": "mittente.applicativo", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.IdAutenticato", "field": "dati_mittente.principal", "type": "text", "class": "text-break", "columns": 12, "hideEmpty": true },
+          { "label": "APP.LABEL.UrlInvocazione", "field": "dati_mittente.url_invocazione", "type": "text", "class": "text-break", "columns": 12, "hideEmpty": true },
+          { "label": "APP.LABEL.MetodoHTTP", "field": "dati_mittente.metodo_http", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.ClientIp", "field": "dati_mittente.indirizzo_ip", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.X-Forwarded-For", "field": "dati_mittente.indirizzo_ip_inoltrato", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.CodiceRispostaClient", "field": "return_code_http_backend", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.Credenziali", "field": "dati_mittente.credenziali", "type": "json", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": false, "hideEmpty": true }
+        ]
+      },
+      {
+        "code": "Token",
+        "title": "APP.TRANSACTIONS.TITLE.Token",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.ApplicativoToken", "field": "token.applicativo_token", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.ClientID", "field": "token.client_id", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.Issuer", "field": "token.issuer", "type": "text", "class": "text-break", "columns": 12, "hideEmpty": true },
+          { "label": "APP.LABEL.Subject", "field": "token.subject", "type": "text", "class": "text-break", "columns": 12, "hideEmpty": true },
+          { "label": "APP.LABEL.Username", "field": "token.username", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.eMail", "field": "token.mail", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.Token", "field": "token.token", "type": "json", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": true, "height": "300px", "hideEmpty": true }
+        ]
+      }
+    ],
+    "DettaglioMessaggio": [
+      {
+        "code": "DettagliRichiesta",
+        "title": "APP.TRANSACTIONS.TITLE.DettagliRichiesta",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.IdMessaggio", "field": "richiesta.id_messaggio", "type": "text", "hideEmpty": true },
+          { "label": "APP.LABEL.IdApplicativo", "field": "richiesta.id_correlazione", "type": "text", "class": "", "columns": "12", "hideEmpty": true },
+          { "label": "APP.LABEL.InRicezione", "field": "richiesta.data_ricezione", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "richiesta.dimensione_ricezione", "type": "number", "hideEmpty": true },
+          { "label": "APP.LABEL.Consegnata", "field": "richiesta.data_consegna", "type": "date", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "richiesta.dimensione_ricezione", "type": "number", "hideEmpty": true }
+        ]
+      },
+      {
+        "code": "DettagliRisposta",
+        "title": "APP.TRANSACTIONS.TITLE.DettagliRisposta",
+        "title_sub": "",
+        "details": [
+          { "label": "APP.LABEL.IdApplicativo", "field": "risposta.id_correlazione", "type": "text", "class": "", "columns": "12", "hideEmpty": true },
+          { "label": "APP.LABEL.InRicezione", "field": "risposta.data_ricezione", "type": "date", "class": "", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "risposta.dimensione_ricezione", "type": "number", "hideEmpty": true },
+          { "label": "APP.LABEL.FaultRicezione", "field": "risposta.fault_ricezione", "type": "text", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": true, "height": "300px", "hideEmpty": true },
+          { "label": "APP.LABEL.Consegnata", "field": "richiesta.data_consegna", "type": "date", "class": "", "format": "DD-MM-YYYY HH:mm:ss", "hideEmpty": true },
+          { "label": "APP.LABEL.Dimensione", "field": "risposta.dimensione_consegna", "type": "number", "hideEmpty": true },
+          { "label": "APP.LABEL.FaultConsegna", "field": "risposta.fault_consegna", "type": "text", "class": "text-break ws-pre-wrap border p-2 content-scroller text-bg-gl", "columns": 12, "accordion": { "label": "APP.BUTTON.Visualizza", "iconOpen": "chevron-down", "labelClose": "APP.BUTTON.Nascondi", "iconClose": "chevron-up", "opened": false }, "decode": true, "height": "300px", "hideEmpty": true }
+        ]
+      }
+    ]
+  },
+
+  "options": {
+    "status": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {
+        "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "richiesto_collaudo": { "label": "APP.WORKFLOW.STATUS.richiesto_collaudo", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
+        "in_configurazione_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_collaudo", "background": "#d4d700", "border": "#d4d700", "color": "#1f1f1f" },
+        "pubblicato_collaudo": { "label": "APP.WORKFLOW.STATUS.pubblicato_collaudo", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
+        "richiesto_produzione": { "label": "APP.WORKFLOW.STATUS.richiesto_produzione", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+        "in_configurazione_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_produzione", "background": "#38a3a5", "border": "#38a3a5", "color": "#1f1f1f" },
+        "pubblicato_produzione": { "label": "APP.WORKFLOW.STATUS.pubblicato_produzione", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },        
+        "archiviato": { "label": "APP.WORKFLOW.STATUS.archiviato", "background": "#242F40", "border": "#242F40", "color": "#ffffff" }
+      }
+    },
+
+    "returnCodeHttp": {
+      "label": "APP.LABEL.ReturnCodeHttp",
+      "small": true,
+      "values": {
+        "200": { "label": "APP.HTTP.200", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
+        "300": { "label": "APP.HTTP.300", "background": "#a2d6f9", "border": "#a2d6f9", "color": "#1f1f1f" },
+        "400": { "label": "APP.HTTP.400", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
+        "500": { "label": "APP.HTTP.500", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
+        "503": { "label": "APP.HTTP.503", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" }
+      }
+    },
+
+    "esitoIcon": {
+      "label": "APP.LABEL.Esito",
+      "small": true,
+      "values": {
+        "0": { "label": "APP.ESITO.INDEX_0", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_0", "tooltip2": "APP.ESITO.INDEX_0", "tooltipPlacement": "left" },
+        "8": { "label": "APP.ESITO.INDEX_8", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_8", "tooltipPlacement": "left" },
+        "12": { "label": "APP.ESITO.INDEX_12", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_12", "tooltip2": "APP.ESITO.INDEX_12", "tooltipPlacement": "left" },
+        "19": { "label": "APP.ESITO.INDEX_19", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_19", "tooltip2": "APP.ESITO.INDEX_19", "tooltipPlacement": "left" },
+        "21": { "label": "APP.ESITO.INDEX_21", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_21", "tooltip2": "APP.ESITO.INDEX_21", "tooltipPlacement": "left" },
+        "28": { "label": "APP.ESITO.INDEX_28", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_28", "tooltip2": "APP.ESITO.INDEX_28", "tooltipPlacement": "left" },
+        "34": { "label": "APP.ESITO.INDEX_34", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_34", "tooltip2": "APP.ESITO.INDEX_34", "tooltipPlacement": "left" },
+        "35": { "label": "APP.ESITO.INDEX_35", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_35", "tooltip2": "APP.ESITO.INDEX_35", "tooltipPlacement": "left" },
+        "38": { "label": "APP.ESITO.INDEX_38", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_38", "tooltip2": "APP.ESITO.INDEX_38", "tooltipPlacement": "left" },
+        "39": { "label": "APP.ESITO.INDEX_39", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_39", "tooltip2": "APP.ESITO.INDEX_39", "tooltipPlacement": "left" },
+        "47": { "label": "APP.ESITO.INDEX_47", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_47", "tooltip2": "APP.ESITO.INDEX_47", "tooltipPlacement": "left" },
+        "48": { "label": "APP.ESITO.INDEX_48", "icon": "check-lg", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_48", "tooltip2": "APP.ESITO.INDEX_48", "tooltipPlacement": "left" },
+
+        "2": { "label": "APP.ESITO.INDEX_2", "icon": "exclamation-triangle", "background": "#ffe082", "border": "#ffe082", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_2", "tooltip2": "APP.ESITO.INDEX_2", "tooltipPlacement": "left" },
+
+        "1": { "label": "APP.ESITO.INDEX_1", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_1", "tooltip2": "APP.ESITO.INDEX_1", "tooltipPlacement": "left" },
+        "3": { "label": "APP.ESITO.INDEX_3", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_3", "tooltip2": "APP.ESITO.INDEX_3", "tooltipPlacement": "left" },
+        "4": { "label": "APP.ESITO.INDEX_4", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_4", "tooltip2": "APP.ESITO.INDEX_4", "tooltipPlacement": "left" },
+        "5": { "label": "APP.ESITO.INDEX_5", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_5", "tooltip2": "APP.ESITO.INDEX_5", "tooltipPlacement": "left" },
+        "6": { "label": "APP.ESITO.INDEX_6", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_6", "tooltip2": "APP.ESITO.INDEX_6", "tooltipPlacement": "left" },
+        "7": { "label": "APP.ESITO.INDEX_7", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_7", "tooltip2": "APP.ESITO.INDEX_7", "tooltipPlacement": "left" },
+        "9": { "label": "APP.ESITO.INDEX_9", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_9", "tooltip2": "APP.ESITO.INDEX_9", "tooltipPlacement": "left" },
+        "10": { "label": "APP.ESITO.INDEX_10", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_10", "tooltip2": "APP.ESITO.INDEX_10", "tooltipPlacement": "left" },
+        "11": { "label": "APP.ESITO.INDEX_11", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_11", "tooltip2": "APP.ESITO.INDEX_11", "tooltipPlacement": "left" },
+        "13": { "label": "APP.ESITO.INDEX_13", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_13", "tooltip2": "APP.ESITO.INDEX_13", "tooltipPlacement": "left" },
+        "14": { "label": "APP.ESITO.INDEX_14", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_14", "tooltip2": "APP.ESITO.INDEX_14", "tooltipPlacement": "left" },
+        "15": { "label": "APP.ESITO.INDEX_15", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_15", "tooltip2": "APP.ESITO.INDEX_15", "tooltipPlacement": "left" },
+        "16": { "label": "APP.ESITO.INDEX_16", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_16", "tooltip2": "APP.ESITO.INDEX_16", "tooltipPlacement": "left" },
+        "17": { "label": "APP.ESITO.INDEX_17", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_17", "tooltip2": "APP.ESITO.INDEX_17", "tooltipPlacement": "left" },
+        "18": { "label": "APP.ESITO.INDEX_18", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_18", "tooltip2": "APP.ESITO.INDEX_18", "tooltipPlacement": "left" },
+        "20": { "label": "APP.ESITO.INDEX_20", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_20", "tooltip2": "APP.ESITO.INDEX_20", "tooltipPlacement": "left" },
+        "22": { "label": "APP.ESITO.INDEX_22", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_22", "tooltip2": "APP.ESITO.INDEX_22", "tooltipPlacement": "left" },
+        "23": { "label": "APP.ESITO.INDEX_23", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_23", "tooltip2": "APP.ESITO.INDEX_23", "tooltipPlacement": "left" },
+        "24": { "label": "APP.ESITO.INDEX_24", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_24", "tooltip2": "APP.ESITO.INDEX_24", "tooltipPlacement": "left" },
+        "25": { "label": "APP.ESITO.INDEX_25", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_25", "tooltip2": "APP.ESITO.INDEX_25", "tooltipPlacement": "left" },
+        "26": { "label": "APP.ESITO.INDEX_26", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_26", "tooltip2": "APP.ESITO.INDEX_26", "tooltipPlacement": "left" },
+        "27": { "label": "APP.ESITO.INDEX_27", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_27", "tooltip2": "APP.ESITO.INDEX_27", "tooltipPlacement": "left" },
+        "29": { "label": "APP.ESITO.INDEX_28", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_29", "tooltip2": "APP.ESITO.INDEX_29", "tooltipPlacement": "left" },
+        "30": { "label": "APP.ESITO.INDEX_30", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_30", "tooltip2": "APP.ESITO.INDEX_30", "tooltipPlacement": "left" },
+        "31": { "label": "APP.ESITO.INDEX_31", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_31", "tooltip2": "APP.ESITO.INDEX_31", "tooltipPlacement": "left" },
+        "32": { "label": "APP.ESITO.INDEX_32", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_32", "tooltip2": "APP.ESITO.INDEX_32", "tooltipPlacement": "left" },
+        "33": { "label": "APP.ESITO.INDEX_33", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_33", "tooltip2": "APP.ESITO.INDEX_33", "tooltipPlacement": "left" },
+        "36": { "label": "APP.ESITO.INDEX_36", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_36", "tooltip2": "APP.ESITO.INDEX_36", "tooltipPlacement": "left" },
+        "37": { "label": "APP.ESITO.INDEX_37", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_37", "tooltip2": "APP.ESITO.INDEX_37", "tooltipPlacement": "left" },
+        "40": { "label": "APP.ESITO.INDEX_40", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_40", "tooltip2": "APP.ESITO.INDEX_40", "tooltipPlacement": "left" },
+        "41": { "label": "APP.ESITO.INDEX_41", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_41", "tooltip2": "APP.ESITO.INDEX_41", "tooltipPlacement": "left" },
+        "42": { "label": "APP.ESITO.INDEX_42", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_42", "tooltip2": "APP.ESITO.INDEX_42", "tooltipPlacement": "left" },
+        "43": { "label": "APP.ESITO.INDEX_43", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_43", "tooltip2": "APP.ESITO.INDEX_43", "tooltipPlacement": "left" },
+        "44": { "label": "APP.ESITO.INDEX_44", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_44", "tooltip2": "APP.ESITO.INDEX_44", "tooltipPlacement": "left" },
+        "45": { "label": "APP.ESITO.INDEX_45", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_45", "tooltip2": "APP.ESITO.INDEX_45", "tooltipPlacement": "left" },
+        "46": { "label": "APP.ESITO.INDEX_46", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_46", "tooltip2": "APP.ESITO.INDEX_46", "tooltipPlacement": "left" },
+
+        "49": { "label": "APP.ESITO.INDEX_49", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_49", "tooltip2": "APP.ESITO.INDEX_49", "tooltipPlacement": "left" },
+        "50": { "label": "APP.ESITO.INDEX_50", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_50", "tooltip2": "APP.ESITO.INDEX_50", "tooltipPlacement": "left" },
+        "51": { "label": "APP.ESITO.INDEX_51", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_51", "tooltip2": "APP.ESITO.INDEX_51", "tooltipPlacement": "left" },
+        "52": { "label": "APP.ESITO.INDEX_52", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_52", "tooltip2": "APP.ESITO.INDEX_52", "tooltipPlacement": "left" },
+        "53": { "label": "APP.ESITO.INDEX_53", "icon": "exclamation-circle", "background": "#ef9a9a", "border": "#ef9a9a", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.ESITO.INDEX_53", "tooltip2": "APP.ESITO.INDEX_53", "tooltipPlacement": "left" }
+      }
+    },
+
+    "esito": {
+      "label": "APP.LABEL.Esito",
+      "small": true,
+      "values": {
+        "0": { "label": "APP.TOOLTIP.ESITO.INDEX_0" },
+        "8": { "label": "APP.TOOLTIP.ESITO.INDEX_8" },
+        "12": { "label": "APP.TOOLTIP.ESITO.INDEX_12" },
+        "19": { "label": "APP.TOOLTIP.ESITO.INDEX_19" },
+        "21": { "label": "APP.TOOLTIP.ESITO.INDEX_21" },
+        "28": { "label": "APP.TOOLTIP.ESITO.INDEX_28" },
+        "34": { "label": "APP.TOOLTIP.ESITO.INDEX_34" },
+        "35": { "label": "APP.TOOLTIP.ESITO.INDEX_35" },
+        "38": { "label": "APP.TOOLTIP.ESITO.INDEX_38" },
+        "39": { "label": "APP.TOOLTIP.ESITO.INDEX_39" },
+        "47": { "label": "APP.TOOLTIP.ESITO.INDEX_47" },
+        "48": { "label": "APP.TOOLTIP.ESITO.INDEX_48" },
+
+        "2": { "label": "APP.TOOLTIP.ESITO.INDEX_2" },
+
+        "1": { "label": "APP.TOOLTIP.ESITO.INDEX_1" },
+        "3": { "label": "APP.TOOLTIP.ESITO.INDEX_3" },
+        "4": { "label": "APP.TOOLTIP.ESITO.INDEX_4" },
+        "5": { "label": "APP.TOOLTIP.ESITO.INDEX_5" },
+        "6": { "label": "APP.TOOLTIP.ESITO.INDEX_6" },
+        "7": { "label": "APP.TOOLTIP.ESITO.INDEX_7" },
+        "9": { "label": "APP.TOOLTIP.ESITO.INDEX_9" },
+        "10": { "label": "APP.TOOLTIP.ESITO.INDEX_10" },
+        "11": { "label": "APP.TOOLTIP.ESITO.INDEX_11" },
+        "13": { "label": "APP.TOOLTIP.ESITO.INDEX_13" },
+        "14": { "label": "APP.TOOLTIP.ESITO.INDEX_14" },
+        "15": { "label": "APP.TOOLTIP.ESITO.INDEX_15" },
+        "16": { "label": "APP.TOOLTIP.ESITO.INDEX_16" },
+        "17": { "label": "APP.TOOLTIP.ESITO.INDEX_17" },
+        "18": { "label": "APP.TOOLTIP.ESITO.INDEX_18" },
+        "20": { "label": "APP.TOOLTIP.ESITO.INDEX_20" },
+        "22": { "label": "APP.TOOLTIP.ESITO.INDEX_22" },
+        "23": { "label": "APP.TOOLTIP.ESITO.INDEX_23" },
+        "24": { "label": "APP.TOOLTIP.ESITO.INDEX_24" },
+        "25": { "label": "APP.TOOLTIP.ESITO.INDEX_25" },
+        "26": { "label": "APP.TOOLTIP.ESITO.INDEX_26" },
+        "27": { "label": "APP.TOOLTIP.ESITO.INDEX_27" },
+        "29": { "label": "APP.TOOLTIP.ESITO.INDEX_29" },
+        "30": { "label": "APP.TOOLTIP.ESITO.INDEX_30" },
+        "31": { "label": "APP.TOOLTIP.ESITO.INDEX_31" },
+        "32": { "label": "APP.TOOLTIP.ESITO.INDEX_32" },
+        "33": { "label": "APP.TOOLTIP.ESITO.INDEX_33" },
+        "36": { "label": "APP.TOOLTIP.ESITO.INDEX_36" },
+        "37": { "label": "APP.TOOLTIP.ESITO.INDEX_37" },
+        "40": { "label": "APP.TOOLTIP.ESITO.INDEX_40" },
+        "41": { "label": "APP.TOOLTIP.ESITO.INDEX_41" },
+        "42": { "label": "APP.TOOLTIP.ESITO.INDEX_42" },
+        "43": { "label": "APP.TOOLTIP.ESITO.INDEX_43" },
+        "44": { "label": "APP.TOOLTIP.ESITO.INDEX_44" },
+        "45": { "label": "APP.TOOLTIP.ESITO.INDEX_45" },
+        "46": { "label": "APP.TOOLTIP.ESITO.INDEX_46" },
+
+        "49": { "label": "APP.TOOLTIP.ESITO.INDEX_49" },
+        "50": { "label": "APP.TOOLTIP.ESITO.INDEX_50" },
+        "51": { "label": "APP.TOOLTIP.ESITO.INDEX_51" },
+        "52": { "label": "APP.TOOLTIP.ESITO.INDEX_52" },
+        "53": { "label": "APP.TOOLTIP.ESITO.INDEX_53" }
+      }
+    },
+
+    "erogazioneIcon": {
+      "label": "APP.LABEL.Erogato",
+      "small": false,
+      "values": {
+        "erogato_soggetto_dominio": { "label": "APP.LABEL.erogato_soggetto_dominio", "icon": "box-arrow-in-left", "color": "#a6d75b", "tooltip": "APP.TOOLTIP.erogato_soggetto_dominio" },
+        "erogato_soggetto_aderente": { "label": "APP.LABEL.erogato_soggetto_aderente", "icon": "box-arrow-left", "color": "#a2d6f9", "tooltip": "APP.TOOLTIP.erogato_soggetto_aderente" }
+      }
+    },
+
+    "outcome": {
+      "label": "APP.LABEL.Outcome",
+      "small": true,
+      "values": {
+        "ok": { "label": "OK", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
+        "200": { "label": "200", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
+        "fault": { "label": "FAULT", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
+        "fallito": { "label": "FALLITO", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
+        "500": { "label": "500", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
+        "2": { "label": "Fault Applicativo", "background": "#f18701", "border": "#f18701", "color": "#ffffff" }
+      }
+    },
+
+    "metodoHttp": {
+      "label": "APP.LABEL.HttpMethod",
+      "small": true,
+      "values": {
+        "GET": { "label": "GET", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
+        "POST": { "label": "POST", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
+        "PUT": { "label": "PUT", "background": "#1e96fc", "border": "#1e96fc", "color": "#ffffff" },
+        "PATCH": { "label": "PATCH", "background": "#a2d6f9", "border": "#a2d6f9", "color": "#1f1f1f" },
+        "DELETE": { "label": "DELETE", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" }
+      }
+    }
+  }
+}

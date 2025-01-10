@@ -1,0 +1,15 @@
+.swagger-codegen
+.travis.yml
+build.gradle
+build.sbt
+docs
+git_push.sh
+gradle.properties
+gradle
+gradlew
+gradlew.bat
+settings.gradle
+AndroidManifest.xml
+**/src/test/
+README.md
+

@@ -1,0 +1,331 @@
+import { Component, OnInit } from '@angular/core';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Clipboard } from '@angular/cdk/clipboard';
+
+import { Subject } from 'rxjs';
+
+import { TranslateService } from '@ngx-translate/core';
+import { BsModalRef } from 'ngx-bootstrap/modal';
+
+import { AuthenticationService } from '@services/authentication.service';
+import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { AuthenticationDialogService } from '../services/authentication-dialog.service';
+
+import * as rs from 'jsrsasign';
+
+@Component({
+    selector: 'app-agid-jwt-dialog',
+    templateUrl: './agid-jwt-dialog.component.html',
+    styleUrls: ['./agid-jwt-dialog.component.scss']
+})
+export class AgidJwtDialogComponent implements OnInit {
+
+    tipoPolicy: string = 'pdnd';
+    title: string = 'APP.AUTHENTICATION.TITLE.GeneratePDNDVoucher';
+
+    tokenPolicy: any = null;
+    debug: boolean = false;
+
+    onClose!: Subject<any>;
+
+    _spin: boolean = false;
+
+    _error: boolean = false;
+    _errorObject: any = null;
+    _errorMsg: string = '';
+
+    formGroup: FormGroup = new FormGroup({});
+
+    _showResult: boolean = false;
+    _showMessageClipboard: boolean = false;
+
+    _codicePolicy: string = '';
+    _type: string = 'JWT';
+    _algDefault: string = 'RS256';
+    _algOptions: string[] = ['RS256'];
+    _audience: string = '';
+    _editAudience: boolean = true;
+    _expiresIn: number = 5;
+    _tokenUrl: string = '';
+
+    _keyFileCtrl: FormControl = new FormControl(null, [Validators.required]);
+
+    constructor(
+        private http: HttpClient,
+        private clipboard: Clipboard,
+        public bsModalRef: BsModalRef,
+        private translate: TranslateService,
+        private authenticationService: AuthenticationService,
+        private configService: ConfigService,
+        public utils: UtilsLib,
+        private authenticationDialogService: AuthenticationDialogService
+    ) { }
+
+    ngOnInit() {
+        console.log('AgidJwtDialogComponent');
+        this._codicePolicy = this.tokenPolicy ? this.tokenPolicy['codice_policy'] : this._codicePolicy;
+        this._type = this.tokenPolicy ? this.tokenPolicy['type'] : this._type;
+        this._algDefault = this.tokenPolicy ? this.tokenPolicy['alg_default'] : this._algDefault;
+        this._algOptions = this.tokenPolicy ? this.tokenPolicy['alg_options'] : this._algOptions;
+        this._audience = this.tokenPolicy ? this.tokenPolicy['audience'] : this._audience;
+        this._editAudience = !!this._audience;
+        this._expiresIn = this.tokenPolicy ? this.tokenPolicy['expires_in'] : this._expiresIn;
+        this._tokenUrl = this.tokenPolicy ? this.tokenPolicy['token_url'] : this._tokenUrl;
+
+        this.onClose = new Subject();
+        this.initForm();
+    }
+
+    get f(): { [key: string]: AbstractControl } {
+        return this.formGroup.controls;
+    }
+
+    initForm() {
+        this.formGroup = new FormGroup({
+            kid: new FormControl('', [Validators.required]),
+            alg: new FormControl(this._algDefault, [Validators.required]),
+            typ: new FormControl({ value: this._type, disabled: true }, [Validators.required]),
+            clientId: new FormControl('', [Validators.required]),
+            // issuer: new FormControl('', [Validators.required]),
+            // subject: new FormControl('', [Validators.required]),
+            audience: new FormControl({ value: this._audience, disabled: true }, [Validators.required]),
+            purposeId: new FormControl('', [Validators.required]),
+
+            key: new FormControl(null, [Validators.required]),
+            keyFile: this._keyFileCtrl,
+            keyFormat: new FormControl(null, []),
+
+            result: new FormControl('', []),
+            expiresIn: new FormControl(0, []),
+        });
+    }
+
+    closeModal(data: any = null) {
+        this.onClose.next({ close: true, result: { ...data } });
+        this.bsModalRef.hide();
+    }
+
+    useResultModal() {
+        const token = this.formGroup.get('result')?.value;
+        this.closeModal({ token: token });
+    }
+
+    async agidJWT(values: any) {
+        const issued = Math.floor(Date.now() / 1000); // Tempo corrente in secondi
+        const delta = this._expiresIn * 60; // minuti in secondi
+        const expire_in = issued + delta;
+        const jti = this.authenticationDialogService.uuidv4(); // Assicurati di avere una funzione UUIDv4
+
+        // Header per JWT
+        const headers_rsa = {
+            kid: values.kid,
+            alg: values.alg,
+            typ: values.typ
+        };
+
+        // Payload del JWT
+        const payload = {
+            client_id: values.clientId,
+            iss: values.clientId,
+            sub: values.clientId,
+            aud: values.audience,
+            purposeId: values.purposeId,
+            jti: jti,
+            iat: issued,
+            exp: expire_in
+        };
+
+        let clientAssertion = '';
+        
+        let keyFormat = this.formGroup.get('keyFormat')?.value;
+
+        let rsaKey = null;
+        if (keyFormat === 'PEM') {
+            try {
+                // Prima tenta di interpretare la chiave come PKCS#8
+                rsaKey = rs.KEYUTIL.getKey(values.key);
+            } catch (e) {
+                console.error("Errore durante la lettura della chiave: ", e);
+                return;
+            }
+        } else if (keyFormat === 'DER') {
+            try {
+                // Se è DER, convertilo in PEM prima di passarlo a KEYUTIL.getKey
+                const pemKey = this.authenticationDialogService.buildPEMString(values.key, 'PRIVATE KEY');
+                rsaKey = rs.KEYUTIL.getKey(pemKey);
+            } catch (e) {
+                try {
+                    // Se è DER, convertilo in PEM prima di passarlo a KEYUTIL.getKey
+                    const pemKey = this.authenticationDialogService.buildPEMString(values.key, 'RSA PRIVATE KEY');
+                    rsaKey = rs.KEYUTIL.getKey(pemKey);
+                } catch (e1) {
+                    this._error = true;
+                    this._errorMsg = 'Errore durante la lettura della chiave';
+                    console.error("Errore durante la lettura della chiave: ", e1);
+                    return;
+                }
+            }
+        } else {
+            this._error = true;
+            this._errorMsg = 'Formato della chiave non supportato';
+        }
+
+        try {
+            // Firma del JWT usando la chiave passata in values.key
+            const sHeader = JSON.stringify(headers_rsa);
+            const sPayload = JSON.stringify(payload);
+
+            clientAssertion = rs.KJUR.jws.JWS.sign("RS256", sHeader, sPayload, rsaKey as rs.RSAKey);
+
+        } catch (error: any) {
+            this._error = true;
+            this._errorMsg = error;
+            this._errorObject = null;
+        }
+
+        return clientAssertion;
+    }
+
+    clearError() {
+        this._error = false;
+        this._errorMsg = '';
+        this._errorObject = null;
+        this.formGroup.get('result')?.setValue(null);
+    }
+
+    async onGenerateJWT(values: any) {
+        this.clearError();
+
+        if (this.formGroup.valid) {
+            const clientAssertion = await this.agidJWT(values);
+            console.log('clientAssertion', clientAssertion);
+
+            if (clientAssertion) {
+                this._spin = true;
+                const _body = {
+                    client_id: values.clientId,
+                    client_assertion: clientAssertion,
+                    client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+                    grant_type: 'client_credentials'
+                };
+
+                (await this._getVoucher(_body)).subscribe({
+                    next: (response: any) => {
+                        this.formGroup.get('result')?.setValue(response.access_token);
+                        this.formGroup.get('expiresIn')?.setValue(response.expires_in);
+                        this._spin = false;
+                    },
+                    error: (error: any) => {
+                        this._error = true;
+                        this._errorObject = error.error;
+                        this._errorMsg = error.message;
+                        this._spin = false;
+                    }
+                });
+            }
+        }
+    }
+
+    async _getVoucher(body: any) {
+        const httpOptions = {
+            headers: new HttpHeaders({}),
+            params: {}
+        };
+
+        let headers = new HttpHeaders()
+            .set('Content-Type', 'application/x-www-form-urlencoded');
+        httpOptions.headers = headers;
+
+        const params = new HttpParams({
+            fromObject: body
+        });
+
+        return this.http.post(this._tokenUrl, params, httpOptions);
+    }
+
+    async _onKeyChange(file: any) {
+        this.clearError();
+
+        let keyContent: any = '';
+        try {
+            keyContent = await this._readKeyFile(file.target.files[0]);
+            this.formGroup.get('key')?.setValue(keyContent);
+        } catch (error: any) {
+            this._error = true;
+            this._errorMsg = error.message || error;
+            this._errorObject = null;
+            this.formGroup.get('key')?.setValue(null);
+        }
+    }
+
+    _readKeyFile(file: any) {
+        const _this = this;
+        if (!file) {
+            this.clearError();
+            return;
+        }
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            let triedAsBinary = false;  // Flag per prevenire il loop
+
+            reader.onload = function(event: any) {
+                const fileContent = event.target.result;
+
+                try {
+                    // Rileva il formato basato sul contenuto
+                    const keyFormat = _this.authenticationDialogService.detectKeyFormat(fileContent);
+                    _this.formGroup.get('keyFormat')?.setValue(keyFormat);
+                
+                    if (keyFormat === 'PEM') {
+                        resolve(fileContent); // Se è PEM, restituisci direttamente il contenuto
+                    } else if (keyFormat === 'DER') {
+                        // Se è DER (binario), converti in PEM
+                        const pemContent = _this.authenticationDialogService.convertDERToPEM(fileContent);
+                        resolve(pemContent);
+                    } else {
+                        _this._error = true;
+                        _this._errorMsg = "Formato chiave non riconosciuto";
+                        _this._errorObject = null;
+                        // reject(new Error("Formato chiave non riconosciuto"));
+                    }
+                } catch (error: any) {
+                    // Se c'è un errore, non rileggere come binario più di una volta
+                    if (!triedAsBinary) {
+                        triedAsBinary = true;  // Imposta il flag per evitare il loop
+                        reader.readAsArrayBuffer(file);  // Rileggi come binario (DER)
+                    } else {
+                        _this._error = true;
+                        _this._errorMsg = error.message || error;
+                        _this._errorObject = error;
+                        // reject(error);  // Se già tentato, interrompi con l'errore
+                    }
+                }
+            };
+
+            reader.onerror = function(event: any) {
+                reject(new Error("Errore nella lettura del file: " + event.target.error));
+            };
+
+            // Inizialmente, leggiamo come testo. Se non rileviamo PEM, rileggiamo come binario.
+            reader.readAsText(file);
+        });
+    }
+
+    convertSecondsToHours(seconds: number) {
+        return this.authenticationDialogService.convertSecondsToHours(seconds); 
+    }
+
+    toggleResult() {
+        this._showResult = !this._showResult;
+    }
+
+    onCopyClipboard() {
+        this.clipboard.copy(this.formGroup.get('result')?.value);
+        this._showMessageClipboard = true;
+        setTimeout(() => {
+            this._showMessageClipboard = false;
+        }, 3000);
+    }
+}
