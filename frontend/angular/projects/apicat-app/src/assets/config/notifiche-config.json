@@ -1,0 +1,44 @@
+{
+  "defaultView": "list",
+
+  "itemRow": {
+    "primaryText": [
+      { "field": "tipo.tipo", "type": "icon", "class": "", "icon": "bell", "options": "tipoIcon" },
+      { "field": "user_name", "type": "text" },
+      { "field": "titolo", "type": "text", "emptySpace": true }
+    ],
+    "secondaryText": [
+      { "field": "data", "type": "timeago" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "descrizione", "type": "text" }
+      ],
+      "label": []
+    },
+    "secondaryMetadata_": [
+      { "field": "stato", "type": "tag", "options": "status" }
+    ]
+  },
+
+  "options": {
+    "status": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {        
+        "nuova": { "label": "APP.NOTIFICATIONS.STATUS.Nuova", "background": "#297cc1", "border": "#297cc1", "color": "#ffffff" },
+        "letta": { "label": "APP.NOTIFICATIONS.STATUS.Letta", "background": "#f1f1f1", "border": "#f1f1f1", "color": "#333333" },
+        "archiviata": { "label": "APP.NOTIFICATIONS.STATUS.Archiviata", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+      }
+    },
+    "tipoIcon": {
+      "label": "APP.LABEL.Tipo",
+      "small": true,
+      "values": {
+        "cambio_stato": { "label": "APP.NOTIFICATIONS.TYPE.cambio_stato", "icon": "node-plus", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f", "tooltip": "APP.TOOLTIP.TYPE.cambio_stato", "tooltipPlacement": "right" },
+        "comunicazione": { "label": "APP.NOTIFICATIONS.TYPE.comunicazione", "icon": "chat-left", "background": "#1f5d91", "border": "#1f5d91", "color": "#ffffff", "tooltip": "APP.TOOLTIP.TYPE.comunicazione", "tooltipPlacement": "right" }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,1697 @@
+{
+  "dashboard": {
+    "abilitato": false,
+    "periodi": {
+      "periodo_1": 60,
+      "periodo_2": 1440
+    },
+    "ambiente_default": "collaudo"
+  },
+  "organizzazione": {
+    "codice_ente_abilitato": false,
+    "codice_fiscale_ente_abilitato": false,
+    "id_tipo_utente_abilitato": false
+  },
+  "soggetto": {
+    "profilo_gateway_abilitato": true,
+    "profilo_gateway_default": "APIGateway",
+    "lista_profili_gateway": [
+      "APIGateway",
+      "SPCoop",
+      "ModIPA"
+    ]
+  },
+  "pdnd": [
+    {
+      "nome_soggetto": "ComuneDiEsempio-PDND",
+      "collaudo": {
+        "id_producer": "60587db0-dac5-437a-b41a-2bce922c59ca",
+        "lista_policy": [
+          "PDND",
+          "api-pdnd"
+        ]
+      },
+      "produzione": {
+        "id_producer": "60587db0-dac5-437a-b41a-2bce922c59ca",
+        "lista_policy": [
+          "PDND",
+          "api-pdnd"
+        ]
+      }
+    }
+  ],
+  "dominio": {
+    "multi_dominio": {
+      "email": "helpdesk@comuneesempio.it",
+      "autorizzazione_richiesta": false
+    }
+  },
+  "gruppo": {
+    "visualizzazione_abilitata": true
+  },
+  "utente": {
+    "consenti_accesso_anonimo": true,
+    "autoregistrazione_abilitata": false,
+    "autoabilitazione_abilitata": false,
+    "ruolo_da_idm_abilitato": false,
+    "aggiornamento_idm_abilitato": false
+  },
+  "servizio": {
+    "api_multiple": true,
+    "consenti_non_sottoscrivibile": true,
+    "adesioni_multiple": true,
+    "tassonomie_abilitate": false,
+    "api": {
+      "abilitato": true,
+      "etichetta": "API",
+      "specifica_obbligatorio": false,
+      "info_gateway_visualizzate": true,
+      "codice_asset_obbligatorio": false,
+      "transazioni": true,
+      "auth_type": [
+        {
+          "type": "https",
+          "certificato": {
+            "file": true,
+            "cn": true,
+            "csr": true,
+            "csr_modulo": true
+          },
+          "indirizzi_ip": false
+        },
+        {
+          "type": "https_sign",
+          "certificato_autenticazione": {
+            "file": true,
+            "cn": true,
+            "csr": true,
+            "csr_modulo": true
+          },
+          "certificato_firma": {
+            "file": true,
+            "cn": true,
+            "csr": true,
+            "csr_modulo": true
+          },
+          "indirizzi_ip": true
+        },
+        {
+          "type": "pdnd",
+          "indirizzi_ip": true
+        },
+        {
+          "type": "http_basic",
+          "indirizzi_ip": true,
+          "rate_limiting": true,
+          "finalita": true
+        },
+        {
+          "type": "oauth_authorization_code",
+          "indirizzi_ip": true
+        },
+        {
+          "type": "oauth_client_credentials",
+          "indirizzi_ip": true
+        },
+        {
+          "type": "https_pdnd",
+          "certificato": {
+            "file": true,
+            "cn": true,
+            "csr": true,
+            "csr_modulo": true
+          },
+          "indirizzi_ip": true
+        },
+        {
+          "type": "https_pdnd_sign",
+          "certificato_autenticazione": {
+            "file": true,
+            "cn": true,
+            "csr": true,
+            "csr_modulo": true
+          },
+          "certificato_firma": {
+            "file": true,
+            "cn": true,
+            "csr": true,
+            "csr_modulo": true
+          },
+          "indirizzi_ip": true
+        },
+        {
+          "type": "sign_pdnd",
+          "certificato_firma": {
+            "file": true,
+            "cn": true,
+            "csr": true,
+            "csr_modulo": true
+          },
+          "indirizzi_ip": true
+        },
+        {
+          "type": "no_dati"
+        }
+      ],
+      "profili": [
+        {
+          "codice_interno": "INTERNO_HTTPS",
+          "etichetta": "mTLS",
+          "auth_type": "https",
+          "domini": [
+            "Interno",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "INTERNO_HTTP_BASIC",
+          "etichetta": "HTTP Basic",
+          "auth_type": "http_basic",
+          "domini": [
+            "Interno",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "INTERNO_NO_DATI",
+          "etichetta": "Nessuna",
+          "auth_type": "no_dati",
+          "domini": [
+            "Interno",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "INTERNO_OAUTH_CLIENT_CREDENTIALS",
+          "etichetta": "OAuth Client Credentials",
+          "auth_type": "oauth_client_credentials",
+          "domini": [
+            "Interno",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "INTERNO_OAUTH_AUTHORIZATION_CODE",
+          "etichetta": "OAuth Authorization Code",
+          "auth_type": "oauth_authorization_code",
+          "domini": [
+            "Interno",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "MODI_P1",
+          "etichetta": "ModI P1",
+          "auth_type": "https",
+          "domini": [
+            "ModI",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "MODI_P2",
+          "etichetta": "ModI P2",
+          "auth_type": "https_sign",
+          "domini": [
+            "ModI",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "MODI_P3",
+          "etichetta": "ModI P3",
+          "auth_type": "https_sign",
+          "domini": [
+            "ModI",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "PDND",
+          "etichetta": "PDND",
+          "auth_type": "pdnd",
+          "domini": [
+            "PDND",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "PDND-HTTPS",
+          "etichetta": "PDND + mTLS",
+          "auth_type": "https_pdnd",
+          "domini": [
+            "PDND",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "PDND-INTEGRITY-REST",
+          "etichetta": "PDND + Integrity",
+          "auth_type": "pdnd",
+          "compatibilita": "rest",
+          "domini": [
+            "PDND",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "PDND-INTEGRITY-SOAP",
+          "etichetta": "PDND + Integrity",
+          "auth_type": "sign_pdnd",
+          "compatibilita": "soap",
+          "domini": [
+            "PDND",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "PDND-INTEGRITY-REST-HTTPS",
+          "etichetta": "PDND + Integrity + mTLS",
+          "auth_type": "https_pdnd",
+          "compatibilita": "rest",
+          "domini": [
+            "PDND",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "PDND-INTEGRITY-SOAP-HTTPS",
+          "etichetta": "PDND + Integrity + mTLS",
+          "auth_type": "https_pdnd_sign",
+          "compatibilita": "soap",
+          "domini": [
+            "PDND",
+            "Test"
+          ]
+        },
+        {
+          "codice_interno": "MTLS_FRUIZIONI",
+          "etichetta": "mTLS - Fruizioni PDND",
+          "auth_type": "https",
+          "tipo_dominio": "esterno",
+          "proprieta_custom": [
+            {
+              "nome": "finalita",
+              "etichetta": "Finalità",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "nome_eservice_pdnd",
+              "etichetta": "Nome eService PDND",
+              "tipo": "text",
+              "required": false
+            },
+            {
+              "nome": "versione_eservice_pdnd",
+              "etichetta": "Versione eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        },
+        {
+          "codice_interno": "BASIC_FRUIZIONI",
+          "etichetta": "Basic - Fruizioni PDND",
+          "auth_type": "http_basic",
+          "tipo_dominio": "esterno",
+          "proprieta_custom": [
+            {
+              "nome": "finalita",
+              "etichetta": "Finalità",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "nome_eservice_pdnd",
+              "etichetta": "Nome eService PDND",
+              "tipo": "text",
+              "required": false
+            },
+            {
+              "nome": "versione_eservice_pdnd",
+              "etichetta": "Versione eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        },
+        {
+          "codice_interno": "OAUTH_AC_FRUIZIONI",
+          "etichetta": "OAuth Authorization Code - Fruizioni PDND",
+          "auth_type": "oauth_authorization_code",
+          "tipo_dominio": "esterno",
+          "proprieta_custom": [
+            {
+              "nome": "finalita",
+              "etichetta": "Finalità",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "nome_eservice_pdnd",
+              "etichetta": "Nome eService PDND",
+              "tipo": "text",
+              "required": false
+            },
+            {
+              "nome": "versione_eservice_pdnd",
+              "etichetta": "Versione eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        },
+        {
+          "codice_interno": "OAUTH_CC_FRUIZIONI",
+          "etichetta": "OAuth Client Credentials - Fruizioni PDND",
+          "auth_type": "oauth_client_credentials",
+          "tipo_dominio": "esterno",
+          "proprieta_custom": [
+            {
+              "nome": "finalita",
+              "etichetta": "Finalità",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "nome_eservice_pdnd",
+              "etichetta": "Nome eService PDND",
+              "tipo": "text",
+              "required": false
+            },
+            {
+              "nome": "versione_eservice_pdnd",
+              "etichetta": "Versione eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        }
+      ],
+      "proprieta_custom": [
+        {
+          "nome_gruppo": "PDNDCollaudo",
+          "label_gruppo": "Collaudo",
+          "classe_dato": "collaudo",
+          "auth_type": [
+            "pdnd",
+            "https_pdnd",
+            "sign_pdnd",
+            "https_pdnd_sign"
+          ],
+          "proprieta": [
+            {
+              "nome": "audit",
+              "etichetta": "Audit",
+              "tipo": "select",
+              "required": false,
+              "valori": [
+                {
+                  "nome": "audit01",
+                  "etichetta": "Token Audit 01",
+                  "default": true
+                },
+                {
+                  "nome": "audit02",
+                  "etichetta": "Token Audit 02"
+                }
+              ]
+            },
+            {
+              "nome": "identificativo_eservice_pdnd",
+              "etichetta": "Identificativo eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "rate_limiting_totale",
+              "etichetta": "Rate Limiting - Totale",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            },
+            {
+              "nome": "rate_limiting_quota_fruitore",
+              "etichetta": "Rate Limiting - Quota Fruitore",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        },
+        {
+          "nome_gruppo": "PDNDProduzione",
+          "label_gruppo": "Produzione",
+          "classe_dato": "produzione",
+          "auth_type": [
+            "pdnd",
+            "https_pdnd",
+            "sign_pdnd",
+            "https_pdnd_sign"
+          ],
+          "proprieta": [
+            {
+              "nome": "audit",
+              "etichetta": "Audit",
+              "tipo": "select",
+              "required": false,
+              "valori": [
+                {
+                  "nome": "audit01",
+                  "etichetta": "Token Audit 01",
+                  "default": true
+                },
+                {
+                  "nome": "audit02",
+                  "etichetta": "Token Audit 02"
+                }
+              ]
+            },
+            {
+              "nome": "identificativo_eservice_pdnd",
+              "etichetta": "Identificativo eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "rate_limiting_totale",
+              "etichetta": "Rate Limiting - Totale",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            },
+            {
+              "nome": "rate_limiting_quota_fruitore",
+              "etichetta": "Rate Limiting - Quota Fruitore",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        },
+        {
+          "nome_gruppo": "ProvaSenzaFiltriAuthtype",
+          "label_gruppo": "ProvaSenzaFiltriAuthtype",
+          "classe_dato": "produzione",
+          "proprieta": [
+            {
+              "nome": "provasenzafiltri",
+              "etichetta": "Prova senza filtri",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          ]
+        }
+      ]
+    },
+    "generico": {
+      "abilitato": true,
+      "etichetta": "Cloud",
+      "auth_type": [
+        {
+          "type": "no_dati"
+        }
+      ],
+      "profili": [
+        {
+          "codice_interno": "Cloud",
+          "etichetta": "Cloud",
+          "auth_type": "no_dati",
+          "proprieta_custom": [
+	    {
+              "nome": "finalita",
+              "etichetta": "Finalità",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "nome_eservice_pdnd",
+              "etichetta": "Nome eService PDND",
+              "tipo": "text",
+              "required": false
+            },
+            {
+              "nome": "versione_eservice_pdnd",
+              "etichetta": "Versione eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+	  ]
+        }
+      ],
+      "proprieta_custom": [
+        {
+          "nome_gruppo": "PDNDCollaudo",
+          "label_gruppo": "Collaudo",
+          "classe_dato": "collaudo",
+          "auth_type": [
+            "pdnd",
+            "https_pdnd",
+            "sign_pdnd",
+            "https_pdnd_sign"
+          ],
+          "proprieta": [
+            {
+              "nome": "audit",
+              "etichetta": "Audit",
+              "tipo": "select",
+              "required": false,
+              "valori": [
+                {
+                  "nome": "audit01",
+                  "etichetta": "Token Audit 01",
+                  "default": true
+                },
+                {
+                  "nome": "audit02",
+                  "etichetta": "Token Audit 02"
+                }
+              ]
+            },
+            {
+              "nome": "identificativo_eservice_pdnd",
+              "etichetta": "Identificativo eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "rate_limiting_totale",
+              "etichetta": "Rate Limiting - Totale",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            },
+            {
+              "nome": "rate_limiting_quota_fruitore",
+              "etichetta": "Rate Limiting - Quota Fruitore",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        },
+        {
+          "nome_gruppo": "PDNDProduzione",
+          "label_gruppo": "Produzione",
+          "classe_dato": "produzione",
+          "auth_type": [
+            "pdnd",
+            "https_pdnd",
+            "sign_pdnd",
+            "https_pdnd_sign"
+          ],
+          "proprieta": [
+            {
+              "nome": "audit",
+              "etichetta": "Audit",
+              "tipo": "select",
+              "required": false,
+              "valori": [
+                {
+                  "nome": "audit01",
+                  "etichetta": "Token Audit 01",
+                  "default": true
+                },
+                {
+                  "nome": "audit02",
+                  "etichetta": "Token Audit 02"
+                }
+              ]
+            },
+            {
+              "nome": "identificativo_eservice_pdnd",
+              "etichetta": "Identificativo eService PDND",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "nome": "rate_limiting_totale",
+              "etichetta": "Rate Limiting - Totale",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            },
+            {
+              "nome": "rate_limiting_quota_fruitore",
+              "etichetta": "Rate Limiting - Quota Fruitore",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[1-9][0-9]*$"
+            }
+          ]
+        },
+        {
+          "nome_gruppo": "ProvaSenzaFiltriAuthtype",
+          "label_gruppo": "ProvaSenzaFiltriAuthtype",
+          "classe_dato": "produzione",
+          "proprieta": [
+            {
+              "nome": "provasenzafiltri",
+              "etichetta": "Prova senza filtri",
+              "tipo": "text",
+              "required": false,
+              "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            }
+          ]
+        }
+      ]
+    },
+    "workflow": {
+      "stati": [
+        "bozza",
+        "richiesto_collaudo",
+        "autorizzato_collaudo",
+        "in_configurazione_collaudo",
+        "pubblicato_collaudo",
+        "richiesto_produzione",
+        "autorizzato_produzione",
+        "in_configurazione_produzione",
+        "pubblicato_produzione",
+        "archiviato"
+      ],
+      "stato_iniziale": "bozza",
+      "stato_archiviato": "archiviato",
+      "cambi_stato": [
+        {
+          "stato_attuale": "bozza",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti"
+          ],
+          "stato_successivo": {
+            "nome": "richiesto_collaudo",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "richiesto_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "autorizzato_collaudo",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "bozza",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "autorizzato_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "in_configurazione_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "richiesto_collaudo",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "pubblicato_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "richiesto_produzione",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "in_configurazione_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "richiesto_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "autorizzato_produzione",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "pubblicato_collaudo",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "autorizzato_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "in_configurazione_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "richiesto_produzione",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "pubblicato_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_precedente": {
+            "nome": "in_configurazione_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        }
+      ]
+    },
+    "stati_adesione_consentita": [
+      "pubblicato_collaudo",
+      "richiesto_produzione",
+      "autorizzato_produzione",
+      "in_configurazione_produzione",
+      "pubblicato_produzione"
+    ],
+    "monitoraggio": {
+      "abilitato": true,
+      "ruoli_abilitati": [
+        "gestore",
+        "referente_superiore",
+        "referente"
+      ]
+    },
+    "visibilita_allegati_consentite": [
+      "gestore",
+      "servizio",
+      "pubblico"
+    ]
+  },
+  "package": {
+      "workflow": {
+      "stati": [
+        "bozza",
+        "richiesto_collaudo",
+        "autorizzato_collaudo",
+        "in_configurazione_collaudo",
+        "pubblicato_collaudo",
+        "richiesto_produzione",
+        "autorizzato_produzione",
+        "in_configurazione_produzione",
+        "pubblicato_produzione",
+        "archiviato"
+      ],
+      "stato_iniziale": "bozza",
+      "stato_archiviato": "archiviato",
+      "cambi_stato": [
+        {
+          "stato_attuale": "bozza",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti"
+          ],
+          "stato_successivo": {
+            "nome": "richiesto_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "richiesto_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "autorizzato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "bozza",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "autorizzato_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "in_configurazione_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "richiesto_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "pubblicato_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "richiesto_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "in_configurazione_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "richiesto_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "autorizzato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "pubblicato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "autorizzato_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "in_configurazione_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "richiesto_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "pubblicato_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_precedente": {
+            "nome": "in_configurazione_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        }
+      ]
+    },
+    "stati_adesione_consentita": [
+      "pubblicato_collaudo",
+      "richiesto_produzione",
+      "autorizzato_produzione",
+      "in_configurazione_produzione",
+      "pubblicato_produzione"
+    ]},
+  "adesione": {
+    "scelta_libera_organizzazione": false,
+    "riuso_client_obbligatorio": false,
+    "visualizza_elenco_client_esistenti": false,
+    "referente_obbligatorio": false,
+    "workflow_produzione_senza_collaudo": "disabilitato",
+    "workflow": {
+      "stati": [
+        "bozza",
+        "richiesto_collaudo",
+        "autorizzato_collaudo",
+        "in_configurazione_collaudo",
+        "pubblicato_collaudo",
+        "richiesto_produzione",
+        "autorizzato_produzione",
+        "in_configurazione_produzione",
+        "pubblicato_produzione",
+        "richiesto_produzione_senza_collaudo",
+        "autorizzato_produzione_senza_collaudo",
+        "in_configurazione_produzione_senza_collaudo",
+        "pubblicato_produzione_senza_collaudo",
+        "archiviato"
+      ],
+      "stato_iniziale": "bozza",
+      "stato_archiviato": "archiviato",
+      "cambi_stato": [
+        {
+          "stato_attuale": "bozza",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti"
+          ],
+          "stato_successivo": {
+            "nome": "richiesto_collaudo",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": [
+            {
+              "nome": "richiesto_produzione_senza_collaudo",
+              "ruoli_abilitati": [
+                "richiedente",
+                "referente",
+                "referente_superiore",
+                "gestore"
+              ]
+            }
+          ]
+        },
+        {
+          "stato_attuale": "richiesto_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "autorizzato_collaudo",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "bozza",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "autorizzato_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "in_configurazione_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "richiesto_collaudo",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "pubblicato_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "richiesto_produzione",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "in_configurazione_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "richiesto_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo_configurato",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo"
+          ],
+          "stato_successivo": {
+            "nome": "autorizzato_produzione",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "pubblicato_collaudo",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "autorizzato_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo_configurato",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "in_configurazione_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "richiesto_produzione",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo_configurato",
+            "produzione_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "pubblicato_produzione",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "collaudo_configurato",
+            "produzione_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "collaudo",
+            "produzione"
+          ],
+          "stato_precedente": {
+            "nome": "in_configurazione_produzione",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "richiesto_produzione_senza_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "produzione"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica"
+          ],
+          "stato_successivo": {
+            "nome": "autorizzato_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "bozza",
+            "ruoli_abilitati": [
+              "richiedente",
+              "referente",
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "autorizzato_produzione_senza_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "in_configurazione_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "richiesto_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "referente_superiore",
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "in_configurazione_produzione_senza_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "produzione_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "produzione"
+          ],
+          "stato_successivo": {
+            "nome": "pubblicato_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stato_precedente": {
+            "nome": "autorizzato_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        },
+        {
+          "stato_attuale": "pubblicato_produzione_senza_collaudo",
+          "dati_obbligatori": [
+            "identificativo",
+            "referenti",
+            "specifica",
+            "produzione_configurato"
+          ],
+          "dati_non_modificabili": [
+            "identificativo",
+            "specifica",
+            "produzione"
+          ],
+          "stato_precedente": {
+            "nome": "in_configurazione_produzione_senza_collaudo",
+            "ruoli_abilitati": [
+              "gestore"
+            ]
+          },
+          "stati_ulteriori": []
+        }
+      ]
+    },
+    "stati_scheda_adesione": [
+      "pubblicato_collaudo",
+      "richiesto_produzione",
+      "autorizzato_produzione",
+      "in_configurazione_produzione",
+      "pubblicato_produzione",
+      "pubblicato_produzione_senza_collaudo",
+      "richiesto_produzione_senza_collaudo",
+      "autorizzato_produzione_senza_collaudo",
+      "in_configurazione_produzione_senza_collaudo",
+      "pubblicato_produzione_senza_collaudo"
+    ],
+    "proprieta_custom": [
+      {
+        "nome_gruppo": "PDNDCollaudo",
+        "label_gruppo": "PDND",
+        "classe_dato": "collaudo",
+        "profili": [
+          "MTLS_FRUIZIONI",
+          "BASIC_FRUIZIONI",
+          "OAUTH_AC_FRUIZIONI",
+          "OAUTH_CC_FRUIZIONI"
+        ],
+        "proprieta": [
+          {
+            "nome": "identificativo_eservice_pdnd",
+            "etichetta": "Identificativo eService PDND",
+            "tipo": "text",
+            "required": true,
+            "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        ]
+      },
+      {
+        "nome_gruppo": "PDNDProduzione",
+        "label_gruppo": "PDND",
+        "classe_dato": "produzione",
+        "profili": [
+          "MTLS_FRUIZIONI",
+          "BASIC_FRUIZIONI",
+          "OAUTH_AC_FRUIZIONI",
+          "OAUTH_CC_FRUIZIONI"
+        ],
+        "proprieta": [
+          {
+            "nome": "identificativo_eservice_pdnd",
+            "etichetta": "Identificativo eService PDND",
+            "tipo": "text",
+            "required": true,
+            "regular_expression": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+          }
+        ]
+      },
+      {
+        "nome_gruppo": "RateLimitingCollaudo",
+        "label_gruppo": "RateLimiting",
+        "classe_dato": "collaudo",
+        "specifico_per": "api_soggetto_dominio",
+        "proprieta": [
+          {
+            "nome": "rate_limiting_quota",
+            "etichetta": "Rate Limiting - Quota",
+            "tipo": "text",
+            "required": false,
+            "regular_expression": "^[1-9][0-9]*$"
+          },
+          {
+            "nome": "rate_limiting_periodo",
+            "etichetta": "Rate Limiting - Periodo",
+            "tipo": "select",
+            "required": false,
+            "valori": [
+              {
+                "nome": "giorno",
+                "etichetta": "Giorno",
+                "default": true
+              },
+              {
+                "nome": "ora",
+                "etichetta": "Ora"
+              },
+              {
+                "nome": "minuto",
+                "etichetta": "Minuto"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nome_gruppo": "RateLimitingProduzione",
+        "label_gruppo": "RateLimiting",
+        "classe_dato": "produzione",
+        "specifico_per": "api_soggetto_dominio",
+        "proprieta": [
+          {
+            "nome": "rate_limiting_quota",
+            "etichetta": "Rate Limiting - Quota",
+            "tipo": "text",
+            "required": false,
+            "regular_expression": "^[1-9][0-9]*$"
+          },
+          {
+            "nome": "rate_limiting_periodo",
+            "etichetta": "Rate Limiting - Periodo",
+            "tipo": "select",
+            "required": false,
+            "valori": [
+              {
+                "nome": "giorno",
+                "etichetta": "Giorno",
+                "default": true
+              },
+              {
+                "nome": "ora",
+                "etichetta": "Ora"
+              },
+              {
+                "nome": "minuto",
+                "etichetta": "Minuto"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "monitoraggio": {
+    "abilitato": false,
+    "transazioni_abilitate": true,
+    "statistiche_abilitate": true,
+    "verifiche_abilitate": true,
+    "ruoli_abilitati": [],
+    "profilo_govway_default": "ModI",
+    "soggetto_modi": {
+      "nome": "ComuneEsempio",
+      "tipo_soggetto_govway": "ModI"
+    },
+    "soggetto_pdnd": {
+      "nome": "ComuneEsempio-PDND",
+      "tipo_soggetto_govway": "ModI"
+    }
+  }
+}

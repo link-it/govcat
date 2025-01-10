@@ -1,0 +1,126 @@
+<div id="route-section" class="">
+  <div class="breadcrumbs-area">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="flash-container flash-container-page sticky gp-display-block d-none">
+    <div class="flash-notice" data-testid="alert-info">
+      <div class="flash-text">
+        You must sign in to search for specific terms.
+        <div class="close-icon-wrapper">
+          <span class="material-icons-outlined fs-6">close</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+              <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="messages.length">{{ _page?.total || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <!-- <a title="Subscribe to RSS feed" aria-label="Subscribe to RSS feed" href="/gitlab-org/gitlab-ui/-/issues.atom" class="btn btn-default btn-md gl-button btn-icon">
+        <span class="material-icons-outlined">rss_feed</span>
+      </a>
+      <a title="Subscribe to calendar" aria-label="Subscribe to calendar" href="/gitlab-org/gitlab-ui/-/issues.ics?due_date=next_month_and_previous_two_weeks&amp;sort=closest_future_date" class="btn btn-default btn-md gl-button btn-icon">
+        <span class="material-icons-outlined">calendar_today</span>
+      </a>
+      <a href="/gitlab-org/gitlab-ui/-/issues/new" class="btn btn-confirm btn-md gl-button">
+        <span class="gl-button-text">New issue</span>
+      </a> -->
+    </div>
+  </div>
+  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-bar-form #searchBarForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="'messages'"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search>
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+                <div class="row">
+                  <div class="form-group col-md-4 mb-2">
+                    <label class="label-bold mb-0" for="creationDateFrom">{{ 'APP.LABEL.DateFrom' | translate }}</label>
+                    <input class="form-control form-control-sm" id="creationDateFrom" type="date" formControlName="creationDateFrom" autocomplete="off">
+                  </div>
+                  <div class="form-group col-md-4 mb-2">
+                    <label class="label-bold mb-0" for="creationDateTo">{{ 'APP.LABEL.DateTo' | translate }}</label>
+                    <input class="form-control form-control-sm" id="creationDateTo" type="date" formControlName="creationDateTo" autocomplete="off">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="form-group col-md-4 mb-2">
+                    <label class="label-bold mb-0" for="taxcode">{{ 'APP.LABEL.Taxcode' | translate }}</label>
+                    <input class="form-control form-control-sm" id="taxcode" type="text" formControlName="taxcode" autocomplete="off">
+                  </div>
+                  <div class="form-group col-md-4 mb-2">
+                    <label class="label-bold mb-0" for="status">{{ 'APP.LABEL.LegalName' | translate }}</label>
+                    <input class="form-control form-control-sm" id="legal_name" type="text" formControlName="organization.legal_name" autocomplete="off">
+                  </div>
+                  <div class="form-group col-md-4 mb-2">
+                    <label class="label-bold mb-0" for="type">{{ 'APP.LABEL.ServiceName' | translate }}</label>
+                    <input class="form-control form-control-sm" id="service_name" type="text" formControlName="service.service_name" autocomplete="off">
+                  </div>
+                </div>
+                <button type="submit" class="d-none">hidden submit</button>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-bar-form>
+      </div>
+    </div>
+  </section>
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+    <ui-box-message *ngIf="messages.length == 0 && !_spin"
+      [size]="64"
+      [icon]="'report_problem'"
+      [image]="'./assets/images/illustrations/messages.svg'"
+      [message]="_message | translate"
+      [subMessage]="_messageHelp | translate">
+    </ui-box-message>
+
+    <div class="row">
+      <div class="col-12">
+        <!-- <ui-simple-item class="border-bottom" *ngFor="let message of messages"
+          [primaryText]="message.primaryText"
+          [secondaryText]="message.secondaryText"
+          [metadata]="message.metadata"
+          [secondaryMetadata]="message.secondaryMetadata"
+          [hasLink]="true"
+          (simpleClick)="_onEdit($event, message)">
+        </ui-simple-item> -->
+        <ui-item-row class="border-bottom" *ngFor="let message of messages"
+          [data]="message"
+          [config]="messagesConfig"
+          [hasLink]="true"
+          (itemClick)="_onEdit($event, message)">
+        </ui-item-row>
+      </div>
+    </div>
+  </section>
+</div>>

@@ -1,0 +1,59 @@
+:root {
+  --item-row-background-color: transparent;
+}
+
+.sticky-top {
+  &.sticky-form {
+    margin-top: -48px;
+    padding-top: 48px;
+  }
+}
+
+.notifications-list-item:hover {
+  background-color: #ddf4ff;
+  box-shadow: 2px 0 0 #0a69da inset;
+}
+
+.notifications-list-item.notification-unread .notification-list-item-unread-indicator {
+  background-color: #297cc1;
+}
+
+.notification-list-item-unread-indicator,
+.notifications-list-item .notification-list-item-unread-indicator {
+  width: 8px;
+  height: 8px;
+  background: none;
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.notification-list-item-actions {
+  background-color: #ddf4ff;
+  z-index: 10;
+}
+
+.action-hover {
+  display: none;
+}
+
+.notifications-list-item {
+  &:hover {
+    background-color: #ddf4ff;
+
+    .action-hover {
+      display: block;
+    }
+  }
+}
+
+.need-refresh-indicator {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background-color: #297cc1;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}

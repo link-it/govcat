@@ -1,0 +1,20 @@
+.form-col-block:last-of-type {
+  margin-bottom: 0;
+}
+
+.form-control-plaintext {
+  display: block;
+  width: 100%;
+  padding: 0 .25rem .25rem 0;
+  margin-bottom: 0;
+  font-size: .875rem;
+  line-height: 1.4;
+  color: #666;
+  background-color: initial;
+  border: solid transparent;
+  border-width: 1px 0;
+}
+
+label {
+  font-size: .875rem;
+}

@@ -1,0 +1,15 @@
+.container-scroller-visibile {
+
+  &::-webkit-scrollbar-thumb {
+    visibility: visible;
+  }
+}
+
+.list-group-item {
+  &.active {
+    z-index: 2;
+    color: var(--item-selected-color, #ffffff);
+    background-color: var(--item-selected-background, #0091ea);
+    border-color: var(--item-selected-background, #0091ea);
+  }
+}

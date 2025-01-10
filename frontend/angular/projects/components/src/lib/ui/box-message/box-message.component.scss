@@ -1,0 +1,41 @@
+.box-message-container {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.4rem;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 200px;
+}
+
+.empty-state {
+  margin: 5% auto 0;
+}
+
+.max-w-100 {
+  max-width: 100%;
+}
+
+.svg-content {
+  text-align: center;
+  padding: 16px;
+
+  img,
+  svg {
+    max-width: 425px;
+    width: 100%;
+  }
+
+  &.svg-250 img,
+  &.svg-250 svg {
+    max-width: 250px;
+  }
+}
+
+.font-size-h-display {
+  font-size: 1.75rem;
+}
+
+.line-height-36 {
+  line-height: 2.25rem;
+}

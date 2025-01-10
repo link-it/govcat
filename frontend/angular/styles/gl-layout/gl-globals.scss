@@ -1,0 +1,54 @@
+:root {
+  --side-bar-width: 256px;
+  --side-bar-button-width: 255px;
+  --side-bar-left-hidden: -256px;
+  --header-height: 48px;
+  --app-background-color: #ffffff;
+  --navbar-back-color: #f5f5f5;
+  --navbar-toggle-back-color: #d7f2d6;
+  --fly-out-back-item: #f0f0f0;
+  --fly-out-color-item: #f0f0f0;
+}
+
+body {
+  font-size: .875rem;
+}
+
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+hr {
+  margin: 1.5rem 0;
+  border-top: 1px solid #eee;
+  opacity: 1;
+  overflow: hidden;
+}
+
+[type="button"]:not(:disabled),
+[type="reset"]:not(:disabled),
+[type="submit"]:not(:disabled),
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+.layout-page {
+  .inner-router-container,
+  .router-container {
+    position: relative;
+    top: inherit;
+    bottom: inherit;
+    right: inherit;
+    left: inherit;
+    overflow: auto;
+    background-color: var(--app-background-color, #fff);
+  }
+
+  .inner-router-container {
+    top: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+}

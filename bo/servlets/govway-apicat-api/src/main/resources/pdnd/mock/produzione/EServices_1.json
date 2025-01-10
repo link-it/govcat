@@ -1,0 +1,172 @@
+{"eservices": [{
+  "attributes": {
+    "certified": [
+      {
+	"single": {
+	    "code": "L5",
+            "explicitAttributeVerification": false,
+            "id": "70d0cded-ddbe-45eb-8a0a-50bfa944acb2",
+            "origin": "IPA"
+	}
+      },      {
+        "group": [
+          {
+            "code": "L4",
+            "explicitAttributeVerification": false,
+            "id": "70d0cded-ddbe-45eb-8a0a-50bfa944acb2",
+            "origin": "IPA"
+          },
+          {
+            "code": "L6",
+            "explicitAttributeVerification": false,
+            "id": "cbddada9-ad22-42c9-bb1d-9a832e34179e",
+            "origin": "IPA"
+          },
+          {
+            "code": "L45",
+            "explicitAttributeVerification": false,
+            "id": "b3e3211d-5eca-4319-835c-9250a9f05b98",
+            "origin": "IPA"
+          },
+          {
+            "code": "L46",
+            "explicitAttributeVerification": false,
+            "id": "1ac51430-9fe5-4c8e-8844-5c758bd71b43",
+            "origin": "IPA"
+          },
+          {
+            "code": "C2",
+            "explicitAttributeVerification": false,
+            "id": "ea2b8a80-71bf-4ab9-a520-90c22c271358",
+            "origin": "IPA"
+          },
+          {
+            "code": "C1",
+            "explicitAttributeVerification": false,
+            "id": "221fe3ec-f244-4d33-a9a0-4a41eb1f6e26",
+            "origin": "IPA"
+          },
+          {
+            "code": "L5",
+            "explicitAttributeVerification": false,
+            "id": "8e594111-d6d3-42ef-a033-acd0a4587e18",
+            "origin": "IPA"
+          },
+          {
+            "code": "C16",
+            "explicitAttributeVerification": false,
+            "id": "79120175-103b-4287-a81c-beb9b94279a5",
+            "origin": "IPA"
+          }
+        ]
+      }
+    ],
+    "declared": [],
+    "verified": []
+  },
+  "description": "ServizioDemo",
+  "id": "3be97a09-6e97-4d85-96e8-ed36b3ff5b2f",
+  "name": "ServizioDemo",
+  "producer": {
+    "category": "Presidenza del Consiglio dei Ministri, Ministeri e Avvocatura dello Stato",
+    "externalId": {
+      "id": "m_it",
+      "origin": "IPA"
+    },
+    "id": "de85e3e5-dceb-4d41-81bf-ce5bb2992fa6",
+    "name": "Comune di Esempio"
+  },
+  "serverUrls": [
+    "https://modipa-val.comune.esempio.it/govway/rest/in/ComuneEsempio-PDND/ServizioDemo/v1",
+    "https://modipa.comune.esempio.it/govway/rest/in/ComuneEsempio-PDND/ServizioDemo/v1"
+  ],
+  "state": "PUBLISHED",
+  "technology": "REST",
+  "version": "2"
+},
+{
+  "attributes": {
+    "certified": [
+      {
+	"single": {
+	    "code": "L5",
+            "explicitAttributeVerification": false,
+            "id": "70d0cded-ddbe-45eb-8a0a-50bfa944acb2",
+            "origin": "IPA"
+	}
+      },      {
+        "group": [
+          {
+            "code": "L4",
+            "explicitAttributeVerification": false,
+            "id": "70d0cded-ddbe-45eb-8a0a-50bfa944acb2",
+            "origin": "IPA"
+          },
+          {
+            "code": "L6",
+            "explicitAttributeVerification": false,
+            "id": "cbddada9-ad22-42c9-bb1d-9a832e34179e",
+            "origin": "IPA"
+          },
+          {
+            "code": "L45",
+            "explicitAttributeVerification": false,
+            "id": "b3e3211d-5eca-4319-835c-9250a9f05b98",
+            "origin": "IPA"
+          },
+          {
+            "code": "L46",
+            "explicitAttributeVerification": false,
+            "id": "1ac51430-9fe5-4c8e-8844-5c758bd71b43",
+            "origin": "IPA"
+          },
+          {
+            "code": "C2",
+            "explicitAttributeVerification": false,
+            "id": "ea2b8a80-71bf-4ab9-a520-90c22c271358",
+            "origin": "IPA"
+          },
+          {
+            "code": "C1",
+            "explicitAttributeVerification": false,
+            "id": "221fe3ec-f244-4d33-a9a0-4a41eb1f6e26",
+            "origin": "IPA"
+          },
+          {
+            "code": "L5",
+            "explicitAttributeVerification": false,
+            "id": "8e594111-d6d3-42ef-a033-acd0a4587e18",
+            "origin": "IPA"
+          },
+          {
+            "code": "C16",
+            "explicitAttributeVerification": false,
+            "id": "79120175-103b-4287-a81c-beb9b94279a5",
+            "origin": "IPA"
+          }
+        ]
+      }
+    ],
+    "declared": [],
+    "verified": []
+  },
+  "description": "ServizioDemo",
+  "id": "3be97a09-6e97-4d85-96e8-ed36b3ff5b2f",
+  "name": "ServizioDemo",
+  "producer": {
+    "category": "Presidenza del Consiglio dei Ministri, Ministeri e Avvocatura dello Stato",
+    "externalId": {
+      "id": "m_it",
+      "origin": "IPA"
+    },
+    "id": "de85e3e5-dceb-4d41-81bf-ce5bb2992fa6",
+    "name": "Comune di Esempio"
+  },
+  "serverUrls": [
+    "https://modipa-val.comune.esempio.it/govway/rest/in/ComuneEsempio-PDND/ServizioDemo/v1",
+    "https://modipa.comune.esempio.it/govway/rest/in/ComuneEsempio-PDND/ServizioDemo/v1"
+  ],
+  "state": "PUBLISHED",
+  "technology": "REST",
+  "version": "2"
+}]}

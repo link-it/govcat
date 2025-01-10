@@ -1,0 +1,14 @@
+.side-list {
+    width: 250px;
+}
+
+ul.list-group {
+    li.list-group-item {
+        cursor: pointer;
+
+        &.selected {
+            background-color: #f5f5f5;
+            box-shadow: 2px 0 0 var(--selected-color, #0a69da) inset;
+        }
+    }
+}

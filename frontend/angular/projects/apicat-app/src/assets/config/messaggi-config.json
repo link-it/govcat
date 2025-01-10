@@ -1,0 +1,19 @@
+{
+  "simpleItem": {
+    "primaryText": [
+      { "field": "autore.first_name", "type": "text", "emptySpace": true },
+      { "field": "autore.last_name", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "data", "type": "date", "format": "DD-MM-YYYY" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "testo", "type": "text" }
+      ],
+      "label": []
+    },
+    "secondaryMetadata": [
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+<div class="settings mt-0">
+    <div class="settings-content">
+        <div class="edit-form">
+            <form novalidate class="gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="formGroup" (submit)="_onSubmit(formGroup.value)">
+                <div class="row custom-properties">
+                    <!-- <div class="col-12 my-3">
+                        <h4 class="pb-2 border-bottom">{{ 'APP.TITLE.Custom' | translate }}</h4>
+                    </div> -->
+                    <div class="col-12">
+                        <ng-container *ngFor="let pcg of _proprietaCustomGrouped | keyvalue">
+                            <div class="" [class]="showGroupLabel ? 'd-flex justify-content-between align-items-center pb-2 border-bottom' : 'position-absolute top-16 end-16 z-3'">
+                                <div class="" *ngIf="showGroupLabel">
+                                    <h5 class="p-0">{{ _proprietaCustomGrouped[pcg.key + ''][0].label_gruppo }}</h5>
+                                </div>
+                                <div class="" *ngIf="!_isEdit && !_spin && editable">
+                                    <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Edit' | translate"  [placement]="'left'" [container]="'body'" (click)="_onEdit()">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </div>
+                                <div class="" *ngIf="_isEdit && !_spin && editable">
+                                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [placement]="'left'" [container]="'body'" (click)="_onCancelEdit()">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <ng-container *ngFor="let cp of _proprietaCustomGrouped[pcg.key + '']">
+                                    <div class="row custom-properties-fields">
+                                        <div formArrayName="proprieta_custom" class="col-12 form-group">
+                                            <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} <span appMarkAsterisk [formGroup]="cfg()" [controlName]="cp.nome" *ngIf="_isEdit"></span></label>
+                                            <div class="" *ngIf="_isEdit">
+                                                <ng-container *ngIf="cp.tipo === ProprietaType.Text">
+                                                    <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlCustomPropertiesError(cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome">
+                                                </ng-container>
+                                                <ng-container *ngIf="cp.tipo === ProprietaType.Select">
+                                                    <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlCustomPropertiesError(cp.nome)">
+                                                        <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
+                                                        <option *ngFor="let cpv of cp.valori" [value]="cpv.nome">{{ cpv.etichetta }}</option>
+                                                    </select>
+                                                </ng-container>
+                                                <ng-container *ngIf="cp.tipo === ProprietaType.File">
+                                                    <ui-allegato class=""
+                                                        [control]="cfgc(cp.nome)"
+                                                        [label]="''"
+                                                        [required]="!!_hasRequiredValidator(cp.nome)"
+                                                        (resetControl)="_onFileChange(cfg().controls[cp.nome].value)"
+                                                        (fileChanged)="_onFileChange(cfg().controls[cp.nome].value)"
+                                                        [maxUpload]="null"
+                                                        [maxUpload]="null"
+                                                    ></ui-allegato>
+                                                </ng-container>
+                                                <p *ngIf="cfg().controls[cp.nome]?.invalid && (cfg().controls[cp.nome]?.touched)" class="form-text text-danger">
+                                                    <span *ngIf="cfg().controls[cp.nome]?.errors && cfg().controls[cp.nome]?.errors?.required" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                                    <span *ngIf="cfg().controls[cp.nome]?.errors && cfg().controls[cp.nome]?.errors?.pattern" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern: cp.regular_expression } }}</span>
+                                                </p>
+                                            </div>
+                                            <div class="" *ngIf="!_isEdit">
+                                                <ng-container *ngIf="cp.tipo === ProprietaType.Text">
+                                                    <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="cfg().controls[cp.nome].value || '-'">
+                                                    <!-- <input type="text" class="form-control-plaintext" [name]="cp.nome" [id]="cp.nome" [placeholder]="'-'" [formControlName]="cp.nome" readonly> -->
+                                                </ng-container>
+                                                <ng-container *ngIf="cp.tipo === ProprietaType.Select">
+                                                    <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="(cfg().controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:pcg.key) || '-'">
+                                                </ng-container>
+                                                <ng-container *ngIf="cp.tipo === ProprietaType.File">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="(cfg().controls[cp.nome].value?.filename) || '-'">
+                                                        <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" (click)="_downloadFile(cp)" *ngIf="cfg().controls[cp.nome].value">
+                                                            <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        </button>
+                                                    </div>
+                                                </ng-container>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="p-3 mb-3 border-bottom">{{ cp | json }}</div> -->
+                                    </div>
+                                </ng-container>
+                            </div>
+                        </ng-container>
+                    </div>
+                </div>
+
+                <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
+                    {{ _errorMsg }}
+                </div>
+
+                <div class="row-content-block footer-block" *ngIf="_isEdit">
+                    <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="formGroup.invalid || _spin">
+                        {{ 'APP.BUTTON.Save' | translate }} <span class="spinner-border spinner-border-sm ms-2" *ngIf="_spin"></span>
+                    </button>
+                    <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                        {{ 'APP.BUTTON.Cancel' | translate }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+ 
+	<xsd:element name="scheda_adesione" type="SchedaAdesione" />
+    
+    <xsd:complexType name="SchedaAdesione">
+		<xsd:sequence>
+			<xsd:element name="logo" type="xsd:string"/>
+			<xsd:element name="header" type="xsd:string"/>
+			<xsd:element name="titolo" type="xsd:string"/>
+			<xsd:element name="servizio" type="xsd:string"/>
+			<xsd:element name="versione_servizio" type="xsd:string"/>
+			<xsd:element name="organizzazione_aderente" type="xsd:string"/>
+			<xsd:element name="soggetto_aderente" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="id_logico" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="richiedente" type="xsd:string"/>
+			<xsd:element name="stato" type="xsd:string"/>
+			<xsd:element name="descrizione" type="xsd:string"/>
+			<xsd:element name="data_creazione" type="xsd:string"/>
+			<xsd:element name="data_ultimo_aggiornamento" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="data_stampa" type="xsd:string"/>
+			<xsd:element name="api" type="ApiType"/>
+			<xsd:element name="configs" type="ConfigsType"/>
+			<xsd:element name="referents" type="ReferentsType"/>
+			<xsd:element name="baseUrlCollaudo" type="ApiType"/>
+			<xsd:element name="baseUrlProduzione" type="ApiType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+    <xsd:complexType name="ConfigsType">
+		<xsd:sequence>
+			<xsd:element name="collaudo" type="ConfigType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="produzione" type="ConfigType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+    <xsd:complexType name="ConfigType">
+		<xsd:sequence>
+			<xsd:element name="api" type="ApiType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+    <xsd:complexType name="ApiType">
+    	<xsd:sequence>
+    		<xsd:element name="titolo" type="xsd:string" minOccurs="0"/>
+			<xsd:sequence>
+				<xsd:element name="row" type="RowType" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+    <xsd:complexType name="RowType">
+		<xsd:sequence>
+			<xsd:element name="label" type="xsd:string"/>
+			<xsd:element name="valore" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+    <xsd:complexType name="ReferentsType">
+		<xsd:sequence>
+			<xsd:element name="subscription" type="ReferentType"/>
+			<xsd:element name="service" type="ReferentType"/>
+			<xsd:element name="group" type="ReferentType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+    <xsd:complexType name="ReferentItemType">
+		<xsd:sequence>
+			<xsd:element name="tipo_referente" type="xsd:string"/>
+			<xsd:element name="nome" type="xsd:string"/>
+			<xsd:element name="cognome" type="xsd:string"/>
+			<xsd:element name="business_telefono" type="xsd:string"/>
+			<xsd:element name="business_email" type="xsd:string"/>
+			<xsd:element name="organization" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+    <xsd:complexType name="ReferentType">
+		<xsd:sequence>
+			<xsd:element name="item" type="ReferentItemType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+			
+	<xsd:element name="eService" type="EService" />
+    
+    <xsd:complexType name="EService">
+		<xsd:sequence>
+			<xsd:element name="logo" type="xsd:string"/>
+			<xsd:element name="titolo" type="xsd:string"/>
+			<xsd:element name="sottotitolo" type="xsd:string"/>
+			<xsd:element name="scopo" type="ScopoType"/>
+			<xsd:element name="profili" type="ProfiliType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+			
+	<xsd:complexType name="ScopoType">
+		<xsd:sequence>
+			<xsd:element name="etichette" type="EtichetteScopoType" />
+			<xsd:element name="righe" type="RigheScopoType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="EtichetteScopoType">
+		<xsd:sequence>
+			<xsd:element name="titolo" type="xsd:string"/>
+			<xsd:element name="dato" type="xsd:string"/>
+			<xsd:element name="valore" type="xsd:string"/>
+			<xsd:element name="descrizione" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="RigheScopoType">
+		<xsd:sequence>
+			<xsd:element name="riga" type="RigaScopoType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="RigaScopoType">
+		<xsd:sequence>
+			<xsd:element name="dato" type="xsd:string"/>
+			<xsd:element name="valore" type="xsd:string"/>
+			<xsd:element name="descrizione" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+			
+	<xsd:complexType name="ProfiliType">
+		<xsd:sequence>
+			<xsd:element name="etichette" type="EtichetteProfiliType" />
+			<xsd:element name="righe" type="RigheProfiliType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="RigheProfiliType">
+		<xsd:sequence>
+			<xsd:element name="riga" type="RigaProfiliType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="EtichetteProfiliType">
+		<xsd:sequence>
+			<xsd:element name="titolo" type="xsd:string"/>
+			<xsd:element name="nome" type="xsd:string"/>
+			<xsd:element name="risorse" type="xsd:string"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="RigaProfiliType">
+		<xsd:sequence>
+			<xsd:element name="nome" type="xsd:string"/>
+			<xsd:element name="risorsa" type="xsd:string"/>
+			<xsd:element name="risorse" type="xsd:string" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+
+</xsd:schema>

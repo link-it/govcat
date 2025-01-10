@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>core</artifactId>
+	<packaging>pom</packaging>
+	<name>Core Layer</name>
+	<parent>
+		<groupId>org.govway.catalogo</groupId>
+		<artifactId>api-portale</artifactId>
+		<version>2.0</version>
+		<relativePath>../</relativePath>
+	</parent>
+<modules>  
+	<module>utils</module>
+	<module>dto</module>
+    <module>orm</module>
+    <module>dao</module>
+    <module>business</module>
+    <module>stampe</module>
+  </modules>
+</project>

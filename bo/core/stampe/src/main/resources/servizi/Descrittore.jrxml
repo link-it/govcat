@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Descrittore" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty" uuid="39fc760f-927a-41cb-a91e-1efbc2881e4d">
+	<property name="ireport.zoom" value="2.1435888100000016"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="255"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Descrittore - Xml"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="573"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="413"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<import value="org.apache.commons.codec.binary.Base64"/>
+	<style name="AlternateRowStyle" backcolor="#FFFFFF">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}.intValue() %2 != 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0F0F0"/>
+		</conditionalStyle>
+	</style>
+	<subDataset name="TableScopoDataset" uuid="c29e027e-1060-4b8a-9103-01bc8517c9a1">
+		<parameter name="HDato" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="HValore" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/eService/scopo/righe/riga]]>
+		</queryString>
+		<field name="dato" class="java.lang.String">
+			<fieldDescription><![CDATA[dato]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="TableProfiliDataset" uuid="c627f256-400f-4ce1-ba90-cc14aa818bd7">
+		<parameter name="HNome" class="java.lang.String" isForPrompting="false"/>
+		<parameter name="HRisorse" class="java.lang.String" isForPrompting="false"/>
+		<queryString language="xPath">
+			<![CDATA[/eService/profili/righe/riga]]>
+		</queryString>
+		<field name="nome" class="java.lang.String">
+			<fieldDescription><![CDATA[nome]]></fieldDescription>
+		</field>
+		<field name="risorsa" class="java.lang.String">
+			<fieldDescription><![CDATA[risorsa]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="ElencoRisorseDataset" uuid="42ff27aa-6106-4fa1-a8c9-17b7c5b2ca1c">
+		<queryString language="xPath">
+			<![CDATA[/eService/profili/righe/riga/risorsa]]>
+		</queryString>
+		<field name="risorsa" class="java.lang.String">
+			<fieldDescription><![CDATA[child::text()]]></fieldDescription>
+		</field>
+	</subDataset>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/Users/roberto/Documents/Link.it/JasperReports/iReport v.5.6.0/Descrittore/"]]></defaultValueExpression>
+	</parameter>
+	<queryString language="xPath">
+		<![CDATA[/eService]]>
+	</queryString>
+	<field name="logo" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/logo]]></fieldDescription>
+	</field>
+	<field name="titolo" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/titolo]]></fieldDescription>
+	</field>
+	<field name="sottotitolo" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/sottotitolo]]></fieldDescription>
+	</field>
+	<field name="titolo2" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/scopo/etichette/titolo]]></fieldDescription>
+	</field>
+	<field name="edato" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/scopo/etichette/dato]]></fieldDescription>
+	</field>
+	<field name="evalore" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/scopo/etichette/valore]]></fieldDescription>
+	</field>
+	<field name="titolo3" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/profili/etichette/titolo]]></fieldDescription>
+	</field>
+	<field name="enome" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/profili/etichette/nome]]></fieldDescription>
+	</field>
+	<field name="erisorse" class="java.lang.String">
+		<fieldDescription><![CDATA[/eService/profili/etichette/risorse]]></fieldDescription>
+	</field>
+	<detail>
+		<band height="439">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="0" width="555" height="38" uuid="11e63bd8-e996-4145-b982-d9e9352ce9f0"/>
+				<box>
+					<pen lineColor="#C0C0C0"/>
+					<topPen lineColor="#C0C0C0"/>
+					<leftPen lineColor="#C0C0C0"/>
+					<bottomPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<rightPen lineColor="#C0C0C0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="TimesNewRomanPS" size="20" isBold="true" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{titolo}]]></textFieldExpression>
+			</textField>
+			<image hAlign="Center" vAlign="Top" onErrorType="Blank">
+				<reportElement positionType="Float" x="0" y="38" width="555" height="144" isRemoveLineWhenBlank="true" uuid="903728b3-b61b-46d2-98e0-7cb3c11b1f9b"/>
+				<box topPadding="10">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<rightPen lineWidth="0.5" lineColor="#C0C0C0"/>
+				</box>
+				<imageExpression><![CDATA[new ByteArrayInputStream(Base64.decodeBase64((($F{logo}.contains(','))?$F{logo}.split(',')[1]:$F{logo}).getBytes("UTF-8")))]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="182" width="555" height="45" uuid="f5d3feec-ace6-4e89-be15-00abaf3f157b"/>
+				<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+					<pen lineColor="#C0C0C0"/>
+					<topPen lineColor="#C0C0C0"/>
+					<leftPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<bottomPen lineWidth="0.0" lineColor="#C0C0C0"/>
+					<rightPen lineWidth="0.5" lineColor="#C0C0C0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="TimesNewRomanPS" size="24" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sottotitolo}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="227" width="555" height="27" uuid="f49be60f-1d94-4c8d-9db8-b6cd6a8de692"/>
+				<box topPadding="0" leftPadding="10" bottomPadding="8" rightPadding="10">
+					<pen lineColor="#C0C0C0"/>
+					<topPen lineColor="#C0C0C0"/>
+					<leftPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<bottomPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<rightPen lineWidth="0.5" lineColor="#C0C0C0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+					<font fontName="TimesNewRomanPS" size="14" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{titolo2}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="354" width="555" height="35" uuid="d0b428dc-8a29-4207-a369-60df5df39d89"/>
+				<box topPadding="8" leftPadding="0" bottomPadding="8" rightPadding="10">
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="TimesNewRomanPS" size="14" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{titolo3}]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="283" width="555" height="50" uuid="3b8d8167-94f0-4686-9d53-81d92f5f6f76"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableScopoDataset" uuid="24f66cf9-808c-462c-a566-b294b66ab8c3">
+						<datasetParameter name="HDato">
+							<datasetParameterExpression><![CDATA[$F{edato}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="HValore">
+							<datasetParameterExpression><![CDATA[$F{evalore}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/eService/scopo/righe/riga")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="145" uuid="2bbcea17-1f64-4e13-aafe-dcb0249d7001">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="145" height="29" backcolor="#CCCCCC" uuid="feaf6aaf-623b-4626-81af-e85cfb854ff9"/>
+								<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{HDato}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="145" height="30" uuid="3e5fabd0-2566-4d22-a1f6-49f444ffb16d"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+									<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{dato}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="410" uuid="a52908dd-b181-44d1-ba1b-1463f4af4b41">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="410" height="29" backcolor="#CCCCCC" uuid="75e493e1-348e-4759-984b-d61c55939b52"/>
+								<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{HValore}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="410" height="30" uuid="98faaf0e-f652-438a-ac5a-03a6ac107536"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+									<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{valore}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<componentElement>
+				<reportElement key="Profili" positionType="Float" x="0" y="389" width="555" height="50" uuid="0c72339e-4155-444f-993d-4151be96db35"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="TableProfiliDataset" uuid="4cab6485-a675-4a72-bd94-9bef5f81102f">
+						<datasetParameter name="HNome">
+							<datasetParameterExpression><![CDATA[$F{enome}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="HRisorse">
+							<datasetParameterExpression><![CDATA[$F{erisorse}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/eService/profili/righe/riga")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="145" uuid="67169247-de9f-42a8-b630-644b9538f388">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="145" height="30" isRemoveLineWhenBlank="true" backcolor="#CCCCCC" uuid="5a3f6732-f3ad-491d-b3e6-a177086dfb58"/>
+								<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{HNome}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<textField isStretchWithOverflow="true">
+								<reportElement style="AlternateRowStyle" stretchType="RelativeToBandHeight" x="0" y="0" width="145" height="30" uuid="13b99fbc-e6ce-48f3-9b38-0f884db45ff7"/>
+								<box topPadding="7" leftPadding="10" bottomPadding="7" rightPadding="10"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12"/>
+									<paragraph lineSpacing="1_1_2"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{nome}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="410" uuid="f2ad7aef-2c2b-4d2d-8406-61db8281517a">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="410" height="30" isRemoveLineWhenBlank="true" backcolor="#CCCCCC" uuid="3b53baa9-9182-41f1-8861-66acc3e5e528"/>
+								<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{HRisorse}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement style="AlternateRowStyle" stretchType="RelativeToBandHeight" x="0" y="0" width="410" height="30" uuid="ae40460c-3c42-4dee-b661-20d1ecc6efbe"/>
+								<box topPadding="7" leftPadding="10" bottomPadding="7" rightPadding="10"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+									<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{risorsa}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+</jasperReport>

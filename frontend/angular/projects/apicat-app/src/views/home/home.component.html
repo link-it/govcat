@@ -1,0 +1,89 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs"></ui-breadcrumb>
+  </div>
+  <section class="container-fluid container-limited- limit-container-width container-scroller container-scroller-no-search container-scroller-no-top-area px-0">
+    <div class="cover- pb-4">
+      <div class="container-fluid">
+        <section class="bootstrap-icons pt-0">
+          <h4>Bootstrap Icons</h4>
+          <div class="d-block mb-3">
+            <i class="bi bi-layout-sidebar"></i>
+            <i class="bi bi-sort-down"></i>
+            <i class="bi bi-sort-up"></i>
+            <i class="bi bi-search"></i>
+            <i class="bi bi-gear"></i>
+            <i class="bi bi-speedometer2"></i>
+            <i class="bi bi-bank"></i>
+            <i class="bi bi-bank2"></i>
+          </div>
+          <div class="d-block mb-3">
+            <i class="bi bi-layout-sidebar fs-5"></i>
+            <i class="bi bi-sort-down fs-5"></i>
+            <i class="bi bi-sort-up fs-5"></i>
+            <i class="bi bi-search fs-5"></i>
+            <i class="bi bi-gear fs-5"></i>
+            <i class="bi bi-speedometer2 fs-5"></i>
+            <i class="bi bi-bank fs-5"></i>
+            <i class="bi bi-bank2 fs-5"></i>
+          </div>
+          <div class="d-block mb-3">
+            <i class="bi bi-layout-sidebar fs-3"></i>
+            <i class="bi bi-sort-down fs-3"></i>
+            <i class="bi bi-sort-up fs-3"></i>
+            <i class="bi bi-search fs-3"></i>
+            <i class="bi bi-gear fs-3"></i>
+            <i class="bi bi-speedometer2 fs-3"></i>
+            <i class="bi bi-bank fs-3"></i>
+            <i class="bi bi-bank2 fs-3"></i>
+          </div>
+        </section>
+
+        <section class="row justify-content-center py-3">
+          <div class="col-12 col-md-2"></div>
+          <div class="col-lg-8 px-1 py-1 px-sm-2">
+            <ui-search-bar [classBlock]="''"
+              [showHistory]="showHistory"
+              [showSearch]="showSearch"
+              [sortFields]="sortFields"
+              [sortDirection]="sortDirection"
+              [sortField]="sortField"
+              [showSorting]="showSorting"
+            ></ui-search-bar>
+          </div>
+          <div class="col-12 col-md-2"></div>
+        </section>
+
+        <section class="py-3">
+          <ui-search-bar-form #searchBarForm
+            [classBlock]="''"
+            [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+            [showHistory]="showHistory"
+            [historyStore]="'home'"
+            [showSearch]="showSearch"
+            [showSorting]="showSorting"
+            [sortField]="sortField"
+            [sortDirection]="sortDirection"
+            [sortFields]="sortFields">
+            <div form-search>
+            </div>
+          </ui-search-bar-form>
+        </section>
+
+        <section class="mt-0 py-3">
+          <button class="btn btn-secondary btn-sm me-2" (click)="showHistory = !showHistory" >{{ 'SHOW/HIDE HISTORY' }}</button>
+          <button class="btn btn-secondary btn-sm me-2" (click)="showSearch = !showSearch" >{{ 'SHOW/HIDE SEARCH' }}</button>
+          <button class="btn btn-secondary btn-sm me-2" (click)="showSorting = !showSorting" >{{ 'SHOW/HIDE SORT' }}</button>
+        </section>
+
+        <section class="row">
+          <div class="col-lg-12 mx-auto">
+            <div class="d-flex align-items-center flex-nowrap">
+              <img src="./assets/images/linkit_logo/linkit_logo.png">
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+</div>

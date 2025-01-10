@@ -1,0 +1,53 @@
+:host {
+  display: block;
+
+  .header {
+    height: 64px;
+  }
+
+  .content {
+    height: 100%;
+    overflow: auto;
+    // background-color: #ffffff;
+  }
+
+  .footer {
+    height: 64px;
+
+    img {
+      display: block;
+      max-width: 9rem;
+      max-height: 4.8125rem;
+    }
+  }
+}
+
+:host(.partners) .partners-group a {
+  display: inline-block;
+  margin: 0 1rem 1.5rem 0;
+}
+
+.content-block {
+  display: block;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  top: 0;
+  right: 0;
+  transition: 0;
+  background-color: var(--content-background-color, #FFF);
+}
+
+:host(.full-content) .content-block,
+:host(.full-content) app-sidenav-menu {
+  top: 0;
+}
+@media (min-width: 1400px) {
+  .content-block {
+    left: 260px;
+  }
+
+  .content-block.content-block-slim {
+    left: 0;
+  }
+}

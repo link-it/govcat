@@ -1,0 +1,25 @@
+.app-body {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    overflow-x: hidden;
+    min-height: 100vh;
+
+    .main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .bg-login {
+        background-color: var(--login-back-color, #4eb9ad);
+    }
+}
+
+.input-group-text {
+    background-color: #e9ecef;
+    border: 1px solid #868686;
+}
+
+.help-block {
+    font-size: .8rem;
+}

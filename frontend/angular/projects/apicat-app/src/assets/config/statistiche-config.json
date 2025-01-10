@@ -1,0 +1,53 @@
+{
+  "chartOptions": {
+    "view": null,
+
+    "showXAxis": true,
+    "showYAxis": true,
+    "gradient": false,
+    "showLegend": true,
+    "legendTitle": "Legend",
+    "legendPosition": "below",
+    "showXAxisLabel": false,
+    "tooltipDisabled": false,
+    "showText": true,
+    "xAxisLabel": "",
+    "showYAxisLabel": false,
+    "yAxisLabel": "",
+    "showGridLines": true,
+    "innerPadding": "10%",
+    "barPadding": 8,
+    "groupPadding": 16,
+    "roundDomains": true,
+    "maxRadius": 10,
+    "minRadius": 3,
+    "showSeriesOnHover": true,
+    "roundEdges": false,
+    "animations": true,
+    "showDataLabel": false,
+    "noBarWhenZero": false,
+    "trimXAxisTicks": true,
+    "trimYAxisTicks": true,
+    "rotateXAxisTicks": true,
+    "maxXAxisTickLength": 16,
+    "maxYAxisTickLength": 16,
+    "strokeColor": "#FFFFFF",
+    "strokeWidth": 2,
+    "labels": true,
+
+    "colorScheme": {
+      "domain": [
+        "#5772ffFF",
+        "#A10A2833",
+        "#C7B42CFF",
+        "#AAAAAAFF"
+      ]
+    },
+    "selectedColorScheme": "natural",
+
+    "schemeType": "ordinal",
+
+    "cardColor": "#232837",
+    "emptyColor": "#1e222e"
+  }
+}

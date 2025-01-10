@@ -1,0 +1,18 @@
+regole:
+   get:
+      - '/**'
+   post:
+      - '/**'
+   put:
+      - '/**'
+   head:
+      - '/**'
+   options:
+      - '/**'
+   patch:
+      - '/**'
+   trace:
+      - '/**'
+   delete:
+      - '/**'
+   

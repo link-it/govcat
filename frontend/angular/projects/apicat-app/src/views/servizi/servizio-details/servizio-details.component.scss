@@ -1,0 +1,25 @@
+:host {
+    // font-size: 1.0rem;
+
+    .form-control-plaintext {
+        // font-size: 1.0rem;
+}
+    }
+
+.img-space {
+    border: solid 1px #d3d3d3;
+    border-radius: 8px;
+    background-color: #f2f2f2;
+    height: auto;
+    width: 100%;
+    padding: 10px;
+}
+
+.markdown-container {
+    max-height: 320px;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar-thumb {
+        visibility: visible;
+    }
+}

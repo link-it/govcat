@@ -1,0 +1,83 @@
+<!-- <div class="modal fade">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content"> -->
+      <div class="modal-header">
+        <h5 class="modal-title">{{ title | translate }}</h5>
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="closeModal()" aria-label="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body px-0 py-0 container-scroller-visibile" style="height: 400px;">
+        <div class="sticky-top border-bottom bg-white">
+          <div class="d-flex flex-column p-2">
+            <label class="label-bold">{{ 'APP.LABEL.Tassonomia' | translate }}</label>
+            <ng-select class="" [placeholder]="'APP.PLACEHOLDER.SelectTassonomia' | translate"
+              [items]="tassonomie$ | async"
+              [trackByFn]="trackBySelectFn"
+              [typeahead]="tassonomieInput$"
+              [minTermLength]="minLengthTerm" 
+              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+              [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+              labelForId="id_tassonomia"
+              [editableSearchTerm]="true"
+              (change)="onChangeSearchDropdwon($event)">
+              <ng-template ng-label-tmp let-item="item">
+                <div class="d-flex justify-content-between" *ngIf="item">
+                  <div>{{ item.nome }}</div>
+                  <div class="">
+                    <span class="status-label status-label-scoped status-label-sm status-ml-2 ms-3 small" style="--label-background-color: {{ item.obbligatorio ? '#22577a' : '#A4ABB6' }};--label-inset-border: inset 0 0 0 1px {{ item.obbligatorio ? '#22577a' : '#A4ABB6' }}; color: #ffffff;">
+                      <span class="status-link status-label-link">
+                        <span class="status-label-text">{{ 'APP.LABEL.Mandatory' | translate }}</span>
+                        <span class="status-label-text-scoped">{{ (item.obbligatorio ? 'APP.STATUS.YES' : 'APP.STATUS.NO') | translate }}</span>
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                <div class="fw-bold d-flex justify-content-between">
+                  <div>{{ item.nome }}</div>
+                  <div class="">
+                    <span class="status-label status-label-scoped status-label-sm status-ml-2 small" style="--label-background-color: {{ item.obbligatorio ? '#22577a' : '#A4ABB6' }};--label-inset-border: inset 0 0 0 1px {{ item.obbligatorio ? '#22577a' : '#A4ABB6' }}; color: #ffffff;">
+                      <span class="status-link status-label-link">
+                        <span class="status-label-text">{{ 'APP.LABEL.Mandatory' | translate }}</span>
+                        <span class="status-label-text-scoped">{{ (item.obbligatorio ? 'APP.STATUS.YES' : 'APP.STATUS.NO') | translate }}</span>
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                <div class="">
+                  <span class="small text-muted">{{ item.descrizione }}</span>
+                </div>
+              </ng-template>
+            </ng-select>
+          </div>
+        </div>
+
+        <ui-box-spinner [color]="'primary'" *ngIf="_spin"></ui-box-spinner>
+
+        <ui-box-message *ngIf="!selectedTassonomia !_spin"
+          [size]="64"
+          [icon]="''"
+          [message]="_message | translate"
+          [subMessage]="_messageHelp | translate">
+        </ui-box-message>
+
+        <div class="h-100 px-2" *ngIf="selectedTassonomia">
+          <app-categories
+            [id]="selectedTassonomia.id_tassonomia"
+            [isEditable]="false"
+            [selectable]="true"
+            [selected]="selected"
+            [notSelectable]="notSelectable"
+            (action)="onAction($event)">
+          </app-categories>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+      </div>
+    <!-- </div>
+  </div>
+</div> -->

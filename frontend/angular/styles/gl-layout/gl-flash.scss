@@ -1,0 +1,44 @@
+.flash-container {
+  margin: 0 0 16px;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.flash-container .flash-alert,
+.flash-container .flash-notice,
+.flash-container .flash-success,
+.flash-container .flash-warning {
+  padding: 16px 32px 16px 20px;
+  margin-top: 10px;
+}
+
+.flash-container.sticky {
+  position: sticky;
+  top: 48px;
+  z-index: 251;
+}
+
+.flash-container .flash-notice {
+  background-color: #e9f3fc;
+}
+
+.flash-container.sticky .flash-notice,
+.flash-container.sticky .flash-success,
+.flash-container.sticky .flash-warning {
+  margin-bottom: .75rem;
+}
+
+.flash-container .flash-action,
+.flash-container .flash-text {
+  display: inline-block;
+}
+
+.flash-container .close-icon-wrapper {
+  padding: 20px 16px 16px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  cursor: pointer;
+}

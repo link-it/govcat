@@ -1,0 +1,30 @@
+{
+  "itemRow": {
+    "primaryText": [
+      { "field": "path", "type": "text"}
+    ],
+    "secondaryText": [
+      { "field": "tassonomia.nome", "type": "label", "options": "tassonomia" }
+    ],
+    "metadata": {
+      "text": [],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
+  "details": [
+    { "label": "APP.LABEL.Name", "field": "nome", "type": "text" },
+    { "label": "APP.LABEL.Description", "field": "descrizione", "type": "markdown" }
+  ],
+
+  "options": {
+    "tassonomia": {
+      "label": "APP.LABEL.Tassonomia",
+      "small": true,
+      "values": {
+        "default": { "label": "", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" }
+      }
+    }
+  }
+}

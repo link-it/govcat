@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+.wsdl-ui {
+  color: #3b4151;
+  font-family: sans-serif;
+  
+  .title {
+    color: #3b4151;
+    font-family: sans-serif;
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+
+  .sub-title {
+    color: #3b4151;
+    font-family: sans-serif;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  
+  .opblock-tag {
+    color: #3b4151;
+    font-family: sans-serif;
+    font-size: 16px;
+    margin: 0 0 5px;
+  }
+}

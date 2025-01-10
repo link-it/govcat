@@ -1,0 +1,202 @@
+i:nth-child(n + 1) {
+  padding-right: 1rem;
+}
+
+.logo img {
+  width: 90px;
+  height: auto;
+}
+
+.logo p {
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-left: 1.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.logo-pa {
+  width: auto;
+  height: 108px;
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.25;
+  font-weight: 400;
+  margin-bottom: 2.5rem;
+}
+
+.container.body h1:not(:first-child):not(:first-of-type) {
+  padding-top: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 400;
+  margin-bottom: 2rem;
+}
+
+.container.body h2:not(:first-child):not(:first-of-type) {
+  padding-top: .5rem;
+}
+
+li,
+p {
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+}
+
+.container.body a:not(.cta-button),
+.container.body a:not(.cta-button):hover {
+  font-weight: 600;
+}
+
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  margin: 0 0 0 1.4rem;
+  list-style: square;
+}
+
+section {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+header {
+  // background-color: rgba(177, 216, 251, .8);
+  // background-image: url('../../assets/images/tripode.svg');
+}
+
+.cover {
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+ul.menu-navigazione {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.menu-navigazione li {
+  font-size: 1rem;
+  margin: 0;
+  padding: 0 1.5rem 0 0;
+}
+
+ul.menu-navigazione .mobile li {
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+ul.menu-navigazione .mobile li a.active,
+ul.menu-navigazione li a.active {
+  color: #2962FF;
+}
+
+.dropdown-menu {
+  border: none;
+  border-radius: 0;
+}
+
+.dropdown-item.active,
+.dropdown-item:active,
+.dropdown-item:focus,
+.dropdown-item:hover {
+  color: #2962FF;
+  text-decoration: none;
+  background-color: transparent;
+}
+
+ul.menu-navigazione .dropdown-toggle::after {
+  display: inline-block;
+  content: "expand_more";
+  border: none;
+  font-family: "Material Icons";
+  position: absolute;
+}
+
+ul.menu-navigazione .mobile .dropdown-toggle::after {
+  content: "";
+}
+
+#languages + ul li {
+  padding: 0;
+}
+
+.container.body li,
+.container.body p {
+  line-height: 1.75rem;
+}
+
+.container.body img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 2rem;
+}
+@media (min-width: 768px) {
+  .logo {
+    img {
+      width: 64px;
+      height: auto;
+    }
+
+    p {
+      font-size: 2rem;
+    }
+  }
+
+  .logo-pa {
+    width: auto;
+    height: 144px;
+  }
+
+  h1 {
+    font-size: 3rem;
+    line-height: 1.25;
+    margin-bottom: 4rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+    line-height: 1.25;
+    margin-bottom: 2.5rem;
+  }
+
+  .container.body h2:not(:first-child):not(:first-of-type) {
+    padding-top: 2rem;
+  }
+
+  .container.body h3:not(:first-child):not(:first-of-type) {
+    padding-top: .5rem;
+  }
+
+  li,
+  p {
+    font-size: 1.0rem;
+    line-height: 1.5;
+    font-weight: 400;
+    margin-bottom: 2rem;
+  }
+
+  section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  header h1 {
+    margin-bottom: 3.75rem;
+  }
+}

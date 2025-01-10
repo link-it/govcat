@@ -1,0 +1,54 @@
+{
+  "simpleItem": {
+    "primaryText": [
+      { "field": "subject", "type": "text" },
+      { "field": "per", "type": "message" },
+      { "field": "taxcode", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "user.full_name", "type": "text" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "id", "type": "cardinal" },
+        { "field": "organization.legal_name", "type": "text" }
+      ],
+      "label": [
+        { "field": "status", "type": "label", "options": "status" }
+      ]
+    },
+    "secondaryMetadata": [
+      { "field": "scheduled_expedition_date", "type": "date", "format": "DD-MM-YYYY" }
+    ]
+  },
+
+  "itemRow": {
+    "primaryText": [
+      { "field": "nome", "type": "text", "emptySpace": true },
+      { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+      { "field": "versione", "type": "text" }
+    ],
+    "secondaryText": [
+    ],
+    "metadata": {
+      "text": [],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
+  "details": [
+    { "label": "", "field": "", "type": "text" }
+  ],
+
+  "options": {
+    "status": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {
+        "Non configurato": { "label": "APP.CLIENT.LABEL.NotConfigured", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "configurato": { "label": "APP.CLIENT.LABEL.Configured", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" }
+      }
+    }
+  }
+}

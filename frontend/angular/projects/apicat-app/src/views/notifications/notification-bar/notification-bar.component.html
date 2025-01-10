@@ -1,0 +1,60 @@
+<div class="notification-bar notification-shelf top-0 flash flash-full mt-0 border-top-0 overflow-x-hidden" [attr.style]="'position: sticky;top:' + (top ? top + 'px !important' : '')">
+  <div class="text-center" *ngIf="!_notification">
+    <span class="spinner-border spinner-border-sm"></span>
+  </div>
+  <div class="d-flex justify-content-between notification-read" *ngIf="_notification">
+    <button class="js-notifications-back-to-inbox btn btn-default btn-sm gl-button mr-2" (click)="onBack()">
+      <i class="bi bi-arrow-left"></i>
+      <span class="d-md-none ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Notifications' | translate }}</span>
+      <span class="d-none d-md-inline ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.BackNotifications' | translate }}</span>
+    </button>
+
+    <div class="align-items-center list-style-none d-none d-md-flex">
+
+      <div class="mr-2" *ngIf="!_isUnread()">
+        <span class="d-flex align-items-center flex-justify-center height-full width-full">
+          <button type="submit" aria-label="Done" class="btn btn-default btn-sm gl-button" (click)="markNotification(_notificationState.Archiviata)" *ngIf="_notification.stato !== _notificationState.Archiviata">
+            <i class="bi bi-check-lg"></i>
+            <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Archive' | translate }}</span>
+          </button>
+          <span class="me-2" *ngIf="_notification.stato === _notificationState.Archiviata">{{ 'APP.NOTIFICATIONS.STATUS.Archiviata' | translate }}</span>
+        </span>
+      </div>
+
+      <div class="mr-2" *ngIf="!_isUnread()">
+        <span class="d-flex align-items-center flex-justify-center height-full width-full">
+          <button type="submit" aria-label="Mark as unread" class="btn btn-default btn-sm gl-button" (click)="markNotification(_notificationState.Nuova)">
+            <span class="text-center d-inline-block" style="width:16px">
+              <svg class="octicon octicon-dot-fill  v-align-text-bottom color-fg-inherit" viewBox="0 0 16 16"
+                version="1.1" width="16" height="16" aria-hidden="true">
+                <path d="M8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"></path>
+              </svg>
+            </span>
+            <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.MarkAsUnread' | translate }}</span>
+          </button>
+        </span>
+      </div>
+
+      <div class="mr-2" *ngIf="_isUnread()">
+        <span class="d-flex align-items-center flex-justify-center height-full width-full">
+          <button type="submit" aria-label="Mark as unread" class="btn btn-default btn-sm gl-button" (click)="markNotification(_notificationState.Letta)">
+            <span class="text-center d-inline-block" style="width:16px">
+              <svg class="octicon octicon-dot  v-align-text-bottom color-fg-inherit" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M4 8a4 4 0 1 1 8 0 4 4 0 0 1-8 0Zm4-2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"></path></svg>
+            </span>
+            <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.MarkAsRead' | translate }}</span>
+          </button>
+        </span>
+      </div>
+
+      <div>
+        <button class="btn btn-default btn-sm gl-button btn-default-tertiary btn-close-" type="button" (click)="onClose()">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-x">
+            <path
+              d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z">
+            </path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

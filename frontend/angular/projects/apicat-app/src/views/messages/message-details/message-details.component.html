@@ -1,0 +1,45 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
+      <div class="nav-controls">
+      </div>
+    <!-- </ng-template> -->
+  </div>
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+    <ui-box-message *ngIf="!message && !_spin"
+      [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate"
+      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings" *ngIf="(message && !_spin)">
+      <div class="settings-content">
+        <div class="row gl-mt-3">
+          <div class="col-lg-12">
+            <ui-box-collapse
+              [opened]="true"
+              [showCollapse]="appConfig.AppConfig?.Layout?.Details?.Collapsible?.informations"
+              [id]="'general-informations'"
+              [title]="'APP.MESSAGES.TITLE.GeneralInformations' | translate"
+              [subTitle]="'APP.MESSAGES.TITLE.GeneralInformations_sub' | translate">
+              <!-- <ui-form-readonly
+                [fields]="_informazioni"
+                [columns]="appConfig.AppConfig?.Layout?.Details?.columns || 6">
+              </ui-form-readonly> -->
+              <ui-data-view
+                [data]="message"
+                [config]="config"
+                [columns]="appConfig.AppConfig?.Layout?.Details?.columns || 6">
+              </ui-data-view>
+            </ui-box-collapse>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jboss-deployment-structure>
+    <deployment>
+        <!-- Exclusions allow you to prevent the server from automatically adding some dependencies -->
+        <exclusions>
+            <module name="org.apache.log4j" />
+        </exclusions>
+        <exclude-subsystems>
+            <subsystem name="logging" />
+        </exclude-subsystems>
+    </deployment>
+</jboss-deployment-structure>
+

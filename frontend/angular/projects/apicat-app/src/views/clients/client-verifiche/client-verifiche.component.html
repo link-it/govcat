@@ -1,0 +1,100 @@
+<div id="route-section" class="">
+  <div class="container-fluid top-area px-0" *ngIf="!included">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      <!-- <div class="position-relative" *ngIf="service">
+        <app-back-web [service_id]="service.id_servizio"></app-back-web>
+      </div> -->
+    </div>
+  </div>
+  <div class="top-area" *ngIf="!included">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
+              <span>{{ 'APP.FILTER.Testing' | translate }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()">
+              <span>{{ 'APP.FILTER.Production' | translate }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <section #myScroll class="container-fluid container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4" [class.pt-4]="!included" [class.py-0]="included" [class.pb-0]="included">
+
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && included"></ui-box-spinner>
+    <div class="loading-area ps-3" *ngIf="_spin && !included">
+      <ui-placeholder-loading
+        [type]="'list'"
+        [count]="3"
+        [title]="'Certificati'"
+        [icon]="'shield-check'"
+        [rounded]="true">
+      </ui-placeholder-loading>
+    </div>
+
+    <ui-box-message *ngIf="!data && !_spin" [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate" [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings-" *ngIf="(data && !_spin)">
+      <div class="settings-content-">
+
+        <div id="main">
+
+          <div class="container-fluid">
+            <div class="layout-container">
+              <div class="main overflow-hidden" [class.mb-5]="!included">
+                <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_error">
+                  {{ _errorMsg }}
+                </div>
+                <div class="px-3" [class.mb-5]="!included">
+                  <div class="row gx-lg-5">
+                    <div class="col-md-12" [class.col-xl-6]="_twoCol" [class.col-xl-12]="!_twoCol">
+                      <div class="result-area mt-5 mb-5" *ngIf="!_spin">
+
+                        <div class="mt-3">
+                          <div class="mb-1 d-flex flex-row">
+                            <div class="flex-grow-1">
+                              <h5 class="pb-1">
+                                <span class="bi bi-shield-check me-2"></span>
+                                {{ 'APP.TITLE.Certificati' | translate }}
+                              </h5>
+                            </div>
+                            <div class="text-end">
+                              <div class="box-status" [class.cursor-pointer]="!(_result | mapper:_isValidOkMapper)" (click)="_onDetails($event, _result)">
+                                <span class="spinner-border spinner-border-sm" *ngIf="_loading"></span>
+                                <span class="badge badge-pill bg-{{ _result | mapper:_getColorMapper }}- fs-9 d-block-" [style.background-color]="_result | mapper:_getColorHexMapper" *ngIf="!_loading">
+                                  {{ (_result | mapper:_getLabelMapper) | translate }}<span class="bi bi-info-circle ms-1" *ngIf="!(_result | mapper:_isValidOkMapper)"></span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="p-1" *ngIf="(_showDetails && !(_result | mapper:_isValidOkMapper))">
+                            <div class="p-1 border mb-2" *ngIf="_showDetails">
+                              <span class="spinner-border spinner-border-sm ms-2" *ngIf="_loading"></span>
+                              <textarea class="w-100 border-0" name="details" rows="7" *ngIf="!_loading">{{ _result.dettagli }}</textarea>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

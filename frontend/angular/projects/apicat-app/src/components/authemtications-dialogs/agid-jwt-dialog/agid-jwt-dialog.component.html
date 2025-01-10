@@ -1,0 +1,165 @@
+<!-- <div class="modal fade"> -->
+<!-- <div class="modal-dialog" role="document"> -->
+<div class="modal-content">
+    <form [formGroup]="formGroup">
+        <div class="modal-header align-items-center">
+            <h5 class="modal-title">{{ title | translate }}</h5>
+            <ui-button [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.BUTTON.Close'" [tertiary]="true" (onAction)="closeModal()"></ui-button>
+        </div>
+        <div class="modal-body px-0 py-0 container-scroller-visibile">
+            <div class="container py-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-0">
+                            <label class="col-form-label label-bold w-100" for="kid">{{ 'APP.AUTHENTICATION.LABEL.KID' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="kid" name="kid" formControlName="kid">
+                                <p *ngIf="f['kid'].invalid && (f['kid'].dirty || f['kid'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['kid'].errors && f['kid'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group mb-0" *ngIf="_algOptions.length > 1">
+                            <label class="col-form-label label-bold w-100" for="alg">{{ 'APP.AUTHENTICATION.LABEL.ALG' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label>
+                            <div class="">
+                                <ng-select
+                                    [items]="_algOptions"
+                                    bindValue="item"
+                                    bindLabel="item"
+                                    labelForId="alg"
+                                    [searchable]="false"
+                                    [clearable]="false"
+                                    formControlName="alg"
+                                ></ng-select>
+                                <p *ngIf="f['alg'].invalid && (f['alg'].dirty || f['alg'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['alg'].errors && f['alg'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <!-- <div class="form-group mb-0">
+                            <label class="col-form-label label-bold w-100" for="typ">{{ 'APP.AUTHENTICATION.LABEL.TYP' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="typ" name="typ" formControlName="typ">
+                                <p *ngIf="f['typ'].invalid && (f['typ'].dirty || f['typ'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['typ'].errors && f['typ'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div> -->
+                        <div class="form-group mb-0">
+                            <label class="col-form-label label-bold w-100" for="clientId">{{ 'APP.AUTHENTICATION.LABEL.ClientId' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="clientId" name="clientId" formControlName="clientId">
+                                <p *ngIf="f['clientId'].invalid && (f['clientId'].dirty || f['clientId'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['clientId'].errors && f['clientId'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <!-- <div class="form-group mb-0">
+                            <label class="col-form-label label-bold w-100" for="issuer">{{ 'APP.AUTHENTICATION.LABEL.Issuer' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="issuer" name="issuer" formControlName="issuer">
+                                <p *ngIf="f['issuer'].invalid && (f['issuer'].dirty || f['issuer'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['issuer'].errors && f['issuer'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div> -->
+                        <!-- <div class="form-group mb-0">
+                            <label class="col-form-label label-bold w-100" for="subject">{{ 'APP.AUTHENTICATION.LABEL.Subject' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="subject" name="subject" formControlName="subject">
+                                <p *ngIf="f['subject'].invalid && (f['subject'].dirty || f['subject'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['subject'].errors && f['subject'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div> -->
+                        <!-- <div class="form-group mb-0">
+                            <label class="col-form-label label-bold w-100" for="audience">{{ 'APP.AUTHENTICATION.LABEL.Audience' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="audience" name="audience" formControlName="audience">
+                                <p *ngIf="f['audience'].invalid && (f['audience'].dirty || f['audience'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['audience'].errors && f['audience'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div> -->
+                        <div class="form-group mb-0">
+                            <label class="col-form-label label-bold w-100" for="purposeId">{{ 'APP.AUTHENTICATION.LABEL.PurposeId' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'purposeId'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="purposeId" name="purposeId" formControlName="purposeId">
+                                <p *ngIf="f['purposeId'].invalid && (f['purposeId'].dirty || f['purposeId'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['purposeId'].errors && f['purposeId'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-form-label label-bold w-100" for="keyFile">{{ 'APP.AUTHENTICATION.LABEL.Key' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'keyFile'"></span></label>
+                            <input type="file" class="form-control" id="keyFile" [formControl]="_keyFileCtrl" (change)="_onKeyChange($event)">
+                        </div>
+                        <div class="form-group mb-0" *ngIf="debug">
+                            <!-- <label class="col-form-label label-bold w-100" for="key">{{ 'APP.AUTHENTICATION.LABEL.Key' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'kid'"></span></label> -->
+                            <div class="">
+                                <textarea class="form-control" id="key" name="key" rows="5" formControlName="key" [placeholder]="'APP.PLACEHOLDER.PasteYourPrivateKey' | translate" readonly></textarea>
+                                <p *ngIf="f['key'].invalid && (f['key'].dirty || f['key'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['key'].errors && f['key'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group mb-0" *ngIf="_showResult">
+                            <label class="col-form-label label-bold w-100" for="result">{{ 'APP.AUTHENTICATION.LABEL.TokenJwt' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'result'"></span></label>
+                            <div class="">
+                                <textarea class="form-control" id="result" name="result" rows="5" formControlName="result" readonly></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group mb-0" *ngIf="formGroup.getRawValue().result">
+                            <label class="col-form-label label-bold w-100" for="expiresIn">{{ 'APP.AUTHENTICATION.LABEL.TokenExpiresIn' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'expiresIn'"></span></label>
+                            <div class="">
+                                <input type="text" class="form-control" id="expiresIn" name="expiresIn" [value]="convertSecondsToHours(formGroup.get('expiresIn')?.value)" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3" *ngIf="formGroup.getRawValue().result || debug">
+                    <div class="col-6" *ngIf="debug">
+                        <pre>{{ formGroup.getRawValue() | json }}</pre>
+                    </div>
+                    <div class="col-6" [class.offset-6]="!debug">
+                        <div class="d-flex justify-content-end gap-2 mt-3" *ngIf="formGroup.getRawValue().result">
+                            <ui-button [label]="_showResult ? 'APP.AUTHENTICATION.BUTTON.HideTokenJwt' : 'APP.AUTHENTICATION.BUTTON.ShowTokenJwt'" [ariaLabel]="'APP.AUTHENTICATION.BUTTON.ShowTokenJwt'" (onAction)="toggleResult()"></ui-button>
+                            <!-- <ui-button [label]="'APP.BUTTON.CopyToClipboard'" [icon]="'bi bi-clipboard'" [onlyIcon]="false" [ariaLabel]="'APP.BUTTON.CopyToClipboard'" (onAction)="onCopyClipboard()"></ui-button> -->
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4" *ngIf="_error">
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                        <ng-container *ngIf="!_errorObject">
+                            <div class="">{{ 'APP.MESSAGE.ERROR.CheckPrivateKey' | translate }}</div>
+                            <div class="">({{ _errorMsg }})</div>
+                        </ng-container>
+                        <ng-container *ngIf="_errorObject">
+                            <div class="fw-bold">{{ _errorObject.title }} [{{_errorObject.status }}]</div>
+                            <div class="mt-1">{{ 'APP.AUTHENTICATION.LABEL.CorrelationId' | translate }}: {{ _errorObject?.correlationId }}</div>
+                            <ng-container *ngIf="_errorObject?.errors?.length">
+                            <div class="fw-bold mt-3">{{ 'Errors' | translate }}</div>
+                            <div class="d-flex flex-row gap-3 px-2" *ngFor="let error of _errorObject.errors">
+                                <span class="">{{ error.code }}</span>
+                                <span>{{ error.detail }}</span>
+                            </div>
+                            </ng-container>
+                        </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer bg-lightest">
+            <div class="me-3" *ngIf="_showMessageClipboard">{{ 'APP.MESSAGE.CopiedToClipboard' | translate }}</div>
+            <ui-button [label]="'APP.AUTHENTICATION.BUTTON.UseResults'" (onAction)="useResultModal()" *ngIf="formGroup.getRawValue().result || debug"></ui-button>
+            <ui-button [label]="'APP.BUTTON.Generate'" [primary]="true" [ariaLabel]="'APP.BUTTON.Generate'" (onAction)="onGenerateJWT(formGroup.getRawValue())" [disabled]="!formGroup.valid || _spin" [spinner]="_spin"></ui-button>
+            <ui-button [label]="'APP.BUTTON.Close'" (onAction)="closeModal()"></ui-button>
+        </div>
+    </form>
+</div>
+<!-- </div> -->
+<!-- </div> -->
