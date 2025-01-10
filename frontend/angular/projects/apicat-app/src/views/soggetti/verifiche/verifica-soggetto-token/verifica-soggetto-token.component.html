@@ -1,0 +1,39 @@
+<div class="mb-1 d-flex flex-row">
+  <div class="flex-grow-1">
+    <h5 class="pb-1">
+      <span class="bi bi-{{ icon }} me-2" *ngIf="icon"></span>
+      <img class="me-2" [src]="iconSvg" width="24" height="24" *ngIf="iconSvg">
+      {{ title | translate }}
+    </h5>
+  </div>
+  <div class="text-end">
+    <div class="box-status" [class.cursor-pointer]="showInfo && !(_vgEsito | mapper:_isValidOkMapper)" (click)="_onSevaDetails($event, _vgEsito)">
+      <span class="spinner-border spinner-border-sm" *ngIf="_loading"></span>
+      <span class="badge badge-pill bg-{{ _vgEsito | mapper:_getColorMapper }}- fs-9 d-block-" [style.background-color]="_vgEsito | mapper:_getColorHexMapper" *ngIf="!_loading">
+        {{ (_vgEsito | mapper:_getLabelMapper) | translate }}<span class="bi ms-1" [class.bi-chevron-down]="!_showGroupDetails" [class.bi-chevron-up]="_showGroupDetails" *ngIf="showInfo && !(_vgEsito | mapper:_isValidOkMapper)"></span>
+      </span>
+    </div>
+  </div>
+</div>
+<div [id]="uid" class="scroll-shadows" *ngIf="_showGroupDetails">
+  <div class="ms-3" *ngFor="let item of _gRes | orderBy:['index']">
+    <div [id]="item.uid" class="d-flex flex-row align-items-center py-3 border-top">
+      <div class="flex-grow-1">
+        <span class="ms-2">{{ item.name }}</span>
+      </div>
+      <div class="box-status" [class.cursor-pointer]="showInfo && !(item.result | mapper:_isValidOkMapper)" (click)="_onErrorDetails($event, item, item.uid)">
+        <span class="spinner-border spinner-border-sm" *ngIf="_loading"></span>
+        <span class="badge badge-pill bg-{{ item.result | mapper:_getColorMapper }}- fs-9 d-block-" [style.background-color]="item.result | mapper:_getColorHexMapper" *ngIf="!_loading">
+          {{ (item.result | mapper:_getLabelMapper) | translate }}<span class="bi bi-info-circle ms-1" *ngIf="showInfo && !(item.result | mapper:_isValidOkMapper)"></span>
+        </span>
+      </div>
+    </div>
+    <!-- <pre>{{ item.result | json }}</pre> -->
+    <div class="p-1" *ngIf="item.open && !(item.result | mapper:_isValidOkMapper)">
+      <div class="p-1 border mb-2">
+        <textarea class="w-100 border-0" name="details" rows="7" readonly>{{ item.result.dettagli }}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- <pre>{{ _gRes | json }}</pre> -->

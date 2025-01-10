@@ -1,0 +1,25 @@
+  <ui-box-message *ngIf="categories.length == 0 && !_spin"
+    [size]="64"
+    [icon]="'report_problem'"
+    [image]="'./assets/images/illustrations/categorie.svg'"
+    [message]="_message | translate"
+    [subMessage]="_messageHelp | translate">
+  </ui-box-message>
+
+<div class="mt-0">
+  <container
+    recursiveCategory
+    [children]="categories"
+    [hideImage]="true"
+    [isEditable]="isEditable"
+    [selectable]="selectable"
+    [notSelectable]="notSelectable"
+    [editTooltip]="'EditCategory'"
+    [addTooltip]="'AddCategory'"
+    [removeTooltip]="'RemoveCategory'"
+    [iconFolder]="'folder'"
+    [iconLeaf]="'tag'"
+    (open)="onOpen($event)"
+    (action)="onAction($event)">
+  </container>
+</div>

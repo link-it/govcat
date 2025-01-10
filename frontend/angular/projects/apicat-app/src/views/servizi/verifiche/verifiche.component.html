@@ -1,0 +1,296 @@
+<div id="route-section" class="">
+  <div class="container-fluid top-area px-0" *ngIf="_viewType === ViewType.All">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      <!-- <div class="position-relative" *ngIf="service">
+        <app-back-web [service_id]="service.id_servizio"></app-back-web>
+      </div> -->
+    </div>
+  </div>
+  <div class="top-area" *ngIf="_viewType === ViewType.All">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
+              <span>{{ 'APP.FILTER.Testing' | translate }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()">
+              <span>{{ 'APP.FILTER.Production' | translate }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <section #myScroll class="container-fluid container-scroller container-scroller-no-top-area container-scroller-no-search px-0" [class.pt-4]="_viewType === ViewType.All" [class.pt-0]="_viewType !== ViewType.All" [class.pb-3]="_viewType !== ViewType.All">
+
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && _viewType !== ViewType.All"></ui-box-spinner>
+    <div class="loading-area ps-3" *ngIf="_spin && _viewType === ViewType.All">
+      <ui-placeholder-loading
+        [type]="'list'"
+        [count]="3"
+        [title]="'Certificati'"
+        [icon]="'shield-check'"
+        [rounded]="true">
+      </ui-placeholder-loading>
+
+      <ui-placeholder-loading
+        [type]="'list'"
+        [count]="3"
+        [title]="'Connettività'"
+        [icon]="'server'"
+        [rounded]="true">
+      </ui-placeholder-loading>
+    </div>
+
+    <ui-box-message *ngIf="!data && !_spin" [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate" [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings-" *ngIf="(data && !_spin)">
+      <div class="settings-content-">
+
+        <div id="main">
+
+          <div class="container-fluid">
+            <div class="layout-container">
+              <div class="main overflow-hidden" [class.mb-5]="_viewType === ViewType.All">
+                <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_error">
+                  {{ _errorMsg }}
+                </div>
+                <div class="px-3" [class.mb-5]="_viewType === ViewType.All">
+                  <div class="row gx-lg-5">
+                    <div class="col-md-12" [class.col-xl-6]="_twoCol" [class.col-xl-12]="!_twoCol" *ngIf="(_viewType === ViewType.All) || (_viewType === ViewType.Certificati)">
+                      <div class="result-area mt-5 mb-5" *ngIf="!_spin"> <!-- [@thumbsInOut] -->
+                        <div class="d-flex flex-row" [class.mb-5]="serviceApi.length === 1">
+                          <div class="flex-grow-1" *ngIf="serviceApi.length > 1">
+                            <h5 class="pb-1" *ngIf="('' | mapper:_isViewTypeAll) || (viewType === ViewType.Certificati)"><span class="bi bi-shield-check me-2"></span>{{ 'APP.TITLE.Certificati' | translate }}</h5>
+                            <h5 class="pb-1" *ngIf="('' | mapper:_isViewTypeEventi)"><span class="bi bi-clock me-2"></span>{{ 'APP.TITLE.EventiTimeout' | translate }}</h5>
+                            <h5 class="pb-1" *ngIf="('' | mapper:_isViewTypeViolazioni)"><span class="bi bi-triangle me-2"></span>{{ 'APP.TITLE.ViolazioniPolicyRateLimiting' | translate }}</h5>
+                          </div>
+                          <div class="" [class.flex-grow-1]="serviceApi.length === 1" *ngIf="serviceApi.length === 1">
+                            <ng-container *ngIf="serviceApi[0] | mapper:_isErogatoSoggettoDominioMapper; else verSoggettoAderente">
+                              <ui-verifica-api
+                                [environmentId]="environmentId"
+                                [verifica]="serviceApi[0] | mapper:_tipoVerificaMapper"
+                                [pdnd]="serviceApi[0] | mapper:_hasIdentificativoeServicePDNDMapper"
+                                [type]="'certificati'"
+                                [icon]="'shield-check'"
+                                [title]="'APP.TITLE.Certificati'"
+                                [api]="serviceApi[0]"
+                                [service]="service"
+                                [config]="verificheConfig"
+                                [showInfo]="true"
+                                [reduced]="true"
+                                [viewType]="viewType"
+                                [period]="period">
+                              </ui-verifica-api>
+                            </ng-container>
+                            <ng-template #verSoggettoAderente>
+                              <div class="p-3">
+                                <span class="fw-bold-600">{{ serviceApi[0].nome }} v.{{ serviceApi[0].versione }}</span>
+                                <span class="ms-2">({{ 'APP.ROLE.ErogatoSoggettoAderente.title' | translate }})</span>
+                              </div>
+                              <div class="scroll-shadows">
+                                <div class="ms-3" *ngFor="let adhesion of adhesions">
+                                  <ui-verifica-api
+                                    [environmentId]="environmentId"
+                                    [verifica]="serviceApi[0] | mapper:_tipoVerificaMapper"
+                                    [pdnd]="serviceApi[0] | mapper:_hasIdentificativoeServicePDNDMapper"
+                                    [provider]="adhesion.soggetto.nome"
+                                    [type]="'certificati'"
+                                    [icon]="'shield-check'"
+                                    [title]="'APP.TITLE.Certificati'"
+                                    [api]="serviceApi[0]"
+                                    [service]="service"
+                                    [config]="verificheConfig"
+                                    [showInfo]="true"
+                                    [reduced]="true"
+                                    [viewType]="viewType"
+                                    [period]="period">
+                                  </ui-verifica-api>
+                                </div>
+                              </div>
+                            </ng-template>
+                          </div>
+                        </div>
+                        <div class="" *ngIf="serviceApi.length > 1">
+                          <div class="container-animation" [class.border-top]="first" *ngFor="let api of serviceApi;let first = first;">
+                            <div class="border-bottom mt-2">
+                              <ng-container *ngIf="api | mapper:_isErogatoSoggettoDominioMapper; else verSoggettoAderente">
+                                <ui-verifica-api
+                                  [environmentId]="environmentId"
+                                  [verifica]="api | mapper:_tipoVerificaMapper"
+                                  [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
+                                  [type]="'certificati'"
+                                  [api]="api"
+                                  [service]="service"
+                                  [config]="verificheConfig"
+                                  [showInfo]="true"
+                                  [viewType]="viewType"
+                                  [period]="period">
+                                </ui-verifica-api>
+                              </ng-container>
+                              <ng-template #verSoggettoAderente>
+                                <ng-container *ngIf="true">
+                                  <ui-verifica-api
+                                    [environmentId]="environmentId"
+                                    [verifica]="api | mapper:_tipoVerificaMapper"
+                                    [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
+                                    [provider]="''"
+                                    [type]="'certificati'"
+                                    [icon]="'shield-check'"
+                                    [title]="'APP.TITLE.Certificati'"
+                                    [api]="api"
+                                    [service]="service"
+                                    [config]="verificheConfig"
+                                    [showInfo]="true"
+                                    [reduced]="false"
+                                    [compact]="true"
+                                    [adhesions]="adhesions"
+                                    [viewType]="viewType"
+                                    [period]="period">
+                                  </ui-verifica-api>
+                                </ng-container>
+                              </ng-template>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <hr class="" *ngIf="(serviceApi.length === 1) && (_viewType === ViewType.All)">
+                    <div class="col-md-12" [class.col-xl-6]="_twoCol" [class.border-start]="_twoCol" [class.col-xl-12]="!_twoCol" *ngIf="(_viewType === ViewType.All) || (_viewType === ViewType.Connettivita)">
+                      <div class="result-area mt-3 pt-md-3" *ngIf="!_spin" [class.pt-xl-0]="_twoCol"> <!-- [@thumbsInOut] -->
+                        <div class="d-flex flex-row" [class.mb-5]="serviceApi.length === 1">
+                          <div class="flex-grow-1" *ngIf="serviceApi.length > 1">
+                            <h5 class="pb-1" *ngIf="('' | mapper:_isViewTypeAll) || (viewType === ViewType.Connettivita)"><span class="bi bi-hdd-network me-2"></span>{{ 'APP.TITLE.Connettivita' | translate }}</h5>
+                            <h5 class="pb-1" *ngIf="('' | mapper:_isViewTypeEventi)"><span class="bi bi-clock me-2"></span>{{ ('' | mapper:_getTitleTypeEventiConnettivita) | translate }}</h5>
+                            <h5 class="pb-1" *ngIf="('' | mapper:_isViewTypeViolazioni)"><span class="bi bi-triangle me-2"></span>{{ 'APP.TITLE.ViolazioniPolicyRateLimiting' | translate }}</h5>
+                          </div>
+                          <div class="" [class.flex-grow-1]="serviceApi.length === 1" *ngIf="serviceApi.length === 1">
+                            <ng-container *ngIf="serviceApi[0] | mapper:_isErogatoSoggettoDominioMapper; else conSoggettoAderente">
+                              <ui-verifica-api
+                                [environmentId]="environmentId"
+                                [verifica]="serviceApi[0] | mapper:_tipoVerificaMapper"
+                                [pdnd]="serviceApi[0] | mapper:_hasIdentificativoeServicePDNDMapper"
+                                [type]="'backend'"
+                                [icon]="('' | mapper:_getIconTypeEventiConnettivita)"
+                                [title]="('' | mapper:_getTitleTypeEventiConnettivita)"
+                                [api]="serviceApi[0]"
+                                [service]="service"
+                                [config]="verificheConfig"
+                                [showInfo]="true"
+                                [reduced]="true"
+                                [viewType]="viewType"
+                                [period]="period">
+                            </ui-verifica-api>
+                            </ng-container>
+                            <ng-template #conSoggettoAderente>
+                              <div class="p-3">
+                                <span class="fw-bold-600">{{ serviceApi[0].nome }} v.{{ serviceApi[0].versione }}</span>
+                                <span class="ms-2">({{ 'APP.ROLE.ErogatoSoggettoAderente.title' | translate }})</span>
+                              </div>
+                              <div class="scroll-shadows">
+                                <div class="ms-3" *ngFor="let adhesion of adhesions">
+                                  <ui-verifica-api
+                                    [environmentId]="environmentId"
+                                    [verifica]="serviceApi[0] | mapper:_tipoVerificaMapper"
+                                    [pdnd]="serviceApi[0] | mapper:_hasIdentificativoeServicePDNDMapper"
+                                    [provider]="adhesion.soggetto.nome"
+                                    [type]="'backend'"
+                                    [icon]="('' | mapper:_getIconTypeEventiConnettivita)"
+                                    [title]="('' | mapper:_getTitleTypeEventiConnettivita)"
+                                    [api]="serviceApi[0]"
+                                    [service]="service"
+                                    [config]="verificheConfig"
+                                    [showInfo]="true"
+                                    [reduced]="true"
+                                    [viewType]="viewType"
+                                    [period]="period">
+                                  </ui-verifica-api>
+                                </div>
+                              </div>
+                            </ng-template>
+                          </div>
+                        </div>
+                        <div class="" *ngIf="serviceApi.length > 1">
+                          <div class="container-animation" [class.border-top]="first" *ngFor="let api of serviceApi;let first = first;">
+                            <div class="border-bottom mt-2">
+                              <ng-container *ngIf="api | mapper:_isErogatoSoggettoDominioMapper; else verSoggettoAderente">
+                                <ui-verifica-api
+                                  [environmentId]="environmentId"
+                                  [verifica]="api | mapper:_tipoVerificaMapper"
+                                  [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
+                                  [type]="'backend'"
+                                  [api]="api"
+                                  [service]="service"
+                                  [config]="verificheConfig"
+                                  [showInfo]="true"
+                                  [viewType]="viewType"
+                                  [period]="period">
+                                </ui-verifica-api>
+                              </ng-container>
+                              <ng-template #verSoggettoAderente>
+                                <ng-container *ngIf="true">
+                                  <ui-verifica-api
+                                    [environmentId]="environmentId"
+                                    [verifica]="api | mapper:_tipoVerificaMapper"
+                                    [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
+                                    [provider]="''"
+                                    [type]="'backend'"
+                                    [api]="api"
+                                    [service]="service"
+                                    [config]="verificheConfig"
+                                    [showInfo]="true"
+                                    [reduced]="false"
+                                    [compact]="true"
+                                    [adhesions]="adhesions"
+                                    [viewType]="viewType"
+                                    [period]="period">
+                                  </ui-verifica-api>
+                                </ng-container>
+                                <ng-container *ngIf="false">
+                                  <div class="p-3">
+                                    <span class="fw-bold-600">{{ api.nome }} v.{{ api.versione }}</span>
+                                    <span class="ms-2">({{ 'APP.ROLE.ErogatoSoggettoAderente.title' | translate }})</span>
+                                  </div>
+                                  <div class="scroll-shadows">
+                                    <div class="ms-3" *ngFor="let adhesion of adhesions">
+                                      <ui-verifica-api
+                                        [environmentId]="environmentId"
+                                        [verifica]="api | mapper:_tipoVerificaMapper"
+                                        [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
+                                        [provider]="adhesion.soggetto.nome"
+                                        [type]="'backend'"
+                                        [api]="api"
+                                        [service]="service"
+                                        [config]="verificheConfig"
+                                        [showInfo]="true"
+                                        [viewType]="viewType"
+                                        [period]="period">
+                                      </ui-verifica-api>
+                                    </div>
+                                  </div>
+                                </ng-container>
+                              </ng-template>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

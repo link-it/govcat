@@ -1,0 +1,31 @@
+<!-- <ng-template #childComponentTemplate> -->
+  <div class="card card-{{ section.class }}" *ngIf="section">
+    <div class="card-body">
+      <div class="box-title text-medium-emphasis d-flex flex-column justify-content-start align-items-center" [class.mb-4]="!reduced" [class.mb-1]="reduced" [class.px-3]="reduced">
+        <div class="d-flex align-items-center w-100"><i class="bi bi-{{ section.icon }} icon icon-xxl"></i><span class="ms-2 fs-5 text-truncate">{{ section.title | translate }}</span></div>
+        <div class="small w-100" *ngIf="section.range && showDebug">
+          <span class="d-block">{{ period1.periodo1_data_inizio_verifica | date: 'dd.MM.yyyy HH:mm:ss' }} - {{ period1.periodo1_data_fine_verifica | date: 'dd.MM.yyyy HH:mm:ss' }}</span>
+          <span class="d-block">{{ period2.periodo2_data_inizio_verifica | date: 'dd.MM.yyyy HH:mm:ss' }} - {{ period2.periodo2_data_fine_verifica | date: 'dd.MM.yyyy HH:mm:ss' }}</span>  
+        </div>
+      </div>
+      <div class="row" [class.px-3]="reduced">
+        <ng-container *ngFor="let block of section.blocks">
+          <div class="col-{{ block.col }} col-button" [class.col-button-disabled]="block.count === 0 || spin" (click)="onAction(block)" *ngIf="block.enabled">
+            <div class="border-start border-start-4 border-start-color ps-3 mt-2 pe-1" [ngStyle]="{'--border-start-color': (block.count && !spin) ? block.color : '' }">
+              <div class="box-counter counter fs-4 fw-semibold">
+                <span *ngIf="!spin">{{ block.count }}</span>
+                <span class="spinner-border spinner-border-sm fs-6" *ngIf="spin"></span>
+              </div>
+              <div class="d-flex justify-content-between">
+                <small class="box-text-info text-medium-emphasis text-uppercase fw-semibold text-truncate">
+                  <span *ngIf="!section.range">{{ block.label | translate }}</span>
+                  <span *ngIf="section.range">{{ ('APP.DASHBOARD.TIME_HOURS' | pluralTranslate:_getBlockPeriodHours(block)) | translate:_getBlockTraslateData(block) }}</span>
+                </small>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+<!-- </ng-template> -->

@@ -1,0 +1,102 @@
+.search-material-custom {
+
+  .col-form-label-fix {
+    min-width: 115px;
+  }
+
+  .form {
+    border: 1px solid #ccc;
+    padding: 26px 20px 20px;
+  }
+
+  legend {
+    border: none;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .form-group {
+    position: relative;
+    margin-bottom: 30px;
+  }
+
+  .form-control {
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #cccccc;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .form-control:focus {
+    outline: 0;
+    border-width: 2px;
+    border-color: #aaaaaa;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  
+  .form-control:disabled,
+  .form-control[readonly] {
+    background-color: #ffffff;
+    opacity: 1;
+    border: none;
+    border-bottom: 1px solid #cccccc;
+  }
+
+  .control-label {
+    position: absolute;
+    top: -18px;
+    color: #999;
+    font-size: 14px;
+    font-weight: normal;
+  }
+  
+  .form-select {
+    border: none;
+    border-bottom: 1px solid #cccccc;
+    border-radius: 0;
+    background-color: transparent;
+  }
+
+  .form-select:focus {
+    border-bottom: 1px solid #aaaaaa;
+    box-shadow: none;
+  }
+
+  .ng-select {
+    border:0px;
+    min-height: 0px;
+    border-radius: 0;
+  }
+
+  .ng-select .ng-select-container  {            
+    min-height: 0px;
+    border-radius: 0;
+  }
+
+  .ng-select .ng-select-container {
+    border: none;
+    border-bottom: 1px solid #cccccc;
+    background-color: transparent;
+  }
+
+  .ng-select.ng-select-disabled .ng-select-container {
+    background-color: #f9f9f9;
+  }
+
+  .ng-select .ng-select-container .ng-value-container .ng-input>input:focus {
+    border-bottom: none;
+    box-shadow: none;
+  }
+
+  .ng-select.ng-select-focused:not(.ng-select-opened)>.ng-select-container {
+    border-color: #aaaaaa;
+    box-shadow: none;
+  }
+
+  .ng-dropdown-panel.ng-select-bottom{
+    border-top-color: #aaaaaa;
+    margin-top: 0px;
+  }
+}

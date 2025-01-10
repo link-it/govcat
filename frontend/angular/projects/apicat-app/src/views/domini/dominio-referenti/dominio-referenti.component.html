@@ -1,0 +1,166 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+              <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="dominioreferenti.length">{{ _paging.totalElements || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <div role="group" class="gl-w-full btn-group-">
+        <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddReferent' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-bar-form #searchBarForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="'journal_transactions'"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search>
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+                <div class="row">
+                </div>
+                <button type="submit" class="d-none">hidden submit</button>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-bar-form>
+      </div>
+    </div>
+  </section>
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false">
+    <ui-box-message *ngIf="dominioreferenti.length == 0 && !_spin"
+      [size]="64"
+      [icon]="'report_problem'"
+      [image]="'./assets/images/illustrations/referents.svg'"
+      [message]="_message | translate"
+      [subMessage]="_messageHelp | translate">
+    </ui-box-message>
+    <div class="row">
+      <div class="col-12">
+        <ui-collapse-row class="border-bottom" *ngFor="let referent of dominioreferenti"
+          [data]="referent.source"
+          [config]="referentiConfig"
+          [enableCollapse]="referent.enableCollapse"
+          [hasLink]="true">
+          <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+            <div class="d-flex flex-row">
+              <ui-form-readonly class="flex-grow-1"
+                [fields]="_generateReferentFields(referent.source)"
+                [columns]="config.AppConfig?.Layout?.Details?.columns || 6">
+              </ui-form-readonly>
+              <div class="position-relative">
+                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteReferente(referent)">
+                  <i class="bi bi-trash text-danger"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </ui-collapse-row>
+      </div>
+    </div>
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+  </section>
+</div>
+
+<ng-template #editTemplate>
+  <div class="modal-content">
+    <form [formGroup]="_editFormGroup" (submit)="saveModal(_editFormGroup.value)">
+      <div class="modal-header pb-2">
+        <h5 class="modal-title pull-left">{{ 'APP.TITLE.AddReferent' | translate }}</h5>
+        <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="p-3">
+          <div class="form-group tipo">
+            <label class="label-bold" for="tipo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'gruppo'"></span></label>
+            <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
+              [items]="anagrafiche['tipo-referente']"
+              bindValue="nome"
+              bindLabel="nome"
+              labelForId="tipo"
+              [closeOnSelect]="true"
+              formControlName="tipo"
+              (change)="onChangeTipo($event)">
+              <ng-template ng-label-tmp let-item="item">
+                {{ 'APP.ROLE.' + item.nome | translate }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                {{ 'APP.ROLE.' + item.nome | translate  }}
+              </ng-template>
+            </ng-select>
+            <p *ngIf="f['tipo'].invalid && (f['tipo'].dirty || f['tipo'].touched)" class="form-text text-danger">
+              <span *ngIf="f['tipo'].errors && f['tipo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+            </p>
+            <ui-input-help field="tipo" context="SERVICE"></ui-input-help>
+          </div>
+          <div class="form-group id_utente">
+            <label class="label-bold" for="id_utente">{{ 'APP.LABEL.id_utente' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'id_utente'"></span></label>
+            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_utente')"
+              [items]="referenti$ | async"
+              [trackByFn]="trackByFn"
+              [typeahead]="referentiInput$"
+              [minTermLength]="minLengthTerm" 
+              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+              [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+              bindValue="id_utente"
+              bindLabel=""
+              labelForId="id_utente"
+              appendTo="body"
+              [editableSearchTerm]="true"
+              formControlName="id_utente">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.nome }} {{ item.cognome }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                <div class="">
+                  <span class="small text-muted">{{ item.email_aziendale }}</span>
+                </div>
+              </ng-template>
+            </ng-select>
+            <p *ngIf="f['id_utente'].invalid && (f['id_utente'].dirty || f['id_utente'].touched)" class="form-text text-danger">
+              <span *ngIf="f['id_utente'].errors && f['id_utente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+            </p>
+            <ui-input-help field="id_utente" context="SERVICE"></ui-input-help>
+          </div>    
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+        <button type="submit" class="btn btn-confirm btn-md gl-button" [disabled]="_editFormGroup.invalid">{{ 'APP.BUTTON.Save' | translate }}</button>
+      </div>
+    </form>
+  </div>
+</ng-template>

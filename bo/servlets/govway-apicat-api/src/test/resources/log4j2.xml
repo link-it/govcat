@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">%p &lt;%d{dd-MM-yyyy HH:mm:ss.SSS}&gt; %C.%M(%L): %m %n %n</Property>
+	<Property name="APP_LOG_ROOT">/tmp</Property>
+    </Properties>
+    <Appenders>
+        <RollingFile name="hibernate"
+            fileName="${APP_LOG_ROOT}/govcat_api_hibernate.log"
+            filePattern="${APP_LOG_ROOT}/govcat_api_hibernate.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+ 
+        <RollingFile name="spring"
+            fileName="${APP_LOG_ROOT}/govcat_api_spring.log"
+            filePattern="${APP_LOG_ROOT}/govcat_api_spring.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+ 
+        <RollingFile name="core"
+            fileName="${APP_LOG_ROOT}/govcat_api_core.log"
+            filePattern="${APP_LOG_ROOT}/govcat_api_core.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+ 
+        <RollingFile name="controllers"
+            fileName="${APP_LOG_ROOT}/govcat_api.log"
+            filePattern="${APP_LOG_ROOT}/govcat_api.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+ 
+    </Appenders>
+    <Loggers>
+
+        
+        <Logger name="org.govway.catalogo.controllers" level="info" additivity="false">
+            <AppenderRef ref="controllers" />
+        </Logger>
+
+        <Logger name="org.govway.catalogo" level="info" additivity="false">
+            <AppenderRef ref="core" />
+        </Logger>
+
+        <Logger name="org.springframework" level="error" additivity="false">
+            <AppenderRef ref="spring" />
+        </Logger>
+
+        <Logger name="org.hibernate" level="debug" additivity="false">
+            <AppenderRef ref="hibernate" />
+        </Logger>
+
+        <Logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false">
+            <AppenderRef ref="hibernate" />
+        </Logger>
+
+        <Root level="debug">
+            <AppenderRef ref="core" />
+        </Root>
+
+    </Loggers>
+</Configuration>

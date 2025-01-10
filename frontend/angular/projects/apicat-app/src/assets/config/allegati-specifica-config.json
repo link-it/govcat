@@ -1,0 +1,46 @@
+{
+  "itemRow": {
+    "primaryText": [
+      { "field": "filename", "type": "text" }
+    ],
+    "secondaryText": [],
+    "metadata": {
+      "text": [
+        { "field": "data", "type": "date", "format": "DD-MM-YYYY" }
+      ],
+      "label": [
+        { "field": "visibilita", "type": "label", "options": "visibility"  }
+      ]
+    },
+    "secondaryMetadata": [
+      { "field": "tipologia", "type": "label", "options": "tipology" }
+    ]
+  },
+
+  "details": [
+    { "label": "APP.LABEL.ContactId", "field": "contact_id", "type": "text" },
+    { "label": "APP.LABEL.Email", "field": "business_email", "type": "markdown" },
+    { "label": "APP.LABEL.Phone", "field": "business_telefono", "type": "text"}
+  ],
+
+  "options": {
+    "tipology": {
+      "label": "APP.LABEL.ruolo",
+      "small": true,
+      "values": {
+        "generico": { "label": "APP.VISIBILITY.generico", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "specifica": { "label": "APP.VISIBILITY.specifica", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+      }
+    },
+    "visibility": {
+      "label": "APP.LABEL.visibilita",
+      "small": true,
+      "values": {
+        "pubblico": { "label": "APP.VISIBILITY.public", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "private": { "label": "APP.VISIBILITY.private", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "riservato": { "label": "APP.VISIBILITY.riservato", "background": "#E82323", "border": "#A82323", "color": "#ffffff" },
+        "privato": { "label": "APP.VISIBILITY.privato", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+      }
+    }
+  }
+}

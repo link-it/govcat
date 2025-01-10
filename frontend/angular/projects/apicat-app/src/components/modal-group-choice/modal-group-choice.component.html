@@ -1,0 +1,35 @@
+<!-- <div class="modal fade">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content"> -->
+      <div class="modal-header">
+        <h5 class="modal-title">{{ 'APP.TITLE.ChooseGroup' | translate }}</h5>
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="closeModal()" aria-label="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body px-0 py-0 container-scroller-visibile" style="height: 400px;">
+        <ui-box-message *ngIf="gruppi.length == 0 && !_spin"
+          [size]="64"
+          [icon]="'report_problem'"
+          [image]="'./assets/images/illustrations/gruppi.svg'"
+          [message]="_message | translate"
+          [subMessage]="_messageHelp | translate">
+        </ui-box-message>
+
+        <div class="h-100 px-2">
+          <container
+            recursive
+            [children]="gruppi"
+            [notSelectable]="notSelectable"
+            [selectable]="true"
+            (action)="onAction($event)">
+          </container>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+        <!-- <button type="button" class="btn btn-confirm btn-md gl-button ms-2" (click)="onSelected()" [disabled]="selected.length === 0">{{ 'APP.BUTTON.Add' | translate }}<span class="badge bg-light text-dark ms-1" *ngIf="selected.length > 0">{{ selected.length }}</span></button> -->
+      </div>
+    <!-- </div>
+  </div>
+</div> -->

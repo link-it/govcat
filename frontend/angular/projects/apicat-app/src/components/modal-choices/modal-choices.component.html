@@ -1,0 +1,74 @@
+<!-- <div class="modal fade">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content"> -->
+      <div class="modal-header">
+        <h5 class="modal-title">{{ 'APP.TITLE.ChooseResources' | translate }} <span class="badge badge-pill badge-secondary ms-2">{{ list.length || 0 }}</span></h5>
+        <button type="button" class="close" (click)="closeModal()" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body px-0 py-0 container-scroller-visibile" style="height: 400px;">
+        <nav class="text-bg-light sticky-top border-bottom px-2 py-2">
+          <form class="w-100">
+            <div class="input-group input-group-sm">
+              <input type="text" name="filter" class="form-control" [(ngModel)]="filter" placeholder="{{ 'APP.PLACEHOLDER.Search' | translate }}" (ngModelChange)="filterChanged($event)"/>
+              <div class="input-group-append">
+                <button class="btn btn-primary-" (click)="filterChanged($event)" [disabled]="!filter">
+                  <i class="bi bi-search"></i>
+                </button>
+                <button class="btn btn-yellow-" (click)="clearFilter($event)" [hidden]="!filter">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </nav>
+        <div class="h-100">
+          <div class="d-flex flex-column justify-content-center align-items-center h-50" *ngIf="!list?.length">
+            <div class="text-center" *ngIf="!loading">
+              <!-- <i class="bi bi-person icon-messages-50"></i> -->
+              <h6 class="no-messages-text mt-3" style="font-size: 16px;" *ngIf="!searched">{{ 'APP.MESSAGE.SearchResources' | translate }}</h6>
+              <h6 class="no-messages-text mt-3" style="font-size: 16px;" *ngIf="searched">{{ 'APP.MESSAGE.NoElements' | translate }}</h6>
+            </div>
+            <div class="text-center" *ngIf="loading">
+              <div class="h3 text-muted text-center">
+                <i class="fa fa-circle-o-notch fa-spin"></i>
+              </div>
+            </div>
+          </div>
+          <ul class="list-group rounded-0">
+            <li class="list-group-item pl-3 pr-3" [class.active-]="isSelected(item)" *ngFor="let item of list | orderBy : ['']" (click)="selectItem(item)">
+              <div class="d-flex align-items-center">
+                <div class="flex-shrink-0">
+                  <i class="bi bi-check-square" *ngIf="isSelected(item)"></i>
+                  <i class="bi bi-square" *ngIf="!isSelected(item)"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                  <h6 class="mt-0 mb-1">{{ item.value || item }}</h6>
+                  <small></small>
+                </div>
+              </div>              
+              <!-- <div class="media"> -->
+                <!-- <div class="media-body">
+                  <h6 class="mt-0 mb-1">{{ item.value || item }}</h6>
+                  <small></small>
+                </div> -->
+                <!-- <div>
+                  <button class="btn btn-light btn-sm" (click)="onChoice()" [disabled]="selected.length === 0">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                </div> -->
+              <!-- </div> -->
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="onDeselectAll()">{{ 'APP.BUTTON.DeselectAll' | translate }}</button>
+        <button type="button" class="btn btn-default btn-md gl-button ms-2" (click)="onSelectAll()">{{ 'APP.BUTTON.SelectAll' | translate }}<span class="badge bg-light text-dark ms-1 d-none" *ngIf="list.length > 0">{{ list.length }}</span></button>
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+        <button type="button" class="btn btn-confirm btn-md gl-button ms-2" (click)="onSelected()" [disabled]="selected.length === 0">{{ 'APP.BUTTON.Add' | translate }}<span class="badge bg-light text-dark ms-1" *ngIf="selected.length > 0">{{ selected.length }}</span></button>
+      </div>
+    <!-- </div>
+  </div>
+</div> -->

@@ -1,0 +1,224 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+              <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="clientadesioni.length">{{ _paging.totalElements || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <div role="group" class="gl-w-full btn-group-">
+        <!-- <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddReferent' | translate }}</span>
+        </button> -->
+      </div>
+    </div>
+  </div>
+  <!-- <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-bar-form #searchBarForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="'journal_transactions'"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search>
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+                <div class="row">
+                </div>
+                <button type="submit" class="d-none">hidden submit</button>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-bar-form>
+      </div>
+    </div>
+  </section> -->
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false">
+    <ui-box-message *ngIf="clientadesioni.length == 0 && !_spin"
+      [size]="64"
+      [icon]="'report_problem'"
+      [image]="'./assets/images/illustrations/referents.svg'"
+      [message]="_message | translate"
+      [subMessage]="_messageHelp | translate">
+    </ui-box-message>
+    <div class="row">
+      <div class="col-12">
+        <ui-collapse-row class="border-bottom" *ngFor="let adesione of clientadesioni; let indexOfArr=index;"
+          [data]="adesione.source"
+          [config]="adesioniConfig"
+          [enableCollapse]="adesione.enableCollapse"
+          [hasLink]="true">
+          <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="adesione.enableCollapse">
+            <div >
+
+              <div class="row mb-3 ml-1">
+                <div class="col-6">
+                  <label class="label-bold" for="nome">{{ 'APP.LABEL.Organization' | translate }}
+                  </label>
+                  <div class="">
+                    {{adesione.source.soggetto.organizzazione.nome}}
+                  </div>
+                </div>
+
+                <div class="col-6" *ngIf="adesione.source.soggetto.organizzazione?.multi_soggetto">
+                  <label class="label-bold" for="nome">{{ 'APP.LABEL.Subject' | translate }}
+                  </label>
+                  <div class="">
+                    {{adesione.source.soggetto.nome}}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3 ml-1">
+                <div class="col-6">
+                  <label class="label-bold" for="nome">{{ 'APP.LABEL.Servizio' | translate }}
+                  </label>
+                  <div class="">
+                    {{adesione.source.servizio.nome}}
+                  </div>
+                </div>
+
+                <div class="col-6">
+                  <label class="label-bold" for="nome">{{ 'APP.LABEL.Version' | translate }}
+                  </label>
+                  <div class="">
+                    {{adesione.source.servizio.versione}}
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-3 ml-1">
+                <div class="col-6">
+                  <label class="label-bold" for="nome">{{ 'APP.LABEL.utente_richiedente' | translate }}
+                  </label>
+                  <div class="">
+                    {{adesione.source.utente_richiedente.email_aziendale}}
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+            <div class="row ml-1">
+              <div class="col-6">
+                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" (click)="_infoRichiedente(indexOfArr)">
+                  {{ 'APP.CLIENT.BUTTON.UserDetail' | translate }}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </ui-collapse-row>
+      </div>
+    </div>
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+  </section>
+</div>
+
+
+<ng-template #editTemplate>
+  <div class="modal-content">
+    <form [formGroup]="_editFormGroup" (submit)="saveModal(_editFormGroup.value)">
+      <div class="modal-header pb-2">
+        <h5 class="modal-title pull-left">{{ 'APP.CLIENT.TITLE.RequestingUser' | translate }}</h5>
+        <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="p-3">
+          
+          <div class="col-6">
+            
+            <div class="form-group">
+              <label class="label-bold" for="cognome">{{ 'APP.LABEL.cognome' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="cognome" [value]="_selectedAdesione.utente_richiedente.cognome || '--'">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="nome" [value]="_selectedAdesione.utente_richiedente.nome || '--'">
+              </div>
+            </div>
+            
+
+            <div class="form-group">
+              <label class="label-bold" for="email_aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="email_aziendale" [value]="_selectedAdesione.utente_richiedente.email_aziendale || '--'">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-bold" for="email">{{ 'APP.LABEL.email' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="email" [value]="_selectedAdesione.utente_richiedente.email || '--'">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="ruolo" [value]="_selectedAdesione.utente_richiedente.ruolo || '--'">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-bold" for="telefono_aziendale">{{ 'APP.USERS.LABEL.CorporatePhone' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="telefono_aziendale" [value]="_selectedAdesione.utente_richiedente.telefono_aziendale || '--'">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-bold" for="email_aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="email_aziendale" [value]="_selectedAdesione.utente_richiedente.email_aziendale || '--'">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="label-bold" for="username">{{ 'APP.LABEL.Username' | translate }}</label>
+              <div class="">
+                <input type="text" readonly class="form-control-plaintext" id="username" [value]="_selectedAdesione.utente_richiedente.username || '--'">
+              </div>
+            </div>
+            
+            
+          </div>
+
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+      </div>
+    </form>
+  </div>
+</ng-template>
+

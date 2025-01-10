@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Scheda adesione" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty" uuid="39fc760f-927a-41cb-a91e-1efbc2881e4d">
+	<property name="ireport.zoom" value="1.771561000000001"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Descrittore - Xml"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w1" value="573"/>
+	<property name="com.jaspersoft.studio.property.dataset.dialog.DatasetDialog.sash.w2" value="413"/>
+	<property name="com.jaspersoft.studio.report.description" value=""/>
+	<import value="org.apache.commons.codec.binary.Base64"/>
+	<style name="AlternateRowStyle" mode="Transparent" forecolor="#000000" backcolor="#FFFFFF">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}.intValue() %2 != 0]]></conditionExpression>
+			<style mode="Opaque" forecolor="#000000" backcolor="#F0F0F0"/>
+		</conditionalStyle>
+	</style>
+	<subDataset name="RiepilogoDataset" uuid="49558a73-9856-49b4-a0ed-bfacefb72b26">
+		<parameter name="HDato" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="HValore" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<queryString language="SQL">
+			<![CDATA[]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="ConfigCollaudoDataset" uuid="4d98db84-5c3d-4bdf-bdd0-3d304ca8b9fa">
+		<parameter name="HDato" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="HValore" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SUBREPORT_DIR" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{SUBREPORT_DIR}]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/scheda_adesione/configs/collaudo/api]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="ConfigEsercizioDataset" uuid="4d98db84-5c3d-4bdf-bdd0-3d304ca8b9fa">
+		<parameter name="HDato" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="HValore" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SUBREPORT_DIR" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{SUBREPORT_DIR}]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/scheda_adesione/configs/produzione/api]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="SubscriptionDataset" uuid="4d98db84-5c3d-4bdf-bdd0-3d304ca8b9fa">
+		<parameter name="SUBREPORT_DIR" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{SUBREPORT_DIR}]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/scheda_adesione/referents/subscription/item]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="ServiceDataset" uuid="4d98db84-5c3d-4bdf-bdd0-3d304ca8b9fa">
+		<parameter name="SUBREPORT_DIR" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{SUBREPORT_DIR}]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/scheda_adesione/referents/service/item]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="GroupDataset" uuid="4d98db84-5c3d-4bdf-bdd0-3d304ca8b9fa">
+		<parameter name="SUBREPORT_DIR" class="java.lang.String">
+			<defaultValueExpression><![CDATA[$P{SUBREPORT_DIR}]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/scheda_adesione/referents/group/item]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="BaseURLCollaudoDataset" uuid="9dc4c901-b50d-4f60-b12a-0d62fd6b550a">
+		<parameter name="HDato" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="HValore" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="titolo" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/scheda_adesione/baseUrlCollaudo/row]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<subDataset name="BaseURLProduzioneDataset" uuid="32a64141-084b-467c-8e51-6b9b997b6fbf">
+		<parameter name="HDato" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="HValore" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="titolo" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<queryString language="xPath">
+			<![CDATA[/scheda_adesione/baseUrlProduzione/row]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/zulio/Cloud/Users/pintori/GovWayAPICatalogo/SchedaAdesione/"]]></defaultValueExpression>
+	</parameter>
+	<queryString language="xPath">
+		<![CDATA[/scheda_adesione]]>
+	</queryString>
+	<field name="titolo" class="java.lang.String">
+		<fieldDescription><![CDATA[titolo]]></fieldDescription>
+	</field>
+	<field name="soggetto_aderente" class="java.lang.String">
+		<fieldDescription><![CDATA[soggetto_aderente]]></fieldDescription>
+	</field>
+	<field name="organizzazione_aderente" class="java.lang.String">
+		<fieldDescription><![CDATA[organizzazione_aderente]]></fieldDescription>
+	</field>
+	<field name="id_logico" class="java.lang.String">
+		<fieldDescription><![CDATA[id_logico]]></fieldDescription>
+	</field>
+	<field name="richiedente" class="java.lang.String">
+		<fieldDescription><![CDATA[richiedente]]></fieldDescription>
+	</field>
+	<field name="stato" class="java.lang.String">
+		<fieldDescription><![CDATA[stato]]></fieldDescription>
+	</field>
+	<field name="descrizione" class="java.lang.String">
+		<fieldDescription><![CDATA[descrizione]]></fieldDescription>
+	</field>
+	<field name="data_creazione" class="java.lang.String">
+		<fieldDescription><![CDATA[data_creazione]]></fieldDescription>
+	</field>
+	<field name="data_ultimo_aggiornamento" class="java.lang.String">
+		<fieldDescription><![CDATA[data_ultimo_aggiornamento]]></fieldDescription>
+	</field>
+	<field name="api" class="java.lang.String">
+		<fieldDescription><![CDATA[configs/collaudo/api]]></fieldDescription>
+	</field>
+	<field name="api_produzione" class="java.lang.String">
+		<fieldDescription><![CDATA[configs/produzione/api]]></fieldDescription>
+	</field>
+	<field name="subscription" class="java.lang.String">
+		<fieldDescription><![CDATA[referents/subscription]]></fieldDescription>
+	</field>
+	<field name="service2" class="java.lang.String">
+		<fieldDescription><![CDATA[referents/service]]></fieldDescription>
+	</field>
+	<field name="group" class="java.lang.String">
+		<fieldDescription><![CDATA[referents/group]]></fieldDescription>
+	</field>
+	<field name="logo" class="java.lang.String">
+		<fieldDescription><![CDATA[logo]]></fieldDescription>
+	</field>
+	<field name="header" class="java.lang.String">
+		<fieldDescription><![CDATA[header]]></fieldDescription>
+	</field>
+	<field name="data_stampa" class="java.lang.String">
+		<fieldDescription><![CDATA[data_stampa]]></fieldDescription>
+	</field>
+	<field name="servizio" class="java.lang.String">
+		<fieldDescription><![CDATA[servizio]]></fieldDescription>
+	</field>
+	<field name="versione_servizio" class="java.lang.String">
+		<fieldDescription><![CDATA[versione_servizio]]></fieldDescription>
+	</field>
+	<field name="baseurl_pub_collaudo" class="java.lang.String">
+		<fieldDescription><![CDATA[baseUrlCollaudo]]></fieldDescription>
+	</field>
+	<field name="baseurl_pub_produzione" class="java.lang.String">
+		<fieldDescription><![CDATA[baseUrlProduzione]]></fieldDescription>
+	</field>
+	<field name="titoloTabellaBaseUrlCollaudo" class="java.lang.String">
+		<fieldDescription><![CDATA[/scheda_adesione/baseUrlCollaudo/titolo]]></fieldDescription>
+	</field>
+	<field name="titoloTabellaBaseUrlProduzione" class="java.lang.String">
+		<fieldDescription><![CDATA[/scheda_adesione/baseUrlProduzione/titolo]]></fieldDescription>
+	</field>
+	<variable name="propertiesAdesione" class="java.util.ArrayList">
+		<variableExpression><![CDATA[(new Boolean($F{soggetto_aderente}.equals(null)) == false ?
+
+    (new Boolean($F{id_logico}.equals(null)) == false ?
+ [
+    ["label" : "Nome servizio", "valore": $F{servizio}]
+    ,["label" : "Versione", "valore": $F{versione_servizio}]
+    ,["label" : "Organizzazione aderente", "valore": $F{organizzazione_aderente}]
+    ,["label" : "Soggetto aderente", "valore": $F{soggetto_aderente}]
+    ,["label" : "Registrata da", "valore": $F{richiedente}]
+    ,["label" : "Id logico", "valore": $F{id_logico}]
+    ,["label" : "Stato", "valore": $F{stato}]
+    ,["label" : "Data richiesta adesione", "valore": $F{data_creazione}]
+    ,["label" : "Data aggiornamento", "valore": $F{data_ultimo_aggiornamento}]
+    ,["label" : "Data di stampa", "valore": $F{data_stampa}]
+]
+:
+[    ["label" : "Nome servizio", "valore": $F{servizio}]
+    ,["label" : "Versione", "valore": $F{versione_servizio}]
+    ,["label" : "Organizzazione aderente", "valore": $F{organizzazione_aderente}]
+    ,(new Boolean($F{soggetto_aderente}.equals(null)) == false ? ["label" : "Soggetto aderente", "valore": $F{soggetto_aderente}] : null)
+    ,["label" : "Registrata da", "valore": $F{richiedente}]
+    ,["label" : "Stato", "valore": $F{stato}]
+    ,["label" : "Data richiesta adesione", "valore": $F{data_creazione}]
+    ,["label" : "Data aggiornamento", "valore": $F{data_ultimo_aggiornamento}]
+    ,["label" : "Data di stampa", "valore": $F{data_stampa}]]
+)
+    :
+(new Boolean($F{id_logico}.equals(null)) == false ?
+[   ["label" : "Nome servizio", "valore": $F{servizio}]
+    ,["label" : "Versione", "valore": $F{versione_servizio}]
+    ,["label" : "Organizzazione aderente", "valore": $F{organizzazione_aderente}]
+    ,["label" : "Registrata da", "valore": $F{richiedente}]
+    ,(new Boolean($F{id_logico}.equals(null)) == false ? ["label" : "Id logico", "valore": $F{id_logico}] : null)
+    ,["label" : "Stato", "valore": $F{stato}]
+    ,["label" : "Data richiesta adesione", "valore": $F{data_creazione}]
+    ,["label" : "Data aggiornamento", "valore": $F{data_ultimo_aggiornamento}]
+    ,["label" : "Data di stampa", "valore": $F{data_stampa}]]
+    :
+[    ["label" : "Nome servizio", "valore": $F{servizio}]
+    ,["label" : "Versione", "valore": $F{versione_servizio}]
+    ,["label" : "Organizzazione aderente", "valore": $F{organizzazione_aderente}]
+    ,["label" : "Registrata da", "valore": $F{richiedente}]
+    ,["label" : "Stato", "valore": $F{stato}]
+    ,["label" : "Data richiesta adesione", "valore": $F{data_creazione}]
+    ,["label" : "Data aggiornamento", "valore": $F{data_ultimo_aggiornamento}]
+    ,["label" : "Data di stampa", "valore": $F{data_stampa}]]
+)
+)]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<detail>
+		<band height="333">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="227" width="555" height="27" isRemoveLineWhenBlank="true" uuid="d94927ef-dbbe-4ccc-95dd-a54d51d8afce"/>
+				<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+					<pen lineColor="#C0C0C0"/>
+					<topPen lineColor="#C0C0C0"/>
+					<leftPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<bottomPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<rightPen lineWidth="0.5" lineColor="#C0C0C0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="TimesNewRomanPS" size="14" isBold="false" isItalic="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="26.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{titolo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="0" y="0" width="555" height="38" isRemoveLineWhenBlank="true" uuid="25afda32-7059-4f76-b4d6-7dd385e6dfd1"/>
+				<box>
+					<pen lineColor="#C0C0C0"/>
+					<topPen lineWidth="0.0" lineColor="#C0C0C0"/>
+					<leftPen lineWidth="0.0" lineColor="#C0C0C0"/>
+					<bottomPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<rightPen lineWidth="0.0" lineColor="#C0C0C0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="TimesNewRomanPS" size="20" isBold="true" isItalic="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{header}]]></textFieldExpression>
+			</textField>
+			<image hAlign="Center">
+				<reportElement positionType="Float" x="0" y="38" width="555" height="144" uuid="7776c935-6495-442f-98b2-9ba47ff104fa"/>
+				<box topPadding="10">
+					<pen lineColor="#C0C0C0"/>
+					<topPen lineColor="#C0C0C0"/>
+					<leftPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<bottomPen lineColor="#C0C0C0"/>
+					<rightPen lineWidth="0.5" lineColor="#C0C0C0"/>
+				</box>
+				<imageExpression><![CDATA[new ByteArrayInputStream(Base64.decodeBase64((($F{logo}.contains(','))?$F{logo}.split(',')[1]:$F{logo}).getBytes("UTF-8")))]]></imageExpression>
+			</image>
+			<componentElement>
+				<reportElement key="Properties" positionType="Float" x="0" y="283" width="555" height="50" uuid="07bb439e-f38a-4ab2-a407-79697d711d3c"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="RiepilogoDataset" uuid="40841e54-9037-4bd6-a679-6358173c160f">
+						<datasetParameter name="HDato">
+							<datasetParameterExpression><![CDATA["Dato"]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="HValore">
+							<datasetParameterExpression><![CDATA["Valore"]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JRMapCollectionDataSource($V{propertiesAdesione})]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="145" uuid="5d35cb2a-141b-4268-a728-35fe99196513">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="145" height="29" backcolor="#CCCCCC" uuid="4e309a65-b7c1-4c00-a696-d15498dea09f"/>
+								<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{HDato}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="145" height="30" uuid="1586a4c5-e3ac-4f87-8e34-ecb8ec6035a4"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+									<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="410" uuid="3405ecfb-f3ce-44a9-8360-fd84e15b0ac7">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="410" height="29" backcolor="#CCCCCC" uuid="4e48d1d4-c6ce-48d1-b8d5-3464f39d46df"/>
+								<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{HValore}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+								<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="410" height="30" uuid="c6cad392-60af-4857-9053-82b76545e220"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<pen lineWidth="0.5"/>
+									<topPen lineWidth="0.0"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textElement verticalAlignment="Middle">
+									<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+									<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{valore}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="182" width="555" height="45" uuid="c33aa3a8-0a4e-4fd0-b74e-39f7bc89c51b"/>
+				<box topPadding="5" leftPadding="10" bottomPadding="5" rightPadding="10">
+					<pen lineColor="#C0C0C0"/>
+					<topPen lineColor="#C0C0C0"/>
+					<leftPen lineWidth="0.5" lineColor="#C0C0C0"/>
+					<bottomPen lineWidth="0.0" lineColor="#C0C0C0"/>
+					<rightPen lineWidth="0.5" lineColor="#C0C0C0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="TimesNewRomanPS" size="24" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{servizio}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="93">
+			<printWhenExpression><![CDATA[new Boolean($F{api}.equals( null )) == false]]></printWhenExpression>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="43" width="555" height="50" uuid="183503fd-0320-4783-8055-1649c2ee81da"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="ConfigCollaudoDataset" uuid="acdab3d1-fa73-425f-a9ba-d0ebaeb36e25">
+						<datasetParameter name="SUBREPORT_DIR">
+							<datasetParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/scheda_adesione/configs/collaudo/api")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="555" uuid="292ed7c9-9153-43ab-adf0-86c8adb2545a">
+						<jr:columnHeader height="30" rowSpan="1">
+							<staticText>
+								<reportElement mode="Opaque" x="0" y="0" width="555" height="30" backcolor="#CCCCCC" uuid="a28ab961-d0a2-48ee-91eb-01145141bd7d"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Configurazioni (Ambiente di collaudo)]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<subreport>
+								<reportElement style="AlternateRowStyle" positionType="Float" x="0" y="0" width="555" height="30" isRemoveLineWhenBlank="true" uuid="a4faf0ec-a1dc-4197-87b2-735a26b409c1"/>
+								<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JRXmlDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("/api")]]></dataSourceExpression>
+								<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "Api.jasper"]]></subreportExpression>
+							</subreport>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+		<band height="93">
+			<printWhenExpression><![CDATA[new Boolean($F{api_produzione}.equals( null )) == false]]></printWhenExpression>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="43" width="555" height="50" uuid="c0be3733-4c4c-47f4-af52-af7cb7da85a4"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="ConfigEsercizioDataset" uuid="d273fb0c-773c-48cd-8312-f66e88db6dec">
+						<datasetParameter name="SUBREPORT_DIR">
+							<datasetParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/scheda_adesione/configs/produzione/api")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="555" uuid="43c61531-6a9d-41f2-adb4-d198de2b13e2">
+						<jr:columnHeader height="30" rowSpan="1">
+							<staticText>
+								<reportElement mode="Opaque" x="0" y="0" width="555" height="30" backcolor="#CCCCCC" uuid="1c1ae9d1-c2c9-485e-b2e6-31ce2d52ce24"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Configurazioni (Ambiente di produzione)]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<subreport>
+								<reportElement style="AlternateRowStyle" positionType="Float" x="0" y="0" width="555" height="30" isRemoveLineWhenBlank="true" uuid="cd16ed13-eaee-46e8-897d-49a52425bf53"/>
+								<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JRXmlDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("/api")]]></dataSourceExpression>
+								<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "Api.jasper"]]></subreportExpression>
+							</subreport>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+		<band height="93">
+			<printWhenExpression><![CDATA[new Boolean($F{subscription}.equals( null )) == false]]></printWhenExpression>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="43" width="555" height="50" uuid="4859f21e-5605-4cce-bab3-f918045f5f75"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="SubscriptionDataset" uuid="2cec572f-bf99-4373-828e-230fec2c8a2e">
+						<datasetParameter name="SUBREPORT_DIR">
+							<datasetParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/scheda_adesione/referents/subscription/item")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="555" uuid="5d35cb2a-141b-4268-a728-35fe99196513">
+						<jr:columnHeader height="30" rowSpan="1">
+							<staticText>
+								<reportElement mode="Opaque" x="0" y="0" width="555" height="30" backcolor="#CCCCCC" uuid="65709dea-9808-4615-879b-a3b34cd3fc4b"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Referenti Adesione]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<subreport>
+								<reportElement style="AlternateRowStyle" positionType="Float" x="0" y="0" width="555" height="30" isRemoveLineWhenBlank="true" uuid="55a89c7a-9e1c-459e-a3b0-179ac863a3f0"/>
+								<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JRXmlDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("/item")]]></dataSourceExpression>
+								<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "Referents.jasper"]]></subreportExpression>
+							</subreport>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+		<band height="93">
+			<printWhenExpression><![CDATA[new Boolean($F{service2}.equals( null )) == false]]></printWhenExpression>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="43" width="555" height="50" uuid="8d99b702-ca18-4d5d-8299-c27f0e82495b"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="ServiceDataset" uuid="35b61474-6358-4fb1-8eb9-886c6f7b61fe">
+						<datasetParameter name="SUBREPORT_DIR">
+							<datasetParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/scheda_adesione/referents/service/item")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="555" uuid="72839ea6-3184-4907-b148-003cc63d9559">
+						<jr:columnHeader height="30" rowSpan="1">
+							<staticText>
+								<reportElement mode="Opaque" x="0" y="0" width="555" height="30" backcolor="#CCCCCC" uuid="ef99e2b7-55e0-48b3-be66-82a029ef8f09"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Referenti Servizio]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<subreport>
+								<reportElement style="AlternateRowStyle" positionType="Float" x="0" y="0" width="555" height="30" isRemoveLineWhenBlank="true" uuid="5e33ab56-e480-4a08-a7b6-cc6847615345"/>
+								<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JRXmlDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("/item")]]></dataSourceExpression>
+								<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "Referents.jasper"]]></subreportExpression>
+							</subreport>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+		<band height="93">
+			<printWhenExpression><![CDATA[new Boolean($F{group}.equals( null )) == false]]></printWhenExpression>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="43" width="555" height="50" uuid="965581f2-1b10-472a-8be1-b2110a5baffa"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="GroupDataset" uuid="6b638ee4-b03c-4bc5-9b20-1903f619b0b9">
+						<datasetParameter name="SUBREPORT_DIR">
+							<datasetParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/scheda_adesione/referents/group/item")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:column width="555" uuid="31c34793-4a23-4402-98f8-2b1b6e46aeb8">
+						<jr:columnHeader height="30" rowSpan="1">
+							<staticText>
+								<reportElement mode="Opaque" x="0" y="0" width="555" height="30" backcolor="#CCCCCC" uuid="a6a8b403-edec-4978-bf91-5ee3274f78ae"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Referenti Dominio]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell height="30" rowSpan="1">
+							<subreport>
+								<reportElement style="AlternateRowStyle" positionType="Float" x="0" y="0" width="555" height="30" isRemoveLineWhenBlank="true" uuid="0e886b5d-d0c3-4157-930c-fc14a6a67b23"/>
+								<dataSourceExpression><![CDATA[((net.sf.jasperreports.engine.data.JRXmlDataSource)$P{REPORT_DATA_SOURCE}).subDataSource("/item")]]></dataSourceExpression>
+								<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "Referents.jasper"]]></subreportExpression>
+							</subreport>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+		<band height="93">
+			<printWhenExpression><![CDATA[new Boolean($F{baseurl_pub_collaudo}.equals( null )) == false]]></printWhenExpression>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="43" width="555" height="50" uuid="063740a4-8d32-4035-ba50-f44b5ea7b073"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="BaseURLCollaudoDataset" uuid="49b88a6b-0e2c-4775-8916-7cef93dd3dbb">
+						<datasetParameter name="HDato">
+							<datasetParameterExpression><![CDATA["Dato"]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="HValore">
+							<datasetParameterExpression><![CDATA["Valore"]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="titolo">
+							<datasetParameterExpression><![CDATA[$F{titoloTabellaBaseUrlCollaudo}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/scheda_adesione/baseUrlCollaudo/row")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:columnGroup width="555" uuid="c8fce2e2-86d2-418d-b12d-95940a70a10f">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="555" height="30" backcolor="#CCCCCC" uuid="7a0be4a8-1d7b-4413-9c18-eb4067dd45e8"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{titolo}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:column width="145" uuid="4ccc9e76-7822-44dc-b7c7-e9455a9b4a0e">
+							<jr:detailCell height="30" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="145" height="30" uuid="65c0b8ee-0db7-474d-8580-319edb4171dc"/>
+									<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+										<pen lineWidth="0.5"/>
+										<topPen lineWidth="0.0"/>
+										<leftPen lineWidth="0.0"/>
+										<bottomPen lineWidth="0.0"/>
+										<rightPen lineWidth="0.0"/>
+									</box>
+									<textElement verticalAlignment="Middle" markup="none">
+										<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+										<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="410" uuid="1fc82acf-2b8e-460b-b447-08d8a79de9af">
+							<jr:detailCell height="30" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="410" height="30" uuid="30c7e72f-91a4-40c8-b02a-7d358cd3c884"/>
+									<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+										<pen lineWidth="0.5"/>
+										<topPen lineWidth="0.0"/>
+										<leftPen lineWidth="0.0"/>
+										<bottomPen lineWidth="0.0"/>
+										<rightPen lineWidth="0.0"/>
+									</box>
+									<textElement verticalAlignment="Middle" markup="none">
+										<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+										<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{valore}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+		</band>
+		<band height="93">
+			<printWhenExpression><![CDATA[new Boolean($F{baseurl_pub_produzione}.equals( null )) == false]]></printWhenExpression>
+			<componentElement>
+				<reportElement key="Scopo" positionType="Float" x="0" y="43" width="555" height="50" uuid="872db09b-2c12-49ca-967e-19a9c858c46a"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="BaseURLProduzioneDataset" uuid="f7a44bb8-a0e3-4b5a-9c68-b5c592f93552">
+						<datasetParameter name="HDato">
+							<datasetParameterExpression><![CDATA["Dato"]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="HValore">
+							<datasetParameterExpression><![CDATA["Valore"]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="titolo">
+							<datasetParameterExpression><![CDATA[$F{titoloTabellaBaseUrlProduzione}]]></datasetParameterExpression>
+						</datasetParameter>
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("/scheda_adesione/baseUrlProduzione/row")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:columnGroup width="555" uuid="a689ef4a-0465-4045-be54-a145e29cda82">
+						<jr:columnHeader height="30" rowSpan="1">
+							<textField>
+								<reportElement mode="Opaque" x="0" y="0" width="555" height="30" backcolor="#CCCCCC" uuid="a7544f95-32f2-47fc-bbff-900e3b590280"/>
+								<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+									<topPen lineWidth="0.5"/>
+									<leftPen lineWidth="0.5"/>
+									<bottomPen lineWidth="0.5"/>
+									<rightPen lineWidth="0.5"/>
+								</box>
+								<textElement verticalAlignment="Middle" markup="none">
+									<font fontName="TimesNewRomanPS" size="12" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$P{titolo}]]></textFieldExpression>
+							</textField>
+						</jr:columnHeader>
+						<jr:column width="145" uuid="c70c305f-36e3-415c-a7b8-33c77f3fa0cb">
+							<jr:detailCell height="30" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="145" height="30" uuid="02359022-7f80-4977-bd53-95e62def6a80"/>
+									<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+										<pen lineWidth="0.5"/>
+										<topPen lineWidth="0.0"/>
+										<leftPen lineWidth="0.0"/>
+										<bottomPen lineWidth="0.0"/>
+										<rightPen lineWidth="0.0"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+										<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="410" uuid="ee0be54d-f49b-4614-90b8-b8dcfbd3b59e">
+							<jr:detailCell height="30" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement style="AlternateRowStyle" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="410" height="30" uuid="e9df2af6-3dfa-4828-ba2f-742395559eef"/>
+									<box topPadding="8" leftPadding="10" bottomPadding="8" rightPadding="10">
+										<pen lineWidth="0.5"/>
+										<topPen lineWidth="0.0"/>
+										<leftPen lineWidth="0.0"/>
+										<bottomPen lineWidth="0.0"/>
+										<rightPen lineWidth="0.0"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+										<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{valore}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+</jasperReport>

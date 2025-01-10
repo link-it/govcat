@@ -1,0 +1,26 @@
+<div class="mb-2">
+  <div class="mb-3 fs-6 fw-bold-600">{{ title }}</div>
+  <div class="fs-6 pb-1 mb-2 border-bottom" *ngIf="errors.length">{{ 'APP.WORKFLOW.ERROR.TitoloInformazioniMancanti' | translate }}</div>
+  <ng-container *ngFor="let _err of errors">
+    <div class="ms-2 mb-2">
+      <div class="" *ngIf="_err.sottotipo">
+        <span class="fw-bold-600 ms-2-">{{ 'APP.WORKFLOW.ERROR.' + _err.sottotipo | translate }}:</span>
+        <span class="ms-2">{{ 'APP.WORKFLOW.ERROR.' + _err.sottotipo + 'Description' | translate:_getParms(_err) }}</span>
+      </div>
+      <div class="">
+        <span class="fw-bold-600 ms-2-" *ngIf="_err.dato">{{ 'APP.WORKFLOW.DATATYPE.' + _err.dato | translate }}</span>
+      </div>
+      <div class="ms-3">
+        <div class="fw-bold-600">{{ 'APP.WORKFLOW.ERROR.DatiObbligatori' | translate }}</div>
+        <div class="ms-2" *ngFor="let campo of _err.campi">
+          <ng-container *ngIf="campo.custom">
+            <span [title]="_err.dato">{{ _getCustomFieldLabel(campo.nome_campo) }}</span>
+          </ng-container>
+          <ng-container *ngIf="!campo.custom">
+            <span [title]="_err.dato">{{ 'APP.LABEL.' + campo.nome_campo | translate:_getParms(_err) }}</span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

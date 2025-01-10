@@ -1,0 +1,42 @@
+{
+  "itemRow": {
+    "primaryText": [
+      { "field": "nome", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "visibile", "type": "label", "options": "visibile", "emptySpace": true },
+      { "field": "obbligatorio", "type": "label", "options": "obbligatorio" }
+    ],
+    "metadata": {
+      "text": [{ "field": "descrizione", "type": "text" }],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
+
+  "details": [
+    { "label": "APP.LABEL.Nome", "field": "nome", "type": "text" },
+    { "label": "APP.LABEL.Description", "field": "descrizione", "type": "text" }
+  ],
+
+  "options": {
+    "visibile": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {
+        "true": { "label": "APP.STATUS.Enabled", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
+        "false": { "label": "APP.STATUS.Disabled", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+      }
+    },
+    "obbligatorio": {
+      "label": "APP.LABEL.Mandatory",
+      "small": true,
+      "values": {
+        "true": { "label": "APP.STATUS.YES", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "false": { "label": "APP.STATUS.NO", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,5 @@
+{"agreements":[
+{"consumerId":"a7fb7b18-302c-41f9-9df3-2d41b8d29fac","descriptorId":"cf9a6f9b-3644-4b59-bea1-fbb986546dfc","eserviceId":"3be97a09-6e97-4d85-96e8-ed36b3ff5b2f","id":"a72b8e42-ac50-4c44-a7f7-9464b0d7683e","producerId":"de85e3e5-dceb-4d41-81bf-ce5bb2992fa6","state":"PENDING"},
+{"consumerId":"ba7d8059-254d-4f91-a567-82e210e20c0c","descriptorId":"cf9a6f9b-3644-4b59-bea1-fbb986546dfc","eserviceId":"3be97a09-6e97-4d85-96e8-ed36b3ff5b2f","id":"6a70281e-7a41-4de8-9c3a-463cd7316e78","producerId":"de85e3e5-dceb-4d41-81bf-ce5bb2992fa6","state":"ACTIVE"},
+{"consumerId":"ca5053ff-9b96-4ecc-b3b7-3c6a88fa9463","descriptorId":"cf9a6f9b-3644-4b59-bea1-fbb986546dfc","eserviceId":"3be97a09-6e97-4d85-96e8-ed36b3ff5b2f","id":"e08073b6-f346-445c-9bec-b8e0d9df2bb6","producerId":"de85e3e5-dceb-4d41-81bf-ce5bb2992fa6","state":"PENDING"},
+{"consumerId":"de85e3e5-dceb-4d41-81bf-ce5bb2992fa6","descriptorId":"cf9a6f9b-3644-4b59-bea1-fbb986546dfc","eserviceId":"3be97a09-6e97-4d85-96e8-ed36b3ff5b2f","id":"df6c2bba-6288-4545-a315-48d2d7278b3c","producerId":"de85e3e5-dceb-4d41-81bf-ce5bb2992fa6","state":"ACTIVE"}]}

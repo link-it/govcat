@@ -1,0 +1,54 @@
+{
+  "defaultView": "list",
+
+  "itemRow": {
+    "primaryText": [
+      { "field": "cognome", "type": "text", "class": "", "emptySpace": true },
+      { "field": "nome", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "stato", "type": "label", "options": "status" }
+    ],
+    "metadata": {
+      "text": [{ "field": "email_aziendale", "type": "text" }],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
+
+  "simpleItem": {
+    "primaryText": [
+      { "field": "cognome", "type": "text" },
+      { "field": "nome", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "id_utente", "type": "text" }
+    ],
+    "metadata": {
+      "text": [],
+      "label": []
+    },
+    "secondaryMetadata": [
+      { "field": "stato", "type": "text" }
+    ]
+  },
+
+  "details": [
+    { "label": "APP.LABEL.FullName", "field": "full_name", "type": "text" },
+    { "label": "APP.LABEL.Principal", "field": "principal", "type": "text" },
+    { "label": "APP.LABEL.Email", "field": "email", "type": "text" }
+  ],
+
+  "options": {
+    "status": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {        
+        "abilitato": { "label": "APP.USERS.STATUS.Enabled", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
+        "disabilitato": { "label": "APP.USERS.STATUS.Disabled", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
+      }
+    }
+  }
+}
+

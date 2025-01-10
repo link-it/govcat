@@ -1,0 +1,100 @@
+.breadcrumbs {
+  display: flex;
+  min-height: 48px;
+  color: #303030;
+}
+
+.breadcrumbs-container {
+  display: flex;
+  width: 100%;
+  position: relative;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  align-items: center;
+  border-bottom: 1px solid #dbdbdb;
+}
+
+.breadcrumbs-links {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+  color: #666;
+  // animation: fadeIn 2.5s;
+  // animation: slideIn 2s;
+  // animation: reveal 2s;
+
+  .avatar-tile {
+    margin-right: 4px;
+    // border: 1px solid #dbdbdb;
+    border-radius: 50%;
+
+    .mat-icon {
+      font-size: 1rem !important;
+      vertical-align: sub;
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+.breadcrumbs-list {
+  display: flex;
+  margin-bottom: 0;
+  line-height: 16px;
+}
+
+.breadcrumb-item-text {
+  text-decoration: inherit;
+}
+
+.breadcrumbs-list > li {
+  position: relative;
+}
+
+.breadcrumbs-list > li > a {
+  font-size: 12px;
+  color: currentColor;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline !important;
+  }
+
+  &.text-decoration-none:hover {
+    text-decoration: none !important;
+  }
+}
+
+.breadcrumbs-list > li:not(:last-child) {
+  padding-right: 20px;
+}
+
+.breadcrumbs-list > li:not(:last-child):not(.dropdown) {
+  overflow: hidden;
+}
+
+.breadcrumbs-list > li:last-child > a {
+  font-weight: 600;
+  line-height: 16px;
+  color: #303030;
+
+  &:hover {
+    text-decoration: underline !important;
+  }
+
+  &.text-decoration-none:hover {
+    text-decoration: none !important;
+  }
+}
+
+.breadcrumbs-list-angle {
+  position: absolute;
+  right: 2px;
+  top: 55%;
+  color: #868686;
+  transform: translateY(-50%);
+}

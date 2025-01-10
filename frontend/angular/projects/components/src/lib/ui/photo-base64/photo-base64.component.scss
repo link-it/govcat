@@ -1,0 +1,41 @@
+.image-wrap {
+  padding: 10px;
+  border: solid 1px #e0e0e0;
+  display: inline-block;
+}
+
+.img-space {
+  border: dashed 1px #d3d3d3;
+  border-radius: 8px;
+  background-color: #f2f2f2;
+  width: 100%;
+  height: auto;
+  padding: 10px;
+  // min-height: 175px;
+}
+
+.img-space img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: auto;
+  cursor: pointer;
+}
+
+.fileInputProfileWrap {
+  width: auto;
+  height: auto;
+}
+
+.fileInputProfile {
+  position: absolute;
+  width: 100%;
+  height: auto;
+  z-index: 99;
+  opacity: 0;
+}
+
+.fileInputProfile[disabled] + .img-space {
+  pointer-events: none;
+  cursor: not-allowed!important;
+}

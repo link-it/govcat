@@ -1,0 +1,69 @@
+// :root {
+//   --label-background-color: #F0AD4E;
+//   --label-inset-border: inset 0 0 0 1px #F0AD4E;
+// }
+
+.status-label {
+  align-items: center;
+  background-color: #fff;
+  overflow: hidden;
+  display: inline-flex;
+  border-radius: .75rem;
+  position: relative;
+  max-width: 100%;
+  font-size: .875rem;
+  box-shadow: var(--label-inset-border) !important;
+
+  .status-label-link {
+    line-height: 1rem;
+    display: flex;
+    font-size: .75rem;
+    font-weight: 400;
+    overflow: hidden;
+    color: inherit;
+    max-width: 100%;
+  }
+
+  .status-label-text,
+  .status-label-text-scoped {
+    display: block;
+    padding: .25rem .5rem;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    // vertical-align: top;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+}
+
+.status-label-scoped {
+  box-shadow: 0 0 0 2px currentColor inset;
+
+  .status-label-text {
+    padding-right: .25rem;
+    background-color: var(--label-background-color);
+  }
+
+  &.status-label-sm {
+    box-shadow: 0 0 0 1px inset;
+  }
+
+  .status-label-text-scoped {
+    color: #1f1f1f;
+    padding-left: .25rem;
+    padding-right: .5rem;
+  }
+}
+
+.status-label-sm {
+  .status-label-text,
+  .status-label-text-scoped {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
+.status-ml-2 {
+  margin-left: .25rem;
+}

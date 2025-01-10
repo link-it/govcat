@@ -1,0 +1,162 @@
+<div id="route-section" class="">
+  <div class="top-area px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      <!-- <div class="position-relative" *ngIf="service">
+        <app-back-web [service_id]="service.id_servizio"></app-back-web>
+      </div> -->
+      <app-monitor-dropdown *ngIf="service"
+        [showComunications]="false"
+        [showMonitoring]="false"
+        [returnWeb]="true"
+        [otherActions]="[]"
+        (action)="onActionMonitor($event)">
+      </app-monitor-dropdown>
+    </div>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+              <span title="Show all components.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioComponenti.length">{{ _paging.totalElements || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls align-self-center d-flex">
+      <div role="group" class="gl-w-full btn-group-">
+        <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
+          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddService' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-bar-form #searchBarForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="'journal_transactions'"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search>
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+                <div class="row">
+                </div>
+                <button type="submit" class="d-none">hidden submit</button>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-bar-form>
+      </div>
+    </div>
+  </section>
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false">
+    <ui-box-message *ngIf="servizioComponenti.length == 0 && !_spin"
+      [size]="64"
+      [icon]="'report_problem'"
+      [image]="'./assets/images/illustrations/components.svg'"
+      [message]="_message | translate"
+      [subMessage]="_messageHelp | translate">
+    </ui-box-message>
+    <div class="row">
+      <div class="col-12">
+        <ng-container *ngFor="let component of servizioComponenti">
+          <div class="px-2 border-bottom">
+            <div class="d-flex flex-column flex-md-row align-md-items-center">
+              <div class="d-flex flex-row flex-md-fill align-items-center position-relative gap-3">
+                <ui-item-row class="flex-fill"
+                  [data]="component"
+                  [config]="componentiConfig"
+                  [hasLink]="true"
+                  [hostBackground]="'transparent'"
+                  (itemClick)="_onEdit($event, component)">
+                </ui-item-row>
+                <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100" *ngIf="(_updateMapper | mapper:_canAddMapper)">
+                  <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteComponent(component)">
+                    <i class="bi bi-trash text-danger"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+  </section>
+</div>
+
+<ng-template #editTemplate>
+  <div class="modal-content">
+    <form [formGroup]="_editFormGroup" (submit)="saveModal(_editFormGroup.value)">
+      <div class="modal-header pb-2">
+        <h5 class="modal-title pull-left">{{ 'APP.TITLE.AddComponent' | translate }}</h5>
+        <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="p-3">
+          <div class="form-group id_servizio">
+            <label class="label-bold" for="id_servizio">{{ 'APP.LABEL.id_servizio' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'id_servizio'" *ngIf="!f['id_servizio'].disabled"></span></label>
+            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')"
+              [items]="componenti$ | async"
+              [trackByFn]="trackByFn"
+              [typeahead]="componentiInput$"
+              [minTermLength]="minLengthTerm" 
+              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+              [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+              bindValue="id_servizio"
+              bindLabel="nome_completo"
+              labelForId="id_servizio"
+              appendTo="body"
+              [editableSearchTerm]="true"
+              formControlName="id_servizio"
+              (change)="onChangeComponent($event)">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.nome }} {{ item.versione ? 'v.' + item.versione : '' }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                <div class="fw-bold">{{ item.nome }} v.{{ item.versione }}</div>
+                <div class="text-truncate">
+                  <span class="small text-muted">{{ item.descrizione_sintetica }}</span>
+                </div>
+              </ng-template>
+            </ng-select>
+            <p *ngIf="f['id_servizio'].invalid && (f['id_servizio'].dirty || f['id_servizio'].touched)" class="form-text text-danger">
+              <span *ngIf="f['id_servizio'].errors && f['id_servizio'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+            </p>
+            <ui-input-help field="id_servizio" context="SERVICE"></ui-input-help>
+          </div>    
+        </div>
+        <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_errorSave">
+          {{ _errorSaveMsg }}
+        </div>
+      </div>
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+        <button type="submit" class="btn btn-confirm btn-md gl-button" [disabled]="_editFormGroup.invalid">{{ 'APP.BUTTON.Save' | translate }}</button>
+      </div>
+    </form>
+  </div>
+</ng-template>

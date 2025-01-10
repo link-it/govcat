@@ -1,0 +1,148 @@
+<div id="route-section" class="">
+  <div class="breadcrumbs-area container-fluid px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area container-fluid px-0">
+    <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Tutte" (click)="_setCurrentTab(notificationState.Tutte)">
+              <span title="Notifications found">{{ 'APP.FILTER.All' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" *ngIf="currentTab === notificationState.Tutte">{{ _allElements || 0 }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Nuova" (click)="_setCurrentTab(notificationState.Nuova)">
+              <span title="Notifications found">{{ 'APP.FILTER.Unread' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" *ngIf="currentTab === notificationState.Nuova">{{ _allElements || 0 }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Archiviata" (click)="_setCurrentTab(notificationState.Archiviata)">
+              <span title="Notifications found">{{ 'APP.FILTER.Archived' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" *ngIf="currentTab === notificationState.Archiviata">{{ _allElements || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls align-self-center d-flex">
+      <div role="group" class="btn-group">
+        <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="_needRefresh ? ('APP.NOTIFICATIONS.TOOLTIP.NeedRefresh' | translate) : ''" [placement]="'top'" [container]="'body'" (click)="refresh();">
+          <i class="bi bi-arrow-clockwise"></i>
+          <div class="need-refresh-indicator" *ngIf="_needRefresh"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-google-form #searchGoogleForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="model"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [useCondition]="useCondition"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          [simple]="true"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+                <div class="row mb-1">
+                  <div class="col-sm-2">
+                    <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                  </div>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
+                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                  <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+                </div>
+                <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-google-form>
+      </div>
+    </div>
+  </section>
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter" [ngStyle]="{ 'margin-top': fullScroll ? '60px' : 'auto' }"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [infiniteScrollContainer]="fullScroll ? '#page-full-scroll-container' : ''"
+    [fromRoot]="fullScroll"
+    [scrollWindow]="false">
+
+    <ui-box-message *ngIf="elements.length == 0 && !_spin"
+      [size]="64"
+      [icon]="'report_problem'"
+      [image]="'./assets/images/illustrations/'+model+'.svg'"
+      [message]="_message | translate"
+      [subMessage]="_messageHelp | translate">
+    </ui-box-message>
+
+    <div class="row">
+      <div class="col-12">
+        <ng-container *ngFor="let element of elements">
+          <div class="notifications-list-item px-2 border-bottom" [class.notification-unread]="element.unread">
+            <div class="d-flex flex-column flex-md-row align-md-items-center">
+              <div class="d-flex flex-row flex-md-fill position-relative">
+                <div class="d-flex flex-column flex-sm-row align-self-start align-items-center" style="margin-top: 5px;">
+                  <div class="notification-list-item-unread-indicator circle d-none d-md-block" [ngStyle]="{'margin-top': _showBulkSelection ? '0px' : '10px'}"></div>
+                  <label class="ps-2 py-2 mb-0 clearfix" *ngIf="_showBulkSelection">
+                    <input class="float-start js-notification-bulk-action-check-item" type="checkbox" name="notification_ids[]" [value]="element.id" autocomplete="off">
+                  </label>
+                </div>
+                <ui-item-row class="flex-fill"
+                  [data]="element"
+                  [config]="notificationsConfig"
+                  [hasLink]="true"
+                  [hostBackground]="'transparent'"
+                  (itemClick)="_onEdit($event, element)">
+                </ui-item-row>
+                <!-- <div class="d-flex flex-column flex-sm-row align-items-center px-3"> -->
+                <div class="notification-list-item-actions d-none position-absolute top-0 bottom-0 end-0 mr-2 d-flex align-items-center">
+                  <div class="action-hover">
+                    <button class="btn btn-default btn-sm gl-button btn-default-tertiary- me-2" [tooltip]="('APP.NOTIFICATIONS.TOOLTIP.Archive' | translate)" [placement]="'top'" [container]="'body'" (click)="markNotification(element, notificationState.Archiviata, true)" *ngIf="element.stato !== notificationState.Archiviata">
+                      <i class="bi bi-check-lg"></i>
+                      <!-- <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Archive' | translate }}</span> -->
+                    </button>
+                    <button class="btn btn-default btn-sm gl-button btn-default-tertiary-" [tooltip]="_showTooltip ? ('APP.NOTIFICATIONS.TOOLTIP.MarkAsRead' | translate) : ''" [placement]="'right'" [container]="'body'" *ngIf="element.unread" (click)="markNotification(element, notificationState.Letta)">
+                      <span class="text-center d-inline-block" style="width:16px">
+                        <svg class="" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M4 8a4 4 0 1 1 8 0 4 4 0 0 1-8 0Zm4-2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"></path></svg>
+                      </span>
+                      <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.MarkAsRead' | translate }}</span>
+                    </button>
+                    <button class="btn btn-default btn-sm gl-button btn-default-tertiary-" [tooltip]="_showTooltip ? ('APP.NOTIFICATIONS.TOOLTIP.MarkAsUnread' | translate) : ''" [placement]="'right'" [container]="'body'" *ngIf="!element.unread" (click)="markNotification(element, notificationState.Nuova)">
+                      <span class="text-center d-inline-block" style="width:16px">
+                        <svg class="octicon octicon-dot-fill  v-align-text-bottom color-fg-inherit" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true">
+                          <path d="M8 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"></path>
+                        </svg>
+                      </span>
+                      <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.MarkAsUnread' | translate }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+  </section>
+</div>

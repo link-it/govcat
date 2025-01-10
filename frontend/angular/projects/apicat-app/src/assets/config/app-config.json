@@ -1,0 +1,270 @@
+{
+  "version": "0.1",
+
+  "sessionPrefix": "GWAC",
+
+  "AppConfig": {
+    "SITE": "http://172.16.1.250/govcat-web/catalogo/",
+
+    "TIMEOUT": "30000",
+    "DELAY": "500",
+    "DEFAULT_TRANSACTION_INTERVAL": 30,
+
+    "DEFAULT_NOTIFICATIONS_TIMER": 15000,
+
+    "ANONYMOUS_ACCESS": true,
+
+    "AUTH_SETTINGS": { 
+      "LOGIN_ENABLED": false,
+      "AUTH_USER": false,
+      "OTHER_AUTHS": [
+        {
+          "label": "Accedi con Github",
+          "icon": "github",
+          "image": "",
+          "enabled": false,
+          "signin_url": "http://172.16.1.90/govhub-reverse-proxy/oauth2/authorization/github"
+        },
+        {
+          "label": "Accedi con OAuth",
+          "icon": "",
+          "image": "Oauth_logo.svg",
+          "enabled": true,
+          "signin_url": "",
+          "signin_action": "oauth"
+        }
+      ],
+
+      "AUTOLOGIN": true,
+      "SHOW_USER_REGISTRATION": false,
+
+      "OAUTH": {
+        "Issuer": "",
+        "ClientId": "catalogo-app",
+        "RedirectUri": "",
+        "LogoutRedirectUri": "",
+        "ResponseType": "code",
+        "ShowDebugInformation": false,
+        "BackdoorOAuth": true,
+        "Scope": "openid profile email offline_access",
+        "AutoAuthDiscovery": false
+      },
+
+      "TOKEN_POLICIES": {
+        "code_grant": {
+          "redirect_uri": "/code-grant-authorization/?return=ok"
+        }
+      }
+    },
+
+    "GOVAPI": {
+      "HOST": "/govcat-api/api/v1",
+      "HOST_PDND": "/govcat-api/pdnd/v1",
+      "HOST_MONITOR": "/govcat-api/monitor/v1",
+      "LOGOUT_URL": "/logout"
+    },
+
+    "Languages": [
+      {
+        "language": "Italiano",
+        "alpha2Code": "it",
+        "alpha3Code": "ita"
+      },
+      {
+        "language": "English",
+        "alpha2Code": "en",
+        "alpha3Code": "eng"
+      }
+    ],
+    "DefaultLanguage": "it",
+
+    "Watermark": false,
+    "WatermarkText": "Develop",
+
+    "Search": {
+      "HistoryCount": 3,
+      "newLayout": false
+    },
+
+    "Layout": {
+      "Login": {
+        "title": "Catalogo API ModI",
+        "logo": "linkit_logo/linkit_logo_2x.png",
+        "header": "linkit_logo/linkit_logo.png"
+      },
+      "showHeaderBar": true,
+      "Header": {
+        "title": "Catalogo API ModI",
+        "logo": ""
+      },
+      "forceMenuOpen": true,
+      "Details": {
+        "singleColumn": false,
+        "columns": 6,
+        "Collapsible": {
+          "informations": true
+        }
+      },
+      "GroupView": {
+        "numberCharLogoText": 8,
+        "enabledImageLink": true,
+        "showGroupIcon": true,
+        "showGroupLabel": false,
+        "colors": [
+          "#00ffff",
+          "#f0ffff",
+          "#f5f5dc",
+          "#000000",
+          "#0000ff",
+          "#a52a2a",
+          "#00ffff",
+          "#00008b",
+          "#008b8b",
+          "#a9a9a9",
+          "#006400",
+          "#bdb76b",
+          "#8b008b",
+          "#556b2f",
+          "#ff8c00",
+          "#9932cc",
+          "#8b0000",
+          "#e9967a",
+          "#9400d3",
+          "#ff00ff",
+          "#ffd700",
+          "#008000",
+          "#4b0082",
+          "#f0e68c",
+          "#add8e6",
+          "#e0ffff",
+          "#90ee90",
+          "#d3d3d3",
+          "#ffb6c1",
+          "#ffffe0",
+          "#00ff00",
+          "#ff00ff",
+          "#800000",
+          "#000080",
+          "#808000",
+          "#ffa500",
+          "#ffc0cb",
+          "#800080",
+          "#800080",
+          "#ff0000",
+          "#c0c0c0",
+          "#ffff00"
+        ]
+      },
+      "showNotificationsMenu": false,
+      "showNotificationsBar": true,
+      "enablePollingNotifications": true,
+      "showTaxonomies": true,
+
+      "showVersion": true,
+      "showBuild": true,
+      "showAbout": false,
+      "showAboutMiniBox": false,
+      "showNewsArea": false
+    },
+
+    "CurrentThems": "Default",
+    "Themes": [
+      {
+        "Name": "Default",
+        "Variables": {
+          "--header-back-color": "#0071A9",
+          "--header-color": "#ffffff",
+          "--footer-back-color": "#0071A9",
+          "--footer-color": "#ffffff",
+          "--footer-expander-back-color": "#0071A9",
+          "--footer-expander-color": "#ffffff",
+          "--navbar-back-color": "#f5f5f5",
+          "--navbar-color": "#303030",
+          "--navbar-link-color": "#303030",
+          "--navbar-link-active-color": "#303030",
+          "--navbar-toggle-back-color": "#f5f5f5",
+          "--navbar-toggle-back-over-color": "#dbdbdb",
+          "--navbar-toggle-over-color": "#303030",
+          "--navbar-border-color": "#dbdbdb",
+          "--link-hover-color": "#0071A9",
+          "--fly-out-back-item": "#000000",
+          "--fly-out-color-item": "#ffffff",
+          "--fly-out-back-top": "#f0f0f0",
+          "--fly-out-color-top": "#303030",
+          "--fly-out-color-link": "#f0f0f0",
+          "--btn-confirm": "#1f75cb",
+          "--btn-confirm-color": "#ffffff",
+          "--btn-confirm-hover": "#1068bf",
+          "--group-button-background": "#dbdbdb",
+          "--group-button-color": "#303030"
+        }
+      },
+      {
+        "Name": "Prussian Blue",
+        "Variables": {
+          "--header-back-color": "#003049",
+          "--header-color": "#ffffff",
+          "--footer-back-color": "#003049",
+          "--footer-color": "#ffffff",
+          "--footer-expander-back-color": "#003049",
+          "--footer-expander-color": "#ffffff",
+          "--navbar-back-color": "#f77f00",
+          "--navbar-color": "#303030",
+          "--navbar-link-color": "#303030",
+          "--navbar-link-active-color": "#303030",
+          "--navbar-toggle-back-color": "#f77f00",
+          "--navbar-toggle-back-over-color": "#fcbf49",
+          "--navbar-toggle-over-color": "#303030",
+          "--navbar-border-color": "#fcbf49",
+          "--link-hover-color": "#003049",
+          "--fly-out-back-item": "#eae2b7",
+          "--fly-out-color-item": "#303030",
+          "--fly-out-back-top": "#eae2b7",
+          "--fly-out-color-top": "#303030",
+          "--fly-out-color-link": "#eae2b7",
+          "--btn-confirm": "#1f75cb",
+          "--btn-confirm-color": "#ffffff",
+          "--btn-confirm-hover": "#1068bf",
+          "--btn-confirm-hovershadow": "#064787",
+          "--group-button-background": "#1068bf",
+          "--group-button-color": "#ffffff"
+        }
+      },
+      {
+        "Name": "Persian Blue",
+        "Variables": {
+          "--header-back-color": "#072ac8",
+          "--header-color": "#ffffff",
+          "--footer-back-color": "#072ac8",
+          "--footer-color": "#ffffff",
+          "--footer-expander-back-color": "#072ac8",
+          "--footer-expander-color": "#ffffff",
+          "--navbar-back-color": "#a2d6f9",
+          "--navbar-color": "#303030",
+          "--navbar-link-color": "#303030",
+          "--navbar-link-active-color": "#303030",
+          "--navbar-toggle-back-color": "#a2d6f9",
+          "--navbar-toggle-back-over-color": "#1e96fc",
+          "--navbar-toggle-over-color": "#303030",
+          "--navbar-border-color": "#a2d6f9",
+          "--link-hover-color": "#072ac8",
+          "--fly-out-back-item": "#1e96fc",
+          "--fly-out-color-item": "#ffffff",
+          "--fly-out-back-top": "#1e96fc",
+          "--fly-out-color-top": "#ffffff",
+          "--fly-out-color-link": "#1e96fc",
+          "--btn-confirm": "#1f75cb",
+          "--btn-confirm-color": "#ffffff",
+          "--btn-confirm-hover": "#1068bf",
+          "--btn-confirm-hovershadow": "#064787",
+          "--group-button-background": "#1068bf",
+          "--group-button-color": "#ffffff"
+        }
+      }
+    ]
+  },
+
+  "logoCopyright": "./assets/images/linkit_logo/linkit_logo_2x.png",
+  "copyright": "©2022-24 Link.it S.r.l."
+}
+

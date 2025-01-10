@@ -1,0 +1,31 @@
+.notification-bar {
+  
+}
+
+.notification-shelf {
+  z-index: 34;
+}
+
+.flash:not(.Banner) {
+  background-image: linear-gradient(#ddf4ff, #ddf4ff);
+  border-color: #a8d8ff;
+  border-radius: 0.375rem;
+  border-style: solid;
+  border-width: max(1px, 0.0625rem);
+  color: var(--fgColor-default, var(--color-fg-default));
+  padding: 1.25rem 1rem;
+  position: relative;
+}
+
+.flash-full:not(.Banner) {
+  border-radius: 0;
+  border-width: max(1px, 0.0625rem) 0;
+  margin-top: calc(max(1px, 0.0625rem)*-1);
+}
+
+.octicon {
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>govwaymonitor-client</artifactId>
+	<packaging>jar</packaging>
+	<name>Client GovwayMonitor</name>
+	<parent>
+		<groupId>org.govway.catalogo</groupId>
+		<artifactId>clients</artifactId>
+		<version>2.0</version>
+		<relativePath>../</relativePath>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-annotations</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>logging-interceptor</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.gsonfire</groupId>
+			<artifactId>gson-fire</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/javax.validation/validation-api -->
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/joda-time/joda-time -->
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.openapitools</groupId>
+		    <artifactId>jackson-databind-nullable</artifactId>
+		</dependency>
+	</dependencies>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<version>${openapi.tool.codegen.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<id>generate-sources-govway-monitor-client</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/govway_rs-api_monitor.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<skipValidateSpec>true</skipValidateSpec>
+							<configOptions>
+								<dateLibrary>java8</dateLibrary>
+								<library>okhttp-gson</library>
+								<serializationLibrary>gson</serializationLibrary>
+								<sourceFolder>target/generated-sources/java/</sourceFolder>
+								<apiPackage>org.govway.catalogo.gest.clients.govwaymonitor.api</apiPackage>
+								<invokerPackage>org.govway.catalogo.gest.clients.govwaymonitor.impl</invokerPackage>
+								<modelPackage>org.govway.catalogo.gest.clients.govwaymonitor.model</modelPackage>
+								<useAnnotatedBasePath>true</useAnnotatedBasePath>
+								<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
+							</configOptions>
+							<output>${project.basedir}</output>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+						</configuration>
+					</execution>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<id>generate-sources-govway-config-client</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/govway_rs-api_config.yaml</inputSpec>
+							<generatorName>java</generatorName>
+							<skipValidateSpec>true</skipValidateSpec>
+							<configOptions>
+								<dateLibrary>java8</dateLibrary>
+								<library>okhttp-gson</library>
+								<serializationLibrary>gson</serializationLibrary>
+								<sourceFolder>target/generated-sources/java/</sourceFolder>
+								<apiPackage>org.govway.catalogo.gest.clients.govwayconfig.api</apiPackage>
+								<invokerPackage>org.govway.catalogo.gest.clients.govwayconfig.impl</invokerPackage>
+								<modelPackage>org.govway.catalogo.gest.clients.govwayconfig.model</modelPackage>
+								<useAnnotatedBasePath>true</useAnnotatedBasePath>
+								<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
+							</configOptions>
+							<output>${project.basedir}</output>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+							<generateModels>false</generateModels>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

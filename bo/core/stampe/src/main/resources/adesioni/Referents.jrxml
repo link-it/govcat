@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Referents" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="dd976df4-ed30-4882-824c-753f23b8a1a4">
+	<property name="ireport.zoom" value="2.1435888100000016"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString language="xPath">
+		<![CDATA[item]]>
+	</queryString>
+	<field name="tipo_referente" class="java.lang.String">
+		<fieldDescription><![CDATA[tipo_referente]]></fieldDescription>
+	</field>
+	<field name="nome" class="java.lang.String">
+		<fieldDescription><![CDATA[nome]]></fieldDescription>
+	</field>
+	<field name="cognome" class="java.lang.String">
+		<fieldDescription><![CDATA[cognome]]></fieldDescription>
+	</field>
+	<field name="contact_id" class="java.lang.String">
+		<fieldDescription><![CDATA[contact_id]]></fieldDescription>
+	</field>
+	<field name="telefono" class="java.lang.String">
+		<fieldDescription><![CDATA[telefono]]></fieldDescription>
+	</field>
+	<field name="email" class="java.lang.String">
+		<fieldDescription><![CDATA[email]]></fieldDescription>
+	</field>
+	<field name="business_telefono" class="java.lang.String">
+		<fieldDescription><![CDATA[business_telefono]]></fieldDescription>
+	</field>
+	<field name="business_email" class="java.lang.String">
+		<fieldDescription><![CDATA[business_email]]></fieldDescription>
+	</field>
+	<field name="organization" class="java.lang.String">
+		<fieldDescription><![CDATA[organization]]></fieldDescription>
+	</field>
+	<variable name="elencoProperties" class="java.util.ArrayList">
+		<variableExpression><![CDATA[[(new Boolean($F{tipo_referente}.equals(null)) == false ? ["label" : $F{tipo_referente}, "valore": ""] : null)
+    ,((new Boolean($F{nome}.equals(null)) == false && new Boolean($F{cognome}.equals(null)) == false) ? ["label" : "Nome e cognome", "valore": $F{nome} + " " + $F{cognome}] : null)
+    ,(new Boolean($F{business_email}.equals(null)) == false ? ["label" : "Contatti", "valore": $F{business_email} + ", "+ $F{business_telefono}] : null)
+    ,(new Boolean($F{organization}.equals(null)) == false ? ["label" : "Organizzazione", "valore": $F{organization}] : null)]]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="68">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="0" width="145" height="28" isRemoveLineWhenBlank="true" uuid="d5c1ddbc-3459-4145-8a86-2159c17d59bb">
+					<printWhenExpression><![CDATA[new Boolean($F{nome}.equals(null)) == false && new Boolean($F{cognome}.equals(null)) == false]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="8" leftPadding="10" bottomPadding="4" rightPadding="4">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(new Boolean($F{tipo_referente}.equals(null)) == false ? $F{tipo_referente} : "Nome e Cognome" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="145" y="0" width="410" height="28" isRemoveLineWhenBlank="true" uuid="2d5a2c0b-97c8-427a-949b-fc770df9ca40">
+					<printWhenExpression><![CDATA[new Boolean($F{nome}.equals(null)) == false && new Boolean($F{cognome}.equals(null)) == false]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="8" leftPadding="10" bottomPadding="4" rightPadding="4">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nome} + " " + $F{cognome}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="28" width="145" height="20" isRemoveLineWhenBlank="true" uuid="25235a63-e604-4036-8ded-ac4f1a3dabea">
+					<printWhenExpression><![CDATA[new Boolean($F{business_email}.equals(null)) == false && new Boolean($F{business_telefono}.equals(null)) == false]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="0" leftPadding="10" bottomPadding="4" rightPadding="4">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Contatti"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="145" y="28" width="410" height="20" isRemoveLineWhenBlank="true" uuid="d9885475-ac15-4059-95a5-64eb51af9f3f">
+					<printWhenExpression><![CDATA[new Boolean($F{business_email}.equals(null)) == false && new Boolean($F{business_telefono}.equals(null)) == false]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="0" leftPadding="10" bottomPadding="4" rightPadding="4">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{business_email} + ", " + $F{business_telefono}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="48" width="145" height="20" isRemoveLineWhenBlank="true" uuid="0b2af359-e262-4dd0-8312-30dfecff93aa">
+					<printWhenExpression><![CDATA[new Boolean($F{organization}.equals(null)) == false]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="0" leftPadding="10" bottomPadding="4" rightPadding="4">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Organizzazione"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="145" y="48" width="410" height="20" isRemoveLineWhenBlank="true" uuid="6330cac0-1ce9-49ea-9e75-15a835fe5bb9">
+					<printWhenExpression><![CDATA[new Boolean($F{organization}.equals(null)) == false]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="0" leftPadding="10" bottomPadding="4" rightPadding="4">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="TimesNewRomanPS" size="12" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{organization}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

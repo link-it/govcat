@@ -1,0 +1,162 @@
+<ng-template [ngIf]="!_isEdit">
+  <div id="route-section" class="">
+    <div class="top-area px-0">
+      <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+      <div class="d-flex flex-grow-1">&nbsp;</div>
+      <div class="nav-controls">
+        <!-- <div class="position-relative" *ngIf="service">
+          <app-back-web [service_id]="service.id_servizio"></app-back-web>
+        </div> -->
+      </div>  
+    </div>
+    <div class="top-area">
+      <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+        <div class="">
+          <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+            <li class="nav-item">
+              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+                <span title="Show all communications.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceCommunications.length">{{ _paging.total || serviceCommunications.length }}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="nav-controls align-self-center d-flex">
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4" *ngIf="_spinSend">
+          <span class="spinner-border spinner-border-sm text-primary"></span>
+        </button>
+        <!-- <div role="group" class="gl-w-full btn-group me-3">
+          <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleSender()">
+            {{ 'APP.BUTTON.NewMessage' | translate }}
+          </button>
+        </div>   -->
+      </div>
+    </div>
+    <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <ui-search-bar-form #searchBarForm
+            [classBlock]="''"
+            [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+            [showHistory]="showHistory"
+            [historyStore]="'journal_transactions'"
+            [showSearch]="showSearch"
+            [searchFields]="searchFields"
+            [showSorting]="showSorting"
+            [sortField]="sortField"
+            [sortDirection]="sortDirection"
+            [sortFields]="sortFields"
+            [formGroup]="_formGroup"
+            (onSearch)="_onSearch($event)"
+            (onSort)="_onSort($event)">
+            <div form-search>
+              <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+                <fieldset>
+                  <div class="row">
+                  </div>
+                  <button type="submit" class="d-none">hidden submit</button>
+                </fieldset>
+              </form>
+            </div>
+          </ui-search-bar-form>
+        </div>
+      </div>
+    </section>
+    <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter" [class.pt-0]="showSender"
+      infiniteScroll
+      [infiniteScrollDistance]="2"
+      [infiniteScrollThrottle]="50"
+      (scrolled)="__loadMoreData()"
+      [scrollWindow]="false">
+
+      <div class="row-content-block sticky-top p-2" style="z-index: 99;" *ngIf="showSender">
+        <ui-sender #sender
+          [placeholder]="'APP.PLACEHOLDER.TestoMessaggio' | translate"
+          (send)="_onSubmitMessage($event)">
+        </ui-sender>
+      </div>
+
+      <app-notification-bar *ngIf="!_spin && (_notification || _notificationId )"
+        [notification]="_notification"
+        [notificationId]="_notification ? '' : _notificationId"
+        [top]="54"
+        (close)="_onCloseNotificationBar($event)">
+      </app-notification-bar>
+
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+      <ui-box-message *ngIf="serviceCommunications.length == 0 && !_spin"
+        [size]="64"
+        [icon]="'report_problem'"
+        [image]="'./assets/images/illustrations/communications.svg'"
+        [message]="_message | translate"
+        [subMessage]="_messageHelp | translate">
+      </ui-box-message>
+
+      <div class="row justify-content-center">
+        <div class="col-12">
+          <div class="chat mx-auto">
+            <div class="messages-chat pt-0">
+              <ng-container *ngFor="let communication of serviceCommunications;let index = index;">
+                <div class="row align-items-center message-date-divider" *ngIf="communication.gDate || index == 0">
+                  <div class="col dropdown-divider"></div>
+                  <div class="col-auto">{{ __mapDateGroup(communication) }}</div>
+                  <div class="col dropdown-divider"></div>
+                </div>
+                <ng-container [ngSwitch]="communication.source.tipo">
+                  <ng-container *ngSwitchCase="'cambio_stato'">
+                    <div [id]="communication.id" class="message">
+                      <div class="photo text-center type-status" [tooltip]="'APP.TOOLTIP.StatusChange' | translate">
+                        <i class="bi bi-node-plus fs-3"></i>
+                        <!-- <div class="online"></div> -->
+                      </div>
+                      <p class="text message-limit">
+                        <span class="">{{ 'APP.WORKFLOW.STATUS.' + communication.source.stato | translate }}</span>
+                        <!-- <span class="small text-mute">{{ communication.source.autore | translate }}</span> -->
+                      </p>
+                    </div>
+                    <p class="time">{{ communication.source.autore.nome }} {{ communication.source.autore.cognome }}, {{ communication.time }}</p>
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'messaggio'">
+                    <div [id]="communication.id" class="message" [class.justify-content-end]="_isMime(communication.source)">
+                      <div class="photo text-center text-muted" *ngIf="!_isMime(communication.source)">
+                        <i class="bi bi-person fs-3"></i>
+                        <!-- <div class="online"></div> -->
+                      </div>
+                      <div class="" [class.response]="_isMime(communication.source)">
+                        <p class="text">
+                          <!-- <span class="fw-bold d-block">{{ communication.source.oggetto }}</span> -->
+                          <span class="">{{ communication.source.testo }}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <p class="response-time time" [class.response-time]="_isMime(communication.source)" [tooltip]="_isMime(communication.source) ? communication.source.autore.nome + ' ' + communication.source.autore.cognome : ''">
+                      <span *ngIf="!_isMime(communication.source)">{{ communication.source.autore.nome }} {{ communication.source.autore.cognome }} - </span> {{ communication.time }}
+                    </p>
+                  </ng-container>
+                  <div class="d-flex flex-column mb-3 w-100">
+                    <div class="d-flex align-items-center mb-1" [class.justify-content-end]="_isMime(communication.source)" style="margin: 0px 35px 0px 75px;" *ngFor="let _allegato of communication.source.allegati">
+                      <div class="d-flex flex-column align-content-between" style="width: auto;" *ngIf="_showAllegatoBoxed">
+                        <div class="d-flex d-flex flex-column align-content-between py-2 px-3 text-bg-light">
+                          <p class="fw-bold small">{{ _allegato.filename }}</p>
+                          <div class="d-flex flex-row"><i class="bi bi-file-earmark"></i><span class="ms-2">{{ 'file' }}</span></div>
+                        </div>
+                        <div class="text-center text-bg-light mt-0 border-top border-white" (click)="__onDownload(communication.source, _allegato)">
+                          <span class="btn btn-default btn-sm gl-button btn-default-tertiary rounded-0 px-3 py-2 w-100 fw-bolder">{{ 'APP.TOOLTIP.Download' | translate }}</span>
+                        </div>
+                      </div>
+                      <button type="button" class="btn btn-md btn-default gl-button mt-2 text-bg-light" (click)="__onDownload(communication.source, _allegato)" [title]="'APP.TOOLTIP.Download' | translate" *ngIf="!_showAllegatoBoxed">
+                        <i class="bi bi-paperclip"></i>
+                        <span class="ms-2">{{ _allegato.filename }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</ng-template>

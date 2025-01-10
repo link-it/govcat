@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  position: relative;
+  margin: 0;
+}
+
+.group-over-display {
+  
+  .group-over-actions {
+    display: none;
+  }
+
+  &:hover {
+    .group-over-actions {
+      display: block;
+    }
+  }
+}
+
+.group-list-tree {
+  .group-row-contents {
+    min-height: 58px;
+
+    &.not-selected {
+      opacity: 0.5;
+
+      &:hover {
+        border-color: transparent;
+        background-color: transparent;
+        cursor: default;
+      }
+    }
+  }
+}

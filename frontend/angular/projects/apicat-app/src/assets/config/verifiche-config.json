@@ -1,0 +1,39 @@
+{
+  "twoCol": false,
+
+  "itemRow": {
+    "class": "mb-1",
+    "primaryText": [
+      { "field": "nome", "type": "text", "emptySpace": true },
+      { "field": "v.", "type": "message", "tooltip_": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+      { "field": "versione", "type": "text" }
+    ],
+    "secondaryText": [
+    ],
+    "metadata": {
+      "text": [
+      ],
+      "label": [
+      ]
+    },
+    "secondaryMetadata": [
+    ]
+  },
+
+  "options": {
+    "protocollo": {
+      "label": "APP.LABEL.Protocollo",
+      "small": true,
+      "values": {
+        "soap": { "label": "APP.INTERFACE.soap", "background": "#638136", "border": "#638136", "color": "#ffffff" },
+        "soap_11": { "label": "APP.INTERFACE.soap_11", "background": "#b8e477", "border": "#b8e477", "color": "#1f1f1f" },
+        "soap_12": { "label": "APP.INTERFACE.soap_12", "background": "#d3edad", "border": "#d3edad", "color": "#1f1f1f" },
+        "wsdl_11": { "label": "APP.INTERFACE.wsdl_11", "background": "#d3edad", "border": "#d3edad", "color": "#1f1f1f" },
+        "wsdl_12": { "label": "APP.INTERFACE.wsdl_12", "background": "#d3edad", "border": "#d3edad", "color": "#1f1f1f" },
+        "rest": { "label": "APP.INTERFACE.rest", "background": "#1f5d91", "border": "#1f5d91", "color": "#ffffff" },
+        "swagger_2": { "label": "APP.INTERFACE.swagger_2", "background": "#5897cb", "border": "#5897cb", "color": "#ffffff" },
+        "openapi_3": { "label": "APP.INTERFACE.openapi_3", "background": "#d1edff", "border": "#d1edff", "color": "#1f1f1f" }
+      }
+    }
+  }
+}

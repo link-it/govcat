@@ -1,0 +1,1 @@
+insert into utenti(id,id_utente,email,email_aziendale,telefono,telefono_aziendale,nome,cognome,stato,ruolo) values((select nextval('seq_utenti')), 'gestore', 'm.rossi@acme.inc','m.rossi@acme.inc','0123456789','0123456789','Mario','Rossi','ABILITATO','AMMINISTRATORE');

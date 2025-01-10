@@ -1,0 +1,110 @@
+<div id="route-section" class="">
+  <div class="top-area px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      <app-monitor-dropdown *ngIf="service"
+        [showComunications]="false"
+        [showMonitoring]="false"
+        [returnWeb]="true"
+        [otherActions]="[]"
+        (action)="onActionMonitor($event)">
+      </app-monitor-dropdown>
+    </div>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+              <span title="Show all categories.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioCategorie.length">{{ servizioCategorie.length || 0 }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-controls align-self-center d-flex">
+      <div role="group" class="gl-w-full btn-group-">
+        <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
+          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddTaxonomyCategory' | translate }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+    <div class="row align-items-center">
+      <div class="col-12">
+        <ui-search-bar-form #searchBarForm
+          [classBlock]="''"
+          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+          [showHistory]="showHistory"
+          [historyStore]="'journal_transactions'"
+          [showSearch]="showSearch"
+          [searchFields]="searchFields"
+          [showSorting]="showSorting"
+          [sortField]="sortField"
+          [sortDirection]="sortDirection"
+          [sortFields]="sortFields"
+          [formGroup]="_formGroup"
+          (onSearch)="_onSearch($event)"
+          (onSort)="_onSort($event)">
+          <div form-search>
+            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <fieldset>
+                <div class="row">
+                </div>
+                <button type="submit" class="d-none">hidden submit</button>
+              </fieldset>
+            </form>
+          </div>
+        </ui-search-bar-form>
+      </div>
+    </div>
+  </section>
+  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    infiniteScroll
+    [infiniteScrollDistance]="2"
+    [infiniteScrollThrottle]="50"
+    (scrolled)="__loadMoreData()"
+    [scrollWindow]="false">
+
+    <ui-box-message *ngIf="servizioCategorie.length == 0 && !_spin"
+      [size]="64"
+      [icon]="'report_problem'"
+      [image]="'./assets/images/illustrations/categorie.svg'"
+      [message]="_message | translate"
+      [subMessage]="_messageHelp | translate">
+    </ui-box-message>
+
+    <div class="row">
+      <div class="col-12">
+        <ui-collapse-row class="border-bottom" *ngFor="let categoria of servizioCategorie"
+          [data]="categoria.source"
+          [config]="categorieConfig"
+          [enableCollapse]="categoria.enableCollapse"
+          [hasLink]="false"
+          [hasAction]="(_updateMapper | mapper:_canAddMapper)"
+          [iconAction]="'trash'"
+          [iconClass]="'text-danger'"
+          [actionTooltip]="'APP.TOOLTIP.Remove' | translate"
+          (actionClick)="_deleteCategoria(categoria)">
+          <!-- <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="categoria.enableCollapse">
+            <div class="d-flex flex-row">
+              <ui-form-readonly class="flex-grow-1"
+                [fields]="_generateReferentFields(categoria.source)"
+                [columns]="config.AppConfig?.Layout?.Details?.columns || 6">
+              </ui-form-readonly>
+              <div class="position-relative">
+                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deletecategoria(categoria)" *ngIf="(_updateMapper | mapper:_canAddMapper)">
+                  <i class="bi bi-trash text-danger"></i>
+                </button>
+              </div>
+            </div>
+          </div> -->
+        </ui-collapse-row>
+      </div>
+    </div>
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+  </section>
+</div>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="API" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="dd976df4-ed30-4882-824c-753f23b8a1a4">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<subDataset name="API" uuid="f653b4e4-308d-4c28-83f0-1a3472c48aff">
+		<queryString language="xPath">
+			<![CDATA[api/row]]>
+		</queryString>
+		<field name="label" class="java.lang.String">
+			<fieldDescription><![CDATA[label]]></fieldDescription>
+		</field>
+		<field name="valore" class="java.lang.String">
+			<fieldDescription><![CDATA[valore]]></fieldDescription>
+		</field>
+	</subDataset>
+	<queryString language="xPath">
+		<![CDATA[row]]>
+	</queryString>
+	<detail>
+		<band height="30">
+			<componentElement>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="5" width="555" height="20" isPrintInFirstWholeBand="true" uuid="e88f30bd-f4d4-4f41-aef5-59badf227da6"/>
+				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+					<datasetRun subDataset="API" uuid="42f2230b-0415-4a26-ad7c-731dc9cb6fba">
+						<dataSourceExpression><![CDATA[$P{REPORT_DATA_SOURCE}.subDataSource("api/row")]]></dataSourceExpression>
+					</datasetRun>
+					<jr:listContents height="20" width="555">
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement positionType="Float" x="0" y="0" width="145" height="20" isRemoveLineWhenBlank="true" uuid="cbdee2b6-d69a-4b6b-bd9b-2247bb62ee23"/>
+							<box topPadding="8" leftPadding="10" bottomPadding="4" rightPadding="4">
+								<pen lineWidth="0.25"/>
+								<topPen lineWidth="0.0"/>
+								<leftPen lineWidth="0.0"/>
+								<bottomPen lineWidth="0.0"/>
+								<rightPen lineWidth="0.0"/>
+							</box>
+							<textElement verticalAlignment="Middle" markup="none">
+								<font fontName="TimesNewRomanPS" size="12"/>
+								<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement positionType="Float" x="145" y="0" width="410" height="20" isRemoveLineWhenBlank="true" uuid="751e5b35-bbc9-45eb-9393-4b9fe72dabf4"/>
+							<box topPadding="8" leftPadding="10" bottomPadding="4" rightPadding="4">
+								<pen lineWidth="0.25"/>
+								<topPen lineWidth="0.0"/>
+								<leftPen lineWidth="0.0"/>
+								<bottomPen lineWidth="0.0"/>
+								<rightPen lineWidth="0.0"/>
+							</box>
+							<textElement verticalAlignment="Middle" markup="none">
+								<font fontName="TimesNewRomanPS" size="12"/>
+								<paragraph lineSpacing="Fixed" lineSpacingSize="20.0"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$F{valore}]]></textFieldExpression>
+						</textField>
+					</jr:listContents>
+				</jr:list>
+			</componentElement>
+		</band>
+	</detail>
+</jasperReport>

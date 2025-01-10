@@ -1,0 +1,108 @@
+:host .inner-message-router-container {
+  position: absolute;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.message-bar {
+  // color: var(--message-bar-color, #000);
+  // background-color: var(--message-bar-background-color, #EDEDED);
+}
+
+.message-bar p {
+  font-size: 1rem;
+  padding: 1rem .5rem;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.message-bar .chip {
+  border-radius: 1rem;
+  padding: 0 .5rem;
+  margin: 0.5rem 0.5rem 0rem;
+  max-width: 200px;
+  overflow: hidden;
+  font-weight: 500;
+  color: var(--message-bar-color, #000);
+  background-color: var(--message-bar-chips-color, #808080);
+}
+
+.message-bar .chip .material-icons {
+  font-size: 1rem;
+  color: var(--message-bar-color, #000);
+}
+
+.message-bar .chip .material-icons.reset {
+  cursor: pointer;
+}
+
+.message-bar .chip .chip-name {
+  max-width: 135px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 0 0 0.5rem;
+}
+
+.right-message {
+  position: relative;
+  background-color: var(--message-background-color, #FFF);
+  padding: .75rem;
+  margin-bottom: .5rem;
+  border-radius: 8px 0 8px 8px;
+}
+
+.left-message {
+  position: relative;
+  background-color: var(--message-background-color, #FFF);
+  padding: .75rem;
+  margin-bottom: .5rem;
+  border-radius: 0 8px 8px 8px;
+}
+
+.right-message:after {
+  content: "";
+  width: 0;
+  height: 0;
+  position: absolute;
+  right: -15px;
+  top: 0;
+  border-top: 12px solid var(--message-background-color, #FFF);
+  border-right: 16px solid transparent;
+}
+
+.left-message:before {
+  content: "";
+  width: 0;
+  height: 0;
+  position: absolute;
+  left: -15px;
+  top: 0;
+  border-top: 12px solid var(--message-background-color, #FFF);
+  border-left: 16px solid transparent;
+}
+
+.message-header {
+  margin-bottom: .75rem;
+  color: var(--message-header-color, #808080);
+}
+
+.message-text {
+  margin-bottom: 0;
+  white-space: pre-line;
+}
+
+.message-date-divider {
+  text-align: center;
+  padding: 1.5rem 0;
+  color: var(--message-header-color, #808080);
+  text-transform: uppercase;
+}
+
+.messages:first-of-type .message-date-divider {
+  padding-top: 0;
+}

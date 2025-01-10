@@ -1,0 +1,268 @@
+<div id="route-section" class="">
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [classContainer]="'container-limited limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.TITLE.EditOrganization' | translate }}</h3>
+    <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewOrganization' | translate }}</h3>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
+      <div class="nav-controls">
+        <div class="position-relative" *ngIf="!_isEdit && !_spin">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditOrganization' | translate" (click)="_editOrganization()">
+            <i class="bi bi-pencil"></i>
+          </button>
+        </div>
+        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
+          <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
+            <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+              <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+                <div class="gl-new-dropdown-inner">
+                  <div class="gl-new-dropdown-contents">
+                    <li role="presentation" class="gl-new-dropdown-item">
+                      <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteOrganization()">
+                        <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                          <i class="bi bi-trash text-danger"></i>
+                        </div>
+                        <div class="gl-new-dropdown-item-text-wrapper">
+                          <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.DeleteOrganization' | translate }}</p>
+                        </div>
+                      </button>
+                    </li>
+                  </div>
+                </div>
+              </ul>
+            </div>
+          </div>
+        <!-- </ng-template> -->
+        <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+    <!-- </ng-template> -->
+  </div>
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
+    <ui-box-message *ngIf="!organizzazione && !_spin && !_isNew"
+      [image]="'./assets/images/illustrations/no-data.svg'"
+      [message]="'APP.MESSAGE.NoData' | translate"
+      [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
+    </ui-box-message>
+
+    <div class="settings" *ngIf="(organizzazione && !_spin) || _isNew">
+      <div class="settings-header d-none">
+        <h4 class="settings-title">{{ 'APP.ORGANIZATIONS.TITLE.GeneralInformations' | translate }}</h4>
+        <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditOrganization' | translate" (click)="_editOrganization()" *ngIf="!_isEdit && !_spin">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+            <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2 btn-icon" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </ng-template>
+        <p markdown>{{ 'APP.ORGANIZATIONS.TITLE.GeneralInformations_sub' | translate }}</p>
+      </div>
+      <div class="settings-content">
+        <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
+          {{ _errorMsg }}
+        </div>
+        <div class="edit-form">
+          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
+            <div class="row gl-mt-3">
+              <div class="col-lg-4">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.ORGANIZATIONS.TITLE.GeneralInformations' | translate }}</h4>
+                <div class="text-break" markdown>{{ 'APP.ORGANIZATIONS.TITLE.GeneralInformations_sub' | translate }}</div>
+              </div>
+              <div class="col-lg-8">
+
+                <div class="row mt-5">
+                  <div class="col-6">
+                    <div class="form-group nome">
+                      <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }}
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isNew || _isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">
+                        <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="nome" context="ORGANIZATION"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="nome" [value]="organizzazione.nome">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-6">
+                    <div class="form-group descrizione">
+                      <label class="label-bold" for="descrizione">{{ 'APP.ORGANIZATIONS.TITLE.Description' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'" *ngIf="_isNew || _isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione">
+                        <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Organizationdescrizione' | translate }}</span>
+                          <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="descrizione" context="ORGANIZATION"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="descrizione" [value]="organizzazione.descrizione || '-'">
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="row codice_ente codice_fiscale_soggetto">
+                  <div class="col-6">
+                    <div class="form-group codice_ente">
+                      <label class="label-bold" for="codice_ente">{{ 'APP.ORGANIZATIONS.LABEL.CodiceEnte' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'codice_ente'" *ngIf="_isNew || _isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_ente')" type="text" name="codice_ente" id="codice_ente" formControlName="codice_ente">
+                        <p *ngIf="f['codice_ente'].invalid && (f['codice_ente'].dirty || f['codice_ente'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['codice_ente'].errors && f['codice_ente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['codice_ente'].errors && f['codice_ente'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['codice_ente'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="codice_ente" context="ORGANIZATION"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="codice_ente" [value]="organizzazione.codice_ente || '-'">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="form-group codice_fiscale_soggetto">
+                      <label class="label-bold" for="codice_fiscale_soggetto">{{ 'APP.ORGANIZATIONS.LABEL.CodiceFiscaleSoggetto' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'codice_fiscale_soggetto'" *ngIf="_isNew || _isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_fiscale_soggetto')" type="text" name="codice_fiscale_soggetto" id="codice_fiscale_soggetto" formControlName="codice_fiscale_soggetto">
+                        <p *ngIf="f['codice_fiscale_soggetto'].invalid && (f['codice_fiscale_soggetto'].dirty || f['codice_fiscale_soggetto'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['codice_fiscale_soggetto'].errors && f['codice_fiscale_soggetto'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['codice_fiscale_soggetto'].errors && f['codice_fiscale_soggetto'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['codice_fiscale_soggetto'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="codice_fiscale_soggetto" context="ORGANIZATION"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="codice_fiscale_soggetto" [value]="organizzazione.codice_fiscale_soggetto || '-'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row id_tipo_utente id_soggetto_default">
+                  <div class="col-6">
+                    <div class="form-group id_tipo_utente">
+                      <label class="label-bold" for="id_tipo_utente">{{ 'APP.ORGANIZATIONS.LABEL.IdTipoUtente' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_tipo_utente'" *ngIf="_isNew || _isEdit"></span></label>
+                      <div class="" *ngIf="_isEdit">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_tipo_utente')" type="text" name="id_tipo_utente" id="id_tipo_utente" formControlName="id_tipo_utente">
+                        <p *ngIf="f['id_tipo_utente'].invalid && (f['id_tipo_utente'].dirty || f['id_tipo_utente'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['id_tipo_utente'].errors && f['id_tipo_utente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['id_tipo_utente'].errors && f['id_tipo_utente'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['id_tipo_utente'].errors['maxlength'].requiredLength } }}</span>
+                        </p>
+                        <ui-input-help field="id_tipo_utente" context="ORGANIZATION"></ui-input-help>
+                      </div>
+                      <div class="" *ngIf="!_isEdit">
+                        <input type="text" readonly class="form-control-plaintext" id="id_tipo_utente" [value]="organizzazione.id_tipo_utente || '-'">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-6" *ngIf="!_isNew && !_hideSoggettoDropdown">
+                    <label class="label-bold" for="id_soggetto_default">{{ 'APP.ORGANIZATIONS.LABEL.SoggettoDefault' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_default'" *ngIf="_isEdit"></span></label>
+                    <div class="form-group id_soggetto_default" *ngIf="_isEdit">
+                      <select class="form-select" id="id_soggetto_default" formControlName="id_soggetto_default" [class.gl-field-error-outline]="_hasControlError('id_soggetto_default')" (change)="_onChangeSoggetto($event)">
+                        <option *ngFor="let el of soggetti" [value]="el.id_soggetto">
+                          {{el.nome}}
+                        </option>
+                      </select>  
+                      <p *ngIf="f['id_soggetto_default'].invalid && (f['id_soggetto_default'].dirty || f['id_soggetto_default'].touched)" class="form-text text-danger">
+                        <span *ngIf="f['id_soggetto_default'].errors && f['id_soggetto_default'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      </p>
+                    </div>
+                    <div class="form-group" *ngIf="!_isEdit">
+                      <input type="text" readonly class="form-control-plaintext" id="id_soggetto_default" [value]="organizzazione.soggetto_default?.nome || '-'">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row referente aderente">
+                  <div class="col-6">
+                    <label class="label-bold" for="referente">{{ 'APP.ORGANIZATIONS.LABEL.Referente' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'" *ngIf="_isNew || _isEdit"></span></label>
+                    <div class="" *ngIf="_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="organizzazione?.referente" (click)="_toggleReferente()" [disabled]="organizzazione?.vincola_referente && organizzazione.referente">
+                        <p *ngIf="f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['referente'].errors && f['referente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div class="" *ngIf="!_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="organizzazione.referente" disabled>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <label class="label-bold" for="aderente">{{ 'APP.ORGANIZATIONS.LABEL.Aderente' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'aderente'" *ngIf="_isNew || _isEdit"></span></label>
+                    <div class="" *ngIf="_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="organizzazione?.aderente" (click)="_toggleAderente()" [disabled]="organizzazione?.vincola_aderente && organizzazione.aderente">
+                        <p *ngIf="f['aderente'].invalid && (f['aderente'].dirty || f['aderente'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['aderente'].errors && f['aderente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div class="" *ngIf="!_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="organizzazione.aderente" disabled>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row esterna">
+                  <div class="col-6">
+                    <label class="label-bold" for="esterna">{{ 'APP.ORGANIZATIONS.LABEL.Esterna' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'esterna'" *ngIf="_isNew || _isEdit"></span></label>
+                    <div class="" *ngIf="_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="esterna" [checked]="organizzazione?.esterna" (click)="_toggleEsterna()" [disabled]="!organizzazione?.cambio_esterna_consentito && !_isNew">
+                        <p *ngIf="f['esterna'].invalid && (f['esterna'].dirty || f['esterna'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['esterna'].errors && f['esterna'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div class="" *ngIf="!_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="esterna" [checked]="organizzazione.esterna" disabled>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
+              {{ _errorMsg }}
+            </div>
+
+            <div class="row-content-block footer-block" *ngIf="_isEdit">
+              <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                {{ 'APP.BUTTON.Save' | translate }}
+              </button>
+              <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                {{ 'APP.BUTTON.Cancel' | translate }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

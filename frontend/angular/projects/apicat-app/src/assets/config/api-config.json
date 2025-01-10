@@ -1,0 +1,91 @@
+{
+    "editSingleColumn": false,
+    "showAllAttachments": true,
+
+    "itemRow": {
+        "primaryText": [
+            { "field": "nome", "type": "text", "emptySpace": true }
+        ],
+        "secondaryText": [
+            { "field": "vers.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+            { "field": "versione", "type": "text" }
+        ],
+        "metadata": {
+            "text": [
+                { "field": "descrizione", "type": "text" }
+            ],
+            "label": []
+        },  
+        "secondaryMetadata": [
+            { "field": "tipo_profilo", "type": "tag", "options": "tipo_profilo", "badged": true, "emptySpace": true },
+            { "field": "protocollo", "type": "tag", "options": "protocollo", "badged": true, "emptySpace": true },
+            { "field": "protocollo_dettaglio", "type": "tag", "options": "protocollo", "badged": true }
+        ]
+    },
+
+    "itemRowView": {
+        "primaryText": [
+            { "field": "nome", "type": "text", "emptySpace": true },
+            { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+            { "field": "versione", "type": "text" }
+        ],
+        "secondaryText": [
+            { "field": "tipo_profilo", "type": "tag", "options": "tipo_profilo", "badged": true, "emptySpace": true },
+            { "field": "protocollo", "type": "tag", "options": "protocollo", "badged": true, "emptySpace": true },
+            { "field": "protocollo_dettaglio", "type": "tag", "options": "protocollo", "badged": true }
+        ],
+        "metadata": {
+            "text": [],
+            "label": []
+        },  
+        "secondaryMetadata": [],
+        "footer": [
+            { "field": "descrizione", "type": "text", "hideEmpty": true }
+        ]
+    },
+
+    "options": {
+        "protocollo": {
+            "label": "APP.LABEL.Protocollo",
+            "small": true,
+            "values": {
+                "soap": { "label": "APP.INTERFACE.soap", "background": "#638136", "border": "#638136", "color": "#ffffff" },
+                "soap_11": { "label": "APP.INTERFACE.soap_11", "background": "#b8e477", "border": "#b8e477", "color": "#1f1f1f" },
+                "soap_12": { "label": "APP.INTERFACE.soap_12", "background": "#d3edad", "border": "#d3edad", "color": "#1f1f1f" },
+                "wsdl_11": { "label": "APP.INTERFACE.wsdl_11", "background": "#d3edad", "border": "#d3edad", "color": "#1f1f1f" },
+                "wsdl_12": { "label": "APP.INTERFACE.wsdl_12", "background": "#d3edad", "border": "#d3edad", "color": "#1f1f1f" },
+                "rest": { "label": "APP.INTERFACE.rest", "background": "#1f5d91", "border": "#1f5d91", "color": "#ffffff" },
+                "swagger_2": { "label": "APP.INTERFACE.swagger_2", "background": "#5897cb", "border": "#5897cb", "color": "#ffffff" },
+                "openapi_3": { "label": "APP.INTERFACE.openapi_3", "background": "#d1edff", "border": "#d1edff", "color": "#1f1f1f" }
+            }
+        },
+
+        "visibility": {
+            "label": "APP.LABEL.Visibility",
+            "small": true,
+            "values": {
+                "pubblico": { "label": "APP.VISIBILITY.public", "background": "#a6d75b", "border": "#a6d75b", "color": "#1f1f1f" },
+                "private": { "label": "APP.VISIBILITY.private", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
+                "privato": { "label": "APP.VISIBILITY.privato", "background": "#f18701", "border": "#f18701", "color": "#ffffff" },
+                "riservato": { "label": "APP.VISIBILITY.riservato", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
+                "componente": { "label": "APP.VISIBILITY.componente", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" }
+            }
+        },
+
+        "tipo_profilo": {
+            "label": "APP.LABEL.TipoProfilo",
+            "small": true,
+            "values": {
+                "default": { "label": "APP.VISIBILITY.public", "background": "#f18701", "border": "#f18701", "color": "#ffffff" }
+            }
+        },
+
+        "versione_eservice_pdnd": {
+            "label": "PDND",
+            "small": true,
+            "values": {
+                "default": { "label": "v.1", "background": "#5897cb", "border": "#5897cb", "color": "#ffffff" }
+            }
+        }
+    }
+}

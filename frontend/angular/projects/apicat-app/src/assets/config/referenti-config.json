@@ -1,0 +1,37 @@
+{
+  "itemRow": {
+    "primaryText": [
+      { "field": "utente.nome", "type": "text", "emptySpace": true },
+      { "field": "utente.cognome", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "tipo", "type": "tag", "options": "type" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "utente.organizzazione.nome", "type": "text" }
+      ],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
+  "details": [
+    { "label": "APP.LABEL.Identificativo", "field": "utente.id_utente", "type": "text"},
+    { "label": "APP.LABEL.Organization", "field": "utente.organizzazione.nome", "type": "text" },
+    { "label": "APP.LABEL.cognome", "field": "utente.cognome", "type": "text" },
+    { "label": "APP.LABEL.nome", "field": "utente.nome", "type": "text" },
+    { "label": "APP.LABEL.email", "field": "utente.email", "type": "text" }
+  ],
+
+  "options": {
+    "type": {
+      "label": "APP.LABEL.Type",
+      "small": true,
+      "values": {
+        "referente": { "label": "APP.ROLE.referente", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_tecnico": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
+      }
+    }
+  }
+}

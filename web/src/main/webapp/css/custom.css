@@ -1,0 +1,92 @@
+* {
+	margin: 0px;
+	padding: 0px;
+}
+
+
+a {
+	color: #000000;
+	text-decoration: none;
+ }
+
+.bg-dark {
+    background-color: #0B5F91 !important;
+}
+
+a:hover, a:focus, a:active {
+		outline: none;
+		text-decoration: none;
+	 }
+
+.btn-backtotop {
+    color: #fff;
+    background-color: #0B5F91;
+	border-color: #0B5F91;
+}
+
+.btn-backtotop:not(:disabled):not(.disabled):active, .show>.btn-backtotop.dropdown-toggle {
+	filter: brightness(120%);
+    color: #fff;
+    background-color: #0062cc;
+    border-color: #005cbf;
+}
+
+.btn-backtotop.focus, .btn-backtotop:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.5);
+}
+
+.btn-backtotop:hover {
+	filter: brightness(120%);
+    color: #fff;
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+/* Select con ricerca */
+.combobox-list {
+	position: absolute;
+    top: 0;
+    left: 0;
+    border: 1px solid #ced4da;
+    font-weight: normal;
+    padding: 0;
+    background-color: #ffffff;
+    overflow: auto;
+    overflow-x: hidden;
+	box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.2);
+	height: 200px;
+	line-height: 1,5;
+}
+
+.combobox-item{
+	white-space: nowrap;
+    display: block;
+    font-size: 1rem;
+    padding: 4px;
+    cursor: pointer;
+    background-color: #ffffff;
+    color: #212529;
+    font-size: 14px;
+    z-index: 10;
+}
+
+/*when hovering an item:*/
+.combobox-item:hover {
+	background-color: #4A90D9;
+	color: 	 #ffffff;
+}
+
+/*when navigating through the items using the arrow keys:*/
+.combobox-item-selected {
+	background-color: #4A90D9 !important;
+	color: 	 #ffffff;
+}
+
+.combobox-overlay-focus {
+    color: #212529;
+    background-color: #fff;
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
+    border-radius: 0.25rem;
+}

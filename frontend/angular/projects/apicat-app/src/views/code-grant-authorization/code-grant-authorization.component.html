@@ -1,0 +1,37 @@
+<div class="app-body">
+    <main class="main d-flex align-items-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <div class="card-group">
+                        <div class="card px-4 pt-0 pb-4">
+                            <div class="card-body">
+                                <div class="text-center mb-4">
+                                    <div class="pt-5 pb-5">
+                                        <img [src]="logo" style="width: 260px;">
+                                    </div>
+                                </div>
+                                <div class="text-center mb-5">
+                                    <h2>{{ 'APP.AUTHENTICATION.TITLE.CodeGrantAuthorization' | translate }}</h2>
+                                    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="spin"></ui-box-spinner>
+                                    <h5 class="text-muted">
+                                        {{ 'APP.AUTHENTICATION.MESSAGE.SendingData' | translate }}
+                                    </h5>
+                                    <p class="text-muted" *ngIf="debug">
+                                        {{ data | json }}
+                                    </p>
+                                </div>
+
+                                <div class="text-center mt-5">
+                                    <button type="button" class="btn btn-primary" (click)="sendPostMessage()">
+                                        <span>{{ 'APP.AUTHENTICATION.BUTTON.ResendData' | translate }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>

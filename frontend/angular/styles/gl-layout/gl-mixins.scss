@@ -1,0 +1,142 @@
+@import 'gp-variables';
+
+@mixin str-truncated($max-width: 82%) {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+  max-width: $max-width;
+}
+
+@mixin gp-fluid-font-size($min, $max) {
+  @include gp-responsive-property('font-size', $min, $max);
+}
+
+@mixin gp-fluid-line-height($min, $max) {
+  @include gp-responsive-property('line-height', $min, $max);
+}
+
+/**
+* Declares a property with a fluid value that decreases or
+* rises depending on the viewport’s size. The property type
+* should be numeric.
+*
+* Values are expected in rem units.
+*
+* @param $property Property name, i.e. line-height, font-size, width, height, etc.
+* @param $property-min Property value lower bound.
+* @param $property-max Property value upper bound.
+*/
+@mixin gp-responsive-property(
+  $property,
+  $property-min,
+  $property-max,
+  $breakpoint-min: $breakpoint-md,
+  $breakpoint-max: $breakpoint-xl
+) {
+  $property-range: ($property-max - $property-min) / 1rem;
+  $breakpoint-range: px-to-rem($breakpoint-max - $breakpoint-min) / 1rem;
+
+  @media (min-width: $breakpoint-min) {
+    #{$property}: calc(
+      #{$property-min} + #{$property-range} * ((100vw - #{$breakpoint-min}) / #{$breakpoint-range})
+    );
+  }
+
+  @media (min-width: $breakpoint-max) {
+    #{$property}: $property-max;
+  }
+}
+
+/**
+* Helper function for :focus
+*
+* @param $size is deprecated and should not be used anymore
+*/
+@mixin gp-focus(
+  $size: null,
+  $color: false,
+  $important: false,
+  $inset: false,
+  $focus-ring: $focus-ring,
+  $outline: false,
+  $outline-offset: $outline-offset
+) {
+  @if $inset == true {
+    @if $color {
+      box-shadow: inset 0 0 0 $outline-width $blue-400,
+        inset 0 0 0 #{$outline-width + $outline-offset} $white,
+        inset 0 0 0 #{$outline-width + $outline-offset + 1px} $color,
+        $focus-ring-inset if-important($important);
+      outline: none if-important($important);
+    } @else if $outline == true {
+      outline: $focus-ring-outline if-important($important);
+      outline-offset: $outline-offset;
+    } @else {
+      box-shadow: inset 0 0 0 $outline-width $blue-400, $focus-ring-inset if-important($important);
+      outline: none if-important($important);
+    }
+  } @else if $color {
+    box-shadow: inset 0 0 0 $gp-border-size-1 $color, $focus-ring if-important($important);
+    outline: none if-important($important);
+  } @else if $outline == true {
+    outline: $focus-ring-outline if-important($important);
+    outline-offset: $outline-offset;
+  } @else {
+    box-shadow: $focus-ring if-important($important);
+    outline: none if-important($important);
+  }
+}
+
+@mixin gp-bg-gradient-blur($direction, $color) {
+  background-image: linear-gradient(to $direction, $transparent-rgba, $color 33%);
+}
+
+/**
+* Helper function for @media of at least the minimum
+* breakpoint width.
+*
+* @param $name Breakpoint name, such as `sm` or `md`.
+*/
+@mixin gp-media-breakpoint-up($name) {
+  $min: map-get($breakpoints, $name);
+  @if $min == null {
+    @error "#{$name} is not a valid breakpoint for this @media query.";
+  }
+  @if $min != 0 {
+    @media (min-width: $min) {
+      @content;
+    }
+  } @else {
+    @content;
+  }
+}
+
+/**
+* Helper function for @media of at most the maximum
+* breakpoint width.
+*
+* Note: Before using, consider using a mobile-first
+* approach, and define @media for larger breakpoints
+* using `gp-media-breakpoint-up` while using this rule as
+* the starting point instead.
+*
+* @param $name Breakpoint, such as `sm` or `md`. `xs` is not valid
+*/
+@mixin gp-media-breakpoint-down($name) {
+  $max: map-get($breakpoints, $name);
+  @if ($max == null or $max == 0) {
+    @error "#{$name} is not a valid breakpoint for this @media query.";
+  }
+  // The maximum value is reduced by 0.02px to work around the limitations of
+  // `min-` and `max-` prefixes and with fractional viewport sizes.
+  // See: https://www.w3.org/TR/mediaqueries-4/#mq-min-max
+  // Use 0.02px rather than 0.01px to work around a current rounding bug in Safari.
+  // See https://bugs.webkit.org/show_bug.cgi?id=178261
+  $breakpoint-max-range-precision: 0.02px;
+
+  @media (max-width: ($max - $breakpoint-max-range-precision)) {
+    @content;
+  }
+}

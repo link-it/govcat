@@ -1,0 +1,42 @@
+<nav class="breadcrumbs container-fluid {{ classContainer }} px-0" *ngIf="breadcrumbs.length > 0">
+  <div class="breadcrumbs-container">
+    <button name="button" type="button" class="toggle-mobile-nav" (click)="_onOpenSidebar()">
+      <span class="sr-only">Open sidebar</span>
+      <span class="material-icons-outlined">view_sidebar</span>
+    </button>
+    <div class="breadcrumbs-links">
+      <ul class="list-unstyled breadcrumbs-list">
+        <ng-container *ngFor="let item of breadcrumbs;let last = last;">
+          <li class="d-flex align-self-center" *ngIf="item.type == 'title'">
+            <a class="d-flex align-self-center" [class]="{ 'text-decoration-none': item.url === '', 'cursor-default': item.url === '' }" [tooltip]="item.tooltip || '' | translate" container="body">
+              <span class="avatar-tile" *ngIf="item.icon">
+                <span class="material-icons-outlined">{{ item.icon }}</span>
+              </span>
+              <span class="avatar-tile" *ngIf="item.iconBs">
+                <i class="bi bi-{{ item.iconBs }}"></i>
+              </span>
+              {{ item.label | translate }}
+            </a>
+            <span class="breadcrumbs-list-angle" *ngIf="!last">
+              <span class="material-icons-outlined">keyboard_arrow_right</span>
+            </span>
+          </li>
+          <li class="d-flex align-self-center" *ngIf="item.type == 'link'">
+            <a class="group-path breadcrumb-item-text d-flex align-self-center" [class]="{ 'text-decoration-none': item.url === '', 'cursor-default': item.url === '' }" (click)="_onClick(item)" [tooltip]="item.tooltip || '' | translate" container="body">
+              <span class="avatar-tile" *ngIf="item.icon">
+                <span class="material-icons-outlined">{{ item.icon }}</span>
+              </span>
+              <span class="avatar-tile" *ngIf="item.iconBs">
+                <i class="bi bi-{{ item.iconBs }}"></i>
+              </span>
+              <span>{{ item.label | translate }}</span>
+            </a>
+            <span class="breadcrumbs-list-angle" *ngIf="!last">
+              <span class="material-icons-outlined fs-5">keyboard_arrow_right</span>
+            </span>
+          </li>
+        </ng-container>
+      </ul>
+    </div>
+  </div>
+</nav>

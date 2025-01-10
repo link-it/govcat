@@ -1,0 +1,18 @@
+<div class="box-message-container" *ngIf="!image">
+  <span class="material-icons-outlined" [ngStyle]="{'height': sizePx, 'width': sizePx, 'font-size': sizePx }">{{ icon }}</span>
+  <span class="mt-3">{{ message }}</span>
+</div>
+
+<section class="d-flex flex-column text-center empty-state-" *ngIf="image">
+  <div class="max-w-100">
+    <div class="svg-250 svg-content">
+      <img [src]="image" alt="" role="img" class="w-100" *ngIf="image">
+    </div>
+  </div>
+  <div class="max-w-100 m-auto">
+    <div class="mx-auto my-0 p-3">
+      <h1 class="font-size-h-display line-height-36 h4">{{ message }}</h1>
+      <p class="mt-3">{{ subMessage }}</p>
+    </div>
+  </div>
+</section>

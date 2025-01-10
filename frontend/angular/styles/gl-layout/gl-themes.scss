@@ -1,0 +1,44 @@
+// ui-link
+
+body.ui-linkit .nav-sidebar .fly-out-top-item .fly-out-top-item-container,
+body.ui-linkit .nav-sidebar .fly-out-top-item a,
+body.ui-linkit .nav-sidebar .fly-out-top-item a:hover,
+body.ui-linkit .nav-sidebar .fly-out-top-item.active a {
+  background-color: var(--fly-out-back-top, #f0f0f0);
+  color: var(--fly-out-color-top, #303030);
+}
+
+body.ui-linkit .navbar-gitlab {
+  background-color: var(--header-back-color, #0071A9);
+}
+
+body.ui-linkit .btn:first-child:focus,
+body.ui-linkit .btn:focus {
+  color: var(--bs-btn-active-color);
+  background-color: var(--bs-btn-active-bg);
+  border-color: var(--bs-btn-active-border-color);
+}
+
+body.ui-linkit .navbar-sidebar .nav > li.active > a,
+body.ui-linkit .navbar-sidebar .nav > li.dropdown.show > a {
+  color: #292961;
+  background-color: #fff;
+}
+
+// ui-indigo
+body.ui-indigo .nav-sidebar .fly-out-top-item .fly-out-top-item-container,
+body.ui-indigo .nav-sidebar .fly-out-top-item a,
+body.ui-indigo .nav-sidebar .fly-out-top-item a:hover,
+body.ui-indigo .nav-sidebar .fly-out-top-item.active a {
+  background-color: var(--fly-out-back-top, #f0f0f0);
+  color: var(--fly-out-color-top, #303030);
+}
+
+body.ui-indigo .navbar-gitlab {
+  background-color: #292961;
+}
+
+.gl-button.gl-button.btn-block.btn-confirm:focus,
+.gl-button.gl-button.btn-confirm:focus {
+  color: var(--bs-btn-active-color, #ffffff);
+}

@@ -1,0 +1,15 @@
+<div class="modal-header">
+  <h5 class="modal-title">{{ title | translate }}</h5>
+  <button type="button" class="close" (click)="closeModal()" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body px-3 px-3">
+  <div class="container px-0">
+    <div class="h-100" [innerHtml]="contentHtml | safeHtml"></div>
+  </div>
+</div>
+<div class="modal-footer">
+  <!-- <button type="button" class="btn gl-button btn-default btn-sm-" (click)="closeModal()">{{ cancelText | translate }}</button> -->
+  <button type="button" class="btn gl-button btn-{{ confirmColor }} btn-sm-" (click)="closeModal(true)">{{ confirmText | translate }}</button>
+</div>

@@ -1,0 +1,18 @@
+<button class="btn btn-{{ size }} {{ otherClass }}" [tooltip]="btnTooltip | translate"
+  [type]="type"
+  [class.btn-default]="!primary"
+  [class.btn-confirm]="primary"
+  [class.gl-button]="!tertiary"
+  [class.gl-tertiary]="tertiary"
+  [class.btn-icon]="onlyIcon"
+  [attr.aria-label]="ariaLabel | translate"
+  [disabled]="disabled"
+  (click)="_onClick()">
+    <ng-container *ngIf="spinner">
+      <span class="spinner-border spinner-border-sm" [class.me-2]="!onlySpinner"></span>
+    </ng-container>
+    <ng-container *ngIf="!onlySpinner">
+      <i class="{{ icon }}" *ngIf="icon"></i>
+      <span class="" [class.ms-1]="icon" *ngIf="label">{{ label | translate }}</span>
+    </ng-container>
+</button>

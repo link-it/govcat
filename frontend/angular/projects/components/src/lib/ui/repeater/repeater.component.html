@@ -1,0 +1,21 @@
+<div class="w-100" *ngFor="let rpt of _data; let i = index">
+  <div class="w-100 align-items-center d-flex justify-between align-items-center mb-3 px-3 pt-3 text-bg-light">
+    <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: rpt }"></ng-container>
+    <div role="button" *ngIf="edit"
+      [class]="(disabled || rpt[actionPropertyDisabled])?_class + ' disabled':_class"
+      [tabindex]="(i + 1)"
+      (click)="__remove($event, rpt, i)" (keyup)="__onKeyRemove($event, rpt, i)">
+      <span class="bi bi-trash text-danger"></span>
+    </div>
+  </div>
+</div>
+<ng-content select="[trigger]" *ngIf="!disabled"></ng-content>
+<div class="w-100 align-items-center d-flex justify-between align-items-center mb-3 px-3 pt-3 border" *ngIf="trigger && !disabled && edit">
+  <ng-content select="[manual-trigger]"></ng-content>
+  <div role="button" tabindex="0"
+    [class]="(disableTrigger)?_class + ' disabled':_class"
+    (click)="__add($event)"
+    (keyup)="__onKeyAdd($event)">
+    <span class="bi bi-plus-lg"></span>
+  </div>
+</div>

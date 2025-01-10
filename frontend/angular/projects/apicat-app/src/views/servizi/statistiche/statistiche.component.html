@@ -1,0 +1,561 @@
+<div id="route-section" class="">
+  <div class="container-fluid top-area px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      <!-- <div class="position-relative" *ngIf="service">
+        <app-back-web [service_id]="service.id_servizio"></app-back-web>
+      </div> -->
+    </div>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
+              <span>{{ 'APP.FILTER.Testing' | translate }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()">
+              <span>{{ 'APP.FILTER.Production' | translate }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="nav-control align-self-center d-flex">
+      <div role="group" class="btn-group-">
+        <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();">
+          <i class="bi bi-funnel-fill" *ngIf="_showFilter"></i>
+          <i class="bi bi-funnel" *ngIf="!_showFilter"></i>
+        </button>
+      </div>
+      <div role="group" class="btn-group- ms-2">
+        <div class="dropdown b-dropdown gl-new-dropdown btn-group">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary- dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
+            <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
+          </button>
+          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+            <div class="gl-new-dropdown-inner">
+              <div class="gl-new-dropdown-contents">
+                <li class="gl-new-dropdown-item" *ngFor="let item of exportList">
+                  <button *ngIf="tipoGrafico !== 'table' || item.action !== 'export-png'" role="menuitem" type="button" class="dropdown-item" (click)="onExport(item)">
+                    <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="item.icon">
+                      <i class="bi bi-{{ item.icon }}"></i>
+                    </div>
+                    <div class="gl-new-dropdown-item-text-wrapper">
+                      <p class="gl-new-dropdown-item-text-primary">{{ item.label | translate }}</p>
+                    </div>
+                  </button>
+                </li>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+      <div role="group" class="btn-group- ms-1">
+        <div class="dropdown b-dropdown gl-new-dropdown btn-group">
+          <button [disabled]="!colorSchemeChangeEnabled" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="themes">
+            <i class="bi bi-palette"></i> <span class="ms-2">{{ 'Color Scheme' }}</span>
+          </button>
+          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
+            <div class="gl-new-dropdown-inner">
+              <div class="gl-new-dropdown-contents">
+                <li role="presentation" class="gl-new-dropdown-item" *ngFor="let item of colorSets">
+                  <button role="menuitem" type="button" class="dropdown-item" (click)="setColorScheme(item.name)">
+                    <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                      <i class="bi bi-check2" *ngIf="selectedColorScheme == item.name"></i>
+                    </div>
+                    <div class="gl-new-dropdown-item-text-wrapper">
+                      <p class="gl-new-dropdown-item-text-primary">{{ item.name }}</p>
+                    </div>
+                  </button>
+                </li>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="container-fluid px-0 pt-0">
+
+    <div class="settings-">
+      <div class="settings-content-">
+
+        <div id="main">
+
+          <div class="container-fluid">
+            <div class="layout-container d-flex flex-row">
+              <div class="sidebar d-flex sticky-top" [class.closed]="!_showFilter">
+                <div class="ms-1 mt-4">
+
+                  <div class="mb-5">
+                    <h5 class="">{{ 'APP.TITLE.Filter' | translate }}</h5>
+                  </div>
+
+                  <div class="filter-form">
+                    <form novalidate class="filter-form mt-3 gl-show-field-errors" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="api">{{ 'APP.LABEL.Api' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'api'"></span>
+                            </label>
+                            <ng-select
+                              [items]="apis"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="api"
+                              formControlName="api">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.nome }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.nome }}</div>
+                                <div class="">
+                                  <span class="small text-muted">{{ item.descrizione_sintetica }}</span>
+                                </div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('api')?.dirty || _formGroup.get('api')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('api')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row" *ngIf="canShowAdesioneAdherentSubject()">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="adesione">{{ 'APP.LABEL.Adesione' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'adesione'"></span>
+                            </label>
+                            <ng-select
+                              [items]="adhesions"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="adesione"
+                              [editableSearchTerm]="true"
+                              formControlName="adesione">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.soggetto.nome }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.soggetto.nome }}</div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('adesione')?.dirty || _formGroup.get('adesione')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('adesione')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="distribution_type">{{ 'APP.LABEL.DistributionType' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'distribution_type'"></span>
+                            </label>
+                            <ng-select 
+                              [items]="distributionTypes"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="distribution_type"
+                              formControlName="distribution_type">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.label }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold text-wrap">{{ item.label }}</div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('distribution_type')?.dirty || _formGroup.get('distribution_type')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('distribution_type')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold">{{ 'APP.LABEL.ReportType' | translate }}</label>
+                            <div class="text-center">
+                              <div class="btn-group w-100" role="group" aria-label="Chart type">
+                                <button *ngIf="_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('line')" [class.btn-confirm]="tipoGrafico === 'line'"><i class="bi bi-graph-up"></i></button>
+                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('bar')" [class.btn-confirm]="tipoGrafico === 'bar'"><i class="bi bi-bar-chart"></i></button>
+                                <button *ngIf="!_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('pie')" [class.btn-confirm]="tipoGrafico === 'pie'"><i class="bi bi-pie-chart"></i></button>
+                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('table')" [class.btn-confirm]="tipoGrafico === 'table'"><i class="bi bi-table"></i></button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="report_information_type">{{ 'APP.LABEL.ReportTypeInformations' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_information_type'"></span>
+                            </label>
+                              <ng-select 
+                              [items]="reportTypeInformations"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="report_information_type"
+                              bindValue="value"
+                              formControlName="report_information_type">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.label }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.label }}</div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('report_information_type')?.dirty || _formGroup.get('report_information_type')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('report_information_type')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row" *ngIf="_formGroup.get('distribution_type')?.value?.trendReport">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="report_time_interval">{{ 'APP.LABEL.ReportTimeInterval' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_time_interval'"></span>
+                            </label>
+                            <ng-select 
+                              [items]="reportTimeIntervals"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="report_time_interval"
+                              bindValue="value"
+                              formControlName="report_time_interval">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.label }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.label }}</div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('report_time_interval')?.dirty || _formGroup.get('report_time_interval')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('report_time_interval')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="report_date_from">{{ 'APP.LABEL.DateFrom' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_date_from'"></span>
+                            </label>
+                            <input #dpFrom="bsDatepicker" bsDatepicker [bsConfig]="bsDatepickerConfig" [maxDate]="_formGroup.get('report_date_to')?.value" class="form-control form-control-sm" id="report_date_from" type="text" formControlName="report_date_from" autocomplete="off" placeholder="{{bsDatepickerConfig.dateInputFormat}}">
+                            <p *ngIf="_formGroup.get('report_date_from')?.dirty || _formGroup.get('report_date_from')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('report_date_from')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-12"> 
+                          <div class="form-group">
+                            <label class="label-bold" for="report_date_to">{{ 'APP.LABEL.DateTo' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_date_to'"></span>
+                            </label>
+                            <input #dpTo="bsDatepicker" bsDatepicker [bsConfig]="bsDatepickerConfig" [minDate]="_formGroup.get('report_date_from')?.value" [maxDate]="maxDate" class="form-control form-control-sm" id="report_date_to" type="text" formControlName="report_date_to" autocomplete="off" placeholder="{{bsDatepickerConfig.dateInputFormat}}">
+                            <p *ngIf="_formGroup.get('report_date_to')?.dirty || _formGroup.get('report_date_to')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('report_date_to')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row" *ngIf="canShowAdesioneSubjectDomain()">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="adesione">{{ 'APP.LABEL.Adesione' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'adesione'"></span>
+                            </label>
+                            <ng-select
+                              [items]="adhesions"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="adesione"
+                              [editableSearchTerm]="true"
+                              formControlName="adesione">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.soggetto.nome }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.soggetto.nome }}</div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('adesione')?.dirty || _formGroup.get('adesione')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('adesione')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="report_transaction_outcome_type">{{ 'APP.LABEL.ReportTransactionOutcome' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_transaction_outcome_type'"></span>
+                            </label>
+                            <ng-select 
+                              [items]="transactionOutcomes"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="report_transaction_outcome_type"
+                              bindValue="value"
+                              formControlName="report_transaction_outcome_type">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.label }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.label }}</div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('report_transaction_outcome_type')?.dirty || _formGroup.get('report_transaction_outcome_type')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('report_transaction_outcome_type')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row" *ngIf="_formGroup.get('report_transaction_outcome_codes')?.enabled">
+                        <div class="col-12">
+                          <div class="form-group">
+                            <label class="label-bold" for="report_transaction_outcome_codes">{{ 'APP.LABEL.ReportTransactionDetailedOutcome' | translate }}
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_transaction_outcome_codes'"></span>
+                            </label>
+                              <ng-select 
+                              [items]="transactionDetailedOutcomes"
+                              [multiple]="true"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              labelForId="report_transaction_outcome_codes"
+                              bindValue="value"
+                              formControlName="report_transaction_outcome_codes">
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.label }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.label }}</div>
+                              </ng-template>
+                            </ng-select>
+                            <p *ngIf="_formGroup.get('report_transaction_outcome_codes')?.dirty || _formGroup.get('report_transaction_outcome_codes')?.touched" class="form-text text-danger">
+                              <span *ngIf="_formGroup.get('report_transaction_outcome_codes')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button type="submit" class="btn btn-confirm btn-md gl-button btn-icon mt-3 w-100" [disabled]="!_formGroup.valid">{{'APP.BUTTON.Generate' | translate}}</button>
+
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <div class="content-chart main flex-grow-1 mb-5" [class.border-start]="_showFilter" #captureGraphArea>
+
+                <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+                <div class="gl-alert gl-alert-danger mt-4 mb-5" *ngIf="_error">
+                  {{ _errorMsg }}
+                </div>
+                
+                <div class="content-charts px-4" *ngIf="!_spin">
+                  <div class="d-flex justify-content-center" *ngIf="(!single || single.length < 1) && (!multi || multi.length < 1)">
+                    <div class="px-3 py-1 w-100">
+                      <ui-box-message
+                        [size]="64"
+                        [icon]="'report_problem'"
+                        [image]="'./assets/images/illustrations/'+model+'.svg'"
+                        [message]="_message | translate"
+                        [subMessage]="_messageHelp | translate">
+                      </ui-box-message>
+                    </div>
+                  </div>
+
+                  <div class="text-center mt-5" *ngIf="single.length > 0 || multi.length > 0">
+                    <h1 class="font-size-h-display line-height-36">{{ _formGroup.get('distribution_type')?.value.label }}</h1>
+                    <p class="mt-3">{{'APP.LABEL.' + _formGroup.get('report_information_type')?.value | translate}} (dal {{_formGroup.get('report_date_from')?.value | date: 'dd.MM.yyyy'}} al {{_formGroup.get('report_date_to')?.value | date: 'dd.MM.yyyy'}})</p>
+                  </div>
+
+                  <div class="d-flex justify-content-center pie-chart" *ngIf="tipoGrafico === 'pie' && single.length > 0">
+                    <div class="px-3 py-1 w-100" style="height: 500px;">
+                      <ngx-charts-pie-chart
+                        #pieChart
+                        [view]="view"
+                        [results]="single" 
+                        [scheme]="colorSchemeResolved"
+                        [schemeType]="chartOptions.schemeType"
+                        [animations]="chartOptions.animations"
+                        [labels]="chartOptions.labels"
+                        [legend]="chartOptions.showLegend">
+                      </ngx-charts-pie-chart>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-center mt-5 mb-5 line-chart" *ngIf="tipoGrafico === 'line' && multi.length > 0">
+                    <div class="px-3 py-1 w-100 mb-5" style="height: 500px;">
+                      <ngx-charts-line-chart
+                        #lineChart
+                        [view]="chartOptions.view"
+                        [scheme]="colorSchemeResolved"
+                        [schemeType]="chartOptions.schemeType"
+                        [customColors]="chartOptions.customColors"
+                        [results]="multi"
+                        [timeline]="true"
+                        [animations]="chartOptions.animations"
+                        [gradient]="chartOptions.gradient"
+                        [xAxis]="chartOptions.showXAxis"
+                        [yAxis]="chartOptions.showYAxis"
+                        [legend]="chartOptions.showLegend"
+                        [legendTitle]="chartOptions.legendTitle"
+                        [legendPosition]="chartOptions.legendPosition"
+                        [showXAxisLabel]="chartOptions.showXAxisLabel"
+                        [showYAxisLabel]="chartOptions.showYAxisLabel"
+                        [tooltipDisabled]="chartOptions.tooltipDisabled"
+                        [xAxisLabel]="chartOptions.xAxisLabel"
+                        [yAxisLabel]="chartOptions.yAxisLabel"
+                        [showGridLines]="chartOptions.showGridLines"
+                        [barPadding]="chartOptions.barPadding"
+                        [roundDomains]="chartOptions.roundDomains"
+                        [trimXAxisTicks]="chartOptions.trimXAxisTicks"
+                        [trimYAxisTicks]="chartOptions.trimYAxisTicks"
+                        [rotateXAxisTicks]="chartOptions.rotateXAxisTicks"
+                        [maxXAxisTickLength]="chartOptions.maxXAxisTickLength"
+                        [maxYAxisTickLength]="chartOptions.maxYAxisTickLength"
+                        (select)="onSelect($event)"
+                        (activate)="onSelect($event)"
+                        (deactivate)="onSelect($event)">
+                      </ngx-charts-line-chart>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-center mt-5 mb-5 bar-vertical" *ngIf="tipoGrafico === 'bar' && single.length > 0 && multi.length < 1">
+                    <div class="px-3 py-1 w-100 mb-5" style="height: 500px;">
+                      <ngx-charts-bar-vertical
+                        #verticalBarChart
+                        [view]="view"
+                        [scheme]="colorSchemeResolved"
+                        [schemeType]="chartOptions.schemeType"
+                        [customColors]="chartOptions.customColors"
+                        [results]="single"
+                        [animations]="chartOptions.animations"
+                        [gradient]="chartOptions.gradient"
+                        [xAxis]="chartOptions.showXAxis"
+                        [yAxis]="chartOptions.showYAxis"
+                        [legend]="chartOptions.showLegend"
+                        [legendTitle]="chartOptions.legendTitle"
+                        [legendPosition]="chartOptions.legendPosition"
+                        [showXAxisLabel]="chartOptions.showXAxisLabel"
+                        [showYAxisLabel]="chartOptions.showYAxisLabel"
+                        [tooltipDisabled]="chartOptions.tooltipDisabled"
+                        [xAxisLabel]="chartOptions.xAxisLabel"
+                        [yAxisLabel]="chartOptions.yAxisLabel"
+                        [showGridLines]="chartOptions.showGridLines"
+                        [barPadding]="chartOptions.barPadding"
+                        [roundDomains]="chartOptions.roundDomains"
+                        [trimXAxisTicks]="chartOptions.trimXAxisTicks"
+                        [trimYAxisTicks]="chartOptions.trimYAxisTicks"
+                        [rotateXAxisTicks]="chartOptions.rotateXAxisTicks"
+                        [maxXAxisTickLength]="chartOptions.maxXAxisTickLength"
+                        [maxYAxisTickLength]="chartOptions.maxYAxisTickLength"
+                        (select)="onSelect($event)"
+                        (activate)="onSelect($event)"
+                        (deactivate)="onSelect($event)"
+                        (window:resize)="onResize($event)">
+                      </ngx-charts-bar-vertical>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-center mt-5 mb-5 bar-vertical-2d" *ngIf="tipoGrafico === 'bar' && multi.length > 0">
+                    <div class="mt-5 px-3 py-1 w-100" style="height: 500px;">
+                      <ngx-charts-bar-vertical-2d
+                        #verticalBarChart2D
+                        [view]="view"
+                        [scheme]="colorSchemeResolved"
+                        [schemeType]="schemeType"
+                        [results]="multi_bar_chart"
+                        [animations]="animations"
+                        [gradient]="gradient"
+                        [xAxis]="showXAxis"
+                        [yAxis]="showYAxis"
+                        [legend]="showLegend"
+                        [legendTitle]="legendTitle"
+                        [legendPosition]="chartOptions.legendPosition"
+                        [showXAxisLabel]="showXAxisLabel"
+                        [showYAxisLabel]="showYAxisLabel"
+                        [tooltipDisabled]="tooltipDisabled"
+                        [showGridLines]="showGridLines"
+                        [barPadding]="barPadding"
+                        [groupPadding]="groupPadding"
+                        [roundDomains]="roundDomains"
+                        [roundEdges]="roundEdges"
+                        [yScaleMax]="yScaleMax"
+                        [noBarWhenZero]="noBarWhenZero"
+                        [showDataLabel]="showDataLabel"
+                        [trimXAxisTicks]="trimXAxisTicks"
+                        [trimYAxisTicks]="trimYAxisTicks"
+                        [rotateXAxisTicks]="rotateXAxisTicks"
+                        [maxXAxisTickLength]="maxXAxisTickLength"
+                        [maxYAxisTickLength]="maxYAxisTickLength"
+                        (select)="onSelect($event)"
+                        (activate)="onSelect($event)"
+                        (deactivate)="onSelect($event)">
+                      </ngx-charts-bar-vertical-2d>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 mb-5 table" *ngIf="tipoGrafico === 'table' && single.length > 0 && multi.length < 1">
+                    <div class="w-100">
+                      <table class="table table-sm table-bordered table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th scope="col">{{_formGroup.get('distribution_type')?.value.tableFirstColumnLabel}}</th>
+                            <th scope="col">Value</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let row of single">
+                            <th scope="row">{{row.name}}</th>
+                            <td>{{row.value}}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="mt-5 mb-5 table" *ngIf="tipoGrafico === 'table' && multi.length > 0">
+                    <div class="w-100">
+                      <table class="table table-sm table-bordered table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th scope="col">{{_formGroup.get('distribution_type')?.value.tableFirstColumnLabel}}</th>
+                            <th scope="col" *ngFor="let column of multi">{{column.name}}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let row of multi_table_rows">
+                            <th scope="row">{{row.name}}</th>
+                            <td *ngFor="let column of multi">{{row[column.name]}}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
