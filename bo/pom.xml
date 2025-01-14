@@ -23,7 +23,7 @@
 		<warName_batch_configurazioni>govcat-batch-configurazioni</warName_batch_configurazioni>
 
 		<karate.version>0.9.4</karate.version>
-		<logback.version>1.2.3</logback.version>
+		<logback.version>1.2.13</logback.version>
 
 		<!-- javax.mail -->
 		<javax.mail.version>1.6.2</javax.mail.version>
