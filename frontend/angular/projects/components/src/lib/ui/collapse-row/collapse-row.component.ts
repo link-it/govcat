@@ -50,6 +50,7 @@ export class CollapseRowComponent extends CdkAccordionItem implements OnInit {
   private _transition: boolean = false;
   @Input('data') _data: any = null;
   @Input('config') _config: any = null;
+  @Input() configRow: string = 'itemRow';
   @Input() actionDisabled: boolean = false;
   @Input() enableCollapse: boolean = false;
   @Input() hoverFeedback: boolean = true;
@@ -73,7 +74,7 @@ export class CollapseRowComponent extends CdkAccordionItem implements OnInit {
   ngOnInit() {
     document.documentElement.style.setProperty('--collapse-item-background-color', this.hostBackground);
 
-    this._itemRowConfig = this._config.itemRow || this._config.simpleItem;
+    this._itemRowConfig = this._config ? this._config[this.configRow] || this._config.itemRow || this._config.simpleItem : null;
   }
 
   __toggle(event: any, activeItem: any) {

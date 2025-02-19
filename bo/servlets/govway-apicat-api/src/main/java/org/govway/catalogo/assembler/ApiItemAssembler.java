@@ -22,6 +22,7 @@ package org.govway.catalogo.assembler;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -60,6 +61,7 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 		BeanUtils.copyProperties(entity, dettaglio);
 
 		dettaglio.setIdApi(UUID.fromString(entity.getIdApi()));
+		dettaglio.setDescrizione(Optional.ofNullable(entity.getDescrizione()).map(d -> new String(d)).orElse(null));
 
 		if(entity.getCollaudo()!= null) {
 			dettaglio.setConfigurazioneCollaudo(this.apiEngineAssembler.toConfigurazione(entity.getCollaudo()));
@@ -87,7 +89,7 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 				
 
 			g.setProfilo(authType.getProfilo());
-			g.setResources(Arrays.asList(authType.getResources().split(SEPARATOR)));
+			g.setResources(Arrays.asList(new String(authType.getResources()).split(SEPARATOR)));
 			
 			dettaglio.addGruppiAuthTypeItem(g);
 		}

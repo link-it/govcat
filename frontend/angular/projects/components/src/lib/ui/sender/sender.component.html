@@ -16,7 +16,7 @@
       </button>
     </div>
     <div class="chips-list d-flex flex-wrap align-items-center">
-      <div class="chip d-flex align-items-center" *ngFor="let _allegato of _allegati; let i= index">
+      <div class="chip bg-light d-flex align-items-center" *ngFor="let _allegato of _allegati; let i= index">
         <i class="bi bi-file-earmark"></i>
         <div class="chip-name">{{ _allegato.file }}</div>
         <span class="btn btn-default btn-sm btn-icon" (click)="__chipClick(i)"><i class="bi bi-x-lg"></i></span>

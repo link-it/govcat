@@ -26,7 +26,7 @@ import { navItemsMainMenu, navItemsAdministratorMenu, navNotificationsMenu } fro
 
 import { environment } from '@app/environments/environment';
 
-import { Observable } from 'rxjs/internal/Observable';
+import { Observable, of, firstValueFrom } from 'rxjs';
 import { filter, tap } from 'rxjs/operators';
 
 import * as _ from 'lodash';
@@ -144,6 +144,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     ) {
         this.localStorageService.setItem('PROFILE', false);
 
+        console.log('Configurazione Remota gl-layout', Tools.Configurazione);
+
         this._config = this.configService.getConfiguration();
         this._loginEnabled = this._config.AppConfig.AUTH_SETTINGS.LOGIN_ENABLED || false;
         this._autologin = this._config.AppConfig.AUTH_SETTINGS.AUTOLOGIN || false;
@@ -162,10 +164,12 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this._title = this._config.AppConfig.Layout.Header.title;
         this._api_url = this._config.AppConfig.SITE;
 
-        const _dashboardRemoteConfig: any = this.authenticationService._getConfigModule('dashboard');
-        this._hasDashboard = _dashboardRemoteConfig.abilitato || false;
-        const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
-        this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
+        if (Tools.Configurazione) {
+            const _dashboardRemoteConfig: any = this.authenticationService._getConfigModule('dashboard');
+            this._hasDashboard = _dashboardRemoteConfig.abilitato || false;
+            const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
+            this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
+        }
 
         if (this._showBuild) {
             this.version = `${this.version} (${this.build})`;
@@ -227,6 +231,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     }
 
     async ngOnInit() {
+        if (!Tools.Configurazione) {
+            console.log('1 - GpLayout loading RemoteConfig');
+            await this.loadRemoteConfig();
+            console.log('3 - GpLayout Configurazione Remota', Tools.Configurazione);
+        }
+
+        console.log('4 - loadProfile');
         this.eventsManagerService.on(EventType.NAVBAR_OPEN, (event: any) => {
             this.__openSideBar();
         });
@@ -244,10 +255,28 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
         if (this._autoAuthDiscovery && !this._anonymousAccess) {
             this.oauthService.initCodeFlow();
+            this.oauthService.setupAutomaticSilentRefresh();
         }
 
         // setTimeout(async () => {}, 200);
-        await this.loadProfile();
+        this.loadProfile();
+    }
+
+    async loadRemoteConfig() {
+        try {
+            const remoteConfig: any = await firstValueFrom(this.apiService.getList(`configurazione`));
+            Tools.Configurazione = remoteConfig;
+            this.configService._generateCustomFieldLabel(Tools.Configurazione);
+
+            const _dashboardRemoteConfig: any = this.authenticationService._getConfigModule('dashboard');
+            this._hasDashboard = _dashboardRemoteConfig.abilitato || false;
+            const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
+            this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
+
+            console.log('2 - GpLayout Configurazione loaded');
+        } catch (error) {
+            console.error('2 - Errore loadRemoteConfig', error);
+        }
     }
 
     ngAfterContentChecked() {
@@ -268,7 +297,6 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     loadProfile() {
         this._spin = true;
-        this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: null });
         this.apiService.getList('profilo').subscribe(
             (response: any) => {
                 this.authenticationService.setCurrentSession(response);
@@ -288,6 +316,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
                 this._spin = false;
             },
             (error: any) => {
+                this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: null });
                 console.log('loadProfile error', error);
                 this._spin = false;
             }

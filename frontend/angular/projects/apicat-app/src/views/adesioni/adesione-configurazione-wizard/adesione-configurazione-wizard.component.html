@@ -1,0 +1,346 @@
+<div id="route-section" class="">
+    <div  class="top-area px-0">
+        <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+        <div class="d-flex flex-grow-1">&nbsp;</div>
+        <div class="nav-controls">
+        </div>
+    </div>
+    <div class="top-area">
+        <h3 class="page-title">{{ 'APP.TITLE.Empty' | translate }}</h3>
+        <div class="d-flex flex-grow-1">&nbsp;</div>
+        <div class="nav-controls align-self-center d-flex gap-1">
+            <div class="btn-group me-1 d-flex gap-2" *ngIf="!spin && adesione && (updateMapper | mapper:isGestoredMapper)">
+                <lnk-button [type]="'button'" [spinner]="true" [onlySpinner]="true" *ngIf="changingStatus"></lnk-button>
+                <ui-workflow *ngIf="!changingStatus && generalConfig"
+                    [data]="adesione"
+                    [module]="'adesione'"
+                    [grant]="grant"
+                    [config]="config"
+                    [workflow]="generalConfig.adesione.workflow"
+                    (action)="onWorkflowAction($event)"
+                ></ui-workflow>
+            </div>
+            <app-monitor-dropdown *ngIf="!spin"
+                [showComunications]="true"
+                [showMonitoring]="false"
+                [showManagement]="false"
+                [returnWeb]="returnWeb"
+                [returnWebTitle]="'APP.MENU.BackViewWizard'"
+                [otherActions]="_otherActions"
+                (action)="onActionMonitor($event)"
+            ></app-monitor-dropdown>
+        </div>
+    </div>
+    <section #myScroll class="container-fluid container-limited container-scroller container-scroller-no-search">
+
+        <div class="mt-5">
+
+            <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="2" *ngIf="spin"></ui-box-spinner>
+
+            <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_error">
+                <span *ngIf="!_errors.length">{{ _errorMsg }}</span>
+                <ui-error-view *ngIf="_errors.length > 0"
+                    [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                    [errors]="_errors"
+                    [showClose]="true"
+                    (onClose)="resetError()"
+                ></ui-error-view>
+            </div>
+
+            <div class="" *ngIf="adesione && !spin">
+                <div class="d-flex justify-content-between mb-5">
+                    <div class="">
+                        <h4 class="mb-2">{{ title }}</h4>
+                        <ui-data-type
+                            [data]="adesione"
+                            [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                            [config]="config"
+                        ></ui-data-type>
+                    </div>
+                    <div class="" *ngIf="showSkipCollaudo">
+                        <lnk-button
+                            [label]="'APP.LABEL.SkipCollaudo' | translate"
+                            [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
+                            [spinner]="saveSkipCollaudo"
+                            (onAction)="toggleSkipCollaudo()"
+                        ></lnk-button>
+                    </div>
+                </div>
+
+                <div class="mt-5 border-">
+                    <div class="accordion accordion-flush" id="accordionWizard">
+
+                        <div id="accordion-general-info" class="accordion-item mb-3 border">
+                            <h2 class="accordion-header">
+                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
+                                    <div class="d-flex gap-2">
+                                        <lnk-icon-toggle
+                                            [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
+                                            [loading]="loadingCheckDati"
+                                        ></lnk-icon-toggle>
+                                        <span>{{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}</span>
+                                    </div>
+                                </div>
+                            </h2>
+                            <div id="general-info" class="accordion-collapse collapse" data-bs-parent="#accordion-general-info_">
+                                <div class="accordion-body">
+                                    <app-adesione-form
+                                        [id]="id"
+                                        [adesione]="adesione"
+                                        [servizio]="servizio"
+                                        [grant]="grant"
+                                        [config]="adesioniClientsConfig"
+                                        [singleColumn]="singleColumn"
+                                        [editable]="isEdit"
+                                    ></app-adesione-form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="accordion-referenti" class="accordion-item mb-3 border">
+                            <h2 class="accordion-header">
+                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
+                                    <div class="d-flex gap-2">
+                                        <lnk-icon-toggle
+                                            [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
+                                            [loading]="loadingCheckDati"
+                                        ></lnk-icon-toggle>
+                                        <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
+                                    </div>
+                                </div>
+                            </h2>
+                            <div id="referenti" class="accordion-collapse collapse" data-bs-parent="#accordion-referenti_">
+                                <div class="accordion-body">
+                                    <div class="d-flex justify-content-end mb-2">
+                                        <button class="btn btn-default btn-md gl-button ms-3" (click)="addReferenteModal($event)" *ngIf="isEdit">{{ 'APP.BUTTON.AddReferent' | translate }}</button>
+                                    </div>
+                                    <ui-box-spinner [color]="'primary'" [diameter]="20" [strokeWidth]="1" *ngIf="referentiLoading"></ui-box-spinner>
+                                    <div class="row">
+                                        <div class="col-12" *ngIf="referents.length == 0 && !referentiLoading">
+                                            <div class="d-flex flex-column text-center empty-state-">
+                                                <div class="max-w-100 m-auto">
+                                                    <div class="mx-auto my-0 p-3">
+                                                        <h5 class="font-size-h-display line-height-36 h5">{{ _message | translate }}</h5>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center- border-bottom" *ngFor="let referent of referents;">
+                                                <ui-collapse-row class="flex-grow-1"
+                                                    [data]="referent.source"
+                                                    [config]="referentiConfig"
+                                                    [configRow]="'itemRow2'"
+                                                    [enableCollapse]="referent.enableCollapse"
+                                                    [hasLink]="true"
+                                                >
+                                                    <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+                                                        <div class="d-flex flex-row">
+                                                            <ui-data-view class="flex-grow-1"
+                                                                [data]="referent.source"
+                                                                [config]="referentiConfig"
+                                                                [columns]="config.AppConfig?.Layout?.Details?.columns || 6"
+                                                            ></ui-data-view>
+                                                        </div>
+                                                    </div>
+                                                </ui-collapse-row>
+                                                <div class="mt-3">
+                                                    <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="confirmDeleteReferente(referent)" *ngIf="(updateMapper | mapper:canAddMapper) && isEdit">
+                                                        <i class="bi bi-trash text-danger"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="accordion-collaudo" class="accordion-item mb-3 border">
+                            <h2 class="accordion-header">
+                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
+                                    <div class="d-flex gap-2">
+                                        <lnk-icon-toggle
+                                            [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
+                                            [loading]="loadingCheckDati"
+                                        ></lnk-icon-toggle>
+                                        <span>{{ 'APP.TITLE.TestingConfiguration' | translate }}</span>
+                                    </div>
+                                </div>
+                            </h2>
+                            <div id="collaudo" class="accordion-collapse collapse" data-bs-parent="#accordion-collaudo_">
+                                <div class="accordion-body">
+
+                                    <app-adesione-lista-clients
+                                        [id]="id"
+                                        [adesione]="adesione"
+                                        [environment]="AmbienteEnum.Collaudo"
+                                        [grant]="grant"
+                                        [config]="adesioniClientsConfig"
+                                        [singleColumn]="singleColumn"
+                                        [isEdit]="isEdit"
+                                        [otherClass]="'border-bottom-'"
+                                        [dataCheck]="dataStructureResults"
+                                        [nextState]="getNextStateWorkflow()"
+                                    ></app-adesione-lista-clients>
+
+                                    <app-adesione-lista-erogazioni
+                                        [id]="id"
+                                        [adesione]="adesione"
+                                        [environment]="AmbienteEnum.Collaudo"
+                                        [grant]="grant"
+                                        [config]="adesioniErogazConfig"
+                                        [singleColumn]="singleColumn"
+                                        [isEdit]="isEdit"
+                                        [otherClass]="'border-bottom-'"
+                                        [dataCheck]="dataStructureResults"
+                                        [nextState]="getNextStateWorkflow()"
+                                    ></app-adesione-lista-erogazioni>
+
+                                    <div class="settings-" *ngFor="let item of proprietaCustomFiltered[AmbienteEnum.Collaudo]; let last = last; let even = even">
+                                        <div class="settings-content-">
+                                            <div class="row mt-1" [class.justify-content-center]="singleColumn">
+                                                <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
+                                                    <div class="d-flex gap-2">
+                                                        <lnk-icon-toggle
+                                                            [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
+                                                            [loading]="loadingCheckDati"
+                                                        ></lnk-icon-toggle>
+                                                        <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
+                                                    </div>
+                                                </div>
+                                                <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+
+                                                    <section class="p-0">
+                                                        <app-api-custom-properties
+                                                            [ambiente]="AmbienteEnum.Collaudo"
+                                                            [id_adesione]="adesione.id_adesione"
+                                                            [stato_adesione]="adesione.stato"
+                                                            [id_servizio]="adesione.servizio.id_servizio"
+                                                            [data]="configurazioni[AmbienteEnum.Collaudo]"
+                                                            [group]="item"
+                                                            [showGroupLabel]="showGroupLabel"
+                                                            [containerClass]="(even && singleColumn) ? 'bg-lightest- border-top border-bottom' : 'border-top border-bottom'"
+                                                            [editable]="(updateMapper | mapper:isModifiableMapper:AmbienteEnum.Collaudo)"
+                                                            [apiConfig]="apiConfig"
+                                                            [dataCheck]="dataStructureResults"
+                                                        ></app-api-custom-properties>
+                                                    </section>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="accordion-produzione" class="accordion-item mb-3 border">
+                            <h2 class="accordion-header">
+                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
+                                    <div class="d-flex gap-2">
+                                        <lnk-icon-toggle
+                                            [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
+                                            [loading]="loadingCheckDati"
+                                        ></lnk-icon-toggle>
+                                        <span>{{ 'APP.TITLE.ProductionConfiguration' | translate }}</span>
+                                    </div>
+                                </div>
+                            </h2>
+                            <div id="produzione" class="accordion-collapse collapse" data-bs-parent="#accordion-produzione_">
+                                <div class="accordion-body">
+
+                                    <app-adesione-lista-clients
+                                        [id]="id"
+                                        [adesione]="adesione"
+                                        [environment]="AmbienteEnum.Produzione"
+                                        [grant]="grant"
+                                        [config]="adesioniClientsConfig"
+                                        [singleColumn]="singleColumn"
+                                        [isEdit]="isEdit"
+                                        [otherClass]="'border-bottom-'"
+                                        [dataCheck]="dataStructureResults"
+                                        [nextState]="getNextStateWorkflow()"
+                                    ></app-adesione-lista-clients>
+
+                                    <app-adesione-lista-erogazioni
+                                        [id]="id"
+                                        [adesione]="adesione"
+                                        [environment]="AmbienteEnum.Produzione"
+                                        [grant]="grant"
+                                        [config]="adesioniErogazConfig"
+                                        [singleColumn]="singleColumn"
+                                        [isEdit]="isEdit"
+                                        [otherClass]="'border-bottom-'"
+                                        [dataCheck]="dataStructureResults"
+                                        [nextState]="getNextStateWorkflow()"
+                                    ></app-adesione-lista-erogazioni>
+
+                                    <div class="settings-" [class.border-bottom-]="last" *ngFor="let item of proprietaCustomFiltered[AmbienteEnum.Produzione]; let last = last; let even = even">
+                                        <div class="settings-content-">
+                                            <div class="row mt-1" [class.justify-content-center]="singleColumn">
+                                                <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
+                                                    <div class="d-flex gap-2">
+                                                        <lnk-icon-toggle
+                                                            [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
+                                                            [loading]="loadingCheckDati"
+                                                        ></lnk-icon-toggle>
+                                                        <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
+                                                    </div>
+                                                </div>
+                                                <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+
+                                                    <section class="p-0">
+                                                        <app-api-custom-properties
+                                                            [ambiente]="AmbienteEnum.Produzione"
+                                                            [id_adesione]="adesione.id_adesione"
+                                                            [stato_adesione]="adesione.stato"
+                                                            [id_servizio]="adesione.servizio.id_servizio"
+                                                            [data]="configurazioni[AmbienteEnum.Produzione]"
+                                                            [group]="item"
+                                                            [showGroupLabel]="showGroupLabel"
+                                                            [containerClass]="(even && singleColumn) ? 'bg-lightest- border-top border-bottom' : 'border-top border-bottom'"
+                                                            [editable]="(updateMapper | mapper:isModifiableMapper:AmbienteEnum.Produzione)"
+                                                            [dataCheck]="dataStructureResults"
+                                                        ></app-api-custom-properties>
+                                                    </section>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-5">
+                    <div class="d-flex gap-2">
+                        <lnk-button *ngIf="(updateMapper | mapper:canEditMapper) || adesione?.stato === 'bozza'"
+                            [label]="isEdit ? 'APP.BUTTON.Cancel' : 'APP.BUTTON.Modify'"
+                            [disabled]="changingStatus || loadingCheckDati"
+                            (onAction)="toggleEdit()"
+                        ></lnk-button>
+                        <lnk-button *ngIf="hasNextStateWorkflow()"
+                            [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
+                            [primary]="true"
+                            [ariaLabel]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
+                            (onAction)="onWorkflowAction()"
+                            [disabled]="!_hasCambioStato() || changingStatus || loadingCheckDati"
+                        ></lnk-button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- <div class="my-3">
+            <pre class="border p-2 text-overflow" style="height: 300px;">{{ dataStructureResults | json }}</pre>
+            <pre class="border p-2 text-overflow" style="height: 300px;">{{ adesione | json }}</pre>
+        </div> -->
+
+    </section>
+</div>

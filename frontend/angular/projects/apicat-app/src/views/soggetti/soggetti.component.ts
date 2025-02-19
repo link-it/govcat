@@ -215,6 +215,10 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
     });
   }
 
+  _trackBy(index: any, item: any) {
+    return item.id;
+  }
+
   _onNew() {
     if (this._useRoute) {
       this.router.navigate([this.model, 'new']);

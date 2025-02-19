@@ -59,6 +59,8 @@ import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.ErogazioneRichiesta;
 import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.Sottotipo;
+import org.govway.catalogo.servlets.model.SottotipoEnum;
 import org.govway.catalogo.servlets.model.SpecificoPer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +77,7 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	private ApiItemAssembler apiItemAssembler;
 	
 	@Override
-	protected void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, AdesioneEntity entity) {
+	protected void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, AdesioneEntity entity, String stato) {
 
 		List<EntitaComplessaError> erroreLst = new ArrayList<>();
 
@@ -164,15 +166,22 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		filtered.stream().forEach(c -> {
 			c.getProprieta().stream().filter(p -> p.isRequired()).forEach(p -> {
 
+				Sottotipo sottotipoGruppo = new Sottotipo();
+				sottotipoGruppo.setTipo(SottotipoEnum.CONFIGURAZIONE_GRUPPO);
+				sottotipoGruppo.setIdentificativo(c.getNomeGruppo());
+
+				Sottotipo sottotipoNome = new Sottotipo();
+				sottotipoNome.setTipo(SottotipoEnum.CONFIGURAZIONE_NOME);
+				sottotipoNome.setIdentificativo(p.getNome());
+
 				if (c.getSpecificoPer() == null || c.getSpecificoPer().equals(SpecificoPer.ADESIONE)) {
 					boolean match = adesione.getEstensioni().stream()
 							.anyMatch(e -> e.getGruppo().equals(c.getNomeGruppo()) && e.getNome().equals(p.getNome())  && e.getAmbiente().equals(ambiente) && e.getApi() == null);
 
-					this.logger.info("Estensione [" + p.getEtichetta() + "]: match " + match);
-
 					if (!match) {
-						this.logger.info("Aggiungo campo " + c.getNomeGruppo() + "." + p.getNome());
-						requireNotNull(null, c.getNomeGruppo() + "." + p.getNome(), adesione, errore, true);
+						Map<String, String> list = getPlaceholderConfigurazione(c, p);
+						EntitaComplessaError error = getErrore(errore, Arrays.asList(sottotipoGruppo, sottotipoNome), list);
+						addCampi("configurazione_non_trovata", error, true);
 					}
 				} else {
 					List<ApiEntity> listApiSpecifico = adesione.getServizio().getApi().stream().filter(a -> {
@@ -185,19 +194,21 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 						}
 					}).collect(Collectors.toList());
 					
-					boolean match = true;
 					for(ApiEntity api: listApiSpecifico) {
-						match = match && adesione.getEstensioni().stream()
+						boolean match = adesione.getEstensioni().stream()
 								.anyMatch(e -> e.getGruppo().equals(c.getNomeGruppo()) && e.getNome().equals(p.getNome()) && e.getAmbiente().equals(ambiente) && e.getApi()!=null && e.getApi().getId().equals(api.getId()));
-					}
-					
-					this.logger.info("Estensione specificoPer ["+c.getSpecificoPer()+"]: [" + p.getEtichetta() + "]: match " + match);
+						
+						if (!match) {
+							Sottotipo sottotipoAPI = new Sottotipo();
+							sottotipoAPI.setTipo(SottotipoEnum.API);
+							sottotipoAPI.setIdentificativo(api.getIdApi());
 
-					if (!match) {
-						this.logger.info("Aggiungo campo " + c.getNomeGruppo() + "." + p.getNome());
-						requireNotNull(null, c.getNomeGruppo() + "." + p.getNome(), adesione, errore, true);
-					}
+							Map<String, String> list = getPlaceholderConfigurazioneAPI(c, p, api);
+							EntitaComplessaError error = getErrore(errore, Arrays.asList(sottotipoGruppo, sottotipoAPI, sottotipoNome), list);
+							addCampi("configurazione_non_trovata", error, true);
+						}
 
+					}
 				}
 			});
 		});
@@ -286,20 +297,22 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			if(!cr.getAuthType().equals(AuthTypeEnum.NO_DATI)) {
 				Optional<ClientAdesioneEntity> oP = entity.getClient().stream().filter(c -> c.getProfilo().equals(cr.getProfilo()) && c.getAmbiente().equals(ambiente)).findAny();
 
-				String sottotipo = "Profilo";
+				Sottotipo sottotipo = new Sottotipo();
+				sottotipo.setTipo(SottotipoEnum.CLIENT);
+				sottotipo.setIdentificativo(cr.getProfilo());
 				if(!oP.isPresent()) {
 					Map<String, String> list = getPlaceholderClientNonPresente(cr);
-					EntitaComplessaError errore = getErrore(errori, sottotipo, list);
+					EntitaComplessaError errore = getErrore(errori, Arrays.asList(sottotipo), list);
 					addCampi("profilo_non_configurato", errore);
 				} else {
 					if(!consentiNonConfigurato) {
 						if(oP.get().getClient() == null) {
 							Map<String, String> list = getPlaceholderClientNonPresente(cr);
-							EntitaComplessaError errore = getErrore(errori, sottotipo, list);
+							EntitaComplessaError errore = getErrore(errori, Arrays.asList(sottotipo), list);
 							addCampi("profilo_non_configurato", errore);
 						}else if(!oP.get().getClient().getStato().equals(StatoEnum.CONFIGURATO)) {
 							Map<String, String> list = getPlaceholderClient(oP.get().getClient(), cr);
-							EntitaComplessaError errore = getErrore(errori, sottotipo, list);
+							EntitaComplessaError errore = getErrore(errori, Arrays.asList(sottotipo), list);
 							addCampi("client_non_configurato", errore);
 						}
 					}
@@ -312,9 +325,11 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		for(ErogazioneRichiesta er: erLst) {
 			
 
-			String sottotipo = "Erogazione";
+			Sottotipo sottotipo = new Sottotipo();
+			sottotipo.setTipo(SottotipoEnum.EROGAZIONE);
+			sottotipo.setIdentificativo(er.getApi().getIdApi().toString());
 			Map<String, String> list = getPlaceholderErogazione(er);
-			EntitaComplessaError errore = getErrore(errori, sottotipo, list);
+			EntitaComplessaError errore = getErrore(errori, Arrays.asList(sottotipo), list);
 			
 			if(!entity.getErogazioni().stream().anyMatch(e -> e.getApi().getIdApi().equals(er.getApi().getIdApi().toString()) && e.getAmbiente().equals(ambiente) && statiErogazioneConsentiti.contains(e.getStato()))) {
 				addCampi("erogazione_non_configurata", errore);
@@ -355,6 +370,22 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		Map<String, String> map = new HashMap<>();
 		map.put("nome", entity.getApi().getNome());
 		map.put("versione", ""+entity.getApi().getVersione());
+		return map;
+	}
+
+	private Map<String, String> getPlaceholderConfigurazione(ConfigurazioneCustomAdesioneProprietaList c, ConfigurazioneCustomProprieta entity) {
+		Map<String, String> map = new HashMap<>();
+		map.put("nome", entity.getEtichetta());
+		map.put("nome_gruppo", c.getLabelGruppo());
+		return map;
+	}
+
+	private Map<String, String> getPlaceholderConfigurazioneAPI(ConfigurazioneCustomAdesioneProprietaList c, ConfigurazioneCustomProprieta entity, ApiEntity api) {
+		Map<String, String> map = new HashMap<>();
+		map.put("nome", entity.getEtichetta());
+		map.put("nome_gruppo", c.getLabelGruppo());
+		map.put("nome_api", api.getNome());
+		map.put("versione_api", ""+api.getVersione());
 		return map;
 	}
 

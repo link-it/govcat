@@ -188,7 +188,7 @@
 
       <div class="row">
         <div class="col-12">
-          <ui-item-row class="border-bottom" *ngFor="let item of clients"
+          <ui-item-row class="border-bottom" *ngFor="let item of clients; trackBy: _trackBy;"
             [data]="item"
             [config]="clientsConfig"
             [hasLink]="true"

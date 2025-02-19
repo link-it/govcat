@@ -69,7 +69,7 @@ export class AgidJwtSignatureTrackingEvidenceDialogComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        console.log('AgidJwtSignatureTrackingEvidenceDialogComponent');
+        console.log('AgidJwtSignatureTrackingEvidenceDialogComponent', this.tokenPolicy);
         this._codicePolicy = this.tokenPolicy ? this.tokenPolicy['codice_policy'] : this._codicePolicy;
         this._type = this.tokenPolicy ? this.tokenPolicy['type'] : this._type;
         this._algDefault = this.tokenPolicy ? this.tokenPolicy['alg_default'] : this._algDefault;

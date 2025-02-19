@@ -85,6 +85,7 @@ public class AllegatoServizioAssembler extends RepresentationModelAssemblerSuppo
 		docEntity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		docEntity.setTipo(src.getContentType());
 		docEntity.setFilename(src.getFilename());
+		docEntity.setDescrizione(src.getDescrizione());
 		entity.setDocumento(docEntity);
 		
 		entity.setServizio(servizio);

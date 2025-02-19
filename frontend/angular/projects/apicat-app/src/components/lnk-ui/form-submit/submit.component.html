@@ -1,0 +1,15 @@
+<div class="row-content-block footer-block d-flex gap-2">
+    <lnk-button
+        [type]="'submit'"
+        [label]="submitLabel"
+        [ariaLabel]="submitLabel"
+        [primary]="true"
+        [disabled]="disabled"
+    ></lnk-button>
+    <lnk-button
+        [label]="cancelLabel"
+        [ariaLabel]="cancelLabel"
+        [secondary]="true"
+        (onAction)="onCancel()"
+    ></lnk-button>
+</div>

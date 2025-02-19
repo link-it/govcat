@@ -126,6 +126,11 @@
   bottom: 0;
   width: var(--side-bar-button-width, 255px);
   font-size: .875rem;
+
+  &:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+    outline: none;
+  }
 }
 
 .close-nav-button {

@@ -125,7 +125,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
         this.utentiConfig = config;
         this._initOrganizzazioniSelect([]);
         this._initClassiUtenteSelect([]);
-        this._loadUtenti(this._filterData);
+        // this._loadUtenti(this._filterData);
+        this.searchGoogleForm._onSearch();
       }
     );
   }
@@ -220,6 +221,10 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     });
   }
 
+  _trackBy(index: any, item: any) {
+    return item.id;
+  }
+
   __loadMoreData() {
     if (this._links && this._links.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
@@ -249,10 +254,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   _onSearch(values: any) {
-    this._filterData = values;
-    if (Object.keys(this._filterData).some(x => (x !== null && x !== ''))) {
-      this._loadUtenti(this._filterData);
-    }
+    this._filterData = this.utils._removeEmpty(values);
+    this._loadUtenti(this._filterData);
   }
 
   _resetForm() {

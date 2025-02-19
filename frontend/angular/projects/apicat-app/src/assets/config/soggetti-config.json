@@ -7,14 +7,10 @@
       { "field": "id_soggetto", "type": "text" }
     ],
     "metadata": {
-      "text": [
-        
-      ],
+      "text": [],
       "label": []
     },
-    "secondaryMetadata": [
-      
-    ]
+    "secondaryMetadata": []
   },
 
 
@@ -25,9 +21,9 @@
     "secondaryText": [],
     "metadata": {
       "text": [
+        { "field": "descrizione", "type": "text", "default": "-" }
       ],
-      "label": [
-      ]
+      "label": []
     },
     "secondaryMetadata": []
   },

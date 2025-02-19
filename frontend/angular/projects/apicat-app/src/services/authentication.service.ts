@@ -452,15 +452,15 @@ export class AuthenticationService {
   // Gestione Grant
 
   _getConfigModule(module: string) {
-    return Tools.Configurazione[module];
+    return Tools.Configurazione ? Tools.Configurazione[module] : null;
   }
 
   _getWorkflow(module: string) {
-    return this._getConfigModule(module).workflow;
+    return this._getConfigModule(module)?.workflow || null;
   }
 
   _getWorkflowCambiStato(module: string, state: string) {
-    return this._getWorkflow(module).cambi_stato.find((item: any) => { return item.stato_attuale === state });
+    return this._getWorkflow(module)?.cambi_stato.find((item: any) => { return item.stato_attuale === state }) || null;
   }
 
   isGestore(grant: string[] = []) {
@@ -514,7 +514,7 @@ export class AuthenticationService {
   canManagement(module: string, submodule: string, state: string, grant: string[] = []) {
     if (this.isGestore(grant)) { return true; }
 
-    const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore'];
+    const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
 
     const _intersection = _.intersection(grant, _grantManagement);
     return (_intersection.length > 0);

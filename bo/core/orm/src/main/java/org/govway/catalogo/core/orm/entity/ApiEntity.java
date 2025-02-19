@@ -82,9 +82,10 @@ public class ApiEntity {
     @Enumerated(EnumType.STRING)
 	private RUOLO ruolo;
 	
+	@Column
 	@Lob
-	@Type(type = "org.hibernate.type.TextType")
-	private String descrizione;
+	@Type(type = "org.hibernate.type.ImageType")
+	private byte[] descrizione;
     
     @Column(name="codice_asset")
     private String codiceAsset;

@@ -12,13 +12,12 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
 
-import { concat, Observable, of, Subject, throwError, forkJoin } from 'rxjs';
+import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 import { Client, PeriodEnum } from './client';
 import { Soggetto } from './client';
 
-import { ClientUpdate } from './clientUpdate';
 import { DatiSpecItem } from './clientUpdate';
 import { CommonName } from './clientUpdate';
 import { DoubleCert } from './clientUpdate';
@@ -200,7 +199,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._tipoCertificatoEnum = fake_tipoCertificatoEnum;
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
-    Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+    if (Tools.Configurazione) Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -457,9 +456,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         // controls.client_id.setValidators(Validators.required);
       }
   
+      controls.id_organizzazione.setValidators(Validators.required);
       if (this._isNew) {
         controls.id_soggetto.setValidators(Validators.required);
-        controls.id_organizzazione.setValidators(Validators.required);
 
         controls.auth_type.enable();
         controls.auth_type.setValidators(Validators.required);
@@ -494,6 +493,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       }
       
       controls.id_soggetto.disable();
+      this._checkSoggetto(controls.id_organizzazione.value);
+
+      if (data.stato === 'configurato') {
+        controls.nome.disable();
+      }
 
       this._onChangeStato();
 
@@ -599,8 +603,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     let auth_type: any = null;
 
     if (!this._isNew) {
-      _body.id_soggetto = this.client.soggetto.id_soggetto;
-      _payload.id_soggetto = this.client.soggetto.id_soggetto;
+      _payload.id_soggetto = _body.id_soggetto;
       auth_type = this._auth_type
     } else {
       auth_type = this._formGroup.controls.auth_type.value;
@@ -949,9 +952,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
           if (this._isRichiesto_csr) {
             _cert_auth.certificato ? this._isCertificato_generato_csr = true : this._isCertificato_generato_csr = false;  
-            this._certificato_csr = {..._cert_auth.richiesta}
-            this._modulo_richiesta_csr = {..._cert_auth.modulo_richiesta}
-            this._certificato_generato_csr = {..._cert_auth.certificato} || null;
+            this._certificato_csr = {..._cert_auth.richiesta};
+            this._modulo_richiesta_csr = {..._cert_auth.modulo_richiesta};
+            this._certificato_generato_csr = {..._cert_auth.certificato};
           }
           
           (this._isFornito_firma) ? this._certificato_fornito_firma = {...response.dati_specifici.certificato_firma.certificato} : this._certificato_fornito_firma = null;
@@ -962,28 +965,28 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           }
 
           if (this._isRichiesto_csr_firma) {
-            _cert_firma.certificato ? this._isCertificato_generato_csr_firma = true : this._isCertificato_generato_csr_firma = false;  
-            this._certificato_csr_firma = {..._cert_firma.richiesta}
-            this._modulo_richiesta_csr_firma = {..._cert_firma.modulo_richiesta}
-            this._certificato_generato_csr_firma = {..._cert_firma.certificato} || null;
+            _cert_firma.certificato ? this._isCertificato_generato_csr_firma = true : this._isCertificato_generato_csr_firma = false;
+            this._certificato_csr_firma = {..._cert_firma.richiesta};
+            this._modulo_richiesta_csr_firma = {..._cert_firma.modulo_richiesta};
+            this._certificato_generato_csr_firma = {..._cert_firma.certificato};
           }
 
           (_cert_auth.richiesta?.uuid) ? this._richiesta = {..._cert_auth.richiesta} : this._richiesta = null;
           (_cert_auth.modulo_richiesta?.uuid) ? this._modulo_richiesta = {..._cert_auth.modulo_richiesta} : this._modulo_richiesta = null;
 
           const _options: any = { params: { id_organizzazione: this.client.soggetto.organizzazione.id_organizzazione } };
-          this.apiService.getList('soggetti', _options).subscribe( 
-            (res: any ) => {
-              this._spin = true;
-              this._hideSoggettoDropdown = (res.content.length <= 1);
-              this._elencoSoggetti = [...res.content];
-              this._spin = false;
-            },
-            (error: any) => {
-              Tools.OnError(error);
-              this._spin = false;
-            }
-          )
+          this.apiService.getList('soggetti', _options).subscribe({
+              next: (res: any ) => {
+                this._spin = true;
+                this._hideSoggettoDropdown = (res.content.length <= 1);
+                this._elencoSoggetti = [...res.content];
+                this._spin = false;
+              },
+              error: (error: any) => {
+                Tools.OnError(error);
+                this._spin = false;
+              }
+            });
 
           this._spin = false;
           this._initBreadcrumb();
@@ -999,7 +1002,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _initBreadcrumb() {
     const _title = this.client ? `${this.client.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Client', url: '/client', type: 'link' },
       { label: `${_title}`, url: '', type: 'title' }
     ];
@@ -1048,6 +1051,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     } else {
       this._client = new Client({ ...this.client });
       this._checkTipoCertificato(this.client.dati_specifici.auth_type, this.client.dati_specifici?.certificato_autenticazione?.tipo_certificato);
+      this._initForm({ ...this._client });
     }
     this._error = false;
   }
@@ -1246,14 +1250,16 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       // this._onChangeTipoCertificato(controls.tipo_certificato.value);
       // this._onChangeTipoCertificatoFirma(controls.tipo_certificato_firma.value);
       controls.username.clearValidators();
-      controls.client_id.clearValidators();
+      // controls.client_id.clearValidators();
     } else {
       if (this._isHttpBasic && !this._isStato_nuovo) {
         controls.username.setValidators(Validators.required)
       }
-      if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials || this._isOauthAuthCode) {
-        controls.client_id.setValidators(Validators.required);
-      }
+    }
+    if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials || this._isOauthAuthCode) {
+      controls.client_id.setValidators(Validators.required);
+    } else {
+      controls.client_id.clearValidators();
     }
     controls.username.updateValueAndValidity();
     controls.client_id.updateValueAndValidity();
@@ -1523,10 +1529,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         controls.tipo_certificato_firma.updateValueAndValidity();
       }
 
-      // if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign) {
-      //   controls.client_id.setValidators(Validators.required);
-      //   controls.client_id.updateValueAndValidity();
-      // }
+      if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials || this._isOauthAuthCode) {
+        controls.client_id.setValidators(Validators.required);
+      } else {
+        controls.client_id.clearValidators();
+      }
 
       if (this._isSign) {
         controls.tipo_certificato.clearValidators();
@@ -1606,7 +1613,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           return _items;
         }
       })
-      );
+    );
   }
 
   getOrganizzazioni(term: string | null = null): Observable<any> {
@@ -1632,11 +1639,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _checkSoggetto(event: any) {  
     if (event) {
-      this.getSoggetti().subscribe(
-        (result) => {
+      this.getSoggetti().subscribe({
+        next: (result) => {
           const controls = this._formGroup.controls;
 
-          if (result.length == 1) {
+          if (result.length === 1) {
             this._hideSoggettoDropdown = true;
 
             let aux: Soggetto = {
@@ -1649,19 +1656,25 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             this._initSoggettiSelect([aux]);
             controls.id_soggetto.patchValue(aux.id_soggetto);
             controls.id_soggetto.disable();
+            controls.id_soggetto.clearValidators();
+            controls.id_soggetto.updateValueAndValidity();
           } else {
             this._elencoSoggetti = [...result];
             controls.id_soggetto.enable();
+            controls.id_soggetto.setValidators(Validators.required);
+            controls.id_soggetto.updateValueAndValidity();
             this._hideSoggettoDropdown = false;
           }
 
           this._formGroup.updateValueAndValidity();
         },
-        (err) => console.log(err)
-      );
+        error: (err) => console.log(err)
+      });
     } else {
       const controls = this._formGroup.controls;
       controls.id_soggetto.patchValue(null);
+      controls.id_soggetto.clearValidators();
+      controls.id_soggetto.updateValueAndValidity();
       this._initSoggettiSelect([]);
       this._formGroup.updateValueAndValidity();
 

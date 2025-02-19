@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { AppComponentsModule } from "@app/components/components.module";
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 
 import { ClientCredentialsDialogComponent } from './client-credentials-dialog.component';
@@ -17,6 +18,7 @@ import { ClientCredentialsDialogComponent } from './client-credentials-dialog.co
     TranslateModule,
     VendorsModule,
     ComponentsModule,
+    AppComponentsModule,
     MarkAsteriskModule
   ],
   exports: [ClientCredentialsDialogComponent],

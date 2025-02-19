@@ -15,23 +15,22 @@
 
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls align-self-center d-flex">
+      <div class="position-relative" *ngIf="!_isEdit && !_spin ">
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon"
+          [tooltip]="'APP.TOOLTIP.EditConfiguration' | translate" (click)="_isEdit = !_isEdit" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
 
-        <div class="nav-controls align-self-center d-flex">
-    <div class="position-relative" *ngIf="!_isEdit && !_spin ">
-      <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon"
-        [tooltip]="'APP.TOOLTIP.EditConfiguration' | translate" (click)="_isEdit = !_isEdit" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
-        <i class="bi bi-pencil"></i>
-      </button>
-    </div>
-
-    <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-      <button aria-haspopup="true" aria-expanded="false" type="button"
-        class="btn btn-default btn-md gl-button btn-default-tertiary ms-2"
-        [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate"
-        (click)="_onCancelEdit()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
+      <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+        <button aria-haspopup="true" aria-expanded="false" type="button"
+          class="btn btn-default btn-md gl-button btn-default-tertiary ms-2"
+          [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate"
+          (click)="_onCancelEdit()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -63,7 +62,7 @@
                   }}</div>
               </div>
               <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
-                <div class="row">
+                <div class="row" *ngIf="_isGestore()">
                   <div class="col-6">
                     <div class="form-group nome_gateway">
                       <label class="label-bold" for="nome_gateway">{{ 'APP.LABEL.nome_gateway' | translate }} <span
@@ -177,6 +176,7 @@
                         </p>
                         <ui-input-help field="protocollo" context="API"></ui-input-help>
                       </div>
+                      <div class="" *ngIf="!_isEdit && !viewValues.protocollo">-</div>
                       <div class="" *ngIf="!_isEdit && viewValues.protocollo">
                         <div class="row">
                           <div class="col-6">
@@ -281,65 +281,78 @@
                 <div class="row mt-5 api-custom-properties" *ngIf="servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO">
                   <div class="col-12">
                     <ng-container *ngFor="let apc of _apiProprietaCustomGrouped | keyvalue">
-                      <h5 class="pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
-                      <ng-container *ngFor="let cp of _apiProprietaCustomGrouped[apc.key + '']">
-                        <div formArrayName="proprieta_custom" class="row custom-properties-fields">
-                          <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
-                            <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} <span appMarkAsterisk
-                                [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome"
-                                *ngIf="_markAsteriskUpdated && _isEdit"></span></label>
-                            <div class="" *ngIf="_isEdit">
-
-                              <div class="input-group">
-                                <ng-container *ngIf="cp.tipo === 'text'">
-                                  <input autocomplete="off" class="form-control"
-                                    [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
-                                    [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome"
-                                    disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
-                                    [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                      <ng-container *ngIf="_apiProprietaCustomGrouped[apc.key + ''].length">
+                        <h5 class="pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                        <ng-container *ngFor="let cp of _apiProprietaCustomGrouped[apc.key + '']">
+                          <div formArrayName="proprieta_custom" class="row custom-properties-fields">
+                            <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
+                              <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} <span appMarkAsterisk
+                                  [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome"
+                                  *ngIf="_markAsteriskUpdated && _isEdit"></span></label>
+                              <div class="" *ngIf="_isEdit">
+  
+                                <div class="input-group">
+                                  <ng-container *ngIf="cp.tipo === 'text'">
+                                    <input autocomplete="off" class="form-control"
+                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
+                                      [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome"
+                                      disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                      [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                  </ng-container>
+                                  <ng-container *ngIf="cp.tipo === 'select'">
+                                    <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome"
+                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
+                                      disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                      [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                      <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
+                                      <option *ngFor="let cpv of cp.valori" [value]="cpv.nome">{{ cpv.etichetta }}
+                                      </option>
+                                    </select>
+                                  </ng-container>
+                                  <!-- <ng-container *ngIf="cp.tipo === ProprietaType.File">
+                                    <ui-allegato class=""
+                                        [control]="cfgc(cp.nome)"
+                                        [label]="''"
+                                        [required]="!!_hasRequiredValidator(cp.nome)"
+                                        (resetControl)="_onFileChange(cfg().controls[cp.nome].value)"
+                                        (fileChanged)="_onFileChange(cfg().controls[cp.nome].value)"
+                                        [maxUpload]="null"
+                                        [maxUpload]="null"
+                                    ></ui-allegato>
+                                  </ng-container> -->
+  
+                                  <button class="btn btn-default btn-md gl-button" type="button" *ngIf="environmentId === 'produzione'"
+                                    [disabled]="!getCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
+                                    (click)="copyCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
+                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                    <span><i class="bi bi-copy"></i></span>
+                                  </button>
+                                </div>
+                                <p *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)"
+                                  class="form-text text-danger">
+                                  <span
+                                    *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.required"
+                                    class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  <span
+                                    *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.pattern"
+                                    class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern:
+                                    cp.regular_expression } }}</span>
+                                </p>
+                              </div>
+                              <div class="" *ngIf="!_isEdit">
+                                <ng-container *ngIf="cp.tipo !== 'select'">
+                                  <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
+                                    [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
                                 </ng-container>
                                 <ng-container *ngIf="cp.tipo === 'select'">
-                                  <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome"
-                                    [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
-                                    disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
-                                    [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                    <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
-                                    <option *ngFor="let cpv of cp.valori" [value]="cpv.nome">{{ cpv.etichetta }}
-                                    </option>
-                                  </select>
+                                  <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
+                                    [name]="cp.nome"
+                                    [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
                                 </ng-container>
-
-                                <button class="btn btn-default btn-md gl-button" type="button" *ngIf="environmentId === 'produzione'"
-                                  [disabled]="!getCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
-                                  (click)="copyCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
-                                  [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                  <span><i class="bi bi-copy"></i></span>
-                                </button>
                               </div>
-                              <p *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)"
-                                class="form-text text-danger">
-                                <span
-                                  *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.required"
-                                  class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                <span
-                                  *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.pattern"
-                                  class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern:
-                                  cp.regular_expression } }}</span>
-                              </p>
-                            </div>
-                            <div class="" *ngIf="!_isEdit">
-                              <ng-container *ngIf="cp.tipo !== 'select'">
-                                <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
-                                  [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
-                              </ng-container>
-                              <ng-container *ngIf="cp.tipo === 'select'">
-                                <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
-                                  [name]="cp.nome"
-                                  [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
-                              </ng-container>
                             </div>
                           </div>
-                        </div>
+                        </ng-container>
                       </ng-container>
                     </ng-container>
                   </div>
@@ -350,20 +363,22 @@
                 </div>
 
                 <div class="row-content-block footer-block" *ngIf="_isEdit">
-                  <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2"
-                    [disabled]="_formGroup.invalid || _spin">
-                    {{ 'APP.BUTTON.Save' | translate }} <span class="spinner-border spinner-border-sm ms-2"
-                      *ngIf="_spin"></span>
-                  </button>
-                  <button aria-label="Cancel" type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
-                    {{ 'APP.BUTTON.Cancel' | translate }}
-                  </button>
-
-                  <button *ngIf="environmentId === 'produzione'" aria-label="Cancel" type="button" class="gl-button btn btn-confirm float-end" (click)="copyAllTestingValues()">
-                    {{ 'APP.BUTTON.CopyTestingValues' | translate }}
-                  </button>
+                  <div class="d-flex justify-content-between">
+                    <div class="d-flex gap-md-1">
+                      <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2"
+                        [disabled]="_formGroup.invalid || _spin">
+                        {{ 'APP.BUTTON.Save' | translate }} <span class="spinner-border spinner-border-sm ms-2"
+                          *ngIf="_spin"></span>
+                      </button>
+                      <button aria-label="Cancel" type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
+                        {{ 'APP.BUTTON.Cancel' | translate }}
+                      </button>
+                    </div>
+                    <button *ngIf="environmentId === 'produzione'" aria-label="Cancel" type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
+                      {{ 'APP.BUTTON.CopyTestingValues' | translate }}
+                    </button>
+                  </div>
                 </div>
-
 
               </div>
             </div>

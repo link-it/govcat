@@ -5,10 +5,15 @@ import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core
   // tslint:disable-next-line:component-selector
   selector: 'ui-box-spinner',
   template: `
-    <div class="d-flex flex-column text-center mt-3">
+    <div class="d-flex flex-column text-center">
       <div class="max-w-100 m-auto">
         <div class="mx-auto my-0 p-3 position-relative">
-          <div class="spinner-border text-{{ color }}" role="status"></div>
+          <div class="spinner-border text-{{ color }}" [style.width.px]="diameter" [style.height.px]="diameter" [style.border-width.px]="strokeWidth" role="status"></div>
+          <!-- <span class="rescue-spinner">
+            <button type="button" (click)="_rescueCall()">
+              <span classs="material-icons">close</span>
+            </button>
+          </span> -->
         </div>
       </div>
     </div>

@@ -21,6 +21,9 @@ package org.govway.catalogo.core.business.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,24 +133,44 @@ public class EServiceBuilder {
 		return this.mapToZip(map);
 	}
 	
-    public byte[] getTryOutOpenAPI(ApiEntity api, ApiConfigEntity entity) throws IOException {
+    public byte[] getTryOutOpenAPI(ApiEntity api, ApiConfigEntity entity, boolean isCollaudo) throws IOException {
     	ConfigurazioneTryout conf = new ConfigurazioneTryout();
-    	conf.setServerUrl(this.getUrlInvocazione(api, true));
-		return getTryOutOpenAPI(entity.getSpecifica().getRawData(), conf);
+    	conf.setServerUrl(this.getUrlInvocazione(api, isCollaudo));
+		try {
+			return getTryOutOpenAPIYaml(entity.getSpecifica().getRawData(), conf);
+		} catch(IOException e) {
+			return getTryOutOpenAPIJson(entity.getSpecifica().getRawData(), conf);
+		}
 	}
 	
     public static byte[] getTryOutOpenAPI(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
-
+		try {
+			return getTryOutOpenAPIYaml(originalOpenapi, conf);
+		} catch(IOException e) {
+			return getTryOutOpenAPIJson(originalOpenapi, conf);
+		}
+	}
+	
+    public static byte[] getTryOutOpenAPIJson(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
+        return getTryOutOpenAPI(originalOpenapi, conf, null);
+    }
+	
+    public static byte[] getTryOutOpenAPIYaml(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
         YAMLFactory yamlFactory = new YAMLFactory()
                 .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)  // Disable '---' marker
                 .disable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
                 .disable(YAMLGenerator.Feature.CANONICAL_OUTPUT);
+        
+        return getTryOutOpenAPI(originalOpenapi, conf, yamlFactory);
+	}
+	
+    public static byte[] getTryOutOpenAPI(byte[] originalOpenapi, ConfigurazioneTryout conf, YAMLFactory yamlFactory) throws IOException {
 
-        ObjectMapper mapper = new ObjectMapper(yamlFactory);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        ObjectMapper reader = yamlFactory != null ? new ObjectMapper(yamlFactory): new ObjectMapper();
+        reader.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         // Step 2: Parse OpenAPI file
-        JsonNode openApiJson = mapper.readTree(originalOpenapi);
+        JsonNode openApiJson = reader.readTree(originalOpenapi);
 
         // Step 3: Inject new server URL
         JsonNode serversNode = openApiJson.path("servers");
@@ -156,30 +179,32 @@ public class EServiceBuilder {
         	ObjectNode serverNode = ((ObjectNode) serversNode.get(0));
             serverNode.put("url", conf.getServerUrl());
 
-        	serversNode = mapper.createArrayNode().add(serverNode);
+        	serversNode = reader.createArrayNode().add(serverNode);
             ((ObjectNode) openApiJson).set("servers", serversNode);
         } else {
-            ObjectNode serverNode = mapper.createObjectNode();
+            ObjectNode serverNode = reader.createObjectNode();
             serverNode.put("url", conf.getServerUrl());
 
             // If no servers node exists, create one
-            ArrayNode newServersArray = mapper.createArrayNode().add(serverNode);
+            ArrayNode newServersArray = reader.createArrayNode().add(serverNode);
             ((ObjectNode) openApiJson).set("servers", newServersArray);
         }
 
-        // Step 5: Serialize updated OpenAPI object back to YAML
-        return mapper
+        ObjectMapper writer = new ObjectMapper();
+
+        // Step 5: Serialize updated OpenAPI object back in JSON
+        return writer
                 .writeValueAsBytes(openApiJson);
     }
 
-//    public static void main(String[] args) throws IOException {
-//    	ConfigurazioneTryout conf = new ConfigurazioneTryout();
-//    	conf.setServerUrl("serverurltest");
-//    	Path path = Paths.get("/tmp/openapi.yaml");
-//		byte[] output = getTryOutOpenAPI(Files.readAllBytes(path), conf);
-//		
-//		Files.write(path, output);
-//	}
+    public static void main(String[] args) throws IOException {
+    	ConfigurazioneTryout conf = new ConfigurazioneTryout();
+    	conf.setServerUrl("serverurltest");
+    	Path path = Paths.get("/tmp/openapi.yaml");
+		byte[] output = getTryOutOpenAPI(Files.readAllBytes(path), conf);
+		
+		Files.write(path, output);
+	}
     
 
 	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo) {
@@ -211,7 +236,8 @@ public class EServiceBuilder {
 			ScopoType tabscopo = new ScopoType();
 	
 			EtichetteScopoType etichette = new EtichetteScopoType();
-			etichette.setTitolo(api.getDescrizione());
+			
+			etichette.setTitolo(Optional.ofNullable(api.getDescrizione()).map(d -> new String(d)).orElse(null));
 			etichette.setDato("Dato");
 			etichette.setValore("Valore");
 			tabscopo.setEtichette(etichette);
@@ -284,7 +310,7 @@ public class EServiceBuilder {
 						rigaProfilo.setRisorsa("Tutte");
 						rigaProfilo.getRisorse().add("Tutte");
 					} else {
-						String[] res = at.getResources().split(SPLIT_RESOURCES +"");
+						String[] res = new String(at.getResources()).split(SPLIT_RESOURCES +"");
 						rigaProfilo.setRisorsa(String.join(",", res));
 						for(String risorsa: res) {
 							rigaProfilo.getRisorse().add(risorsa);

@@ -36,7 +36,7 @@ try {
   console.error('Error occurred:', error);
 }
 
-var options = {
+options = {
   files: `projects/${nameProject}/src/environments/environment${prodFile}.ts`,
   from: /build: '.*'/g,
   to: `build: '${buildVersion}'`,

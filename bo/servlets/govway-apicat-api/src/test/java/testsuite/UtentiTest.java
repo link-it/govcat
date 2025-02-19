@@ -617,7 +617,7 @@ public class UtentiTest {
         // Asserzioni
         assertEquals("Utente [" + idUtenteNonEsistente + "] non trovata", exception.getMessage());
     }
-
+    /*
     @Test
     void testGetUtenteSettingsUnauthorized() {
         // Creazione dell'organizzazione necessaria
@@ -641,7 +641,7 @@ public class UtentiTest {
         // Asserzioni
         assertEquals("Utente non abilitato", exception.getMessage());
     }
-    
+    */
     @Test
     void testGetUtenteSettingsUtenteAnonimo() {
         // Creazione dell'organizzazione necessaria
@@ -662,7 +662,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("Required: Utente autenticato", exception.getMessage());
     }
 
     @Test

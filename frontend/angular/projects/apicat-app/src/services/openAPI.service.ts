@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { ApiClient, IRequestOptions, IRawRequestOptions } from './api.client';
 import { environment } from '../environments/environment';
-import { HttpHeaders, HttpParams } from '@angular/common/http';
+
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -29,14 +31,7 @@ export class OpenAPIService {
       // }
     }
     
-    switch (name) {
-      case "others":
-        return of(null); 
-        break;
-
-      default:
-        return this.http.get<any>(url, options);
-    }
+    return this.http.get<any>(url, options);
   }
 
   getListPDND(name: string, options?: IRequestOptions, pageUrl: string = '') : Observable<any> {
@@ -201,4 +196,78 @@ export class OpenAPIService {
     let url = `${this.proxyPath}/${name}`;
     return this.http.getMonitorContentRaw(url, params, headers);
   }
+
+  // Utilities
+
+  queryToHttpParams(query: any): HttpParams {
+    let httpParams = new HttpParams();
+
+    Object.keys(query).forEach(key => {
+        if (query[key] !== null) {
+            switch (key) {
+                default:
+                    httpParams = httpParams.set(key, query[key]);
+            }
+        }
+    });
+
+    return httpParams;
+  }
+
+  getData(model: string, term: any = null, pageSize: number = 100, sort: string = 'id', sort_direction: string = 'asc'): Observable<any> {
+    let _options: any = { params: { PageSize: pageSize, PageNumber: 1, OrderTerm: `${sort},${sort_direction}` } };
+    // let _options: any = { params: { limit: 100, sort: sort, sort_direction: 'asc' } };
+    // let _options: any = { params: { } };
+    if (term) {
+        if (typeof term === 'string' ) {
+            _options.params =  { ..._options.params, q: term };
+        }
+        if (typeof term === 'object' ) {
+            _options.params =  { ..._options.params, ...term };
+        }
+    }
+
+    return this.getList(model, _options)
+        .pipe(
+            map((resp: any) => {
+                if (resp.Error) {
+                    return of({status: 500, message: resp.Error});
+                    // throwError(resp.Error);
+                } else {
+                    const _items = (resp.content || resp).map((item: any) => {
+                        return item;
+                    });
+                    return _items;
+                }
+            })
+        );
+  }
+
+  getDataPagination(model: string, term: any = null, pageNumber: number = 0, pageSize: number = 100, sort: string = 'id', sort_direction: string = 'asc'): Observable<any> {
+    let _options: any = { params: { size: pageSize, page: pageNumber, sort: `${sort},${sort_direction}` } };
+    if (term) {
+        if (typeof term === 'string' ) {
+            _options.params =  { ..._options.params, q: term };
+        }
+        if (typeof term === 'object' ) {
+            _options.params =  { ..._options.params, ...term };
+        }
+    }
+
+    return this.getList(model, _options)
+        .pipe(
+            map((resp: any) => {
+                if (resp.Error) {
+                    return of({status: 500, message: resp.Error});
+                    // throwError(resp.Error);
+                } else {
+                    const _items = (resp.content || resp).map((item: any) => {
+                        return item;
+                    });
+                    return _items;
+                }
+            })
+        );
+  }
+
 }

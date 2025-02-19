@@ -113,6 +113,7 @@ export class SearchGoogleFormComponent implements OnInit, OnChanges, AfterViewIn
 
   @HostListener("document:click", ['$event'])
   clickedOut(event: PointerEvent) {
+    // const isStillPresentInDom = document.contains(event.target as Node);
     const isOutsideClick = !this._elementRef.nativeElement.contains(event.target);
 
     if (this._outsideClickDisable) { return; }
@@ -122,7 +123,6 @@ export class SearchGoogleFormComponent implements OnInit, OnChanges, AfterViewIn
       $("#form_toggle").dropdown('hide');
     }
   }
-
   setNotCloseForm(value: boolean) {
     this._notCloseForm = value;
   }
@@ -522,6 +522,18 @@ export class SearchGoogleFormComponent implements OnInit, OnChanges, AfterViewIn
     }
     if (!this.autoPin) {
       localStorage.removeItem(`History_Pin_${this.historyStore}`);
+    }
+  }
+
+  _toggleFormDropdown(show: boolean) {
+    if (show) {
+        $("#form_toggle").removeClass('hide');
+        $("#form_toggle").addClass('show');
+        $("#form_toggle").focus();
+
+    } else {
+        $("#form_toggle").removeClass('show');
+        $("#form_toggle").addClass('hide');
     }
   }
 }

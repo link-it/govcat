@@ -12,6 +12,7 @@ import { OpenAPIService } from '@services/openAPI.service';
 import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
 
 import * as moment from 'moment';
+import { FormGroup, Validators } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root',
@@ -164,7 +165,7 @@ export class UtilService {
     return this.getAnagrafiche(tables);
   }
 
-  _queryToHttpParams(query: any) : HttpParams {
+  _queryToHttpParams(query: any, formatDate: boolean = true) : HttpParams {
     let httpParams = new HttpParams();
 
     Object.keys(query).forEach(key => {
@@ -181,8 +182,12 @@ export class UtilService {
           case 'data_a':
           case 'data_inizio':
           case 'data_fine':
-            _dateTime = moment(query[key]).format('YYYY-MM-DD');
-            httpParams = httpParams.set(key, _dateTime);
+            if (formatDate) {
+              _dateTime = moment(query[key]).format('YYYY-MM-DD');
+              httpParams = httpParams.set(key, _dateTime);
+            } else {
+              httpParams = httpParams.set(key, query[key]);
+            }
             break;
           default:
             httpParams = httpParams.set(key, query[key]);
@@ -215,6 +220,32 @@ export class UtilService {
     return _orderByComparator(a['nome'], b['nome']);
   }
 
+  _confirmDialog(message: string | null, data: any, callback: (data: any) => void, initialState: any = {}) {
+    const _initialState = {
+        title: this.translate.instant('APP.TITLE.Attention'),
+        messages: [
+            this.translate.instant(message ? message : 'APP.MESSAGE.AreYouSure')
+        ],
+        cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+        confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+        cancelColor: 'secondary',
+        confirmColor: 'danger',
+        ...initialState
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+        ignoreBackdropClick: true,
+        initialState: _initialState
+    });
+        this._modalConfirmRef.content.onClose.subscribe(
+            (response: any) => {
+                if (response) {
+                    callback(data);
+                }
+            }
+    );
+  }
+
   _confirmDelection(data: any, callback: (data: any) => void) {
     const initialState = {
       title: this.translate.instant('APP.TITLE.Attention'),
@@ -240,7 +271,7 @@ export class UtilService {
   }
 
   __confirmCambioStatoServizio(status: any, servizio: any, callback: (status: any, data: any) => void) {
-    const _newStatus = status.status.nome;
+    const _newStatus = status.status?.stato_successivo?.nome || status.status.nome
     const _newStatusTransl = this.translate.instant(`APP.WORKFLOW.STATUS.${_newStatus}`);
     const initialState = {
       title: this.translate.instant('APP.TITLE.Attention'),
@@ -285,4 +316,67 @@ export class UtilService {
       }
     );
   }
+
+  _removeEmpty(obj: any) {
+    const $this = this;
+    return Object.keys(obj)
+        .filter(function (k) {
+            return ( obj[k] !== null && obj[k] !== undefined && obj[k] !== '' && typeof obj[k] !== "object");
+        })
+        .reduce(function (acc: any, k: string) {
+            acc[k] = typeof obj[k] === "object" ? $this._removeEmpty(obj[k]) : obj[k];
+            return acc;
+        }, {});
+  }
+
+  _showMandatoryFields(formGroup: FormGroup) {
+      console.group('_showMandatoryFields');
+      Object.keys(formGroup.getRawValue()).forEach((key) => {
+          if (formGroup.controls[key].hasValidator(Validators.required))
+              console.log(key, formGroup.controls[key].value);
+          }
+      );
+      console.groupEnd();
+  }
+
+  // ScrollTo
+
+  scrollTo(id: string) {
+      document.getElementById(id)?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+          inline: "end"
+      });
+
+      // const box = document.querySelector('.container-scroller');
+      // const targetElm = document.getElementById(id);
+      // this.scrollToElm(box, targetElm, 600);
+  }
+
+  scrollToElm(container: any, elm: any, duration: number){
+      var pos = this.getRelativePos(elm);
+
+      this._scrollTo(container, pos.top, duration);  // duration in seconds
+  }
+
+  getRelativePos(elm: any){
+      const pPos: any = elm.parentNode.getBoundingClientRect(), // parent pos
+          cPos: any = elm.getBoundingClientRect(), // target pos
+          pos: any = {};
+
+      pos.top    = cPos.top    - pPos.top + elm.parentNode.scrollTop + (pPos.bottom - pPos.top),
+      pos.right  = cPos.right  - pPos.right,
+      pos.bottom = cPos.bottom - pPos.bottom,
+      pos.left   = cPos.left   - pPos.left;
+
+      return pos;
+  }
+  
+  _scrollTo(element: any, to: any, duration: number) {
+      var start = element.scrollTop,
+          change = to - start;
+
+      element.scrollTop = start + change;
+  }
+
 }

@@ -12,7 +12,6 @@
 import { VisibilitaEnum } from './visibilitaEnum';
 import { TipoServizioEnum } from './tipoServizioEnum';
 
-
 export interface IdentificativoServizioUpdate { 
     nome: string;
     versione: string;
@@ -20,6 +19,7 @@ export interface IdentificativoServizioUpdate {
     visibilita?: VisibilitaEnum;
     multi_adesione: boolean;
 	tipo: TipoServizioEnum;
+    skip_collaudo: boolean;
 }
 export namespace IdentificativoServizioUpdate {
 }

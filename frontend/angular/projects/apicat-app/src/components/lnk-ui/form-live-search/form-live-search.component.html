@@ -1,0 +1,73 @@
+<ng-container *ngIf="inline">
+    <div class="row align-items-center {{ label }}" [class.mb-3]="!reduced">
+        <div class="text-break {{ colClassLabel }}" [class.text-end]="labelAlignRight">
+            <ng-container *ngTemplateOutlet="formLabel;context:{ name:formControlName, label:label, formGroup:formGroup, isEdit:isEdit }"></ng-container>
+        </div>
+        <div class="{{ colClassValue }}">
+            <ng-container *ngTemplateOutlet="formInput;context:{ name:formControlName, label:label, formGroup:formGroup, placeholder:placeholder, isEdit:isEdit }"></ng-container>
+        </div>
+    </div>
+</ng-container>
+
+<ng-container *ngIf="!inline">
+    <div class="form-group {{ label }}" [class.mb-3]="!reduced" [class.mb-0]="reduced">
+        <ng-container *ngTemplateOutlet="formLabel;context:{ name:formControlName, label:label, formGroup:formGroup, isEdit:isEdit }"></ng-container>
+        <ng-container *ngTemplateOutlet="formInput;context:{ name:formControlName, label:label, formGroup:formGroup, placeholder:placeholder, isEdit:isEdit }"></ng-container>
+    </div>
+</ng-container>
+
+<ng-template #formLabel let-name="name" let-label="label" let-formGroup="formGroup" let-isEdit="isEdit">
+    <label class="label-bold mb-0" [class.mb-0]="reduced" [for]="formControlName" *ngIf="label">{{ label }}
+        <span *ngIf="isEdit"
+            appMarkAsterisk
+            [formGroup]="formGroup"
+            [controlName]="name"
+            [useOptional]="useOptional"
+        ></span>
+    </label>
+</ng-template>
+
+<ng-template #formInput let-name="name" let-label="label" let-formGroup="formGroup" let-autocomplete="autocomplete" let-placeholder="placeholder" let-isEdit="isEdit">
+    <div class="" *ngIf="isEdit">
+        <div class="form-group mb-0">
+            <ng-select
+                [items]="items$ | async"
+                [virtualScroll]="true" 
+                [bindLabel]="bindLabel"
+                [bindValue]="bindValue"
+                [labelForId]="formControlName"
+                [placeholder]="placeholder"
+                [loading]="loading"
+                [clearable]="clearable"
+                [multiple]="false"
+                [(ngModel)]="value"
+                (change)="onItemSelect($event)"
+                (blur)="onTouched()"
+                [typeahead]="textInput$"
+                [typeToSearchText]="typeToSearchText | translate"
+                [notFoundText]="notFoundText | translate"
+                [searchable]="searchable"
+                [disabled]="disabledSearch"
+                [appendTo]="appendTo"
+                (scrollToEnd)="onScrollToEnd()"
+            >
+                <ng-template ng-label-tmp let-item="item">
+                    {{ item?.label | translate }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                    <div class="" [class.fw-bold]="item.meta">{{ item.label | translate }}</div>
+                    <div class="" *ngIf="item.meta">
+                        <span class="small text-muted">{{ item.meta }}</span>
+                    </div>
+                </ng-template>
+            </ng-select>
+            <lnk-form-field-error
+                [control]="formGroup.get(formControlName)"
+            ></lnk-form-field-error>
+        </div>
+    </div>
+    <div class="" *ngIf="!isEdit">
+        <!-- <p class="form-control-plaintext mt-1 text-break">{{ initValue?.label || value || '-' }}</p> -->
+        <input [type]="'text'" readonly class="" [class.form-control]="!plainText" [class.form-control-plaintext]="plainText" [id]="id || formControlName" [value]="initValue?.label || value || '-'">
+    </div>
+</ng-template>

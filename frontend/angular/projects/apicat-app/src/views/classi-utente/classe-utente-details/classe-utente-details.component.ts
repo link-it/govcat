@@ -301,7 +301,7 @@ export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterCon
   _initBreadcrumb() {
     const _title = this.classeUtente ? this.classeUtente.nome : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.UserClasses', url: '/classi-utente', type: 'link' },
       { label: `${_title}`, url: '', type: 'title' }
     ];

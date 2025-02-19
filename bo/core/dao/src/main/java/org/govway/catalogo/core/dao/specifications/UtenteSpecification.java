@@ -69,6 +69,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		
 		if (q.isPresent()) {
 			List<Predicate> predLstQ = new ArrayList<>();
+			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.idUtente)), "%" + q.get().toUpperCase() + "%")); 
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + q.get().toUpperCase() + "%")); 
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + q.get().toUpperCase() + "%"));
 			predLstQ.add(cb.like(cb.upper(root.join(UtenteEntity_.organizzazione, JoinType.LEFT).get(OrganizzazioneEntity_.nome)), "%" + q.get().toUpperCase() + "%"));

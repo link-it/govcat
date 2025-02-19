@@ -19,7 +19,7 @@
         <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewService' | translate }}</h3>
         <div class="d-flex flex-grow-1">&nbsp;</div>
         <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
-        <div class="nav-controls" *ngIf="_data">
+        <div class="nav-controls" *ngIf="_data?.id_servizio">
             <ng-container *ngIf="!_isEdit">
                 <ng-container *ngIf="!_spin && !_isNew">
                     <ng-container *ngFor="let link of _otherLinks">
@@ -48,15 +48,15 @@
                             </ng-container>
                             <ng-container *ngSwitchDefault>
                                 <div class="position-relative me-2 d-none d-inline-block" *ngIf="link.show">
-                                    <ui-button [type]="'button'" [label]="link.title" (onAction)="onLinkClick(link)"></ui-button>
+                                    <lnk-button [type]="'button'" [label]="link.title" (onAction)="onLinkClick(link)"></lnk-button>
                                 </div>
                             </ng-container>
                         </ng-container>
                     </ng-container>
                 </ng-container>
                 <div role="group" class="btn-group me-2 d-inline-block" *ngIf="!_spin && data">
-                    <ui-button [type]="'button'" [spinner]="true" [onlySpinner]="true" *ngIf="_changingStatus"></ui-button>
-                    <ui-workflow *ngIf="!_changingStatus"
+                    <lnk-button [type]="'button'" [spinner]="true" [onlySpinner]="true" *ngIf="_changingStatus"></lnk-button>
+                    <ui-workflow *ngIf="!_changingStatus && generalConfig"
                         [data]="data"
                         [module]="'servizio'"
                         [grant]="_grant"
@@ -66,7 +66,7 @@
                     ></ui-workflow>
                 </div>
                 <div class="position-relative d-inline-block" *ngIf="!_isEdit && !_spin && _editable">
-                    <ui-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></ui-button>
+                    <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
                 </div>
             <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
                 <div role="group" class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
@@ -98,7 +98,7 @@
             <!-- </ng-template> -->
             </ng-container>
             <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-                <ui-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></ui-button>
+                <lnk-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></lnk-button>
             </div>
         </div>
         <!-- </ng-template> -->
@@ -427,7 +427,7 @@
                                     </div>
                                     <div class="" *ngIf="!_isEdit">
                                         <!-- <input type="text" readonly class="form-control-plaintext" id="descrizione_sintetica" [value]="data?.descrizione_sintetica"> -->
-                                        <span class="mt-1 white-space-pre">{{ data?.descrizione_sintetica || '-' }}</span>
+                                        <span class="mt-1 white-space-pre text-wrap">{{ data?.descrizione_sintetica || '-' }}</span>
                                         
                                     </div>
                                 </div>
@@ -441,10 +441,10 @@
                                         </p>
                                         <ui-input-help field="descrizione" context="SERVICE"></ui-input-help>
                                     </div>
-                                    <div class="mb-2 markdown-container" [ngClass]="{ 'p-2 border border-info': _showMarkdownPreview, 'parent': !_isEdit }" *ngIf="(!_isEdit && _showMarkdown) || _showMarkdownPreview">
-                                        <div class="" [class.scroll-shadows]="!_isEdit">
+                                    <div class="mb-2 markdown-container" [ngClass]="{ 'p-2 border border-info': _showMarkdownPreview, 'parent-': !_isEdit }" *ngIf="(!_isEdit && _showMarkdown) || _showMarkdownPreview">
+                                        <div class="" [class.scroll-shadows-]="!_isEdit">
                                             <markdown ngPreserveWhitespaces
-                                                [data]="_showMarkdownPreview ? f['descrizione'].value: data.descrizione">
+                                                [data]="_showMarkdownPreview ? f['descrizione'].value: (data.descrizione || '- ')">
                                             </markdown>
                                         </div>
                                     </div>
@@ -453,6 +453,26 @@
                                         <span class="mt-1 white-space-pre">{{ data?.descrizione || '-' }}</span>
                                     </div>
                                 </div>
+
+                                <div class="row skip_collaudo">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'skip_collaudo'" *ngIf="_isEdit"></span>
+                                            </label>
+                                            <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
+                                                <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                                                <label class="custom-control-label" for="skip_collaudo"></label>
+                                            </div>
+                                            <div class="" *ngIf="!_isEdit">
+                                                <span class="">
+                                                    <i class="bi bi-square" *ngIf="!data.skip_collaudo"></i>
+                                                    <i class="bi bi-check-square" *ngIf="data.skip_collaudo"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row visibilita">
                                     <div class="col-6">
                                         <div class="form-group visibilita">
@@ -657,14 +677,14 @@
                                         <div class="form-group utente_ultima_modifica">
                                             <label class="label-bold" for="utente_ultima_modifica">{{ 'APP.LABEL.utente_ultima_modifica' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'utente_ultima_modifica'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
-                                                <input type="text" readonly class="form-control" id="utente_ultima_modifica" [value]="richiedente?.nome + ' ' + richiedente?.cognome" disabled>
+                                                <input type="text" readonly class="form-control" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome" disabled>
                                                 <p *ngIf="f['utente_ultima_modifica'].invalid && (f['utente_ultima_modifica'].dirty || f['utente_ultima_modifica'].touched)" class="form-text text-danger">
                                                     <span *ngIf="f['utente_ultima_modifica'].errors && f['utente_ultima_modifica'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                                 </p>
                                                 <ui-input-help field="utente_ultima_modifica" context="SERVICE"></ui-input-help>
                                             </div>
                                             <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="utente_ultima_modifica" [value]="richiedente?.nome + ' ' + richiedente?.cognome">
+                                                <input type="text" readonly class="form-control-plaintext" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome">
                                             </div>
                                         </div>
                                     </div>
@@ -701,8 +721,8 @@
                         </div>
 
                         <div class="row-content-block footer-block" *ngIf="_isEdit">
-                            <ui-button [type]="'submit'" [label]="'APP.BUTTON.Save'" [primary]="true" [otherClass]="'gl-mr-2'" [disabled]="_formGroup.invalid || _spin"></ui-button>
-                            <ui-button [type]="'button'" [label]="'APP.BUTTON.Cancel'" (onAction)="_onCancelEdit()"></ui-button>
+                            <lnk-button [type]="'submit'" [label]="'APP.BUTTON.Save'" [primary]="true" [otherClass]="'gl-mr-2'" [disabled]="_formGroup.invalid || _spin"></lnk-button>
+                            <lnk-button [type]="'button'" [label]="'APP.BUTTON.Cancel'" (onAction)="_onCancelEdit()"></lnk-button>
                         </div>
                     </form>
                 </div>

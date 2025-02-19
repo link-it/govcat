@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 
 import { AuthenticationService } from '@app/services/authentication.service';
+import { OpenAPIService } from '@app/services/openAPI.service';
 import { ConfigService } from 'projects/tools/src/lib/config.service';
 
 @Component({
@@ -40,6 +41,7 @@ export class AccessoComponent implements OnInit {
     private translate: TranslateService,
     private oauthService: OAuthService,
     private authenticationService: AuthenticationService,
+    private apiService: OpenAPIService,
     private configService: ConfigService
   ) {
     this.config = this.configService.getConfiguration();
@@ -56,6 +58,7 @@ export class AccessoComponent implements OnInit {
     this.authorizationHeader = this.oauthService.authorizationHeader();
 
     this.loading = true;
+
     setTimeout(() => {
       this.loading = false;
       if (!this.showUserRegistration) {

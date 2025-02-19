@@ -70,6 +70,9 @@ public class DominioEntity {
     @Column(nullable=false)
     private boolean deprecato;
     
+    @Column(name = "skip_collaudo", nullable = false)
+    private boolean skipCollaudo;
+    
 	@ManyToOne
     @JoinColumn(name = "id_soggetto_referente", referencedColumnName = "id")
 	private SoggettoEntity soggettoReferente;

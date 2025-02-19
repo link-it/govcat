@@ -19,12 +19,7 @@
  */
 package org.govway.catalogo.controllers.csv;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.security.Principal;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,6 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.govway.catalogo.assembler.CertificateUtils;
 import org.govway.catalogo.assembler.ClientAdesioneItemAssembler;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
@@ -41,7 +37,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
-import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
@@ -60,11 +56,13 @@ import org.govway.catalogo.servlets.model.CertificatoClientFornito;
 import org.govway.catalogo.servlets.model.CertificatoClientRichiestoCn;
 import org.govway.catalogo.servlets.model.CertificatoClientRichiestoCsr;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.ItemClientAdesione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 
 public class ServizioBuilder {
 
@@ -78,6 +76,18 @@ public class ServizioBuilder {
 
 	@Autowired
 	private Configurazione configurazione;
+	
+	private List<Pair<String, String>> custom;
+	
+	public ServizioBuilder() {
+		this.custom = new ArrayList<>();
+		
+		this.custom.add(Pair.of("finalita", "purposeId"));
+		this.custom.add(Pair.of("nome_eservice_pdnd", "nome eService PDND"));
+		this.custom.add(Pair.of("versione_eservice_pdnd", "versione eService PDND"));
+		
+	}
+	
 	private Collection<Servizio> toListEntries(ServizioEntity servizioEntity) {
 		List<Servizio> serviziCSV = new ArrayList<>();
 
@@ -99,7 +109,7 @@ public class ServizioBuilder {
 
 					this.logger.info("Adesione: " + adesione.getIdLogico() + " api: " + api.getNome());
 					Servizio s = new Servizio();
-					s.setAzioneRisorsa(api.getAuthType().stream().map(at -> at.getResources().replaceAll(",", "\n")).collect(Collectors.joining("\n")));
+					s.setAzioneRisorsa(api.getAuthType().stream().map(at -> new String(at.getResources()).replaceAll(",", "\n")).collect(Collectors.joining("\n")));
 
 					s.setImplementazioneAPI(api.getNome() + " v" + api.getVersione());
 					s.setTipoApi(api.getCollaudo().getProtocollo().toString().contains("WSDL") ? "soap" : "rest"); //TODO
@@ -119,9 +129,9 @@ public class ServizioBuilder {
 					s.setUrlInvocazioneProduzione(this.eServiceBuilder.getUrlInvocazione(api, false));
 
 					if(hasCollaudo) {
-						String purposeIdValoreCollaudo = getPurposeIdValore(adesione, api, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO);
+						String purposeIdValoreCollaudo = getProprieta(adesione, api, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO);
 						if(purposeIdValoreCollaudo != null) {
-							s.setProprietaCollaudo("purposeId: " + purposeIdValoreCollaudo);	
+							s.setProprietaCollaudo(purposeIdValoreCollaudo);	
 						}
 						
 						s.setRateLimitingCollaudo(getRateLimitingValore(adesione, api, org.govway.catalogo.core.orm.entity.AmbienteEnum.COLLAUDO));	
@@ -143,9 +153,9 @@ public class ServizioBuilder {
 
 					if(hasProduzione) {
 
-						String purposeIdValoreProduzione = getPurposeIdValore(adesione, api, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE);
+						String purposeIdValoreProduzione = getProprieta(adesione, api, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE);
 						if(purposeIdValoreProduzione != null) {
-							s.setProprietaProduzione("purposeId: " + purposeIdValoreProduzione);
+							s.setProprietaProduzione(purposeIdValoreProduzione);
 						}
 	
 						s.setRateLimitingProduzione(getRateLimitingValore(adesione, api, org.govway.catalogo.core.orm.entity.AmbienteEnum.PRODUZIONE));	
@@ -207,8 +217,8 @@ public class ServizioBuilder {
 	}
 
 	private String getRateLimitingValore(AdesioneEntity adesione, ApiEntity api, org.govway.catalogo.core.orm.entity.AmbienteEnum ambiente) {
-		String quota = getEstensioneValore(adesione, api, ambiente, "rate_limiting_quota");
-		String periodo = getEstensioneValore(adesione, api, ambiente, "rate_limiting_periodo");
+		String quota = getEstensioneAdesioneValore(adesione, api, ambiente, "rate_limiting_quota");
+		String periodo = getEstensioneAdesioneValore(adesione, api, ambiente, "rate_limiting_periodo");
 		if(quota != null && periodo != null) {
 			return quota + " / " + periodo;
 		} else {
@@ -216,12 +226,55 @@ public class ServizioBuilder {
 		}
 	}
 
-	private String getPurposeIdValore(AdesioneEntity adesione, ApiEntity api, org.govway.catalogo.core.orm.entity.AmbienteEnum ambiente) {
-		return getEstensioneValore(adesione, api, ambiente, "finalita");
-	}
+	private String getProprieta(AdesioneEntity adesione, ApiEntity api, org.govway.catalogo.core.orm.entity.AmbienteEnum ambiente) {
+		StringBuilder proprieta = new StringBuilder();
+		
+		for(Pair<String, String> c: this.custom) {
 
-	private String getEstensioneValore(AdesioneEntity adesione, ApiEntity api, org.govway.catalogo.core.orm.entity.AmbienteEnum ambiente, String nome) {
+			String prop = getEstensioneAdesioneValore(adesione, api, ambiente, c.getFirst());
+			
+			if(prop == null || prop.isEmpty()) {
+
+				List<String> gruppi = this.configurazione.getServizio().getApi().getProprietaCustom().stream()
+						.filter(p -> {
+							if(ambiente.equals(AmbienteEnum.COLLAUDO)) {
+								return p.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO) 
+										||
+										p.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO);
+							} else {
+								return p.getClasseDato().equals(ConfigurazioneClasseDato.PRODUZIONE) 
+										||
+										p.getClasseDato().equals(ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO);
+							}
+						}).map(p -> p.getNomeGruppo()).collect(Collectors.toList());
+
+				prop = getEstensioneAPIValore(api, gruppi, c.getFirst());
+				
+			}
+
+			if(prop != null && !prop.isEmpty()) {
+				if(proprieta.length() > 0) {
+					proprieta.append("\n");
+				}
+				proprieta.append(c.getSecond()).append(": ").append(prop);
+			}
+
+		}
+
+		if(proprieta.length() > 0) {
+			return proprieta.toString();
+		} else {
+			return null;
+		}
+		
+	}
+	
+	private String getEstensioneAdesioneValore(AdesioneEntity adesione, ApiEntity api, org.govway.catalogo.core.orm.entity.AmbienteEnum ambiente, String nome) {
 		return adesione.getEstensioni().stream().filter(e -> e.getAmbiente().equals(ambiente) && e.getNome().equals(nome) && api.equals(e.getApi())).findAny().orElse(new EstensioneAdesioneEntity()).getValore();
+	}
+	
+	private String getEstensioneAPIValore(ApiEntity api, List<String> gruppi, String nome) {
+		return api.getEstensioni().stream().filter(e -> gruppi.contains(e.getGruppo()) && e.getNome().equals(nome)).findAny().orElse(new EstensioneApiEntity()).getValore();
 	}
 
 	private String getAutenticazioneValore(ItemClientAdesione client, ClientEntity entity) {
@@ -270,33 +323,11 @@ public class ServizioBuilder {
 
 	private String getSubject(Documento documento, ClientEntity client) {
 		if(documento != null) {
-
-
-			Optional<EstensioneClientEntity> allegato = client.getEstensioni().stream().filter(e -> e.getDocumento()!= null && e.getDocumento().getUuid().equals(documento.getUuid().toString()))
-					.findAny();
-
-			if(!allegato.isPresent()) {
-				return null;
-			}
-
-			if(allegato.get().getDocumento().getRawData().length == 0) {
-				this.logger.error("Certificato vuoto");
-				return null;
-			}
-
-			// Carica il certificato
-			try(InputStream certificateFile = new ByteArrayInputStream(allegato.get().getDocumento().getRawData())) {
-
-				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-				X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(certificateFile);
-
-				// Ottieni il soggetto (subject) del certificato
-				Principal subject = certificate.getSubjectDN();
-				return subject.getName();
-
+			try {
+				return CertificateUtils.getSubject(client, documento.getUuid().toString());
 			} catch(Exception e) {
-				this.logger.error("Errore nella lettura di un certificato: " + e.getMessage());
-				return null;	
+				this.logger.error("Errore nella ricerca del certificato: " + e.getMessage());
+				return null;
 			}
 		} else {
 			this.logger.error("Nessun certificato trovato");

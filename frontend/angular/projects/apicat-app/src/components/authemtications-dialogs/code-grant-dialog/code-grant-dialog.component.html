@@ -2,7 +2,7 @@
     <form [formGroup]="formGroup">
         <div class="modal-header align-items-center">
             <h5 class="modal-title">{{ title | translate }}</h5>
-            <ui-button [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.BUTTON.Close'" [tertiary]="true" (onAction)="closeModal()"></ui-button>
+            <lnk-button [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.BUTTON.Close'" [tertiary]="true" (onAction)="closeModal()"></lnk-button>
         </div>
         <div class="modal-body px-0 py-0 container-scroller-visibile">
             <div class="container py-4">
@@ -11,28 +11,28 @@
                         <div class="form-group mb-0">
                             <label class="col-form-label label-bold w-100" for="clientId">{{ 'APP.AUTHENTICATION.LABEL.ClientId' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'clientId'"></span></label>
                             <div class="">
-                            <input type="text" class="form-control" id="clientId" name="clientId" formControlName="clientId">
-                            <p *ngIf="f['clientId'].invalid && (f['clientId'].dirty || f['clientId'].touched)" class="form-text text-danger mb-0">
-                                <span *ngIf="f['clientId'].errors && f['clientId'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                            </p>
+                                <input type="text" class="form-control" id="clientId" name="clientId" formControlName="clientId">
+                                <p *ngIf="f['clientId'].invalid && (f['clientId'].dirty || f['clientId'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['clientId'].errors && f['clientId'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
                             </div>
                         </div>
                         <div class="form-group mb-0">
                             <label class="col-form-label label-bold w-100" for="clientSecret">{{ 'APP.AUTHENTICATION.LABEL.ClientSecret' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'clientSecret'"></span></label>
                             <div class="">
-                            <input type="password" class="form-control" id="clientSecret" name="clientSecret" formControlName="clientSecret">
-                            <p *ngIf="f['clientSecret'].invalid && (f['clientSecret'].dirty || f['clientSecret'].touched)" class="form-text text-danger mb-0">
-                                <span *ngIf="f['clientSecret'].errors && f['clientSecret'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                            </p>
+                                <input type="password" class="form-control" id="clientSecret" name="clientSecret" formControlName="clientSecret">
+                                <p *ngIf="f['clientSecret'].invalid && (f['clientSecret'].dirty || f['clientSecret'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['clientSecret'].errors && f['clientSecret'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
                             </div>
                         </div>
                         <div class="form-group mb-0">
                             <label class="col-form-label label-bold w-100" for="scope">{{ 'APP.AUTHENTICATION.LABEL.Scope' | translate }} <span appMarkAsterisk [formGroup]="formGroup" [controlName]="'scope'"></span></label>
                             <div class="">
-                            <input type="text" class="form-control" id="scope" name="scope" formControlName="scope">
-                            <p *ngIf="f['scope'].invalid && (f['scope'].dirty || f['scope'].touched)" class="form-text text-danger mb-0">
-                                <span *ngIf="f['scope'].errors && f['scope'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                            </p>
+                                <input type="text" class="form-control" id="scope" name="scope" formControlName="scope">
+                                <p *ngIf="f['scope'].invalid && (f['scope'].dirty || f['scope'].touched)" class="form-text text-danger mb-0">
+                                    <span *ngIf="f['scope'].errors && f['scope'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
                             </div>
                         </div>
                         <!-- <div class="form-group mb-0">
@@ -78,7 +78,7 @@
                     </div>
                     <div class="col-6" [class.offset-6]="!debug">
                         <div class="d-flex justify-content-end gap-2 mt-3">
-                            <ui-button [label]="_showResult ? 'APP.AUTHENTICATION.BUTTON.HideTokenJwt' : 'APP.AUTHENTICATION.BUTTON.ShowTokenJwt'" [ariaLabel]="'APP.AUTHENTICATION.BUTTON.ShowTokenJwt'" (onAction)="toggleResult()"></ui-button>
+                            <lnk-button [label]="_showResult ? 'APP.AUTHENTICATION.BUTTON.HideTokenJwt' : 'APP.AUTHENTICATION.BUTTON.ShowTokenJwt'" [ariaLabel]="'APP.AUTHENTICATION.BUTTON.ShowTokenJwt'" (onAction)="toggleResult()"></lnk-button>
                         </div>
                     </div>
                 </div>
@@ -105,9 +105,9 @@
         </div>
         <div class="modal-footer bg-lightest">
             <div class="me-3" *ngIf="_showMessageClipboard">{{ 'APP.MESSAGE.CopiedToClipboard' | translate }}</div>
-            <ui-button [label]="'APP.AUTHENTICATION.BUTTON.UseResults'" (onAction)="useResultModal()" *ngIf="formGroup.getRawValue().result || debug"></ui-button>
-            <ui-button [label]="'APP.BUTTON.Generate'" [primary]="true" [ariaLabel]="'APP.BUTTON.Generate'" (onAction)="onStartAuth(formGroup.getRawValue())" [disabled]="!formGroup.valid || _spin" [spinner]="_spin"></ui-button>
-            <ui-button [label]="'APP.BUTTON.Close'" (onAction)="closeModal()"></ui-button>
+            <lnk-button [label]="'APP.AUTHENTICATION.BUTTON.UseResults'" (onAction)="useResultModal()" *ngIf="formGroup.getRawValue().result || debug"></lnk-button>
+            <lnk-button [label]="'APP.BUTTON.Generate'" [primary]="true" [ariaLabel]="'APP.BUTTON.Generate'" (onAction)="onStartAuth(formGroup.getRawValue())" [disabled]="!formGroup.valid || _spin" [spinner]="_spin"></lnk-button>
+            <lnk-button [label]="'APP.BUTTON.Close'" (onAction)="closeModal()"></lnk-button>
         </div>
     </form>
 </div>

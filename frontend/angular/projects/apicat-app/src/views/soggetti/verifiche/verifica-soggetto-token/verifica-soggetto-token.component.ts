@@ -17,6 +17,7 @@ export class VerificaSoggettoTokenComponent {
 
   @Input() environmentId: string = 'collaudo'; // collaudo - produzione
   @Input() pdnd: boolean = true;
+  @Input() soggetto: any = null;
   @Input() verifica: string = 'soggetti'; // soggetti - token-policy
   @Input() type: string = 'certificati'; // certificati - backend
   @Input() listTokenPolicy: any[] = [];
@@ -72,6 +73,9 @@ export class VerificaSoggettoTokenComponent {
       this.listTokenPolicy = changes.listTokenPolicy.currentValue;
       this._vgEsito.esito = 'ok';
     }
+    if (changes.soggetto) {
+      this.soggetto = changes.soggetto.currentValue;
+    }
 
     this._loadAll();
   }
@@ -80,7 +84,7 @@ export class VerificaSoggettoTokenComponent {
     const reqs: Observable<any>[] = [];
     const paths: any[] = [];
 
-    let _path = `${this.environmentId}/${this.verifica}/${this._profilo}/${this.type}`;
+    let _path = `${this.environmentId}/${this.verifica}/${this.soggetto.nome}/${this.type}`;
     paths.push(_path);
     reqs.push(
       this.apiService.getMonitor(`${_path}/${this._stato}`)

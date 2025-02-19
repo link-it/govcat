@@ -12,6 +12,6 @@
 	</parent>
     
     <modules>
-<module>govwaymonitor</module>
+		<module>govwaymonitor</module>
     </modules>  
 </project>

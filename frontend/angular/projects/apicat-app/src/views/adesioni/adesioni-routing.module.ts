@@ -4,6 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { AdesioniComponent } from './adesioni.component';
 import { AdesioneDetailsComponent } from './adesione-details/adesione-details.component';
 import { AdesioneViewComponent } from './adesione-view/adesione-view.component';
+import { AdesioneConfigurazioneWizardComponent } from './adesione-configurazione-wizard/adesione-configurazione-wizard.component';
 
 const routes: Routes = [
   {
@@ -14,14 +15,19 @@ const routes: Routes = [
         component: AdesioniComponent
       },
       {
-        path: ':id',
-        data: { breadcrumb: ':id' },
+        path: ':id/edit',
+        data: { breadcrumb: ':id/edit' },
         component: AdesioneDetailsComponent
       },
       {
         path: ':id/view',
-        data: { breadcrumb: 'Visualizzazione servizio' },
+        data: { breadcrumb: 'Visualizzazione adesione' },
         component: AdesioneViewComponent
+      },
+      {
+        path: ':id',
+        data: { breadcrumb: 'Configurazione Wizard' },
+        component: AdesioneConfigurazioneWizardComponent
       }
     ]
   }

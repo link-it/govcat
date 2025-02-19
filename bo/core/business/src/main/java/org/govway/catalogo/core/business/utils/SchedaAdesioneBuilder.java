@@ -26,10 +26,12 @@ import java.security.Principal;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
@@ -42,8 +44,10 @@ import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
+import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
+import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.stampe.StampePdf;
@@ -111,7 +115,9 @@ public class SchedaAdesioneBuilder {
 
 
 		ApiType api = new ApiType();
-		for(ApiEntity apiEntity: adesione.getServizio().getApi()) {
+		
+		List<ApiEntity> listApi = getAPI(adesione.getServizio());
+		for(ApiEntity apiEntity: listApi) {
 
 			RowType apirow = new RowType();
 			if(apiEntity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
@@ -245,7 +251,7 @@ public class SchedaAdesioneBuilder {
 
 		ApiType apiEC = new ApiType();
 		ApiType apiEP = new ApiType();
-		for(ApiEntity apiEntity: adesione.getServizio().getApi()) {
+		for(ApiEntity apiEntity: listApi) {
 			if(apiEntity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
 				
 				String label = apiEntity.getNome() + " v" + apiEntity.getVersione();
@@ -287,6 +293,18 @@ public class SchedaAdesioneBuilder {
 			this.logger.error("Errore durante la creazione della scheda adesione: " + e.getMessage(), e);
 		}
 		return null;
+	}
+
+	private List<ApiEntity> getAPI(ServizioEntity servizio) {
+		if(servizio.is_package()) {
+			List<ApiEntity> lstApi = new ArrayList<>();
+			for(PackageServizioEntity c: servizio.getComponenti()) {
+				lstApi.addAll(c.getServizio().getApi());
+			}
+			return lstApi;
+		} else {
+			return servizio.getApi().stream().collect(Collectors.toList());
+		}
 	}
 
 	private String getStato(String stato) {

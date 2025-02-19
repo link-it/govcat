@@ -176,27 +176,27 @@ public class AdesioneServizioIntegrationTest {
     private UUID idOrganizzazione;
 
     @BeforeEach
-    public void setUp() {
+    private void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
     }
 
     @AfterEach
-    public void tearDown() {
+    private void tearDown() {
         SecurityContextHolder.clearContext();
     }
 
-    public void setIdServizio(UUID id) {
+    private void setIdServizio(UUID id) {
         this.idServizio = id;
     }
     
-    public void setIdOrganizazione(UUID id) {
+    private void setIdOrganizazione(UUID id) {
         this.idOrganizzazione = id;
     }
     
 
     @Test
-    public void testAdesioneServizioSuccess() {
+    private void testAdesioneServizioSuccess() {
         // Step 1
         this.testUtenteAderente();
 
@@ -215,7 +215,7 @@ public class AdesioneServizioIntegrationTest {
     
     DocumentoCreate immagine = new DocumentoCreate();
     
-    public void cambioStato() {
+    private void cambioStato() {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
@@ -270,7 +270,7 @@ public class AdesioneServizioIntegrationTest {
 	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
     }
 
-    public void setNuovaAdesione() {
+    private void setNuovaAdesione() {
     	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         //CREO L'ORGANIZZAZIONE Viaggiar
@@ -284,6 +284,7 @@ public class AdesioneServizioIntegrationTest {
         assertNotNull(response.getBody().getIdOrganizzazione());
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setSkipCollaudo(true);
         soggettoCreate.setNome(UTENTE_ADERENTE);
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         soggettoCreate.setAderente(true);
@@ -293,6 +294,7 @@ public class AdesioneServizioIntegrationTest {
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
         
         DominioCreate dominio = CommonUtils.getDominioCreate();
+        dominio.setSkipCollaudo(true);
         dominio.setNome("Test");
         dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
 
@@ -301,6 +303,7 @@ public class AdesioneServizioIntegrationTest {
         
         //CREO IL SERVIZIO jonio-v. 1
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setSkipCollaudo(true);
         servizioCreate.setNome("jonio");
 		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
@@ -438,11 +441,11 @@ public class AdesioneServizioIntegrationTest {
     }
     
     UUID idAdesione;
-    public void setIdAdesione(UUID id) {
+    private void setIdAdesione(UUID id) {
     	idAdesione = id;
     }
     
-    public void getDominioServizio() {
+    private void getDominioServizio() {
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
         
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
@@ -476,6 +479,7 @@ public class AdesioneServizioIntegrationTest {
         assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
 
         DominioCreate dominio = CommonUtils.getDominioCreate();
+        dominio.setSkipCollaudo(true);
         dominio.setNome("Test");
         dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
 
@@ -483,6 +487,7 @@ public class AdesioneServizioIntegrationTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setSkipCollaudo(true);
 		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
 		servizioCreate.setMultiAdesione(false);
@@ -573,7 +578,7 @@ public class AdesioneServizioIntegrationTest {
 
     MessaggioCreate messaggioComunicazione;
 
-    public void testUtenteAderente() {
+    private void testUtenteAderente() {
     	this.setNuovaAdesione();
         //this.getDominioServizio();
 
@@ -603,7 +608,7 @@ public class AdesioneServizioIntegrationTest {
         assertEquals(messaggioComunicazione.getTesto(), comunicazione.getBody().getTesto());
     }
 
-    public void testUtenteReferenteTecnico() {
+    private void testUtenteReferenteTecnico() {
 
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
 
@@ -703,7 +708,7 @@ public class AdesioneServizioIntegrationTest {
 
     }
 
-    public void testReferenteServizio() {
+    private void testReferenteServizio() {
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
 
         ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);

@@ -26,7 +26,9 @@
     ],
     "secondaryText": [],
     "metadata": {
-      "text": [],
+      "text": [
+        { "field": "descrizione", "type": "text", "default": "-" }
+      ],
       "label": []
     },
     "secondaryMetadata": []

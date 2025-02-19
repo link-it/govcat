@@ -1,0 +1,15 @@
+<div class="settings-content pb-3- {{ otherClass }}">
+    <div class="row gl-mt-3 mt-4-" [class.justify-content-center-]="isNew || singleColumn">
+        <div class="{{ colClassTitle }}" [class.mb-2-]="singleColumn">
+            <h5 class="gl-mt-0 text-break">{{ title | translate }}</h5>
+            <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ subTitle | translate }}</div>
+        </div>
+        <div class="{{ colClassContent }}">
+            <div class="form-content">
+
+                <ng-content select="[fieldset-content]"></ng-content>
+
+            </div>
+        </div>
+    </div>
+</div>

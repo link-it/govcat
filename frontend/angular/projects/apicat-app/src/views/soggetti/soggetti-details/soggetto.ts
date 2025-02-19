@@ -31,13 +31,16 @@ export class Soggetto {
   
   vincola_aderente: boolean = false;
   vincola_referente: boolean = false;
-
+  
   nome_gateway: string | null = null;
   tipo_gateway: TipoGateway | null = null;
-
+  
   url_invocazione: string | null = null;
   url_prefix_collaudo: string | null = null;
   url_prefix_produzione: string | null = null;
+  
+  skip_collaudo: boolean = false;
+  vincola_skip_collaudo: boolean = false;
 
   constructor(_data?: any) {
     if (_data) {

@@ -25,6 +25,8 @@ export class AdesioneCreate {
   servizio_nome: string | null = null;
   soggetto_nome: string | null = null;
 
+  skip_collaudo: boolean = false;
+
   constructor(_data?: any) {
     if (_data) {
       for (const key in _data) {

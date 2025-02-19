@@ -60,6 +60,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 			dettaglio.setTipoGateway(toTipoGateway(entity.getTipoGateway()));
 		}
 
+		dettaglio.setVincolaSkipCollaudo(isVincolaSkipCollaudo(entity));
 		dettaglio.setVincolaAderente(isVincolaAderente(entity));
 		dettaglio.setVincolaReferente(isVincolaReferente(entity));
 
@@ -74,22 +75,36 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		return !entity.getAdesioni().isEmpty();
 	}
 
+	public Boolean isVincolaSkipCollaudo(SoggettoEntity entity) {
+		return entity.getDomini().stream().anyMatch(d -> d.isSkipCollaudo());
+	}
+
 
 	public SoggettoEntity toEntity(SoggettoUpdate src, SoggettoEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 		
+
 		if(src.getTipoGateway() != null) {
 			entity.setTipoGateway(getTipoGateway(src.getTipoGateway()));
 		} else {
 			entity.setTipoGateway(null);
 		}
 
+		if(src.isSkipCollaudo() != null) {
+			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
+				if(isVincolaSkipCollaudo(entity)) {
+					throw new BadRequestException("Impossibile disabilitare skip collaudo nel Soggetto ["+entity.getNome()+"], in quanto associato ad almeno un dominio con skip collaudo abilitato");
+				}
+			}
+			entity.setSkipCollaudo(src.isSkipCollaudo());
+		}
+
+
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
 					throw new BadRequestException("Impossibile rendere il Soggetto ["+entity.getNome()+"] non aderente, in quanto associato ad almeno una adesione");
 				}
-				
 			}
 		}
 		
@@ -118,6 +133,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.setTipoGateway(getTipoGateway(src.getTipoGateway()));
 		}
 
+		entity.setSkipCollaudo(src.isSkipCollaudo());
 		entity.setAderente(src.isAderente());
 		entity.setReferente(src.isReferente());
 		entity.setIdSoggetto(UUID.randomUUID().toString());

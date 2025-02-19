@@ -36,6 +36,7 @@ import org.govway.catalogo.assembler.AllegatoApiAssembler;
 import org.govway.catalogo.assembler.ApiDettaglioAssembler;
 import org.govway.catalogo.assembler.ApiEngineAssembler;
 import org.govway.catalogo.assembler.ApiItemAssembler;
+import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
@@ -114,6 +115,9 @@ public class APIController implements ApiApi {
 
 	@Autowired
 	private ApiDettaglioAssembler dettaglioAssembler;
+
+	@Autowired
+	private ServizioDettaglioAssembler servizioDettaglioAssembler;
 
 	@Autowired
 	private ApiItemAssembler itemAssembler;   
@@ -276,6 +280,9 @@ public class APIController implements ApiApi {
 				this.service.delete(entity);
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 
+				this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+				this.servizioService.save(entity.getServizio());
+				
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK).build();
 			});
@@ -483,7 +490,7 @@ public class APIController implements ApiApi {
 						Resource resource;
 						if(tryOut != null && tryOut && (entity.getProtocollo().equals(PROTOCOLLO.OPENAPI_3) || entity.getProtocollo().equals(PROTOCOLLO.SWAGGER_2))) {
 							try {
-								resource = new ByteArrayResource(this.serviceBuilder.getTryOutOpenAPI(entityA, entity));
+								resource = new ByteArrayResource(this.serviceBuilder.getTryOutOpenAPI(entityA, entity, ambiente.equals(AmbienteEnum.COLLAUDO)));
 							} catch (IOException e) {
 								resource = new ByteArrayResource(entity.getSpecifica().getRawData());
 							}

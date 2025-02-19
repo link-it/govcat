@@ -15,9 +15,9 @@
 	<description>frontend angular del catalogo</description>
 
 	<properties>
-		<nodejs.version>v16.14.0</nodejs.version>
+		<nodejs.version>v22.14.0</nodejs.version>
 		<angular.dir>angular/</angular.dir>
-		<maven.frontend.version>1.15.0</maven.frontend.version>
+		<maven.frontend.version>1.15.1</maven.frontend.version>
 	</properties>
 
 	<!-- Build configuration -->
@@ -61,7 +61,7 @@
 						</goals>
 						<phase>generate-resources</phase>
 						<configuration>
-							<arguments>run distribution-apicat</arguments>
+							<arguments>run production-apicat</arguments>
 							<workingDirectory>${angular.dir}</workingDirectory>
 						</configuration>
 					</execution>
@@ -84,6 +84,10 @@
 						</fileset>
 						<fileset>
 							<directory>${angular.dir}/node_modules</directory>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+						<fileset>
+							<directory>${angular.dir}/.angular</directory>
 							<followSymlinks>false</followSymlinks>
 						</fileset>
 					</filesets>

@@ -1,0 +1,142 @@
+<!-- LISTA EROGAZIONI -->
+<div class="settings {{ otherClass }}" *ngIf="adesioneErogazioni.length > 0">
+    <div class="settings-content">
+        <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
+
+            <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
+                <h4 class="gl-mt-0 text-break" [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE)">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h4>
+                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAPI_sub' | translate }}</div>
+            </div>
+            <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+
+                <div class="px-3- pb-3" *ngIf="singleColumn">
+                    <div class="d-flex gap-2">
+                        <span class="d-flex gap-2">
+                            <lnk-icon-toggle
+                                [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE"
+                            ></lnk-icon-toggle>
+                        </span>
+                        <h5 class="" [class.text-danger-]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.EROGAZIONE)">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
+                    </div>
+                </div>
+
+                <div *ngFor="let erogaz of adesioneErogazioni;let first = first">
+                    <div class="flex-container container-fluid border-bottom ps-0" [class.border-top]="first">
+                        <!-- <pre>{{ erogaz | json }}</pre> -->
+                        <div class="flex-auto">
+                            <ui-item-row 
+                                [data]="erogaz"
+                                [config]="config"
+                                [hasLink]="false"
+                                [primaryClass]="(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.EROGAZIONE:erogaz.id_erogazione) ? '' : 'text-danger'"
+                            ></ui-item-row>
+                        </div>
+                        <div class="flex-initial" *ngIf="isEdit">
+                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="onEdit(erogaz)">
+                                <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
+                                <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DIALOG per EROGAZIONI [start] -->
+<ng-template #editErogazioni>
+    <div class="modal-content">
+        <form [formGroup]="_editFormGroupErogazioni" (submit)="_onSaveModalErogazioni(_editFormGroupErogazioni.value)">
+            <div class="modal-header pb-2">
+                <h5 class="modal-title pull-left">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
+                <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3">
+
+                    <fieldset>
+
+                        <div class="row">
+                            <div class="form-group col-md-10 mb-2">
+                                <!-- nome -->
+                                <div class="form-group">
+                                    <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'nome'"></span>
+                                    </label>
+                                    <input class="form-control form-control-sm" id="nome" type="text" formControlName="nome" autocomplete="off">
+                                    <p *ngIf="fe['nome'].invalid && (fe['nome'].dirty || fe['nome'].touched)" class="form-text text-danger">
+                                        <span *ngIf="fe['nome'].errors && fe['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                                <!--  -->
+                            </div>
+                            <div class="form-group col-md-2 mb-2">
+                                <!-- versione -->
+                                <div class="form-group">
+                                    <label class="label-bold" for="versione">{{ 'APP.LABEL.Version' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'versione'"></span>
+                                    </label>
+                                    <input class="form-control form-control-sm" id="versione" type="text" formControlName="versione" autocomplete="off">
+                                    <p *ngIf="fe['versione'].invalid && (fe['versione'].dirty || fe['versione'].touched)" class="form-text text-danger">
+                                        <span *ngIf="fe['versione'].errors && fe['versione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                                <!--  -->
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- url -->
+                            <div class="form-group mb-2">
+                                <label class="label-bold" for="url">{{ 'APP.LABEL.Url' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'url'"></span>
+                                </label>
+                                <input class="form-control form-control-sm" id="url" type="text" formControlName="url" autocomplete="off">
+                                <p *ngIf="fe['url'].invalid && (fe['url'].dirty || fe['url'].touched)" class="form-text text-danger">
+                                    <span *ngIf="fe['url'].errors && fe['url'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                            <!--  -->
+                        </div>
+
+                        <div class="row">
+                            <!-- indirizzi_ip -->
+                            <div class="form-group mb-2">
+                                <label class="label-bold" for="indirizzi_ip">{{ 'APP.ADESIONI.TITLE.IPaddresses' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupErogazioni" [controlName]="'indirizzi_ip'"></span>
+                                </label>
+                                <input class="form-control form-control-sm" id="indirizzi_ip" type="text" formControlName="indirizzi_ip" autocomplete="off">
+                                <p *ngIf="fe['indirizzi_ip'].invalid && (fe['indirizzi_ip'].dirty || fe['indirizzi_ip'].touched)" class="form-text text-danger">
+                                    <span *ngIf="fe['indirizzi_ip'].errors && fe['indirizzi_ip'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                            <!--  -->
+                        </div>
+                    
+                    </fieldset>
+
+                </div>
+
+                <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_error">
+                    {{ _errorMsg }}
+                </div>
+
+            </div>
+            <div class="modal-footer py-2">
+                <lnk-button
+                    [label]="'APP.BUTTON.Close'"
+                    (onAction)="closeModal()"
+                ></lnk-button>
+                <lnk-button *ngIf="(erogaz | mapper:_isModifiableMapper)"
+                    [type]="'submit'"
+                    [label]="'APP.BUTTON.Save'"
+                    [primary]="true"
+                    [ariaLabel]="'APP.BUTTON.Save'"
+                    [disabled]="_editFormGroupErogazioni.invalid || _saving"
+                    [spinner]="_saving"
+                ></lnk-button>
+            </div>
+        </form>
+    </div>
+</ng-template>
+<!-- DIALOG EROGAZIONI [end] -->

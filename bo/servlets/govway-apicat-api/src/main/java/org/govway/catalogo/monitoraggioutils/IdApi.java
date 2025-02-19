@@ -56,12 +56,12 @@ public class IdApi {
 	public void setSoggetto(String soggetto) {
 		this.soggetto = soggetto;
 	}
-	public String getSoggettoGestore() {
-		return soggettoGestore;
-	}
-	public void setSoggettoGestore(String soggettoGestore) {
-		this.soggettoGestore = soggettoGestore;
-	}
+//	public String getSoggettoGestore() {
+//		return soggettoGestore;
+//	}
+//	public void setSoggettoGestore(String soggettoGestore) {
+//		this.soggettoGestore = soggettoGestore;
+//	}
 	public PROTOCOLLO getProtocollo() {
 		return protocollo;
 	}

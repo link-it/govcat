@@ -169,8 +169,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 	}
 
 	@Override
-	public ResponseEntity<PagedModelItemClasseUtente> listClassiUtente(
-			TipoReferenteClasseUtenteEnum tipoReferente, UUID idClasseUtente, String q, 
+	public ResponseEntity<PagedModelItemClasseUtente> listClassiUtente(UUID idClasseUtente, String q, 
 			Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     

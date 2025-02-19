@@ -165,7 +165,9 @@
                           bindLabel="soggetto_referente"
                           labelForId="id_soggetto"
                           [editableSearchTerm]="true"
-                          formControlName="soggetto_referente">
+                          formControlName="soggetto_referente"
+                          (change)="onChangeSoggetto($event)">
+                        >
                           <ng-template ng-label-tmp let-item="item">
                             {{ item.nome }}
                           </ng-template>
@@ -228,19 +230,52 @@
                   </div>
                 </div>
 
+                <div class="row skip_collaudo">
+                  <div class="form-group col-md-6 mb-2">
+                    <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'skip_collaudo'" *ngIf="_isEdit"></span>
+                    </label>
+                    <div class="" *ngIf="_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="dominio?.skip_collaudo" formControlName="skip_collaudo">
+                      </div>
+                      <p *ngIf="f['skip_collaudo'].invalid && (f['skip_collaudo'].dirty || f['skip_collaudo'].touched)" class="form-text text-danger">
+                        <span *ngIf="f['skip_collaudo'].errors && f['skip_collaudo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      </p>
+                      <ui-input-help field="skip_collaudo" context="SOGGETTI"></ui-input-help>
+                    </div>
+                    <div class="" *ngIf="!_isEdit">
+                      <div class="form-check form-switch ml-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="dominio.skip_collaudo" disabled>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="row deprecato">
                   <div class="col-12">
                     <div class="form-group">
                       <label class="label-bold" for="deprecato">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'deprecato'" *ngIf="_isEdit"></span></label>
-                      <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
+                      <div class="" *ngIf="_isEdit">
+                        <div class="form-check form-switch ml-3">
+                          <input class="form-check-input" type="checkbox" role="switch" id="deprecato" [checked]="dominio?.deprecato" formControlName="deprecato">
+                        </div>
+                        <p *ngIf="f['deprecato'].invalid && (f['deprecato'].dirty || f['deprecato'].touched)" class="form-text text-danger">
+                          <span *ngIf="f['deprecato'].errors && f['deprecato'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </p>
+                        <ui-input-help field="deprecato" context="SOGGETTI"></ui-input-help>
+                      </div>
+                      <!-- <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
                         <input class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" formControlName="deprecato">
                         <label class="custom-control-label" for="deprecato"></label>
-                      </div>
+                      </div> -->
                       <div class="" *ngIf="!_isEdit">
-                        <div class="gl-form-checkbox custom-control custom-checkbox">
+                        <div class="form-check form-switch ml-3">
+                          <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="dominio.deprecato" disabled>
+                        </div>
+                        <!-- <div class="gl-form-checkbox custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" name="deprecato" id="deprecato" [checked]="dominio.deprecato" disabled>
                           <label class="custom-control-label text-dark" for="deprecato"></label>
-                        </div>
+                        </div> -->
                       </div>
                     </div>
                   </div>

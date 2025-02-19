@@ -97,6 +97,7 @@ import org.govway.catalogo.assembler.UtenteEngineAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.AdesioneAuthorization;
 import org.govway.catalogo.authorization.ClasseUtenteAuthorization;
+import org.govway.catalogo.authorization.ClientAuthorization;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.DominioAuthorization;
 import org.govway.catalogo.authorization.GruppoAuthorization;
@@ -229,7 +230,7 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		}
 	}
 
-	@Value("${org.govway.api.catalogo.resource.path:/var/govcat}")
+	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
 	String externalPath;
 	
 	@Bean(name ="configurazione") 
@@ -619,6 +620,11 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	return new HttpBasicEstensioneClientAssembler();
     }
 
+    @Bean
+    public ClientAuthorization ClientAuthorization() {
+    	return new ClientAuthorization();
+    }
+    
     @Bean
     public ClasseUtenteAuthorization ClasseUtenteAuthorization() {
     	return new ClasseUtenteAuthorization();

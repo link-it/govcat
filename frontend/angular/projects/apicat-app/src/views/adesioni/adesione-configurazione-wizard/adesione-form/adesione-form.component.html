@@ -1,0 +1,199 @@
+<div class="settings-content- adesione-form">
+
+    <div class="position-relative">
+        <div class="position-absolute top-0- end-0 z-3" style="top: -20px;" *ngIf="editable">
+            <lnk-button *ngIf="!isEdit"
+                [label]="'APP.BUTTON.Modify'"
+                [icon]="'bi bi-pencil'"
+                [onlyIcon]="true"
+                [tooltip]="'APP.TOOLTIP.Edit' | translate"
+                [otherClass]="''"
+                [disabled]="!(updateMapper | mapper:canEditMapper) || adesione?.stato !== 'bozza'"
+                (onAction)="onEdit($event)"
+            ></lnk-button>
+            <lnk-button *ngIf="isEdit"
+                [label]="'APP.BUTTON.Cancel'"
+                [tooltip]="'APP.TOOLTIP.CancelEdit' | translate" 
+                [icon]="'bi bi-x-lg'"
+                [onlyIcon]="true"
+                [tertiary]="true"
+                (onAction)="onCancelEdit()"
+            ></lnk-button>
+        </div>
+
+        <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!isEdit" [formGroup]="formGroup" (submit)="onSubmit(formGroup.getRawValue())">
+
+            <div class="row">
+                <div class="col-12 col-lg-9">
+                    <lnk-form-live-search
+                        [label]="'APP.LABEL.servizio_nome' | translate"
+                        bindLabel="label"
+                        bindValue="value"
+                        [placeholder]="'APP.MESSAGE.Empty' | translate"
+                        [formGroup]="formGroup"
+                        formControlName="id_servizio"
+                        [initValue]="initDataService"
+                        [searchable]="true"
+                        [typeToSearchText]="'APP.MESSAGE.TypeToSearchText' | translate"
+                        [clearable]="true"
+                        [disabledSearch]="f['id_servizio'].disabled"
+                        [isEdit]="true"
+                        [searchService]="getSearchServizi()"
+                        [isEdit]="isEdit"
+                        [inline]="false"
+                        [singleColumn]="false"
+                        [options]="null"
+                        [plainText]="true"
+                        [appendTo]="''"
+                        (changeEvent)="onChangeServizio($event)">
+                    ></lnk-form-live-search>
+                </div>
+                <div class="col-12 col-lg-9" *ngIf="servizio?.multi_adesione">
+                    <lnk-form-field
+                        name="id_logico"
+                        [label]="'APP.LABEL.id_logico' | translate"
+                        [formGroup]="formGroup"
+                        [value]="adesione?.id_logico"
+                        [isEdit]="isEdit"
+                        [inline]="false"
+                        [singleColumn]="false"
+                        [options]="null"
+                        [plainText]="true"
+                        (changeEvent)="onChangeIdLogico($event)"
+                    ></lnk-form-field>
+                </div>
+                <div class="col-12 col-lg-9">
+                    <lnk-form-live-search
+                        [label]="'APP.LABEL.id_organizzazione' | translate"
+                        bindLabel="label"
+                        bindValue="value"
+                        [placeholder]="'APP.MESSAGE.Empty' | translate"
+                        [formGroup]="formGroup"
+                        formControlName="id_organizzazione"
+                        [initValue]="initDataOrganizzazione"
+                        [searchable]="true"
+                        [typeToSearchText]="'APP.MESSAGE.TypeToSearchText' | translate"
+                        [clearable]="true"
+                        [disabledSearch]="f['id_organizzazione'].disabled"
+                        [searchService]="getSearchOrganizzazioni()"
+                        [isEdit]="isEdit"
+                        [inline]="false"
+                        [singleColumn]="false"
+                        [options]="null"
+                        [plainText]="true"
+                        [appendTo]="''"
+                        (changeEvent)="checkSoggetto($event)"
+                    ></lnk-form-live-search>
+                </div>
+                <div class="col-12 col-lg-9">
+                    <div class="" [hidden]="hideSoggettoDropdown" *ngIf="isEdit && isBozza">
+                        <lnk-form-live-search
+                            [label]="'APP.LABEL.id_soggetto' | translate"
+                            bindLabel="label"
+                            bindValue="value"
+                            [placeholder]="'APP.MESSAGE.Empty' | translate"
+                            [formGroup]="formGroup"
+                            formControlName="id_soggetto"
+                            [initValue]="initDataSoggetto"
+                            [searchable]="true"
+                            [typeToSearchText]="'APP.MESSAGE.TypeToSearchText' | translate"
+                            [clearable]="true"
+                            [disabledSearch]="f['id_soggetto'].disabled"
+                            [searchService]="getSearchSoggetti()"
+                            [isEdit]="isEdit"
+                            [inline]="false"
+                            [singleColumn]="false"
+                            [options]="null"
+                            [plainText]="true"
+                            [appendTo]="''"
+                            (changeEvent)="onChangeSoggetto($event)"
+                        ></lnk-form-live-search>
+                    </div>
+                    <div class="" *ngIf="!isEdit && !hideSoggettoInfo">
+                        <lnk-field-plaintext
+                            [label]="'APP.LABEL.id_soggetto'"
+                            [value]="dataModel?.soggetto?.nome || '-'"
+                        ></lnk-field-plaintext>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-content">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="row">
+                            <!-- <div class="col-12">
+                                <ui-field-plaintext
+                                    [label]="'APP.LABEL.servizio_nome'"
+                                    [value]="adesione.servizio.nome + ' v.' + adesione.servizio.versione"
+                                ></ui-field-plaintext>
+                            </div> -->
+                            <!-- <div class="col-12">
+                                <ui-field-plaintext
+                                    [label]="'APP.LABEL.id_organizzazione'"
+                                    [value]="adesione?.soggetto?.organizzazione.nome"
+                                ></ui-field-plaintext>
+                            </div> -->
+                            <!-- <div class="col-12">
+                                <ui-field-plaintext
+                                    [label]="'APP.LABEL.id_soggetto'"
+                                    [value]="adesione.soggetto.nome"
+                                ></ui-field-plaintext>
+                            </div> -->
+                            <div class="col-6">
+                                <lnk-field-plaintext
+                                    [label]="'APP.LABEL.utente_richiedente'"
+                                    [value]="adesione?.utente_richiedente?.nome + ' ' + adesione?.utente_richiedente?.cognome"
+                                ></lnk-field-plaintext>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="label-bold" for="data_creazione">{{ 'APP.LABEL.data_creazione' | translate }}</label>
+                                    <div class="mt-1">
+                                        <ui-data-type *ngIf="adesione"
+                                            [data]="adesione"
+                                            [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
+                                            [config]="config">
+                                        </ui-data-type>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6" *ngIf="adesione.utente_ultimo_aggiornamento != null">
+                                <lnk-field-plaintext
+                                    [label]="'APP.LABEL.utente_ultimo_aggiornamento'"
+                                    [value]="adesione?.utente_ultimo_aggiornamento?.nome + ' ' + adesione?.utente_ultimo_aggiornamento?.cognome"
+                                ></lnk-field-plaintext>
+                            </div>
+                            <div class="col-6" *ngIf="adesione.data_ultimo_aggiornamento != null">
+                                <div class="form-group">
+                                    <label class="label-bold" for="data_ultimo_aggiornamento">{{ 'APP.LABEL.data_ultimo_aggiornamento' | translate }}</label>
+                                    <div class="mt-1">
+                                        <ui-data-type *ngIf="adesione"
+                                            [data]="adesione"
+                                            [elem]="{ field: 'data_ultimo_aggiornamento', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
+                                            [config]="config">
+                                        </ui-data-type>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-content-">
+
+                <lnk-form-error [message]="errorMsg" *ngIf="isEdit && error"></lnk-form-error>
+
+                <lnk-form-submit *ngIf="isEdit"
+                    [submitLabel]="'APP.BUTTON.Save'"
+                    [cancelLabel]="'APP.BUTTON.Cancel'"
+                    [disabled]="formGroup.invalid || saving"
+                    (cancel)="onCancelEdit()"
+                ></lnk-form-submit>
+
+            </div>
+
+        </form>
+    </div>
+</div>

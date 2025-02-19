@@ -1,7 +1,6 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -14,8 +13,6 @@ import { UtilService } from '@app/services/utils.service';
 import { Page } from '../../models/page';
 
 import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
-
-import * as moment from 'moment';
 
 @Component({
   selector: 'app-messages',
@@ -196,6 +193,10 @@ export class MessagesComponent implements OnInit, AfterViewInit, AfterContentChe
         // Tools.OnError(error);
       }
     });
+  }
+
+  _trackBy(index: any, item: any) {
+    return item.id;
   }
 
   __loadMoreData() {

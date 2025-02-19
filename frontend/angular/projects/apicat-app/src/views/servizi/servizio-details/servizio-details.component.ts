@@ -7,6 +7,7 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
 import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
 import { Tools } from 'projects/tools/src/lib/tools.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -22,6 +23,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 
 // import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
+import { EventType } from 'projects/tools/src/lib/classes/events';
 import { Grant } from '@app/model/grant';
 
 declare const saveAs: any;
@@ -104,7 +106,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     minLengthTerm = 1;
 
-    generalConfig: any = Tools.Configurazione;
+    generalConfig: any = Tools.Configurazione || null;
 
     _singleColumn: boolean = false;
     _showMarkdown: boolean = false;
@@ -217,7 +219,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             buttonTitle: 'APP.BUTTON.Go',
             buttonIcon: 'navigate_next',
             route: 'transazioni',
-            show: Tools.Configurazione.servizio.api.transazioni && !this._showDropdown
+            show: Tools.Configurazione?.servizio.api.transazioni && !this._showDropdown
         },
         {
             title: 'APP.SERVICES.TITLE.Statistics',
@@ -225,7 +227,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             buttonTitle: 'APP.BUTTON.Go',
             buttonIcon: 'navigate_next',
             route: 'statistiche',
-            show: Tools.Configurazione.servizio.api.transazioni && !this._showDropdown
+            show: Tools.Configurazione?.servizio.api.transazioni && !this._showDropdown
         },
         {
             title: 'APP.SERVICES.TITLE.Checks',
@@ -233,7 +235,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             buttonTitle: 'APP.BUTTON.Go',
             buttonIcon: 'navigate_next',
             route: 'verifiche',
-            show: Tools.Configurazione.servizio.api.transazioni && !this._showDropdown
+            show: Tools.Configurazione?.servizio.api.transazioni && !this._showDropdown
         }
     ];
 
@@ -333,6 +335,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         private translate: TranslateService,
         private modalService: BsModalService,
         private configService: ConfigService,
+        private eventsManagerService: EventsManagerService,
         public tools: Tools,
         private apiService: OpenAPIService,
         private utils: UtilService,
@@ -353,7 +356,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             ts.enabled = (ts.value === 'API' && this.hasServiziApi) || (ts.value === 'Generico' && this.hasGenerico);
         });
 
-        this._hasFlagAdesioneConsentita = Tools.Configurazione.servizio.consenti_non_sottoscrivibile || false;
+        this._hasFlagAdesioneConsentita = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
 
         this.loadAnagrafiche();
     }
@@ -419,6 +422,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._notificationMessageId = this._notification.entita.id_entita;
             }
         })
+
+        this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
+            this.generalConfig = Tools.Configurazione || null;
+            this._updateOtherLinks()
+        });
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -460,7 +468,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             }
             if (item.route === 'categorie') {
                 const _taxonomiesRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
-                const _showTaxonomies = _taxonomiesRemoteConfig.tassonomie_abilitate || false;
+                const _showTaxonomies = _taxonomiesRemoteConfig?.tassonomie_abilitate || false;
                 // if (_showTaxonomies && this.anagrafiche) {
                 //   console.log(this.anagrafiche);
                 //   return this.anagrafiche['tassonomie']?.length > 0 || false;
@@ -468,10 +476,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 return _showTaxonomies;
             }
             if (item.route === 'api') {
-                return !this.data.package;
+                return !this.data?.package;
             }
             if (item.route === 'componenti') {
-                return this.data.package;
+                return this.data?.package || false;
             }
             return true;
         });
@@ -605,6 +613,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     //   value = data[key] ? data[key] : false;
                     //   _group[key] = new UntypedFormControl({ value: value, disabled: this.hasApi || this.hasComponenti }, []);
                     //   break;
+                    case 'skip_collaudo':
+                        value = data[key] ? data[key] : false;
+                        _group[key] = new UntypedFormControl(value, []);
+                        break;
                     default:
                         value = data[key] ? data[key] : null;
                         _group[key] = new UntypedFormControl(value, []);
@@ -689,7 +701,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             immagine: body.immagine,
             adesione_consentita: body.adesione_consentita || true,
             id_soggetto_interno: body.id_soggetto_interno || null,
-            package: body.package || false
+            package: body.package || false,
+            skièp_collaudo: body.skièp_collaudo || false,
         };
 
             if (!body.package) {
@@ -778,7 +791,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 classi: _classi,
                 adesione_consentita: !!body.adesione_consentita,
                 id_soggetto_interno: body.id_soggetto_interno || null,
-                package: body.package || false
+                package: body.package || false,
+                skip_collaudo: body.skip_collaudo || false
             },
             dati_generici: {
                 // gruppo: body.id_gruppo,
@@ -881,34 +895,35 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             if (spin) { this.data = null; }
             this.apiService.getDetails('servizi', this.id, 'grant').subscribe({
                 next: (grant: any) => {
-                this._grant = grant;
-                this.apiService.getDetails(this.model, this.id).subscribe({
-                    next: (response: any) => {
-                    this.data = response; // new Servizio({ ...response });
-                    if (!this._canManagement()) {
-                        this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
-                    } else {
-                        this._data = new Servizio({ ...response });
-                        this._isDominioDeprecato = this.data.dominio.deprecato || false;
-                        this._isDominioEsterno = this.data.dominio.soggetto_referente.organizzazione.esterna || false;
-                        this._initForm({ ...this._data });
-                        this._spin = false;
-                        this._initBreadcrumb();
-                        this._updateOtherLinks();
-                        this.loadCurrentData();
-                        // this.loadAnagrafiche();
-                        if (this.data.package) {
-                            this._loadComponenti();
-                        } else {
-                            this._loadApis();
+                    this._grant = grant;
+                    this.apiService.getDetails(this.model, this.id).subscribe({
+                        next: (response: any) => {
+                            this.data = response; // new Servizio({ ...response });
+                            if (!this._canManagement()) {
+                                this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
+                            } else {
+                                this._data = new Servizio({ ...response });
+                                this._isDominioDeprecato = this.data.dominio.deprecato || false;
+                                this._isDominioEsterno = this.data.dominio.soggetto_referente.organizzazione.esterna || false;
+                                this._initForm({ ...this._data });
+                                this._spin = false;
+                                this._initBreadcrumb();
+                                this._updateOtherLinks();
+                                this.loadCurrentData();
+                                // this.loadAnagrafiche();
+                                if (this.data.package) {
+                                    this._loadComponenti();
+                                } else {
+                                    this._loadApis();
+                                }
+                                this._enableDisableSkipCollaudo(this.data.dominio);
+                            }
+                        },
+                        error: (error: any) => {
+                            Tools.OnError(error);
+                            this._spin = false;
                         }
-                    }
-                    },
-                    error: (error: any) => {
-                        Tools.OnError(error);
-                        this._spin = false;
-                    }
-                });
+                    });
                 },
                 error: (error: any) => {
                     Tools.OnError(error);
@@ -1089,15 +1104,15 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         );
     }
 
-    getSoggetti(term: string | null = null, aderente: boolean = false): Observable<any> {
+    getSoggetti(term: string | null = null, referente: boolean = false): Observable<any> {
         let _options: any = null;
         if (this.selectedOrganizzazione?.id_organizzazione) {
             _options = { params: { id_organizzazione: this.selectedOrganizzazione?.id_organizzazione } };
         } else {
             _options = { params: { q: term } };
         }
-        if (aderente) {
-            _options.params.aderente = aderente;
+        if (referente) {
+            _options.params.referente = referente;
         }
         return this.apiService.getList('soggetti', _options)
             .pipe(map(resp => {
@@ -1212,7 +1227,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._isEdit = true;
         this._changeEdit(this._isEdit);
         this.__resetError();
-        this._showMandatoryFields(this._data);
+        this.utils._showMandatoryFields(this._formGroup);
     }
 
     _onClose() {
@@ -1284,6 +1299,21 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         console.log('_onChangeType', this._formGroup.get('tipo')?.value);
     }
 
+    _enableDisableSkipCollaudo(dominio: any) {
+        if (dominio?.skip_collaudo) {
+            if (this.data.vincola_skip_collaudo) {
+                this._formGroup.get('skip_collaudo')?.disable();
+            } else {
+                this._formGroup.get('skip_collaudo')?.enable();
+            }
+        } else {
+            if (this._isNew) {
+                this._formGroup.get('skip_collaudo')?.setValue(false);
+            }
+            this._formGroup.get('skip_collaudo')?.disable();
+        }
+    }
+
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
 
@@ -1292,6 +1322,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
         this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
         this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
+
+        this._enableDisableSkipCollaudo(this.selectedDominio);
     }
 
     _changeStatus(event: any, service: any) {
@@ -1424,7 +1456,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _joinServizio() {
-        this.router.navigate(['adesioni', 'new'], { queryParams: { id_servizio: this.id } });
+        this.router.navigate(['adesioni', 'new', 'edit'], { queryParams: { id_servizio: this.id } });
     }
 
     __resetError() {
@@ -1603,17 +1635,5 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._updateOtherLinks();
             }
         )
-    }
-
-    _showMandatoryFields(data: any) {
-        if (this.debugMandatoryFields) {
-            console.group('_showMandatoryFields');
-            Object.keys(data).forEach((key) => {
-                if (this._formGroup.controls[key].hasValidator(Validators.required))
-                    console.log(key, this._formGroup.controls[key].value);
-                    // console.log(key, this._formGroup.controls[key].hasValidator(Validators.required))
-            });
-            console.groupEnd();
-        }
     }
 }

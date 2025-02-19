@@ -32,8 +32,59 @@ export class ConfigService {
           const _theme = this.config.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
           Tools.SetThemeColors(_theme || null);
 
-          this.loadRemoteConfig(resolve);
-          // resolve();
+          // OAUTH2
+          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
+          const cfg: any = {
+            issuer: (_oauthConfig.Issuer || ''),
+            redirectUri: (_oauthConfig.RedirectUri || ''),
+            postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
+            clientId: (_oauthConfig.ClientId || ''),
+            responseType: (_oauthConfig.ResponseType || 'code'),
+            scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
+            requireHttps: false
+          };
+          if (!_oauthConfig.BackdoorOAuth) {
+            const authCodeFlowConfig: AuthConfig = new AuthConfig(cfg);
+            this.oauthService.configure(authCodeFlowConfig);
+            this.oauthService.setupAutomaticSilentRefresh();
+            this.oauthService.loadDiscoveryDocument().then(() => {
+              this.oauthService.tryLogin().then(() => {
+                if (this.oauthService.getAccessToken()) {
+                  this._tokenLoaded();
+                } else {
+                  // console.log('Autenticazione fallita');
+                  Tools.LoginAccess();
+                }
+              }).catch((error: any) => {
+                // console.log('catch Autenticazione fallita');
+                Tools.LoginAccess();
+              });
+            });
+            this.oauthService.events.subscribe(event => {
+              if (!(event instanceof OAuthErrorEvent)) {
+                if (event.type === 'session_terminated') {
+                  this._sessionTerminated();
+                }
+                // if (event.type === 'token_received') {
+                //   this._tokenLoaded(resolve);
+                // }
+              } else {
+                if (event && event.reason) {
+                  // Tools.OnError(event.reason);
+                  console.warn(event.reason);
+                }
+              }
+            });
+          } else {
+            Tools.LoginAccess();
+          }
+
+          // if (this.config.AppConfig.ANONYMOUS_ACCESS) {
+          //   this.loadRemoteConfig(resolve);
+          // } else {
+            resolve();
+          // }
+
         });
     });
   }
@@ -54,54 +105,7 @@ export class ConfigService {
         Tools.Configurazione = response;
         this._generateCustomFieldLabel(response);
 
-        // OAUTH2
-        const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
-        const cfg: any = {
-          issuer: (_oauthConfig.Issuer || ''),
-          redirectUri: (_oauthConfig.RedirectUri || ''),
-          postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
-          clientId: (_oauthConfig.ClientId || ''),
-          responseType: (_oauthConfig.ResponseType || 'code'),
-          scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
-          requireHttps: false
-        };
-        if (!_oauthConfig.BackdoorOAuth) {
-          const authCodeFlowConfig: AuthConfig = new AuthConfig(cfg);
-          this.oauthService.configure(authCodeFlowConfig);
-          this.oauthService.setupAutomaticSilentRefresh();
-          this.oauthService.loadDiscoveryDocument().then(() => {
-            this.oauthService.tryLogin().then(() => {
-              if (this.oauthService.getAccessToken()) {
-                this._tokenLoaded();
-              } else {
-                // console.log('Autenticazione fallita');
-                Tools.LoginAccess();
-              }
-            }).catch((error: any) => {
-              // console.log('catch Autenticazione fallita');
-              Tools.LoginAccess();
-            });
-          });
-          this.oauthService.events.subscribe(event => {
-            if (!(event instanceof OAuthErrorEvent)) {
-              if (event.type === 'session_terminated') {
-                this._sessionTerminated();
-              }
-              // if (event.type === 'token_received') {
-              //   this._tokenLoaded(resolve);
-              // }
-            } else {
-              if (event && event.reason) {
-                // Tools.OnError(event.reason);
-                console.warn(event.reason);
-              }
-            }
-          });
-        } else {
-          Tools.LoginAccess();
-        }
-
-        resolve();
+        if (resolve) { resolve(); }
       }
     );
   }

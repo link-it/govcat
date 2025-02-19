@@ -65,7 +65,7 @@
         (scrolled)="__loadMoreData()"
         [scrollWindow]="false"
     >
-        <!-- <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner> -->
+        <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && gruppi.length === 0"></ui-box-spinner>
 
         <ui-box-message *ngIf="gruppi.length == 0 && !_spin"
             [size]="64"

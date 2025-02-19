@@ -444,6 +444,21 @@
 												</translations>
 											</concept_node>
 											<concept_node>
+												<name>Configure</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
 												<name>GeneralInformations</name>
 												<description/>
 												<comment/>
@@ -7901,6 +7916,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>AudienceURL</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>auth_type</name>
 										<description/>
 										<comment/>
@@ -8337,6 +8367,21 @@
 									</concept_node>
 									<concept_node>
 										<name>CommonName</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>configurazione_non_trovata</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -9686,6 +9731,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>KID</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>Last24Hours</name>
 										<description/>
 										<comment/>
@@ -10956,6 +11016,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>PurposeId</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>referente</name>
 										<description/>
 										<comment/>
@@ -11377,6 +11452,21 @@
 									</concept_node>
 									<concept_node>
 										<name>SignCertificate</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>SkipCollaudo</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -12726,6 +12816,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>BackViewWizard</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>Checks</name>
 										<description/>
 										<comment/>
@@ -13630,6 +13735,21 @@
 											</translation>
 										</translations>
 									</concept_node>
+									<concept_node>
+										<name>Empty</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
 									<folder_node>
 										<name>ERROR</name>
 										<children>
@@ -14126,7 +14246,52 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>NoItemsFound</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>NoOperations</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>NoReferent</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>NoReferentHelp</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -14642,6 +14807,21 @@
 									</concept_node>
 									<concept_node>
 										<name>Sign_in_message</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>TypeToSearchText</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -17864,6 +18044,21 @@
 												</translations>
 											</concept_node>
 											<concept_node>
+												<name>SkipCollaudo</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
 												<name>UrlInvocazione</name>
 												<description/>
 												<comment/>
@@ -19431,6 +19626,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>Empty</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>Errors</name>
 										<description/>
 										<comment/>
@@ -20196,6 +20406,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>SubscriptionConfiguration</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>SubscriptionConfigurations</name>
 										<description/>
 										<comment/>
@@ -20502,6 +20727,21 @@
 									</concept_node>
 									<concept_node>
 										<name>ChangeStatus</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>Completed</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -21706,6 +21946,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>Indeterminate</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>Information</name>
 										<description/>
 										<comment/>
@@ -21992,6 +22247,21 @@
 									</concept_node>
 									<concept_node>
 										<name>TempoRispostaServizio</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>ToBeComplete</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -23434,7 +23704,37 @@
 										<name>ERROR</name>
 										<children>
 											<concept_node>
+												<name>api</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
 												<name>API</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>apiDescription</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -23464,6 +23764,21 @@
 												</translations>
 											</concept_node>
 											<concept_node>
+												<name>apiGruppoNome</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
 												<name>CambioStato</name>
 												<description/>
 												<comment/>
@@ -23479,7 +23794,7 @@
 												</translations>
 											</concept_node>
 											<concept_node>
-												<name>Client</name>
+												<name>client</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -23494,7 +23809,7 @@
 												</translations>
 											</concept_node>
 											<concept_node>
-												<name>ClientDescription</name>
+												<name>Client_</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -23508,6 +23823,121 @@
 													</translation>
 												</translations>
 											</concept_node>
+											<concept_node>
+												<name>clientDescription</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>ClientDescription_</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<folder_node>
+												<name>configurazione_gruppo</name>
+												<children>
+													<folder_node>
+														<name>api</name>
+														<children>
+															<concept_node>
+																<name>configurazione_nome</name>
+																<description/>
+																<comment/>
+																<translations>
+																	<translation>
+																		<language>en-US</language>
+																		<approved>false</approved>
+																	</translation>
+																	<translation>
+																		<language>it-IT</language>
+																		<approved>false</approved>
+																	</translation>
+																</translations>
+															</concept_node>
+															<concept_node>
+																<name>configurazione_nomeDescription</name>
+																<description/>
+																<comment/>
+																<translations>
+																	<translation>
+																		<language>en-US</language>
+																		<approved>false</approved>
+																	</translation>
+																	<translation>
+																		<language>it-IT</language>
+																		<approved>false</approved>
+																	</translation>
+																</translations>
+															</concept_node>
+															<concept_node>
+																<name>configurazione_nomeGruppoNome</name>
+																<description/>
+																<comment/>
+																<translations>
+																	<translation>
+																		<language>en-US</language>
+																		<approved>false</approved>
+																	</translation>
+																	<translation>
+																		<language>it-IT</language>
+																		<approved>false</approved>
+																	</translation>
+																</translations>
+															</concept_node>
+														</children>
+													</folder_node>
+													<concept_node>
+														<name>configurazione_nome</name>
+														<description/>
+														<comment/>
+														<translations>
+															<translation>
+																<language>en-US</language>
+																<approved>false</approved>
+															</translation>
+															<translation>
+																<language>it-IT</language>
+																<approved>false</approved>
+															</translation>
+														</translations>
+													</concept_node>
+													<concept_node>
+														<name>configurazione_nomeDescription</name>
+														<description/>
+														<comment/>
+														<translations>
+															<translation>
+																<language>en-US</language>
+																<approved>false</approved>
+															</translation>
+															<translation>
+																<language>it-IT</language>
+																<approved>false</approved>
+															</translation>
+														</translations>
+													</concept_node>
+												</children>
+											</folder_node>
 											<concept_node>
 												<name>DatiObbligatori</name>
 												<description/>
@@ -23524,7 +23954,37 @@
 												</translations>
 											</concept_node>
 											<concept_node>
+												<name>erogazione</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
 												<name>Erogazione</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>erogazioneDescription</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -23925,6 +24385,21 @@
 											</folder_node>
 											<concept_node>
 												<name>bozza</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>cambia_stato</name>
 												<description/>
 												<comment/>
 												<translations>

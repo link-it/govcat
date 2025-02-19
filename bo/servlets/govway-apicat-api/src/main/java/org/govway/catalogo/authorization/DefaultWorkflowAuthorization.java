@@ -37,6 +37,7 @@ import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.Sottotipo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,9 +120,11 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 	}
 	
 	private void checkCampiObbligatori(ENTITY entity) {
+		checkCampiObbligatori(entity, this.getStato(entity));
+	}
+	
+	public void checkCampiObbligatori(ENTITY entity, String stato) {
 		
-		String stato = this.getStato(entity);
-
 		ConfigurazioneWorkflow workflow = getWorkflow(entity);
 		
 		if(stato.equals(workflow.getStatoArchiviato())) {
@@ -129,7 +132,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		}
 		
 		ConfigurazioneCambioStato configurazioneStato = getStato(entity, stato);
-		checkCampiObbligatori(configurazioneStato.getDatiObbligatori(), entity);
+		checkCampiObbligatori(configurazioneStato.getDatiObbligatori(), entity, stato);
 		
 	}
 	
@@ -377,9 +380,9 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		return getErrore(errori, null, new HashMap<>());
 	}
 
-	protected EntitaComplessaError getErrore(Map<String, EntitaComplessaError> errori, String sottotipo, Map<String, String> params) {
+	protected EntitaComplessaError getErrore(Map<String, EntitaComplessaError> errori, List<Sottotipo> sottotipo, Map<String, String> params) {
 		String kParams = params.entrySet().stream().map(e -> e.getKey() + " " + e.getValue()).collect(Collectors.joining(" - "));
-		String k = sottotipo != null ? sottotipo + kParams: kParams;
+		String k = sottotipo != null ? sottotipo.stream().map(s -> s.getTipo() + " " + s.getIdentificativo()).collect(Collectors.joining(".")) + kParams: kParams;
 		return errori.entrySet().stream()
 				.filter(e -> e.getKey().equals(k))
 				.map(e -> e.getValue())
@@ -394,7 +397,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 
 	protected abstract List<Ruolo> getRuoli(ENTITY entity);
 
-	protected abstract void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ENTITY entity);
+	protected abstract void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ENTITY entity, String stato);
 	
 	public abstract String getStato(ENTITY entity);
 	public abstract String getStatoPrecedente(ENTITY entity);

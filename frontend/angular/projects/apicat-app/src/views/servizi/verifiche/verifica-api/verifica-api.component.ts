@@ -139,7 +139,7 @@ export class VerificaApiComponent {
 
     const _soggetto = this._getSoggettoNome(this.verifica);
 
-    _path = `${this.environmentId}/${this.verifica}/${this._profilo}${_provider}/${this.api.nome}/${this.api.versione}/${this.type}/${this._stato}`;
+    _path = `${this.environmentId}/${this.verifica}/${_soggetto}${_provider}/${this.api.nome}/${this.api.versione}/${this.type}/${this._stato}`;
 
     this.apiService.getMonitor(_path, _aux).subscribe({
       next: (response: any) => {
@@ -211,7 +211,9 @@ export class VerificaApiComponent {
           break;
       }
 
-      _path = `${this.environmentId}/${this.verifica}/${this._profilo}/${_provider}/${this.api.nome}/${this.api.versione}/${this.type}`;
+      const _soggetto = this._getSoggettoNome(this.verifica);
+
+      _path = `${this.environmentId}/${this.verifica}/${_provider}/${_soggetto}/${this.api.nome}/${this.api.versione}/${this.type}`;
 
       paths.push(_path);
       reqs.push(
@@ -373,11 +375,11 @@ export class VerificaApiComponent {
   }
 
   _getSoggettoId(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.dominio?.soggetto_interno?.nome;
+    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.soggetto_interno?.nome;
   }
 
   _getSoggettoNome(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.dominio?.soggetto_interno?.nome;
+    return this.service?.soggetto_interno?.nome || this.service?.dominio?.soggetto_referente?.nome
   }
 
   scrollToBottom() {

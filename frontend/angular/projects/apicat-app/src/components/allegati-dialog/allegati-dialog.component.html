@@ -1,0 +1,118 @@
+<div class="modal-content">
+    <form [formGroup]="editFormGroup" (submit)="saveModal(editFormGroup.value)">
+        <div class="modal-header pb-2">
+        <ng-container *ngIf="showAllAttachments">
+            <h5 class="modal-title pull-left" *ngIf="multiple && !isEdit">{{ (isNew ? 'APP.SERVICES.TITLE.AddAttachments' : 'APP.SERVICES.TITLE.EditAttachments') | translate }}</h5>
+            <h5 class="modal-title pull-left" *ngIf="isEdit">{{ 'APP.SERVICES.TITLE.EditAttachment' | translate }}</h5>
+        </ng-container>
+        <ng-container *ngIf="!showAllAttachments">
+            <h5 class="modal-title pull-left" *ngIf="!multiple && !isEdit">{{ ((isNew ? 'APP.SERVICES.TITLE.AddAttachment-' : 'APP.SERVICES.TITLE.EditAttachment-') + tipoAllegato) | translate }}</h5>
+            <h5 class="modal-title pull-left" *ngIf="multiple && !isEdit">{{ ((isNew ? 'APP.SERVICES.TITLE.AddAttachments-' : 'APP.SERVICES.TITLE.EditAttachments-') + tipoAllegato) | translate }}</h5>
+            <h5 class="modal-title pull-left" *ngIf="isEdit">{{ 'APP.SERVICES.TITLE.EditAttachment-' + tipoAllegato | translate }}</h5>
+        </ng-container>
+        <!-- <button type="button" class="btn btn-default btn-md gl-button" (click)="_toggleMultiple()">
+            <span class="" *ngIf="multiple">Multiple</span>
+            <span class="" *ngIf="!multiple">Single</span>
+        </button> -->
+        <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        </div>
+        <div class="modal-body">
+        <div class="p-3">
+            <div class="form-group tipologia" *ngIf="showAllAttachments">
+                <label class="label-bold" for="tipologia">{{ 'APP.LABEL.TipoAllegatoRuolo' | translate }} <span appMarkAsterisk [formGroup]="editFormGroup" [controlName]="'tipologia'"></span></label>
+                <ng-select [class.gl-field-error-outline]="hasControlError('tipologia')"
+                    [items]="tipiAllegati"
+                    bindValue="value"
+                    bindLabel="label"
+                    labelForId="tipologia"
+                    appendTo="body"
+                    [closeOnSelect]="true"
+                    formControlName="tipologia"
+                >
+                    <ng-template ng-label-tmp let-item="item">
+                        {{ 'APP.ALLEGATI.TIPI.' + item.value | translate }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                        {{ 'APP.ALLEGATI.TIPI.' + item.value | translate }}
+                    </ng-template>
+                </ng-select>
+                <p *ngIf="f['tipologia'].invalid && (f['tipologia'].dirty || f['tipologia'].touched)" class="form-text text-danger">
+                    <span *ngIf="f['tipologia'].errors && f['tipologia'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                </p>
+                <ui-input-help field="tipologia" context="ALLEGATI"></ui-input-help>
+            </div>
+            <ui-allegato #des class="miw-50"
+                [control]="descrittoreCtrl"
+                [label]="(multiple ? 'APP.TITLE.ChooseFiles' : 'APP.TITLE.Allegato') | translate"
+                [required]="true"
+                [multiple]="multiple"
+                (resetControl)="descrittoreChange(descrittoreCtrl.value)"
+                (fileChanged)="descrittoreChange(descrittoreCtrl.value)"
+                [disabled]="descrittoreCtrl.disabled"
+                [maxUpload]="null"
+                [maxUpload]="null"
+            ></ui-allegato>
+            <div class="border px-1 pt-1 pb-3 mb-3" *ngIf="multiple">
+                <div class="text-center pt-3" *ngIf="files?.length === 0">{{ 'APP.MESSAGE.NoFilesSelected' | translate }}</div>
+                <div class="chips-list d-flex flex-wrap align-items-center">
+                    <div class="chip bg-light d-flex align-items-center" *ngFor="let _file of files; let i= index">
+                        <i class="bi bi-file-earmark"></i>
+                        <div class="chip-name">{{ _file.filename }}</div>
+                        <span class="btn btn-default btn-sm btn-icon" (click)="removeFile(i)"><i class="bi bi-x-lg"></i></span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group filename" *ngIf="!multiple || files.length === 1">
+                <label class="label-bold" for="filename">{{ 'APP.LABEL.filename' | translate }} <span appMarkAsterisk [formGroup]="editFormGroup" [controlName]="'filename'"></span></label>
+                <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="hasControlError('filename')" type="text" name="filename" id="filename" formControlName="filename">
+                <p *ngIf="f['filename'].invalid && (f['filename'].dirty || f['filename'].touched)" class="form-text text-danger">
+                    <span *ngIf="f['filename'].errors && f['filename'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                </p>
+                <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
+            </div>
+            <div class="form-group descrizione" *ngIf="!multiple || files.length === 1">
+                <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }} <span appMarkAsterisk [formGroup]="editFormGroup" [controlName]="'descrizione'"></span></label>
+                <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione">
+                <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
+                    <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                </p>
+                <ui-input-help field="descrizione" context="ALLEGATI"></ui-input-help>
+            </div>
+            <div class="form-group visibilita">
+                <label class="label-bold" for="visibilita">{{ 'APP.LABEL.visibilita' | translate }} <span appMarkAsterisk [formGroup]="editFormGroup" [controlName]="'visibilita'"></span></label>
+                <ng-select [class.gl-field-error-outline]="hasControlError('visibilita')"
+                    [items]="tipiVisibilitaAllegato"
+                    bindValue="value"
+                    bindLabel="label"
+                    labelForId="visibilita"
+                    appendTo="body"
+                    [closeOnSelect]="true"
+                    formControlName="visibilita"
+                >
+                    <ng-template ng-label-tmp let-item="item">
+                        {{ 'APP.VISIBILITY.' + item.value | translate }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                        {{ 'APP.VISIBILITY.' + item.value | translate }}
+                    </ng-template>
+                </ng-select>
+                <p *ngIf="f['visibilita'].invalid && (f['visibilita'].dirty || f['visibilita'].touched)" class="form-text text-danger">
+                    <span *ngIf="f['visibilita'].errors && f['visibilita'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                </p>
+                <ui-input-help field="visibilita" context="ALLEGATI"></ui-input-help>
+            </div>
+        </div>
+        <div class="gl-alert gl-alert-danger" *ngIf="error">
+            {{ errorMsg }}
+        </div>
+        </div>
+        <div class="modal-footer py-2">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+        <button type="submit" class="btn btn-confirm btn-md gl-button" [disabled]="editFormGroup.invalid || saving">
+            <span class="">{{ 'APP.BUTTON.Save' | translate }}</span><span class="ms-2 spinner-border spinner-border-sm" *ngIf="saving"></span>
+        </button>
+        </div>
+    </form>
+</div>

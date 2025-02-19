@@ -67,6 +67,9 @@ export class Servizio {
 
     tipo: TipoServizioEnum = TipoServizioEnum.API;
 
+    skip_collaudo: boolean = false;
+    vincola_skip_collaudo: boolean = false;
+
     constructor(_data?: any) {
         if (_data) {
             for (const key in _data) {

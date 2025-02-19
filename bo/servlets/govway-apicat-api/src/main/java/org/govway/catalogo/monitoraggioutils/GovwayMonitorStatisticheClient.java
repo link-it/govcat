@@ -386,9 +386,9 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 
 	private MittenteType getMittente(GetReportRequest request) {
 		
-		if(request.getApiErogatoreFruitore()!= null && request.getErogazioneFruizioneEnum().equals(ErogazioneFruizioneEnum.EROGAZIONE)) {
+		if(request.getSoggettoErogatore()!= null && !request.getSoggettoErogatore().equals(request.getSoggettoReferente()) && request.getErogazioneFruizioneEnum().equals(ErogazioneFruizioneEnum.EROGAZIONE)) {
 			MittenteType m = new MittenteType();
-			m.setSoggetto(request.getApiErogatoreFruitore());
+			m.setSoggetto(request.getSoggettoErogatore());
 			return m;
 		}
 		
@@ -406,12 +406,8 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 	private FiltroApiSoggetti getFiltroApiSoggetti(GetReportRequest request) {
 		FiltroApiSoggetti filtroapiSoggetti = new FiltroApiSoggetti();
 		
-		if(request.getErogazioneFruizioneEnum().equals(ErogazioneFruizioneEnum.EROGAZIONE)) {
-			filtroapiSoggetti.setErogatore(request.getApiSoggettoErogatore());
-		} else {
-			filtroapiSoggetti.setErogatore(request.getApiErogatoreFruitore());
-		}
-		
+		filtroapiSoggetti.setErogatore(request.getSoggettoErogatore());
+
 		filtroapiSoggetti.setNome(request.getApiNome());
 		filtroapiSoggetti.setVersione(request.getApiVersione());
 		return filtroapiSoggetti;
@@ -786,37 +782,37 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			File result = null;
 			if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.ANDAMENTO_TEMPORALE)) {
 				RicercaStatisticaAndamentoTemporale reportRequest = getRicercaStatisticaAndamentoTemporale(request);
-				result = mon.getReportDistribuzioneTemporaleByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneTemporaleByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_ESITI)) {
 				RicercaStatisticaDistribuzioneEsiti reportRequest = getRicercaStatisticaDistribuzioneEsiti(request);
-				result = mon.getReportDistribuzioneEsitiByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneEsitiByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_ERRORI)) {
 				RicercaStatisticaDistribuzioneErrori reportRequest = getRicercaStatisticaDistribuzioneErrori(request);
-				result = mon.getReportDistribuzioneErroriByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneErroriByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_API)) {
 				RicercaStatisticaDistribuzioneApi reportRequest = getRicercaStatisticaDistribuzioneApi(request);
-				result = mon.getReportDistribuzioneApiByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneApiByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO)) {
 				RicercaStatisticaDistribuzioneApplicativoRegistrato reportRequest = getRicercaStatisticaDistribuzioneApplicativo(request);
-				result = mon.getReportDistribuzioneApplicativoByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneApplicativoByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_IP)) {
 				RicercaStatisticaDistribuzioneApplicativo reportRequest = getRicercaStatisticaDistribuzioneIP(request);
-				result = mon.getReportDistribuzioneIndirizzoIPByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneIndirizzoIPByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_PRINCIPAL)) {
 				RicercaStatisticaDistribuzioneApplicativo reportRequest = getRicercaStatisticaDistribuzionePrincipal(request);
-				result = mon.getReportDistribuzioneIdAutenticatoByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneIdAutenticatoByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE)) {
 				RicercaStatisticaDistribuzioneAzione reportRequest = getRicercaStatisticaDistribuzioneOperazione(request);
-				result = mon.getReportDistribuzioneAzioneByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneAzioneByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO)) {
 				RicercaStatisticaDistribuzioneSoggettoRemoto reportRequest = getRicercaStatisticaDistribuzioneSoggettoRemoto(request);
-				result = mon.getReportDistribuzioneSoggettoRemotoByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneSoggettoRemotoByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_TOKEN_CLIENT_ID)) {
 				RicercaStatisticaDistribuzioneTokenInfo reportRequest = getRicercaStatisticaDistribuzioneTokenClientId(request);
-				result = mon.getReportDistribuzioneTokenInfoByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneTokenInfoByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			} else if(request.getTipologiaReportEnum().equals(TipologiaReportEnum.DISTRIBUZIONE_TOKEN_ISSUER)) {
 				RicercaStatisticaDistribuzioneTokenInfo reportRequest = getRicercaStatisticaDistribuzioneTokenIssuer(request);
-				result = mon.getReportDistribuzioneTokenInfoByFullSearch(request.getProfilo(), request.getApiSoggettoErogatore(), reportRequest);
+				result = mon.getReportDistribuzioneTokenInfoByFullSearch(request.getProfilo(), request.getSoggettoReferente(), reportRequest);
 			}
 			return result;
 		} catch (ApiException e) {

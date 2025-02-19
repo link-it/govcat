@@ -173,15 +173,16 @@ public class FiltriUtils {
 						id.setRuolo(ap.getRuolo());
 						id.setProtocollo(conf.getProtocollo());
 
-						if(adesione != null) {
-							id.setSoggetto(getSoggettoNome(adesione.getSoggetto().getNome()));
-						}
-						id.setSoggettoGestore(getSoggettoNome(servizio.getDominio().getSoggettoReferente().getNome()));
-
 						if(servizio.getSoggettoInterno()!=null) {
 							id.setFruizione(true);
 						}
-						
+
+						if(adesione != null) {
+							id.setSoggetto(getSoggettoNome(adesione.getSoggetto().getNome()));
+						} else {
+							id.setSoggetto(getSoggettoNome(servizio.getDominio().getSoggettoReferente().getNome()));
+						}
+
 						apiLst.add(id);
 					} else {
 						for(AdesioneEntity ades: servizio.getAdesioni()) {
@@ -196,8 +197,6 @@ public class FiltriUtils {
 											idErog.setProtocollo(conf.getProtocollo());
 											idErog.setSoggetto(getSoggettoNome(ades.getSoggetto().getNome()));
 											
-											//Issue 183
-											idErog.setSoggettoGestore(getSoggettoNome(servizio.getDominio().getSoggettoReferente().getNome()));
 											apiLst.add(idErog);
 										}
 									}
@@ -221,10 +220,4 @@ public class FiltriUtils {
 
 	}
 	
-	
-	public void checkErogazioneFruizione(boolean isFruizione,String soggetto, Integer versione, ErogazioneFruizioneEnum erogazioneFruizione)  {
-		if ((ErogazioneFruizioneEnum.FRUIZIONE == erogazioneFruizione && !isFruizione) || (ErogazioneFruizioneEnum.EROGAZIONE == erogazioneFruizione && isFruizione))
-			throw new BadRequestException("Tipo servizio non conforme,nome api: "+soggetto + ", versione: " + versione);
-	}
-
 }

@@ -6,16 +6,16 @@ import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/servic
 import { TranslateService } from '@ngx-translate/core';
 import { ConfigService } from 'projects/tools/src/lib/config.service';
 
-import { Servizio } from '../../servizi/servizio-details/servizio';
-
 import { Tools } from 'projects/tools/src/lib/tools.service';
 import { forkJoin } from 'rxjs';
 import { ComponentAuthTypeEnum } from '@app/model/componentAuthTypeEnum';
+import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { Grant } from '@app/model/grant';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
 
-interface Organization {
+export interface Organization {
   id_organizzazione: string;
   nome: string;
   descrizione: string;
@@ -27,7 +27,7 @@ interface Organization {
   multi_soggetto: boolean;
 }
 
-interface User {
+export interface User {
   id_utente: string;
   nome: string;
   cognome: string;
@@ -40,12 +40,12 @@ interface User {
   classi_utente: string[];
 }
 
-interface Referent {
+export interface Referent {
   utente: User;
   tipo: 'referente' | 'referente_servizio' | 'referente_tecnico' | 'referente_dominio';
 }
 
-interface Domain {
+export interface Domain {
   id_dominio: string;
   nome: string;
   soggetto_referente: {
@@ -61,7 +61,7 @@ interface Domain {
   descrizione: string;
 }
 
-interface Service {
+export interface Service {
   id_servizio: string;
   nome: string;
   versione: string;
@@ -73,7 +73,7 @@ interface Service {
   dominio: Domain;
 }
 
-interface RichiestaErogazione {
+export interface RichiestaErogazione {
   api: {
     id_api: string;
     nome: string;
@@ -93,7 +93,7 @@ interface RichiestaErogazione {
   };
 }
 
-interface Adesione {
+export interface Adesione {
   id_adesione: string;
   soggetto: {
     id_soggetto: string;
@@ -112,13 +112,13 @@ interface Adesione {
   erogazioni_richieste: RichiestaErogazione[];
 }
 
-interface Certificate {
+export interface Certificate {
   uuid: string;
   content_type: string;
   filename: string;
 }
 
-interface Client {
+export interface Client {
   id_client: string;
   descrizione?: string;
   indirizzo_ip?: string;
@@ -151,14 +151,14 @@ interface Client {
   profilo: string;
 }
 
-interface ReferentView {
+export interface ReferentView {
   id: string;
   name: string;
   email: string;
   types: string[];
 }
 
-interface AuthModeView {
+export interface AuthModeView {
   iop: string;
   client_id: string;
   client_id_label: string;
@@ -181,7 +181,7 @@ interface AuthModeView {
   canViewIpfruizione: boolean;
 }
 
-interface ApiView {
+export interface ApiView {
   name: string;
   url: string;
   ip: string;
@@ -248,6 +248,10 @@ export class AdesioneViewComponent implements OnInit {
   private defaultLogo: string = './assets/images/logo-servizio.png';
   private _serviceBreadcrumbs: ServiceBreadcrumbsData | null = null;
 
+  public grant: Grant | null = null;
+  
+  _otherActions: MenuAction[] = [];
+  
   constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -292,6 +296,30 @@ export class AdesioneViewComponent implements OnInit {
 
   public onBreadcrumb(event: any) {
     this.router.navigate([event.url]);
+  }
+
+  updateOtherAction() {
+    this._otherActions = []
+    const _statiFinali = ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'];
+    const _isStatoFinale = _statiFinali.includes(this.adesione?.stato || '');
+    const _isGestore = this.authenticationService.isGestore(this.grant?.ruoli || []);
+    if (!_isStatoFinale || _isGestore) {
+      this._otherActions = [
+          new MenuAction({
+            type: 'menu',
+            title: 'APP.ADESIONI.TITLE.Configure',
+            icon: 'gear',
+            subTitle: '',
+            action: 'configura',
+            enabled: true
+          }),
+          new MenuAction({
+            type: 'divider',
+            title: '',
+            enabled: true
+          })
+        ];
+    }
   }
 
   public getLogoMapper = (bg: boolean = false): string => {
@@ -349,11 +377,15 @@ export class AdesioneViewComponent implements OnInit {
 
   public onActionMonitor(event: any) {
     switch (event.action) {
+      case 'configura':
+        this.configureAdesione();
+        break;
       case 'gestione':
         this.router.navigate([`..`], { relativeTo: this.route });
         break;
       case 'comunicazioni':
       default:
+        localStorage.setItem('ADESIONI_VIEW', 'TRUE');
         this.router.navigate([`../comunicazioni`], { relativeTo: this.route });
         break;
     }
@@ -386,7 +418,8 @@ export class AdesioneViewComponent implements OnInit {
     this._spin = spin;
     this.apiService.getDetails(this.model, this.id, 'grant').subscribe({
       next: (grant: any) => {
-        console.log('grant: ', grant);
+        this.grant = grant;
+        console.log('grant: ', this.grant);
 
         this.apiService.getDetails(this.model, this.id).subscribe({
           next: (response: any) => {
@@ -395,9 +428,11 @@ export class AdesioneViewComponent implements OnInit {
             this._spin = false;
             this._initBreadcrumb();
 
-            if(this.adesione?.stato.includes('produzione')){
+            if (this.adesione?.stato.includes('produzione')){
               this.environment = 'produzione';
             }
+
+            this.updateOtherAction();
             
             this.loadReferents();
             this.onEnvironmentChange();
@@ -537,11 +572,9 @@ export class AdesioneViewComponent implements OnInit {
   }
 
   private canViewIpFruizione(authType: string | undefined): boolean {
-    console.log('canViewIpfruizione', authType);
     if (!authType) return false;
     const authTypes: any = this.authenticationService._getConfigModule('servizio').api.auth_type;
     const configAuthType = authTypes.find((x: any) => x.type == authType);
-    console.log('configAuthType', configAuthType);
     return (configAuthType && configAuthType.indirizzi_ip) || false;
   }
 
@@ -581,5 +614,12 @@ export class AdesioneViewComponent implements OnInit {
   onAvatarError(event: any) {
     event.target.src = './assets/images/avatar.png'
   }
-}
 
+  configureAdesione() {
+    if (this.config?.useEditWizard) {
+      this.router.navigate([`../`], { relativeTo: this.route });
+    } else {
+      this.router.navigate([`../configurazione`], { relativeTo: this.route });
+    }
+  }
+}

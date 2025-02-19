@@ -16,9 +16,9 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 
 import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
 
+import { EventType } from 'projects/tools/src/lib/classes/events';
 import { Page} from '../../models/page';
 
-import * as moment from 'moment';
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
 
@@ -109,9 +109,9 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   dominiLoading: boolean = false;
   selectedDominio: any;
 
-  generalConfig: any = Tools.Configurazione;
-  _workflowStati: any[] = Tools.Configurazione.adesione.workflow.stati;
-  _adesioni_multiple: any[] = Tools.Configurazione.servizio.adesioni_multiple;
+  generalConfig: any = Tools.Configurazione || null;
+  _workflowStati: any[] = Tools.Configurazione?.adesione.workflow.stati || [];
+  _adesioni_multiple: any[] = Tools.Configurazione?.servizio.adesioni_multiple || [];
 
   minLengthTerm = 1;
 
@@ -120,7 +120,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _param_id_servizio: any = null;
   _param_isWeb: boolean = false;
 
-  _useViewRoute: string = '';
+  _useViewRoute: boolean = false;
+  _useEditWizard: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -161,13 +162,20 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this.configService.getConfig(this.model).subscribe(
       (config: any) => {
         this.adesioniConfig = config;
-        this._useViewRoute = this.adesioniConfig.useViewRoute || '';
+        this._useViewRoute = this.adesioniConfig.useViewRoute || false;
+        this._useEditWizard = this.adesioniConfig.useEditWizard || false;
         this._initDominiSelect([]);
         this._initServiziSelect([]);
         this._initOrganizzazioniSelect([]);
         this._initClientsSelect([]);
       }
     );
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
+      this.generalConfig = Tools.Configurazione || null;
+      this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
+      this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
+    });
   }
 
   ngOnDestroy() {}
@@ -267,6 +275,10 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         // Tools.OnError(error);
       }
     });
+  }
+
+  _trackBy(index: any, item: any) {
+    return item.id;
   }
 
   _initServiziSelect(defaultValue: any[] = []) {
@@ -440,7 +452,11 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   _onNew() {
     if (this._useRoute) {
-      this.router.navigate(['new'], {relativeTo: this.route});
+      if (this._useEditWizard) {
+        this.router.navigate(['new', 'edit'], {relativeTo: this.route});
+      } else {
+        this.router.navigate(['new'], {relativeTo: this.route});
+      }
     } else {
       this._isEdit = true;
     }
@@ -452,10 +468,15 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         this.searchGoogleForm._pinLastSearch();
       }
       
-      if (this._useViewRoute) {
-        this.router.navigate([param.source.id_adesione, 'view'], {relativeTo: this.route});
+      if (this._useEditWizard) {
+        const params = (param.source.stato.includes('pubblicato_produzione')) ? [param.source.id_adesione, 'view'] : [param.source.id_adesione];
+        this.router.navigate(params, { relativeTo: this.route });
       } else {
-        this.router.navigate([param.source.id_adesione], {relativeTo: this.route});
+        if (this._useViewRoute) {
+            this.router.navigate([param.source.id_adesione, 'view'], { relativeTo: this.route });
+        } else {
+          this.router.navigate([param.source.id_adesione], { relativeTo: this.route });
+        }
       }
     } else {
       this._isEdit = true;

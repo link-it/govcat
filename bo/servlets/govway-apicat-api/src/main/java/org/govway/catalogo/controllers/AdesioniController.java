@@ -28,6 +28,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.AdesioneDettaglioAssembler;
 import org.govway.catalogo.assembler.AdesioneItemAssembler;
@@ -61,7 +63,9 @@ import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.api.AdesioniApi;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
@@ -70,6 +74,7 @@ import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
+import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.DatiCustomAdesioneUpdate;
@@ -80,6 +85,7 @@ import org.govway.catalogo.servlets.model.ItemErogazioneAdesione;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
+import org.govway.catalogo.servlets.model.OkKoEnum;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemAdesione;
 import org.govway.catalogo.servlets.model.PagedModelItemClientAdesione;
@@ -90,10 +96,10 @@ import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
-import org.govway.catalogo.servlets.model.WorkflowProduzioneSenzaCollaudoEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,6 +171,9 @@ public class AdesioniController implements AdesioniApi {
 	@Autowired
 	private NotificaService notificaService;   
 
+	@Autowired
+	private EntityManager entityManager;   
+
 	@Override
 	public ResponseEntity<Adesione> createAdesione(AdesioneCreate adesioneCreate) {
 		try {
@@ -202,7 +211,7 @@ public class AdesioniController implements AdesioniApi {
 				logger.info("POST save entity");
 				
 				logger.info("PRE lstNotifiche");
-
+				
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCreazioneAdesione(entity);
 				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
 
@@ -322,14 +331,18 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Referente> createReferenteAdesione(UUID idAdesione, ReferenteCreate referente) {
+	public ResponseEntity<Referente> createReferenteAdesione(UUID idAdesione, ReferenteCreate referente, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");     
 				AdesioneEntity entity = findOne(idAdesione);
 				
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				}
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -418,7 +431,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<Void> deleteReferenteAdesione(UUID idAdesione, String idUtente,
-			TipoReferenteEnum tipoReferente) {
+			TipoReferenteEnum tipoReferente, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
 	
@@ -435,7 +448,11 @@ public class AdesioniController implements AdesioniApi {
 					this.service.deleteReferenteAdesione(rentity);
 				}
 				
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				}
 
 				this.dettaglioAssembler.setUltimaModifica(entity);
 				this.service.save(entity);
@@ -523,8 +540,11 @@ public class AdesioniController implements AdesioniApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				AdesioneEntity entity = findOne(idAdesione);
-
 				this.logger.debug("Autorizzazione completata con successo");     
+				
+				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
+					throw new BadRequestException("Lo stato ["+entity.getStato()+"] dell'adesione non consente lo scaricamento della scheda");
+				}
 				Resource resource;
 				try {
 					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity));
@@ -907,7 +927,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<Adesione> updateAdesione(UUID idAdesione,
-			AdesioneUpdate adesioneUpdate) {
+			AdesioneUpdate adesioneUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");  
@@ -922,21 +942,24 @@ public class AdesioniController implements AdesioniApi {
 					this.dettaglioAssembler.toEntity(adesioneUpdate.getIdentificativo(), entity);
 				}
 				
-				if(adesioneUpdate.getCollaudo() != null) {
-					lstClassiDato.add(ConfigurazioneClasseDato.COLLAUDO);
-					if(!this.configurazione.getAdesione().getWorkflowProduzioneSenzaCollaudo().equals(WorkflowProduzioneSenzaCollaudoEnum.LINK_ALTRA_ADESIONE)) {
-						throw new BadRequestException("Workflow produzione senza collaudo: " + this.configurazione.getAdesione().getWorkflowProduzioneSenzaCollaudo() + " Expected: " +WorkflowProduzioneSenzaCollaudoEnum.LINK_ALTRA_ADESIONE);
-					}
-					this.dettaglioAssembler.toEntity(adesioneUpdate.getCollaudo(), entity);
-				}
+//				if(adesioneUpdate.getCollaudo() != null) {
+//					lstClassiDato.add(ConfigurazioneClasseDato.COLLAUDO);
+////					if(!this.configurazione.getAdesione().getWorkflowProduzioneSenzaCollaudo().equals(WorkflowProduzioneSenzaCollaudoEnum.LINK_ALTRA_ADESIONE)) {
+////						throw new BadRequestException("Workflow produzione senza collaudo: " + this.configurazione.getAdesione().getWorkflowProduzioneSenzaCollaudo() + " Expected: " +WorkflowProduzioneSenzaCollaudoEnum.LINK_ALTRA_ADESIONE);
+////					}
+//					this.dettaglioAssembler.toEntity(adesioneUpdate.getCollaudo(), entity);
+//				}
 
-				this.authorization.authorizeModifica(entity, lstClassiDato);
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, lstClassiDato);
+				}
 
 				this.service.save(entity);
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
-
 				return ResponseEntity.ok(model);
 
 			});
@@ -953,17 +976,22 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<Adesione> saveClientCollaudoAdesione(UUID idAdesione, String profilo,
-			AdesioneClientUpdate adesioneClientUpdate) {
+			AdesioneClientUpdate adesioneClientUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				AdesioneEntity entity = findOne(idAdesione);
 
 				this.dettaglioAssembler.toEntity(adesioneClientUpdate, profilo, true, entity);
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+				
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+				}
+				
 				this.logger.debug("Autorizzazione completata con successo");     
 
-				
 				this.service.save(entity);
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
@@ -985,7 +1013,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<Adesione> saveClientProduzioneAdesione(UUID idAdesione, String profilo,
-			AdesioneClientUpdate adesioneClientUpdate) {
+			AdesioneClientUpdate adesioneClientUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
@@ -994,9 +1022,13 @@ public class AdesioniController implements AdesioniApi {
 
 				this.dettaglioAssembler.toEntity(adesioneClientUpdate, profilo, false, entity);
 				
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
-				this.logger.debug("Autorizzazione completata con successo");     
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+				}
+				
+				this.logger.debug("Autorizzazione completata con successo");     
 
 				this.service.save(entity);
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -1019,7 +1051,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<Adesione> saveErogazioneCollaudoAdesione(UUID idAdesione, UUID idErogazione,
-			AdesioneErogazioneUpdate adesioneServerUpdate) {
+			AdesioneErogazioneUpdate adesioneServerUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
@@ -1028,7 +1060,12 @@ public class AdesioniController implements AdesioniApi {
 
 				this.dettaglioAssembler.toEntity(adesioneServerUpdate, idErogazione, true, entity);
 
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+				}
+				
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				this.service.save(entity);
@@ -1052,7 +1089,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<Adesione> saveErogazioneProduzioneAdesione(UUID idAdesione, UUID idErogazione,
-			AdesioneErogazioneUpdate adesioneServerUpdate) {
+			AdesioneErogazioneUpdate adesioneServerUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
@@ -1061,9 +1098,14 @@ public class AdesioniController implements AdesioniApi {
 
 				this.dettaglioAssembler.toEntity(adesioneServerUpdate, idErogazione, false, entity);
 
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+				}
 				
 				this.logger.debug("Autorizzazione completata con successo");     
+
 				this.service.save(entity);
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
@@ -1084,9 +1126,8 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Adesione> updateStatoAdesione(UUID idAdesione, StatoUpdate statoUpdate) {
+	public ResponseEntity<Adesione> updateStatoAdesione(UUID idAdesione, StatoUpdate statoUpdate, Boolean checkOnly) {
 		try {
-
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");    
 				AdesioneEntity entity = findOne(idAdesione);
@@ -1101,12 +1142,19 @@ public class AdesioniController implements AdesioniApi {
 				this.authorization.authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
 
 
-				this.service.save(entity);
+				if(!isCheckOnly(checkOnly)) {
+					this.service.save(entity);
+					List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(entity);
+					lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+				}
 
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(entity);
-				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
+
+				if(isCheckOnly(checkOnly)) {
+					this.entityManager.detach(entity);
+				}
+				
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(model);
 
@@ -1279,7 +1327,7 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Adesione> deleteClientCollaudoAdesione(UUID idAdesione, String profilo) {
+	public ResponseEntity<Adesione> deleteClientCollaudoAdesione(UUID idAdesione, String profilo, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -1293,7 +1341,12 @@ public class AdesioniController implements AdesioniApi {
 
 				if(oEntity.isPresent()) {
 					entity.getClient().remove(oEntity.get());
-					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+					
+					Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+					if(!isForce(force, grant.getRuoli())) {
+						this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
 					throw new BadRequestException("Client per il profilo ["+profilo+"] non presente in collaudo per l'adesione ["+entity+"]");
@@ -1317,7 +1370,7 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Adesione> deleteClientProduzioneAdesione(UUID idAdesione, String profilo) {
+	public ResponseEntity<Adesione> deleteClientProduzioneAdesione(UUID idAdesione, String profilo, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -1330,7 +1383,11 @@ public class AdesioniController implements AdesioniApi {
 
 				if(oEntity.isPresent()) {
 					entity.getClient().remove(oEntity.get());
-					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+					Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+					if(!isForce(force, grant.getRuoli())) {
+						this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
 					throw new BadRequestException("Client per il profilo ["+profilo+"] non presente in produzione per l'adesione ["+entity+"]");
@@ -1354,7 +1411,7 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Adesione> deleteErogazioneCollaudoAdesione(UUID idAdesione, UUID idErogazione) {
+	public ResponseEntity<Adesione> deleteErogazioneCollaudoAdesione(UUID idAdesione, UUID idErogazione, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -1367,7 +1424,11 @@ public class AdesioniController implements AdesioniApi {
 
 				if(oEntity.isPresent()) {
 					entity.getErogazioni().remove(oEntity.get());
-					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+					Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+					if(!isForce(force, grant.getRuoli())) {
+						this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
 					throw new BadRequestException("Erogazione per la API ["+idErogazione+"] non presente in collaudo per l'adesione ["+entity+"]");
@@ -1391,7 +1452,7 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Adesione> deleteErogazioneProduzioneAdesione(UUID idAdesione, UUID idErogazione) {
+	public ResponseEntity<Adesione> deleteErogazioneProduzioneAdesione(UUID idAdesione, UUID idErogazione, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -1404,7 +1465,11 @@ public class AdesioniController implements AdesioniApi {
 
 				if(oEntity.isPresent()) {
 					entity.getErogazioni().remove(oEntity.get());
-					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+					Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+					if(!isForce(force, grant.getRuoli())) {
+						this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
 					throw new BadRequestException("Erogazione per la API ["+idErogazione+"] non presente in produzione per l'adesione ["+entity+"]");
@@ -1522,19 +1587,23 @@ public class AdesioniController implements AdesioniApi {
 		}
 	}
 	@Override
-	public ResponseEntity<Adesione> saveConfigurazioneCustomCollaudoAdesione(UUID idAdesione, DatiCustomAdesioneUpdate datiCustomUpdate) {
+	public ResponseEntity<Adesione> saveConfigurazioneCustomCollaudoAdesione(UUID idAdesione, DatiCustomAdesioneUpdate datiCustomUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = findOne(idAdesione);
 
 				this.dettaglioAssembler.toEntity(datiCustomUpdate, true, entity);
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+				
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.COLLAUDO));
+				}
 				this.logger.debug("Autorizzazione completata con successo");
 
 				this.service.save(entity);
 				Adesione model = this.dettaglioAssembler.toModel(entity);
-
 				this.logger.info("Invocazione completata con successo");
 
 				return ResponseEntity.ok(model);
@@ -1552,20 +1621,22 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Adesione> saveConfigurazioneCustomProduzioneAdesione(UUID idAdesione, DatiCustomAdesioneUpdate datiCustomUpdate) {
+	public ResponseEntity<Adesione> saveConfigurazioneCustomProduzioneAdesione(UUID idAdesione, DatiCustomAdesioneUpdate datiCustomUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");
 				AdesioneEntity entity = findOne(idAdesione);
 
 				this.dettaglioAssembler.toEntity(datiCustomUpdate, false, entity);
-				this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
-				this.logger.debug("Autorizzazione completata con successo");
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
+				if(!isForce(force, grant.getRuoli())) {
+					this.authorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.PRODUZIONE));
+				}
+				this.logger.debug("Autorizzazione completata con successo");
 
 				this.service.save(entity);
 				Adesione model = this.dettaglioAssembler.toModel(entity);
-
 				this.logger.info("Invocazione completata con successo");
 
 				return ResponseEntity.ok(model);
@@ -1580,6 +1651,24 @@ public class AdesioniController implements AdesioniApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(e);
 		}
+	}
+
+	private List<Ruolo> listRuoloForce = Arrays.asList(Ruolo.GESTORE);
+	
+	private boolean isForce(Boolean force, List<Ruolo> listRuoli) {
+		
+
+		boolean realForce = force != null && force;
+		if(realForce) {
+			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
+				throw new NotAuthorizedException("L'utente deve avere uno dei ruoli ["+listRuoloForce+"] per eseguire la force");
+			}
+		}
+		return realForce;
+	}
+	
+	private boolean isCheckOnly(Boolean checkOnly) {
+		return checkOnly != null && checkOnly;
 	}
 
 	@Override
@@ -1617,4 +1706,38 @@ public class AdesioniController implements AdesioniApi {
 			throw new InternalException(e);
 		}
 	}
+
+	@Override
+	public ResponseEntity<CheckDati> checkDatiAdesione(UUID idAdesione, String statoFinale) {
+		try {
+
+			return this.service.runTransaction( () -> {
+
+				this.logger.info("Invocazione in corso ...");     
+				AdesioneEntity entity = findOne(idAdesione);
+				this.logger.debug("Autorizzazione completata con successo");     
+
+				CheckDati checkDatiGenerale = new CheckDati();
+				try {
+					this.authorization.checkCampiObbligatori(entity, statoFinale);
+					checkDatiGenerale.setEsito(OkKoEnum.OK);
+				} catch(UpdateEntitaComplessaNonValidaSemanticamenteException e) {
+					checkDatiGenerale.setEsito(OkKoEnum.KO);
+					checkDatiGenerale.setErrori(e.getErrori());
+				}
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(checkDatiGenerale);
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(e);
+		}
+	}
+
 }

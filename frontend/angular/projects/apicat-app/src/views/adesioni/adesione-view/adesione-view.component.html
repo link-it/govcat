@@ -3,48 +3,25 @@
       <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
       <div class="d-flex flex-grow-1">&nbsp;</div>
       <div class="nav-controls" *ngIf="!_spin">
-        <!-- <div class="position-relative me-2">
-          <button type="button" class="btn btn-default btn-md gl-button" >
-            <span>{{ 'APP.SERVICES.TITLE.Management' | translate }}</span>
-          </button>
-        </div> -->
         <app-monitor-dropdown
           [showComunications]="true"
           [showMonitoring]="false"
-          [showManagement]="true"
+          [showManagement]="false"
           [returnWeb]="false"
+          [otherActions]="_otherActions"
           (action)="onActionMonitor($event)">
         </app-monitor-dropdown>
       </div>
     </div>
-    <!-- <div class="top-area container-fluid limit-container-width px-0" [class.container-limited-]="!_isPresentationView">
-      <h3 class="page-title" *ngIf="true">{{ data?.nome }}</h3>
-      <div class="d-flex flex-grow-1">&nbsp;</div>
-      <div class="nav-controls">
-        <div class="position-relative me-2" *ngIf="!_spin">
-          <button type="button" class="btn btn-default btn-md gl-button" (click)="gotoManagement()">
-            <span *ngIf="_isPresentationView">{{ 'APP.SERVICES.TITLE.Management' | translate }}</span>
-          </button>
-        </div>
-      </div>
-    </div> -->
     <section #myScroll 
       class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4 container-limited-"
       (scroll)="onScroll($event)">
 
-      <!-- <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
-      <ui-box-message *ngIf="!data && !_spin" [image]="'./assets/images/illustrations/no-data.svg'"
-        [message]="'APP.MESSAGE.NoData' | translate" [subMessage]="'APP.MESSAGE.NoDataHelp' | translate">
-      </ui-box-message> -->
-  
       <app-scroll *ngIf="_showScroll" (scrollToTop)="_onScrollToTop()"></app-scroll>
   
       <div class="settings-" *ngIf="(adesione && !_spin)">
         <div class="settings-content-">
-          <!-- <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_error">
-            {{ _errorMsg }}
-          </div> -->
-  
+
           <div id="main">
             <div class="container-fluid">
 
@@ -52,7 +29,6 @@
                 <div class="col-4 border-end" style="min-height: 400px;">
                   <div class="sticky-top">
                       <span *ngIf="adesione?.servizio?.immagine">
-                      <!-- <img class="border-" [alt]="adesione?.servizio?.nome" [src]="adesione?.servizio | mapper:_getLogoMapper" style="max-width: 90%;"> -->
                     </span>
 
                     <div class="titolo-block mt-4">
@@ -64,8 +40,6 @@
                       <p class="lead pt-3 pb-3 project__desc">
                         <span class="text-break">{{ adesione.soggetto.organizzazione.nome }}</span>
                         <br />
-                        <!-- <span class="mx-1">-</span>
-                        <span class="me-2">{{ adesione.servizio.dominio.nome }}</span> -->
                         <ui-data-type *ngIf="adesione"
                           [data]="adesione"
                           [elem]="{ field: 'stato', type: 'tag', options: 'status' }"

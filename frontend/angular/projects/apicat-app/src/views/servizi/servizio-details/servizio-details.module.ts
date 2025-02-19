@@ -6,6 +6,8 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 import { ComponentsModule } from 'projects/components/src/lib/components.module';
+
+import { AppComponentsModule } from "@app/components/components.module";
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 import { DisablePermissionModule } from '@app/directives/disable-permission/disable-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
@@ -28,6 +30,7 @@ import { NotificationBarModule } from '../../notifications/notification-bar/noti
         TranslateModule,
         VendorsModule,
         ComponentsModule,
+        AppComponentsModule,
         HasPermissionModule,
         DisablePermissionModule,
         MarkAsteriskModule,

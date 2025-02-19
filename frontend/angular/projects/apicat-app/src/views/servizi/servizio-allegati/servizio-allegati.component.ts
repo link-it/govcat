@@ -1,8 +1,6 @@
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
@@ -18,9 +16,12 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
 
+import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegati-dialog.component';
+
 import { Page } from '@app/models/page';
 import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
 import { Grant } from '@app/model/grant';
+import { EventType } from 'projects/tools/src/lib/classes/events';
 
 declare const saveAs: any;
 
@@ -36,7 +37,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
   @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
   @ViewChild('editTemplate') editTemplate!: any;
 
-  id: number = 0;
+  id: string | null = null;
 
   Tools = Tools;
 
@@ -50,10 +51,6 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
 
   _grant: Grant | null = null;
 
-  _isNew: boolean = false;
-  _isEdit: boolean = false;
-  _editCurrent: any = null;
-
   _hasFilter: boolean = true;
   _formGroup: UntypedFormGroup = new UntypedFormGroup({});
   _filterData: any[] = [];
@@ -63,9 +60,6 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
   _spin: boolean = true;
   _showLoading: boolean = true;
   desktop: boolean = false;
-
-  _useRoute : boolean = false;
-  _useDialog : boolean = true;
 
   _message: string = 'APP.MESSAGE.NoResults';
   _messageHelp: string = 'APP.MESSAGE.NoResultsHelp';
@@ -93,24 +87,8 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     { label: 'APP.SERVICES.TITLE.Allegati', url: '', type: 'link' }
   ];
 
-  _modalEditRef!: BsModalRef;
   _modalConfirmRef!: BsModalRef;
 
-  _editFormGroup: FormGroup = new FormGroup({});
-  _descrittoreCtrl: FormControl = new FormControl('', [Validators.required]);
-  _newDescrittore = false;
-
-  _multiple: boolean = true;
-  _allegatiCtrl: FormControl = new FormControl('');
-  _files: any [] = [];
-
-  minLengthTerm: number = 1;
-  referenti$!: Observable<any[]>;
-  referentiInput$ = new Subject<string>();
-  referentiLoading: boolean = false;
-  referentiFilter: string = '';
-
-  _saving: boolean = false;
   _downloading: boolean = false;
   _downloadings: boolean[] = [];
   _deleting: boolean = false;
@@ -124,9 +102,9 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
 
   _tipiVisibilitaAllegato: any[] = [];
 
-  _useNewSearchUI : boolean = false;
-
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
+
+  modalAttachmentsRef!: BsModalRef;
 
   constructor(
     private route: ActivatedRoute,
@@ -136,9 +114,9 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     private configService: ConfigService,
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
-    public apiService: OpenAPIService,
-    public utils: UtilService,
-    public authenticationService: AuthenticationService
+    private apiService: OpenAPIService,
+    private utils: UtilService,
+    private authenticationService: AuthenticationService
   ) {
     this.route.data.subscribe((data) => {
       if (!data.componentBreadcrumbs) return;
@@ -147,7 +125,6 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     });
 
     this.config = this.configService.getConfiguration();
-    this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
@@ -196,6 +173,18 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
         );
       }
     });
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
+      this._tipiVisibilitaAllegato = Tools.Configurazione?.servizio?.visibilita_allegati_consentite.filter((item: string) => {
+        if ((item === 'gestore') && !this.authenticationService.isGestore(this._grant?.ruoli)) {
+          return false;
+        }
+        return true;
+      }).map((item: string) => {
+        return { label: item, value: item };
+      });
+      this._initSearchForm();
+    });
   }
 
   ngOnDestroy() {
@@ -210,7 +199,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     const _nome: string = this.service ? this.service.nome : null;
     const _versione: string = this.service ? this.service.versione : null;
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
-    const _allegati = (this._tipoAllegato === 'generico') ? 'APP.SERVICES.TITLE.Allegati': 'APP.SERVICES.TITLE.Allegati';
+    const _allegati = 'APP.SERVICES.TITLE.Allegati';
 
     let title = (_nome && _versione) ?`${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
     let baseUrl = `/${this.model}`;
@@ -252,7 +241,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
       _enumAllegati[item.label] = `APP.ALLEGATI.TIPI.${item.value}`;
     });
     const _enumVisibilita: any = {};
-    this._tipiVisibilitaAllegato.forEach((item: any) =>{
+    this._tipiVisibilitaAllegato?.forEach((item: any) =>{
       _enumVisibilita[item.label] = `APP.VISIBILITY.${item.value}`;
     });
 
@@ -319,11 +308,11 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
           response ? this._links = response._links || null : null;
 
           if (response && response.content) {
-            const _list: any = response.content.map((api: any) => {
+            const _list: any = response.content.map((allegato: any) => {
               const element = {
-                id: api.component_id,
+                id: allegato.uuid,
                 editMode: false,
-                source: { ...api }
+                source: { ...allegato }
               };
               return element;
             });
@@ -352,18 +341,14 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
   }
 
   _onNew() {
-    if (this._useDialog) {
-      this._editAllegato();
-    }
+    this._editAllegato();
   }
 
   _onEdit(event: any, data: any) {
-    if (this._useDialog) {
-      if (this.searchGoogleForm) {
-        this.searchGoogleForm._pinLastSearch();
-      }
-      this._editAllegato(data);
+    if (this.searchGoogleForm) {
+      this.searchGoogleForm._pinLastSearch();
     }
+    this._editAllegato(data);
   }
 
   _onSubmit(form: any) {
@@ -400,137 +385,27 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     Tools.ScrollElement('container-scroller', 0);
   }
 
-  _onCloseEdit(event: any) {
-    this._isEdit = false;
-    this._isNew = false;
-    this._editCurrent = null;
-  }
-
-  get f(): { [key: string]: AbstractControl } {
-    return this._editFormGroup.controls;
-  }
-
-  _initEditForm(data: any = null) {
-    this._files = [];
-    const _uuid = data ? data.uuid : null;
-    const _filename = data ? data.filename : null;
-    const _estensione = data ? data.estensione : null;
-    const _descrizione = data ? data.descrizione : null;
-    const _visibilita = data ? data.visibilita : null;
-    const _tipologia = data ? data.tipologia : (this._showAllAttachments ? null : TipologiaAllegatoEnum.Generico);
-    this._editFormGroup = new FormGroup({
-      uuid: new FormControl(_uuid, _uuid ? [Validators.required] : []),
-      filename: new FormControl(_filename, this._multiple ? [] : [Validators.required]),
-      estensione: new FormControl(_estensione, (this._multiple || _uuid) ? [] : [Validators.required]),
-      descrizione: new FormControl(_descrizione, []),
-      visibilita: new FormControl(_visibilita, [Validators.required]),
-      tipologia: new FormControl(_tipologia, [Validators.required]),
-      content: new FormControl(null, (this._isNew && !this._multiple && !_uuid) ? [Validators.required] : []),
-      files: new FormControl(null, this._multiple ? [Validators.required] : [])
-    });
-    this._descrittoreCtrl.setValue(data);
-    this._newDescrittore = false;
-  }
-
   _editAllegato(data: any = null) {
-    let _open: boolean = true;
-    const _data: any = data ? data.source : null;
-    this._editCurrent = _data;
-    this._isEdit = _data ? !!_data.uuid : false;
-    this._multiple = !this._isEdit;
-    this._isNew = (this._editCurrent === null);
-    if (this._isNew) {
-      this._initEditForm();
-    } else {
-      this._initEditForm(_data);
-    }
-
-    if (_open) {
-      this._modalEditRef = this.modalService.show(this.editTemplate, {
+    const initialState = {
+      model: this.model,
+      id: this.id,
+      current: data?.source,
+      isEdit: data !== null,
+      isNew: data === null,
+      showAllAttachments: this._showAllAttachments,
+      multiple: data === null
+    };
+    this.modalAttachmentsRef = this.modalService.show(AllegatiDialogComponent, {
         ignoreBackdropClick: true,
-        // class: 'modal-half'
-      });
-    }
-  }
-
-  saveModal(body: any) {
-    const _allegati: any[] = [];
-    let _dataUpdate: any = null;
-    this.__resetError();
-    this._saving = true;
-    this._showLoading = false;
-    if (!this._showAllAttachments) { body.tipologia = this._tipoAllegato; }
-    let _resultObject: Observable<any>;
-
-    if (this._isNew) {
-      if (this._multiple) {
-        body.files.forEach((file: any) => {
-          _allegati.push({
-            tipologia: body.tipologia,
-            visibilita: body.visibilita,
-            descrizione: body.descrizione,
-            filename: file.filename,
-            content_type: file.estensione,
-            content: file.content
-          });
-        });
-      } else {
-        _allegati.push({
-          tipologia: body.tipologia,
-          visibilita: body.visibilita,
-          descrizione: body.descrizione,
-          filename: body.filename,
-          content_type: body.estensione,
-          content: body.content
-        });
-      }
-      _resultObject = this.apiService.postElementRelated(this.model, this.id, 'allegati', _allegati);
-    } else {
-      _dataUpdate = {
-        tipologia: body.tipologia,
-        visibilita: body.visibilita,
-        descrizione: body.descrizione,
-        filename: body.filename,
-        content: {
-          tipo_documento: 'uuid',
-          uuid: body.uuid,
-          filename: body.filename,
-          content_type: body.estensione
+        initialState: initialState
+    });
+    this.modalAttachmentsRef.content.onClose.subscribe(
+        (result: boolean) => {
+          if (result) {
+            this._loadServizioAllegati();
+          }
         }
-      };
-
-      if (this._newDescrittore) {
-        _dataUpdate.content = {
-          tipo_documento: 'nuovo',
-          filename: body.filename,
-          content_type: body.estensione,
-          content: body.content
-        };
-      }
-
-      _resultObject = this.apiService.putElementRelated(this.model, this.id, `allegati/${body.uuid}`, _dataUpdate);
-    }
-
-    _resultObject.subscribe(
-      (response: any) => {
-        this._saving = false;
-        this._modalEditRef.hide();
-        this._onCloseEdit(null);
-        this._loadServizioAllegati();
-      },
-      (error: any) => {
-        this._saving = false;
-        this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
-      }
     );
-  }
-
-  closeModal(){
-    this._saving = false;
-    this._error = false;
-    this._modalEditRef.hide();
-    this._onCloseEdit(null);
   }
 
   _confirmDelection(data: any) {
@@ -556,10 +431,6 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     );
   }
 
-  _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
-  }
-
   _downloadAllegato(data: any, index: number = -1) {
     const _data = data.source;
     this.__resetError();
@@ -571,8 +442,6 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     const _partial = `allegati/${_data.uuid}/download`;
     this.apiService.download(this.model, this.id, _partial).subscribe({
       next: (response: any) => {
-        // const _ext = _data.content_type ? _data.content_type.split('/')[1] : 'txt';
-        // let name: string = `${_data.filename}.${_ext}`;
         let name: string = `${_data.filename}`;
         saveAs(response.body, name);
         if (index === -1) {
@@ -593,69 +462,9 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     });
 }
   
-  __descrittoreChange(value: any) {
-    const controls = this._editFormGroup.controls;
-    if (this._multiple) {
-      if (value && value.data) {
-        this._files.push({
-          filename: value.file,
-          estensione: value.type,
-          content: value.data
-        });
-        controls.files.setValue(this._files);
-        // if (this._files.length === 1) {
-        //   controls.filename.patchValue(value.file);
-        //   controls.estensione.patchValue(value.type);
-        //   controls.content.patchValue(value.data);
-        //   controls.fileName.setValidators([Validators.required]);
-        // } else {
-          controls.filename.patchValue(null);
-          controls.estensione.patchValue(null);
-          controls.content.patchValue(null);
-          controls.filename.clearValidators();
-          controls.content.patchValue(null);
-        // }
-        this._descrittoreCtrl.setValue('');
-        this._editFormGroup.updateValueAndValidity();
-      }
-    } else {
-      controls.uuid.clearValidators();
-      controls.filename.setValidators(Validators.required);
-      controls.estensione.setValidators(Validators.required);
-      controls.content.setValidators(Validators.required);
-
-      controls.filename.patchValue(value.file || value.filename);
-      controls.estensione.patchValue(value.type || value.estensione);
-      controls.content.patchValue(value.data || null);
-      // controls.uuid.patchValue(value.uuid || null);
-      this._editFormGroup.updateValueAndValidity();
-      this._newDescrittore = true;
-    }
-    this.__resetError();
-  }
-
   __resetError() {
     this._error = false;
     this._errorMsg = '';
-  }
-
-  _removeFile(index: number) {
-    this._files.splice(index, 1);
-    const controls = this._editFormGroup.controls;
-    controls.files.setValue(this._files);
-  }
-
-  _toggleMultiple() {
-    const controls = this._editFormGroup.controls;
-    this._multiple = !this._multiple;
-    controls.estensione.patchValue(null);
-    controls.descrizione.patchValue(null);
-    controls.visibilita.patchValue(null);
-    controls.tipologia.patchValue(null);
-    controls.content.patchValue(null);
-    controls.uuid.patchValue(null);
-    controls.files.patchValue(null);
-    this._editFormGroup.updateValueAndValidity();
   }
 
   _updateTipiAllegati() {

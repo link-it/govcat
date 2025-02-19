@@ -33,6 +33,7 @@ import { Location } from '@angular/common';
 import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
 
 import { Grant } from '@app/model/grant';
+import { EventType } from 'projects/tools/src/lib/classes/events';
 
 @Component({
   selector: 'app-adesione-details',
@@ -137,7 +138,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   minLengthTerm = 1;
 
-  generalConfig: any = Tools.Configurazione;
+  generalConfig: any = Tools.Configurazione || null;
 
   _singleColumn: boolean = false;
 
@@ -215,11 +216,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   ngOnInit() {
-    // this.route.data.subscribe((data) => {
-    //   console.log('AdesioniDetailComponent data change', data);
-    // });
+    localStorage.setItem('ADESIONI_VIEW', 'FALSE');
 
-    this._scelta_libera_organizzazione = this.generalConfig.adesione.scelta_libera_organizzazione;
+    this._scelta_libera_organizzazione = this.generalConfig?.adesione.scelta_libera_organizzazione || false;
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -235,7 +234,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
       } else {
         this._initBreadcrumb();
-
+        
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
             this.config = config;
@@ -278,6 +277,13 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         this._loadServizio(this._id_servizio);
       } 
     });
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
+      this.generalConfig = Tools.Configurazione || null;
+      this._scelta_libera_organizzazione = this.generalConfig?.adesione.scelta_libera_organizzazione || false;
+      this._initForm(this._adesioneCreate);
+      console.log('Configurazione Remota', Tools.Configurazione);
+    });
   }
 
   ngOnDestroy() {
@@ -301,7 +307,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   public onActionMonitor(event: any) {
     if(event.action == 'backview') {
-      this.router.navigate(['view'], { relativeTo: this.route });
+      this.router.navigate(['/adesioni'], { relativeTo: this.route });
     }
     if(event.action == 'download_scheda') {
       this._downloadSchedaAdesione();
@@ -376,7 +382,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             break;
           case 'referente':
             if(this._isNew) {
-              const _referente_obbligatorio = this.generalConfig.adesione.referente_obbligatorio
+              const _referente_obbligatorio = this.generalConfig?.adesione.referente_obbligatorio || false;
               value = data[key] ? data[key] : null;
               _group[key] = new UntypedFormControl({ value: this._id_servizio, disabled: true }, _referente_obbligatorio ? [Validators.required] : []);
             } else {
@@ -405,7 +411,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             _group[key] = new UntypedFormControl({ value: value, disabled: true }, []);
             break;
           case 'id_logico':
-            // if (this.generalConfig.servizio.adesioni_multiple == true) {
+            // if (this.generalConfig?.servizio.adesioni_multiple == true) {
             //   value = data[key] ? data[key] : null;
             //   _group[key] = new UntypedFormControl(value, [Validators.required]);
             // } else {
@@ -704,6 +710,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   _loadProfilo(spin: boolean = true) {
     this._profilo = this.authenticationService.getCurrentSession();
+    console.log('_loadProfilo', this._profilo);
     const _ruolo: string | null = this._profilo?.utente.ruolo || null;
 
     if (this._scelta_libera_organizzazione) {

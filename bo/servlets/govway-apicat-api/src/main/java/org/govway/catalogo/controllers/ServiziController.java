@@ -1647,7 +1647,8 @@ public class ServiziController implements ServiziApi {
 					}
 				}
 				
-				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome","versione"));
+//				PageRequest pageable = PageRequest.of(0, Integer.MAX_VALUE, (sort != null) ? Sort.by(sort.toArray(new String[]{})): Sort.by("nome","versione"));
+				CustomPageRequest pageable = new CustomPageRequest(0, Integer.MAX_VALUE, sort, Arrays.asList("nome","versione"));
 
 				this.logger.info("PRE findAllServiziGruppi");
 				Page<ServizioGruppoEntity> findAll = this.service.findAllServiziGruppi(
@@ -1908,7 +1909,7 @@ public class ServiziController implements ServiziApi {
 					throw new ConflictException("Gruppo ["+gentity.getNome()+"] gia associato al servizio ["+entity.getNome()+"/"+entity.getVersione()+"]");
 				}
 				
-				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
+//				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 				
 				if(!entity.getTipo().equals(gentity.getTipo())) {
 					throw new RichiestaNonValidaSemanticamenteException("Impossibile associare il Gruppo ["+gentity.getNome()+"] di Tipo ["+gentity.getTipo()+"] al Servizio ["+entity.getNome()+"/"+entity.getVersione()+"] di Tipo ["+entity.getTipo()+"]. I due tipi devono coincidere");
@@ -1946,7 +1947,7 @@ public class ServiziController implements ServiziApi {
 						.orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
 
 				entity.getGruppi().remove(gentity);
-				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
+//				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
 				this.service.save(entity);
 				this.logger.info("Invocazione completata con successo");

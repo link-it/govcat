@@ -6,6 +6,7 @@ import { HttpParams } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 
 import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
 import { Tools } from 'projects/tools/src/lib/tools.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
@@ -16,6 +17,7 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
+import { EventType } from 'projects/tools/src/lib/classes/events';
 
 @Component({
   selector: 'app-servizio-api',
@@ -98,6 +100,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     private router: Router,
     private translate: TranslateService,
     private configService: ConfigService,
+    private eventsManagerService: EventsManagerService,
     public tools: Tools,
     public apiService: OpenAPIService,
     public authenticationService: AuthenticationService,
@@ -113,7 +116,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
-    const _srv: any = Tools.Configurazione.servizio;
+    const _srv: any = Tools.Configurazione?.servizio || null;
     this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
 
     this._initSearchForm();
@@ -145,6 +148,11 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
           }
         );
       }
+    });
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
+        const _srv: any = Tools.Configurazione?.servizio || null;
+        this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
     });
   }
 

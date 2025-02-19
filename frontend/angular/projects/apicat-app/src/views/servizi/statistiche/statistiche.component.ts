@@ -543,6 +543,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     return api && api.ruolo === 'erogato_soggetto_aderente';
   }
 
+  public onChangeApi($event: any) {
+    this._formGroup.get('adesione')?.setValue(null);
+  }
+
   public canShowAdesioneSubjectDomain() {
     const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
     if(!distributionType || !domainStatistics.some((s) => s === distributionType.value)) return false;
@@ -668,12 +672,26 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     const api = this._formGroup.get('api')?.value;
 
     const ambiente = this.environmentId === 'collaudo' ? 'collaudo' : 'produzione';
-    const erogazioneOrFruizione = api.ruolo === 'erogato_soggetto_aderente' ? 'fruizioni' : 'erogazioni';
-    const pdndOrModi = this._isSoggettoPDND() ? 'pdnd' : 'modi';
+    const erogazioneOrFruizione = this._tipoVerifica(api);
+    // const pdndOrModi = this._isSoggettoPDND() ? 'pdnd' : 'modi';
+    const _soggetto = this._getSoggettoNome();
 
     const distibutionType: DistributionType = formValue.distribution_type;
 
-    return `${ambiente}/${erogazioneOrFruizione}/${pdndOrModi}/report/${distibutionType.value}`;
+    // return `${ambiente}/${erogazioneOrFruizione}/${pdndOrModi}/report/${distibutionType.value}`;
+    return `${ambiente}/${erogazioneOrFruizione}/${_soggetto}/report/${distibutionType.value}`;
+  }
+
+  _tipoVerifica(api: any) {
+    if (api.ruolo === 'erogato_soggetto_dominio') {
+      if (this.service?.soggetto_interno) {
+        return 'fruizioni';
+      } else {
+        return 'erogazioni';
+      }
+    } else {
+      return 'fruizioni';
+    }
   }
 
   _hasPDNDAuthType(api: any) {
@@ -689,6 +707,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     });
 
     return _hasPDND;
+  }
+
+  _getSoggettoNome() {
+      return this.service?.soggetto_interno?.nome || this.service?.dominio?.soggetto_referente?.nome
   }
 
   _isSoggettoPDND() {
@@ -980,14 +1002,14 @@ function getScreenshotOfElement(element: HTMLElement, fileName: string) {
   const promise = new Promise<void>((resolve, reject) => {
 
   htmlToImage.toPng(element, {height: element.scrollHeight + 30, width: element.scrollWidth + 30, backgroundColor: '#ffffff'})
-  .then(function (imageData) {
-    const link = document.createElement("a");
-    link.setAttribute("download", fileName + ".png");
-    link.setAttribute("href", imageData);
-    link.click();
-    resolve();
+    .then(function (imageData) {
+      const link = document.createElement("a");
+      link.setAttribute("download", fileName + ".png");
+      link.setAttribute("href", imageData);
+      link.click();
+      resolve();
+    });
   });
-});
 
-return promise;
+  return promise;
 }

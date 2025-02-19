@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 
 import { Tools } from 'projects/tools/src/lib/tools.service';
 
@@ -10,11 +10,14 @@ import { Tools } from 'projects/tools/src/lib/tools.service';
 export class ErrorViewComponent implements OnInit {
 
   @Input('errTitle') title: string | null = null;
-  @Input('errors') errors: any = null;
-  
+  @Input() errors: any[] = [];
+  @Input() showClose: boolean = false;
+
+  @Output() onClose = new EventEmitter<any>();
+
   constructor() { }
 
-  ngOnInit() { }
+  ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.title) {
@@ -28,6 +31,11 @@ export class ErrorViewComponent implements OnInit {
   _getCustomFieldLabel(field: string) {
     const _elem = Tools.CustomFieldsLabel.find((item: any) => item.label === field)
     return _elem?.value || field;
+  }
+
+  _hasCustomFieldLabel(field: string) {
+    const _elem = Tools.CustomFieldsLabel.find((item: any) => item.label === field)
+    return !!_elem;
   }
 
   _getProfiloLabel(cod: string) {
@@ -47,5 +55,14 @@ export class ErrorViewComponent implements OnInit {
         break;
     }
     return _params;
+  }
+
+  _getSottotipoKey(sottotipo: any[]) {
+    const label = sottotipo.map((item:any) => item.tipo).join('.');
+    return label;
+  }
+
+  closeMessages() {
+    this.onClose.emit(true);
   }
 }

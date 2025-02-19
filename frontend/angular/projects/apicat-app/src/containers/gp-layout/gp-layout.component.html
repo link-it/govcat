@@ -38,7 +38,7 @@
                                         <a class="divider"></a>
                                     </ng-container>
                                     <ng-container *ngSwitchCase="'title'">
-                                        <a class="gl-link cursor-pointer" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
+                                        <a href="javascript: void(0);" class="gl-link cursor-pointer" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
                                             <span class="nav-icon-container">
                                                 <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_item)">{{ _item.icon}}</span>
                                                 <i class="bi bi-{{ _item.iconBs}}" *ngIf="sidebarNavHelper.hasIconBs(_item)"></i>
@@ -57,7 +57,7 @@
                                             <li class="divider fly-out-top-item"></li>
                                             <ng-container *ngFor="let _subItem of _item.children">
                                                 <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" [contextMenu]="contextualMenuNav" [contextMenuSubject]="_subItem" *ngIf="_subItem | mapper:_showMenu">
-                                                    <a class="gl-link cursor-pointer" (click)="_onClickMenu($event, _subItem)">
+                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="_onClickMenu($event, _subItem)">
                                                         <!-- <span class="nav-icon-container">
                                                         <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
                                                         </span> -->
@@ -96,7 +96,7 @@
                 <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed" *ngIf="_showVersion">
                     <ul class="sidebar-top-level-items mb-0">
                         <li class="" appFlyOut>
-                            <a class="gl-link cursor-pointer" (click)="showInfo()">
+                            <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="showInfo()">
                                 <span class="nav-icon-container" *ngIf="_showAbout || _sideBarCollapsed"><i class="bi bi-info-circle"></i></span>
                                 <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed">{{ 'v.' | translate }} {{ version }}</span>
                             </a>
@@ -111,7 +111,7 @@
                     </ul>
                 </div>
                 <div class="toggle-area">
-                    <a class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" role="button" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
+                    <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" role="button" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
                         <!-- <i class="bi" [class.bi-chevron-double-right]="_sideBarCollapsed" [class.bi-chevron-double-left]="!_sideBarCollapsed"></i> -->
                         <span class="material-icons-outlined">{{ (_sideBarCollapsed) ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
                         <span class="collapse-text gp-ml-3">{{ 'APP.BUTTON.CollapseSidebar' | translate }}</span>

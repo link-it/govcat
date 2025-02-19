@@ -109,7 +109,9 @@
                               [items]="apis"
                               [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                               labelForId="api"
-                              formControlName="api">
+                              formControlName="api"
+                              (change)="onChangeApi($event)"
+                            >
                               <ng-template ng-label-tmp let-item="item">
                                 {{ item.nome }}
                               </ng-template>
@@ -200,7 +202,7 @@
                             <label class="label-bold" for="report_information_type">{{ 'APP.LABEL.ReportTypeInformations' | translate }}
                               <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_information_type'"></span>
                             </label>
-                              <ng-select 
+                            <ng-select 
                               [items]="reportTypeInformations"
                               [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                               labelForId="report_information_type"
@@ -363,10 +365,12 @@
 
                 <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
 
-                <div class="gl-alert gl-alert-danger mt-4 mb-5" *ngIf="_error">
-                  {{ _errorMsg }}
+                <div class="content-charts px-4" *ngIf="_error">
+                  <div class="gl-alert gl-alert-danger mt-4 mb-5">
+                    {{ _errorMsg }}
+                  </div>
                 </div>
-                
+
                 <div class="content-charts px-4" *ngIf="!_spin">
                   <div class="d-flex justify-content-center" *ngIf="(!single || single.length < 1) && (!multi || multi.length < 1)">
                     <div class="px-3 py-1 w-100">

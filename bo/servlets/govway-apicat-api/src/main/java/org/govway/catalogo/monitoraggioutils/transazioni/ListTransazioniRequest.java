@@ -34,7 +34,7 @@ public class ListTransazioniRequest {
 	private List<IdApi> lstIdApi;
 	private OffsetDateTime dataDa;
 	private OffsetDateTime dataA; 
-	private String soggetto;
+	private String soggettoReferente;
 	private String profilo;
 	private EsitoTransazioneEnum esito; 
 	private List<Integer> esitoCodici; 
@@ -54,12 +54,6 @@ public class ListTransazioniRequest {
 	}
 	public void setDataA(OffsetDateTime dataA) {
 		this.dataA = dataA;
-	}
-	public String getSoggetto() {
-		return soggetto;
-	}
-	public void setSoggetto(String soggetto) {
-		this.soggetto = soggetto;
 	}
 	public EsitoTransazioneEnum getEsito() {
 		return esito;
@@ -114,5 +108,11 @@ public class ListTransazioniRequest {
 	}
 	public void setIdTransazione(UUID idTransazione) {
 		this.idTransazione = idTransazione;
+	}
+	public String getSoggettoReferente() {
+		return soggettoReferente;
+	}
+	public void setSoggettoReferente(String soggettoReferente) {
+		this.soggettoReferente = soggettoReferente;
 	}
 }

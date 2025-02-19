@@ -1,0 +1,20 @@
+.flex-container {
+    display: flex;
+    // flex-wrap: wrap;
+    // align-content: center;
+}
+
+.flex-container > div {
+    padding: 0.1rem;
+}
+
+.flex-auto {
+    flex: auto;
+    padding: 0px;
+}
+
+.flex-initial {
+    align-self: center;
+    text-align: right;
+    min-width: 75px
+}

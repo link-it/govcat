@@ -11,7 +11,7 @@
 }
 
 body {
-  font-size: .875rem;
+  font-size: var(--body-font-size, .875rem);
 }
 
 .hidden {

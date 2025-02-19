@@ -1,0 +1,26 @@
+<div class="form-group">
+    <label class="label-bold" *ngIf="label">
+        {{ label | translate }}
+        <span
+            appMarkAsterisk
+            [formGroup]="formGroup"
+            [controlName]="formControlName"
+            [useOptional]="useOptional"
+        ></span>
+    </label>
+    <ng-select
+        [items]="items"
+        [bindLabel]="bindLabel"
+        [bindValue]="bindValue"
+        [placeholder]="placeholder"
+        [clearable]="clearable"
+        [multiple]="multiple"
+        [(ngModel)]="value"
+        (change)="onItemSelect($event)"
+        (blur)="onTouched()"
+        [disabled]="disabled"
+    ></ng-select>
+    <lnk-form-field-error
+        [control]="formGroup.get(formControlName)"
+    ></lnk-form-field-error>
+</div>

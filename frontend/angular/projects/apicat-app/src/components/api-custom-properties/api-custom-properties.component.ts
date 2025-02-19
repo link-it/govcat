@@ -1,8 +1,11 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, SimpleChanges } from '@angular/core';
 
 import { ConfigService } from 'projects/tools/src/lib/config.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+
+import { CkeckProvider } from '@app/provider/check.provider';
+import { ClassiEnum, CheckStructure, DataStructure, Sottotipo, Errore } from '@app/provider/check.provider';
 
 export enum SpecificoPerEnum {
     Adesione = 'adesione',
@@ -18,7 +21,7 @@ export enum SpecificoPerEnum {
 })
 export class ApiCustomPropertiesComponent implements OnInit {
 
-    @Input() ambiente: string | null = null;
+    @Input() ambiente: string = '';
     @Input() id_adesione: string | null = null;
     @Input() stato_adesione: string = '';
     @Input() id_servizio: string | null = null;
@@ -26,6 +29,8 @@ export class ApiCustomPropertiesComponent implements OnInit {
     @Input() group: any = null;
     @Input() showGroupLabel: boolean = true;
     @Input() editable: boolean = true;
+    @Input() apiConfig: any = null;
+    @Input() dataCheck: DataStructure = { esito: 'ok', errori: [] };
 
     @Input() containerClass: string = '';
 
@@ -41,23 +46,52 @@ export class ApiCustomPropertiesComponent implements OnInit {
 
     public forAllApi: boolean = false;
 
-    public apiConfig: any;
+    ClassiEnum = ClassiEnum;
+
+    updateMapper: string = '';
 
     constructor(
         private configService: ConfigService,
         private apiService: OpenAPIService,
-        private utils: UtilService
+        private utils: UtilService,
+        private ckeckProvider: CkeckProvider
     ) { }
 
     ngOnInit() {
+        // console.group('ApiCustomPropertiesComponent');
+        // console.log('group', this.group);
+        // console.log('checkData', this.checkData);
+        // console.groupEnd();
+
         this.forAllApi = this.group.specifico_per === SpecificoPerEnum.Adesione;
 
-        this.configService.getConfig('api').subscribe(
-            (config: any) => {
-                this.apiConfig = config;
-                if (!this.forAllApi) { this._loadServiceApi(); }
-            }
-        );
+        if (!this.apiConfig) {
+            this.configService.getConfig('api').subscribe(
+                (config: any) => {
+                    this.apiConfig = config;
+                    if (!this.forAllApi) { this._loadServiceApi(); }
+                }
+            );
+        } else {
+            if (!this.forAllApi) { this._loadServiceApi(); }
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes.dataCheck) {
+            this.dataCheck = changes.dataCheck.currentValue;
+            this.updateMapper = new Date().getTime().toString();
+        }
+    }
+
+    isSottotipoGroupCompletedMapper = (update: string, tipo: string): boolean => {
+        const result = this.ckeckProvider.isSottotipoGroupCompleted(this.dataCheck, this.ambiente, tipo);
+        return result;
+    }
+
+    isSottotipoCompletedMapper = (update: string, tipo: string, identificativo: string): boolean => {
+        const result = this.ckeckProvider.isSottotipoCompleted(this.dataCheck, this.ambiente, tipo, identificativo);
+        return result;
     }
 
     _onSaveCustomProperty(event: any) {
@@ -114,8 +148,6 @@ export class ApiCustomPropertiesComponent implements OnInit {
     }
 
     _selectApi(item: any) {
-        this.currentApi = null;
-        // this.loading = true;
         setTimeout(() => {
             this.currentApi = item;
             this.loading = false;
