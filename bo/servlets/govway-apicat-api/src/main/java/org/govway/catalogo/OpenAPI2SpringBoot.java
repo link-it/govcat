@@ -720,11 +720,13 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 			configurazioneEService.setStatiSchedaAdesione(list.stream().collect(Collectors.toSet()));
 		});
         
-		try {
-			configurazioneEService.setPdfLogo(Base64.getEncoder().encodeToString(this.getClass().getResourceAsStream(pdfLogoResource).readAllBytes()));
-		} catch (IOException e) {
-			// TODO: handle exception
-		}
+		Optional.ofNullable(this.getClass().getResourceAsStream(pdfLogoResource)).ifPresent(is -> {
+
+			try {
+				configurazioneEService.setPdfLogo(Base64.getEncoder().encodeToString(is.readAllBytes()));
+			} catch (IOException e) {}
+
+		});
 		
         return configurazioneEService;
     }
