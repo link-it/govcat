@@ -422,6 +422,8 @@
 				<configuration>
 					<packagingExcludes>
 						WEB-INF/lib/jboss-logging-*.jar,WEB-INF/lib/commons-logging-*.jar</packagingExcludes>
+					<attachClasses>true</attachClasses>
+					<classesClassifier>classes</classesClassifier>
 				</configuration>
 			</plugin>
 

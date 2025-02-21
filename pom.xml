@@ -102,7 +102,7 @@
 						<inherited>false</inherited>
 						<executions>
 							<execution>
-								<id>unpack</id>
+								<id>unpack-customer</id>
 								<phase>initialize</phase>
 								<goals>
 									<goal>unpack-dependencies</goal>
@@ -113,7 +113,7 @@
 									<excludeTransitive>true</excludeTransitive>
 									<outputDirectory>
 										${project.build.directory}/plugin</outputDirectory>
-									<includes>filter/**,plugin/**</includes>
+									<includes>filters/**,plugin/**</includes>
 									<overWriteReleases>true</overWriteReleases>
 									<overWriteSnapshots>true</overWriteSnapshots>
 								</configuration>
