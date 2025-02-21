@@ -202,9 +202,7 @@ public class DominiController implements DominiApi {
 				DominioSpecification spec = new DominioSpecification();
 				spec.setQ(Optional.ofNullable(q));
 				
-				if(visibilita != null) {
-					spec.setVisibilita(Optional.of(this.dettaglioAssembler.toVisibilita(visibilita)));
-				}
+				spec.setVisibilita(Optional.ofNullable(visibilita).map(v -> this.dettaglioAssembler.toVisibilita(v)));
 				spec.setDeprecato(Optional.ofNullable(deprecato));
 				spec.setEsterno(Optional.ofNullable(esterno));
 				spec.setIdDominio(Optional.ofNullable(idDominio));

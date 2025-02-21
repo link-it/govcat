@@ -1,0 +1,7 @@
+<span class="d-flex gap-2">
+    <i *ngIf="!loading"
+        class="{{ iconClass }}"
+        [tooltip]="tooltip | translate"
+    ></i>
+    <i class="spinner-border spinner-border-sm" [style.border-width.px]="1" [tooltip]="'APP.TOOLTIP.Loading' | translate" *ngIf="loading"></i>
+</span>

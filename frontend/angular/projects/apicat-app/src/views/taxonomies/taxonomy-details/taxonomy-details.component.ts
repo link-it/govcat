@@ -267,7 +267,7 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
   _initBreadcrumb() {
     const _title = this.id ? `${this.taxonomy.nome}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Taxonomies', url: '/tassonomie', type: 'link' },
       { label: `${_title}`, url: '', type: 'title' }
     ];

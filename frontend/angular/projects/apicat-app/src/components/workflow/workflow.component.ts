@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 import { Grant } from '@app/model/grant';
 
@@ -33,9 +33,6 @@ export class WorkflowComponent implements OnInit {
   constructor(private authenticationService: AuthenticationService) { }
 
   ngOnInit() {
-    // console.log('data', this.data);
-    // console.log('config', this.config);
-    // console.log('workflow', this.workflow);
     this._currentStatus = this.data.stato;
     if (this._currentStatus === this._statoArchiviato.nome) {
       this._previousStatus = { nome: this.data.stato_precedente };
@@ -44,8 +41,6 @@ export class WorkflowComponent implements OnInit {
       this._cambioStato = (_index !== -1) ? this.workflow.cambi_stato[_index] : null;
       this._configStatus = this.config.options.status.values[this._currentStatus];
     }
-    // console.log('_cambioStato', this._cambioStato);
-    // console.log('_configStatus', this._configStatus);
   }
 
   onAction(action: any, status: any) {

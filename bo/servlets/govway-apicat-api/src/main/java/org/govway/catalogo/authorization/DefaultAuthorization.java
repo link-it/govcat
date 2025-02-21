@@ -42,7 +42,7 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 
 	@Override
 	public void authorizeGet(ENTITY entity) {
-		this.coreAuthorization.requireAdmin();
+		this.coreAuthorization.requireLogged();
 	}
 
 	@Override

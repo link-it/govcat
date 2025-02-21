@@ -6,81 +6,77 @@
     <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.TITLE.EditClient' | translate }}</h3>
     <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewClient' | translate }}</h3>
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
-      <div class="nav-controls">
-        <div class="position-relative" *ngIf="!_isEdit && !_spin">
+    <div class="nav-controls">
+      <div class="position-relative" *ngIf="!_isEdit && !_spin">
 
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" [routerLink]="['verifiche']" *ngIf="_updateMapper | mapper:_hasVerifica">
-            {{ 'APP.CLIENT.BUTTON.Check' | translate }}
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" [routerLink]="['verifiche']" *ngIf="_updateMapper | mapper:_hasVerifica">
+          {{ 'APP.CLIENT.BUTTON.Check' | translate }}
+        </button>
+
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" [routerLink]="['adesioni']">
+          {{ 'APP.CLIENT.BUTTON.Adesioni' | translate }}
+        </button>
+
+        <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2" id="status_change">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle  dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="another_actions">
+            <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.CLIENT.BUTTON.ChangeStatus' | translate}}</span>
           </button>
-
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" [routerLink]="['adesioni']">
-            {{ 'APP.CLIENT.BUTTON.Adesioni' | translate }}
-          </button>
-
-          <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2" id="status_change">
-            <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle  dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="another_actions">
-              <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.CLIENT.BUTTON.ChangeStatus' | translate}}</span>
-            </button>
-            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
-              <div class="gl-new-dropdown-inner">
-                <div class="gl-new-dropdown-contents">
-                  <li *ngIf="client?.stato != _statoEnum[0]" role="presentation" class="gl-new-dropdown-item">
-                    <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[0])">
-                      <div class="gl-new-dropdown-item-text-wrapper">
-                        <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.NotConfigured' | translate }}</p>
-                      </div>
-                    </button>
-                  </li>
-                  <!-- <li class="gl-new-dropdown-divider"></li> -->
-                  <li *ngIf="client?.stato != _statoEnum[1]" role="presentation" class="gl-new-dropdown-item">
-                    <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[1])">
-                      <div class="gl-new-dropdown-item-text-wrapper">
-                        <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.Configured' | translate }}</p>
-                      </div>
-                    </button>
-                  </li>
-                </div>
+          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+            <div class="gl-new-dropdown-inner">
+              <div class="gl-new-dropdown-contents">
+                <li *ngIf="client?.stato != _statoEnum[0]" role="presentation" class="gl-new-dropdown-item">
+                  <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[0])">
+                    <div class="gl-new-dropdown-item-text-wrapper">
+                      <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.NotConfigured' | translate }}</p>
+                    </div>
+                  </button>
+                </li>
+                <!-- <li class="gl-new-dropdown-divider"></li> -->
+                <li *ngIf="client?.stato != _statoEnum[1]" role="presentation" class="gl-new-dropdown-item">
+                  <button role="menuitem" type="button" class="dropdown-item" (click)="_onStatusChange(_statoEnum[1])">
+                    <div class="gl-new-dropdown-item-text-wrapper">
+                      <p class="gl-new-dropdown-item-text-primary">{{ 'APP.CLIENT.LABEL.Configured' | translate }}</p>
+                    </div>
+                  </button>
+                </li>
               </div>
-            </ul>
-          </div>
-
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditClient' | translate" (click)="_editClient()">
-            <i class="bi bi-pencil"></i>
-          </button>
-        </div>
-        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
-          <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
-            <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
-              <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
-                <i class="bi bi-three-dots-vertical"></i>
-              </button>
-              <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
-                <div class="gl-new-dropdown-inner">
-                  <div class="gl-new-dropdown-contents">
-                    <li role="presentation" class="gl-new-dropdown-item">
-                      <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteClient()">
-                        <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                          <i class="bi bi-trash text-danger"></i>
-                        </div>
-                        <div class="gl-new-dropdown-item-text-wrapper">
-                          <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.DeleteClient' | translate }}</p>
-                        </div>
-                      </button>
-                    </li>
-                  </div>
-                </div>
-              </ul>
             </div>
-          </div>
-        <!-- </ng-template> -->
-        <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
-            <i class="bi bi-x-lg"></i>
+          </ul>
+        </div>
+
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditClient' | translate" (click)="_editClient()">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </div>
+      <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
+        <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+            <i class="bi bi-three-dots-vertical"></i>
           </button>
+          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+            <div class="gl-new-dropdown-inner">
+              <div class="gl-new-dropdown-contents">
+                <li role="presentation" class="gl-new-dropdown-item">
+                  <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteClient()">
+                    <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                      <i class="bi bi-trash text-danger"></i>
+                    </div>
+                    <div class="gl-new-dropdown-item-text-wrapper">
+                      <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.DeleteClient' | translate }}</p>
+                    </div>
+                  </button>
+                </li>
+              </div>
+            </div>
+          </ul>
         </div>
       </div>
-    <!-- </ng-template> -->
+      <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
   </div>
   <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
     <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
@@ -101,7 +97,7 @@
         </div>
 
         <div class="edit-form">
-          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
             <div class="row gl-mt-3">
               <div class="col-lg-4">
                 <h4 class="gl-mt-0 text-break">{{ 'APP.USERS.TITLE.GeneralInformations' | translate }}</h4>
@@ -151,34 +147,11 @@
                     </div>
                   </div>
                 
-                  <!-- <div class="col-6 form-group id_soggetto" [hidden]="(_hideSoggettoDropdown && (_isNew || _isEdit)) || !_isEdit"> -->
                   <div class="col-6 form-group id_soggetto" [hidden]="_hideSoggettoDropdown">
                     <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }} 
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto'" *ngIf="_isEdit"></span>
                     </label>
                     <div class="" *ngIf="_isNew || _isEdit">
-                      <!-- <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_soggetto')"
-                        [items]="soggetti$ | async"
-                        [trackByFn]="trackByFn"
-                        [typeahead]="soggettiInput$"
-                        [minTermLength]="minLengthTerm" 
-                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                        bindValue="id_soggetto"
-                        bindLabel="nome"
-                        labelForId="id_soggetto"
-                        [editableSearchTerm]="true"
-                        formControlName="id_soggetto">
-                        <ng-template ng-label-tmp let-item="item">
-                          {{ item.nome }}
-                        </ng-template>
-                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                          <div class="fw-bold">{{ item.nome }}</div>
-                          <div class="">
-                            <span class="small text-muted">{{ item.nome }}</span>
-                          </div>
-                        </ng-template>
-                      </ng-select> -->
                       <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
                         <option *ngFor="let el of _elencoSoggetti" [value]="el.id_soggetto">
                           {{el.nome}}
@@ -225,10 +198,6 @@
                       <label class="label-bold" for="auth_type">{{ 'APP.LABEL.auth_type' | translate }}
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'auth_type'" *ngIf="_isEdit"></span>
                       </label>
-                      <!-- <div class="" *ngIf="_isEdit && !_isNew">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('auth_type')" type="text" name="auth_type" id="auth_type" formControlName="auth_type">
-                        <ui-input-help field="auth_type" context="CLIENT"></ui-input-help>
-                      </div> -->
                       <div class="" *ngIf="_isEdit">
                         <select class="form-select" id="auth_type" formControlName="auth_type" [class.gl-field-error-outline]="_hasControlError('auth_type')" (change)="_onChangeAuthType()">
                           <option *ngFor="let auth_type of _authTypeEnum" [value]="auth_type">
@@ -248,7 +217,7 @@
                   <!--  -->
                 </div>
 
-                <div class="row tipo_certificato stato">
+                <div class="row ambiente stato">
                   <div class="col-6">
                     <!-- ambiente -->
                     <div class="form-group">
@@ -278,7 +247,6 @@
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'stato'" *ngIf="_isNew || _isEdit"></span>
                       </label>
                       <div class="" *ngIf="_isEdit">
-                        <!-- <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('stato')" type="text" name="stato" id="stato" formControlName="stato"> -->
                         <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_onChangeStato($event)">
                           <option *ngFor="let stato of _statoEnum" [value]="stato">{{ stato }}</option>
                         </select>  
@@ -337,11 +305,6 @@
                   </div>
                 </div>
 
-                <!-- <div formGroupName="rate_limiting" class="row" *ngIf="_show_erogazione_rate_limiting">
-                  <div class="col-12 mt-2">
-                    <label class="label-bold" for="quota">{{ 'APP.ADESIONI.LABEL.RateLimiting' | translate }}</label>
-                  </div>
-                </div> -->
                 <div formGroupName="rate_limiting" class="row mb-2-" *ngIf="_show_erogazione_rate_limiting">
                   <div class="form-group col-6 mb-2">
                     <label class="label-bold" for="quota">
@@ -666,7 +629,6 @@
                     </div>
                   </div>
 
-
                   <div *ngIf="_isRichiesto_csr">
 
                     <div class="row">
@@ -744,7 +706,7 @@
                     </div>
 
                   </div>
-                  
+
                 </div>
                 <!-- ============================================================== -->
                 <!-- ==========   CERTIFICATO di AUTENTICAZIONE   [end] =========== -->
@@ -760,7 +722,7 @@
                       <h4>{{ 'APP.CLIENT.LABEL.SignCertificate' | translate }}</h4>
                     </div>
                   </div>
-                    
+
                   <div class="row">
                     <div class="col-6">
                       <!-- tipo_certificato (FIRMA) -->
@@ -814,7 +776,6 @@
                     </div>
                   </div>
 
-
                   <div *ngIf="_isRichiesto_cn_firma" class="cn certificato_per_cn">
                     <div class="row">
                       <div class="col-6">
@@ -861,7 +822,6 @@
                       </div>
                     </div>
                   </div>
-
 
                   <div *ngIf="_isRichiesto_csr_firma">
 

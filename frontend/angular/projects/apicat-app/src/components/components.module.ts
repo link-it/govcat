@@ -1,0 +1,85 @@
+import { NgModule } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+
+import { ComponentsModule } from "projects/components/src/lib/components.module";
+
+import { TranslateModule } from "@ngx-translate/core";
+import { NgSelectModule } from "@ng-select/ng-select";
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { AccordionModule } from 'ngx-bootstrap/accordion';
+import { MarkdownModule } from 'ngx-markdown';
+
+// import { ErrorViewComponent } from "@app/components/error-view/error-view.component";
+
+import { LnkButtonComponent } from "@app/components/lnk-ui/button/button.component";
+import { LnkDropdwnButtonComponent } from '@app/components/lnk-ui/dropdown-button/dropdown-button.component';
+import { LnkIconToggleComponent } from '@app/components/lnk-ui/icon-toggle/icon-toggle.component';
+
+import { LnkFormFieldComponent  } from "@app/components/lnk-ui/form-field/form-field.component";
+import { LnkFormFieldsetComponent  } from "@app/components/lnk-ui/form-fieldset/form-fieldset.component";
+import { LnkFormSelectComponent } from "@app/components/lnk-ui/form-select/form-field-select.component";
+import { LnkFormSubmitComponent  } from "@app/components/lnk-ui/form-submit/submit.component";
+import { LnkFormErrorComponent  } from "@app/components/lnk-ui/form-error/form-error.component";
+import { LnkFormFieldErrorComponent } from "@app/components/lnk-ui/form-field-error/form-field-error.component";
+import { LnkFormLiveSearchComponent } from "@app/components/lnk-ui/form-live-search/form-live-search.component";
+
+import { LnkFieldPlaintextComponent } from "@app/components/lnk-ui/field-plaintext/field-plaintext.component";
+
+import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
+import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
+
+@NgModule({
+    declarations: [
+        // ErrorViewComponent,
+
+        LnkButtonComponent,
+        LnkDropdwnButtonComponent,
+        LnkIconToggleComponent,
+
+        LnkFormFieldComponent,
+        LnkFormFieldsetComponent,
+        LnkFormSubmitComponent,
+        LnkFormErrorComponent,
+        LnkFormSelectComponent,
+
+        LnkFormFieldErrorComponent,
+        LnkFormLiveSearchComponent,
+
+        LnkFieldPlaintextComponent
+    ],
+    imports: [
+        ComponentsModule,
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NgSelectModule,
+        TranslateModule,
+        TooltipModule.forRoot(),
+        AccordionModule.forRoot(),
+        MarkdownModule,
+
+        MarkAsteriskModule,
+        UppercaseModule
+    ],
+    exports: [
+        // ErrorViewComponent,
+
+        LnkButtonComponent,
+        LnkDropdwnButtonComponent,
+        LnkIconToggleComponent,
+
+        LnkFormFieldComponent,
+        LnkFormFieldsetComponent,
+        LnkFormSubmitComponent,
+        LnkFormErrorComponent,
+
+        LnkFormSelectComponent,
+        LnkFormFieldErrorComponent,
+        LnkFormLiveSearchComponent,
+
+        LnkFieldPlaintextComponent
+    ],
+})
+export class AppComponentsModule {
+}

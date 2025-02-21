@@ -14,6 +14,8 @@ import { ServizioAllegatiComponent } from './servizio-allegati.component';
 import { ServizioAllegatiRoutingModule } from './servizio-allegati-routing.module';
 // import { ServizioAllegatiDetailsModule } from '../servizio-allegati-details/servizio-allegati-details.module';
 
+import { AllegatiDialogModule } from '@app/components/allegati-dialog/allegati-dialog.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -25,7 +27,8 @@ import { ServizioAllegatiRoutingModule } from './servizio-allegati-routing.modul
     // BackWebModule,
     MonitorDropdwnModule,
     ServizioAllegatiRoutingModule,
-    // ServizioAllegatiDetailsModule
+    // ServizioAllegatiDetailsModule,
+    AllegatiDialogModule
   ],
   declarations: [
     ServizioAllegatiComponent

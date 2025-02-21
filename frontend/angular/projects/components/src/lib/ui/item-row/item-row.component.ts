@@ -30,6 +30,7 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   @Input() actionTooltip: string = 'download';
   @Input() rowClick: boolean = false;
   @Input() hostBackground: string = '#ffffff';
+  @Input() primaryClass: string = '';
   @Input() isAnonymous: boolean = false;
 
   @Output() itemClick: EventEmitter<any> = new EventEmitter();
@@ -56,12 +57,12 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     document.documentElement.style.setProperty('--item-row-background-color', this.hostBackground);
 
-    this._itemRowConfig = this._config[this.configRow] || this._config.itemRow || this._config.simpleItem;
-    if (this._itemRowConfig.boxStatus1) {
+    this._itemRowConfig = this._config ? this._config[this.configRow] || this._config.itemRow || this._config.simpleItem : null;
+    if (this._itemRowConfig?.boxStatus1) {
       this._tooltipBox1 = this._setTooltip(this._itemRowConfig.boxStatus1);
       this._tooltipPlacementBox1 = this._setTooltipPlacement(this._itemRowConfig.boxStatus1);
     }
-    if (this._itemRowConfig.boxStatus2) {
+    if (this._itemRowConfig?.boxStatus2) {
       this._tooltipBox2 = this._setTooltip(this._itemRowConfig.boxStatus2);
       this._tooltipPlacementBox2 = this._setTooltipPlacement(this._itemRowConfig.boxStatus2);
     }

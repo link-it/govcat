@@ -36,7 +36,7 @@ import org.govway.catalogo.servlets.model.ServizioCreate;
 public class ServizioAuthorization extends AbstractServizioAuthorization {
 
 	@Override
-	protected void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ServizioEntity servizio) {
+	protected void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ServizioEntity servizio, String stato) {
 
 		List<EntitaComplessaError> erroreLst = new ArrayList<>();
 

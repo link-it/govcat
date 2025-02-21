@@ -3,14 +3,12 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
-import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.controllers.AdesioniController;
@@ -354,6 +352,7 @@ public class VisibilitaServizioTest {
         soggettoCreate.setNome("nome_soggetto");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         soggettoCreate.setAderente(true);
+        soggettoCreate.setReferente(true);
 
         createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
@@ -445,9 +444,9 @@ public class VisibilitaServizioTest {
         apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
         
         DocumentoCreate documento = new DocumentoCreate();
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
         
         apiDatiAmbienteCreate.setSpecifica(documento);
         
@@ -484,10 +483,6 @@ public class VisibilitaServizioTest {
         gruppiAuthType.add(authType);
         
         apiCreate.setGruppiAuthType(gruppiAuthType);
-        
-        DocumentoCreate doc = new DocumentoCreate();
-        doc.setFilename("SpecificaAPI.json");
-        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
         
         ResponseEntity<API> response = apiController.createApi(apiCreate);
         

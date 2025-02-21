@@ -17,6 +17,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
   @Input() showMonitoring: boolean = true;
   @Input() showManagement: boolean = true;
   @Input() returnWeb: boolean = false;
+  @Input() returnWebTitle: string = 'APP.MENU.BackView';
   @Input() otherActions: any[] = [];
 
   @Output() action: EventEmitter<any> = new EventEmitter();
@@ -35,10 +36,10 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     const monitoraggio = this.authenticationService._getConfigModule('monitoraggio');
-    this._showTransazioni = monitoraggio.transazioni_abilitate;
-    this._showStatistiche = monitoraggio.statistiche_abilitate;
-    this._showVerifiche = monitoraggio.verifiche_abilitate;
-    this._showMonitoraggio = monitoraggio.abilitato && (this._showStatistiche || this._showTransazioni || this._showVerifiche);
+    this._showTransazioni = monitoraggio?.transazioni_abilitate || false;
+    this._showStatistiche = monitoraggio?.statistiche_abilitate || false;
+    this._showVerifiche = monitoraggio?.verifiche_abilitate || false;
+    this._showMonitoraggio = monitoraggio?.abilitato && (this._showStatistiche || this._showTransazioni || this._showVerifiche);
 
     this.initMenu();
   }
@@ -109,7 +110,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
       }),
       new MenuAction({
         type: 'menu',
-        title: 'APP.MENU.BackView',
+        title: this.returnWebTitle,
         icon: 'eye',
         subTitle: '',
         action: 'backview',

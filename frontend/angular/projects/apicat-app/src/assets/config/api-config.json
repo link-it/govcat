@@ -24,6 +24,7 @@
     },
 
     "itemRowView": {
+        "wrap": true,
         "primaryText": [
             { "field": "nome", "type": "text", "emptySpace": true },
             { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },

@@ -562,7 +562,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		
 		
 		
-		ListaTransazioni l = mon.findAllTransazioniByFullSearch(ProfiloEnum.fromValue(request.getProfilo()), request.getSoggetto(), body);
+		ListaTransazioni l = mon.findAllTransazioniByFullSearch(ProfiloEnum.fromValue(request.getProfilo()), request.getSoggettoReferente(), body);
 		return l;
 	}
 
@@ -572,36 +572,18 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		return pm;
 	}
 
-	private String getSoggetto(IdApi idApi) {
-		/*
-		 * Parametro query soggetto=...
-		 * 
-		 * 1) caso API erogata dal soggetto del dominio: mettere idApi.getSoggettoGestore()
-		 * 2) caso API erogata soggetto aderente: mettere soggetto aderente idApi.getSoggettoGestore()  
-		 */
-		return idApi.getSoggettoGestore();
-	}
-
-	private String getSoggetto(List<IdApi> idApiLst) {
-//		if(idApiLst.size() != 1) {
-//			throw new BadRequestException("E' consentito filtrare solo per una API"); 
-//		}
-		
-		return getSoggetto(idApiLst.get(0));
-		
-	}
 	private void filtraServizi(RicercaIntervalloTemporale body, ListTransazioniRequest request) {
 
 		List<IdApi> apiaderente = request.getLstIdApi().stream().filter(a -> a.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_ADERENTE)).collect(Collectors.toList());
 		
 		if(!apiaderente.isEmpty()) {
-			filtraPerApi(body, apiaderente.get(0));
+			filtraPerApiAderente(body, apiaderente.get(0), request.getSoggettoReferente());
 		} else {
-			filtraPerApi(body,request.getLstIdApi().get(0) ,request.getSoggetto());
+			filtraPerApiDominio(body,request.getLstIdApi().get(0),request.getSoggettoReferente());
 		}
 	}
 	
-	private void filtraPerApi(RicercaIntervalloTemporale body, IdApi idApi) {
+	private void filtraPerApiAderente(RicercaIntervalloTemporale body, IdApi idApi, String soggettoReferente) {
 		
 		FiltroApiSoggetti api = new FiltroApiSoggetti();
 
@@ -617,7 +599,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 		
 		if(idApi.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
 			body.setTipo(FiltroRicercaRuoloTransazioneEnum.EROGAZIONE);
-			api.setErogatore(idApi.getSoggettoGestore());
+			api.setErogatore(soggettoReferente);
 			
 			if(idApi.getSoggetto()!= null) {
 				FiltroMittenteErogazioneSoggettoImpl t = new FiltroMittenteErogazioneSoggettoImpl();
@@ -638,20 +620,17 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 	}
 
 	
-	private void filtraPerApi(RicercaIntervalloTemporale body,IdApi idApi, String soggetto) {
+	private void filtraPerApiDominio(RicercaIntervalloTemporale body,IdApi idApi, String soggettoReferente) {
 		
 		FiltroApiSoggetti api = new FiltroApiSoggetti();
 
+		if(idApi.isFruizione()) {
+			body.setTipo(FiltroRicercaRuoloTransazioneEnum.FRUIZIONE);
+			api.setErogatore(idApi.getSoggetto());
+		} else {
 			body.setTipo(FiltroRicercaRuoloTransazioneEnum.EROGAZIONE);
-			api.setErogatore(soggetto);
-			
-			if(idApi.getSoggetto()!= null) {
-				FiltroMittenteErogazioneSoggettoImpl t = new FiltroMittenteErogazioneSoggettoImpl();
-				
-				t.setIdentificazione(TipoFiltroMittenteEnum.EROGAZIONE_SOGGETTO);
-				t.setSoggetto(idApi.getSoggetto());
-				body.setMittente(t);
-			}
+			api.setErogatore(soggettoReferente);
+		}
 		
 		api.setNome(idApi.getNome());
 		api.setVersione(idApi.getVersione());

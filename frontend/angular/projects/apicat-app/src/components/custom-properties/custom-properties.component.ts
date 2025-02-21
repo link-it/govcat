@@ -2,9 +2,11 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Tools } from 'projects/tools/src/lib/tools.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
+
+import { EventType } from 'projects/tools/src/lib/classes/events';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
@@ -80,7 +82,7 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
 
     constructor(
         private formBuilder: FormBuilder,
-        private utils: UtilsLib,
+        private eventsManagerService: EventsManagerService,
         private authenticationService: AuthenticationService,
         private apiService: OpenAPIService
     ) {}
@@ -232,6 +234,7 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
                 this._isEdit = false;
                 this.onSave.emit({ id_adesione: this.id_adesione, item: this.item,  response: response });
                 this._spin = false;
+                this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
             },
             (error: any) => {
                 this._spin = false;

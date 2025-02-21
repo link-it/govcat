@@ -169,6 +169,7 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
     const _organizzazione: string = this.adesione ? this.adesione.soggetto.organizzazione.nome : null;
     const _servizio: string = this.adesione?.servizio?.nome;
     const _versione: string = this.adesione?.servizio?.versione;
+    const _view = (localStorage.getItem('ADESIONI_VIEW') === 'TRUE') ? '/view' : '';
 
     let title = this.adesione ? `${_organizzazione} - ${_servizio} v. ${_versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     let baseUrl = `/${this.model}`;
@@ -180,7 +181,7 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
 
     this.breadcrumbs = [
       { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-      { label: title, url: `${baseUrl}/${this.adesione?.id_adesione}`, type: 'link' },
+      { label: title, url: `${baseUrl}/${this.adesione?.id_adesione}${_view}`, type: 'link' },
       { label: 'APP.TITLE.ServiceCommunications', url: ``, type: 'link' }
     ];
 

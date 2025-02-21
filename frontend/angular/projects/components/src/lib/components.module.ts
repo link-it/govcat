@@ -8,8 +8,6 @@ import { HeadBarComponent } from './head-bar/head-bar.component';
 import { MultiSnackbarComponent } from './dialogs/multi-snackbar/multi-snackbar.component';
 
 // UI
-import { UIButtonModule } from './ui/ui-gl/button/button.module';
-import { UIDropdwnButtonModule } from './ui/ui-gl/dropdown-button/dropdown-button.module';
 import { YesnoDialogBsModule } from './dialogs/yesno-dialog-bs/yesno-dialog-bs.module';
 import { BreadcrumbModule } from './ui/breadcrumb/breadcrumb.module';
 import { BoxMessageModule } from './ui/box-message/box-message.module';
@@ -61,8 +59,6 @@ import { SetBackgroundImageModule } from './directives/set-background-image.modu
     VendorsModule,
 
     // UI
-    UIButtonModule,
-    UIDropdwnButtonModule,
     YesnoDialogBsModule,
     BreadcrumbModule,
     BoxMessageModule,
@@ -115,8 +111,6 @@ import { SetBackgroundImageModule } from './directives/set-background-image.modu
   ],
   exports: [
     // UI
-    UIButtonModule,
-    UIDropdwnButtonModule,
     YesnoDialogBsModule,
     BreadcrumbModule,
     BoxMessageModule,

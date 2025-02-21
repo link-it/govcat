@@ -108,7 +108,8 @@ p {
 }
 
 .meta-data {
-  color: var(--item-row-metadata-color, #333);
+  // color: var(--item-row-metadata-color, #333);
+  font-size: var(--item-row-metadata-font-size, 14px);
 
   p,
   pre {
@@ -164,5 +165,14 @@ p {
     .box-status-meta {
       font-size: 0.75rem;
     }
+  }
+}
+
+.item-row-link {
+  color: inherit;
+
+  &:focus {
+      box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+      outline: none;
   }
 }

@@ -6,6 +6,8 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 import { ComponentsModule } from 'projects/components/src/lib/components.module';
+
+import { AppComponentsModule } from "@app/components/components.module";
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 import { WorkflowModule } from '@app/components/workflow/workflow.module';
@@ -23,6 +25,7 @@ import { ServizioViewComponent } from './servizio-view.component';
         TranslateModule,
         VendorsModule,
         ComponentsModule,
+        AppComponentsModule,
         HasPermissionModule,
         MarkAsteriskModule,
         WorkflowModule,

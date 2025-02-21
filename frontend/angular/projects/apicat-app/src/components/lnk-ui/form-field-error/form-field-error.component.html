@@ -1,0 +1,21 @@
+<p
+    *ngIf="control?.invalid && (control?.dirty || control?.touched)"
+    class="form-text text-danger mb-0"
+>
+    <span *ngIf="control?.errors?.['required']" class="d-block">
+        {{ "APP.MESSAGE.VALIDATION.FieldRequired" | translate }}
+    </span>
+    <span *ngIf="control?.errors?.['maxlength']" class="d-block">
+        {{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: control?.errors?.['maxlength'].requiredLength } }}
+    </span>
+    <span *ngIf="control?.errors?.['email']" class="d-block">
+        {{ 'APP.MESSAGE.VALIDATION.Email' | translate }}
+    </span>
+    <span *ngIf="control?.errors?.['minlength']" class="d-block">
+        {{ 'APP.MESSAGE.VALIDATION.MinLength' | translate:{ length: control?.errors?.['minlength'].requiredLength } }}
+    </span>
+
+    <span *ngIf="control?.errors?.['custom']" class="d-block">
+        {{ control?.errors?.['custom'] | translate }}
+    </span>
+</p>

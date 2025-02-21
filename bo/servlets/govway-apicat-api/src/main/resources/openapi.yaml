@@ -750,7 +750,6 @@ paths:
       description: "Elenco delle Classi Utente"
       operationId: "listClassiUtente"
       parameters:
-      - $ref: "#/components/parameters/tipo_referente_classe_utente_query_optional"
       - $ref: "#/components/parameters/id_classe_utente_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
@@ -3652,6 +3651,8 @@ paths:
       - "Adesioni"
       description: "Aggiornamento delle informazioni di identificativo dell'adesione"
       operationId: "updateAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: "Dati per l'aggiornamento delle informazioni identificativo dell'adesione"
@@ -3676,6 +3677,34 @@ paths:
           $ref: "#/components/responses/429TooManyRequests"
         "404":
           $ref: "#/components/responses/404NotFound"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/check-dati/{stato}:
+    parameters:
+      - $ref: "#/components/parameters/id_adesione"
+      - $ref: "#/components/parameters/stato"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Check completezza dati per una determinata Adesione in un determinato stato"
+      operationId: "checkDatiAdesione"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/CheckDati"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
         "503":
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
@@ -3806,6 +3835,8 @@ paths:
       - "Adesioni"
       description: "Aggiunta di un referente all'adesione"
       operationId: "createReferenteAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: "Dati per l'aggiunta del referente all'adesione"
@@ -3846,6 +3877,8 @@ paths:
       - "Adesioni"
       description: "Rimozione di un referente dall'adesione"
       operationId: "deleteReferenteAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       responses:
         "200":
           description: "Referente rimosso con successo"
@@ -4099,6 +4132,8 @@ paths:
       - "Adesioni"
       description: "Aggiunta di uno stato all'iter di lavorazione dell'adesione"
       operationId: "updateStatoAdesione"
+      parameters:
+       - $ref: "#/components/parameters/check_only_query_optional"
       requestBody:
         required: true      
         content:
@@ -4122,6 +4157,8 @@ paths:
           $ref: "#/components/responses/404NotFound"
         "409":
           $ref: "#/components/responses/409Conflict"
+        "422":
+          $ref: "#/components/responses/422UpdateEntitaComplessaSemanticamenteNonValida"
         "429":
           $ref: "#/components/responses/429TooManyRequests"
         "503":
@@ -4263,6 +4300,8 @@ paths:
       - "Adesioni"
       description: "Salvataggio configurazione custom relativo all'adesione"
       operationId: "saveConfigurazioneCustomProduzioneAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: Dati di configurazione custom
@@ -4329,6 +4368,8 @@ paths:
       - "Adesioni"
       description: "Salvataggio configurazione custom relativo all'adesione"
       operationId: "saveConfigurazioneCustomCollaudoAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: Dati di configurazione custom
@@ -4399,6 +4440,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un client relativo all'adesione"
       operationId: "saveClientCollaudoAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: Dati di configurazione del client
@@ -4434,6 +4477,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un client relativo all'adesione"
       operationId: "deleteClientCollaudoAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -4497,6 +4542,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un client relativo all'adesione"
       operationId: "saveClientProduzioneAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: Dati di configurazione del client
@@ -4532,6 +4579,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un client relativo all'adesione"
       operationId: "deleteClientProduzioneAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -4626,6 +4675,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un endpoint di erogazione relativo all'adesione in collaudo"
       operationId: "saveErogazioneCollaudoAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: Dati di configurazione dell'endpoint di erogazione
@@ -4661,6 +4712,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un endpoint di erogazione relativo all'adesione in collaudo"
       operationId: "deleteErogazioneCollaudoAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -4693,6 +4746,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un endpoint di erogazione relativo all'adesione in produzione"
       operationId: "saveErogazioneProduzioneAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: Dati di configurazione dell'endpoint di erogazione
@@ -4728,6 +4783,8 @@ paths:
       - "Adesioni"
       description: "Configurazione di un endpoint di erogazione relativo all'adesione in produzione"
       operationId: "deleteErogazioneProduzioneAdesione"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -5352,6 +5409,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/String255"
+        ruoli_abilitati:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ruolo"
         proprieta:
           type: array
           items:
@@ -5884,6 +5945,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConfigurazioneClasseDato'
+        dati_non_applicabili:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneClasseDato'
         stato_successivo:
           $ref: '#/components/schemas/ConfigurazioneStato'
         stato_precedente:
@@ -5905,6 +5970,10 @@ components:
             $ref: '#/components/schemas/ConfigurazioneNomeStato'
         stato_iniziale:
           $ref: '#/components/schemas/ConfigurazioneNomeStato'
+        stati_finali:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneNomeStato'
         stato_archiviato:
           $ref: '#/components/schemas/ConfigurazioneNomeStato'
         cambi_stato:
@@ -6069,6 +6138,22 @@ components:
             $ref: '#/components/schemas/Idm'
           settings:
             type: object
+    OkKoEnum:
+      type: "string"
+      enum:
+       - ok
+       - ko
+    CheckDati:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          $ref: '#/components/schemas/OkKoEnum'
+        errori:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntitaComplessaError'
     Grant:
       type: "object"
       properties:
@@ -6567,6 +6652,9 @@ components:
         aderente:
           type: "boolean"
           default: false
+        skip_collaudo:
+          type: "boolean"
+          default: false
         nome_gateway:
           $ref: "#/components/schemas/String255"
         tipo_gateway:
@@ -6603,6 +6691,9 @@ components:
           type: "boolean"
           default: false
         aderente:
+          type: "boolean"
+          default: false
+        skip_collaudo:
           type: "boolean"
           default: false
         nome_gateway:
@@ -6661,6 +6752,9 @@ components:
           type: "boolean"
           default: false
         aderente:
+          type: "boolean"
+          default: false
+        skip_collaudo:
           type: "boolean"
           default: false
         nome_gateway:
@@ -6984,7 +7078,7 @@ components:
             - nome_applicazione_portale
           properties:
             url_redirezione:
-              $ref: "#/components/schemas/String255"
+              $ref: "#/components/schemas/String4000"
             url_esposizione:
               $ref: "#/components/schemas/String255"
             help_desk:
@@ -7262,6 +7356,11 @@ components:
         aderente:
           type: "boolean"
           default: false
+        skip_collaudo:
+          type: "boolean"
+          default: false
+        vincola_skip_collaudo:
+          type: "boolean"
         vincola_referente:
           type: "boolean"
         vincola_aderente:
@@ -7908,6 +8007,9 @@ components:
           $ref: "#/components/schemas/String255"
         deprecato:
           type: boolean
+        skip_collaudo:
+          type: "boolean"
+          default: false
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -7937,6 +8039,9 @@ components:
           $ref: "#/components/schemas/String255"
         deprecato:
           type: boolean
+        skip_collaudo:
+          type: "boolean"
+          default: false
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -7965,6 +8070,9 @@ components:
           $ref: "#/components/schemas/String255"
         deprecato:
           type: boolean
+        skip_collaudo:
+          type: "boolean"
+          default: false
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -7997,6 +8105,11 @@ components:
           $ref: "#/components/schemas/String255"
         deprecato:
           type: boolean
+        skip_collaudo:
+          type: "boolean"
+          default: false
+        vincola_skip_collaudo:
+          type: "boolean"
         url_invocazione:
           $ref: "#/components/schemas/String255"
         url_prefix_collaudo:
@@ -8136,6 +8249,9 @@ components:
           $ref: "#/components/schemas/ItemSoggetto"
         package:
           type: "boolean"
+        skip_collaudo:
+          type: "boolean"
+          default: false
         path_gruppo:
           type: array
           items:
@@ -8191,6 +8307,9 @@ components:
           $ref: "#/components/schemas/String1000"
         package:
           type: "boolean"
+        skip_collaudo:
+          type: "boolean"
+          default: false
         multi_adesione:
           type: "boolean"
         adesione_consentita:
@@ -8267,6 +8386,11 @@ components:
           $ref: "#/components/schemas/String1000"
         package:
           type: "boolean"
+        skip_collaudo:
+          type: "boolean"
+          default: false
+        vincola_skip_collaudo:
+          type: "boolean"
         multi_adesione:
           type: "boolean"
         adesione_consentita:
@@ -8313,6 +8437,8 @@ components:
           $ref: "#/components/schemas/TipoServizio"
         id_dominio:
           $ref: "#/components/schemas/IdDominio"
+        skip_collaudo:
+          type: "boolean"
         id_soggetto_interno:
           $ref: "#/components/schemas/IdSoggetto"
         visibilita:
@@ -8667,6 +8793,9 @@ components:
           $ref: "#/components/schemas/ItemServizio"
         id_logico:
           $ref: "#/components/schemas/String255"
+        skip_collaudo:
+          type: "boolean"
+          default: false
         stato:
           $ref: "#/components/schemas/String255"
         data_creazione:
@@ -8695,6 +8824,9 @@ components:
           $ref: "#/components/schemas/ItemServizio"
         id_logico:
           $ref: "#/components/schemas/String255"
+        skip_collaudo:
+          type: "boolean"
+          default: false
         stato:
           $ref: "#/components/schemas/String255"
         stato_precedente:
@@ -8770,13 +8902,10 @@ components:
           $ref: "#/components/schemas/IdSoggetto"
         id_servizio:
           $ref: "#/components/schemas/IdServizio"
+        skip_collaudo:
+          type: "boolean"
     AdesioneCollaudoUpdate:
       type: object
-      required:
-        - adesione_collaudo
-      properties:
-        adesione_collaudo:
-          $ref: "#/components/schemas/IdAdesione"
     TipoAdesioneClientUpdateEnum:
       type: "string"
       enum:
@@ -8968,11 +9097,29 @@ components:
           $ref: "#/components/schemas/String255"
         custom:
           type: boolean
+    SottotipoEnum:
+      type: "string"
+      enum:
+       - api
+       - tassonomia
+       - client
+       - erogazione
+       - configurazione_gruppo
+       - configurazione_nome
+    Sottotipo:
+      type: "object"
+      properties:
+        tipo:
+          $ref: "#/components/schemas/SottotipoEnum"
+        identificativo:
+          $ref: "#/components/schemas/String255"
     EntitaComplessaError:
       type: "object"
       properties:
         sottotipo:
-          $ref: "#/components/schemas/String255"
+          type: array
+          items:
+            $ref: "#/components/schemas/Sottotipo"
         dato:
           $ref: "#/components/schemas/ConfigurazioneClasseDato"
         params:
@@ -9119,14 +9266,28 @@ components:
     includi_doc_allegati_query_optional:
       name: "includi_doc_allegati"
       in: "query"
-      description: "indicare se includere i doc allegati nel download"
+      description: "indica se includere i doc allegati nel download"
+      required: false
+      schema:
+        type: boolean
+    check_only_query_optional:
+      name: "check_only"
+      in: "query"
+      description: "indica se condurre esclusivamente il check invece che svolgere l'operazione di cambio stato"
+      required: false
+      schema:
+        type: boolean
+    force_query_optional:
+      name: "force"
+      in: "query"
+      description: "indica se forzare l'aggiornamento anche se l'operazione è semanticamente errata"
       required: false
       schema:
         type: boolean
     try_out_query_optional:
       name: "try_out"
       in: "query"
-      description: "indicare se deve essere effettuato il post processing per il try out"
+      description: "indica se deve essere effettuato il post processing per il try out"
       required: false
       schema:
         type: boolean
@@ -9213,6 +9374,13 @@ components:
         type: "string"
         format: "date-time"
       example: "2019-09-21T17:32:28Z"
+    stato:
+      name: "stato"
+      in: "path"
+      description: "Stato del servizio/adesione"
+      required: true
+      schema:
+        $ref: "#/components/schemas/GenericSearchString"
     id_adesione_query_optional:
       name: "id_adesione"
       in: "query"

@@ -1,0 +1,576 @@
+<!-- LISTA CLIENTS -->
+<div class="settings {{ otherClass }}" *ngIf="adesioneClients.length > 0">
+    <div class="settings-content">
+        <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
+
+            <div class="" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
+                <h4 class="gl-mt-0 text-break" [class.text-danger]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h4>
+                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAuth_sub' | translate }}</div>
+            </div>
+            <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+
+                <div class="px-3- pb-3" *ngIf="singleColumn">
+                    <div class="d-flex gap-2">
+                        <span class="d-flex gap-2">
+                            <lnk-icon-toggle
+                                [value]="updateMapper | mapper:getSottotipoGroupCompletedMapper:ClassiEnum.CLIENT"
+                            ></lnk-icon-toggle>
+                        </span>
+                        <h5 class="" [class.text-danger-]="!(updateMapper | mapper:isSottotipoGroupCompletedMapper:ClassiEnum.CLIENT)">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h5>
+                    </div>
+                </div>
+
+                <div *ngFor="let item of adesioneClients;let first = first">
+                    <div class="flex-container container-fluid border-bottom ps-0" [class.border-top]="first">
+                        <div class="flex-auto">
+                            <ui-item-row
+                                [data]="item"
+                                [config]="config"
+                                [hasLink]="false"
+                                [primaryClass]="(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.CLIENT:(item.source.codice_interno || item.profilo || item.auth_type)) ? '' : 'text-danger'"
+                            ></ui-item-row>
+                        </div>
+                        <div class="flex-initial" *ngIf="isEdit">
+                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="confirmDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
+                                <i class="bi bi-unlock-fill"></i>
+                            </button>
+                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="onEdit(item)">
+                                <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
+                                <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DIALOG per CLIENTS [start] -->
+<ng-template #editClients>
+    <div class="modal-content">
+        <form [formGroup]="_editFormGroupClients" (submit)="_onSaveModalClient(_editFormGroupClients.value)">
+            <div class="modal-header pb-2">
+                <h5 class="modal-title pull-left">{{ 'APP.TITLE.AuthTypeConfiguration' | translate }}</h5>
+                
+                <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="p-3">
+                    <fieldset>
+
+                        <div class="row mb-3">
+                            <!-- credenziali -->
+                            <div *ngIf="(client | mapper:_isModifiableMapper)" class="form-group col-12 mb-2">
+                                <label class="label-bold" for="credenziali">{{ 'APP.LABEL.Credenziali' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'credenziali'"></span>
+                                </label>
+                                <div class="">
+                                    <select #credenziali class="form-select" id="credenziali" formControlName="credenziali" [class.gl-field-error-outline]="_hasControlError('credenziali')" (change)="onChangeCredenziali(credenziali.value)">
+                                        <option *ngFor="let credenziali of _arr_clients_riuso"  [value]="credenziali.id_client">{{ credenziali.nome }}</option>
+                                    </select>  
+                                    <p *ngIf="f['credenziali'].invalid && (f['credenziali'].dirty || f['credenziali'].touched)" class="form-text text-danger">
+                                        <span *ngIf="f['credenziali'].errors && f['credenziali'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <!--  -->
+                        </div>
+
+                        <!-- <ng-container *ngIf="loadingDialog">
+                            <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2"></ui-box-spinner>
+                        </ng-container> -->
+                        
+                    <!-- <ng-container *ngIf="!loadingDialog"> -->
+                        <div class="row" *ngIf="_show_nome_proposto && f['credenziali'].value === SelectedClientEnum.UsaClientEsistente">
+                            <div class="form-group col-12 mb-2">
+                                <label class="label-bold" for="nome_proposto">{{ 'APP.ADESIONI.LABEL.NomeProposto' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'nome_proposto'"></span></label>
+                                <input class="form-control form-control-sm" id="nome_proposto" type="text" formControlName="nome_proposto" autocomplete="off">
+                                <p *ngIf="f['nome_proposto'].invalid && (f['nome_proposto'].dirty || f['nome_proposto'].touched)" class="form-text text-danger">
+                                    <span *ngIf="f['nome_proposto'].errors && f['nome_proposto'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <ng-container *ngIf="_show_client_form">
+                            <div class="row">
+                                <!-- nome -->
+                                <div class="form-group col-12 mb-2">
+                                    <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'nome'"></span>
+                                    </label>
+                                    <input class="form-control form-control-sm" id="nome" type="text" formControlName="nome" autocomplete="off">
+                                    <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
+                                        <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                                <!--  -->
+                            </div>
+
+                            <div class="row" *ngIf="_show_erogazione_ip_fruizione">
+                                <!-- IP di fruizione -->
+                                <div *ngIf="_ip_richiesto" class="form-group col-12 mb-2">
+                                    <label class="label-bold" for="ip_fruizione">
+                                        {{ 'APP.LABEL.IPfruizione' | translate }}
+                                        <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'ip_fruizione'"></span>
+                                    </label>
+                                    <input class="form-control form-control-sm" id="ip_fruizione" type="text" formControlName="ip_fruizione">
+                                    <p *ngIf="f['ip_fruizione'].invalid && (f['ip_fruizione'].dirty || f['ip_fruizione'].touched)" class="form-text text-danger">
+                                        <span *ngIf="f['ip_fruizione'].errors && f['ip_fruizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                                <!--  -->
+                            </div>
+                            <div formGroupName="rate_limiting" class="row mb-2-" *ngIf="_show_erogazione_rate_limiting">
+                                <div class="form-group col-6 mb-2">
+                                    <label class="label-bold" for="quota">
+                                        {{ 'APP.ADESIONI.LABEL.Quota' | translate }}
+                                        <!-- <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'quota'"></span> -->
+                                    </label>
+                                    <input class="form-control form-control-sm" id="quota" type="number" min="1" formControlName="quota">
+                                    <p *ngIf="fRate['quota'].invalid && (fRate['quota'].dirty || fRate['quota'].touched)" class="form-text text-danger">
+                                        <span *ngIf="fRate['quota'].errors && fRate['quota'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        <span *ngIf="fRate['quota'].errors && fRate['quota'].errors['min']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.GreaterThanZero' | translate }}</span>
+                                    </p>
+                                </div>
+                                <div class="form-group col-6 mb-2">
+                                    <label class="label-bold" for="periodo">
+                                        {{ 'APP.ADESIONI.LABEL.Periodo' | translate }}
+                                        <!-- <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'periodo'"></span> -->
+                                    </label>
+                                    <select class="form-select" id="periodo" formControlName="periodo" [class.gl-field-error-outline]="_hasControlError('periodo')">
+                                        <option *ngFor="let periodo of ratePeriods"  [value]="periodo.value">{{ periodo.label | translate }}</option>
+                                    </select>  
+                                    <p *ngIf="fRate['periodo'].invalid && (fRate['periodo'].dirty || fRate['periodo'].touched)" class="form-text text-danger">
+                                        <span *ngIf="fRate['periodo'].errors && fRate['periodo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row" *ngIf="_show_erogazione_finalita">
+                                <div *ngIf="_ip_richiesto" class="form-group col-12 mb-2">
+                                    <label class="label-bold" for="finalita">
+                                        {{ 'APP.ADESIONI.LABEL.Finalita' | translate }}
+                                        <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'finalita'"></span>
+                                    </label>
+                                    <input class="form-control form-control-sm" id="finalita" type="text" formControlName="finalita">
+                                    <p *ngIf="f['finalita'].invalid && (f['finalita'].dirty || f['finalita'].touched)" class="form-text text-danger">
+                                        <span *ngIf="f['finalita'].errors && f['finalita'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        <span *ngIf="f['finalita'].errors && f['finalita'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- ================================== -->
+                            <!--        H T T P B A S I C   [start] -->
+                            <!-- ================================== -->
+                            <div class="row" *ngIf="_isHttpBasic && (client | mapper:_isConfiguratoMapper)">
+                                <!-- Username -->
+                                <div class="form-group col-12 mb-2">
+                                    <label class="label-bold" for="username">
+                                        {{ 'APP.CLIENT.LABEL.Username' | translate }}
+                                        <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'username'"></span>
+                                    </label>
+                                    <input class="form-control form-control-sm" id="username" type="text" formControlName="username">
+                                    <p *ngIf="f['username'].invalid && (f['username'].dirty || f['username'].touched)" class="form-text text-danger">
+                                        <span *ngIf="f['username'].errors && f['username'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                                <!--  -->
+                            </div>
+                            <!-- ================================== -->
+                            <!--          H T T P B A S I C   [end] -->
+                            <!-- ================================== -->
+
+                            <!-- ================================== -->
+                            <!--              P D N D       [start] -->
+                            <!-- ================================== -->
+                            <div class="row">
+                                <!-- client_id -->
+                                <div *ngIf="_isPdnd || _isHttpsPdnd || _isHttpsPdndSign || _isSignPdnd" class="form-group col-12 mb-2">
+                                    <label class="label-bold" for="client_id">
+                                        {{ 'APP.CLIENT.LABEL.ClientIdPDND' | translate }}
+                                        <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'client_id'"></span>
+                                    </label>
+                                    <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id">
+                                    <p *ngIf="f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)" class="form-text text-danger">
+                                        <span *ngIf="f['client_id'].errors && f['client_id'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    </p>
+                                </div>
+                                <!--  -->
+                            </div>
+                            <!-- ================================== -->
+                            <!--              P D N D         [end] -->
+                            <!-- ================================== -->
+
+                            <!-- ===================================== -->
+                            <!-- CERTIFICATO di AUTENTICAZIONE [start] -->
+                            <!-- ===================================== -->
+                            <div *ngIf="_isHttps || _isHttpsSign || _isHttpsPdnd || _isHttpsPdndSign" class="row-content-block mt-2 mb-3">
+                                <div class="row">
+                                    <!-- tipo_certificato -->
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="tipo_certificato">{{ 'APP.LABEL.AuthenticationCertificate' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'tipo_certificato'"></span>
+                                        </label>
+                                        <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
+                                            [items]="_fake_tipoCertificatoEnum"
+                                            bindValue="nome"
+                                            bindLabel="nome"
+                                            labelForId="tipo_certificato"
+                                            [closeOnSelect]="true"
+                                            formControlName="tipo_certificato"
+                                            (change)="onChangeTipoCertificato($event)"
+                                        >
+                                            <ng-template ng-label-tmp let-item="item">
+                                                {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                                            </ng-template>
+                                            <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                                                {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                                            </ng-template>
+                                        </ng-select>
+                                        <p *ngIf="f['tipo_certificato'].invalid && (f['tipo_certificato'].dirty || f['tipo_certificato'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['tipo_certificato'].errors && f['tipo_certificato'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                        <ui-input-help field="credenziali" context="SERVICE"></ui-input-help>
+                                    </div>
+                                    <!--  -->
+                                </div>
+
+                                <div class="row">
+                                    <!-- FORNITO dall'ENTE -->
+                                    <div *ngIf="_isFornito" class="form-group col-12 mb-2">
+                                        <ui-allegato *ngIf="!_certificato_fornito" #des class="miw-50"
+                                            [control]="_descrittoreCtrl"
+                                            [label]="'APP.LABEL.CertificatoFornitoLabel' | translate"
+                                            [required]="true"
+                                            (resetControl)="__descrittoreChange(_descrittoreCtrl.value)"
+                                            (fileChanged)="__descrittoreChange(_descrittoreCtrl.value)"
+                                            [disabled]="_descrittoreCtrl.disabled"
+                                            [maxUpload]="null"
+                                            [maxUpload]="null"
+                                        ></ui-allegato>
+                                        <div *ngIf="_certificato_fornito">
+                                            <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}&nbsp;</label>
+                                            <div class="mb-3">
+                                                <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_fornito)">
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+                                </div>
+
+                                <div class="row">
+                                    <!-- CN -->
+                                    <div *ngIf="_isRichiesto_cn" class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="cn">{{ 'APP.LABEL.CommonName' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'cn'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="cn" type="text" formControlName="cn" placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
+                                        <p *ngIf="f['cn'].invalid && (f['cn'].dirty || f['cn'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['cn'].errors && f['cn'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                    <div *ngIf="_certificato_cn">
+                                        <div class="mb-3">
+                                            <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_cn)">
+                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+                                </div>
+
+                                <div class="row">
+                                    <!-- CSR -->
+                                    <div *ngIf="_isRichiesto_csr" class="form-group col-12 mb-2">
+                                        <ui-allegato *ngIf="!_certificato_csr" #des2 class="miw-50"
+                                            [control]="_descrittoreCtrl_csr"
+                                            [label]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
+                                            [required]="true"
+                                            (resetControl)="__descrittoreChange(_descrittoreCtrl_csr.value, true)"
+                                            (fileChanged)="__descrittoreChange(_descrittoreCtrl_csr.value, true)"
+                                            [disabled]="_descrittoreCtrl_csr.disabled"
+                                            [maxUpload]="null"
+                                            [maxUpload]="null"
+                                        ></ui-allegato>
+                                        <div *ngIf="_certificato_csr">
+                                            <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
+                                            <div class="mb-3">
+                                                <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_csr)">
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+
+                                    <!-- Modulo di richiesta CSR -->
+                                    <div *ngIf="_isRichiesto_csr" class="form-group col-12 mb-2">
+                                        <ui-allegato *ngIf="!_modulo_richiesta_csr" #des3 class="miw-50"
+                                            [control]="_descrittoreCtrl_csr_modulo"
+                                            [label]="'APP.LABEL.ModuloRichiestaCSR' | translate"
+                                            [required]="true"
+                                            (resetControl)="__descrittoreChange(_descrittoreCtrl_csr_modulo.value)"
+                                            (fileChanged)="__descrittoreChange(_descrittoreCtrl_csr_modulo.value)"
+                                            [disabled]="_descrittoreCtrl_csr_modulo.disabled"
+                                            [maxUpload]="null"
+                                            [maxUpload]="null"
+                                        ></ui-allegato>
+                                        <div *ngIf="_modulo_richiesta_csr">
+                                            <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
+                                            <div class="mb-3">
+                                                <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr)">
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+                                </div>
+                            </div>
+                            <!-- ===================================== -->
+                            <!-- CERTIFICATO di AUTENTICAZIONE   [end] -->
+                            <!-- ===================================== -->
+
+                            <!-- ================================== -->
+                            <!-- CERTIFICATO di FIRMA       [start] -->
+                            <!-- ================================== -->
+                            <div *ngIf="_isHttpsSign || _isHttpsPdndSign || _isSign || _isSignPdnd" class="row-content-block mt-2 mb-3">
+                                <div class="row">
+                                    <!-- tipo_certificato (FIRMA) -->
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="tipo_certificato_firma">{{ 'APP.CLIENT.LABEL.SignCertificate' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'tipo_certificato_firma'"></span></label>
+                                        <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
+                                            [items]="_fake_tipoCertificatoEnum"
+                                            bindValue="nome"
+                                            bindLabel="nome"
+                                            labelForId="tipo_certificato_firma"
+                                            [closeOnSelect]="true"
+                                            formControlName="tipo_certificato_firma"
+                                            (change)="onChangeTipoCertificatoFirma($event)"
+                                        >
+                                            <ng-template ng-label-tmp let-item="item">
+                                                {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                                            </ng-template>
+                                            <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                                                {{ 'APP.CLIENT.LABEL.' + item.nome | translate }}
+                                            </ng-template>
+                                        </ng-select>
+                                        <p *ngIf="f['tipo_certificato_firma'].invalid && (f['tipo_certificato_firma'].dirty || f['tipo_certificato_firma'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['tipo_certificato_firma'].errors && f['tipo_certificato_firma'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                    <!--  -->
+                                </div>
+
+                                <div class="row">
+                                    <!-- FORNITO dall'ENTE (FIRMA) -->
+                                    <div *ngIf="_isFornito_firma" class="form-group col-12 mb-2">
+                                        <ui-allegato *ngIf="!_certificato_fornito_firma" #des class="miw-50"
+                                            [control]="_descrittoreCtrl_firma"
+                                            [label]="'APP.LABEL.CertificatoFornitoLabel' | translate"
+                                            [required]="true"
+                                            (resetControl)="__descrittoreChangeFirma(_descrittoreCtrl_firma.value)"
+                                            (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_firma.value)"
+                                            [disabled]="_descrittoreCtrl_firma.disabled"
+                                            [maxUpload]="null"
+                                            [maxUpload]="null"
+                                        ></ui-allegato>
+                                        <div *ngIf="_certificato_fornito_firma">
+                                            <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}</label>
+                                            <div class="mb-3">
+                                                <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_fornito_firma)">
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+
+                                    <!-- CN (FIRMA) -->
+                                    <div *ngIf="_isRichiesto_cn_firma" class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="cn">{{ 'APP.LABEL.CommonName' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'cn_firma'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="cn_firma" type="text" formControlName="cn_firma" placeholder="{{ 'APP.LABEL.CertificatoRichiestoCNLabel' | translate }}">
+                                        <p *ngIf="f['cn_firma'].invalid && (f['cn_firma'].dirty || f['cn_firma'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['cn_firma'].errors && f['cn_firma'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                    <div *ngIf="_certificato_cn_firma" class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="cn">{{ 'APP.LABEL.SignCertificate' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'cn_firma'"></span>
+                                        </label>
+                                        <div class="mb-3">
+                                            <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_cn_firma)">
+                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+
+                                    <!-- CSR (FIRMA) -->
+                                    <div *ngIf="_isRichiesto_csr_firma" class="form-group col-12 mb-2">
+                                        <ui-allegato *ngIf="!_certificato_csr_firma" #des2 class="miw-50"
+                                            [control]="_descrittoreCtrl_csr_firma"
+                                            [label]="'APP.LABEL.CertificatoRichiestoCSRLabel' | translate"
+                                            [required]="true"
+                                            (resetControl)="__descrittoreChangeFirma(_descrittoreCtrl_csr_firma.value, true)"
+                                            (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_csr_firma.value, true)"
+                                            [disabled]="_descrittoreCtrl_csr_firma.disabled"
+                                            [maxUpload]="null"
+                                            [maxUpload]="null"
+                                        ></ui-allegato>
+                                        <div *ngIf="_certificato_csr_firma">
+                                            <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
+                                            <div class="mb-3">
+                                                <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_csr_firma)">
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+
+                                    <!-- Modulo di richiesta CSR (firma) -->
+                                    <div *ngIf="_isRichiesto_csr_firma" class="form-group col-12 mb-2">
+                                        <ui-allegato *ngIf="!_modulo_richiesta_csr_firma" #des3 class="miw-50"
+                                            [control]="_descrittoreCtrl_csr_modulo_firma"
+                                            [label]="'APP.LABEL.ModuloRichiestaCSR' | translate"
+                                            [required]="true"
+                                            (resetControl)="__descrittoreChangeFirma(_descrittoreCtrl_csr_modulo_firma.value)"
+                                            (fileChanged)="__descrittoreChangeFirma(_descrittoreCtrl_csr_modulo_firma.value)"
+                                            [disabled]="_descrittoreCtrl_csr_modulo_firma.disabled"
+                                            [maxUpload]="null"
+                                            [maxUpload]="null"
+                                        ></ui-allegato>
+                                        <div *ngIf="_modulo_richiesta_csr_firma">
+                                            <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
+                                            <div class="mb-3">
+                                                <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr_firma)">
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Modulo di richiesta CSR (firma) certificato download -->
+                                    <div *ngIf="_isRichiesto_csr_firma" class="form-group col-12 mb-2">
+                                        <div *ngIf="_modulo_richiesta_csr_firma_ceritifato">
+                                            <label class="label-bold _space_r">{{ 'APP.LABEL.SignCertificate' | translate }}&nbsp;</label>
+                                            <div class="mb-3">
+                                                <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr_firma_ceritifato)">
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--  -->
+                                </div>
+                            </div>
+                            <!-- ================================== -->
+                            <!-- CERTIFICATO di FIRMA         [end] -->
+                            <!-- ================================== -->
+
+                            <div *ngIf="_isOauthAuthCode" class="row-content-block mt-2 mb-3">
+                                <div class="row">
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="url_redirezione">{{ 'APP.CLIENT.LABEL.UrlRedirezione' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'url_redirezione'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="url_redirezione" type="text" formControlName="url_redirezione" placeholder="">
+                                        <p *ngIf="f['url_redirezione'].invalid && (f['url_redirezione'].dirty || f['url_redirezione'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['url_redirezione'].errors && f['url_redirezione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="url_esposizione">{{ 'APP.CLIENT.LABEL.UrlEsposizione' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'url_esposizione'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="url_esposizione" type="text" formControlName="url_esposizione" placeholder="">
+                                        <p *ngIf="f['url_esposizione'].invalid && (f['url_esposizione'].dirty || f['url_esposizione'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['url_esposizione'].errors && f['url_esposizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="help_desk">{{ 'APP.CLIENT.LABEL.HelpDesk' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'help_desk'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="help_desk" type="text" formControlName="help_desk" placeholder="">
+                                        <p *ngIf="f['help_desk'].invalid && (f['help_desk'].dirty || f['help_desk'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['help_desk'].errors && f['help_desk'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="nome_applicazione_portale">{{ 'APP.CLIENT.LABEL.NomeApplicazionePortale' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'nome_applicazione_portale'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="nome_applicazione_portale" type="text" formControlName="nome_applicazione_portale" placeholder="">
+                                        <p *ngIf="f['nome_applicazione_portale'].invalid && (f['nome_applicazione_portale'].dirty || f['nome_applicazione_portale'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['nome_applicazione_portale'].errors && f['nome_applicazione_portale'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="form-group col-12 mb-2" *ngIf="client | mapper:_isConfiguratoMapper">
+                                        <label class="label-bold" for="client_id">{{ 'APP.CLIENT.LABEL.ClientId' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'client_id'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id" placeholder="">
+                                        <p *ngIf="f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['client_id'].errors && f['client_id'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row-content-block mt-2 mb-3" *ngIf="_isOauthClientCredentials && (client | mapper:_isConfiguratoMapper)">
+                                <div class="row">
+                                    <div class="form-group col-12 mb-2">
+                                        <label class="label-bold" for="client_id">{{ 'APP.CLIENT.LABEL.ClientId' | translate }}
+                                            <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'client_id'"></span>
+                                        </label>
+                                        <input class="form-control form-control-sm" id="client_id" type="text" formControlName="client_id" placeholder="">
+                                        <p *ngIf="f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)" class="form-text text-danger">
+                                            <span *ngIf="f['client_id'].errors && f['client_id'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- descrizione -->
+                                <div class="form-group col-md-12 mb-2">
+                                    <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }}</label>
+                                    <textarea class="form-control form-control-sm" id="descrizione" rows="4" cols="50" formControlName="descrizione" ></textarea>
+                                </div>
+                                <!--  -->
+                            </div>
+                        </ng-container>
+                    <!-- </ng-container> -->
+
+                    </fieldset>
+                </div>
+
+                <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="_error">
+                    {{ _errorMsg }}
+                </div>
+
+            </div>
+            <div class="modal-footer py-2">
+                <lnk-button
+                    [label]="'APP.BUTTON.Close'"
+                    (onAction)="closeModal()"
+                ></lnk-button>
+                <lnk-button *ngIf="(client | mapper:_isModifiableMapper)"
+                    [type]="'submit'"
+                    [label]="'APP.BUTTON.Save'"
+                    [primary]="true"
+                    [ariaLabel]="'APP.BUTTON.Save'"
+                    [disabled]="_editFormGroupClients.invalid || _saving"
+                    [spinner]="_saving"
+                ></lnk-button>
+            </div>
+        </form>
+    </div>
+</ng-template>
+<!-- DIALOG API [end] -->

@@ -3,7 +3,7 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
-      <app-monitor-dropdown
+      <app-monitor-dropdown *ngIf="!_isNew"
         [showComunications]="true"
         [showMonitoring]="false"
         [showManagement]="false"
@@ -40,7 +40,7 @@
           <button type="button" class="btn btn-default btn-md gl-button" *ngIf="_changingStatus">
             <span class="spinner-border spinner-border-sm"></span>
           </button>
-          <ui-workflow *ngIf="!_changingStatus"
+          <ui-workflow *ngIf="!_changingStatus && generalConfig"
             [data]="adesione"
             [module]="'adesione'"
             [grant]="_grant"
@@ -239,13 +239,12 @@
                       <span *ngIf="f['id_soggetto'].errors && f['id_soggetto'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                     </p>
                   </div>
-                  <div class="col-9 form-group" *ngIf="!_isEdit && !_hideSoggettoInfo" >
+                  <div class="col-9 form-group" *ngIf="!_isEdit && !_hideSoggettoInfo">
                     <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }}</label>
                     <input type="text" readonly class="form-control-plaintext" id="id_soggetto" [value]="adesione.soggetto.nome">
                   </div>
                   <ui-input-help field="id_soggetto" context="ADESIONE"></ui-input-help>
                 </div>
-
 
                 <!-- AREA DEI REFERENTI -->
                 <div class="row referenti" *ngIf="_isNew">

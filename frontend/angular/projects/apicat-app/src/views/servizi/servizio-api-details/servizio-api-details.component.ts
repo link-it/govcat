@@ -23,6 +23,7 @@ import { ServizioApiCreate } from './servizio-api-create';
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
 import { Grant } from '@app/model/grant';
+import { EventType } from 'projects/tools/src/lib/classes/events';
 
 import * as _ from 'lodash';
 import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
@@ -190,7 +191,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.service = _state?.service || null;
         this._grant = _state?.grant;
 
-        const _srv: any = Tools.Configurazione.servizio;
+        const _srv: any = Tools.Configurazione?.servizio;
         this._apiMultiple = _srv ? _srv.api_multiple : false;
         this._adesioniMultiple = _srv ? _srv.adesioni_multiple : false;
         this._richiesteEnabled = this._apiMultiple;
@@ -200,12 +201,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._authTypes = (_srv && _srv.api) ? _srv.api.auth_type : [];
         this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
         this._info_gateway_visualizzate = (_srv && _srv.api) ? _srv.api.info_gateway_visualizzate : false;
-        this._pdnd = Tools.Configurazione.pdnd || null;
+        this._pdnd = Tools.Configurazione?.pdnd || null;
     }
 
     ngOnInit() {
         this.eventsManagerService.on('INIT_DATA', (event: any) => {
-        this._initData();
+            this._initData();
         });
 
         this.route.params.subscribe(params => {
@@ -254,6 +255,20 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     );
                 }
             }
+        });
+
+        this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
+            const _srv: any = Tools.Configurazione?.servizio;
+            this._apiMultiple = _srv ? _srv.api_multiple : false;
+            this._adesioniMultiple = _srv ? _srv.adesioni_multiple : false;
+            this._richiesteEnabled = this._apiMultiple;
+            this._risposteEnabled = this._apiMultiple;
+            this._codiceAssetObbligatorio = (_srv && _srv.api) ? _srv.api.codice_asset_obbligatorio : false;
+            this._specificaObbligatorio = (_srv && _srv.api) ? _srv.api.specifica_obbligatorio : false;
+            this._authTypes = (_srv && _srv.api) ? _srv.api.auth_type : [];
+            this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
+            this._info_gateway_visualizzate = (_srv && _srv.api) ? _srv.api.info_gateway_visualizzate : false;
+            this._pdnd = Tools.Configurazione?.pdnd || null;
         });
     }
 
@@ -427,7 +442,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         
         let configurazioneProduzione: ApiConfiguration | undefined = undefined;
 
-        if(body.url_produzione) {
+        if (body.url_produzione) {
             configurazioneProduzione = {
                 protocollo: body.protocollo,
                 dati_erogazione: {
@@ -461,7 +476,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
 
         if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {;
-            // configurazioneCollaudo.dati_erogazione.url_prefix TODO: what exactly is this?
             _newBody.gruppi_auth_type = body.authTypes.map((item: any):ApiAuthTypeGroup => {
                 return {
                     profilo: item.profilo,
@@ -471,7 +485,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             });
         }
 
-        // TODO: check if this is correct because earlier it had a condition for isPdnd
         if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
             _newBody.proprieta_custom = [];
             Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
@@ -496,7 +509,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     __onUpdate(id: string | null, body: any) {
         this.__resetError();
-        const _body = this._prepareBodyUpdateApi(body);
+        let _body = this._prepareBodyUpdateApi(body);
         this._spin++;
         this.apiService.putElement(this.model, id, _body).subscribe(
             (response: any) => {
@@ -528,7 +541,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             },
             dati_generici: {
                 descrizione: body.descrizione || null,
-                codice_asset: body.codice_asset,
+                codice_asset: body.codice_asset || null,
             },
         };
 
@@ -658,6 +671,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.apiService.getDetails('servizi', this.sid, 'grant').subscribe({
             next: (grant: any) => {
                 this._grant = grant;
+                console.log('grant', this._grant);
                 this.apiService.getDetails('servizi', this.sid).subscribe({
                     next: (response: any) => {
                         this.service = response;
@@ -881,14 +895,22 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     __changeRuolo(event: any) {
-        const _ruolo: string = this._formGroup.controls.ruolo.value;
-        if (this.des) {
-            this.des.reset();
-        }
-        this.__resetGAT();
-        this.__checkAutenticazione(_ruolo);
-        this.__descrittoreChange(null);
-        this._formGroup.updateValueAndValidity();
+        const controls = this._formGroup.controls;
+        const _ruolo: string = controls.ruolo.value;
+        // if (this.des) {
+        //     this.des.reset();
+        // }
+        setTimeout(() => {
+            this.__resetGAT();
+            this.__checkAutenticazione(_ruolo);
+            // this.__descrittoreChange(null);
+            if (controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
+                this.__loadRisorse();
+            } else {
+                this._resetProprietaCustom();
+            }
+            this._formGroup.updateValueAndValidity();
+        }, 100);
     }
 
     __checkAutenticazione(ruolo: string) {
@@ -935,8 +957,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     __disableUrlFields(controls: any){
+        controls.url_produzione.setValue(null);
         controls.url_produzione.disable();
         controls.url_produzione.clearValidators();
+        controls.url_collaudo.setValue(null);
         controls.url_collaudo.disable();
         controls.url_collaudo.clearValidators();
         this._formGroup.updateValueAndValidity();
@@ -1332,6 +1356,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         return this._canAddAuthentication();
     }
 
+    _isGestore() {
+        return this.authenticationService.isGestore(this._grant?.ruoli);
+    }
+
     _canEditMapper = (): boolean => {
         return this.authenticationService.canEdit('servizio', 'api', this.service?.stato || '', this._grant?.ruoli);
     }
@@ -1412,7 +1440,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _getGroupLabelMapper = (group: any): string => {
-        const _srv: any = Tools.Configurazione.servizio;
+        const _srv: any = Tools.Configurazione?.servizio;
         let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
@@ -1425,7 +1453,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
         const profiles = this._getAllProfileValues();
 
-        const _srv: any = Tools.Configurazione.servizio;
+        const _srv: any = Tools.Configurazione?.servizio;
         const profili: Profile[] = _srv.api?.profili.filter((p: any) => profiles.includes(p.codice_interno));
 
         let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
@@ -1455,45 +1483,62 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, 'nome_gruppo');
 
         if (this._apiProprietaCustom.length) {
-        this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
+            this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
 
-        const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
-        const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
-        const collaudoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'collaudo');
+            const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
+            const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
+            const collaudoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'collaudo');
 
-        Object.keys(this._apiProprietaCustomGrouped).forEach((key: any) => {
-            this._apiProprietaCustomGrouped[key].forEach((item: any) => {
-                const _validators = [];
+            Object.keys(this._apiProprietaCustomGrouped).forEach((key: any) => {
+                this._apiProprietaCustomGrouped[key].forEach((item: any) => {
+                    const _validators = [];
 
-                let required = false;
+                    const _ruoli = this._grant?.ruoli || [];
+                    const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
 
-                if(item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
-                    required = item.required;
-                }
+                    console.group('proprieta_custom');
+                    console.log(item);
+                    console.log('ruoli', _ruoli);
+                    console.log('hasRuolo', _hasRuolo);
+                    console.groupEnd();
 
-                if(item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
-                    required = item.required;
-                }
+                    if (_hasRuolo) {
+                        let required = false;
 
-                if (required) { _validators.push(Validators.required); }
-                if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
+                        if(item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
+                            required = item.required;
+                        }
 
-                this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
+                        if(item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
+                            required = item.required;
+                        }
 
-                const _gruppo = this._servizioApi.proprieta_custom?.find((pc: any) => {
-                    return (pc.gruppo === item.nome_gruppo);
+                        if (required) { _validators.push(Validators.required); }
+                        if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
+
+                        this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
+
+                        const _gruppo = this._servizioApi.proprieta_custom?.find((pc: any) => {
+                            return (pc.gruppo === item.nome_gruppo);
+                        });
+                        const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome );
+                        let _val = _value ? _value.valore : null;
+                        if (!this._servizioApi.proprieta_custom?.length && (item.tipo === 'select')) {
+                            const _defaultItem = item.valori.find((item: any) => item.default);
+                            _val =_defaultItem?.nome || null;
+                        }
+
+                        const group = this.proprietaCustom.get(item.nome_gruppo) as FormGroup;
+                        group.addControl(item.nome, new FormControl(_val, [..._validators]));
+                    } else {
+                        // remove item from list
+                        const index = this._apiProprietaCustomGrouped[key]?.indexOf(item) || -1;
+                        if (index !== -1) {
+                            this._apiProprietaCustomGrouped = this._apiProprietaCustomGrouped[key].splice(index, 1);
+                        }
+                    }
                 });
-                const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome );
-                let _val = _value ? _value.valore : null;
-                if (!this._servizioApi.proprieta_custom?.length && (item.tipo === 'select')) {
-                    const _defaultItem = item.valori.find((item: any) => item.default);
-                    _val =_defaultItem?.nome || null;
-                }
-
-                const group = this.proprietaCustom.get(item.nome_gruppo) as FormGroup;
-                group.addControl(item.nome, new FormControl(_val, [..._validators]));
             });
-        });
         }
 
         this._updateMapper = new Date().getTime().toString();
@@ -1524,7 +1569,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
-        const _srv: any = Tools.Configurazione.servizio;
+        const _srv: any = Tools.Configurazione?.servizio;
         const _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
         const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group);
         const _pItem = _group.proprieta.find((item: any) => item.nome === name);

@@ -1,6 +1,6 @@
 <div #ir class="d-flex flex-column" [class.cursor-pointer]="rowClick && hasLink" (click)="__itemClickRow($event, ir)">
   <div class="active-item d-flex flex-grow-1 align-items-center">
-    <div class="d-flex align-items-center w-100">
+    <div class="d-flex align-items-center w-100" [class.flex-wrap]="_itemRowConfig?.wrap">
       <div class="avatar-image" *ngIf="_itemRowConfig?.avatar">
         <ui-item-type
           [data]="_data"
@@ -10,8 +10,8 @@
       </div>
       <div class="main-info main-content">
         <div class="main-data">
-          <div class="primary-text text-break fw-bold-600">
-            <span [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" (click)="__itemClick($event, ir)">
+          <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
+            <a href="javascript:void(0);" class="item-row-link" [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" (click)="__itemClick($event, ir)">
               <ng-container *ngFor="let elem of _itemRowConfig?.primaryText">
                 <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
                   [data]="_data"
@@ -19,7 +19,7 @@
                   [config]="_config">
                 </ui-item-type>
               </ng-container>
-            </span>
+            </a>
           </div>
         </div>
         <div class="meta-data">

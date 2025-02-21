@@ -68,6 +68,9 @@ public class AdesioneEntity {
     @JoinColumn(name = "id_soggetto", referencedColumnName = "id")
     private SoggettoEntity soggetto;
     
+    @Column(name = "skip_collaudo", nullable = false)
+    private boolean skipCollaudo;
+    
     @Column(nullable = false)
 	private String stato;
 	

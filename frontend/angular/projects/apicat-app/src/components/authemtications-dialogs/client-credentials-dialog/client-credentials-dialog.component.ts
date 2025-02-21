@@ -62,7 +62,7 @@ export class ClientCredentialsDialogComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        console.log('ClientCredentialsDialogComponent');
+        console.log('ClientCredentialsDialogComponent', this.tokenPolicy);
         this._codicePolicy = this.tokenPolicy ? this.tokenPolicy['codice_policy'] : this._codicePolicy;
         this._type = this.tokenPolicy ? this.tokenPolicy['type'] : this._type;
         this._tokenUrl = this.tokenPolicy ? this.tokenPolicy['token_url'] : this._tokenUrl;

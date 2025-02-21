@@ -4,7 +4,6 @@ create sequence seq_allegati_servizi start with 1 increment by 1;
 create sequence seq_api start with 1 increment by 1;
 create sequence seq_api_auth_types start with 1 increment by 1;
 create sequence seq_api_config start with 1 increment by 1;
-create sequence seq_blobs start with 1 increment by 1;
 create sequence seq_categorie start with 1 increment by 1;
 create sequence seq_classi start with 1 increment by 1;
 create sequence seq_client start with 1 increment by 1;
@@ -40,6 +39,7 @@ create sequence seq_utenti start with 1 increment by 1;
         id_logico varchar(255),
         messaggio_configurazione varchar(255),
         search_terms varchar(255) not null,
+        skip_collaudo boolean not null,
         stato varchar(255) not null,
         stato_configurazione varchar(255),
         tentativi integer,
@@ -84,7 +84,7 @@ create sequence seq_utenti start with 1 increment by 1;
     create table api (
        id bigint not null,
         codice_asset varchar(255),
-        descrizione varchar(8000),
+        descrizione longvarbinary,
         id_api varchar(255) not null,
         nome varchar(255) not null,
         ruolo varchar(255) not null,
@@ -99,7 +99,7 @@ create sequence seq_utenti start with 1 increment by 1;
        id bigint not null,
         note varchar(255),
         profilo varchar(255) not null,
-        resources clob not null,
+        resources longvarbinary not null,
         id_api bigint not null,
         primary key (id)
     );
@@ -119,12 +119,6 @@ create sequence seq_utenti start with 1 increment by 1;
        id_servizio bigint not null,
         id_api bigint not null,
         primary key (id_api, id_servizio)
-    );
-
-    create table blobs (
-       id bigint not null,
-        blob clob,
-        primary key (id)
     );
 
     create table categorie (
@@ -208,6 +202,7 @@ create sequence seq_utenti start with 1 increment by 1;
         descrizione varchar(255),
         id_dominio varchar(255) not null,
         nome varchar(255) not null,
+        skip_collaudo boolean not null,
         tag varchar(255),
         url_invocazione varchar(255),
         url_prefix_collaudo varchar(255),
@@ -235,7 +230,7 @@ create sequence seq_utenti start with 1 increment by 1;
 
     create table estensioni_adesioni (
        id bigint not null,
-        ambiente integer not null,
+        ambiente varchar(255) not null,
         gruppo varchar(255) not null,
         nome varchar(255) not null,
         valore varchar(255),
@@ -257,7 +252,7 @@ create sequence seq_utenti start with 1 increment by 1;
     create table estensioni_client (
        id bigint not null,
         nome varchar(255),
-        valore varchar(255),
+        valore varchar(4000),
         id_client bigint,
         id_documento bigint,
         primary key (id)
@@ -386,6 +381,7 @@ create sequence seq_utenti start with 1 increment by 1;
         multi_adesione boolean,
         nome varchar(255) not null,
         note varchar(1000),
+        skip_collaudo boolean not null,
         stato varchar(255),
         termini_ricerca varchar(255),
         tipo varchar(255) not null,
@@ -410,6 +406,7 @@ create sequence seq_utenti start with 1 increment by 1;
         nome varchar(255) not null,
         nome_gateway varchar(255),
         referente boolean not null,
+        skip_collaudo boolean not null,
         tipo_gateway varchar(255),
         url_invocazione varchar(255),
         url_prefix_collaudo varchar(255),

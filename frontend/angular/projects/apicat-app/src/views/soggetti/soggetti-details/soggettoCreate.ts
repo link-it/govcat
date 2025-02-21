@@ -28,6 +28,9 @@ export class SoggettoCreate {
   url_prefix_collaudo: string | null = null;
   url_prefix_produzione: string | null = null;
 
+  skip_collaudo: boolean = false;
+  vincola_skip_collaudo: boolean = false;
+
   constructor(_data?: any) {
     if (_data) {
       for (const key in _data) {

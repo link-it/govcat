@@ -16,12 +16,28 @@
     "secondaryMetadata": []
   },
 
+  "itemRow2": {
+    "primaryText": [
+      { "field": "utente.nome", "type": "text", "emptySpace": true },
+      { "field": "utente.cognome", "type": "text" }
+    ],
+    "secondaryText": [],
+    "metadata": {
+      "text": [
+        { "field": "utente.organizzazione.nome", "type": "text" }
+      ],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
   "details": [
     { "label": "APP.LABEL.Identificativo", "field": "utente.id_utente", "type": "text"},
     { "label": "APP.LABEL.Organization", "field": "utente.organizzazione.nome", "type": "text" },
     { "label": "APP.LABEL.cognome", "field": "utente.cognome", "type": "text" },
     { "label": "APP.LABEL.nome", "field": "utente.nome", "type": "text" },
-    { "label": "APP.LABEL.email", "field": "utente.email", "type": "text" }
+    { "label": "APP.LABEL.email", "field": "utente.email", "type": "text" },
+    { "label": "APP.LABEL.Type", "field": "tipo", "type": "tag", "options": "type" }
   ],
 
   "options": {

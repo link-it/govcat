@@ -1,7 +1,6 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -11,11 +10,13 @@ import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.servi
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
 
+import { EventType } from 'projects/tools/src/lib/classes/events';
 import { Page} from '../../models/page';
 
-import * as moment from 'moment';
+import { concat, Observable, of, Subject, throwError } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-domini',
@@ -26,7 +27,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   static readonly Name = 'DominiComponent';
   readonly model: string = 'domini'; // <<==== parametro di routing per la _loadXXXXX
 
-  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
+  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
 
   Tools = Tools;
 
@@ -41,7 +42,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   _editCurrent: any = null;
 
   _hasFilter: boolean = true;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -49,7 +50,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   _spin: boolean = true;
   desktop: boolean = false;
 
-  generalConfig: any = Tools.Configurazione;
+  generalConfig: any = Tools.Configurazione || null;
   _canAddDomain: boolean = false;
 
   _useRoute : boolean = true;
@@ -69,16 +70,33 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   sortDirection: string = 'asc';
   sortFields: any[] = [];
 
-  simpleSearch: boolean = true;
-  searchFields: any[] = [
-    // { field: 'creationDateFrom', label: 'APP.LABEL.Date', type: 'date', condition: 'gt', format: 'DD/MM/YYYY' },
-    // { field: 'creationDateTo', label: 'APP.LABEL.Date', type: 'date', condition: 'lt', format: 'DD/MM/YYYY' },
+  selectLimit: number = 20;
+
+  _useNewSearchUI : boolean = true;
+
+  _tipiVisibilitaServizio: {value: string, label: string}[] = [
+    ...Tools.TipiVisibilitaServizio
   ];
+  _tipiVisibilitaServizioEnum: any = { ...Tools.VisibilitaServizioEnum };
+
+  simpleSearch: boolean = false;
+  searchFields: any[] = [
+    { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'string', condition: 'like' },
+    { field: 'id_soggetto', label: 'APP.LABEL.soggetto', type: 'text', condition: 'equal', params: { resource: 'soggetti', field: 'nome' } },
+    { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
+  ];
+  useCondition: boolean = false;
 
   breadcrumbs: any[] = [
     { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
     { label: 'APP.TITLE.Domains', url: '', type: 'title', icon: '' }
   ];
+
+  minLengthTerm: number = 1;
+
+  soggetti$!: Observable<any[]>;
+  soggettiInput$ = new Subject<string>();
+  soggettiLoading: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -100,19 +118,25 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   }
 
   ngOnInit() {
-    this._canAddDomain = this.generalConfig.dominio.multi_dominio || false;
+    this._canAddDomain = this.generalConfig?.dominio.multi_dominio || false;
     
     this.configService.getConfig(this.model).subscribe(
       (config: any) => {
         this.dominiConfig = config;
       }
     );
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
+      this.generalConfig = Tools.Configurazione || null;
+      this._canAddDomain = this.generalConfig?.dominio.multi_dominio || false;
+      console.log('Configurazione Remota', Tools.Configurazione);
+    });
   }
 
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
       setTimeout(() => {
         this._loadDomini();
       }, 100);
@@ -136,8 +160,13 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
+    this._formGroup = new FormGroup({
+      q: new FormControl(''),
+      id_soggetto: new FormControl(null),
+      visibilita: new FormControl('')
     });
+
+    this._initSoggettiSelect([]);
   }
 
   _loadDomini(query: any = null, url: string = '') {
@@ -182,11 +211,65 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     });
   }
 
+  _trackBy(index: any, item: any) {
+    return item.id;
+  }
+
   __loadMoreData() {
     if (this._links && this._links.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
       this._loadDomini(null, this._links.next.href);
     }
+  }
+
+  // Da usare con nuovo componente <ui-form-live-search>
+  // getSearchSoggetto() {
+  //   return this.searchSoggetto.bind(this)
+  // }
+
+  // private searchSoggetto(term: string, page: number = 0) {
+  //     // if (!term) {
+  //     //     return of([]);
+  //     // }
+  //     return this.apiService.getDataPagination('soggetti', { q: term }, page, this.selectLimit, 'nome', 'asc').pipe(
+  //         // tap((response: any) => console.log(response)),
+  //         map((response: any) => response.map(
+  //             (item: any) => item.id_soggetto ? ({
+  //                 label: `${item.nome}`,
+  //                 // meta: `${item.organizzazione?.nome}`,
+  //                 value: item.id_soggetto
+  //             }) : null
+  //         ).filter((item: any) => item !== null))
+  //     )
+  // }
+
+  _initSoggettiSelect(defaultValue: any[] = []) {
+    this.soggetti$ = concat(
+      of(defaultValue),
+      this.soggettiInput$.pipe(
+        // filter(res => {
+        //   return res !== null && res.length >= this.minLengthTerm
+        // }),
+        startWith(''),
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.soggettiLoading = true),
+        switchMap((term: any) => {
+          return this.apiService.getData('soggetti', term).pipe(
+            catchError(() => of([])), // empty list on error
+            tap(() => this.soggettiLoading = false)
+          )
+        })
+      )
+    );
+  }
+
+  onSelectedSearchDropdwon($event: Event){
+    this.searchGoogleForm.setNotCloseForm(true)
+  }
+
+  trackBySelectFn(item: any) {
+    return item.id_soggetto;
   }
 
   _onNew() {
@@ -199,8 +282,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
   _onEdit(event: any, param: any) {
     if (this._useRoute) {
-      if (this.searchBarForm) {
-        this.searchBarForm._pinLastSearch();
+      if (this.searchGoogleForm) {
+        this.searchGoogleForm._pinLastSearch();
       }      
       this.router.navigate([this.model, param.id]);
     } else {
@@ -214,8 +297,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   }
 
   _onSubmit(form: any) {
-    if (this.searchBarForm) {
-      this.searchBarForm._onSearch();
+    if (this.searchGoogleForm) {
+      this.searchGoogleForm._onSearch();
     }
   }
 

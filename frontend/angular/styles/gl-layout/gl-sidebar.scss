@@ -4,6 +4,7 @@
 
   li > a.gl-link {
     color: #303030;
+    font-size: var(--sidebar-link-font-size, '1rem');
   }
 
   .context-header a {
@@ -123,6 +124,12 @@
 
 .sidebar-top-level-items li > a.gl-link {
   color: var(--navbar-color, #303030);
+}
+
+.sidebar-sub-level-items {
+  padding-top: 0;
+  padding-bottom: 0;
+  display: none;
 }
 
 .sidebar-sub-level-items:not(.fly-out-list) li > a {
@@ -520,6 +527,24 @@
 .sidebar-top-level-items li > a.gl-link:focus,
 .sidebar-top-level-items li > a.gl-link:focus:active {
   text-decoration: none;
+  // box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px #1f75cb;
+  box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+  outline: none;
+}
+
+.sidebar-top-level-items li > a.gl-link.disabled,
+.sidebar-top-level-items li > a.gl-link.disabled.selected,
+.sidebar-top-level-items li > a.gl-link.disabled:active,
+.sidebar-top-level-items li > a.gl-link.disabled:focus,
+.sidebar-top-level-items li > a.gl-link.disabled:hover,
+.sidebar-top-level-items li > a.gl-link[disabled],
+.sidebar-top-level-items li > a.gl-link[disabled].selected,
+.sidebar-top-level-items li > a.gl-link[disabled]:active,
+.sidebar-top-level-items li > a.gl-link[disabled]:focus,
+.sidebar-top-level-items li > a.gl-link[disabled]:hover {
+  color: #868686;
+  opacity: 1;
+  cursor: not-allowed !important;
 }
 
 .sidebar-sub-level-items {

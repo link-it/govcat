@@ -21,7 +21,7 @@ export class GestoreGuard implements CanActivate {
     // this._showTaxonomies = this._config.AppConfig.Layout.showTaxonomies || false;
     // const _showTaxonomies = this.appConfig.Layout.showTaxonomies || false;
     const _taxonomiesRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
-    const _showTaxonomies = _taxonomiesRemoteConfig.tassonomie_abilitate || false;
+    const _showTaxonomies = _taxonomiesRemoteConfig?.tassonomie_abilitate || false;
     if (state.url === '/tassonomie' && !_showTaxonomies) {
       this.router.navigate(['/servizi']);
       return false;  

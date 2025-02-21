@@ -135,19 +135,32 @@ public class DominiTest {
         SecurityContextHolder.clearContext();
     }
 
+    private SoggettoCreate getSoggettoCreate() {
+    	SoggettoCreate soggettoCreate = new SoggettoCreate();
+    	soggettoCreate.setNome("xxx");
+        soggettoCreate.setSkipCollaudo(true);
+        soggettoCreate.setReferente(true);
+        return soggettoCreate;
+    }
+    
+    private DominioCreate getDominioCreate() {
+    	DominioCreate dominio = CommonUtils.getDominioCreate();
+    	dominio.setSkipCollaudo(true);
+    	return dominio;
+    }
+    
     @Test
     public void testCreateDominioSuccess() {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
 
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
-
-        DominioCreate dominio = CommonUtils.getDominioCreate();
+        
+        DominioCreate dominio = this.getDominioCreate();
         dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominio);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -162,18 +175,17 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate1 = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate1 = this.getDominioCreate();
         dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
         assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
 
-        DominioCreate dominioCreate2 = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate2 = this.getDominioCreate();
         dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ConflictException exception = assertThrows(ConflictException.class, () -> {
             controller.createDominio(dominioCreate2);
@@ -187,13 +199,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
@@ -210,13 +221,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
 
         this.tearDown();
@@ -233,13 +243,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -265,13 +274,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -290,13 +298,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -315,13 +322,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -351,13 +357,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -404,13 +409,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -437,13 +441,12 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -470,18 +473,17 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate1 = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate1 = this.getDominioCreate();
         dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
         assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
 
-        DominioCreate dominioCreate2 = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate2 = this.getDominioCreate();
         dominioCreate2.setNome("SecondDomain");
         dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio2 = controller.createDominio(dominioCreate2);
@@ -506,14 +508,13 @@ public class DominiTest {
     	ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
     	for(int n = 0; n < 3; n++) {
-    		DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+    		DominioCreate dominioCreate = this.getDominioCreate();
     		dominioCreate.setNome("NomeDominio"+n);
             dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
             ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate);
@@ -543,14 +544,13 @@ public class DominiTest {
     	ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
     	for(int n = 0; n < 3; n++) {
-    		DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+    		DominioCreate dominioCreate = this.getDominioCreate();
     		dominioCreate.setNome("NomeDominio"+n);
             dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
             ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate);
@@ -582,14 +582,13 @@ public class DominiTest {
     	ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
     	for(int n = 0; n < numeroTotaleDiElementi; n++) {
-    		DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+    		DominioCreate dominioCreate = this.getDominioCreate();
     		dominioCreate.setNome("NomeDominio"+n);
             dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
             ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate);
@@ -615,19 +614,18 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-        DominioCreate dominioCreate1 = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate1 = this.getDominioCreate();
         dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         dominioCreate1.setDeprecato(true);
         ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
         assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
 
-        DominioCreate dominioCreate2 = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate2 = this.getDominioCreate();
         dominioCreate2.setNome("SecondDomain");
         dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         dominioCreate2.setDeprecato(false);
@@ -647,14 +645,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione di un dominio
-        DominioCreate dominioCreate1 = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate1 = this.getDominioCreate();
         dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
         assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
@@ -673,14 +670,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -724,14 +720,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -756,14 +751,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -788,14 +782,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -818,14 +811,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -869,14 +861,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -910,14 +901,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -951,14 +941,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -980,14 +969,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -1033,14 +1021,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -1098,14 +1085,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -1164,14 +1150,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -1207,14 +1192,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
@@ -1274,14 +1258,13 @@ public class DominiTest {
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("xxx");
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         // Creazione del dominio
-        DominioCreate dominioCreate = CommonUtils.getDominioCreate();
+        DominioCreate dominioCreate = this.getDominioCreate();
         dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());

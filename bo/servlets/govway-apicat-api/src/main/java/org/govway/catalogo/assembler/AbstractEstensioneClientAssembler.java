@@ -240,6 +240,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 			EstensioneClientEntity csrCertificato = new EstensioneClientEntity();
 			csrCertificato.setNome(getNomeProperty(nomeCertificato, CERTIFICATO_CN_PROPERTY));
 			csrCertificato.setDocumento(documentoAssembler.toEntity(certificato.getCertificato(), null, coreEngineAssembler.getUtenteSessione()));
+			CertificateUtils.checkCertificate(csrCertificato.getDocumento());
 			lst.add(csrCertificato);
 
 		}
@@ -258,6 +259,8 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 		EstensioneClientEntity eCertificato = new EstensioneClientEntity();
 		eCertificato.setNome(getNomeProperty(nomeCertificato, CERTIFICATO_PROPERTY));
 		eCertificato.setDocumento(documentoAssembler.toEntity(certificato.getCertificato(), null, coreEngineAssembler.getUtenteSessione()));
+
+		CertificateUtils.checkCertificate(eCertificato.getDocumento());
 		lst.add(eCertificato);
 		
 		return lst;

@@ -396,7 +396,7 @@
             <div class="row justify-content-center">
                 <div class="col-12" [class.col-lg-10-]="viewBoxed" *ngIf="!_showMasonry">
                     <div class="row" style="padding-right: 8px;">
-                        <div *ngFor="let element of groups" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.dalign-items-stretch]="_fillBox">
+                        <div *ngFor="let element of groups; trackBy: _trackBy;" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.dalign-items-stretch]="_fillBox">
                             <ui-card class="extended" [class.flex-fill]="_fillBox"
                                 [type]="CardType.Extended"
                                 [primaryText]="element.primaryText" 
@@ -425,7 +425,7 @@
                         [options]="masonryOptions"
                         [ordered]="true"
                     >
-                        <div class="masonry-item mb-3" ngxMasonryItem [prepend]="false" style="width: 32%;" *ngFor="let element of groups">
+                        <div class="masonry-item mb-3" ngxMasonryItem [prepend]="false" style="width: 32%;" *ngFor="let element of groups; trackBy: _trackBy;">
                             <ui-card class="extended" class=""
                                 [type]="CardType.Extended"
                                 [primaryText]="element.primaryText" 
@@ -456,7 +456,7 @@
             <div class="row">
                 <div class="col-12">
                     <form>
-                        <ng-container *ngFor="let element of elements">
+                        <ng-container *ngFor="let element of elements; trackBy: _trackBy;">
                             <div class="px-2 border-bottom">
                                 <div class="d-flex flex-column flex-md-row align-md-items-center">
                                     <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection">

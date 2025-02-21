@@ -237,7 +237,7 @@ public class AdesioneDTOConverter {
 	private List<DTOAdesioneAPI> buildAdesioneList(ClientEntity client, String profilo, AuthTypeEntity authTypeEntity) {
 		List<DTOAdesioneAPI> list = new ArrayList<>();
 		if (client != null) {
-			list.add(new DTOAdesioneAPI(profilo, authTypeEntity.getResources(), client.getNome()));
+			list.add(new DTOAdesioneAPI(profilo, new String(authTypeEntity.getResources()), client.getNome()));
 		}
 		return list;
 	}

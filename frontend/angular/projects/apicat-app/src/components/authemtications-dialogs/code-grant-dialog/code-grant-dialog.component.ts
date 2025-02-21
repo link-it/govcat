@@ -64,7 +64,7 @@ export class CodeGrantDialogComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        console.log('CodeGrantDialogComponent');
+        console.log('CodeGrantDialogComponent', this.tokenPolicy);
 
         const _configGenerale = Tools.Configurazione.generale;
         console.log('_configGenerale', _configGenerale);

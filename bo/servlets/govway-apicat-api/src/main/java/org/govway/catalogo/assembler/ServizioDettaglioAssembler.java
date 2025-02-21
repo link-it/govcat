@@ -120,7 +120,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		dettaglio.setPackage(entity.is_package());
 
 		dettaglio.setImmagine(engine.getImmagine(entity));
-		
+		dettaglio.setVincolaSkipCollaudo(isVincolaSkipCollaudo(entity));
 		
 		dettaglio.setIdServizio(UUID.fromString(entity.getIdServizio()));
 
@@ -180,6 +180,15 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 	public ServizioEntity toEntity(IdentificativoServizioUpdate src, ServizioEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 		
+		if(src.isSkipCollaudo() != null) {
+			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
+				if(isVincolaSkipCollaudo(entity)) {
+					throw new BadRequestException("Impossibile disabilitare skip collaudo nel Servizio ["+entity.getNome()+" " + entity.getVersione()+"], in quanto associato ad almeno una adesione con skip collaudo abilitato");
+				}
+			}
+			setSkipCollaudo(src.isSkipCollaudo(), entity);
+		}
+
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
 		} else {
@@ -240,7 +249,6 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		DominioEntity newDominio = dominioService.find(idDominio).
 				orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
 		
-
 		if(newDominio.getSoggettoReferente().getOrganizzazione().isEsterna()) {
 			if(idSoggetto==null) {
 				throw new RichiestaNonValidaSemanticamenteException("Dominio ["+newDominio.getNome()+"] esterno e soggetto interno non specificato");
@@ -263,8 +271,12 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		entity.setDominio(newDominio);
 		
+		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
+			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare il servizio ["+entity.getNome()+" " + entity.getVersione()+"]. Skip collaudo abilitato sul Servizio e non sul Dominio ["+entity.getDominio().getNome()+"]");
+		}
+		
 		if(entity.getDominio().isDeprecato() && !this.coreAuthorization.isAdmin()) {
-			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare il servizio ["+entity.getNome()+" " + entity.getVersione() + "]. Dominio ["+entity.getDominio().getNome()+"] deprecato");
+			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare il servizio ["+entity.getNome()+" " + entity.getVersione()+"]. Dominio ["+entity.getDominio().getNome()+"] deprecato");
 		}
 		
 	}
@@ -285,6 +297,18 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		return entity;
 	}
 	
+	private boolean isVincolaSkipCollaudo(ServizioEntity entity) {
+		return entity.getAdesioni().stream().anyMatch(a -> a.isSkipCollaudo());
+	}
+
+	private void setSkipCollaudo(Boolean skipCollaudo, ServizioEntity entity) {
+		entity.setSkipCollaudo(skipCollaudo);
+
+		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
+			throw new BadRequestException("Impossibile impostare skip collaudo sul Servizio ["+entity.getNome()+" "+entity.getVersione()+"], in quanto il Dominio ["+entity.getDominio().getNome()+"] non lo consente");
+		}
+	}
+
 	public ServizioEntity toEntity(StatoUpdate src, ServizioEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 		
@@ -326,6 +350,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
 		}
+		
+		setSkipCollaudo(src.isSkipCollaudo(), entity);
 		
 		if(src.getImmagine()!=null) {
 			entity.setImmagine(engine.toImmagine(src.getImmagine()));

@@ -11,6 +11,7 @@ export interface DominioCreateUpdateRequest {
     url_invocazione?: string;
     url_prefix_collaudo?: string;
     url_prefix_produzione?: string;
+    skip_collaudo: boolean;
 }
 
 export interface Classi {

@@ -28,31 +28,31 @@ import { DoubleCert } from './datispecifici';
 import { Erogazioni } from './erogazioni';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
-enum TipoClientEnum {
+export enum TipoClientEnum {
     Nuovo = 'nuovo',
     Riferito = 'riferito',
     Proposto = 'proposto'
 }
 
-enum SelectedClientEnum {
+export enum SelectedClientEnum {
     NuovoCliente = 'nuovoClient',
     UsaClientEsistente = 'usaClientEsistente',
     Default = ''
 }
 
-enum StatoConfigurazioneEnum {
+export enum StatoConfigurazioneEnum {
     CONFIGURATO = 'configurato',
     NONCONFIGURATO = 'Non configurato',
     CONFIGINPROGRESS = 'config_in_progress'
 }
 
-const fake_tipoCertificatoEnum = [
+export const fake_tipoCertificatoEnum = [
     { 'nome': 'fornito', 'value': 'fornito'}, 
     { 'nome': 'richiesto_cn', 'value': 'richiesto_cn'}, 
     { 'nome': 'richiesto_csr', 'value': 'richiesto_csr'}
 ];
 
-const fake_credenziali = [
+export const fake_credenziali = [
     {'nome': 'Nuove credenziali'}, 
     {'nome': 'client_modi_p1'}, 
     {'nome': 'client_modi_p2'}
@@ -306,9 +306,6 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     }
 
                     this._initBreadcrumb();
-
-                    // this._loadAdesioneConfigErogazioni();
-                    // this._loadAdesioneConfigClients();
 
                     this._spin = false;
                 });
@@ -698,7 +695,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     };
 
     _loadClientsRiuso(auth_type: string = '', organizzazione: string = '', ambiente: string = '', checkRiuso: boolean = false) {
-        const _options: any = { params: { 'auth_type': `${auth_type}`, 'id_organizzazione': `${organizzazione}`, 'ambiente': `${ambiente}`, 'stato': StatoConfigurazioneEnum.CONFIGURATO } };
+        const _options: any = { params: { size: 100, 'auth_type': `${auth_type}`, 'id_organizzazione': `${organizzazione}`, 'ambiente': `${ambiente}`, 'stato': StatoConfigurazioneEnum.CONFIGURATO } };
 
         this.apiService.getList('client', _options).subscribe({
             next: (response: any) => {

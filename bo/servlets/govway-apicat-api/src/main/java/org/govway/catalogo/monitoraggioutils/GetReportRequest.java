@@ -106,18 +106,6 @@ public class GetReportRequest {
 	public void setTipoReportAndamentoTemporale(TipoReportAndamentoTemporaleEnum tipoReportAndamentoTemporale) {
 		this.tipoReportAndamentoTemporale = tipoReportAndamentoTemporale;
 	}
-	public String getApiErogatoreFruitore() {
-		return apiErogatoreFruitore;
-	}
-	public void setApiErogatoreFruitore(String apiErogatoreFruitore) {
-		this.apiErogatoreFruitore = apiErogatoreFruitore;
-	}
-	public String getApiSoggettoErogatore() {
-		return apiSoggettoErogatore;
-	}
-	public void setApiSoggettoErogatore(String apiSoggettoErogatore) {
-		this.apiSoggettoErogatore = apiSoggettoErogatore;
-	}
 	public ConfigurazioneConnessione getConfigurazioneConnessione() {
 		return configurazioneConnessione;
 	}
@@ -160,12 +148,26 @@ public class GetReportRequest {
 		this.listaCodici = listaCodici;
 	}
 
+	public String getSoggettoReferente() {
+		return soggettoReferente;
+	}
+	public void setSoggettoReferente(String soggettoReferente) {
+		this.soggettoReferente = soggettoReferente;
+	}
+
+	public String getSoggettoErogatore() {
+		return soggettoErogatore;
+	}
+	public void setSoggettoErogatore(String soggettoErogatore) {
+		this.soggettoErogatore = soggettoErogatore;
+	}
+
 	private ConfigurazioneConnessione configurazioneConnessione;
 	private	ProfiloEnum profilo;
 	private	String apiNome;
 	private Integer apiVersione;
-	private String apiSoggettoErogatore;
-	private String apiErogatoreFruitore;
+	private String soggettoReferente;
+	private String soggettoErogatore;
 	private EsitoTransazioneEnum esito;
 	private List<Integer> listaCodici;
 	private String operazione;

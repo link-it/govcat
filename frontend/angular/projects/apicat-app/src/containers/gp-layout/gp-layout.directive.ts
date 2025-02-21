@@ -15,8 +15,8 @@ export class SidebarMinimizeDirective {
         $event.preventDefault();
         const body = this.document.body;
         body.classList.contains('sidebar-minimized') ?
-        this.renderer.removeClass(body, 'sidebar-minimized') :
-        this.renderer.addClass(body, 'sidebar-minimized');
+            this.renderer.removeClass(body, 'sidebar-minimized') :
+            this.renderer.addClass(body, 'sidebar-minimized');
     }
 }
 
@@ -34,8 +34,8 @@ export class MobileSidebarToggleDirective {
         $event.preventDefault();
         const body = this.document.body;
         body.classList.contains('sidebar-show') ?
-        this.renderer.removeClass(body, 'sidebar-show') :
-        this.renderer.addClass(body, 'sidebar-show');
+            this.renderer.removeClass(body, 'sidebar-show') :
+            this.renderer.addClass(body, 'sidebar-show');
     }
 }
 
@@ -57,9 +57,9 @@ export class SidebarOffCanvasCloseDirective {
 
         const body = this.document.body;
         if (body.classList.contains('sidebar-off-canvas')) {
-        body.classList.contains('sidebar-show') ?
-            this.renderer.removeClass(body, 'sidebar-show') :
-            this.renderer.addClass(body, 'sidebar-show');
+            body.classList.contains('sidebar-show') ?
+                this.renderer.removeClass(body, 'sidebar-show') :
+                this.renderer.addClass(body, 'sidebar-show');
         }
     }
 }
@@ -78,8 +78,8 @@ export class BrandMinimizeDirective {
         $event.preventDefault();
         const body = this.document.body;
         body.classList.contains('brand-minimized') ?
-        this.renderer.removeClass(body, 'brand-minimized') :
-        this.renderer.addClass(body, 'brand-minimized');
+            this.renderer.removeClass(body, 'brand-minimized') :
+            this.renderer.addClass(body, 'brand-minimized');
     }
 }
 
@@ -123,8 +123,8 @@ export class HtmlAttributesDirective implements OnInit {
 
     private setAttrib(key: string, value: string | null) {
         value !== null ?
-        this.renderer.setAttribute(this.el.nativeElement, key, value ) :
-        this.renderer.removeAttribute(this.el.nativeElement, key);
+            this.renderer.setAttribute(this.el.nativeElement, key, value ) :
+            this.renderer.removeAttribute(this.el.nativeElement, key);
     }
 }
 

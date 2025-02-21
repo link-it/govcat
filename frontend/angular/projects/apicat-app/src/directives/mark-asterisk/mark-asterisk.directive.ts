@@ -7,6 +7,7 @@ import { AbstractControl, FormGroup, Validators } from '@angular/forms';
 export class MarkAsteriskDirective implements OnInit {
   @Input() formGroup!: FormGroup;
   @Input() controlName!: string;
+  @Input() useOptional: boolean = false;
 
   constructor(private elementRef: ElementRef) {
   }
@@ -24,9 +25,9 @@ export class MarkAsteriskDirective implements OnInit {
   private checkAsterisk(control: AbstractControl){
     const isRequired = control.hasValidator(Validators.required);
     if (isRequired) {
-      this.elementRef.nativeElement.innerHTML = '*';
+      this.elementRef.nativeElement.innerHTML = this.useOptional ? '' : '*';
     }else{
-      this.elementRef.nativeElement.innerHTML = '';
+      this.elementRef.nativeElement.innerHTML = this.useOptional ? '(optional)' : '';
     }
   }
 }

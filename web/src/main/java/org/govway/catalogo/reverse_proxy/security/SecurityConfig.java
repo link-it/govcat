@@ -115,13 +115,13 @@ public class SecurityConfig {
    	private HttpSecurity applyAuthRules(HttpSecurity http) throws Exception {
    		http
    		.authorizeHttpRequests(authorize -> authorize
-   				.antMatchers("/index").authenticated()
-   				.antMatchers("/index.jsp").authenticated()
-   				.antMatchers("/error").permitAll()
+   				.requestMatchers("/index").authenticated()
+   				.requestMatchers("/index.jsp").authenticated()
+   				.requestMatchers("/error").permitAll()
    				// 	proxy catalogo
-   				.antMatchers(baseurlCatalogoApi + "/**").authenticated()
-   				.antMatchers(baseurlCatalogoPdnd + "/**").authenticated()
-   				.antMatchers(baseurlCatalogoMonitor + "/**").authenticated()
+   				.requestMatchers(baseurlCatalogoApi + "/**").authenticated()
+   				.requestMatchers(baseurlCatalogoPdnd + "/**").authenticated()
+   				.requestMatchers(baseurlCatalogoMonitor + "/**").authenticated()
    				.anyRequest().authenticated()
    		);
    		return http;

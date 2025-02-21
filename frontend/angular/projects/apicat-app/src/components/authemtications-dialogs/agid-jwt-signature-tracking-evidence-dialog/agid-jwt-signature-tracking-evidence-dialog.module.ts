@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { AppComponentsModule } from "@app/components/components.module";
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from './agid-jwt-signature-tracking-evidence-dialog.component';
@@ -17,6 +18,7 @@ import { AgidJwtSignatureTrackingEvidenceDialogComponent } from './agid-jwt-sign
     TranslateModule,
     VendorsModule,
     ComponentsModule,
+    AppComponentsModule,
     MarkAsteriskModule
   ],
   exports: [AgidJwtSignatureTrackingEvidenceDialogComponent],

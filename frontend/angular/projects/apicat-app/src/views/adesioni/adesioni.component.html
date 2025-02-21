@@ -264,7 +264,7 @@
 
       <div class="row">
         <div class="col-12">
-          <ui-item-row class="border-bottom" *ngFor="let service of adesioni"
+          <ui-item-row class="border-bottom" *ngFor="let service of adesioni; trackBy: _trackBy;"
             [data]="service"
             [config]="adesioniConfig"
             [hasLink]="true"

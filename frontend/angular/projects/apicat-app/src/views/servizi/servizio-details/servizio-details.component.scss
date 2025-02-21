@@ -17,9 +17,9 @@
 
 .markdown-container {
     max-height: 320px;
-    overflow-y: scroll;
+    overflow-y: auto;
 
-    &::-webkit-scrollbar-thumb {
-        visibility: visible;
-    }
+    // &::-webkit-scrollbar-thumb {
+    //     visibility: visible;
+    // }
 }

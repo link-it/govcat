@@ -29,12 +29,14 @@ import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.core.business.utils.OpenapiUtils;
+import org.govway.catalogo.core.business.utils.SwaggerUtils;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
+import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.TipoServizio;
@@ -67,17 +69,25 @@ import org.govway.catalogo.servlets.model.DatiSpecificaApiUpdate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
+import org.govway.catalogo.servlets.model.ProtocolloEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<ApiEntity, API> {
 
+	private Logger logger = LoggerFactory.getLogger(ApiDettaglioAssembler.class);
+
 	@Autowired
 	private DocumentoAssembler allegatoAssembler;
 	
 	@Autowired
 	private ServizioItemAssembler servizioItemAssembler;
+	
+	@Autowired
+	private ServizioDettaglioAssembler servizioDettaglioAssembler;
 	
 	@Autowired
 	private ApiEngineAssembler apiEngineAssembler;
@@ -102,6 +112,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		BeanUtils.copyProperties(entity, dettaglio);
 
 		dettaglio.setIdApi(UUID.fromString(entity.getIdApi()));
+		dettaglio.setDescrizione(Optional.ofNullable(entity.getDescrizione()).map(d -> new String(d)).orElse(null));
 
 		if(entity.getCollaudo()!= null) {
 			dettaglio.setConfigurazioneCollaudo(this.apiEngineAssembler.toConfigurazione(entity.getCollaudo()));
@@ -129,7 +140,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				
 
 			g.setProfilo(authType.getProfilo());
-			g.setResources(Arrays.asList(authType.getResources().split(SEPARATOR)));
+			g.setResources(Arrays.asList(new String(authType.getResources()).split(SEPARATOR)));
 			
 			dettaglio.addGruppiAuthTypeItem(g);
 		}
@@ -146,11 +157,19 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		BeanUtils.copyProperties(src, entity);
 		entity.setRuolo(this.apiEngineAssembler.toRuolo(src.getRuolo()));
 
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
+
 		return entity;
 	}
 	
 	public ApiEntity toEntity(DatiGenericiApiUpdate src, ApiEntity entity) {
 		BeanUtils.copyProperties(src, entity);
+
+		entity.setDescrizione(Optional.ofNullable(src.getDescrizione()).map(d -> d.getBytes()).orElse(null));
+
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
 
 		return entity;
 	}
@@ -164,7 +183,10 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		entity.getEstensioni().removeAll(eDaSovrascrivere);
 		
 		getProprietaCustom(src.getProprietaCustom(), entity);
-		
+
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
+
 		return entity;
 	}
 	
@@ -179,18 +201,29 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			}
 		}
 		
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
+
 		return entity;
 	}
 	
 	public ApiEntity toEntityCollaudo(APIDatiAmbienteUpdate src, ApiEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 		entity.setCollaudo(toEntityAmbiente(src, entity.getCollaudo() != null ? entity.getCollaudo() : new ApiConfigEntity(), entity));
+
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
+		
 		return entity;
 	}
 	
 	public ApiEntity toEntityProduzione(APIDatiAmbienteUpdate src, ApiEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 		entity.setProduzione(toEntityAmbiente(src, entity.getProduzione() != null ? entity.getProduzione() : new ApiConfigEntity(), entity));
+
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
+
 		return entity;
 	}
 	
@@ -211,33 +244,12 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), entity.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
-
-			PROTOCOLLO protocollo = null;
-			
-			switch(src.getProtocollo()) {
-			case REST: protocollo = OpenapiUtils.isOpenapi(entity.getSpecifica().getRawData()) ? PROTOCOLLO.OPENAPI_3: PROTOCOLLO.SWAGGER_2;
-				break;
-			case SOAP:try {
-					protocollo = WsdlUtils.getProtocolloApi(entity.getSpecifica().getRawData());
-				} catch (Exception e) {}
-				break;
-			default:
-				break;}
-			entity.setProtocollo(protocollo);
-		} else {
-			entity.setSpecifica(null);
-
-			PROTOCOLLO protocollo = null;
-			
-			switch(src.getProtocollo()) {
-			case REST: protocollo = PROTOCOLLO.OPENAPI_3;
-				break;
-			case SOAP: protocollo = PROTOCOLLO.WSDL11;
-			default:
-				break;}
-			entity.setProtocollo(protocollo);
 		}
+		
+		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica()));
 
+		this.servizioDettaglioAssembler.setUltimaModifica(api.getServizio());
+		this.servizioService.save(api.getServizio());
 
 		return entity;
 	}
@@ -246,6 +258,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		ApiEntity entity = new ApiEntity();
 		BeanUtils.copyProperties(src, entity);
 		
+		entity.setDescrizione(Optional.ofNullable(src.getDescrizione()).map(d -> d.getBytes()).orElse(null));
 		entity.setIdApi(UUID.randomUUID().toString());
 
 		entity.getServizi().add(servizioService.find(src.getIdServizio()).
@@ -267,42 +280,56 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			entity.getAuthType().addAll(getAuthType(src.getGruppiAuthType(), entity));
 		}
 
+		this.servizioDettaglioAssembler.setUltimaModifica(entity.getServizio());
+		this.servizioService.save(entity.getServizio());
+
 		return entity;
+	}
+	
+	private PROTOCOLLO toProtocollo(ProtocolloEnum pr, DocumentoEntity spec) {
+
+		if(spec!=null) {
+			
+			switch(pr) {
+			case REST: 
+				if (OpenapiUtils.isOpenapi(spec.getRawData())) {
+					return PROTOCOLLO.OPENAPI_3;
+				} else if (SwaggerUtils.isSwagger(spec.getRawData())) {
+					return PROTOCOLLO.SWAGGER_2;
+				} else {
+					this.logger.error("Swagger / OpenAPI fornito non corretto");
+					throw new BadRequestException("Swagger / OpenAPI fornito non corretto");
+				}
+			case SOAP:
+				try {
+					return WsdlUtils.getProtocolloApi(spec.getRawData());
+				} catch (Exception e) {
+					this.logger.error("WSDL fornito non corretto: " + e.getMessage(), e);
+					throw new BadRequestException("WSDL fornito non corretto");
+				}
+			}
+
+		} else {
+			switch(pr) {
+			case REST: return PROTOCOLLO.OPENAPI_3;
+			case SOAP: return PROTOCOLLO.WSDL11;
+			}
+		}
+
+		throw new BadRequestException("Impossibile trovare il protocollo");
 	}
 
 	private ApiConfigEntity getApiConfig(APIDatiAmbienteCreate src, ApiEntity api) {
 		ApiConfigEntity entity = new ApiConfigEntity();
 
 		checkSpecifica(src.getSpecifica());
-		
+
 		if(src.getSpecifica()!=null) {
 			entity.setSpecifica(this.allegatoAssembler.toEntity(src.getSpecifica(), this.apiEngineAssembler.getUtenteSessione()));
-			PROTOCOLLO protocollo = null;
-			
-			switch(src.getProtocollo()) {
-			case REST: protocollo = OpenapiUtils.isOpenapi(entity.getSpecifica().getRawData()) ? PROTOCOLLO.OPENAPI_3: PROTOCOLLO.SWAGGER_2;
-				break;
-			case SOAP:try {
-					protocollo = WsdlUtils.getProtocolloApi(entity.getSpecifica().getRawData());
-				} catch (Exception e) {}
-				break;
-			default:
-				break;}
-			entity.setProtocollo(protocollo);
-
-		} else {
-			PROTOCOLLO protocollo = null;
-			switch(src.getProtocollo()) {
-			case REST: protocollo = PROTOCOLLO.OPENAPI_3;
-				break;
-			case SOAP:protocollo = PROTOCOLLO.WSDL11;
-				break;
-			default:
-				break;}
-			entity.setProtocollo(protocollo);
-
 		}
-
+		
+		entity.setProtocollo(toProtocollo(src.getProtocollo(), entity.getSpecifica()));
+		
 		if(src.getDatiErogazione()!= null) {
 			entity.setNomeGateway(src.getDatiErogazione().getNomeGateway());
 			entity.setVersioneGateway(src.getDatiErogazione().getVersioneGateway());
@@ -312,6 +339,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 
 		}
 		
+		this.servizioDettaglioAssembler.setUltimaModifica(api.getServizio());
+		this.servizioService.save(api.getServizio());
+
 		return entity;
 	}
 
@@ -425,7 +455,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				authType.setApi(entity);
 				authType.setNote(gruppo.getNote());
 				authType.setProfilo(gruppo.getProfilo());
-				authType.setResources(String.join(SEPARATOR, gruppo.getResources()));
+				authType.setResources(String.join(SEPARATOR, gruppo.getResources()).getBytes());
 
 				authTypeSet.add(authType);
 			}

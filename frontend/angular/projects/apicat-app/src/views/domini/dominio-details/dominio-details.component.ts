@@ -128,7 +128,6 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         this._isNew = true;
         this._isEdit = true;
         this._spin = false;
-        
       }
 
     });
@@ -198,6 +197,10 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
             value = data[key] ? data[key] : false;
             _group[key] = new UntypedFormControl(value, []);
             break;
+          case 'skip_collaudo':
+            value = data[key] ? data[key] : false;
+            _group[key] = new UntypedFormControl(value, []);
+              break;
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, []);
@@ -210,19 +213,20 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         this.checkClassiState(value, true);
       });
 
+      this._enableDisableSkipCollaudo(data.soggetto_referente);
       this.checkClassiState(data.visibilita);
     }
   }
 
   private checkClassiState(value: string, resetValue: boolean = false){
     const classiControl = this._formGroup.get('classi');
-    if(!classiControl) return;
+    if (!classiControl) return;
 
-    if(resetValue) classiControl.setValue([]);
+    if (resetValue) classiControl.setValue([]);
 
-    if('riservato' === value){
+    if ('riservato' === value) {
       classiControl.setValidators([Validators.required]);
-    }else{
+    } else {
       classiControl.clearValidators();
     }
     classiControl.updateValueAndValidity();
@@ -282,7 +286,8 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
       deprecato: body.deprecato,
       url_invocazione: body.url_invocazione || null,
       url_prefix_collaudo: body.url_prefix_collaudo || null,
-      url_prefix_produzione: body.url_prefix_produzione || null
+      url_prefix_produzione: body.url_prefix_produzione || null,
+      skip_collaudo: body.skip_collaudo || false,
     };
 
     this.apiService.putElement(this.model, id, _body).subscribe(
@@ -354,7 +359,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
       this.apiService.getDetails(this.model, this.id).subscribe({
         next: (response: any) => {
-          this.dominio = new Dominio({ ...response });
+          this.dominio = response; // new Dominio({ ...response });
           this._dominio = new Dominio({ ...response });
           this._initBreadcrumb();
           const aux: any = {
@@ -363,6 +368,8 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
           }
           this._initSoggettiSelect([aux]);
 
+          this._enableDisableSkipCollaudo(this.dominio.soggetto_referente);
+      
           this._initForm({...this.dominio});
 
           this._spin = false;
@@ -416,10 +423,27 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
       );
   }
 
+  _enableDisableSkipCollaudo(soggetto: any) {
+    if (soggetto?.skip_collaudo) {
+      if (this.dominio.vincola_skip_collaudo) {
+        this._formGroup.get('skip_collaudo')?.setValue(false);
+        this._formGroup.get('skip_collaudo')?.disable();
+      } else {
+        this._formGroup.get('skip_collaudo')?.enable();
+      }
+    } else {
+      this._formGroup.get('skip_collaudo')?.disable();
+    }
+  }
+
+  onChangeSoggetto(event: any) {
+    this._enableDisableSkipCollaudo(event);
+  }
+
   _initBreadcrumb() {
     const _title = this.dominio ? this.dominio.nome : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.LABEL.Domain', url: '/domini', type: 'link' },
       { label: `${_title}`, url: '', type: 'title' }
     ];
@@ -460,10 +484,6 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     } else {
       this._dominio = new Dominio({ ...this.dominio });
     }
-  }
-
-  _onEditComponent(event: any, component: any) {
-    console.log('_onEditComponent', component);
   }
 
   onBreadcrumb(event: any) {

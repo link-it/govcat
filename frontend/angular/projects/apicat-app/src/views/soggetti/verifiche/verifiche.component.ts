@@ -151,7 +151,7 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnDestro
           const configSoggetto = this._getConfigSoggetto();
           this._isPDND = !!configSoggetto;
           if (this.environmentId) {
-            this._listTokenPolicy = configSoggetto[this.environmentId]?.lista_policy || [];
+            this._listTokenPolicy = configSoggetto && configSoggetto[this.environmentId] ? configSoggetto[this.environmentId].lista_policy : [];
           }
       
           this._spin = false;

@@ -8,6 +8,7 @@ import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 
 import { uuid } from 'projects/tools/src/lib/custom-forms-validators/uuid/validator';
 import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
 import { Tools } from 'projects/tools/src/lib/tools.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -18,6 +19,7 @@ import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
+import { EventType } from 'projects/tools/src/lib/classes/events';
 import { Page } from '@app/models/page';
 
 import * as moment from 'moment';
@@ -143,7 +145,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   api_url: string = '';
   defaultTransactionInterval: number = 30;
 
-  generalConfig: any = Tools.Configurazione;
+  generalConfig: any = Tools.Configurazione || null;
 
   _useNewSearchUI : boolean = false;
 
@@ -185,6 +187,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     private router: Router,
     private translate: TranslateService,
     private configService: ConfigService,
+    private eventsManagerService: EventsManagerService,
     public tools: Tools,
     private apiService: OpenAPIService,
     private authenticationService: AuthenticationService,
@@ -192,7 +195,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
-    this._monitoraggioLimitata = this.generalConfig.monitoraggio.limitata || false;
+    this._monitoraggioLimitata = this.generalConfig?.monitoraggio.limitata || false;
 
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
@@ -228,6 +231,11 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
           }
         );
       }
+    });
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
+        this.generalConfig = Tools.Configurazione || null;
+        this._monitoraggioLimitata = this.generalConfig?.monitoraggio.limitata || false;
     });
   }
 
@@ -427,6 +435,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
       }
     }
     _range = JSON.parse(JSON.stringify(_range));
+    console.log('_range', _range);
     return _range;
   }
 
@@ -452,7 +461,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
 
       
       const _verifica = this._tipoVerifica(this._apiSelected);
-      const _soggetto = this._getSoggettoNome(_verifica);
+      const _soggetto = this._getSoggettoNome();
       _path = `${this.environmentId}/${_verifica}/${_soggetto}/diagnostica/lista-transazioni`;
     } else {
       _data = { id_transazione: query.id_transazione, id_servizio: this.service.id_servizio };
@@ -540,12 +549,12 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
       query = { ...query, id_servizio: this.id };
       const _range: any = this._prepareRange(query);
       query = { ...query, ..._range };
-      if (query) aux = { params: this.utils._queryToHttpParams(query) };
+      if (query) aux = { params: this.utils._queryToHttpParams(query, false) };
 
       const _verifica = this._tipoVerifica(this._apiSelected);
       // const _profilo = this._isSoggettoPDND() ? 'pdnd' : 'modi';
       // _path = `${this.environmentId}/${_verifica}/${_profilo}/diagnostica/lista-transazioni`;
-      const _idSoggetto = this._getSoggettoNome(_verifica);
+      const _idSoggetto = this._getSoggettoNome();
       _path = `${this.environmentId}/${_verifica}/${_idSoggetto}/diagnostica/lista-transazioni`;
     } else {
       aux = { params: this.utils._queryToHttpParams({ id_transazione: query.id_transazione, id_servizio: this.service.id_servizio }) };
@@ -852,11 +861,19 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.dominio?.soggetto_interno?.nome;
   }
 
-  _getSoggettoNome(verifica: string) {
-    return (verifica === 'erogazioni') ? this.service?.dominio?.soggetto_referente?.nome : this.service?.dominio?.soggetto_interno?.nome;
+  _getSoggettoNome() {
+    return this.service?.soggetto_interno?.nome || this.service?.dominio?.soggetto_referente?.nome;
   }
 
   _tipoVerifica(api: any) {
-    return (api.ruolo === 'erogato_soggetto_dominio') ? 'erogazioni' : 'fruizioni';
+    if (api.ruolo === 'erogato_soggetto_dominio') {
+      if (this.service?.soggetto_interno) {
+        return 'fruizioni';
+      } else {
+        return 'erogazioni';
+      }
+    } else {
+      return 'fruizioni';
+    }
   }
 }

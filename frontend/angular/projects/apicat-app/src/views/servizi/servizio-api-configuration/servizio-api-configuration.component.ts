@@ -326,7 +326,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         next: (grant: any) => {
           this._grant = grant;
 
-          const _srv: any = Tools.Configurazione.servizio;
+          const _srv: any = Tools.Configurazione?.servizio;
           this._specificaObbligatorio = (_srv && _srv.api) ? _srv.api.specifica_obbligatorio : false;
 
           this._descrittoreCtrl.setValidators([Validators.required]);
@@ -411,11 +411,11 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       this._hasSpecifica = configuration?.specifica || !configuration?.protocollo ? true : false;
     } else {
 
-      if(configuration?.protocollo){
+      if (configuration?.protocollo){
         this._hasSpecifica = configuration?.specifica ? true : false;
-      }else{
+      } else {
         const _configurationCollaudo = this.servizioApi.configurazione_collaudo;
-        if(!configuration?.protocollo){
+        if (!configuration?.protocollo){
           this._hasSpecifica = _configurationCollaudo?.specifica ? true : false;
         }
       }
@@ -570,11 +570,11 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     const profili: Profile[] = _srv.api?.profili.filter((p: any) => profiles.includes(p.codice_interno));
 
     _srv.api.proprieta_custom.forEach((item: any) => {
-      if(item.profili && !item.profili.some((p: string) => profili.some((pr: Profile) => pr.codice_interno === p))) {
+      if (item.profili && !item.profili.some((p: string) => profili.some((pr: Profile) => pr.codice_interno === p))) {
           return;
       }
 
-      if(item.auth_type && !item.auth_type.some((auth_type: string) => profili.some((pr: Profile) => pr.auth_type === auth_type))) {
+      if (item.auth_type && !item.auth_type.some((auth_type: string) => profili.some((pr: Profile) => pr.auth_type === auth_type))) {
           return;
       }
 
@@ -583,11 +583,13 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       }
 
       const _gruppo = item.nome_gruppo;
+      const _ruoli_abilitati = item.ruoli_abilitati;
       item.proprieta.forEach((proprieta: any) => {
         this._apiProprietaCustom.push({
           nome_gruppo: _gruppo,
           classe_dato: item.classe_dato,
-          ...proprieta
+          ...proprieta,
+          ruoli_abilitati: _ruoli_abilitati ? [ ..._ruoli_abilitati ] : undefined
         });
       });
     });
@@ -605,37 +607,54 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         this._apiProprietaCustomGrouped[key].forEach((item: any) => {
           const _validators = [];
 
-          let required = false;
+          const _ruoli = this._grant?.ruoli || [];
+          const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
 
-          if(item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
-              required = item.required;
+          console.group('proprieta_custom');
+          console.log(item);
+          console.log('ruoli', _ruoli);
+          console.log('hasRuolo', _hasRuolo);
+          console.groupEnd();
+
+          if (_hasRuolo) {
+            let required = false;
+  
+            if(item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
+                required = item.required;
+            }
+  
+            if(item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
+                required = item.required;
+            }
+  
+            if(item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
+                required = item.required;
+            }
+  
+            if (required) { _validators.push(Validators.required); }
+            if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
+  
+            this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
+  
+            const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
+              return (pc.gruppo === item.nome_gruppo);
+            });
+            const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome);
+            let _val = _value ? _value.valore : null;
+            if (!this.servizioApi?.proprieta_custom?.length && (item.tipo === 'select')) {
+              const _defaultItem = item.valori.find((item: any) => item.default);
+              _val = _defaultItem?.nome || null;
+            }
+  
+            const group = this.proprietaCustom.get(item.nome_gruppo) as FormGroup;
+            group.addControl(item.nome, new FormControl(_val, [..._validators]));
+          } else {
+            // remove item from list
+            const index = this._apiProprietaCustomGrouped[key]?.indexOf(item) || -1;
+            if (index !== -1) {
+              this._apiProprietaCustomGrouped = this._apiProprietaCustomGrouped[key].splice(index, 1);
+            }
           }
-
-          if(item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
-              required = item.required;
-          }
-
-          if(item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
-              required = item.required;
-          }
-
-          if (required) { _validators.push(Validators.required); }
-          if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
-
-          this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
-
-          const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
-            return (pc.gruppo === item.nome_gruppo);
-          });
-          const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome);
-          let _val = _value ? _value.valore : null;
-          if (!this.servizioApi?.proprieta_custom?.length && (item.tipo === 'select')) {
-            const _defaultItem = item.valori.find((item: any) => item.default);
-            _val = _defaultItem?.nome || null;
-          }
-
-          const group = this.proprietaCustom.get(item.nome_gruppo) as FormGroup;
-          group.addControl(item.nome, new FormControl(_val, [..._validators]));
         });
       });
     }
@@ -706,19 +725,21 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
     if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
       Object.keys(this._apiProprietaCustomGrouped).forEach((k) => {
-        const _customGrouped: ApiCustomProperty = {
-          gruppo: k,
-          proprieta: []
-        };
-        this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-          if (formValues.proprieta_custom[k][kk.nome]) {
-            _customGrouped.proprieta.push({
-              nome: kk.nome,
-              valore: formValues.proprieta_custom[k][kk.nome]
-            });
-          }
-        });
-        proprieta_custom.push(_customGrouped);
+        if (this._apiProprietaCustomGrouped[k].length) {
+          const _customGrouped: ApiCustomProperty = {
+            gruppo: k,
+            proprieta: []
+          };
+          this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
+            if (formValues.proprieta_custom[k][kk.nome]) {
+              _customGrouped.proprieta.push({
+                nome: kk.nome,
+                valore: formValues.proprieta_custom[k][kk.nome]
+              });
+            }
+          });
+          proprieta_custom.push(_customGrouped);
+        }
       });
       request.dati_custom = { proprieta_custom };
     }
@@ -795,10 +816,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   __disableAmbiente(controls: any) {
-      controls.url_produzione.disable();
-      controls.url_produzione.clearValidators();
-      controls.url_collaudo.disable();
-      controls.url_collaudo.clearValidators();
+      controls.url_produzione?.disable();
+      controls.url_produzione?.clearValidators();
+      controls.url_collaudo?.disable();
+      controls.url_collaudo?.clearValidators();
       this._formGroup.updateValueAndValidity();
   }
 
@@ -806,5 +827,9 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     if (this.authenticationService.isGestore(this._grant?.ruoli)) { return true; }
     const mandatoryClasses: string[] = this.authenticationService._getClassesMandatory('servizio', 'api', this.service?.stato || '');
     return !mandatoryClasses.some((item: string) => item === this.environmentId);
+  }
+
+  _isGestore() {
+    return this.authenticationService.isGestore(this._grant?.ruoli);
   }
 }

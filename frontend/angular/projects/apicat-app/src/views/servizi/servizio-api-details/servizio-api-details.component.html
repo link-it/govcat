@@ -178,53 +178,53 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row" *ngIf="_isNew && _info_gateway_visualizzate">
-                                <div class="col-6">
-                                    <div class="form-group nome_gateway">
-                                        <label class="label-bold" for="nome_gateway">{{ 'APP.LABEL.nome_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome_gateway'" *ngIf="_isEdit"></span></label>
-                                        <div class="" *ngIf="_isEdit">
-                                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                            <p *ngIf="f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)" class="form-text text-danger">
-                                                <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome_gateway'].errors['maxlength'].requiredLength } }}</span>
-                                            </p>
-                                            <ui-input-help field="nome_gateway" context="API"></ui-input-help>
+                                <div class="row" *ngIf="_isNew && _info_gateway_visualizzate && _isGestore()">
+                                    <div class="col-6">
+                                        <div class="form-group nome_gateway">
+                                            <label class="label-bold" for="nome_gateway">{{ 'APP.LABEL.nome_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome_gateway'" *ngIf="_isEdit"></span></label>
+                                            <div class="" *ngIf="_isEdit">
+                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                <p *ngIf="f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)" class="form-text text-danger">
+                                                    <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                                    <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome_gateway'].errors['maxlength'].requiredLength } }}</span>
+                                                </p>
+                                                <ui-input-help field="nome_gateway" context="API"></ui-input-help>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-group versione_gateway">
-                                        <label class="label-bold" for="versione_gateway">{{ 'APP.LABEL.versione_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione_gateway'" *ngIf="_isEdit"></span></label>
-                                        <div class="" *ngIf="_isEdit">
-                                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="text" name="versione_gateway" id="versione_gateway" formControlName="versione_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                            <p *ngIf="f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)" class="form-text text-danger">
-                                                <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
-                                            </p>
-                                            <ui-input-help field="versione_gateway" context="API"></ui-input-help>
+                                    <div class="col-6">
+                                        <div class="form-group versione_gateway">
+                                            <label class="label-bold" for="versione_gateway">{{ 'APP.LABEL.versione_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione_gateway'" *ngIf="_isEdit"></span></label>
+                                            <div class="" *ngIf="_isEdit">
+                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="text" name="versione_gateway" id="versione_gateway" formControlName="versione_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                <p *ngIf="f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)" class="form-text text-danger">
+                                                    <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                                    <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
+                                                </p>
+                                                <ui-input-help field="versione_gateway" context="API"></ui-input-help>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 </div>
                                 <div class="row">
-                                <div class="col-12">
-                                    <div class="form-group ruolo">
-                                        <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'" *ngIf="_isEdit"></span></label>
-                                        <div class="" *ngIf="_isEdit">
-                                            <select class="form-select" id="ruolo" formControlName="ruolo" [class.gl-field-error-outline]="_hasControlError('ruolo')" (change)="__changeRuolo($event)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                                <option value="">{{ 'APP.MESSAGE.SelectRole' | translate }}</option>
-                                                <option *ngFor="let ruolo of _ruoli" [value]="ruolo.value">{{ ruolo.label }}</option>
-                                            </select>  
-                                            <p *ngIf="f['ruolo'].invalid && (f['ruolo'].dirty || f['ruolo'].touched)" class="form-text text-danger">
-                                                <span *ngIf="f['ruolo'].errors && f['ruolo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                            </p>
-                                            <ui-input-help field="ruolo" context="API"></ui-input-help>
-                                        </div>
-                                        <div class="" *ngIf="!_isEdit">
-                                            <input type="text" readonly class="form-control-plaintext" id="ruolo" [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente">
+                                    <div class="col-12">
+                                        <div class="form-group ruolo">
+                                            <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'" *ngIf="_isEdit"></span></label>
+                                            <div class="" *ngIf="_isEdit">
+                                                <select class="form-select" id="ruolo" formControlName="ruolo" [class.gl-field-error-outline]="_hasControlError('ruolo')" (change)="__changeRuolo($event)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                    <option value="">{{ 'APP.MESSAGE.SelectRole' | translate }}</option>
+                                                    <option *ngFor="let ruolo of _ruoli" [value]="ruolo.value">{{ ruolo.label }}</option>
+                                                </select>  
+                                                <p *ngIf="f['ruolo'].invalid && (f['ruolo'].dirty || f['ruolo'].touched)" class="form-text text-danger">
+                                                    <span *ngIf="f['ruolo'].errors && f['ruolo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                                </p>
+                                                <ui-input-help field="ruolo" context="API"></ui-input-help>
+                                            </div>
+                                            <div class="" *ngIf="!_isEdit">
+                                                <input type="text" readonly class="form-control-plaintext" id="ruolo" [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente">
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 </div>
                                 <div *ngIf="_isNew" class="row">
                                     <div class="col-12 ms-3" *ngIf="!_specificaObbligatorio">
@@ -280,7 +280,7 @@
                                         <p class="mt-1 white-space-pre">{{ servizioApi?.descrizione || '-' }}</p>
                                     </div>
                                 </div>
-                                <div class="form-group codice_asset">
+                                <div class="form-group codice_asset" *ngIf="_codiceAssetObbligatorio">
                                     <label class="label-bold" for="codice_asset">{{ 'APP.LABEL.codice_asset' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'codice_asset'" *ngIf="_isEdit"></span></label>
                                     <div class="" *ngIf="_isEdit">
                                         <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_asset')" type="text" name="codice_asset" id="codice_asset" formControlName="codice_asset" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
@@ -334,69 +334,69 @@
 
                                     <div class="col-12" *ngIf="!_loadingRisorse">
                                         <div class="" formArrayName="authTypes">
-                                        <ng-container *ngFor="let at of authTypesArray().controls; let authIndex = index">
-                                            <div [ngClass]="{ 'text-bg-light p-3': (_customAuth || _customAuthOrig), 'border-top- border-bottom-': (_customAuth || _customAuthOrig), 'mt-3': authIndex > 0 }" >
-                                                <div [formGroupName]="authIndex">
-                                                    <div class="d-flex justify-content-start mb-1" *ngIf="authTypesArray().controls.length > 1">
-                                                        <span class="badge badge-light fs-8"># {{ authIndex + 1 }}</span>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-6">
-                                                            <div class="form-group">
-                                                                <label class="label-bold" [for]="'profilo-' + 1">{{ 'APP.LABEL.AuthPrevista' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'profilo'" *ngIf="_isEdit"></span></label>
-                                                                <div class="" *ngIf="_isEdit">
-                                                                    <select class="form-select" [id]="'profilo-' + 1" formControlName="profilo" (change)="_onChangeProfilo($event, authIndex)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                                                        <option value="">{{ 'APP.MESSAGE.SelectAuthentication' | translate }}</option>
-                                                                        <option *ngFor="let ta of _profiliFiltered | authFilter:_authSelected" [value]="ta.codice_interno">{{ ta.etichetta }}</option>
-                                                                    </select>
+                                            <ng-container *ngFor="let at of authTypesArray().controls; let authIndex = index">
+                                                <div [ngClass]="{ 'text-bg-light p-3': (_customAuth || _customAuthOrig), 'border-top- border-bottom-': (_customAuth || _customAuthOrig), 'mt-3': authIndex > 0 }" >
+                                                    <div [formGroupName]="authIndex">
+                                                        <div class="d-flex justify-content-start mb-1" *ngIf="authTypesArray().controls.length > 1">
+                                                            <span class="badge badge-light fs-8"># {{ authIndex + 1 }}</span>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-6">
+                                                                <div class="form-group">
+                                                                    <label class="label-bold" [for]="'profilo-' + 1">{{ 'APP.LABEL.AuthPrevista' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'profilo'" *ngIf="_isEdit"></span></label>
+                                                                    <div class="" *ngIf="_isEdit">
+                                                                        <select class="form-select" [id]="'profilo-' + 1" formControlName="profilo" (change)="_onChangeProfilo($event, authIndex)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                                            <option value="">{{ 'APP.MESSAGE.SelectAuthentication' | translate }}</option>
+                                                                            <option *ngFor="let ta of _profiliFiltered | authFilter:_authSelected" [value]="ta.codice_interno">{{ ta.etichetta }}</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="" *ngIf="!_isEdit">
+                                                                        <input type="text" readonly class="form-control-plaintext" id="profilo" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
+                                                                    </div>
                                                                 </div>
-                                                                <div class="" *ngIf="!_isEdit">
-                                                                    <input type="text" readonly class="form-control-plaintext" id="profilo" [value]="afgc(authIndex)['profilo'].value | mapper:_getProfiloLabelMapper">
+                                                            </div>
+                                                            <div class="col-6" *ngIf="f['authTypes'].value.length > 1 || (_customAuth || _customAuthOrig)">
+                                                                <!-- <pre class="overflow-auto" style="height: 200px;">{{ _risorseSelected | json }}</pre> -->
+                                                                <label class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'" *ngIf="_isEdit"></span> <span class="float-end" (click)="_changeResources(authIndex)" *ngIf="_isEdit && ('resources' | mapper:_canEditFieldMapper)"><i class="bi bi-pencil"></i></span></label>
+                                                                <select class="form-select" formControlName="resources" multiple size="5" readonly>
+                                                                    <option class="bg-transparent" *ngFor="let r of _geControlResourcest(authIndex)" [value]="r" disabled>{{ r }}</option>
+                                                                </select>
+                                                                <p class="form-text text-muted">{{ ('APP.MESSAGE.NumeroRisorse' | pluralTranslate:(_geControlResourcest(authIndex).length || 0)) | translate:{ count: (_geControlResourcest(authIndex).length || 0) } }}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="form-group">
+                                                                    <label class="label-bold">{{ 'APP.LABEL.note' | translate }}</label>
+                                                                    <div class="" *ngIf="_isEdit">
+                                                                        <textarea class="form-control" formControlName="note" rows="2" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                                                                    </div>
+                                                                    <div class="" *ngIf="!_isEdit">
+                                                                        <textarea class="form-control-plaintext" id="note" rows="3"  [placeholder]="'-'" formControlName="note" readonly></textarea>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-6" *ngIf="f['authTypes'].value.length > 1 || (_customAuth || _customAuthOrig)">
-                                                            <!-- <pre class="overflow-auto" style="height: 200px;">{{ _risorseSelected | json }}</pre> -->
-                                                            <label class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'" *ngIf="_isEdit"></span> <span class="float-end" (click)="_changeResources(authIndex)" *ngIf="_isEdit && ('resources' | mapper:_canEditFieldMapper)"><i class="bi bi-pencil"></i></span></label>
-                                                            <select class="form-select" formControlName="resources" multiple size="5" readonly>
-                                                                <option class="bg-transparent" *ngFor="let r of _geControlResourcest(authIndex)" [value]="r" disabled>{{ r }}</option>
-                                                            </select>
-                                                            <p class="form-text text-muted">{{ ('APP.MESSAGE.NumeroRisorse' | pluralTranslate:(_geControlResourcest(authIndex).length || 0)) | translate:{ count: (_geControlResourcest(authIndex).length || 0) } }}</p>
+                                                        <div class="d-flex justify-content-end" *ngIf="(authIndex > 0) && _isEdit && ('allegati' | mapper:_canEditFieldMapper)">
+                                                            <button type="button" class="btn gl-button btn-danger " (click)="_removeAuthGroup(authIndex)">
+                                                                <span>{{ 'APP.BUTTON.Remove' | translate }}</span>
+                                                            </button>
                                                         </div>
-                                                    </div>
-                                                    <div class="row">
-                                                        <div class="col-12">
-                                                            <div class="form-group">
-                                                                <label class="label-bold">{{ 'APP.LABEL.note' | translate }}</label>
-                                                                <div class="" *ngIf="_isEdit">
-                                                                    <textarea class="form-control" formControlName="note" rows="2" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
-                                                                </div>
-                                                                <div class="" *ngIf="!_isEdit">
-                                                                    <textarea class="form-control-plaintext" id="note" rows="3"  [placeholder]="'-'" formControlName="note" readonly></textarea>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex justify-content-end" *ngIf="(authIndex > 0) && _isEdit && ('allegati' | mapper:_canEditFieldMapper)">
-                                                        <button type="button" class="btn gl-button btn-danger " (click)="_removeAuthGroup(authIndex)">
-                                                            <span>{{ 'APP.BUTTON.Remove' | translate }}</span>
-                                                        </button>
                                                     </div>
                                                 </div>
+                                            </ng-container>
+                                            <div class="pt-3 border-top" *ngIf="_isEdit && ('allegati' | mapper:_canEditFieldMapper) && _hasSpecifica">
+                                                <button type="button" class="btn gl-button btn-default" (click)="_onToggleCustomAuth()" *ngIf="!_customAuth && !_customAuthOrig">
+                                                    <span>{{ 'APP.BUTTON.CustomizeAuthentication' | translate }}</span>
+                                                </button>
+                                                <button type="button" class="btn gl-button btn-default" (click)="_onResetCustomAuth()" *ngIf="_customAuth">
+                                                    <span *ngIf="!_customAuthAdded">{{ 'APP.BUTTON.RestoreDefaultAuthentication' | translate }}</span>
+                                                    <span *ngIf="_customAuthAdded">{{ 'APP.BUTTON.CancelCustomAuthentication' | translate }}</span>
+                                                </button>
+                                                <button type="button" class="btn gl-button btn-default ms-2" (click)="_onAddCustomAuth()" *ngIf="(_customAuth || _customAuthOrig) && (_updateResources | mapper:_canAddAuthenticationMapper)">
+                                                    <span>{{ 'APP.BUTTON.AddAuthentication' | translate }}</span>
+                                                </button>
                                             </div>
-                                        </ng-container>
-                                        <div class="pt-3 border-top" *ngIf="_isEdit && ('allegati' | mapper:_canEditFieldMapper) && _hasSpecifica">
-                                            <button type="button" class="btn gl-button btn-default" (click)="_onToggleCustomAuth()" *ngIf="!_customAuth && !_customAuthOrig">
-                                                <span>{{ 'APP.BUTTON.CustomizeAuthentication' | translate }}</span>
-                                            </button>
-                                            <button type="button" class="btn gl-button btn-default" (click)="_onResetCustomAuth()" *ngIf="_customAuth">
-                                                <span *ngIf="!_customAuthAdded">{{ 'APP.BUTTON.RestoreDefaultAuthentication' | translate }}</span>
-                                                <span *ngIf="_customAuthAdded">{{ 'APP.BUTTON.CancelCustomAuthentication' | translate }}</span>
-                                            </button>
-                                            <button type="button" class="btn gl-button btn-default ms-2" (click)="_onAddCustomAuth()" *ngIf="(_customAuth || _customAuthOrig) && (_updateResources | mapper:_canAddAuthenticationMapper)">
-                                                <span>{{ 'APP.BUTTON.AddAuthentication' | translate }}</span>
-                                            </button>
-                                        </div>
                                         </div>
                                     </div>
                                 </div>
@@ -404,36 +404,38 @@
                                 <div class="row mt-5 api-custom-properties" *ngIf="f['ruolo'].value === EROGATO_SOGGETTO_DOMINIO && !_loadingRisorse">
                                     <div class="col-12">
                                         <ng-container *ngFor="let apc of _apiProprietaCustomGrouped | keyvalue">
-                                            <h5 class="pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
-                                            <ng-container *ngFor="let cp of _apiProprietaCustomGrouped[apc.key + '']">
-                                                <div formArrayName="proprieta_custom" class="row custom-properties-fields">
-                                                    <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
-                                                        <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} <span appMarkAsterisk [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome" *ngIf="_markAsteriskUpdated && _isEdit"></span></label>
-                                                        <div class="" *ngIf="_isEdit">
-                                                            <ng-container *ngIf="cp.tipo === 'text'">
-                                                                <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                            <ng-container *ngIf="_apiProprietaCustomGrouped[apc.key + ''].length">
+                                                <h5 class="pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                                                <ng-container *ngFor="let cp of _apiProprietaCustomGrouped[apc.key + '']">
+                                                    <div formArrayName="proprieta_custom" class="row custom-properties-fields">
+                                                        <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
+                                                            <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} <span appMarkAsterisk [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome" *ngIf="_markAsteriskUpdated && _isEdit"></span></label>
+                                                            <div class="" *ngIf="_isEdit">
+                                                                <ng-container *ngIf="cp.tipo === 'text'">
+                                                                    <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                                </ng-container>
+                                                                <ng-container *ngIf="cp.tipo === 'select'">
+                                                                    <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                                        <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
+                                                                        <option *ngFor="let cpv of cp.valori" [value]="cpv.nome">{{ cpv.etichetta }}</option>
+                                                                    </select>
+                                                                </ng-container>
+                                                                <p *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)" class="form-text text-danger">
+                                                                    <span *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.required" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                                                    <span *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.pattern" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern: cp.regular_expression } }}</span>
+                                                                </p>
+                                                            </div>
+                                                            <div class="" *ngIf="!_isEdit">
+                                                            <ng-container *ngIf="cp.tipo !== 'select'">
+                                                                <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
                                                             </ng-container>
                                                             <ng-container *ngIf="cp.tipo === 'select'">
-                                                                <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome" [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)" disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                                                    <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
-                                                                    <option *ngFor="let cpv of cp.valori" [value]="cpv.nome">{{ cpv.etichetta }}</option>
-                                                                </select>
+                                                                <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
                                                             </ng-container>
-                                                            <p *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)" class="form-text text-danger">
-                                                                <span *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.required" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                                <span *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.pattern" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern: cp.regular_expression } }}</span>
-                                                            </p>
-                                                        </div>
-                                                        <div class="" *ngIf="!_isEdit">
-                                                        <ng-container *ngIf="cp.tipo !== 'select'">
-                                                            <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
-                                                        </ng-container>
-                                                        <ng-container *ngIf="cp.tipo === 'select'">
-                                                            <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
-                                                        </ng-container>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </ng-container>
                                             </ng-container>
                                         </ng-container>
                                     </div>

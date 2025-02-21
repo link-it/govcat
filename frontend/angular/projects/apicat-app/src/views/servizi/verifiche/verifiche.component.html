@@ -88,8 +88,8 @@
                                 [showInfo]="true"
                                 [reduced]="true"
                                 [viewType]="viewType"
-                                [period]="period">
-                              </ui-verifica-api>
+                                [period]="period"
+                              ></ui-verifica-api>
                             </ng-container>
                             <ng-template #verSoggettoAderente>
                               <div class="p-3">
@@ -112,8 +112,8 @@
                                     [showInfo]="true"
                                     [reduced]="true"
                                     [viewType]="viewType"
-                                    [period]="period">
-                                  </ui-verifica-api>
+                                    [period]="period"
+                                  ></ui-verifica-api>
                                 </div>
                               </div>
                             </ng-template>
@@ -133,30 +133,28 @@
                                   [config]="verificheConfig"
                                   [showInfo]="true"
                                   [viewType]="viewType"
-                                  [period]="period">
-                                </ui-verifica-api>
+                                  [period]="period"
+                                ></ui-verifica-api>
                               </ng-container>
                               <ng-template #verSoggettoAderente>
-                                <ng-container *ngIf="true">
-                                  <ui-verifica-api
-                                    [environmentId]="environmentId"
-                                    [verifica]="api | mapper:_tipoVerificaMapper"
-                                    [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
-                                    [provider]="''"
-                                    [type]="'certificati'"
-                                    [icon]="'shield-check'"
-                                    [title]="'APP.TITLE.Certificati'"
-                                    [api]="api"
-                                    [service]="service"
-                                    [config]="verificheConfig"
-                                    [showInfo]="true"
-                                    [reduced]="false"
-                                    [compact]="true"
-                                    [adhesions]="adhesions"
-                                    [viewType]="viewType"
-                                    [period]="period">
-                                  </ui-verifica-api>
-                                </ng-container>
+                                <ui-verifica-api
+                                  [environmentId]="environmentId"
+                                  [verifica]="api | mapper:_tipoVerificaMapper"
+                                  [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
+                                  [provider]="''"
+                                  [type]="'certificati'"
+                                  [icon]="'shield-check'"
+                                  [title]="'APP.TITLE.Certificati'"
+                                  [api]="api"
+                                  [service]="service"
+                                  [config]="verificheConfig"
+                                  [showInfo]="true"
+                                  [reduced]="false"
+                                  [compact]="true"
+                                  [adhesions]="adhesions"
+                                  [viewType]="viewType"
+                                  [period]="period"
+                                ></ui-verifica-api>
                               </ng-template>
                             </div>
                           </div>
@@ -187,8 +185,8 @@
                                 [showInfo]="true"
                                 [reduced]="true"
                                 [viewType]="viewType"
-                                [period]="period">
-                            </ui-verifica-api>
+                                [period]="period"
+                              ></ui-verifica-api>
                             </ng-container>
                             <ng-template #conSoggettoAderente>
                               <div class="p-3">
@@ -211,8 +209,8 @@
                                     [showInfo]="true"
                                     [reduced]="true"
                                     [viewType]="viewType"
-                                    [period]="period">
-                                  </ui-verifica-api>
+                                    [period]="period"
+                                  ></ui-verifica-api>
                                 </div>
                               </div>
                             </ng-template>
@@ -232,51 +230,26 @@
                                   [config]="verificheConfig"
                                   [showInfo]="true"
                                   [viewType]="viewType"
-                                  [period]="period">
-                                </ui-verifica-api>
+                                  [period]="period"
+                                ></ui-verifica-api>
                               </ng-container>
                               <ng-template #verSoggettoAderente>
-                                <ng-container *ngIf="true">
-                                  <ui-verifica-api
-                                    [environmentId]="environmentId"
-                                    [verifica]="api | mapper:_tipoVerificaMapper"
-                                    [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
-                                    [provider]="''"
-                                    [type]="'backend'"
-                                    [api]="api"
-                                    [service]="service"
-                                    [config]="verificheConfig"
-                                    [showInfo]="true"
-                                    [reduced]="false"
-                                    [compact]="true"
-                                    [adhesions]="adhesions"
-                                    [viewType]="viewType"
-                                    [period]="period">
-                                  </ui-verifica-api>
-                                </ng-container>
-                                <ng-container *ngIf="false">
-                                  <div class="p-3">
-                                    <span class="fw-bold-600">{{ api.nome }} v.{{ api.versione }}</span>
-                                    <span class="ms-2">({{ 'APP.ROLE.ErogatoSoggettoAderente.title' | translate }})</span>
-                                  </div>
-                                  <div class="scroll-shadows">
-                                    <div class="ms-3" *ngFor="let adhesion of adhesions">
-                                      <ui-verifica-api
-                                        [environmentId]="environmentId"
-                                        [verifica]="api | mapper:_tipoVerificaMapper"
-                                        [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
-                                        [provider]="adhesion.soggetto.nome"
-                                        [type]="'backend'"
-                                        [api]="api"
-                                        [service]="service"
-                                        [config]="verificheConfig"
-                                        [showInfo]="true"
-                                        [viewType]="viewType"
-                                        [period]="period">
-                                      </ui-verifica-api>
-                                    </div>
-                                  </div>
-                                </ng-container>
+                                <ui-verifica-api
+                                  [environmentId]="environmentId"
+                                  [verifica]="api | mapper:_tipoVerificaMapper"
+                                  [pdnd]="api | mapper:_hasIdentificativoeServicePDNDMapper"
+                                  [provider]="''"
+                                  [type]="'backend'"
+                                  [api]="api"
+                                  [service]="service"
+                                  [config]="verificheConfig"
+                                  [showInfo]="true"
+                                  [reduced]="false"
+                                  [compact]="true"
+                                  [adhesions]="adhesions"
+                                  [viewType]="viewType"
+                                  [period]="period"
+                                ></ui-verifica-api>
                               </ng-template>
                             </div>
                           </div>

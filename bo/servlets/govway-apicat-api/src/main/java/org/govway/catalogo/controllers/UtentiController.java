@@ -344,9 +344,9 @@ public class UtentiController implements UtentiApi {
 							this.logger.warn("Utente non configurato per campi nullable: " + fields);
 						} else {
 							contact.setStato(Stato.ABILITATO);
-							this.service.save(contact);
 						}
 						
+						this.service.save(contact);
 						logger.info("POST setStato");
 						
 						return ResponseEntity.ok(this.profiloAssembler.toModel(contact));

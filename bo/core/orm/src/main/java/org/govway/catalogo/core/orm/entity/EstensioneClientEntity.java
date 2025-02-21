@@ -51,6 +51,7 @@ public class EstensioneClientEntity {
 	
     private String nome;
 
+	@Column(length = 4000)
     private String valore;
 
     @ManyToOne

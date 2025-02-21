@@ -1,19 +1,19 @@
 <div class="container-fluid {{ containerClass}}" [class.px-0-]="!_isHiddenSideList()">
 
-    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="loadingApi && !loading"></ui-box-spinner>
+    <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2" *ngIf="loadingApi && !loading"></ui-box-spinner>
 
     <!-- <pre>{{ group | json }}</pre> -->
 
     <div class="row" *ngIf="!loadingApi && !loading">
-        <div class="col-4 border-end" *ngIf="!_isHiddenSideList()">
-            <div class="sticky-top">
-                <h5 class="p-2" *ngIf="!loadingApi">{{ 'APP.API.TITLE.ApiList' | translate }}</h5>
-                <ul class="list-group rounded-0" *ngIf="!loadingApi">
+        <div class="col-5 border-end" *ngIf="!_isHiddenSideList()">
+            <div class="api-container  sticky-top-">
+                <!-- <h5 class="p-2" *ngIf="!loadingApi">{{ 'APP.API.TITLE.ApiList' | translate }}</h5> -->
+                <ul class="list-group rounded-0 pt-4" *ngIf="!loadingApi">
                     <ng-container *ngFor="let sa of serviceApi">
                         <li class="list-group-item list-group-item-action d-flex flex-column" [class.selected]="currentApi === sa.source" (click)="_selectApi(sa.source)">
                             <div class="d-flex justify-content-between text-break">
                                 <div class="">
-                                    <span class="fw-bold">{{ sa.nome }}</span>
+                                    <span class="fw-bold" [class.text-danger]="!(updateMapper | mapper:isSottotipoCompletedMapper:ClassiEnum.API:sa.id)">{{ sa.nome }}</span>
                                     <span class="ms-1 text-muted text-small">v.{{ sa.versione }}</span>
                                 </div>
                             </div>
@@ -23,7 +23,7 @@
                 </ul>
             </div>
         </div>
-        <div class="" [class.col-12]="_isHiddenSideList()" [class.col-8]="!_isHiddenSideList()">
+        <div class="" [class.col-12]="_isHiddenSideList()" [class.col-7]="!_isHiddenSideList()">
 
             <section class="d-flex flex-column text-center mt-0" *ngIf="!currentApi && !_isHiddenSideList() && !loading">
                 <div class="max-w-100 m-auto">
@@ -34,9 +34,9 @@
                 </div>
             </section>
 
-            <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="loading"></ui-box-spinner>
+            <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2" *ngIf="loading"></ui-box-spinner>
 
-            <app-custom-properties *ngIf="((!loadingApi && currentApi) || _isHiddenSideList()) && !loading"
+            <app-custom-properties *ngIf="((currentApi) || _isHiddenSideList()) && !loading"
                 [ambiente]="ambiente"
                 [id_adesione]="id_adesione"
                 [stato_adesione]="stato_adesione"

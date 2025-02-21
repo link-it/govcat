@@ -42,6 +42,7 @@ export class Adesione {
   soggetto_nome: string | null = null;
   organizzazione_nome: string | null = null;
 
+  skip_collaudo: boolean = false;
 
   constructor(_data?: any) {
     if (_data) {

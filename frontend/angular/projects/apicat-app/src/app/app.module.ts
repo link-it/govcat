@@ -2,6 +2,7 @@ import { APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HttpClient, HttpClientXsrfModule } from '@angular/common/http';
+import { CdkStepperModule } from '@angular/cdk/stepper';
 
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -74,6 +75,7 @@ export function ConfigLoader(configService: ConfigService) {
     BrowserAnimationsModule,
     HttpClientModule,
     HttpClientXsrfModule,
+    CdkStepperModule,
 
     TranslateModule.forRoot({
       loader: {

@@ -143,7 +143,7 @@ public class ELKMonitoraggioClient implements IMonitoraggioClient{
 		int rOffset;
 		rLimit = request.getPageable().getPageSize();
 		rOffset = rLimit*request.getPageable().getPageNumber();
-		String services = getServices(request.getLstIdApi());
+		String services = getServices(request.getLstIdApi(), request.getSoggettoReferente());
 
 		if(services == null) {
 			this.logger.info("Services null");
@@ -164,7 +164,7 @@ public class ELKMonitoraggioClient implements IMonitoraggioClient{
 
 		rLimit = request.getPageable().getPageSize();
 		rOffset = rLimit*request.getPageable().getPageNumber();
-		String services = getServices(request.getLstIdApi());
+		String services = getServices(request.getLstIdApi(), request.getSoggettoReferente());
 
 		if(services == null) {
 			this.logger.info("Services null");
@@ -264,13 +264,13 @@ public class ELKMonitoraggioClient implements IMonitoraggioClient{
 		return data.format(formatter);
 	}
 
-	private String getServices(List<IdApi> idApiLst) {
+	private String getServices(List<IdApi> idApiLst, String soggettoReferente) {
 
 
 		Set<String> servizi = new HashSet<>();
 		
 		for(IdApi id: idApiLst) {
-			servizi.add(matchServizio(id));
+			servizi.add(matchServizio(id, soggettoReferente));
 		}
 		
 		if(servizi.size() == 0) {
@@ -293,7 +293,7 @@ public class ELKMonitoraggioClient implements IMonitoraggioClient{
 	}
 
 //	private String matchServizio = "\"bool\": {\"must\": [[{\"match_phrase\": {\"servizio\": \"#NOME#\"}},{\"match_phrase\": {\"versione_servizio\": #VERSIONE#}},{\"match_phrase\": {\"#CAMPO_EROGATORE#\": \"#EROGATORE#\"}},{\"match_phrase\": {\"tipo_transazione\": \"#TIPO#\"}}]]}";
-	private String matchServizio(IdApi id) {
+	private String matchServizio(IdApi id, String soggettoReferente) {
 		
 		String tipo = null;
 		String campoErogatore = null;
@@ -301,11 +301,11 @@ public class ELKMonitoraggioClient implements IMonitoraggioClient{
 		if(id.isFruizione()) {
 			tipo = "fruizione";
 			campoErogatore = "erogatore";
-			erogatore = id.getSoggettoGestore();
+			erogatore = soggettoReferente;
 		} else {
 			tipo = id.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO) ? "erogazione" : "fruizione";
 			campoErogatore = id.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO) ? "erogatore" : "soggetto_fruitore";
-			erogatore = id.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO) ? id.getSoggettoGestore(): id.getSoggetto();
+			erogatore = id.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO) ? soggettoReferente: id.getSoggetto();
 		}
 
 		List<String> matchesList = new ArrayList<String>();

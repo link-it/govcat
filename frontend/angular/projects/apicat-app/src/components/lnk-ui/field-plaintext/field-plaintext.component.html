@@ -1,0 +1,16 @@
+<ng-container *ngIf="inline">
+    <div class="row mb-1- align-items-center">
+        <div class="col-{{ labelColumn }} text-break" [class.text-end]="labelAlignRight">
+            <p class="label label-bold mb-0">{{ label | translate }}</p>
+        </div>
+        <div class="col-{{ valueColumn }} ps-0">
+            <p class="form-control-plaintext pb-0">{{ value || '-' }}</p>
+        </div>
+    </div>
+</ng-container>
+<ng-container *ngIf="!inline">
+    <div class="form-group mb-1-">
+        <p class="label label-bold mb-0">{{ label | translate }}</p>
+        <p class="form-control-plaintext pb-0">{{ value || '-' }}</p>
+    </div>
+</ng-container>

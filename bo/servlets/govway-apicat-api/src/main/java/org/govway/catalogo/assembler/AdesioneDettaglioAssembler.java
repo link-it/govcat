@@ -47,7 +47,6 @@ import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
-import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.ClientService;
 import org.govway.catalogo.core.services.ServizioService;
@@ -55,11 +54,11 @@ import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Adesione;
 import org.govway.catalogo.servlets.model.AdesioneClientCreate;
 import org.govway.catalogo.servlets.model.AdesioneClientProposto;
 import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
-import org.govway.catalogo.servlets.model.AdesioneCollaudoUpdate;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneIdClient;
@@ -82,21 +81,14 @@ import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoAdesioneClientUpdateEnum;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupport<AdesioneEntity, Adesione> {
 
-	private Logger logger = LoggerFactory.getLogger(AdesioneDettaglioAssembler.class);
-
 	@Autowired
 	private ServizioService servizioService;
-
-	@Autowired
-	private AdesioneService adesioneService;
 
 	@Autowired
 	private ApiService apiService;
@@ -247,6 +239,15 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		entity.setIdLogico(src.getIdLogico());
 		entity.setServizio(getServizio(src.getIdServizio(), getUtenteSessione()));
+
+		setSkipCollaudo(src.isSkipCollaudo(), entity);
+
+		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
+			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare l'Adesione. Skip collaudo abilitato sull'Adesione e non sul Servizio ["+entity.getServizio().getNome()+" " + entity.getServizio().getVersione()+"]");
+		}
+		
+
+		
 		SoggettoEntity soggetto = getSoggetto(src.getIdSoggetto());
 		
 		if(!soggetto.getOrganizzazione().equals(entity.getSoggetto().getOrganizzazione())) {
@@ -269,18 +270,21 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		return soggetto;
 	}
 	
-	public AdesioneEntity toEntity(AdesioneCollaudoUpdate src, AdesioneEntity entity) {
-		BeanUtils.copyProperties(src, entity);
-		
-		AdesioneEntity entityCollaudo = this.adesioneService.findByIdAdesione(src.getAdesioneCollaudo().toString())
-				.orElseThrow(() -> new NotFoundException("Adesione ["+src.getAdesioneCollaudo().toString()+"] non trovata"));
+//	public AdesioneEntity toEntity(AdesioneCollaudoUpdate src, AdesioneEntity entity) {
+//		BeanUtils.copyProperties(src, entity);
+//		
+//		setUltimaModifica(entity);
+//		return entity;
+//	}
+//	
+	private void setSkipCollaudo(Boolean skipCollaudo, AdesioneEntity entity) {
+		entity.setSkipCollaudo(skipCollaudo);
 
-		entity.setAdesioneCollaudo(entityCollaudo);
-		
-		setUltimaModifica(entity);
-		return entity;
+		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
+			throw new BadRequestException("Impossibile impostare skip collaudo sull'Adesione, in quanto il Servizio ["+entity.getServizio().getNome()+" " +entity.getServizio().getVersione()+"] non lo consente");
+		}
 	}
-	
+
 	public AdesioneEntity toEntity(StatoUpdate src, AdesioneEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 		

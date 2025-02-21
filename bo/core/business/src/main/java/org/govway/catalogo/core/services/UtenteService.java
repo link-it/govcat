@@ -60,8 +60,9 @@ public class UtenteService extends AbstractService {
 		specA.setIdReferente(Optional.of(utente.getIdUtente()));
 		long sizeadesioni = this.adesioneRepo.count(specA);
 		
+		String nomecognome = utente.getNome() + " " + utente.getCognome();	
 		if(sizeadesioni > 0) {
-			return "Utente ["+utente.getIdUtente()+"] referente di ["+sizeadesioni+"] adesioni";
+			return "Utente ["+nomecognome+"] referente di ["+sizeadesioni+"] adesioni";
 		}
 		
 		ServizioSpecification specS = new ServizioSpecification();
@@ -69,7 +70,7 @@ public class UtenteService extends AbstractService {
 		long sizeservizi = this.servizioRepo.count(specS);
 		
 		if(sizeservizi > 0) {
-			return "Utente ["+utente.getIdUtente()+"] referente di ["+sizeservizi+"] servizi";
+			return "Utente ["+nomecognome+"] referente di ["+sizeservizi+"] servizi";
 		}
 		
 		DominioSpecification specD = new DominioSpecification();
@@ -77,7 +78,7 @@ public class UtenteService extends AbstractService {
 		long sizedomini = this.dominioRepo.count(specD);
 		
 		if(sizedomini > 0) {
-			return "Utente ["+utente.getIdUtente()+"] referente di ["+sizedomini+"] domini";
+			return "Utente ["+nomecognome+"] referente di ["+sizedomini+"] domini";
 		}
 		
 		return null;

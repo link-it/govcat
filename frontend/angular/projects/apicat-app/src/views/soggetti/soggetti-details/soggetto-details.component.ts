@@ -98,6 +98,8 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
 
   public _soggettoConfig: any = null;
 
+  vincolaSkipCollaudo: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -112,7 +114,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
     this.appConfig = this.configService.getConfiguration();
     this._soggettoConfig = this.authenticationService._getConfigModule('soggetto');
     this._profiloGatewayAbilitato = this._soggettoConfig?.profilo_gateway_abilitato || '';
-    this._listaProfiliGateway = this._soggettoConfig.lista_profili_gateway || this._listaProfiliGateway;
+    this._listaProfiliGateway = this._soggettoConfig?.lista_profili_gateway || this._listaProfiliGateway;
   }
 
   ngOnInit() {
@@ -153,6 +155,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
     if (changes.soggetto) {
       const soggetto = changes.soggetto.currentValue;
       this.soggetto = soggetto.source;
+      this.vincolaSkipCollaudo = this.soggetto.vincola_skip_collaudo
       this.id = this.soggetto.id;
     }
   }
@@ -207,6 +210,10 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, [Validators.maxLength(255)]);
             break;
+          case 'skip_collaudo':
+            value = data[key] ? data[key] : false;
+            _group[key] = new UntypedFormControl(value, []);
+            break;
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, []);
@@ -220,7 +227,13 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
         this._formGroup.controls.referente.patchValue(this.soggetto.referente)
         this._formGroup.controls.aderente.updateValueAndValidity();
         this._formGroup.controls.referente.updateValueAndValidity();
-
+        if (this.soggetto.vincola_skip_collaudo) {
+          this._formGroup.controls.skip_collaudo.disable();
+        } else {
+          this._formGroup.controls.skip_collaudo.enable();
+        }
+        this._formGroup.controls.skip_collaudo.updateValueAndValidity();
+        
         const aux: any = {
           id_organizzazione: this.soggetto.organizzazione.id_organizzazione,
           nome: this.soggetto.organizzazione.nome
@@ -316,7 +329,8 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   __onUpdate(id: number, body: any) {
-    const _body = {...body}
+    const _body = { ...body };
+    console.log('__onUpdate body', _body)
     // _body.id_organizzazione = this.soggetto.organizzazione?.id_organizzazione || body.organizzazione;
     _body.id_organizzazione = body.organizzazione;
     if (_body.vincola_referente) {
@@ -432,6 +446,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
           this._initBreadcrumb();
           this._showAderente = this.soggetto.organizzazione.aderente
           this._showReferente = this.soggetto.organizzazione.referente
+          this.vincolaSkipCollaudo = this.soggetto.vincola_skip_collaudo
 
           this._updateMapper = new Date().getTime().toString();
           this._spin = false;
@@ -471,7 +486,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
   _initBreadcrumb() {
     const _title = this.soggetto ? this.soggetto.nome : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Subjects', url: '/soggetti', type: 'link' },
       { label: `${_title}`, url: '', type: 'title' }
     ];
@@ -574,14 +589,14 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
   _hasVerifica = (): boolean => {
     const monitoraggio: any = this.authenticationService._getConfigModule('monitoraggio');
 
-    const _showMonitoraggio: boolean = monitoraggio.abilitato;
-    const _showVerifiche: boolean = monitoraggio.verifiche_abilitate;
+    const _showMonitoraggio: boolean = monitoraggio?.abilitato || false;
+    const _showVerifiche: boolean = monitoraggio?.verifiche_abilitate || false;
 
     return (
       _showMonitoraggio &&
       _showVerifiche &&
       // !!this.domini?.length
-      (this.soggetto.vincola_aderente || this.soggetto.vincola_referente)
+      (this.soggetto?.vincola_aderente || this.soggetto?.vincola_referente)
     );
   }
 }

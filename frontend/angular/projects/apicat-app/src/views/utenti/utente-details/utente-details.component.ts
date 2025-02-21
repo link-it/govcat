@@ -399,7 +399,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _initBreadcrumb() {
     const _title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },
       { label: `${_title}`, url: '', type: 'title' }
     ];

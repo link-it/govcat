@@ -115,6 +115,8 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 			e.setClient(entity);
 		}
 		
+		entity.setAuthType(clientEngineAssembler.getAuthType(src.getDatiSpecifici().getAuthType()));
+
 		return entity;
 	}
 	

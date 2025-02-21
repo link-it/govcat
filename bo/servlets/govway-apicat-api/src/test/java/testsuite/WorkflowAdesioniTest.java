@@ -57,6 +57,7 @@ import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsCreate;
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.CertificatoClientFornitoCreate;
+import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
@@ -89,7 +90,6 @@ import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
-import org.govway.catalogo.servlets.model.Client;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -183,6 +183,8 @@ public class WorkflowAdesioniTest {
     private UUID idServizio;
     private UUID idOrganizzazione;
     private UUID idAdesione;
+    
+    private String pemCert = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURhekNDQWxPZ0F3SUJBZ0lFSGZ2NzR6QU5CZ2txaGtpRzl3MEJBUXNGQURCbU1Rc3dDUVlEVlFRR0V3SkoNClZERU9NQXdHQTFVRUNCTUZTWFJoYkhreERUQUxCZ05WQkFjVEJGQnBjMkV4RFRBTEJnTlZCQW9UQkZSbGMzUXgNCkRUQUxCZ05WQkFzVEJGUmxjM1F4R2pBWUJnTlZCQU1URVVWNFlXMXdiR1ZEYkdsbGJuUXlTRk5OTUI0WERUSTANCk1EUXdPREE1TWpReE1Wb1hEVFEwTURRd016QTVNalF4TVZvd1pqRUxNQWtHQTFVRUJoTUNTVlF4RGpBTUJnTlYNCkJBZ1RCVWwwWVd4NU1RMHdDd1lEVlFRSEV3UlFhWE5oTVEwd0N3WURWUVFLRXdSVVpYTjBNUTB3Q3dZRFZRUUwNCkV3UlVaWE4wTVJvd0dBWURWUVFERXhGRmVHRnRjR3hsUTJ4cFpXNTBNa2hUVFRDQ0FTSXdEUVlKS29aSWh2Y04NCkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLMmNVQ29CcWptUTR4OWZoYlJDbk0rYmJ5ZjJwSWxSa3NRUVB5clcNCmlmWUVvaCtxZ1NROVYzS05uNWJpaTBSeWMzaDd3VGNJY2tCY2ZnczhKTGk1SHhHM2t4V1p2Z2xXL1NIOEEyVHUNClFYdkJwajlLNnd6UzB4RUduenFxaHlwVXJIL1lMRGZYandnVmZ1TS9IeEU1MjNGcFM3dGUwQXcwV2Jac1pxeTYNCmhNcWxLZk8wek52UTR1Rk5ML3NHV1pNN29kaDRPcGhaSUdOZDd0VnBnVkdQNDNDZUZvZnAyeGRxcmk5Ry9IMjINCmNQa2p4dFpoVFpuZk9RejFkNHVYRjZsU3M1dUV6RGI3ZGxKOERoZTJROUtTa0ZnRDZVME83UnZyNnpibEd4dUENCjVDdTRQSFNkeko0Y0RhZkJ4RDlrclJzYjI5cXFjK2g3alpwSzh2NkhoU2N4M2VjQ0F3RUFBYU1oTUI4d0hRWUQNClZSME9CQllFRkljWmh6UlZmYVRER1MwTm44cmRJU3FGbDhOK01BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQXYNCitYWFNiWWVDY1VmY2hhRkNzay9sc3hLZ0gwcFhyTlRoZXptOGd3YUpOem9KOVJQU2RnenJtSzYwOWl5M1RvaGcNClhpc040elorRkx3NVBTby9HNmU1OU5SZEdmTS93UFIwUGoyN2d0dWhITWpBeU8vY3FldWQ3S1lvZWxpTEZPRWwNCldyTWo2QmlxaGZQZmMzU3FqakZVWWtoR2s2eXZFeDREWGVPNnlmNSszczJMbTIwSTM3YU9ZblhBNVdmTGJwY1QNCnp2RWhGSk02Q3d6Q0VwbmI3M3E3ekc4ODJZTjcxL3RRS1VhS2dpV0ZPeDVvQ2dCMFZGNERlejd0ZFJYNHpZRlMNCmFKeUdIQ3F6NVZvR29CSHV1K0dpZERlRkdZZTRvZTA4cFpZWjFHS1dROG05RmlhYTlSQnJNNTNFclFidzNpWncNCnVqby9UMm9MSis3NWFTb3VCamFUCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K";
     
     @BeforeEach
     public void setUp() {
@@ -391,9 +393,9 @@ public class WorkflowAdesioniTest {
         apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
         
         DocumentoCreate documento = new DocumentoCreate();
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
         
         apiDatiAmbienteCreate.setSpecifica(documento);
         
@@ -513,9 +515,9 @@ public class WorkflowAdesioniTest {
         
         DocumentoUpdateNew documento = new DocumentoUpdateNew();
         documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setFilename("certificato.cer");
-        documento.setContent(Base64.encodeBase64String("certificato test".getBytes()));
-        documento.setContentType("application/cert");
+        documento.setFilename("certificato.pem");
+        documento.setContent(pemCert);
+        documento.setContentType("application/x-pem-file");
         
         certificato.setCertificato(documento);
         dati.setCertificatoAutenticazione(certificato);
@@ -538,7 +540,7 @@ public class WorkflowAdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientCollaudoAdesione(idAdesione, "MODI_P1", adesioneIdClient);
+        adesioniController.saveClientCollaudoAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
         
         //creo il client per la produzione
         clientCreate = new ClientCreate();
@@ -554,9 +556,9 @@ public class WorkflowAdesioniTest {
         
         documento = new DocumentoUpdateNew();
         documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setFilename("certificato.cer");
-        documento.setContent(Base64.encodeBase64String("certificato test".getBytes()));
-        documento.setContentType("application/cert");
+        documento.setFilename("certificato.pem");
+        documento.setContent(pemCert);
+        documento.setContentType("application/x-pem-file");
         
         certificato.setCertificato(documento);
         dati.setCertificatoAutenticazione(certificato);
@@ -577,7 +579,7 @@ public class WorkflowAdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientProduzioneAdesione(idAdesione, "MODI_P1", adesioneIdClient);
+        adesioniController.saveClientProduzioneAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
         
         
         return adesione.getBody();
@@ -634,7 +636,7 @@ public class WorkflowAdesioniTest {
         boolean statoPartenza = false;
         for (StatoUpdate statoUpdate : sequenzaStati) {
         	if(statoPartenza) {
-	            adesioniController.updateStatoAdesione(idAdesione, statoUpdate);
+	            adesioniController.updateStatoAdesione(idAdesione, statoUpdate, null);
         		//serviziController.updateStatoServizio(idServizio, statoUpdate);
 	
 	            // Termina il ciclo quando raggiungi lo stato finale desiderato
@@ -699,7 +701,7 @@ public class WorkflowAdesioniTest {
         boolean statoPartenza = false;
         for (StatoUpdate statoUpdate : sequenzaStati) {
         	if(statoPartenza) {
-	            adesioniController.updateStatoAdesione(idAdesione, statoUpdate);
+	            adesioniController.updateStatoAdesione(idAdesione, statoUpdate, null);
 	            // Termina il ciclo quando raggiungi lo stato successivo
 	            break;
         	}
@@ -758,7 +760,7 @@ public class WorkflowAdesioniTest {
         for (int i = 0; i < sequenzaStati.size(); i++) {
         	StatoUpdate stato = sequenzaStati.get(i);
         	try {	
-        		adesioniController.updateStatoAdesione(idAdesione, stato);
+        		adesioniController.updateStatoAdesione(idAdesione, stato, null);
         		//adesioniController.updateStatoAdesione(idAdesione, statoUpdate);
     	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
     	        List<EntitaComplessaError> errori = e.getErrori();

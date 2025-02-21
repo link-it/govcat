@@ -16,6 +16,7 @@ import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
+import { EventType } from 'projects/tools/src/lib/classes/events';
 import { Page} from '../../models/page';
 
 import * as moment from 'moment';
@@ -130,8 +131,8 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
   }
 
   ngOnInit() {
-    this._statiClient = [...Tools.StatiClient]; 
-    Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+    if (Tools.StatiClient) { this._statiClient = [...Tools.StatiClient]; } 
+    if (Tools.Configurazione) { Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type)); }
     this._ambienteEnum = fake_ambiente;
 
     this.configService.getConfig(this.model).subscribe(
@@ -142,6 +143,12 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
 
     this._initSoggettiSelect([]);
     this._initOrganizzazioniSelect([]);
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
+      this._statiClient = [...Tools.StatiClient]; 
+      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      console.log('Configurazione Remota', Tools.Configurazione);
+    });
   }
 
   ngOnDestroy() {}
@@ -226,6 +233,10 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
         // Tools.OnError(error);
       }
     });
+  }
+
+  _trackBy(index: any, item: any) {
+    return item.id;
   }
 
   __loadMoreData() {

@@ -30,6 +30,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Type;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,9 +47,10 @@ public class AuthTypeEntity {
     @SequenceGenerator(name = "seq_api_auth_types", sequenceName = "seq_api_auth_types", allocationSize = 1)
 	private Long id;
 
-	@Lob
 	@Column(nullable=false)
-	private String resources;
+	@Lob
+	@Type(type = "org.hibernate.type.ImageType")
+	private byte[] resources;
 	
 	@Column(nullable=false)
 	private String profilo;

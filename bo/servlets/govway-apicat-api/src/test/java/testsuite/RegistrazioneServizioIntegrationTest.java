@@ -215,6 +215,37 @@ public class RegistrazioneServizioIntegrationTest {
     DocumentoCreate immagine = new DocumentoCreate();
 
     @Test
+    void testAssociazioneDominioASoggettoNonReferente() {
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+
+        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+        organizzazione.setEsterna(false);
+
+        response = organizzazioniController.createOrganizzazione(organizzazione);
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome(UTENTE_REFERENTE_DOMINIO);
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        
+        createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.GESTORE);
+        responseUtente = utentiController.createUtente(utente);
+
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        gruppoCreate.setNome(NOME_GRUPPO);
+        responseGruppo = gruppiController.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
+
+        DominioCreate dominio = CommonUtils.getDominioCreate();
+        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+
+        assertThrows(BadRequestException.class, ()-> dominiController.createDominio(dominio));
+    }
+    
+    @Test
     public void testRegistrazioneServizioReferenteSuccess() {
         Dominio dominio = this.getDominio();
 
@@ -252,6 +283,7 @@ public class RegistrazioneServizioIntegrationTest {
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome(UTENTE_REFERENTE_DOMINIO);
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
 
         createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
@@ -377,9 +409,9 @@ public class RegistrazioneServizioIntegrationTest {
         apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
         
         DocumentoCreate documento = new DocumentoCreate();
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
         
         apiDatiAmbienteCreate.setSpecifica(documento);
         
@@ -516,8 +548,8 @@ public class RegistrazioneServizioIntegrationTest {
         	    }
         	}
         	String result = resultStringBuilder.toString().strip();  // Contenuto come Stringa
-        	//System.out.println(result);
-        	assertEquals("contenuto",result);
+
+        	assertEquals(CommonUtils.openApiSpec.toString().strip(),result);
         } catch (IOException e) {
 			e.printStackTrace();
 		}

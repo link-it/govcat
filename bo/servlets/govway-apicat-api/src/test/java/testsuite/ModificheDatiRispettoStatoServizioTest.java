@@ -359,9 +359,9 @@ public class ModificheDatiRispettoStatoServizioTest {
         apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
         
         DocumentoCreate documento = new DocumentoCreate();
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
         
         apiDatiAmbienteCreate.setSpecifica(documento);
         
@@ -762,9 +762,9 @@ public class ModificheDatiRispettoStatoServizioTest {
 //    	datiSpecificaUpdate.setProtocollo(ProtocolloEnum.REST);
     	DocumentoUpdateNew documento = new DocumentoUpdateNew();
         documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("aopenapi_modificato.yaml");
 //    	datiSpecificaUpdate.setSpecifica(documento);
 //    	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
         APIDatiAmbienteUpdate apiDatiAmbienteUpdate = new APIDatiAmbienteUpdate();
@@ -972,9 +972,9 @@ public class ModificheDatiRispettoStatoServizioTest {
     	ApiUpdate apiUpdate = new ApiUpdate();
     	DocumentoUpdateNew documento = new DocumentoUpdateNew();
         documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapimod.pdf");
         APIDatiAmbienteUpdate apiDatiAmbienteUpdate = new APIDatiAmbienteUpdate();
         apiDatiAmbienteUpdate.setSpecifica(documento);
         apiDatiAmbienteUpdate.setProtocollo(ProtocolloEnum.REST);
@@ -1169,9 +1169,9 @@ public class ModificheDatiRispettoStatoServizioTest {
     	ApiUpdate apiUpdate = new ApiUpdate();
     	DocumentoUpdateNew documento = new DocumentoUpdateNew();
         documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi_modificato.yaml");
         APIDatiAmbienteUpdate apiDatiAmbienteUpdate = new APIDatiAmbienteUpdate();
         apiDatiAmbienteUpdate.setSpecifica(documento);
         apiDatiAmbienteUpdate.setProtocollo(ProtocolloEnum.REST);

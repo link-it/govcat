@@ -20,6 +20,7 @@
 package org.govway.catalogo.authorization;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +53,8 @@ import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
+import org.govway.catalogo.servlets.model.Sottotipo;
+import org.govway.catalogo.servlets.model.SottotipoEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -242,13 +245,27 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 
 	private void requireNotNull(Object campo, String nomeCampo, ApiEntity entity,  Map<String, EntitaComplessaError> errori, boolean custom) {
 		
-		String sottotipo = "API";
+		Sottotipo sottotipo = getSottotipoAPI(entity);
 		Map<String, String> list = getPlaceholderAPI(entity);
-		EntitaComplessaError errore = getErrore(errori, sottotipo, list);
+		EntitaComplessaError errore = getErrore(errori, Arrays.asList(sottotipo), list);
 		
 		if(campo == null) {
 			addCampi(nomeCampo, errore, custom);
 		}
+	}
+
+	private Sottotipo getSottotipoAPI(ApiEntity entity) {
+		Sottotipo sottotipo = new Sottotipo();
+		sottotipo.setTipo(SottotipoEnum.API);
+		sottotipo.setIdentificativo(entity.getIdApi());
+		return sottotipo;
+	}
+
+	private Sottotipo getSottotipoTassonomia(TassonomiaEntity entity) {
+		Sottotipo sottotipo = new Sottotipo();
+		sottotipo.setTipo(SottotipoEnum.TASSONOMIA);
+		sottotipo.setIdentificativo(entity.getIdTassonomia());
+		return sottotipo;
 	}
 
 	private Map<String, String> getPlaceholderAPI(ApiEntity entity) {
@@ -269,10 +286,10 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 
 	private void requirePositiveInteger(Integer size, String nomeCampo, TassonomiaEntity entity,  Map<String, EntitaComplessaError> errori, boolean custom) {
 
-		String sottotipo = "Tassonomie";
+		Sottotipo sottotipo = getSottotipoTassonomia(entity);
 		Map<String, String> map = new HashMap<>();
 		map.put("nome", entity.getNome());
-		EntitaComplessaError errore = getErrore(errori, sottotipo, map);
+		EntitaComplessaError errore = getErrore(errori, Arrays.asList(sottotipo), map);
 		
 		if(size <= 0) {
 			addCampi(nomeCampo, errore, custom);
@@ -282,9 +299,9 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 	private void requirePositiveInteger(Integer size, String nomeCampo, ApiEntity entity,  Map<String, EntitaComplessaError> errori) {
 
 
-		String sottotipo = "API";
+		Sottotipo sottotipo = getSottotipoAPI(entity);
 		Map<String, String> list = getPlaceholderAPI(entity);
-		EntitaComplessaError errore = getErrore(errori, sottotipo, list);
+		EntitaComplessaError errore = getErrore(errori, Arrays.asList(sottotipo), list);
 
 		if(size <= 0) {
 			addCampi(nomeCampo, errore);

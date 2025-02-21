@@ -148,7 +148,10 @@ public class ServizioEntity {
 
     @Column(name = "package", nullable = false)
     private boolean _package;
-
+    
+    @Column(name = "skip_collaudo", nullable = false)
+    private boolean skipCollaudo;
+    
     @OneToMany(mappedBy = "_package")
     @Cascade(CascadeType.ALL)
 	private Set<PackageServizioEntity> componenti = new HashSet<>();

@@ -85,7 +85,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('Configurazione Remota', Tools.Configurazione);
+    console.log('APP Configurazione Remota', Tools.Configurazione);
   }
 
   ngAfterViewInit() {

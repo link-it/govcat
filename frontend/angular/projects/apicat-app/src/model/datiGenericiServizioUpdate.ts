@@ -12,7 +12,6 @@
 import { ItemCategoria } from './itemCategoria';
 import { DocumentoUpdate } from './documentoUpdate';
 
-
 export interface DatiGenericiServizioUpdate { 
     gruppo?: string;
     descrizione: string;

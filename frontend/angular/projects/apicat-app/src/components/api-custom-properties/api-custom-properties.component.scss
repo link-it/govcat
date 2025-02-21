@@ -12,3 +12,9 @@ ul.list-group {
         }
     }
 }
+
+.api-container {
+    min-height: 300px;
+    max-height: 480px;
+    overflow-y: auto;
+}

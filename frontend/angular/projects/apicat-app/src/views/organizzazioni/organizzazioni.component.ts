@@ -206,6 +206,10 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
     });
   }
 
+  _trackBy(index: any, item: any) {
+    return item.id;
+  }
+
   __loadMoreData() {
     if (this._links && this._links.next && !this._preventMultiCall) {
       this._preventMultiCall = true;

@@ -18,7 +18,7 @@
         <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
             <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
-              <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="messages.length">{{ _page?.total || 0 }}</span>
+              <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="messages.length">{{ _page.totalElements || 0 }}</span>
             </a>
           </li>
         </ul>
@@ -114,7 +114,7 @@
           [hasLink]="true"
           (simpleClick)="_onEdit($event, message)">
         </ui-simple-item> -->
-        <ui-item-row class="border-bottom" *ngFor="let message of messages"
+        <ui-item-row class="border-bottom" *ngFor="let message of messages; trackBy: _trackBy;"
           [data]="message"
           [config]="messagesConfig"
           [hasLink]="true"

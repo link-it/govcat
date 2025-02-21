@@ -8,7 +8,7 @@
 }
 
 .bg-lightest {
-  background-color: #fafafa;
+  background-color: #fafafa !important;
 }
 
 .cursor-pointer {
@@ -21,6 +21,15 @@
 
 label.label-bold {
   font-weight: 600;
+}
+
+.label {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+
+  &.label-bold {
+    font-weight: 600;
+  }
 }
 
 .gl-new-dropdown .gl-new-dropdown-inner {
@@ -68,6 +77,16 @@ label.label-bold {
 
   &::before {
     border-right-color: var(--fly-out-back-item, #000000);
+  }
+}
+
+.nav-sidebar li.expanded {
+  &.force-menu-open {
+    &:not(.active) {
+      > a {
+        font-weight: normal;
+      }
+    }
   }
 }
 
@@ -224,6 +243,23 @@ label {
     background: var(--btn-confirm-hover, #1068bf);
   }
 }
+
+// .gl-button.gl-button.btn-block.btn-secondary,
+// .gl-button.gl-button.btn-secondary {
+//   color: var(--btn-secondary-color, #ffffff);
+// }
+
+// .gl-button.gl-button.btn-block.btn-secondary,
+// .gl-button.gl-button.btn-secondary {
+//   color: var(--btn-secondary-color, #000000);
+//   background-color: var(--btn-secondary, #ffffff);
+//   box-shadow: inset 0 0 0 1px var(--btn-secondary, #ffffff);
+
+//   &:hover {
+//     box-shadow: inset 0 0 0 2px var(--btn-secondary-hover-shadow, #868686), 0 2px 2px 0 rgba(0, 0, 0, 0.08);
+//     background: var(--btn-secondary-hover, #f0f0f0);
+//   }
+// }
 
 .gl-button.gl-button.btn-block.disabled,
 .gl-button.gl-button.btn-block.disabled.selected,

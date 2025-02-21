@@ -29,10 +29,12 @@ import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.ClientDettaglioAssembler;
 import org.govway.catalogo.assembler.ClientEngineAssembler;
 import org.govway.catalogo.assembler.ClientItemAssembler;
+import org.govway.catalogo.authorization.ClientAuthorization;
 import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.ClientSpecification;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.ClientService;
 import org.govway.catalogo.exception.BadRequestException;
@@ -87,12 +89,16 @@ public class ClientController implements ClientApi {
 	@Autowired
 	private ClientEngineAssembler clientEngineAssembler;
 
+	@Autowired
+	private ClientAuthorization authorization;   
+
 	private Logger logger = LoggerFactory.getLogger(ClientController.class);
 
 	@Override
 	public ResponseEntity<Client> createClient(ClientCreate clientCreate) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
+			this.logger.info("Invocazione in corso ...");
+			this.authorization.authorizeCreate(clientCreate);
 			this.logger.debug("Autorizzazione completata con successo");     
 
 			return this.service.runTransaction( () -> {
@@ -127,13 +133,13 @@ public class ClientController implements ClientApi {
 	@Override
 	public ResponseEntity<Void> deleteClient(UUID idClient) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
-			this.logger.debug("Autorizzazione completata con successo");     
-
 			return this.service.runTransaction( () -> {
 	
+				this.logger.info("Invocazione in corso ...");     
 				ClientEntity entity = this.service.find(idClient)
 						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+				this.authorization.authorizeDelete(entity);
+				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getAdesioni().isEmpty()) {
 					throw new RichiestaNonValidaSemanticamenteException("Impossibile eliminare il client ["+entity.getNome()+"/"+entity.getSoggetto().getNome()+"/"+entity.getAmbiente()+"] in quanto risulta associato a ["+entity.getAdesioni().size()+"] adesioni");
@@ -160,16 +166,14 @@ public class ClientController implements ClientApi {
 			return this.service.runTransaction( () -> {
 	
 				this.logger.info("Invocazione in corso ...");     
-	//			PrincipalData pData = this.requestUtils.getPrincipal();
-	//
-	//			if(!ContactBD.isAdmin(pData.contact)) {
-	//				throw new NotAuthorizedException("Required role: ADMIN");
-	//			}
-				this.logger.debug("Autorizzazione completata con successo");     
-	
+
 				ClientEntity entity = this.service.find(idClient)
 						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
 	
+				this.authorization.authorizeGet(entity);
+				
+				this.logger.debug("Autorizzazione completata con successo");     
+
 				Client model = this.dettaglioAssembler.toModel(entity);
 	
 				this.logger.info("Invocazione completata con successo");
@@ -250,18 +254,15 @@ public class ClientController implements ClientApi {
 	@Override
 	public ResponseEntity<Client> updateClient(UUID idClient, ClientUpdate clientUpdate) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
-//			PrincipalData pData = this.requestUtils.getPrincipal();
-//
-//			if(!ContactBD.isAdmin(pData.contact)) {
-//				throw new NotAuthorizedException("Required role: ADMIN");
-//			}
-			this.logger.debug("Autorizzazione completata con successo");     
-
 			return this.service.runTransaction( () -> {
 	
+				this.logger.info("Invocazione in corso ...");     
+
 				ClientEntity entity = this.service.find(idClient)
 						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+				this.authorization.authorizeUpdate(clientUpdate, entity);
+				
+				this.logger.debug("Autorizzazione completata con successo");     
 
 				boolean nomeCambiato = !entity.getNome().equals(clientUpdate.getNome());
 				boolean soggettoCambiato = !entity.getSoggetto().getIdSoggetto().equals(clientUpdate.getIdSoggetto().toString());
@@ -272,6 +273,11 @@ public class ClientController implements ClientApi {
 						throw new ConflictException("Client ["+clientUpdate.getNome()+"/"+entity.getSoggetto().getNome()+"/"+clientUpdate.getAmbiente()+"] esiste gia");
 					}
 
+					if(entity.getStato().equals(StatoEnum.CONFIGURATO)) {
+						throw new BadRequestException("Client ["+entity.getNome()+"/"+entity.getSoggetto().getNome()+"/"+entity.getAmbiente()+"] in stato configurato. Impossibile cambiare nome, soggetto o ambiente");
+					}
+
+					
 					if(soggettoCambiato || ambienteCambiato) {
 						AdesioneSpecification spec = new AdesioneSpecification();
 						spec.setClient(Optional.of(idClient));
@@ -308,14 +314,17 @@ public class ClientController implements ClientApi {
 	@Override
 	public ResponseEntity<Resource> downloadAllegatoClient(UUID idClient, UUID idAllegato) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
-			this.logger.debug("Autorizzazione completata con successo");     
 
 			return this.service.runTransaction( () -> {
 
+				this.logger.info("Invocazione in corso ...");     
+				
 				ClientEntity entity = this.service.find(idClient)
 						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
-	
+				this.authorization.authorizeGet(entity);
+				
+				this.logger.debug("Autorizzazione completata con successo");     
+
 				EstensioneClientEntity allegato = entity.getEstensioni().stream().filter(e -> e.getDocumento()!= null && e.getDocumento().getUuid().equals(idAllegato.toString()))
 						.findAny()
 						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato"));
@@ -339,18 +348,15 @@ public class ClientController implements ClientApi {
 	@Override
 	public ResponseEntity<Client> updateClientStato(UUID idClient, StatoClientUpdate statoClientUpdate) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
-//			PrincipalData pData = this.requestUtils.getPrincipal();
-//
-//			if(!ContactBD.isAdmin(pData.contact)) {
-//				throw new NotAuthorizedException("Required role: ADMIN");
-//			}
-			this.logger.debug("Autorizzazione completata con successo");     
-
 			return this.service.runTransaction( () -> {
 	
+				this.logger.info("Invocazione in corso ...");     
+				
 				ClientEntity entity = this.service.find(idClient)
 						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+				this.authorization.authorizeUpdate(null, entity);
+				
+				this.logger.debug("Autorizzazione completata con successo");     
 	
 				this.dettaglioAssembler.toEntity(statoClientUpdate, entity);
 	

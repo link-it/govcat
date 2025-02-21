@@ -62,7 +62,7 @@ export class AllegatoComponent implements OnInit {
           this._file = file;
           if (!this.maxUpload || this._file.size < this.maxUpload) {
             if (this.control) {
-              this.toBase64();
+              this.toBase64(this._file);
             }
           } else {
             this.oversizeError.emit({ type: 'oversize', limit: this.maxUpload });
@@ -74,7 +74,7 @@ export class AllegatoComponent implements OnInit {
         this._file = event.currentTarget.files[0];
         if (!this.maxUpload || this._file.size < this.maxUpload) {
           if (this.control) {
-            this.toBase64();
+            this.toBase64(this._file);
           }
         } else {
           this.oversizeError.emit({ type: 'oversize', limit: this.maxUpload });
@@ -85,8 +85,6 @@ export class AllegatoComponent implements OnInit {
   }
 
   protected __reset() {
-    // this._file = undefined;
-    // this._selected = false;
     if (this.control) {
       this.control.setValue('');
       this.resetControl.emit({ type: 'reset' });
@@ -96,8 +94,8 @@ export class AllegatoComponent implements OnInit {
     }
   }
 
-  protected toBase64() {
-    if (this._file) {
+  protected toBase64(file: File) {
+    if (file) {
       this.hint = '';
       try {
         const reader = new FileReader();  
@@ -105,12 +103,12 @@ export class AllegatoComponent implements OnInit {
           const result = e.target.result;
           if (result.toString().indexOf('base64,') !== -1) {
             const b64 = result.toString().split('base64,')[1];
-            const ext: any = (/\.[A-Za-z0-9]+$/).exec(this._file.name);
-            const _fileType = this._file.type || (ext && ext.length ? ext[0].substring(1) : '');
-            this.loadFile(this._file.name, b64, _fileType, result.toString());
+            const ext: any = (/\.[A-Za-z0-9]+$/).exec(file.name);
+            const _fileType = file.type || (ext && ext.length ? ext[0].substring(1) : '');
+            this.loadFile(file.name, b64, _fileType, result.toString());
           }
         };
-        reader.readAsDataURL(this._file);
+        reader.readAsDataURL(file);
       } catch (e) {
         this.hint = 'Errore in lettura';
       }
@@ -125,7 +123,6 @@ export class AllegatoComponent implements OnInit {
     if (this.control) {
       this.control.setValue({ file: _name, data: _data, type: _type, dataURL: _dataURL });
       this.fileChanged.emit({ type: 'file_changed' });
-      // this._selected = true;
     }
   }
 }

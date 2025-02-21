@@ -410,7 +410,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
   _initBreadcrumb() {
     const _title = this.organizzazione ? `${this.organizzazione.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Organizations', url: '/organizzazioni', type: 'link' },
       { label: `${_title}`, url: '', type: 'title' }
     ];

@@ -62,7 +62,7 @@ export const navItemsAdministratorMenu: INavData[] = [
     title: true,
     label: 'APP.MENU.Configurations',
     path: 'dashboard|gruppi|domini|client|soggetti|organizzazioni|utenti|classi-utente|pdnd|tassonomie',
-    url: '/dashboard',
+    url: '/gruppi',
     iconBs: 'gear',
     permission: 'ADMINISTRATOR',
     children: [

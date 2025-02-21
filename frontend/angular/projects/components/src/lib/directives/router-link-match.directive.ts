@@ -75,8 +75,8 @@ export class RouterLinkMatchDirective implements OnDestroy, OnChanges, AfterCont
           _splitPath.forEach(path => {
             const regexp = new RegExp(path);
             this._curRoute = this._curRoute || (this.router.url.split('/'))[1];
-            // if (this._curRoute.match(regexp)) {
-            if (this._curRoute === path) {
+            if (this._curRoute.match(regexp)) {
+            // if (this._curRoute === path) {
               this._toggleClass(classes, true);
             } else {
               this._toggleClass(classes, false);

@@ -52,121 +52,121 @@
 
                 <ng-container *ngIf="environmentId && !_spin">
 
-                <!-- LISTA CLIENTS -->
-                <div class="settings" *ngIf="adesioneConfigClients.length > 0">
-                    <div class="settings-content">
-                        <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
+                    <!-- LISTA CLIENTS -->
+                    <div class="settings" *ngIf="adesioneConfigClients.length > 0">
+                        <div class="settings-content">
+                            <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
 
-                            <div class="" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
-                                <h4 class="gl-mt-0 text-break">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h4>
-                                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAuth_sub' | translate }}</div>
-                            </div>
-                            <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
-
-                                <div class="px-3 pb-3" *ngIf="singleColumn">
-                                    <h5 class="">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h5>
+                                <div class="" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
+                                    <h4 class="gl-mt-0 text-break">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h4>
+                                    <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAuth_sub' | translate }}</div>
                                 </div>
+                                <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
 
-                                <!-- <div *ngIf="adesioneConfigClients.length == 0">
-                                    <h6>{{ 'APP.ADESIONI.TITLE.NotRequested' | translate }}</h6>
-                                </div>   -->
+                                    <div class="px-3 pb-3" *ngIf="singleColumn">
+                                        <h5 class="">{{ 'APP.ADESIONI.TITLE.ConfigurationAuth' | translate }}</h5>
+                                    </div>
 
-                                <div *ngFor="let item of adesioneConfigClients;let first = first">
-                                    <div id="flex-container" class="container-fluid border-bottom ps-0" [class.border-top]="first">
-                                        <div id="flex-auto">
-                                            <ui-item-row  
-                                                [data]="item"
-                                                [config]="adesioniClientsConfig"
-                                                [hasLink]="false"
-                                            ></ui-item-row>
-                                        </div>
-                                        <div id="flex-initial">
-                                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="_showDialogDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
-                                                <i class="bi bi-unlock-fill"></i>
-                                            </button>
-                                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditClient(item)">
-                                                <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
-                                                <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
-                                            </button>
+                                    <!-- <div *ngIf="adesioneConfigClients.length == 0">
+                                        <h6>{{ 'APP.ADESIONI.TITLE.NotRequested' | translate }}</h6>
+                                    </div>   -->
+
+                                    <div *ngFor="let item of adesioneConfigClients;let first = first">
+                                        <div id="flex-container" class="container-fluid border-bottom ps-0" [class.border-top]="first">
+                                            <div id="flex-auto">
+                                                <ui-item-row  
+                                                    [data]="item"
+                                                    [config]="adesioniClientsConfig"
+                                                    [hasLink]="false"
+                                                ></ui-item-row>
+                                            </div>
+                                            <div id="flex-initial">
+                                                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="_showDialogDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
+                                                    <i class="bi bi-unlock-fill"></i>
+                                                </button>
+                                                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditClient(item)">
+                                                    <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
+                                                    <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- LISTA EROGAZIONI -->
-                <div class="settings" *ngIf="adesioneConfigErogazioni.length > 0">
-                    <div class="settings-content">
-                        <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
+                    <!-- LISTA EROGAZIONI -->
+                    <div class="settings" *ngIf="adesioneConfigErogazioni.length > 0">
+                        <div class="settings-content">
+                            <div class="row gl-mt-5 mb-5" [class.justify-content-center]="singleColumn">
 
-                            <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
-                                <h4 class="gl-mt-0 text-break">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h4>
-                                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAPI_sub' | translate }}</div>
-                            </div>
-                            <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
-
-                                <div class="px-3 pb-3" *ngIf="singleColumn">
-                                    <h5 class="">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
+                                <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
+                                    <h4 class="gl-mt-0 text-break">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h4>
+                                    <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.ConfigurationAPI_sub' | translate }}</div>
                                 </div>
+                                <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
 
-                                <!-- <div *ngIf="adesioneConfigErogazioni.length == 0 && !_spin">
-                                    <h6>{{ 'APP.ADESIONI.TITLE.NotRequested' | translate }}</h6>
-                                </div> -->
+                                    <div class="px-3 pb-3" *ngIf="singleColumn">
+                                        <h5 class="">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
+                                    </div>
 
-                                <div *ngFor="let erogaz of adesioneConfigErogazioni;let first = first">
-                                    <div id="flex-container" class="container-fluid border-bottom ps-0" [class.border-top]="first">
-                                        <div id="flex-auto">
-                                            <ui-item-row 
-                                                [data]="erogaz"
-                                                [config]="adesioniErogazConfig"
-                                                [hasLink]="false"
-                                            ></ui-item-row>
-                                        </div>
-                                        <div id="flex-initial">
-                                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditAdesioneErogaz(erogaz)">
-                                                <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
-                                                <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
-                                            </button>
+                                    <!-- <div *ngIf="adesioneConfigErogazioni.length == 0 && !_spin">
+                                        <h6>{{ 'APP.ADESIONI.TITLE.NotRequested' | translate }}</h6>
+                                    </div> -->
+
+                                    <div *ngFor="let erogaz of adesioneConfigErogazioni;let first = first">
+                                        <div id="flex-container" class="container-fluid border-bottom ps-0" [class.border-top]="first">
+                                            <div id="flex-auto">
+                                                <ui-item-row 
+                                                    [data]="erogaz"
+                                                    [config]="adesioniErogazConfig"
+                                                    [hasLink]="false"
+                                                ></ui-item-row>
+                                            </div>
+                                            <div id="flex-initial">
+                                                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditAdesioneErogaz(erogaz)">
+                                                    <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
+                                                    <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+
                                 </div>
-
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="settings" [class.border-bottom-]="last" *ngFor="let item of _proprietaCustomFiltered; let last = last; let even = even">
-                    <div class="settings-content">
-                        <div class="row mt-1" [class.justify-content-center]="singleColumn">
+                    <div class="settings" [class.border-bottom-]="last" *ngFor="let item of _proprietaCustomFiltered; let last = last; let even = even">
+                        <div class="settings-content">
+                            <div class="row mt-1" [class.justify-content-center]="singleColumn">
 
-                            <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
-                                <h4 class="gl-mt-0 text-break">{{ item.label_gruppo }}</h4>
-                            </div>
-                            <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
+                                <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-5]="singleColumn" [class.col-lg-4]="!singleColumn" *ngIf="!singleColumn">
+                                    <h4 class="gl-mt-0 text-break">{{ item.label_gruppo }}</h4>
+                                </div>
+                                <div class="" [class.col-lg-8]="!singleColumn" [class.col-lg-8]="!singleColumn">
 
-                                <section class="p-0">
-                                    <app-api-custom-properties
-                                        [ambiente]="environmentId"
-                                        [id_adesione]="adesione.id_adesione"
-                                        [stato_adesione]="adesione.stato"
-                                        [id_servizio]="adesione.servizio.id_servizio"
-                                        [data]="configurazioni"
-                                        [group]="item"
-                                        [showGroupLabel]="showGroupLabel"
-                                        [containerClass]="(even && singleColumn) ? 'bg-lightest' : ''"
-                                        [editable]="(item | mapper:_isModifiableMapper)"
-                                        (onSave)="_onSaveCustomProperty($event)"
-                                    ></app-api-custom-properties>
-                                </section>
+                                    <section class="p-0">
+                                        <app-api-custom-properties
+                                            [ambiente]="environmentId"
+                                            [id_adesione]="adesione.id_adesione"
+                                            [stato_adesione]="adesione.stato"
+                                            [id_servizio]="adesione.servizio.id_servizio"
+                                            [data]="configurazioni"
+                                            [group]="item"
+                                            [showGroupLabel]="showGroupLabel"
+                                            [containerClass]="(even && singleColumn) ? 'bg-lightest' : ''"
+                                            [editable]="(item | mapper:_isModifiableMapper)"
+                                            (onSave)="_onSaveCustomProperty($event)"
+                                        ></app-api-custom-properties>
+                                    </section>
 
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                 </ng-container>    
             </div>

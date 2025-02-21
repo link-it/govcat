@@ -116,32 +116,20 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
       if (params['id']) {
         this.id = params['id'];
 
-        if (false) {
-          this.configService.getConfig('adesioni').subscribe(
-            (config: any) => {
-              this.adesioniConfig = config;
-              this._loadClient();
-              this._loadClientAdesioni();
-            }
-          );
-        } else {
-          // ============ DA TESTARE ! ====================
-          const _configAux: Observable<any> = this.configService.getConfig('adesioni')
-          const _loadClientAux: Observable<any> = this.apiService.getDetails(this.model, this.id)
-          const _options: any = { params: { id_client: this.id } };
-          const _loadClientAdesioniAux: Observable<any> = this.apiService.getList('adesioni', _options);
-          
-          this._spin = true;
-          const combined = forkJoin([_configAux, _loadClientAux, _loadClientAdesioniAux]);
-          combined.subscribe(result => {
-            this.adesioniConfig = result[0];
-            this.client = result[1];
-            this._prepareListAdesioni(result[2])
-            this._initBreadcrumb();
-            this._spin = false;
-          });
-          // ==============================
-        }
+        const _configAux: Observable<any> = this.configService.getConfig('adesioni')
+        const _loadClientAux: Observable<any> = this.apiService.getDetails(this.model, this.id)
+        const _options: any = { params: { id_client: this.id } };
+        const _loadClientAdesioniAux: Observable<any> = this.apiService.getList('adesioni', _options);
+        
+        this._spin = true;
+        const combined = forkJoin([_configAux, _loadClientAux, _loadClientAdesioniAux]);
+        combined.subscribe(result => {
+          this.adesioniConfig = result[0];
+          this.client = result[1];
+          this._prepareListAdesioni(result[2])
+          this._initBreadcrumb();
+          this._spin = false;
+        });
       }
     });
   }
@@ -156,7 +144,6 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
 
   _initBreadcrumb() {
     const _title:string = this.client.nome;
-    // const _title = this.client ? `${this.client.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
       { label: '', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Client', url: '/client', type: 'link' },

@@ -102,6 +102,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { field: 'nome', label: 'APP.LABEL.nome', icon: '' }
     ];
 
+
+    _statiServizioEnum: any = { ...Tools.StatiServizioEnum };
+
     _tipiVisibilitaServizio: {value: string, label: string}[] = [
         ...Tools.TipiVisibilitaServizio
     ];
@@ -111,7 +114,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { field: 'creationDateFrom', label: 'APP.LABEL.Date', type: 'date', condition: 'gt', format: 'DD/MM/YYYY' },
         // { field: 'creationDateTo', label: 'APP.LABEL.Date', type: 'date', condition: 'lt', format: 'DD/MM/YYYY' },
         { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'text', condition: 'like' },
-        { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: Tools.StatiServizioEnum },
+        { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: this._statiServizioEnum },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: this._tipiVisibilitaServizioEnum },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
@@ -136,8 +139,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     api_url: string = '';
 
-    generalConfig: any = Tools.Configurazione;
-    _workflowStati: any[] = Tools.Configurazione.servizio.stati_adesione_consentita;
+    generalConfig: any = Tools.Configurazione || null;
+    _workflowStati: any[] = Tools.Configurazione ? Tools.Configurazione.servizio.stati_adesione_consentita : [];
     _workflowStatiFiltered: any[] = [];
 
     _isMyServices: boolean = false;
@@ -242,7 +245,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.showGroupLabel = this.config.AppConfig.Layout.GroupView.showGroupLabel || false;
         this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
         this.fullScroll = this.config.AppConfig.Layout.fullScroll || false;
-        this._showTaxonomies = servizio.tassonomie_abilitate || false;
+        this._showTaxonomies = servizio?.tassonomie_abilitate || false;
 
         const _isAnonymous = this._isAnonymous();
         this._settings = this.localStorageService.getItem('SERVIZI', null);
@@ -333,12 +336,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _createWorkflowStati() {
-        const _configServizio = Tools.Configurazione.servizio;
-        this._workflowStati = this._isAnonymous() ? _configServizio.stati_adesione_consentita : _configServizio.workflow.stati;
-        this._workflowStatiFiltered = [];
-        this._workflowStati.forEach((element: string, index: number) => {
-            this._workflowStatiFiltered.push({ value: element, label: element });
-        });
+        const _configServizio = Tools.Configurazione?.servizio;
+        if (_configServizio) {
+            this._workflowStati = this._isAnonymous() ? _configServizio.stati_adesione_consentita : _configServizio.workflow.stati;
+            this._workflowStatiFiltered = [];
+            this._workflowStati.forEach((element: string, index: number) => {
+                if (element === 'archiviato' && !this._isGestore()) { return; }
+                this._workflowStatiFiltered.push({ value: element, label: element });
+            });
+        }
     }
 
     _getUserSettings() {
@@ -555,6 +561,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         });
     }
 
+    _trackBy(index: any, item: any) {
+        return item.id;
+    }
+    
     __loadMoreData() {
         if (this._groupsView && !this._filterData) {
             if (this._linksGroups && this._linksGroups.next && !this._preventMultiCall) {

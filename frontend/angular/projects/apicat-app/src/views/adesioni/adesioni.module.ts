@@ -11,6 +11,7 @@ import { AdesioniComponent } from './adesioni.component';
 import { AdesioniRoutingModule } from './adesioni-routing.module';
 import { AdesioneDetailsModule } from './adesione-details/adesione-details.module';
 import { AdesioneViewModule } from './adesione-view/adesione-view.module';
+import { AdesioneConfigurazioneWizardModule } from './adesione-configurazione-wizard/adesione-configurazione-wizard.module';
 
 @NgModule({
   imports: [
@@ -21,7 +22,8 @@ import { AdesioneViewModule } from './adesione-view/adesione-view.module';
     ComponentsModule,
     AdesioniRoutingModule,
     AdesioneDetailsModule,
-    AdesioneViewModule
+    AdesioneViewModule,
+    AdesioneConfigurazioneWizardModule
   ],
   declarations: [
     AdesioniComponent

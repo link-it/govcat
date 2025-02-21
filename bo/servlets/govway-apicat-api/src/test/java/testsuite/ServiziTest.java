@@ -182,7 +182,7 @@ public class ServiziTest {
 	private static final String NOME_SERVIZIO_3 = "terzo servizio - versione 2";
 	
     @BeforeEach
-    public void setUp() {
+    private void setUp() {
         MockitoAnnotations.initMocks(this);
         // Set up the mock security context and authentication
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
@@ -197,7 +197,7 @@ public class ServiziTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    private void tearDown() {
         SecurityContextHolder.clearContext();
     }
 
@@ -210,7 +210,7 @@ public class ServiziTest {
     ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
 
     UUID idOrganizzazione;
-    public void setIdOrganizzazione(UUID id) {
+    private void setIdOrganizzazione(UUID id) {
     	this.idOrganizzazione= id;
     }
     
@@ -221,7 +221,7 @@ public class ServiziTest {
     	this.idDominio = id;
     }
     
-    public Dominio getDominio() {
+    private Dominio getDominio() {
 
     	OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
     	organizzazione.setEsterna(false);
@@ -231,6 +231,7 @@ public class ServiziTest {
     	assertNotNull(response.getBody().getIdOrganizzazione());
 
     	SoggettoCreate soggettoCreate = new SoggettoCreate();
+    	soggettoCreate.setSkipCollaudo(true);
     	soggettoCreate.setNome("nome_soggetto");
     	soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
     	soggettoCreate.setAderente(true);
@@ -246,6 +247,7 @@ public class ServiziTest {
     	assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
 
     	DominioCreate dominio = CommonUtils.getDominioCreate();
+    	dominio.setSkipCollaudo(true);
 
     	dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
     	ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
@@ -255,9 +257,10 @@ public class ServiziTest {
     	return createdDominio.getBody();
     }
 
-    public Servizio getServizio() {
+    private Servizio getServizio() {
     	Dominio dominio = this.getDominio();
     	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setSkipCollaudo(true);
 
     	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 
@@ -283,7 +286,7 @@ public class ServiziTest {
     	return servizio;
     }
     
-    public void getMultiServizi() {
+    private void getMultiServizi() {
     	Dominio dominio = this.getDominio();
     	
     	this.setIdDominio(dominio.getIdDominio());
@@ -341,7 +344,7 @@ public class ServiziTest {
     	serviziController.createServizio(servizioCreate);
     }
     
-    public void getMultiServizi(int numServizi) {
+    private void getMultiServizi(int numServizi) {
     	Dominio dominio = this.getDominio();
     	
     	this.setIdDominio(dominio.getIdDominio());
@@ -384,6 +387,7 @@ public class ServiziTest {
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("gestore");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
 
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
@@ -442,6 +446,7 @@ public class ServiziTest {
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("gestore");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
@@ -497,6 +502,7 @@ public class ServiziTest {
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("gestore");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
@@ -554,6 +560,7 @@ public class ServiziTest {
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("gestore");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
@@ -610,6 +617,7 @@ public class ServiziTest {
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("gestore");
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 

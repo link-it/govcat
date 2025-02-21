@@ -82,72 +82,80 @@ public class StatisticheController implements StatisticheApi {
 	private Logger logger = LoggerFactory.getLogger(StatisticheController.class);
 
 	@Autowired
-    private HttpServletRequest request;
+	private HttpServletRequest request;
 
 	@Autowired
 	private IStatisticheClient client;
-	
+
 	@Autowired
-	private Configurazione configurazione;   
+	private Configurazione configurazione;
 
 	@Autowired
 	private FiltriUtils filtriUtils;
 
-
-    @Value("${statistiche.collaudo.uri}")
+	@Value("${statistiche.collaudo.uri}")
 	protected String uriStatisticheCollaudo;
-    @Value("${statistiche.collaudo.authn.basic.username}")
+	@Value("${statistiche.collaudo.authn.basic.username}")
 	protected String userStatisticheCollaudo;
-    @Value("${statistiche.collaudo.authn.basic.password}")
+	@Value("${statistiche.collaudo.authn.basic.password}")
 	protected String passwordStatisticheCollaudo;
-    
-    @Value("${statistiche.produzione.uri}")
+
+	@Value("${statistiche.produzione.uri}")
 	protected String uriStatisticheProduzione;
-    @Value("${statistiche.produzione.authn.basic.username}")
+	@Value("${statistiche.produzione.authn.basic.username}")
 	protected String userStatisticheProduzione;
-    @Value("${statistiche.produzione.authn.basic.password}")
+	@Value("${statistiche.produzione.authn.basic.password}")
 	protected String passwordStatisticheProduzione;
 
-    public enum ErogazioneFruizioneEnum {EROGAZIONE, FRUIZIONE}
-    public enum ModiPdndEnum {MODI, PDND}
-    public enum TipoVerifica {READ_TIMEOUT,CONNECTION_TIMEOUT, RATE_LIMITING}
-    public enum TipologiaReportEnum {ANDAMENTO_TEMPORALE, DISTRIBUZIONE_ESITI, DISTRIBUZIONE_ERRORI, DISTRIBUZIONE_SOGGETTO_REMOTO, DISTRIBUZIONE_API, DISTRIBUZIONE_OPERAZIONE, DISTRIBUZIONE_APPLICATIVO, DISTRIBUZIONE_TOKEN_CLIENT_ID, DISTRIBUZIONE_TOKEN_ISSUER, DISTRIBUZIONE_IP, DISTRIBUZIONE_PRINCIPAL}
-
-    private void authorize() {
-		if(!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
-			throw new NotFoundException("Monitoraggio non abilitato");
-		}
-		
-		if(this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate() != null && !this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate()) {
-			throw new NotFoundException("Statistiche non abilitate");
-		}
-		
-		//TODO check ruoli
+	public enum ErogazioneFruizioneEnum {
+		EROGAZIONE, FRUIZIONE
 	}
 
-	private GetReportRequest fillGetReportRequest(
-			AmbienteEnum ambiente, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA,
-			UUID idApi, EsitoTransazioneEnum esito, List<Integer> listaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale,
-			TipoReportAndamentoTemporaleEnum tipoReportAndamentoTemporale,
-			TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport, ErogazioneFruizioneEnum erogazioneFruizione, 
-			String soggetto,TipologiaReportEnum tipologiaReportEnum) {
+	public enum ModiPdndEnum {
+		MODI, PDND
+	}
 
-		
+	public enum TipoVerifica {
+		READ_TIMEOUT, CONNECTION_TIMEOUT, RATE_LIMITING
+	}
+
+	public enum TipologiaReportEnum {
+		ANDAMENTO_TEMPORALE, DISTRIBUZIONE_ESITI, DISTRIBUZIONE_ERRORI, DISTRIBUZIONE_SOGGETTO_REMOTO,
+		DISTRIBUZIONE_API, DISTRIBUZIONE_OPERAZIONE, DISTRIBUZIONE_APPLICATIVO, DISTRIBUZIONE_TOKEN_CLIENT_ID,
+		DISTRIBUZIONE_TOKEN_ISSUER, DISTRIBUZIONE_IP, DISTRIBUZIONE_PRINCIPAL
+	}
+
+	private void authorize() {
+		if (!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
+			throw new NotFoundException("Monitoraggio non abilitato");
+		}
+
+		if (this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate() != null
+				&& !this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate()) {
+			throw new NotFoundException("Statistiche non abilitate");
+		}
+
+		// TODO check ruoli
+	}
+
+	private GetReportRequest fillGetReportRequest(AmbienteEnum ambiente, UUID idServizio, OffsetDateTime dataDa,
+			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito, List<Integer> listaCodici, UUID idAdesione,
+			UUID idClient, String operazione, UnitaTempoReportEnum unitaTempo,
+			TipoIntervalloTemporaleEnum tipoIntervalloTemporale, Integer unitaTemporale,
+			TipoReportAndamentoTemporaleEnum tipoReportAndamentoTemporale, TipoReportEnum tipoReport,
+			TipoInformazioneReportEnum tipoInformazioneReport, ErogazioneFruizioneEnum erogazioneFruizione,
+			String soggetto, TipologiaReportEnum tipologiaReportEnum) {
+
 		List<IdApi> idapi = this.filtriUtils.getApi(idServizio, idApi, idAdesione, ambiente);
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
+
 		getReportRequest.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if (erogazioneFruizione.equals(ErogazioneFruizioneEnum.EROGAZIONE)) getReportRequest.setApiSoggettoErogatore(soggetto);
-		else getReportRequest.setApiErogatoreFruitore(soggetto);
-		getReportRequest.setApiSoggettoErogatore(idapi.get(0).getSoggettoGestore());
-		getReportRequest.setApiErogatoreFruitore(idapi.get(0).getSoggetto());
+
+		getReportRequest.setSoggettoReferente(soggetto);
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
 		getReportRequest.setEsito(esito);
 		getReportRequest.setListaCodici(listaCodici);
 		getReportRequest.setOperazione(operazione);
@@ -158,29 +166,32 @@ public class StatisticheController implements StatisticheApi {
 		getReportRequest.setUnitaTemporale(unitaTemporale);
 		getReportRequest.setTipoReport(tipoReport);
 		getReportRequest.setTipoReportAndamentoTemporale(tipoReportAndamentoTemporale);
-		getReportRequest.setTipoInformazioneReport(tipoInformazioneReport); 
+		getReportRequest.setTipoInformazioneReport(tipoInformazioneReport);
 		getReportRequest.setTipologiaReportEnum(tipologiaReportEnum);
-		getReportRequest.setProfilo(ProfiloEnum.fromValue(this.configurazione.getMonitoraggio().getProfiloGovwayDefault()));
+		getReportRequest
+				.setProfilo(ProfiloEnum.fromValue(this.configurazione.getMonitoraggio().getProfiloGovwayDefault()));
 		getReportRequest.setErogazioneFruizioneEnum(erogazioneFruizione);
 		getReportRequest.setAccept(this.request.getHeader("Accept"));
 
 		return getReportRequest;
 	}
-	
-	private ConfigurazioneConnessione getConfigurazioneConnessione(AmbienteEnum ambiente) {
-		
-		ConfigurazioneConnessione conf = new ConfigurazioneConnessione();
-		conf.setUrl(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.uriStatisticheCollaudo:this.uriStatisticheProduzione);
 
-		conf.setUsername(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.userStatisticheCollaudo:this.userStatisticheProduzione);
-		conf.setPassword(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.passwordStatisticheCollaudo:this.passwordStatisticheProduzione);
+	private ConfigurazioneConnessione getConfigurazioneConnessione(AmbienteEnum ambiente) {
+
+		ConfigurazioneConnessione conf = new ConfigurazioneConnessione();
+		conf.setUrl(
+				ambiente.equals(AmbienteEnum.COLLAUDO) ? this.uriStatisticheCollaudo : this.uriStatisticheProduzione);
+
+		conf.setUsername(
+				ambiente.equals(AmbienteEnum.COLLAUDO) ? this.userStatisticheCollaudo : this.userStatisticheProduzione);
+		conf.setPassword(ambiente.equals(AmbienteEnum.COLLAUDO) ? this.passwordStatisticheCollaudo
+				: this.passwordStatisticheProduzione);
 
 		return conf;
 	}
 
 	private ResponseEntity<Resource> getResource(GetReportResponse response) {
-		return ResponseEntity.status(HttpStatus.OK)
-				.header("Content-Type", response.getContentType())
+		return ResponseEntity.status(HttpStatus.OK).header("Content-Type", response.getContentType())
 				.body(new ByteArrayResource(response.getResource()));
 	}
 
@@ -189,79 +200,79 @@ public class StatisticheController implements StatisticheApi {
 		return ResponseEntity.ok().body(response.getReportStatisticoIntervalloTemporale());
 	}
 
-	
-	
-	private GetReportRequest fillPostReportRequestNomeTemporaneo(GetReportRequest getReportRequest,AmbienteEnum ambiente,
+	private GetReportRequest fillPostReportRequestInfoComuni(GetReportRequest getReportRequest, AmbienteEnum ambiente,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
 		getReportRequest.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
-		if (erogazioneFruizione.equals(ErogazioneFruizioneEnum.EROGAZIONE)) getReportRequest.setApiSoggettoErogatore(soggetto);
-		else getReportRequest.setApiErogatoreFruitore(soggetto);
-
+		getReportRequest.setSoggettoReferente(soggetto);
 		getReportRequest.setTipologiaReportEnum(andamentoTemporale);
-		getReportRequest.setProfilo(ProfiloEnum.fromValue(this.configurazione.getMonitoraggio().getProfiloGovwayDefault()));
+		getReportRequest
+				.setProfilo(ProfiloEnum.fromValue(this.configurazione.getMonitoraggio().getProfiloGovwayDefault()));
 		getReportRequest.setErogazioneFruizioneEnum(erogazioneFruizione);
 		getReportRequest.setAccept("text/csv");
 
 		return getReportRequest;
 	}
-	
-	
-	
+
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, AndamentoTemporaleQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setTipoReportAndamentoTemporale(query.getTipoReportAndamentoTemporale());
-		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport()); 
-		
-		getReportRequest.setDataFine(it.getDataFine());		
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
+
+		getReportRequest.setDataFine(it.getDataFine());
 		getReportRequest.setDataInizio(it.getDataInizio());
 
 		return getReportRequest;
 	}
-	
+
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneEsitiQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setTipoReportAndamentoTemporale(query.getTipoReportAndamentoTemporale());
-		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport()); 
-		
-		getReportRequest.setDataFine(it.getDataFine());		
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
+
+		getReportRequest.setDataFine(it.getDataFine());
 		getReportRequest.setDataInizio(it.getDataInizio());
 
 		return getReportRequest;
@@ -269,105 +280,117 @@ public class StatisticheController implements StatisticheApi {
 
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneErroriQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
 
 		return getReportRequest;
 	}
-	
-	
-
 
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneApiQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
 
 		return getReportRequest;
 	}
-	
-	
+
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneApplicativoQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
 
 		return getReportRequest;
 	}
-	
+
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneIPQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
@@ -377,23 +400,27 @@ public class StatisticheController implements StatisticheApi {
 
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneOperazioneQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
@@ -401,26 +428,29 @@ public class StatisticheController implements StatisticheApi {
 		return getReportRequest;
 	}
 
-		
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneSoggettoRemotoQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
@@ -430,23 +460,27 @@ public class StatisticheController implements StatisticheApi {
 
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneClientIdQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
@@ -456,23 +490,27 @@ public class StatisticheController implements StatisticheApi {
 
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzioneIssuerQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
@@ -482,29 +520,34 @@ public class StatisticheController implements StatisticheApi {
 
 	private GetReportRequest fillPostReportRequest(AmbienteEnum ambiente, DistribuzionePrincipalQuery query,
 			ErogazioneFruizioneEnum erogazioneFruizione, String soggetto, TipologiaReportEnum andamentoTemporale) {
-		
+
 		GetReportRequest getReportRequest = new GetReportRequest();
-		
-		fillPostReportRequestNomeTemporaneo(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
-		
-		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
+
+		fillPostReportRequestInfoComuni(getReportRequest, ambiente, erogazioneFruizione, soggetto, andamentoTemporale);
+
+		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(),
+				query.getApi().getIdAdesione(), ambiente);
 		getReportRequest.setApiNome(idapi.get(0).getNome());
 		getReportRequest.setApiVersione(idapi.get(0).getVersione());
-		if(query.getEsito()!=null) {
+		if (query.getEsito() != null) {
 			getReportRequest.setEsito(query.getEsito().getTipo());
 			getReportRequest.setListaCodici(query.getEsito().getCodici());
 		}
+
+		getReportRequest.setSoggettoErogatore(this.filtriUtils.getSoggettoNome(idapi.get(0).getSoggetto()));
+
 		getReportRequest.setOperazione(query.getOperazione());
 		getReportRequest.setUnitaTempo(query.getUnitaTempo());
 		getReportRequest.setTipoIntervalloTemporale(query.getIntervalloTemporale().getTipoIntervalloTemporale());
-		
-		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
+
+		IntervalloTemporale it = ((IntervalloTemporale) query.getIntervalloTemporale());
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
 
 		return getReportRequest;
 	}
+
 	private ResponseEntity<ReportStatisticoDistribuzioneEsiti> getReportStatisticoDistribuzioneEsiti(
 			PostReportResponse response) {
 		return ResponseEntity.ok().body(response.getReportStatisticoDistribuzioneEsiti());
@@ -554,1221 +597,1052 @@ public class StatisticheController implements StatisticheApi {
 			PostReportResponse response) {
 		return ResponseEntity.ok().body(response.getReportStatisticoDistribuzionePrincipal());
 	}
+
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportAndamentoTemporaleGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
 			Integer unitaTemporale, TipoReportAndamentoTemporaleEnum tipoReport,
 			TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, tipoReport, null, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.ANDAMENTO_TEMPORALE);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, tipoReport, null, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.ANDAMENTO_TEMPORALE);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoIntervalloTemporale> ambienteErogazioniSoggettoReportAndamentoTemporalePost(
-			AmbienteEnum ambiente, String soggetto,
-			AndamentoTemporaleQuery andamentoTemporaleQuery) {
+			AmbienteEnum ambiente, String soggetto, AndamentoTemporaleQuery andamentoTemporaleQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, andamentoTemporaleQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.ANDAMENTO_TEMPORALE);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoIntervalloTemporale(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
-	
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneApiGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_API);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_API);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneAPI> ambienteErogazioniSoggettoReportDistribuzioneApiPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneApiQuery distribuzioneApiQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneApiQuery distribuzioneApiQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApiQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_API);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneApi(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneApplicativoGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
-
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneApplicativo> ambienteErogazioniSoggettoReportDistribuzioneApplicativoPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneApplicativoQuery distribuzioneApplicativoQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneApplicativoQuery distribuzioneApplicativoQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApplicativoQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneApplicativo(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneErroriGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ERRORI);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_ERRORI);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
-	
+
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneErrori> ambienteErogazioniSoggettoReportDistribuzioneErroriPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneErroriQuery distribuzioneErroriQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneErroriQuery distribuzioneErroriQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneErroriQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ERRORI);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneErrori(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneEsitiGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
 			Integer unitaTemporale, TipoReportAndamentoTemporaleEnum tipoReport,
 			TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, tipoReport, null, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ESITI);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, tipoReport, null, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_ESITI);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
-
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneEsiti> ambienteErogazioniSoggettoReportDistribuzioneEsitiPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneEsitiQuery distribuzioneEsitiQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneEsitiQuery distribuzioneEsitiQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneEsitiQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ESITI);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneEsiti(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneIpGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_IP);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_IP);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneIndirizzoIP> ambienteErogazioniSoggettoReportDistribuzioneIpPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneIPQuery distribuzioneIPQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneIPQuery distribuzioneIPQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIPQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_IP);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneIndirizzoIP(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
-	
+
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneOperazioneGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneOperazione> ambienteErogazioniSoggettoReportDistribuzioneOperazionePost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneOperazioneQuery distribuzioneOperazioneQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneOperazioneQuery distribuzioneOperazioneQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneOperazioneQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneOperazione(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneSoggettoRemotoGet(
-			AmbienteEnum ambiente, String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			AmbienteEnum ambiente, String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA,
+			UUID idApi, EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA,  idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
-
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneSoggettoRemoto> ambienteErogazioniSoggettoReportDistribuzioneSoggettoRemotoPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneSoggettoRemotoQuery distribuzioneSoggettoRemotoQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneSoggettoRemotoQuery distribuzioneSoggettoRemotoQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneSoggettoRemotoQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneSoggettoRemoto(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneTokenClientidGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_TOKEN_CLIENT_ID);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_TOKEN_CLIENT_ID);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneTokenClientId> ambienteErogazioniSoggettoReportDistribuzioneTokenClientidPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneClientIdQuery distribuzioneClientIdQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneClientIdQuery distribuzioneClientIdQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneClientIdQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_TOKEN_CLIENT_ID);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneTokenClientId(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteErogazioniSoggettoReportDistribuzioneTokenIssuerGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_TOKEN_ISSUER);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.EROGAZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_TOKEN_ISSUER);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneTokenIssuer> ambienteErogazioniSoggettoReportDistribuzioneTokenIssuerPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneIssuerQuery distribuzioneIssuerQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneIssuerQuery distribuzioneIssuerQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIssuerQuery,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_TOKEN_ISSUER);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneTokenIssuer(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
+
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportAndamentoTemporaleGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
 			Integer unitaTemporale, TipoReportAndamentoTemporaleEnum tipoReport,
 			TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, tipoReport, null, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.ANDAMENTO_TEMPORALE);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, tipoReport, null, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.ANDAMENTO_TEMPORALE);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoIntervalloTemporale> ambienteFruizioniSoggettoReportAndamentoTemporalePost(
-			AmbienteEnum ambiente, String soggetto,
-			AndamentoTemporaleQuery andamentoTemporaleQuery) {
+			AmbienteEnum ambiente, String soggetto, AndamentoTemporaleQuery andamentoTemporaleQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, andamentoTemporaleQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.ANDAMENTO_TEMPORALE);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoIntervalloTemporale(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzioneApiGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_API);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_API);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneAPI> ambienteFruizioniSoggettoReportDistribuzioneApiPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneApiQuery distribuzioneApiQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneApiQuery distribuzioneApiQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApiQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_API);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneApi(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzioneApplicativoGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneApplicativo> ambienteFruizioniSoggettoReportDistribuzioneApplicativoPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneApplicativoQuery distribuzioneApplicativoQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneApplicativoQuery distribuzioneApplicativoQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApplicativoQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_APPLICATIVO);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneApplicativo(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzioneErroriGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ERRORI);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_ERRORI);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneErrori> ambienteFruizioniSoggettoReportDistribuzioneErroriPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneErroriQuery distribuzioneErroriQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneErroriQuery distribuzioneErroriQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneErroriQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ERRORI);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneErrori(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzioneEsitiGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
 			Integer unitaTemporale, TipoReportAndamentoTemporaleEnum tipoReport,
 			TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, tipoReport, null, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ESITI);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, tipoReport, null, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_ESITI);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneEsiti> ambienteFruizioniSoggettoReportDistribuzioneEsitiPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneEsitiQuery distribuzioneEsitiQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneEsitiQuery distribuzioneEsitiQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneEsitiQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_ESITI);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneEsiti(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzioneIpGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_IP);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_IP);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneIndirizzoIP> ambienteFruizioniSoggettoReportDistribuzioneIpPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneIPQuery distribuzioneIPQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneIPQuery distribuzioneIPQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIPQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_IP);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneIndirizzoIP(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
+
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzioneOperazioneGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneOperazione> ambienteFruizioniSoggettoReportDistribuzioneOperazionePost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneOperazioneQuery distribuzioneOperazioneQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneOperazioneQuery distribuzioneOperazioneQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneOperazioneQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_OPERAZIONE);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneOperazione(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzionePrincipalGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_PRINCIPAL);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_PRINCIPAL);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzionePrincipal> ambienteFruizioniSoggettoReportDistribuzionePrincipalPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzionePrincipalQuery distribuzionePrincipalQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzionePrincipalQuery distribuzionePrincipalQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzionePrincipalQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_PRINCIPAL);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzionePrincipal(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
 	@Override
 	public ResponseEntity<Resource> ambienteFruizioniSoggettoReportDistribuzioneSoggettoRemotoGet(AmbienteEnum ambiente,
-			String soggetto,
-			UUID idServizio, OffsetDateTime dataDa,
-			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
-			String operazione,
-			UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
-			Integer unitaTemporale, TipoReportEnum tipoReport,
-			TipoInformazioneReportEnum tipoInformazioneReport) {
+			String soggetto, UUID idServizio, OffsetDateTime dataDa, OffsetDateTime dataA, UUID idApi,
+			EsitoTransazioneEnum esito, List<Integer> esitoListaCodici, UUID idAdesione, UUID idClient,
+			String operazione, UnitaTempoReportEnum unitaTempo, TipoIntervalloTemporaleEnum tipoIntervalloTemporale,
+			Integer unitaTemporale, TipoReportEnum tipoReport, TipoInformazioneReportEnum tipoInformazioneReport) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
-			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoListaCodici, idAdesione, idClient, 
-					operazione, unitaTempo, tipoIntervalloTemporale, 
-					unitaTemporale, null, tipoReport, tipoInformazioneReport,
-					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO);
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
+					esitoListaCodici, idAdesione, idClient, operazione, unitaTempo, tipoIntervalloTemporale,
+					unitaTemporale, null, tipoReport, tipoInformazioneReport, ErogazioneFruizioneEnum.FRUIZIONE,
+					soggetto, TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			GetReportResponse response = this.client.getReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getResource(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}
 
-
 	@Override
 	public ResponseEntity<ReportStatisticoDistribuzioneSoggettoRemoto> ambienteFruizioniSoggettoReportDistribuzioneSoggettoRemotoPost(
-			AmbienteEnum ambiente, String soggetto,
-			DistribuzioneSoggettoRemotoQuery distribuzioneSoggettoRemotoQuery) {
+			AmbienteEnum ambiente, String soggetto, DistribuzioneSoggettoRemotoQuery distribuzioneSoggettoRemotoQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneSoggettoRemotoQuery,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto, TipologiaReportEnum.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			PostReportResponse response = this.client.postReport(request);
 
 			this.logger.debug("Invocazione completata con successo");
-			
+
 			return getReportStatisticoDistribuzioneSoggettoRemoto(response);
-		}
-		catch(RuntimeException e) {
-			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
 			throw e;
-		}
-		catch(Throwable e) {
-			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
 			throw new InternalException(e);
 		}
 	}

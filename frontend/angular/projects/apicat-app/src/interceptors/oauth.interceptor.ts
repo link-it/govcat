@@ -32,7 +32,7 @@ export class OAuthInterceptor implements HttpInterceptor {
   }
 
   public intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const _urls = ['-config.json', '/configurazione'];
+    const _urls = ['-config.json'];
 
     if (_urls.some(v => req.url.indexOf(v) !== -1) || this.config?.AppConfig?.AUTH_SETTINGS?.OAUTH.BackdoorSpid) {
       return next.handle(req);

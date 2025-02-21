@@ -73,6 +73,9 @@ public class SoggettoEntity {
     @Column(name = "aderente", nullable = false)
     private boolean aderente;
     
+    @Column(name = "skip_collaudo", nullable = false)
+    private boolean skipCollaudo;
+    
 	@ManyToOne
     @JoinColumn(name = "id_organizzazione", referencedColumnName = "id")
     private OrganizzazioneEntity organizzazione;

@@ -25,6 +25,7 @@ import { CodeGrantDialogComponent } from '@app/components/authemtications-dialog
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
 import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { EventType } from 'projects/tools/src/lib/classes/events';
 
 import { environment } from '@app/environments/environment';
 
@@ -155,7 +156,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
-        const _srv: any = Tools.Configurazione.servizio;
+        const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
         this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
     }
@@ -176,6 +177,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             } else {
                 console.log('NO params', params);
             }
+        });
+
+        this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
+            const _srv: any = Tools.Configurazione.servizio;
+            this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
+            this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
         });
     }
 
@@ -393,7 +400,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                     const tipoProfilo = this._getProfiloLabelMapper(tipProfiloValue);
                     let returnValue: any = { ...api, tipo_profilo: `${profiloLabelI18n}:${tipoProfilo}` };
 
-                    proprieta_api.forEach((item) => {
+                    proprieta_api.reverse().forEach((item) => {
                         returnValue[item.key] = item.valore;
 
                         if(this.apiConfig.itemRowView.secondaryText.some((element: any) => element.field === item.key)) {
@@ -497,7 +504,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _joinServizio() {
-        this.router.navigate(['servizi', this.id, 'adesioni', 'new'], { queryParams: { web: true } });
+        this.router.navigate(['servizi', this.id, 'adesioni', 'new', 'edit'], { queryParams: { web: true } });
     }
 
     _gotoAdesione() {
@@ -522,11 +529,14 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const profilo = profili.find((item: any) => item.codice_interno === apiProfilo);
         this.codiceTokenPolicy = profilo?.codice_token_policy || '';
         this.tipoTokenPolicy = this._getTipoTokenPolicy(this.codiceTokenPolicy);
+        const _srv: any = Tools.Configurazione.servizio;
+        this.tokenPolicy = _srv.api?.token_policies?.find((item: any) => item.tipo_policy === this.tipoTokenPolicy);
         this.showJwtGenerator = this.allowTryIt && this._environmentId !== 'produzione';
         // console.group('Show APi');
-        // console.log('isPDND', this._isPDND(data));
         // console.log('profili', profili);
         // console.log('profilo', apiProfilo, profilo);
+        // console.log('codiceTokenPolicy', this.codiceTokenPolicy);
+        // console.log('tipoTokenPolicy', this.tipoTokenPolicy);
         // console.log('showJwtGenerator', this.showJwtGenerator);
         // console.groupEnd();
         this._openApiInfo();
@@ -547,7 +557,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _getTipoTokenPolicy(type: string) {
-        const negoziazione = this.authenticationService._getConfigModule('servizio')?.api?.token_policies?.find((item: any) => item.codice_policy === type)
+        const negoziazione = this.authenticationService._getConfigModule('servizio')?.api?.token_policies?.find((item: any) => item.codice_policy === type);
         return negoziazione?.tipo_policy || '';
     }
 

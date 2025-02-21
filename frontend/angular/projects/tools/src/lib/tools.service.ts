@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
-import { OAuthService } from 'angular-oauth2-oidc';
 
 import { MultiSnackbarComponent } from 'projects/components/src/lib/dialogs/multi-snackbar/multi-snackbar.component';
 import { GridFormatters } from './utils/grid-formatters';

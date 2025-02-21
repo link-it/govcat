@@ -1,0 +1,106 @@
+<ng-container *ngIf="inline">
+    <div class="row {{ name }}" [class.mb-3]="!reduced">
+        <div class="text-break {{ colClassLabel }}">
+            <ng-container *ngTemplateOutlet="formLabel;context:{ name:name, label:label, formGroup:formGroup, isEdit:isEdit }"></ng-container>
+        </div>
+        <div class="{{ colClassValue }}">
+            <ng-container *ngTemplateOutlet="formInput;context:{ name:name, label:label, formGroup:formGroup, type:type, autocomplete:autocomplete, placeholder:placeholder, rows:rows, selectOptions:selectOptions, isEdit:isEdit }"></ng-container>
+        </div>
+    </div>
+</ng-container>
+
+<ng-container *ngIf="!inline">
+    <div class="form-group {{ name }}" [class.mb-3]="!reduced" [class.mb-0]="reduced">
+        <ng-container *ngTemplateOutlet="formLabel;context:{ name:name, label:label, formGroup:formGroup, isEdit:isEdit }"></ng-container>
+        <ng-container *ngTemplateOutlet="formInput;context:{ name:name, label:label, formGroup:formGroup, type:type, autocomplete:autocomplete, placeholder:placeholder, rows:rows, selectOptions:selectOptions, isEdit:isEdit }"></ng-container>
+    </div>
+</ng-container>
+
+<ng-template #formLabel let-name="name" let-label="label" let-formGroup="formGroup" let-isEdit="isEdit">
+    <label class="label-bold" [class.mb-0]="reduced" [for]="name">{{ label }}
+        <span *ngIf="isEdit"
+            appMarkAsterisk
+            [formGroup]="formGroup"
+            [controlName]="name"
+            [useOptional]="useOptional"
+        ></span>
+    </label>
+</ng-template>
+
+<ng-template #formInput let-name="name" let-label="label" let-formGroup="formGroup" let-type="type" let-autocomplete="autocomplete" let-placeholder="placeholder" let-rows="rows" let-selectOptions="selectOptions" let-isEdit="isEdit">
+    <div class="{{ name }}" [formGroup]="formGroup">
+        <div class="" *ngIf="isEdit">
+
+            <input class="form-control" *ngIf="type !== 'checkbox' && type !== 'select' && type !== 'textarea'"
+                [type]="type"
+                aria-required="true"
+                [attr.autocomplete]="autocomplete"
+                [placeholder]="placeholder ?? ''"
+                [class.gl-field-error-outline]="hasError()"
+                [name]="name"
+                [id]="id || name"
+                [formControlName]="name"
+                [appUppercase]="uppercase"
+                (change)="onChange($event)"
+            />
+
+            <textarea class="form-control" *ngIf="type === 'textarea'"
+                aria-required="true"
+                [attr.autocomplete]="autocomplete"
+                [placeholder]="placeholder ?? ''"
+                [class.gl-field-error-outline]="hasError()"
+                [name]="name"
+                [id]="id || name"
+                [rows]="rows"
+                [formControlName]="name"
+                (change)="onChange($event)"
+            ></textarea>
+
+            <div class="gl-form-checkbox custom-control custom-checkbox pt-1" *ngIf="type === 'checkbox'">
+                <input class="custom-control-input" *ngIf="type === 'checkbox'"
+                    type="checkbox"
+                    aria-required="true"
+                    [class.gl-field-error-outline]="hasError()"
+                    [name]="name"
+                    [id]="id || name"
+                    [formControlName]="name"
+                    (change)="onChange($event)"
+                />
+                <label class="custom-control-label text-dark" [for]="name"></label>
+            </div>
+
+            <ng-select *ngIf="type === 'select'"
+                [id]="id"
+                [items]="selectOptions"
+                [bindValue]="'value'"
+                [searchable]="false"
+                [labelForId]="id || name"
+                [editableSearchTerm]="false"
+                [formControlName]="name"
+                (change)="onChange($event)"
+            ></ng-select>
+
+            <lnk-form-field-error
+                [control]="formGroup.get(name)"
+            ></lnk-form-field-error>
+            <!-- <lnk-input-help [field]="name" [context]="context"></ui-input-help> -->
+        </div>
+        <div class="" *ngIf="!isEdit">
+            <ng-container *ngIf="useParagraph">
+                <p class="form-control-plaintext mt-1 text-break">{{ value || '-' }}</p>
+            </ng-container>
+            <ng-container *ngIf="!useParagraph">
+                <input [name]="name" [type]="type === 'password' ? type : 'text'" readonly class="form-control-plaintext" [id]="id" [value]="value || '-'" *ngIf="type !== 'checkbox' && type !== 'textarea' && plainText">
+                <input [name]="name" [type]="type === 'password' ? type : 'text'" readonly class="" [class.form-control]="!plainText" [class.form-control-plaintext]="plainText" [id]="id" [value]="value || '-'" *ngIf="type !== 'checkbox' && type !== 'textarea' && !plainText">
+                <textarea [name]="name" readonly class="" [class.form-control]="!plainText" [class.form-control-plaintext]="plainText" [id]="id" [value]="value || '-'" [rows]="rows" *ngIf="type === 'textarea' && plainText"></textarea>
+                <!-- <span class="" *ngIf="type === 'checkbox'">
+                    <i class="bi" [class.bi-square]="!value" [class.bi-check-square]="value"></i>
+                </span> -->
+                <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="type === 'checkbox'">
+                    <input class="custom-control-input" type="checkbox" name="package" [id]="id" [checked]="value" disabled>
+                    <label class="custom-control-label text-dark" [for]="name"></label>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</ng-template>
