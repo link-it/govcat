@@ -18,6 +18,7 @@
 		<nodejs.version>v22.14.0</nodejs.version>
 		<angular.dir>angular/</angular.dir>
 		<maven.frontend.version>1.15.1</maven.frontend.version>
+		<rel-to-parent>..</rel-to-parent>
 	</properties>
 
 	<!-- Build configuration -->

@@ -14,9 +14,10 @@
 	<packaging>war</packaging>
 	<name>govwayAPICatalogo - API</name>
 	<description>govwayAPICatalogo - API</description>
-
+	
 	<properties>
 		<rel-to-parent>../../..</rel-to-parent>
+		<filter-file>${api-filter-file}</filter-file>
 	</properties>
 
 	<dependencies>
@@ -383,31 +384,9 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<filters>
-			<filter>${api-filter-file}</filter>
-		</filters>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-			<resource>
-				<directory>../../target/plugin/plugin</directory>
-				<excludes>
-					<exclude>configurazione.json</exclude>
-				</excludes>
-				<filtering>false</filtering>
-			</resource>
-			<resource>
-				<directory>../../target/plugin/plugin</directory>
-				<includes>
-					<include>configurazione.json</include>
-				</includes>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<finalName>${warName}</finalName>
+	<build>		
+		<finalName>${api.warName}</finalName>
+		
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -421,6 +400,7 @@
 					<release>${javaVersion}</release>
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
 				<configuration>

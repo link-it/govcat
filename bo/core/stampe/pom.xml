@@ -14,6 +14,11 @@
 		<relativePath>../</relativePath>
 	</parent>
 
+	<properties>
+		<rel-to-parent>../../..</rel-to-parent>
+	</properties>
+
+	
 	<dependencies>
 
 		<dependency>
@@ -98,6 +103,22 @@
 </dependency>
 				
 				</dependencies>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven.resources.plugin.version}</version>
+				<inherited>true</inherited>
+				<executions>
+					<execution>
+						<id>apply-filter</id>
+						<phase>none</phase>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

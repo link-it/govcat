@@ -9,6 +9,10 @@
 	</parent>
 	<artifactId>owasp</artifactId>
 
+	<properties>
+		<rel-to-parent>../..</rel-to-parent>
+	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -35,27 +39,27 @@
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
 	</dependencies>
-	
+
 	<reporting>
-	  <plugins>
-	    <plugin>
-	      <groupId>org.apache.maven.plugins</groupId>
-	      <artifactId>maven-project-info-reports-plugin</artifactId>
-	      <version>2.9</version>
-	      <reportSets>
-	        <reportSet>
-	          <reports />
-	        </reportSet>
-	      </reportSets>
-	    </plugin>
-	    <plugin>
-	      <groupId>kr.motd.maven</groupId>
-	      <artifactId>sphinx-maven-plugin</artifactId>
-	      <version>2.10.0</version>
-	      <configuration>
-	        <builder>html</builder>
-	      </configuration>
-	    </plugin>
-	  </plugins>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.9</version>
+				<reportSets>
+					<reportSet>
+						<reports />
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>sphinx-maven-plugin</artifactId>
+				<version>2.10.0</version>
+				<configuration>
+					<builder>html</builder>
+				</configuration>
+			</plugin>
+		</plugins>
 	</reporting>
 </project>

@@ -14,52 +14,40 @@
 		<profile>
 			<id>default</id>
 			<activation>
-				<activeByDefault>true</activeByDefault>
 				<property>
 					<name>!plugin.artifactId</name>
 				</property>
 			</activation>
 
 			<properties>
-				<customer>localhost</customer>
+				<web.warName>govcat-web</web.warName>
+				<api.warName>govcat-api</api.warName>
+				<batch.warName>govcat-batch</batch.warName>
 			</properties>
 
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
 						<version>${maven.resources.plugin.version}</version>
-						<inherited>false</inherited>
+						<inherited>true</inherited>
 						<executions>
 							<execution>
-								<id>copy-plugin</id>
-								<phase>initialize</phase>
+								<id>copy-default-resources</id>
+								<phase>validate</phase>
 								<goals>
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
 									<outputDirectory>
-										${project.build.directory}/plugin/plugin</outputDirectory>
+										${project.build.directory}/plugin</outputDirectory>
 									<resources>
 										<resource>
-											<directory>src/main/resources/plugin</directory>
-										</resource>
-									</resources>
-								</configuration>
-							</execution>
-							<execution>
-								<id>copy-filter</id>
-								<phase>initialize</phase>
-								<goals>
-									<goal>copy-resources</goal>
-								</goals>
-								<configuration>
-									<outputDirectory>
-										${project.build.directory}/plugin/filters</outputDirectory>
-									<resources>
-										<resource>
-											<directory>
-												${basedir}/src/main/resources/filters</directory>
+											<directory>${default.plugin.dir}</directory>
+											<includes>
+												<include>*/**</include>
+											</includes>
 										</resource>
 									</resources>
 								</configuration>
@@ -82,7 +70,6 @@
 			<properties>
 				<plugin.groupId>org.govway.catalogo</plugin.groupId>
 				<plugin.version>1.0</plugin.version>
-				<customer>${plugin.artifactId}</customer>
 			</properties>
 
 			<dependencies>
@@ -99,11 +86,11 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-dependency-plugin</artifactId>
 						<version>${maven.dependency.plugin.version}</version>
-						<inherited>false</inherited>
+						<inherited>true</inherited>
 						<executions>
 							<execution>
 								<id>unpack-customer</id>
-								<phase>initialize</phase>
+								<phase>validate</phase>
 								<goals>
 									<goal>unpack-dependencies</goal>
 								</goals>
@@ -113,9 +100,32 @@
 									<excludeTransitive>true</excludeTransitive>
 									<outputDirectory>
 										${project.build.directory}/plugin</outputDirectory>
-									<includes>filters/**,plugin/**</includes>
+									<includes>
+										filters/**,plugin/**,customer.properties
+									</includes>
 									<overWriteReleases>true</overWriteReleases>
 									<overWriteSnapshots>true</overWriteSnapshots>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>properties-maven-plugin</artifactId>
+						<version>${maven.properties.plugin.version}</version>
+						<inherited>true</inherited>
+						<executions>
+							<execution>
+								<id>extract-customer-properties</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>read-project-properties</goal>
+								</goals>
+								<configuration>
+									<files>
+										<file>
+											${project.build.directory}/plugin/customer.properties</file>
+									</files>
 								</configuration>
 							</execution>
 						</executions>
@@ -135,9 +145,16 @@
 
 	<properties>
 		<rel-to-parent>.</rel-to-parent>
-		<plugin.dir>${rel-to-parent}/target/plugin</plugin.dir>
-		<web-filter-file>${plugin.dir}/filters/web.filter.properties</web-filter-file>
-		<api-filter-file>${plugin.dir}/filters/api.filter.properties</api-filter-file>
+		<default.plugin.dir>${rel-to-parent}/src/main/plugin</default.plugin.dir>
+		<default.filter>${default.plugin.dir}/filters</default.filter>
+		<default.plugin>${default.plugin.dir}/plugin</default.plugin>
+		<web-filter-name>web.filter.properties</web-filter-name>
+		<api-filter-name>api.filter.properties</api-filter-name>
+		<web-filter-file>
+			${project.build.directory}/plugin/filters/${web-filter-name}</web-filter-file>
+		<api-filter-file>
+			${project.build.directory}/plugin/filters/${api-filter-name}</api-filter-file>
+		<filter-file>${rel-to-parent}/src/main/resources/empty.filter.properties</filter-file>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -169,6 +186,7 @@
 		<maven.ear.plugin.version>2.10.1</maven.ear.plugin.version>
 		<maven.clean.plugin.version>3.1.0</maven.clean.plugin.version>
 		<maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
+		<maven.properties.plugin.version>1.2.1</maven.properties.plugin.version>
 		<maven.surefire.version>3.2.2</maven.surefire.version>
 		<debug.level>DEBUG</debug.level>
 
@@ -1031,16 +1049,6 @@
 	</dependencyManagement>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>properties-maven-plugin</artifactId>
-					<version>1.0.0</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-
 		<plugins>
 			<plugin>
 				<groupId>org.owasp</groupId>
@@ -1090,6 +1098,33 @@
 						</fileset>
 					</filesets>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven.resources.plugin.version}</version>
+				<inherited>true</inherited>
+				<executions>
+					<execution>
+						<id>apply-filter</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>resources</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<directory>
+										${basedir}/src/main/resources</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+							<filters>
+								<filter>${filter-file}</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

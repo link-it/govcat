@@ -14,6 +14,7 @@
 	</parent>
 	<properties>
 		<rel-to-parent>../../..</rel-to-parent>
+		<filter-file>${api-filter-file}</filter-file>
 	</properties>
 	<dependencies>
 
@@ -73,15 +74,6 @@
 	</dependencies>
 
 	<build>
-		<filters>
-			<filter>${api-filter-file}</filter>
-		</filters>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.bsc.maven</groupId>

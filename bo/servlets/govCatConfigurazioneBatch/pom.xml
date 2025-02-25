@@ -18,6 +18,8 @@
 
 	<properties>
 		<rel-to-parent>../../..</rel-to-parent>
+		<filter-file>${api-filter-file}</filter-file>
+		
 		<reactive-streams.version>1.0.3</reactive-streams.version>
 		<version.maven.war.plugin>3.2.3</version.maven.war.plugin>
 		<commons-configuration2.version>2.11.0</commons-configuration2.version>
@@ -315,7 +317,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
@@ -323,16 +325,7 @@
 	</dependencies>
 
 	<build>
-		<filters>
-			<filter>${api-filter-file}</filter>
-		</filters>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<finalName>${warName_batch_configurazioni}</finalName>
+		<finalName>${batch.warName}</finalName>
 		<plugins>
 
 			<plugin>
@@ -348,10 +341,6 @@
 					<failOnMissingWebXml>false</failOnMissingWebXml>
 					<webappDirectory />
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
 			</plugin>
 
 

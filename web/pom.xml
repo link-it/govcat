@@ -14,10 +14,10 @@
 	<artifactId>reverse-proxy</artifactId>
 	<packaging>war</packaging>
 	<name>Catalogo Modi</name>
-	
+
 	<properties>
 		<rel-to-parent>..</rel-to-parent>
-		<warName>govcat-web</warName>
+		<filter-file>${web-filter-file}</filter-file>
 
 		<!-- Commons -->
 		<commons.lang.version>2.6</commons.lang.version>
@@ -90,7 +90,7 @@
 			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
@@ -100,7 +100,7 @@
 			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
 			<artifactId>spring-expression</artifactId>
@@ -156,7 +156,7 @@
 			<artifactId>commons-lang</artifactId>
 			<version>${commons.lang.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
@@ -167,44 +167,11 @@
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
 		</dependency>
-					
-		<!-- JS files -->
-		<!--<dependency>
-			<groupId>org.webjars</groupId>
-			<artifactId>bootstrap</artifactId>
-			<version>5.3.2</version>
-		</dependency>-->
 	</dependencies>
 
 	<build>
-		<filters>
-			<filter>${web-filter-file}</filter>
-		</filters>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<finalName>${warName}</finalName>
+		<finalName>${web.warName}</finalName>
 		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>properties-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>initialize</phase>
-						<goals>
-							<goal>read-project-properties</goal>
-						</goals>
-						<configuration>
-							<files>
-								<file>${web-filter-file}</file>
-							</files>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven.compiler.plugin.version}</version>
