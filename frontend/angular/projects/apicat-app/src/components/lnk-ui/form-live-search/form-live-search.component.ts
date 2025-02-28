@@ -14,6 +14,8 @@ import {
 import {BehaviorSubject, concat, Observable, of, Subject} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, scan, startWith, switchMap, tap} from "rxjs/operators";
 
+import { AvailbleBSPositions } from 'ngx-bootstrap/positioning';
+
 @Component({
     selector: "lnk-form-live-search",
     standalone: false,
@@ -53,6 +55,13 @@ export class LnkFormLiveSearchComponent implements ControlValueAccessor {
     @Input() appendTo: string = 'body';
     @Input() labelAlignRight: boolean = false;
     
+    @Input() showHelp: boolean = true;
+    @Input() showHelpOnlyEdit: boolean = true;
+    @Input() iconHelp: string = 'bi bi-info-circle';
+    @Input() helpPlacement: AvailbleBSPositions = 'left';
+    @Input() helpContext: string = '';
+    @Input() helpParams: any = {};
+
     @Input() options: any = null;
 
     @Output() changeEvent = new EventEmitter<any>();
@@ -167,5 +176,12 @@ export class LnkFormLiveSearchComponent implements ControlValueAccessor {
 
     get colClassValue(): string {
         return this.singleColumn && !this.inline ? `col-lg-12` : (this.options ? `col-lg-${this.options.Formfield.colValue}` : `col-lg-8`);
+    }
+
+    hasHelpMapper = (isEdit: boolean, key: string) => {
+        if (this.showHelp) {
+            return this.showHelpOnlyEdit ? isEdit : true
+        }
+        return false;
     }
 }

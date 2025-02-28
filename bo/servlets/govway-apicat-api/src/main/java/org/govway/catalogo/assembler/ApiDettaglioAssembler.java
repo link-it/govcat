@@ -53,6 +53,7 @@ import org.govway.catalogo.servlets.model.AuthTypeApiResourceProprietaCustom;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCompatibilitaApiEnum;
+import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ConfigurazioneTipoDominioEnum;
@@ -132,12 +133,15 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			AuthTypeApiResource g = new AuthTypeApiResource();
 			g.setNote(authType.getNote());
 			
-			this.configurazione.getServizio().getApi().getProfili()
+			Optional<ConfigurazioneProfilo> configurazioneProfilo = this.configurazione.getServizio().getApi().getProfili()
 					.stream()
 					.filter(p -> p.getCodiceInterno().equals(authType.getProfilo()))
-					.findAny()
-					.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
-				
+					.findAny();
+					//.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
+			if (configurazioneProfilo.isEmpty()) {
+			    String errorMessage = String.format("Profilo [%s] non trovato", authType.getProfilo());
+			    throw new BadRequestException(errorMessage);
+			}
 
 			g.setProfilo(authType.getProfilo());
 			g.setResources(Arrays.asList(new String(authType.getResources()).split(SEPARATOR)));
@@ -364,12 +368,17 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				.orElseThrow(() -> new BadRequestException("Gruppo ["+apc.getGruppo()+"] non trovato"));
 
 				for(AuthTypeApiResourceProprietaCustom p: apc.getProprieta()) {
-					g.getProprieta()
+					Optional<ConfigurazioneCustomProprieta> configurazioneCustomProprieta = g.getProprieta()
 					.stream()
 					.filter(c -> c.getNome().equals(p.getNome()))
-					.findAny()
-					.orElseThrow(() -> new BadRequestException("Proprieta ["+p.getNome()+"] non trovata per il gruppo ["+g.getNomeGruppo()+"]"));
-
+					.findAny();
+					//.orElseThrow(() -> new BadRequestException("Proprieta ["+p.getNome()+"] non trovata per il gruppo ["+g.getNomeGruppo()+"]"));
+					
+					if (configurazioneCustomProprieta.isEmpty()) {
+					    String errorMessage = String.format("Proprietà [%s] non trovata per il gruppo [%s]", p.getNome(), g.getNomeGruppo());
+					    throw new BadRequestException(errorMessage);
+					}
+					
 					EstensioneApiEntity e = new EstensioneApiEntity();
 					
 					e.setGruppo(apc.getGruppo());

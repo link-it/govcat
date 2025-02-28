@@ -71,8 +71,8 @@ public void setup() {
 		.and()
 //		.sessionManagement()
 //		.
-        .csrf()
-        .disable()
+//        .csrf()
+//        .disable()
 		.exceptionHandling()
 		.authenticationEntryPoint(restAuthenticationEntryPoint)
         .and()

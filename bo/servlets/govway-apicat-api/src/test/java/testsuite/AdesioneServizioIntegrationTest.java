@@ -196,7 +196,7 @@ public class AdesioneServizioIntegrationTest {
     
 
     @Test
-    private void testAdesioneServizioSuccess() {
+    void testAdesioneServizioSuccess() {
         // Step 1
         this.testUtenteAderente();
 
@@ -343,9 +343,9 @@ public class AdesioneServizioIntegrationTest {
         apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
         
         DocumentoCreate documento = new DocumentoCreate();
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
         
         apiDatiAmbienteCreate.setSpecifica(documento);
         
@@ -384,8 +384,8 @@ public class AdesioneServizioIntegrationTest {
         apiCreate.setGruppiAuthType(gruppiAuthType);
         
         DocumentoCreate doc = new DocumentoCreate();
-        doc.setFilename("SpecificaAPI.json");
-        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+        doc.setFilename("SpecificaAPI.yaml");
+        doc.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
 
         //apiCreate.setSpecifica(doc);
         

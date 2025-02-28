@@ -130,19 +130,19 @@ public class SchedaAdesioneBuilder {
 
 			List<AuthTypeEntity> authTypeList = apiEntity.getAuthType();
 			
-			if(!authTypeList.isEmpty()) {
-				RowType modauth = new RowType();
-				modauth.setLabel("Modalità di autenticazione");
-				String profilo = authTypeList.stream().findAny().get().getProfilo();
+			authTypeList.stream().findAny().ifPresent(authType -> {
+			    RowType modauth = new RowType();
+			    modauth.setLabel("Modalità di autenticazione");
+			    String profilo = authType.getProfilo();
 
-				if(this.configurazione.getProfili().containsKey(profilo)) {
-					modauth.setValore(this.configurazione.getProfili().get(profilo));
-				} else {
-					modauth.setValore("--");
-				}
+			    if (this.configurazione.getProfili().containsKey(profilo)) {
+			        modauth.setValore(this.configurazione.getProfili().get(profilo));
+			    } else {
+			        modauth.setValore("--");
+			    }
 
-				api.getRow().add(modauth);
-			}
+			    api.getRow().add(modauth);
+			});
 
 		}
 

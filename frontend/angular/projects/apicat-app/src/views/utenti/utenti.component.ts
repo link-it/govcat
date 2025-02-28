@@ -1,6 +1,6 @@
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -39,7 +39,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   _isEdit: boolean = false;
 
   _hasFilter: boolean = true;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -63,6 +63,16 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     { field: 'cognome', label: 'APP.LABEL.cognome', icon: '' }
   ];
 
+  yesNoList: any = [
+    { value: true, label: 'APP.BOOLEAN.Yes' },
+    { value: false, label: 'APP.BOOLEAN.No' }
+  ];
+  _enabledEnum: any = {};
+  _tempEnable = this.yesNoList.map((item: any) => {
+    this._enabledEnum =  { ...this._enabledEnum, [item.value]: item.label};
+    return item;
+  });
+
   searchFields: any[] = [
     { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'string', condition: 'like' },
     { field: 'email', label: 'APP.LABEL.email', type: 'string', condition: 'like' },
@@ -70,7 +80,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     { field: 'stato', label: 'APP.LABEL.Status', type: 'string', condition: 'like' },
     { field: 'username', label: 'APP.LABEL.Username', type: 'string', condition: 'like' },
     { field: 'id_organizzazione', label: 'APP.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' } },
-    { field: 'classe_utente', label: 'APP.LABEL.classi', type: 'array', condition: 'contain', params: { resource: 'classi-utente', field: 'nome' } }
+    { field: 'classe_utente', label: 'APP.LABEL.classi', type: 'array', condition: 'contain', params: { resource: 'classi-utente', field: 'nome' } },
+    { field: 'referente_tecnico', label: 'APP.LABEL.ReferenteTecnico', type: 'enum', condition: 'equal', enumValues: this._enabledEnum }
   ];
   useCondition: boolean = false;
 
@@ -126,7 +137,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
         this._initOrganizzazioniSelect([]);
         this._initClassiUtenteSelect([]);
         // this._loadUtenti(this._filterData);
-        this.searchGoogleForm._onSearch();
+        this.searchGoogleForm?._onSearch();
       }
     );
   }
@@ -163,14 +174,15 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      q: new UntypedFormControl(''),
-      email: new UntypedFormControl(''),
-      ruolo: new UntypedFormControl(''),
-      stato: new UntypedFormControl(''),
-      username: new UntypedFormControl(''),
-      id_organizzazione: new UntypedFormControl(''),
-      classe_utente: new UntypedFormControl(''),
+    this._formGroup = new FormGroup({
+      q: new FormControl(''),
+      email: new FormControl(''),
+      ruolo: new FormControl(''),
+      stato: new FormControl(''),
+      username: new FormControl(''),
+      id_organizzazione: new FormControl(''),
+      classe_utente: new FormControl(''),
+      referente_tecnico: new FormControl('')
     });
   }
 

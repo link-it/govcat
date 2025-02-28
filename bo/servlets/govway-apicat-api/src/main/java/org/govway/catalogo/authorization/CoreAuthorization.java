@@ -76,6 +76,30 @@ public class CoreAuthorization {
 		}
 	}
 
+	public void requireReferenteTecnico() {
+		if(!isAdmin() && !isReferenteServizio() && !isReferenteTecnico()) {
+			throw new NotAuthorizedException("Required: Utente referente tecnico");
+		}
+	}
+
+	private boolean isReferenteTecnico() {
+		InfoProfilo principal = this.requestUtils.getPrincipal(false);
+		if(principal == null || principal.utente == null) {
+			return false;
+		}
+		
+		return principal.utente.isReferenteTecnico();
+	}
+
+	private boolean isReferenteServizio() {
+		InfoProfilo principal = this.requestUtils.getPrincipal(false);
+		if(principal == null || principal.utente == null) {
+			return false;
+		}
+		
+		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.REFERENTE_SERVIZIO);
+	}
+
 	public boolean isAnounymous() {
 		InfoProfilo principal = this.requestUtils.getPrincipal(false);
 		return principal == null || principal.utente == null;

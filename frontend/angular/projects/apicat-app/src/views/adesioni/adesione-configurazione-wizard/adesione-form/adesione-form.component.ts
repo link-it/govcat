@@ -38,6 +38,8 @@ export class AdesioneFormComponent implements OnInit {
     model: string = 'adesioni';
     dataModel: any = null;
 
+    helpContext: string = 'ADESIONE.FORM.POPOVER';
+
     isBozza: boolean = false;
 
     formGroup: FormGroup = new FormGroup({});

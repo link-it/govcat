@@ -97,12 +97,10 @@
                         </button>
                         <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesioni()" *ngIf="(_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
                           <i class="bi bi-display"></i>
-                          <!-- <span class="material-icons-outlined me-2">card_membership</span> -->
                           <span class="ms-2">{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
                         </button>
                         <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesione()" *ngIf="!(_updateData | mapper:_isGestoreMapper) && _hasJoined">
                           <i class="bi bi-display"></i>
-                          <!-- <span class="material-icons-outlined me-2">card_membership</span> -->
                           <span class="ms-2">{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
                         </button>
                       <!-- </ng-container> -->

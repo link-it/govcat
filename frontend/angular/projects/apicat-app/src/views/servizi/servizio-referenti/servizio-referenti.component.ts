@@ -101,6 +101,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   referenti$!: Observable<any[]>;
   referentiInput$ = new Subject<string>();
   referentiLoading: boolean = false;
+  tipoReferente: string = '';
   referentiFilter: string = '';
 
   anagrafiche: any = {};
@@ -467,7 +468,8 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
           let aux: any = this._isDominioEsterno ? null : this._idDominioEsterno;
-          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux).pipe(
+          const referente_tecnico = this.tipoReferente === 'referente_tecnico';
+          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )
@@ -488,6 +490,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   onChangeTipo(event: any) {
+    this.tipoReferente = event.nome;
     this.referentiFilter = event.filter;
     const tipoReferente = this._editFormGroup.controls.tipo.value; 
     (tipoReferente !== '') ? this._editFormGroup.controls.id_utente.enable() : this._editFormGroup.controls.id_utente.disable();

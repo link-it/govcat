@@ -130,7 +130,7 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 
 	@Override
 	public void authorizeCreate(ServizioCreate create) {
-		this.authorizeAnything();
+		this.coreAuthorization.requireReferenteTecnico();
 	}
 
 	@Override

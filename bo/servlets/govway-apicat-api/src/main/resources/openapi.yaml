@@ -115,6 +115,36 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "Utenti"
+      description: "Aggiornamento delle informazioni dell'utente chiamante"
+      operationId: "updateProfilo"
+      requestBody:
+        description: "Dati per l'aggiornamento del Utente chiamante"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfiloUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /notifiche:
     get:
       tags:
@@ -972,6 +1002,7 @@ paths:
       - $ref: "#/components/parameters/stato_utente_query_optional"
       - $ref: "#/components/parameters/id_organizzazione_query_optional"
       - $ref: "#/components/parameters/ruoli_query_optional"
+      - $ref: "#/components/parameters/referente_tecnico_query_optional"
       - $ref: "#/components/parameters/classi_utente_query_optional"
       - $ref: "#/components/parameters/email_query_optional"
       - $ref: "#/components/parameters/username_query_optional"
@@ -7742,6 +7773,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
         classi_utente:
@@ -7781,12 +7814,40 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
         classi_utente:
           type: "array"
           items:
             $ref: "#/components/schemas/IdClasseUtente"
+        settings:
+          type: object
+    ProfiloUpdate:
+      type: "object"
+      required:
+        - nome
+        - cognome
+        - telefono_aziendale
+        - email_aziendale
+      properties:
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+        telefono:
+          $ref: "#/components/schemas/String255"
+        email:
+          $ref: "#/components/schemas/Email"
+        telefono_aziendale:
+          $ref: "#/components/schemas/String255"
+        email_aziendale:
+          $ref: "#/components/schemas/Email"
+        note:
+          $ref: "#/components/schemas/String255"
+        metadati:
+          $ref: "#/components/schemas/String255"
         settings:
           type: object
     ItemUtente:
@@ -7823,6 +7884,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
         classi_utente:
@@ -7863,6 +7926,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
         classi_utente:
@@ -9759,6 +9824,13 @@ components:
       required: false
       schema:
         type: string
+    referente_tecnico_query_optional:
+      name: "referente_tecnico"
+      in: "query"
+      description: "indica se l'utente cercato deve essere referente tecnico"
+      required: false
+      schema:
+        type: "boolean"
     ruoli_query_optional:
       name: "ruolo"
       in: "query"

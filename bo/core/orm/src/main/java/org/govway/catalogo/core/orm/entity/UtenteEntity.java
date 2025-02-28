@@ -67,6 +67,9 @@ public class UtenteEntity {
     @Enumerated(EnumType.STRING)
 	private Ruolo ruolo;
 	
+    @Column(name = "referente_tecnico", nullable=false)
+	private boolean referenteTecnico;
+	
 	@ManyToOne
     @JoinColumn(name = "id_organizzazione", referencedColumnName = "id")
 	private OrganizzazioneEntity organizzazione;

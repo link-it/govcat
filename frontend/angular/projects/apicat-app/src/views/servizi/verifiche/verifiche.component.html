@@ -75,10 +75,12 @@
                           </div>
                           <div class="" [class.flex-grow-1]="serviceApi.length === 1" *ngIf="serviceApi.length === 1">
                             <ng-container *ngIf="serviceApi[0] | mapper:_isErogatoSoggettoDominioMapper; else verSoggettoAderente">
+                              <!-- <pre>{{ serviceApi[0] | json }}</pre> -->
                               <ui-verifica-api
                                 [environmentId]="environmentId"
                                 [verifica]="serviceApi[0] | mapper:_tipoVerificaMapper"
                                 [pdnd]="serviceApi[0] | mapper:_hasIdentificativoeServicePDNDMapper"
+                                [provider]="serviceApi[0].servizio.dominio.soggetto_referente.nome"
                                 [type]="'certificati'"
                                 [icon]="'shield-check'"
                                 [title]="'APP.TITLE.Certificati'"
@@ -172,10 +174,12 @@
                           </div>
                           <div class="" [class.flex-grow-1]="serviceApi.length === 1" *ngIf="serviceApi.length === 1">
                             <ng-container *ngIf="serviceApi[0] | mapper:_isErogatoSoggettoDominioMapper; else conSoggettoAderente">
+                              <!-- <pre>{{ serviceApi[0] | json }}</pre> -->
                               <ui-verifica-api
                                 [environmentId]="environmentId"
                                 [verifica]="serviceApi[0] | mapper:_tipoVerificaMapper"
                                 [pdnd]="serviceApi[0] | mapper:_hasIdentificativoeServicePDNDMapper"
+                                [provider]="serviceApi[0].servizio.dominio.soggetto_referente.nome"
                                 [type]="'backend'"
                                 [icon]="('' | mapper:_getIconTypeEventiConnettivita)"
                                 [title]="('' | mapper:_getTitleTypeEventiConnettivita)"

@@ -1,22 +1,3 @@
-/*
- * GovCat - GovWay API Catalogue
- * https://github.com/link-it/govcat
- *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3, as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
 package testsuite;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,10 +26,14 @@ import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
+import org.govway.catalogo.servlets.model.ItemSoggetto;
 import org.govway.catalogo.servlets.model.ItemUtente;
 import org.govway.catalogo.servlets.model.Organizzazione;
+import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
+import org.govway.catalogo.servlets.model.PagedModelItemSoggetto;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
+import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.Utente;
@@ -279,7 +264,7 @@ public class UtentiTest {
         utenteCreate2.setUsername("second.user");
         controller.createUtente(utenteCreate2);
 
-        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -304,7 +289,7 @@ public class UtentiTest {
         controller.createUtente(utenteCreate2);
 
         // Recupero della lista di utenti con filtri applicati (solo utenti ATTIVI)
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -331,7 +316,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("idUtente,desc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -364,7 +349,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("idUtente,asc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -396,7 +381,7 @@ public class UtentiTest {
             controller.createUtente(utenteCreate);
     	}
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
-        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, n, numeroElementiPerPagina, null);
+        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -420,8 +405,8 @@ public class UtentiTest {
         this.tearDown();
 
         // Verifica che venga lanciata l'eccezione NullPointerException qualora l'utente non fosse loggato
-        assertThrows(NotAuthorizedException.class, () -> {
-            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, 0, 10, null);
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
         });
 
     }
@@ -432,7 +417,7 @@ public class UtentiTest {
 
         // Tentativo di recuperare la lista di utenti filtrata per una classe utente non esistente
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            controller.listUtenti(null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, 0, 10, null);
         });
 
         // Asserzioni
@@ -517,7 +502,7 @@ public class UtentiTest {
         soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
 
         // Creazione del soggetto tramite il controller
-        soggettiController.createSoggetto(soggettoCreate);
+        ResponseEntity<Soggetto> soggettoResponse = soggettiController.createSoggetto(soggettoCreate);
         
         // Creazione dell'utente
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();

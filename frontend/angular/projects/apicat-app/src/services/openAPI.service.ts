@@ -89,7 +89,7 @@ export class OpenAPIService {
     options.headers = new HttpHeaders();
     // options.headers = options.headers.set('Content-type', 'application/json');
 
-    const _url = `${this.proxyPath}/${name}/${id}`;
+    const _url = id ? `${this.proxyPath}/${name}/${id}` : `${this.proxyPath}/${name}`;
     return this.http.put<any>(_url, body, options);
   }
 

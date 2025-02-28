@@ -86,7 +86,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   breadcrumbs: any[] = [
     { label: 'APP.TITLE.Services', url: '', type: 'link', iconBs: 'grid-3x3-gap' },
     { label: '...', url: '', type: 'link' },
-    { label: 'APP.SERVICES.TITLE.Allegati', url: '', type: 'link' }
+    { label: 'APP.SERVICES.TITLE.API', url: '', type: 'link' }
   ];
 
   _updateMapper: string = '';

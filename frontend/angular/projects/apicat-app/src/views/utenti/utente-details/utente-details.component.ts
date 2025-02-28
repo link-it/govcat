@@ -1,6 +1,6 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -9,6 +9,7 @@ import { ConfigService } from 'projects/tools/src/lib/config.service';
 import { Tools } from 'projects/tools/src/lib/tools.service';
 import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { UtilService } from '@app/services/utils.service';
 import { FieldClass } from 'projects/components/src/lib/classes/definitions';
 
 import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
@@ -54,7 +55,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _isEdit = false;
   _closeEdit = true;
   _isNew = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _utente: Utente = new Utente({});
 
   _authorizations: any[] = [];
@@ -98,8 +99,9 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     private modalService: BsModalService,
     private configService: ConfigService,
     public tools: Tools,
-    public eventsManagerService: EventsManagerService,
-    public apiService: OpenAPIService
+    private eventsManagerService: EventsManagerService,
+    private apiService: OpenAPIService,
+    private utils: UtilService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
@@ -176,7 +178,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         switch (key) {
           case 'email_aziendale':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.required,
               Validators.email,
               Validators.maxLength(255)
@@ -184,7 +186,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             break;
           case 'email':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.email,
               Validators.maxLength(255)
             ]);
@@ -194,7 +196,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           case 'username':
           case 'telefono_aziendale':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.required,
               Validators.maxLength(255)
             ]);
@@ -202,23 +204,27 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           case 'stato':
           case 'id_organizzazione':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [Validators.required]);
+            _group[key] = new FormControl(value, [Validators.required]);
             break;
           case 'telefono':
           case 'metadati':
           case 'note':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.maxLength(255)
             ]);
             break;
+          case 'referente_tecnico':
+            value = data[key] ? data[key] : false;
+            _group[key] = new FormControl(value, []);
+            break;
           default:
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, []);
+            _group[key] = new FormControl(value, []);
             break;
         }
       });
-      this._formGroup = new UntypedFormGroup(_group);
+      this._formGroup = new FormGroup(_group);
 
       if(this._isEdit) {
         this._formGroup.controls.id_organizzazione.patchValue(this._utente.organizzazione?.id_organizzazione)
@@ -308,9 +314,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       classi_utente: _classi
     };
     delete _newBody.organizzazione;
-    this._removeNullProperties(_newBody);
 
-    return _newBody;
+    return this.utils._removeEmpty(_newBody);
   }
 
   _onSubmit(form: any, close: boolean = true) {
@@ -553,12 +558,6 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       organizationFormControl.setValidators([Validators.required]);
     }
     organizationFormControl.updateValueAndValidity();
-  }
-
-  _removeNullProperties(obj: any) {
-    Object.keys(obj).forEach((k: string) => {
-        _.isEmpty(obj[k]) ? delete obj[k] : null;
-      })
   }
 
   _checkRuolo(data: any) : string {

@@ -88,7 +88,7 @@ public class SignPdndEstensioneClientAssembler extends AbstractEstensioneClientA
 
 		List<String> erroriConfigurabileCertificato = this.getErroriConfigurabileCertificato(specDsc.getCertificatoFirma(), FIRMA_PREFIX);
 		
-		if(specDsc.getClientId() == null) {
+		if(specDsc.getClientId() == null || specDsc.getClientId().trim().isEmpty()) {
 			erroriConfigurabileCertificato.add("client_id");
 		}
 		

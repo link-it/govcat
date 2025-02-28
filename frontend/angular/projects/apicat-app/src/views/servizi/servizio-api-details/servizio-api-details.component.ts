@@ -548,7 +548,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {
             _newBody.dati_specifica = {
                 ..._newBody.dati_specifica,
-                gruppi_auth_type: body.authTypes.map((item: any) => {
+                gruppi_auth_type: body.authTypes?.map((item: any) => {
                     const _proprietaCustom: any[] = [];
                     Object.keys(item.customProperties || {}).map((key: string) => {
                         if (item.customProperties[key]) {
@@ -745,7 +745,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     (auth.resources || []).forEach((r: string) => this._risorseSelected.push(r));
                     this._authSelected.push(auth.profilo);
                     const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
-                    if (_profile.auth_type.includes('pdnd')) {
+                    if (_profile?.auth_type.includes('pdnd')) {
                         this._isPDND = true;
                     }
                 });
@@ -903,13 +903,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         setTimeout(() => {
             this.__resetGAT();
             this.__checkAutenticazione(_ruolo);
-            // this.__descrittoreChange(null);
+
             if (controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
                 this.__loadRisorse();
             } else {
                 this._resetProprietaCustom();
             }
-            this._formGroup.updateValueAndValidity();
         }, 100);
     }
 
@@ -981,9 +980,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     __resetGAT() {
-        // this._gruppiAuthTypesCtrl.setValue([]);
-        // this._gruppiAuthTypesCtrl.setErrors(null);
-        // this._gruppiAuthTypesCtrl.updateValueAndValidity();
         this._risorseSelected = [];
         this._authSelected = [];
     }
@@ -1014,7 +1010,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _contentType: string = controls.estensione.value ? controls.estensione.value : null;
         const _document: string = controls.content.value;
         const _uuid: string = controls.uuid.value;
-        if (_apiType) {
+        if (_apiType && _document) {
             const _body: any = {
                 api_type: _apiType,
                 document: {}

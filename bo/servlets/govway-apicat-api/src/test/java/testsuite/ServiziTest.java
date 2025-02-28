@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -64,6 +65,8 @@ import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
+import org.govway.catalogo.servlets.model.PagedModelComponente;
+import org.govway.catalogo.servlets.model.PagedModelItemComunicazione;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
@@ -87,7 +90,11 @@ import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
+import org.springframework.data.domain.Pageable;
+
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,6 +109,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -3083,5 +3091,212 @@ public class ServiziTest {
 	    assertTrue(response.getBody().getContent().isEmpty());
 	}
 
+	@Test
+	void testListComunicazioniServizio_Success() {
+		Servizio servizio = this.getServizio();
+		
+		MessaggioCreate messaggio = new MessaggioCreate();
+        messaggio.setTesto("Testo del messaggio");
+        messaggio.setOggetto("Oggetto Test");
+        
+        serviziController.createMessaggioServizio(servizio.getIdServizio(), messaggio);
+        
+	    UUID idServizio = servizio.getIdServizio();
+	    Integer page = 0;
+	    Integer size = 10;
+	    List<String> sort = Arrays.asList("data,desc");
+
+	    ResponseEntity<PagedModelItemComunicazione> response = serviziController.listComunicazioniServizio(idServizio, page, size, sort);
+
+	    assertNotNull(response);
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	    assertNotNull(response.getBody());
+	    assertNotNull(response.getBody().getContent());
+	    assertTrue(response.getBody().getContent().size() > 0);
+	}
+	
+	@Test
+	void testListComponentiPackageSuccess() {
+		Servizio servizio = this.getServizio();
+	    UUID idPackage = servizio.getIdServizio();
+	    Pageable pageable = PageRequest.of(0, 10, Sort.by(Order.asc("nome"), Order.asc("versione")));
+
+	    ResponseEntity<PagedModelComponente> response = serviziController.listComponentiPackage(idPackage, pageable);
+
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	    assertNotNull(response.getBody());
+	    assertNotNull(response.getBody().getContent());
+	}
+
+	@Test
+	void testListComponentiPackageNotFound() {
+	    UUID idPackageNonEsistente = UUID.randomUUID();
+	    Pageable pageable = PageRequest.of(0, 10);
+
+	    Exception exception = assertThrows(NotFoundException.class, () -> {
+	        serviziController.listComponentiPackage(idPackageNonEsistente, pageable);
+	    });
+	    String expectedMessage = "Servizio con id [" + idPackageNonEsistente + "] non trovato";
+	    assertTrue(exception.getMessage().contains(expectedMessage));
+	}
+
+	@Test
+	void testListComponentiPackageAuthorizationFailed() {
+	    UUID idPackage = UUID.randomUUID();
+	    Pageable pageable = PageRequest.of(0, 10);
+
+	    CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+	    assertThrows(NotAuthorizedException.class, () -> {
+	        serviziController.listComponentiPackage(idPackage, pageable);
+	    });
+	}
+
+	@Test
+	void testListComponentiPackageUtenteAnonimo() {
+	    UUID idPackage = UUID.randomUUID();
+	    Pageable pageable = PageRequest.of(0, 10);
+
+	    this.tearDown();
+
+	    assertThrows(NotAuthorizedException.class, () -> {
+	        serviziController.listComponentiPackage(idPackage, pageable);
+	    });
+	}
+
+	@Test
+	void testDeleteComponentePackageSuccess() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+		
+		
+		OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+		organizzazione.setNome("Altro nome Organizzazione");
+    	organizzazione.setEsterna(false);
+
+    	response = organizzazioniController.createOrganizzazione(organizzazione);
+    	this.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+ 
+    	DominioCreate dominio = CommonUtils.getDominioCreate();
+    	dominio.setNome("Altro dominio per package");
+    	dominio.setSkipCollaudo(true);
+
+    	dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+    	ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setNome("Altro servizio package");
+    	servizioCreate.setPackage(true);
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+
+	    UUID idPackage = createdServizio.getBody().getIdServizio();
+	    
+	    serviziController.associaComponentePackage(idPackage, idServizio);
+	    ResponseEntity<Void> response = serviziController.deleteComponentePackage(idPackage, idServizio);
+	    
+	    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+	}
+	
+	@Test
+	void testDeleteComponentePackageAssociazioneNotFound() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+		
+	    UUID idPackage = idServizio;
+	    
+	    Exception exception = assertThrows(NotFoundException.class, () -> {
+	    	serviziController.deleteComponentePackage(idPackage, idPackage);
+	    });
+	    String expectedMessage = "Servizio [" + idServizio + "] non associato al Package ["+ idPackage +"]";
+	    assertTrue(exception.getMessage().contains(expectedMessage));
+	}
+	
+	@Test
+	void testAssociaComponentePackageSuccess() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+		
+		
+		OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+		organizzazione.setNome("nome Organizzazione");
+    	organizzazione.setEsterna(false);
+    	response = organizzazioniController.createOrganizzazione(organizzazione);
+    	this.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+    	DominioCreate dominio = CommonUtils.getDominioCreate();
+    	dominio.setNome("altro dominio per package");
+    	dominio.setSkipCollaudo(true);
+
+    	dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+    	ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setNome("Altro servizio package");
+    	servizioCreate.setPackage(true);
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+
+	    UUID idPackage = createdServizio.getBody().getIdServizio();
+	    
+	    ResponseEntity<Servizio> response = serviziController.associaComponentePackage(idPackage, idServizio);
+	    
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	}
+	
+	@Test
+	void testAssociaComponentePackageNotFound() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+		
+	    UUID idPackage = UUID.randomUUID();
+	    
+	    
+	    Exception exception = assertThrows(NotFoundException.class, () -> {
+	    	serviziController.associaComponentePackage(idServizio, idPackage);
+	    });
+	    
+	    String expectedMessage = "Package [" + idServizio + "] non trovato";
+	    assertTrue(exception.getMessage().contains(expectedMessage));
+	}
+	
+	@Test
+	void testAssociaComponentePackageNotFound2() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+		
+	    UUID idPackage = UUID.randomUUID();
+	    
+	    
+	    Exception exception = assertThrows(NotFoundException.class, () -> {
+	    	serviziController.associaComponentePackage(idPackage, idServizio);
+	    });
+	    
+	    String expectedMessage = "Servizio con id [" + idPackage + "] non trovato";
+	    assertTrue(exception.getMessage().contains(expectedMessage));
+	}
 }
 

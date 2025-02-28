@@ -184,7 +184,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   _serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
-  debugMandatoryFields: boolean = true;
+  debugMandatoryFields: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -204,6 +204,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._serviceBreadcrumbs = data.serviceBreadcrumbs;
 
       this._isWeb = true;
+      this._servizio = this._serviceBreadcrumbs?.service;
       this._id_servizio = this._serviceBreadcrumbs?.service.id_servizio;
       this._adesioneCreate.id_servizio = this._id_servizio;
       this._loadServizio(this._id_servizio, true);
@@ -244,8 +245,13 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             this._initSoggettiSelect([]);
             this._initOrganizzazioniSelect([]);
             this._initReferentiSelect([]);
-            if (!this._id_servizio) { this._initServiziSelect([]) };
+            if (!this._id_servizio) {
+              this._initServiziSelect([])
+            }
             this._initReferentiTecniciSelect([]);
+            setTimeout(() => {
+              this._onChangeServizio(this._servizio);
+            }, 900);
 
             this._loadProfilo();
             this._isEdit = true;
@@ -270,7 +276,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         this._notificationMessageId = this._notification.entita.id_entita;
       }
 
-      if(val.id_servizio) {
+      if (val.id_servizio) {
         this._id_servizio = val.id_servizio;
         this._adesioneCreate.id_servizio = this._id_servizio;
         this._isWeb = val.web || false;
@@ -508,34 +514,31 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     console.log('POST: ', _body)
     
     this._spin = true;
-    const _DVLP_invia: boolean = true;
 
-    if (_DVLP_invia) {
-      this.apiService.saveElement(this.model, _body).subscribe(
-        (response: any) => {
-          this.id = response.id_adesione;
-          this.adesione = response; // new Adesione({ ...response });
-          this._adesione = new Adesione({ ...response });
+    this.apiService.saveElement(this.model, _body).subscribe(
+      (response: any) => {
+        this.id = response.id_adesione;
+        this.adesione = response; // new Adesione({ ...response });
+        this._adesione = new Adesione({ ...response });
 
-          this._isEdit = false;
-          this._isNew = false;
-          this._initBreadcrumb();
-          
-          this._initServiziSelect([]);
-          this._initSoggettiSelect([]);
-          this._initOrganizzazioniSelect([]);
-          this._initReferentiSelect([]);
-          this._initReferentiTecniciSelect([]);
-          this.router.navigate([this.id], { replaceUrl: true, relativeTo: this.route.parent });
-          this._spin = false;
-        },
-        (error: any) => {
-          this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
-          this._spin = false;
-        }
-      );
-    }
+        this._isEdit = false;
+        this._isNew = false;
+        this._initBreadcrumb();
+        
+        this._initServiziSelect([]);
+        this._initSoggettiSelect([]);
+        this._initOrganizzazioniSelect([]);
+        this._initReferentiSelect([]);
+        this._initReferentiTecniciSelect([]);
+        this.router.navigate([this.id], { replaceUrl: true, relativeTo: this.route.parent });
+        this._spin = false;
+      },
+      (error: any) => {
+        this._error = true;
+        this._errorMsg = Tools.GetErrorMsg(error);
+        this._spin = false;
+      }
+    );
   }
 
   __onUpdate(id: string, body: any) {
@@ -687,24 +690,26 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       );
   }
 
-  getUtenti(term: string | null = null, org: string | null = null, stato: string = 'abilitato'): Observable<any> {
+  getUtenti(term: string | null = null, org: string | null = null, stato: string = 'abilitato', referenteTecnico: boolean = false): Observable<any> {
     const _options: any = { params: { q: term } };
     if (org) { _options.params.id_organizzazione = org; }
     if (stato) { _options.params.stato = stato; }
+    if (referenteTecnico) { _options.params.referente_tecnico = referenteTecnico; }
 
     return this.apiService.getList('utenti', _options)
-      .pipe(map(resp => {
-        if (resp.Error) {
-          throwError(resp.Error);
-        } else {
-          const _items = resp.content.map((item: any) => {
-            item.nome_completo = `${item.nome} ${item.cognome}`;
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
-            return item;
-          });
-          return _items;
-        }
-      })
+      .pipe(
+        map(resp => {
+          if (resp.Error) {
+            throwError(resp.Error);
+          } else {
+            const _items = resp.content.map((item: any) => {
+              item.nome_completo = `${item.nome} ${item.cognome}`;
+              // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+              return item;
+            });
+            return _items;
+          }
+        })
       );
   }
 
@@ -948,7 +953,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         debounceTime(500),
         tap(() => this.referentiTecniciLoading = true),
         switchMap((term: any) => {
-          return this.getUtenti(term).pipe(
+          return this.getUtenti(term, null, 'abilitato', true).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiTecniciLoading = false)
           )
@@ -1103,12 +1108,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       const _organizzazione = this._servizio.soggetto_interno?.organizzazione;
       this._idDominioEsterno = _organizzazione?.id_organizzazione || null;
       this._idSoggettoDominioEsterno = this._servizio.soggetto_interno?.id_soggetto || null;
-      this._initOrganizzazioniSelect([_organizzazione]);
       this._formGroup.get('id_organizzazione')?.setValue(this._idDominioEsterno);
       this._formGroup.get('id_organizzazione')?.disable();
       this._formGroup.get('id_soggetto')?.setValue(this._idSoggettoDominioEsterno);
       this._formGroup.get('id_soggetto')?.disable();
       this._hideSoggettoDropdown = true;
+      this._initOrganizzazioniSelect([_organizzazione]);
     } else {
       if (this._profilo?.utente.ruolo === RuoloUtenteEnum.ReferenteServizio){
         if (servizio && await this.isCurrentUserReferenteServizio(servizio)){

@@ -17,14 +17,28 @@
 </ng-container>
 
 <ng-template #formLabel let-name="name" let-label="label" let-formGroup="formGroup" let-isEdit="isEdit">
-    <label class="label-bold" [class.mb-0]="reduced" [for]="name">{{ label }}
-        <span *ngIf="isEdit"
-            appMarkAsterisk
-            [formGroup]="formGroup"
-            [controlName]="name"
-            [useOptional]="useOptional"
-        ></span>
-    </label>
+    <div class="d-flex justify-content-between align-items-center">
+        <label class="label-bold mb-0" [class.mb-0]="reduced" [for]="name">
+            <span>
+                {{ label }}
+                <span *ngIf="isEdit"
+                    appMarkAsterisk
+                    [formGroup]="formGroup"
+                    [controlName]="name"
+                    [useOptional]="useOptional"
+                ></span>
+            </span>
+        </label>
+        <span class="px-1" *ngIf="isEdit | mapper:hasHelpMapper:name">
+            <lnk-popover-help
+                [field]="name"
+                [context]="helpContext"
+                [params]="helpParams"
+                [iconHelp]="iconHelp"
+                [helpPlacement]="helpPlacement"
+            ></lnk-popover-help>
+        </span>
+    </div>
 </ng-template>
 
 <ng-template #formInput let-name="name" let-label="label" let-formGroup="formGroup" let-type="type" let-autocomplete="autocomplete" let-placeholder="placeholder" let-rows="rows" let-selectOptions="selectOptions" let-isEdit="isEdit">
@@ -69,16 +83,28 @@
                 <label class="custom-control-label text-dark" [for]="name"></label>
             </div>
 
-            <ng-select *ngIf="type === 'select'"
+            <!-- <ng-select *ngIf="type === 'select'"
                 [id]="id"
                 [items]="selectOptions"
                 [bindValue]="'value'"
                 [searchable]="false"
                 [labelForId]="id || name"
+                [placeholder]="placeholder ?? ''"
                 [editableSearchTerm]="false"
+                [clearable]="clearable"
                 [formControlName]="name"
                 (change)="onChange($event)"
-            ></ng-select>
+            ></ng-select> -->
+
+            <select class="form-select" *ngIf="type === 'select'"
+                [id]="id || name"
+                [name]="name"
+                [formControlName]="name"
+                [class.gl-field-error-outline]="hasError()"
+                (change)="onChange($event)"
+            >
+                <option *ngFor="let item of selectOptions" [value]="item.value">{{ item.label }}</option>
+            </select>  
 
             <lnk-form-field-error
                 [control]="formGroup.get(name)"

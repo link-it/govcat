@@ -53,6 +53,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<String> username = Optional.empty();
 	private List<Ruolo> ruoli = null;
 	private Optional<Boolean> ruoloNull = Optional.empty();
+	private Optional<Boolean> referenteTecnico = Optional.empty();
 
 	@Override
 	public Predicate toPredicate(Root<UtenteEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -115,6 +116,10 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		if (username.isPresent()) {
 			String pattern = "%" + username.get().toUpperCase() + "%";
 			predLst.add(cb.like(cb.upper(root.get(UtenteEntity_.idUtente)), pattern)); 
+		}
+		
+		if (referenteTecnico.isPresent()) {
+			predLst.add(cb.equal(root.get(UtenteEntity_.referenteTecnico), referenteTecnico.get())); 
 		}
 		
 		if(ruoli != null) {
@@ -236,6 +241,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setIdClassiUtente(List<ClasseUtenteEntity> idClassiUtente) {
 		this.idClassiUtente = idClassiUtente;
+	}
+
+	public Optional<Boolean> getReferenteTecnico() {
+		return referenteTecnico;
+	}
+
+	public void setReferenteTecnico(Optional<Boolean> referenteTecnico) {
+		this.referenteTecnico = referenteTecnico;
 	}
 
 }

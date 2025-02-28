@@ -77,6 +77,7 @@
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}</span>
                                     </div>
@@ -104,6 +105,7 @@
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
                                     </div>
@@ -164,6 +166,7 @@
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.TestingConfiguration' | translate }}</span>
                                     </div>
@@ -206,6 +209,7 @@
                                                         <lnk-icon-toggle
                                                             [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
                                                             [loading]="loadingCheckDati"
+                                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                                         ></lnk-icon-toggle>
                                                         <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
                                                     </div>
@@ -244,6 +248,7 @@
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.ProductionConfiguration' | translate }}</span>
                                     </div>
@@ -286,6 +291,7 @@
                                                         <lnk-icon-toggle
                                                             [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
                                                             [loading]="loadingCheckDati"
+                                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                                         ></lnk-icon-toggle>
                                                         <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
                                                     </div>
@@ -319,11 +325,11 @@
 
                 <div class="d-flex justify-content-end gap-2 mt-5">
                     <div class="d-flex gap-2">
-                        <lnk-button *ngIf="(updateMapper | mapper:canEditMapper) || adesione?.stato === 'bozza'"
+                        <!-- <lnk-button *ngIf="(updateMapper | mapper:canEditMapper) || adesione?.stato === 'bozza'"
                             [label]="isEdit ? 'APP.BUTTON.Cancel' : 'APP.BUTTON.Modify'"
                             [disabled]="changingStatus || loadingCheckDati"
                             (onAction)="toggleEdit()"
-                        ></lnk-button>
+                        ></lnk-button> -->
                         <lnk-button *ngIf="hasNextStateWorkflow()"
                             [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                             [primary]="true"

@@ -29,10 +29,10 @@ public class DummyConfigurazioneExecutor implements IConfigurazioneExecutor {
 
 			stampaCampi(a);
 		} catch (JsonProcessingException e) {
-			logger.info("errore :");
+			logger.info("errore :"+e);
 
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		esito.setEsito(ESITO.OK);
 		esito.setMessaggioErrore("TUTTO OK");

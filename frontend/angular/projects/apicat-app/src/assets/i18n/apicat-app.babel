@@ -8741,6 +8741,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>DescrizioneSintetica</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>DettaglioErrore</name>
 										<description/>
 										<comment/>
@@ -8757,6 +8772,21 @@
 									</concept_node>
 									<concept_node>
 										<name>Dimensione</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>DisabilitaAdesione</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -11061,6 +11091,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>ReferenteTecnico</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>ReportTimeInterval</name>
 										<description/>
 										<comment/>
@@ -12461,6 +12506,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>VisibilitaServizio</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>VoucherLifespan</name>
 										<description/>
 										<comment/>
@@ -12525,6 +12585,51 @@
 							<folder_node>
 								<name>LABEL_HELP</name>
 								<children>
+									<folder_node>
+										<name>ADESIONE</name>
+										<children>
+											<folder_node>
+												<name>FORM</name>
+												<children>
+													<folder_node>
+														<name>POPOVER</name>
+														<children>
+															<concept_node>
+																<name>id_servizio-</name>
+																<description/>
+																<comment/>
+																<translations>
+																	<translation>
+																		<language>en-US</language>
+																		<approved>false</approved>
+																	</translation>
+																	<translation>
+																		<language>it-IT</language>
+																		<approved>false</approved>
+																	</translation>
+																</translations>
+															</concept_node>
+															<concept_node>
+																<name>id_servizio-title-</name>
+																<description/>
+																<comment/>
+																<translations>
+																	<translation>
+																		<language>en-US</language>
+																		<approved>false</approved>
+																	</translation>
+																	<translation>
+																		<language>it-IT</language>
+																		<approved>false</approved>
+																	</translation>
+																</translations>
+															</concept_node>
+														</children>
+													</folder_node>
+												</children>
+											</folder_node>
+										</children>
+									</folder_node>
 									<concept_node>
 										<name>All</name>
 										<description/>
@@ -12573,6 +12678,26 @@
 													</translation>
 												</translations>
 											</concept_node>
+											<folder_node>
+												<name>POPOVER</name>
+												<children>
+													<concept_node>
+														<name>nome</name>
+														<description/>
+														<comment/>
+														<translations>
+															<translation>
+																<language>en-US</language>
+																<approved>false</approved>
+															</translation>
+															<translation>
+																<language>it-IT</language>
+																<approved>false</approved>
+															</translation>
+														</translations>
+													</concept_node>
+												</children>
+											</folder_node>
 										</children>
 									</folder_node>
 									<folder_node>
@@ -14806,6 +14931,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>SelectVisibilty</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>Sign_in_message</name>
 										<description/>
 										<comment/>
@@ -15881,6 +16021,36 @@
 								<name>PLACEHOLDER</name>
 								<children>
 									<concept_node>
+										<name>DescrizioneSintetica</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>DocumentazioneTecnica</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>PasteYourPrivateKey</name>
 										<description/>
 										<comment/>
@@ -16640,6 +16810,36 @@
 											</concept_node>
 											<concept_node>
 												<name>AddAttachments-specifica</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>AdhesionInformations</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>AdhesionInformations_sub</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -21976,6 +22176,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>Modify</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>Organization</name>
 										<description/>
 										<comment/>
@@ -22839,7 +23054,37 @@
 												</translations>
 											</concept_node>
 											<concept_node>
+												<name>Email</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
 												<name>Nome</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>Note</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -22900,6 +23145,21 @@
 											</concept_node>
 											<concept_node>
 												<name>UserClasses</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>Username</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -23317,6 +23577,21 @@
 									</concept_node>
 									<concept_node>
 										<name>default</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>EreditataDominio</name>
 										<description/>
 										<comment/>
 										<translations>

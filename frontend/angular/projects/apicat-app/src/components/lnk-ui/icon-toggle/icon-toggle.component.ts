@@ -15,6 +15,7 @@ export class LnkIconToggleComponent implements OnInit, OnChanges {
   @Input() tooltipUnchecked: string = 'APP.TOOLTIP.ToBeComplete';
   @Input() tooltipIndeterminate: string = 'APP.TOOLTIP.Indeterminate';
   @Input() loading: boolean = false;
+  @Input() hide: boolean = false;
 
   iconClass: string = '';
   tooltip: string = '';

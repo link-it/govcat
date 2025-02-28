@@ -95,6 +95,13 @@ export class VerificaApiComponent {
     this._loading = true;
     this._result = null;
 
+    console.group('loadEsito');
+    console.log('environmentId', this.environmentId);
+    console.log('verifica', this.verifica);
+    console.log('provider', this.provider);
+    console.log('viewType', this.viewType);
+    console.groupEnd();
+
     let _provider = '';
     if (this.verifica === 'fruizioni') {
       if (this.provider) {
@@ -230,8 +237,9 @@ export class VerificaApiComponent {
     this._showDetails = (this.viewType !== ViewType.All);
     this._loading = true;
     this._vesa = [];
-    forkJoin(reqs).subscribe(
-      (results: Array<any>) => {
+
+    forkJoin(reqs).subscribe({
+      next: (results: Array<any>) => {
         results.forEach((result, index) => {
           const _loading = this._isValidOk(result) && (this.type === 'certificati');
           this._vesa.push({
@@ -250,11 +258,11 @@ export class VerificaApiComponent {
         this._hasErrorVesa(this._vesa);
         this._loading = false;
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('_loadAllErogatori forkJoin', error);
         this._vesa = [];
       }
-    );
+    });
   }
 
   _loadInScadenza(path: string, index: number) {

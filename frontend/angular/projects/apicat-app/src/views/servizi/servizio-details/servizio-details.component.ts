@@ -112,8 +112,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _showMarkdown: boolean = false;
     _showMarkdownPreview: boolean = false;
 
-    _hasFocus: boolean = false;
-
     _showDropdown: boolean = true;
 
     _otherLinks: any[] = [];
@@ -289,7 +287,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _updateData: string = '';
 
     _tipiVisibilitaServizio = [
-        { label: 'default', value: null },
+        { label: 'EreditataDominio ', value: null },
         ...Tools.TipiVisibilitaServizio
     ];
 
@@ -305,7 +303,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _notificationId: string = '';
     _notificationMessageId: string = '';
 
+    _hasMultiDominio: boolean = false;
+    _multiDominioEmail: string | null = null;
     _hasFlagAdesioneConsentita: boolean = false;
+    _hasAdesioniMultiple: boolean = false;
     
     _isDominioEsterno: boolean = false;
 
@@ -356,7 +357,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             ts.enabled = (ts.value === 'API' && this.hasServiziApi) || (ts.value === 'Generico' && this.hasGenerico);
         });
 
+        this._hasMultiDominio = Tools.Configurazione?.dominio?.multi_dominio || false;
+        this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
         this._hasFlagAdesioneConsentita = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
+        this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
 
         this.loadAnagrafiche();
     }
@@ -425,6 +429,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
             this.generalConfig = Tools.Configurazione || null;
+            this._hasMultiDominio = Tools.Configurazione?.dominio?.multi_dominio || false;
+            this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
+            this._hasFlagAdesioneConsentita = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
+            this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
             this._updateOtherLinks()
         });
     }
@@ -591,7 +599,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         break;
                     case 'id_dominio':
                     // case 'dominio':
-                        value = data['dominio'] ? data['dominio'].id_dominio : this.generalConfig.dominio.dominio_default;
+                        value = data['dominio'] ? data['dominio'].id_dominio : this.generalConfig?.dominio?.dominio_default;
                         _group[key] = new UntypedFormControl(value, [Validators.required]);
                         break;
                     // case 'id_gruppo':
@@ -642,7 +650,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     updateTipiVisibilitaServizio() {
         const _origTipiVisibilitaServizio = [
-            { label: 'default', value: null },
+            { label: 'EreditataDominio', value: null },
             ...Tools.TipiVisibilitaServizio  
         ];
 
@@ -699,7 +707,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             classi: _classi,
             note: body.note || null,
             immagine: body.immagine,
-            adesione_consentita: body.adesione_consentita || true,
+            adesione_consentita: body.adesione_consentita || false, // Deve essere gestita come "disabilitaa adesione"
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
             skièp_collaudo: body.skièp_collaudo || false,
@@ -1535,10 +1543,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     enableDisableControlAdesioneConsentita() {
         if (this.isComponente) {
-            this._formGroup.get('adesione_consentita')?.setValue(false);
+            this._formGroup.get('adesione_consentita')?.setValue(true);
             this._formGroup.get('adesione_consentita')?.disable();
         } else {
-            this._formGroup.get('adesione_consentita')?.setValue(true);
+            this._formGroup.get('adesione_consentita')?.setValue(false);
             this._formGroup.get('adesione_consentita')?.enable();
         }
         this._formGroup.get('adesione_consentita')?.updateValueAndValidity();

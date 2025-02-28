@@ -254,7 +254,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
                     this.spin = false;
 
-                    // this.toggleEdit();
+                    this.isEdit = this.canEditMapper();
                 },
                 error: (error: any) => {
                     Tools.OnError(error);
@@ -267,6 +267,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     getStateWorkflow() {
         const statoAdesione = this.adesione.stato;
         const workflow = Tools.Configurazione?.adesione.workflow || null;
+        if (statoAdesione === Tools.StatoAdesione.ARCHIVIATO.Code) {
+            return {
+                stato_attuale: statoAdesione,
+                stato_successivo: null,
+                stati_ulteriori: []
+            };
+        }
         const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === statoAdesione) : -1;
         const currentState = (index !== -1) ? workflow.cambi_stato[index] : null;
         if (statoAdesione === Tools.StatoAdesione.BOZZA.Code && this.adesione.skip_collaudo) {
@@ -286,7 +293,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     getNextStateWorkflow() {
         const currentState = this.getStateWorkflow();
         if (currentState) {
-            const stato = currentState.stato_successivo.nome;
+            const stato = currentState.stato_successivo?.nome || currentState.nome;
             const workflow = Tools.Configurazione?.adesione.workflow || null;
             const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === stato) : -1;
             return (index !== -1) ? workflow.cambi_stato[index] : null;
@@ -416,10 +423,14 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         }
     }
 
+    isStatusPubblicatoCollaudodMapper = (update: boolean, stato: string): boolean => {
+        return stato === 'pubblicato_produzione';
+    }
+
     getStatusCompleteMapper = (update: boolean, className: string): number => {
         if (this.isCompletedMapper(update, className)) {
             const next = this.getNextStateWorkflow();
-            console.log('next', className, next.dati_non_applicabili);
+            console.log('next', className, next?.dati_non_applicabili);
             return next?.dati_non_applicabili?.includes(className) ? 2 : 1;
         } else {
             return 0;

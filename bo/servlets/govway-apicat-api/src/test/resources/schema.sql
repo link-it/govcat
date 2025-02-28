@@ -470,6 +470,7 @@ create sequence seq_utenti start with 1 increment by 1;
         metadati binary(255),
         nome varchar(255) not null,
         note varchar(255),
+        referente_tecnico boolean not null,
         ruoli_notifiche_abilitate varchar(255),
         ruolo varchar(255),
         stato varchar(255) not null,

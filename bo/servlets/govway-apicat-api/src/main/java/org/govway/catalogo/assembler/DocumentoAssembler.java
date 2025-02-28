@@ -77,7 +77,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 	    // Se è stata specificata una versione
 	    if (versioneSpecificata != null) {
 	        Optional<DocumentoEntity> documentoConVersione = storicoEntities.stream()
-	            .filter(doc -> doc.getVersione().equals(versioneSpecificata))
+	            .filter(doc -> doc.getVersione().longValue() == versioneSpecificata)
 	            .findFirst();
 
 	        // Se il documento con la versione specificata è trovato
@@ -197,12 +197,13 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 		} else {
 			entity.setFilename("N_A_");
 		}
-		if(src.getContentType() != null) {
-			entity.setTipo(src.getContentType());
-		} else {
-			String contentType = this.tika.detect(src.getContent());
-			entity.setTipo(contentType);
-		}
+
+		String contentType = (src.getContentType() != null && !src.getContentType().isEmpty()) 
+			    ? src.getContentType() 
+			    : this.tika.detect(src.getContent());
+
+		entity.setTipo(contentType);
+
 		entity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		
 		return entity;

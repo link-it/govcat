@@ -74,17 +74,33 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 		Problem problem;
 		HttpStatus status;
 		try {
-			problem = om.readValue(ex.getE().getResponseBody().getBytes(), Problem.class);
-			status = HttpStatus.resolve(problem.getStatus());
+		    problem = om.readValue(ex.getE().getResponseBody().getBytes(), Problem.class);
+		    status = HttpStatus.resolve(problem.getStatus());
+		    
+		    // Se status è null, assegna un valore di default (es. INTERNAL_SERVER_ERROR)
+		    if (status == null) {
+		        status = HttpStatus.INTERNAL_SERVER_ERROR;
+		    }
 		} catch(Exception e) {
-			logger.error("Errore serializzazione: " + e.getMessage(), e);
-			status = HttpStatus.resolve(ex.getE().getCode());
-			problem = new Problem();
-			problem.setStatus(status.value());
-			problem.setTitle(status.getReasonPhrase());
-			try {problem.setType(new URI("https://TODO"));} catch (URISyntaxException ec) {}
-			problem.setDetail(ex.getMessage());
+		    logger.error("Errore serializzazione: " + e.getMessage(), e);
+		    status = HttpStatus.resolve(ex.getE().getCode());
+
+		    // Se status è ancora null, assegna un valore di default
+		    if (status == null) {
+		        status = HttpStatus.INTERNAL_SERVER_ERROR;
+		    }
+
+		    problem = new Problem();
+		    problem.setStatus(status.value());
+		    problem.setTitle(status.getReasonPhrase());
+		    try {
+		        problem.setType(new URI("https://TODO"));
+		    } catch (URISyntaxException ec) {
+		        logger.error("Errore nella creazione dell'URI", ec);
+		    }
+		    problem.setDetail(ex.getMessage());
 		}
+
 
 		return new ResponseEntity<>(problem, status);
 	} 

@@ -925,3 +925,13 @@ $tagColorHover: #dbdbdb;
     outline: none;
   }
 }
+
+// popover
+
+.popover-content {
+  &.popover-body {
+      p, ul {
+          margin-bottom: 0;
+      }
+  }
+}

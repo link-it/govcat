@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 public class GetEsitoVerificaEventiItem {
 
@@ -71,24 +72,33 @@ public class GetEsitoVerificaEventiItem {
 			} else if(this.dates.size() == 1) {
 				return formatDataOraSingola(sdfData.format(this.dates.get(0)), sdfOra.format(this.dates.get(0)));
 			} else {
-				Date minDate = this.dates.stream()
-		                .min(Date::compareTo).get();
-
-				String minDateString = sdfData.format(minDate);
-				String minDateHourString = sdfOra.format(minDate);
-				Date maxDate = this.dates.stream()
-		                .max(Date::compareTo).get();
-
-				String maxDateString = sdfData.format(maxDate);
-				String maxDateHourString = sdfOra.format(maxDate);
-				
-				if(minDateString.equals(maxDateString)) {
-					return formatDataConOraDoppia(minDateString, minDateHourString, maxDateHourString);
-//					return minDateString + " "+minDateHourString+" - "+maxDateHourString;
-				} else {
-					return formatDataOraDoppia(minDateString, minDateHourString, maxDateString, maxDateHourString);
-//					return minDateString+" "+minDateHourString+" - "+maxDateString+" "+maxDateHourString;
+				Optional<Date> dateMinOptional = this.dates.stream()
+		                .min(Date::compareTo);
+				Date minDate = null;
+				if(dateMinOptional.isPresent()) {
+					minDate = dateMinOptional.get();
+	
+					String minDateString = sdfData.format(minDate);
+					String minDateHourString = sdfOra.format(minDate);
+					Optional<Date> dateMaxOptional = this.dates.stream()
+			                .max(Date::compareTo);
+					Date maxDate = null;
+					if(dateMaxOptional.isPresent()) {
+						maxDate = dateMaxOptional.get();
+	
+						String maxDateString = sdfData.format(maxDate);
+						String maxDateHourString = sdfOra.format(maxDate);
+						
+						if(minDateString.equals(maxDateString)) {
+							return formatDataConOraDoppia(minDateString, minDateHourString, maxDateHourString);
+		//					return minDateString + " "+minDateHourString+" - "+maxDateHourString;
+						} else {
+							return formatDataOraDoppia(minDateString, minDateHourString, maxDateString, maxDateHourString);
+		//					return minDateString+" "+minDateHourString+" - "+maxDateString+" "+maxDateHourString;
+						}
+					}
 				}
+				return "";
 			}
 		}
 		

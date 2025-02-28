@@ -136,7 +136,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     this.route.data.subscribe((data) => {
       const serviceBreadcrumbs: ServiceBreadcrumbsData = data.serviceBreadcrumbs;
-      if(!serviceBreadcrumbs)return;
+      if (!serviceBreadcrumbs) return;
       this.service = serviceBreadcrumbs.service;
       this.breadcrumbs.unshift(...serviceBreadcrumbs.breadcrumbs);
     });
@@ -241,7 +241,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     if (query)  aux = { params: this.utils._queryToHttpParams(query) };
 
-    if(this.service && this.service.id_servizio){
+    if (this.service && this.service.id_servizio){
       aux.params = aux.params.set('id_servizio', this.service.id_servizio.toString() || '');
     }
     

@@ -500,6 +500,7 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
+				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1717,18 +1718,35 @@ public class ServiziController implements ServiziApi {
 	}
 	
 
-	
+	/*
 	private boolean isEmpty(ServizioGruppoEntity sg) {
 		if(sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
 			return false;
 		}
+		Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
+		GruppoEntity gruppo = null;
+		if(gruppoEntity.isPresent())
+			gruppoEntity.get();
 
-		GruppoEntity gruppo = this.gruppoService.find(UUID.fromString(sg.getIdEntita())).get();
+		return isEmpty(gruppo);	
+	}
+	 */
+	
+	private boolean isEmpty(ServizioGruppoEntity sg) {
+	    if (sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
+	        return false;
+	    }
 
-		return isEmpty(gruppo);
-		
+	    Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
+
+	    if (gruppoEntity.isPresent()) {
+	        return isEmpty(gruppoEntity.get());
+	    }
+
+	    return true;
 	}
 
+	
 	private boolean isEmpty(GruppoEntity gruppo) {
 
 		if(!gruppo.getServizi().isEmpty()) {
@@ -1791,7 +1809,7 @@ public class ServiziController implements ServiziApi {
 				}
 
 			} else {
-				if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO)) {
+				if(visibilita != null && visibilita == org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO) {
 					List<String> statiAdesione = this.configurazione.getServizio().getStatiAdesioneConsentita();
 					contains =  contains || statiAdesione.contains(servizio.getStato());
 				}

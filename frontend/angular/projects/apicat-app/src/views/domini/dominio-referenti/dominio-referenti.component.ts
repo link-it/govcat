@@ -397,7 +397,8 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
           let aux: any = this._isDominioEsterno ? null : this._idDominioEsterno;
-          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux).pipe(
+          const referente_tecnico = this.referentiTipo === 'referente_tecnico';
+          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )

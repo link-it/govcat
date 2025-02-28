@@ -11,7 +11,9 @@
     ],
     "metadata": {
       "text": [{ "field": "email_aziendale", "type": "text" }],
-      "label": []
+      "label": [
+        { "field": "referente_tecnico_hide", "type": "tag", "options": "referenteTecnico", "hideEmpty": true }
+      ]
     },
     "secondaryMetadata": []
   },
@@ -48,6 +50,14 @@
         "abilitato": { "label": "APP.USERS.STATUS.Enabled", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
         "disabilitato": { "label": "APP.USERS.STATUS.Disabled", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" }
       }
+    },
+    "referenteTecnico": {
+      "label": "APP.ROLE.referente_tecnico",
+      "small": true,
+      "values": {
+          "default": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" },
+          "true": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" }
+        }
     }
   }
 }

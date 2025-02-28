@@ -35,6 +35,7 @@ import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
+import org.govway.catalogo.servlets.model.ProfiloUpdate;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
@@ -81,7 +82,9 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		dettaglio.setUsername(entity.getIdUtente());
 		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
-		
+
+		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
+
 		if(entity.getOrganizzazione()!=null) {
 			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
 		}
@@ -102,20 +105,24 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		BeanUtils.copyProperties(src, entity);
 
 		entity.setIdUtente(src.getUsername());
-		if(src.getIdOrganizzazione()!=null) {
+		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata")));
 		} else {
 			entity.setOrganizzazione(null);
 		}
 		
+		if(src.isReferenteTecnico()!=null) {
+			entity.setReferenteTecnico(src.isReferenteTecnico());
+		}
+
 		if(src.getRuolo()!=null) {
 			entity.setRuolo(utenteEngineAssembler.toEntity(src.getRuolo()));
 		} else {
 			entity.setRuolo(null);
 		}
 		
-		if(src.getStato()!=null) {
+		if(src.getStato() != null && !src.getStato().getValue().trim().isEmpty()) {
 			entity.setStato(utenteEngineAssembler.toEntity(src.getStato()));
 		} else {
 			entity.setStato(Stato.DISABILITATO);
@@ -137,22 +144,32 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		return entity;
 	}
 	
+	public UtenteEntity toEntity(ProfiloUpdate src, UtenteEntity entity) {
+		BeanUtils.copyProperties(src, entity);
+
+		return entity;
+	}
+	
 	
 	public UtenteEntity toEntity(UtenteCreate src) {
 		UtenteEntity entity = new UtenteEntity();
 		BeanUtils.copyProperties(src, entity);
 		
 		entity.setIdUtente(src.getUsername());
-		if(src.getIdOrganizzazione()!=null) {
+		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata")));
 		}
 		
+		if(src.isReferenteTecnico()!=null) {
+			entity.setReferenteTecnico(src.isReferenteTecnico());
+		}
+
 		if(src.getRuolo()!=null) {
 			entity.setRuolo(utenteEngineAssembler.toEntity(src.getRuolo()));
 		}
 		
-		if(src.getStato()!=null) {
+		if(src.getStato() != null && !src.getStato().getValue().trim().isEmpty()) {
 			entity.setStato(utenteEngineAssembler.toEntity(src.getStato()));
 		} else {
 			entity.setStato(Stato.DISABILITATO);

@@ -108,7 +108,7 @@ public class CatalogoCache {
 		Optional<SoggettoEntity> soggetto = this.findSoggetto(erogatore);
 		
 		if(!soggetto.isPresent()) {
-			return null;
+			return Optional.empty();
 		}
 		
 		Optional<ApiEntity> cache = this.cacheApi.cache(key, this.apiService.findByNomeVersioneSoggetto(nomeApi, versione, UUID.fromString(soggetto.get().getIdSoggetto())));

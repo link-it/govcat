@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -199,11 +202,19 @@ public class EServiceBuilder {
 
     public static void main(String[] args) throws IOException {
     	ConfigurazioneTryout conf = new ConfigurazioneTryout();
-    	conf.setServerUrl("serverurltest");
-    	Path path = Paths.get("/tmp/openapi.yaml");
-		byte[] output = getTryOutOpenAPI(Files.readAllBytes(path), conf);
-		
-		Files.write(path, output);
+        conf.setServerUrl("serverurltest");
+
+        // Creazione di una directory temporanea con permessi sicuri
+        Path tempDir = Files.createTempDirectory("secureTempDir", 
+            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")));
+        
+        Path tempFile = Files.createTempFile(tempDir, "openapi", ".yaml");
+        Set<PosixFilePermission> permissions = PosixFilePermissions.fromString("rw-------");
+        Files.setPosixFilePermissions(tempFile, permissions);
+
+        byte[] output = getTryOutOpenAPI(Files.readAllBytes(tempFile), conf);
+        
+        Files.write(tempFile, output, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 	}
     
 

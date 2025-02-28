@@ -667,8 +667,10 @@
 			"descrizione": "Description",
 			"descrizione_sintetica": "Synthetic description",
 			"DescrizioneCompleta": "Full description",
+			"DescrizioneSintetica": "Synthetic description",
 			"DettaglioErrore": "Error detail",
 			"Dimensione": "Size",
+			"DisabilitaAdesione": "Disabled membership",
 			"DistributionType": "Distribution type",
 			"DocumentazioneTecnica": "Technical documentation",
 			"Documents": "Documents",
@@ -830,6 +832,7 @@
 			"PurposeId": "Purpose ID",
 			"referente": "Contact",
 			"referente_tecnico": "Technical contact",
+			"ReferenteTecnico": "Technical referent",
 			"ReportTimeInterval": "Time unit",
 			"ReportTransactionDetailedOutcome": "Detailed outcome",
 			"ReportTransactionOutcome": "Transaction outcome",
@@ -925,16 +928,28 @@
 			"versione_gateway": "Gateway version",
 			"visibile": "Visible",
 			"visibilita": "Visibility",
+			"VisibilitaServizio": "Service visibility",
 			"VoucherLifespan": "Voucher Lifespan",
 			"Warning": "Warning",
 			"X-Forwarded-For": "X-Forwarded-For",
 			"Yes": "Yes"
 		},
 		"LABEL_HELP": {
+			"ADESIONE": {
+				"FORM": {
+					"POPOVER": {
+						"id_servizio-": "Field description **service_id** field description with multiple lines and markdown text.\n- Item 1\n- item 2",
+						"id_servizio-title-": "Service Name"
+					}
+				}
+			},
 			"All": "",
 			"API": {
 				"baseUrl": "Delivery URL for production environment",
-				"baseUrlCollaudo": "Delivery URL for test environment"
+				"baseUrlCollaudo": "Delivery URL for test environment",
+				"POPOVER": {
+					"nome": ""
+				}
 			},
 			"SERVICE": {
 				"descrizione": "You can enter `markdown` text.",
@@ -1103,6 +1118,7 @@
 			"SelectStatisticHelp": "Choose a statistic, a graph type and press the \"Generate\" button",
 			"SelectTaxonomy": "Select a taxonomy",
 			"SelectTaxonomytHelp": "Choose a taxonomy and press the \"Submit\" button",
+			"SelectVisibilty": "Select visibility...",
 			"Sign_in_message": "Sign in with your account",
 			"TypeToSearchText": "Type to search...",
 			"Unimplemented": "Unimplemented yet",
@@ -1198,6 +1214,8 @@
 			"PAGE_NUMBER": "Page {{pageNumber}} of {{totalPages}}"
 		},
 		"PLACEHOLDER": {
+			"DescrizioneSintetica": "",
+			"DocumentazioneTecnica": "Enter the technical documentation of the service here (e.g. specifications, requirements, limitations, etc.)",
 			"PasteYourPrivateKey": "Paste your private key here...",
 			"Search": "Search...",
 			"SelectCategoria": "Select a category",
@@ -1267,6 +1285,8 @@
 				"AddAttachments": "Add attachments",
 				"AddAttachments-generico": "Add generic attachments",
 				"AddAttachments-specifica": "Add specification attachments",
+				"AdhesionInformations": "Membership Options",
+				"AdhesionInformations_sub": "",
 				"Allegati": "Attachments",
 				"AllegatiSpecifica": "Attachments specification",
 				"Allegato": "Attachment",
@@ -1656,6 +1676,7 @@
 			"HideDetails": "Hide details",
 			"Indeterminate": "Not applicable in this state",
 			"Information": "Information",
+			"Modify": "Edit",
 			"Organization": "Organization",
 			"Preview": "Preview",
 			"Remove": "Remove",
@@ -1731,11 +1752,14 @@
 				"Cognome": "Lastname",
 				"CorporateEmail": "Corporate Email",
 				"CorporatePhone": "Corporate Phone",
+				"Email": "Email",
 				"Nome": "Name",
+				"Note": "Note",
 				"Phone": "Phone",
 				"Role": "Role",
 				"Status": "State",
-				"UserClasses": "User Classes"
+				"UserClasses": "User Classes",
+				"Username": "Username"
 			},
 			"ROLES": {
 				"gestore": "Manager",
@@ -1778,6 +1802,7 @@
 			"adesione": "Membership",
 			"componente": "Component",
 			"default": "Default",
+			"EreditataDominio": "Inherited from the domain",
 			"generico": "Generic",
 			"gestore": "Manager",
 			"private": "Private",

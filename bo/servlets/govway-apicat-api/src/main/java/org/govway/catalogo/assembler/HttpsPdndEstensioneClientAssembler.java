@@ -88,7 +88,7 @@ public class HttpsPdndEstensioneClientAssembler extends AbstractEstensioneClient
 
 		List<String> erroriConfigurabileCertificato = this.getErroriConfigurabileCertificato(specDsc.getCertificatoAutenticazione(), AUTENTICAZIONE_PREFIX);
 		
-		if(specDsc.getClientId() == null) {
+		if(specDsc.getClientId() == null || specDsc.getClientId().trim().isEmpty()) {
 			erroriConfigurabileCertificato.add("client_id");
 		}
 		

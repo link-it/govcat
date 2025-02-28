@@ -57,7 +57,7 @@ public class AdesioneDTOConverter {
 	private static final String URL_ESPOSIZIONE = "url_esposizione";
 	private static final String NOME_APPLICAZIONE = "nome_applicazione";
 	private static final String HELP_DESK = "help_desk";
-
+	
 	AdesioneDTOConverter(AdesioneEntity adesione) {
 		this.adesione = adesione;
 	}
@@ -167,15 +167,15 @@ public class AdesioneDTOConverter {
 		//    					classeDato.equals("generico") ||
 		//    					classeDato.equals("referenti")) {
 		//
-		//    				//TODO bisogna leggere la configurazione come fatto nella classe SoggettoDTOFactory (spostato nel ConfigurazioneReader)
+		//    				//TODO mflag bisogna leggere la configurazione come fatto nella classe SoggettoDTOFactory (spostato nel ConfigurazioneReader)
 		//    				// usare il metodo getClasseDatoApi(gruppo) per ottenere la classe dato
 		//
-		//    				//TODO aggiungere solo le estensioni relative ai gruppi che hanno come classe_dato una di quelle comuni (identificativo, specifica, generico, referenti) 
+		//    				//TODO mflag aggiungere solo le estensioni relative ai gruppi che hanno come classe_dato una di quelle comuni (identificativo, specifica, generico, referenti) 
 		//    				// oppure quelle specifiche dell'ambiente che si sta andando a configurare (collaudo, collaudo_configurato, produzione, produzione_configurato)
 		//
 		//    				String valore = estensioneApi.getValore();
 		//    				String nomeEstensione = estensioneApi.getNome();
-		//    				map.put(gruppo + "." + nomeEstensione, valore); // TODO verifica che per una API vengano aggiunte le estensioni di quella API (con chiave gruppo.nome)
+		//    				map.put(gruppo + "." + nomeEstensione, valore); // TODO mflag verifica che per una API vengano aggiunte le estensioni di quella API (con chiave gruppo.nome)
 		//    			}
 		//    		}
 		//    	}
@@ -242,8 +242,25 @@ public class AdesioneDTOConverter {
 		return list;
 	}
 
+	private DTOAdesione.AmbienteEnum convertToDTOEnum(AmbienteEnum ambiente) {
+	    switch (ambiente) {
+	        case COLLAUDO:
+	            return DTOAdesione.AmbienteEnum.COLLAUDO;
+	        case PRODUZIONE:
+	            return DTOAdesione.AmbienteEnum.PRODUZIONE;
+	        default:
+	            throw new IllegalArgumentException("Unexpected AmbienteEnum value: " + ambiente);
+	    }
+	}
+	
 	private DTOApi buildDTOApi(ApiEntity apiEntity, Map<String, String> map, List<DTOAdesioneAPI> list) {
-		String protocollo = this.ambienteConfigurazione.equals(AmbienteEnum.COLLAUDO) ? apiEntity.getCollaudo().getProtocollo().toString() : apiEntity.getProduzione().getProtocollo().toString();
+		String protocollo;
+		if (DTOAdesione.AmbienteEnum.COLLAUDO == convertToDTOEnum(this.ambienteConfigurazione)) {
+	        protocollo = apiEntity.getCollaudo().getProtocollo().toString();
+	    } else {
+	        protocollo = apiEntity.getProduzione().getProtocollo().toString();
+	    }
+		
 		return new DTOApi(
 				apiEntity.getNome(),
 				apiEntity.getVersione(),

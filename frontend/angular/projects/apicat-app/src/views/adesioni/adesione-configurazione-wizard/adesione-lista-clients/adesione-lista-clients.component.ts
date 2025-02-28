@@ -177,6 +177,10 @@ export class AdesioneListaClientsComponent implements OnInit {
         }
     }
 
+    isStatusPubblicatoCollaudodMapper = (update: string, stato: string): boolean => {
+        return stato === 'pubblicato_produzione';
+    }
+
     getSottotipoGroupCompletedMapper = (update: string, tipo: string): number => {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
@@ -406,8 +410,8 @@ export class AdesioneListaClientsComponent implements OnInit {
                     this._currentServiceClient = _id_client;
                     this.onChangeCredenziali(SelectedClientEnum.UsaClientEsistente);
                 } else {
-                    this._editFormGroupClients.controls['credenziali'].setValue(_id_client || '');
-                    this.onChangeCredenziali(SelectedClientEnum.Default);
+                    this._editFormGroupClients.controls['credenziali'].setValue(_id_client || SelectedClientEnum.NuovoCliente);
+                    this.onChangeCredenziali(SelectedClientEnum.NuovoCliente);
                 }
                 // this.loadingDialog = false;
             }, 400);
@@ -676,7 +680,7 @@ export class AdesioneListaClientsComponent implements OnInit {
             if (this._generalConfig.adesione.visualizza_elenco_client_esistenti) {
                 this._loadClientsRiuso(auth_type, organizzazione, ambiente, true);
             } else {
-                this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.ScegliCredenziali'), 'id_client': ''});
+                // this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.ScegliCredenziali'), 'id_client': ''});
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.UsaClientEsistente'), 'id_client': SelectedClientEnum.UsaClientEsistente});
                 if (this.authenticationService.isGestore()) {
@@ -696,7 +700,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                     const _riuso_client_obbligatorio: boolean = this._generalConfig.adesione.riuso_client_obbligatorio;
                     if (this._arr_clients_riuso.length === 0 || !_riuso_client_obbligatorio) {
                         this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
-                        this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.ScegliCredenziali'), 'id_client': SelectedClientEnum.Default});
+                        // this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.ScegliCredenziali'), 'id_client': SelectedClientEnum.Default});
                     }
                 }
             },
@@ -709,7 +713,6 @@ export class AdesioneListaClientsComponent implements OnInit {
     _downloadsEnabled() {
         return this._currentServiceClient === this._editFormGroupClients.get('credenziali')?.value;
     }
-
 
     _disableAllFields(data: any) {
         Object.keys(data).forEach((key) => {

@@ -22,6 +22,7 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -33,12 +34,15 @@ import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.controllers.TassonomieController;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.Categoria;
 import org.govway.catalogo.servlets.model.CategoriaCreate;
 import org.govway.catalogo.servlets.model.CategoriaUpdate;
 import org.govway.catalogo.servlets.model.ListItemCategoria;
+import org.govway.catalogo.servlets.model.PagedModelItemServizio;
 import org.govway.catalogo.servlets.model.PagedModelItemTassonomia;
 import org.govway.catalogo.servlets.model.Tassonomia;
 import org.govway.catalogo.servlets.model.TassonomiaCreate;
@@ -497,4 +501,139 @@ public class TassonomieTest {
         assertEquals("Tassonomia [" + idTassonomiaNonEsistente + "] non trovata", exception.getMessage());
     }
 
+    @Test
+    void testGetServiziCategoria_Successo() {
+    	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+
+        CategoriaCreate categoriaCreate = new CategoriaCreate();
+        categoriaCreate.setNome("nuova categoria");
+        categoriaCreate.setDescrizione("descrizione categoria");
+        ResponseEntity<Categoria> responseCategoria = controller.createTassonomiaCategoria(idTassonomia, categoriaCreate);
+
+        UUID idCategoria = responseCategoria.getBody().getIdCategoria();
+              
+        ResponseEntity<PagedModelItemServizio> response = controller.getServiziCategoria(idTassonomia, idCategoria);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getContent());
+    }
+
+    @Test
+    void testGetServiziCategoria_TassonomiaNonTrovata() {
+        UUID idTassonomia = UUID.randomUUID();
+        UUID idCategoria = UUID.randomUUID();
+        
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            controller.getServiziCategoria(idTassonomia, idCategoria);
+        });
+        
+        assertTrue(ex.getMessage().contains("Categoria [" + idCategoria + "] per Tassonomia [" + idTassonomia + "] non trovata"));
+    }
+
+    @Test
+    void testGetServiziCategoria_CategoriaNonTrovata() {
+    	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+        UUID idCategoria = UUID.randomUUID();
+        
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            controller.getServiziCategoria(idTassonomia, idCategoria);
+        });
+        
+        assertNotNull(ex.getMessage());
+    }
+
+    @Test
+    void testGetCategoria_Successo() {
+    	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+
+        CategoriaCreate categoriaCreate = new CategoriaCreate();
+        categoriaCreate.setNome("categoria");
+        categoriaCreate.setDescrizione("categoria descrizione");
+        ResponseEntity<Categoria> responseCategoria = controller.createTassonomiaCategoria(idTassonomia, categoriaCreate);
+
+        UUID idCategoria = responseCategoria.getBody().getIdCategoria();
+              
+        ResponseEntity<Categoria> response = controller.getCategoria(idTassonomia, idCategoria);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    void testGetCategoria_TassonomiaNonTrovata() {
+        UUID idTassonomia = UUID.randomUUID();
+        UUID idCategoria = UUID.randomUUID();
+        
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            controller.getCategoria(idTassonomia, idCategoria);
+        });
+        
+        assertTrue(ex.getMessage().contains("Categoria [" + idCategoria + "] per Tassonomia [" + idTassonomia + "] non trovata"));
+    }
+
+    @Test
+    void testGetCategoria_CategoriaNonTrovata() {
+    	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+        UUID idCategoria = UUID.randomUUID();
+        
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            controller.getCategoria(idTassonomia, idCategoria);
+        });
+        
+        assertNotNull(ex.getMessage());
+    }
+    
+    @Test
+    void testDeleteTassonomia_Successo() {
+    	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+              
+        ResponseEntity<Void> response = controller.deleteTassonomia(idTassonomia);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void testDeleteTassonomia_TassonomiaNonTrovata() {
+        UUID idTassonomia = UUID.randomUUID();
+        
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> {
+            controller.deleteTassonomia(idTassonomia);
+        });
+        
+        assertTrue(ex.getMessage().contains("Tassonomia [" + idTassonomia + "] non trovata"));
+    }
+
+    @Test
+    void testDeleteTassonomia_ErrorePerAssociataCategoria() {
+    	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+        CategoriaCreate categoriaCreate = new CategoriaCreate();
+        categoriaCreate.setNome("categoria");
+        categoriaCreate.setDescrizione("categoria descrizione");
+        controller.createTassonomiaCategoria(idTassonomia, categoriaCreate);
+        
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> {
+            controller.deleteTassonomia(idTassonomia);
+        });
+        assertTrue(ex.getMessage().contains("Tassonomia [" + responseTassonomia.getBody().getNome() + "] non eliminabile in quanto associata a [1] categorie"));
+        assertNotNull(ex.getMessage());
+    }
 }

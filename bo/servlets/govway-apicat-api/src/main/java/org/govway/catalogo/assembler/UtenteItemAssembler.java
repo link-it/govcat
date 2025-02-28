@@ -50,7 +50,8 @@ public class UtenteItemAssembler extends RepresentationModelAssemblerSupport<Ute
 		BeanUtils.copyProperties(entity, dettaglio);
 		
 		dettaglio.setUsername(entity.getIdUtente());
-		
+		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
+
 		if(entity.getOrganizzazione()!=null) {
 			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
 		}
