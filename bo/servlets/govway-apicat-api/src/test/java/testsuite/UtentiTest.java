@@ -32,6 +32,8 @@ import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemSoggetto;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
+import org.govway.catalogo.servlets.model.Profilo;
+import org.govway.catalogo.servlets.model.ProfiloUpdate;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
@@ -924,6 +926,44 @@ public class UtentiTest {
 
         // Asserzioni
         assertEquals("Utente non specificato", exception.getMessage());
+    }
+    
+    @Test
+    void testGetProfiloSuccess() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utente);
+        assertNotNull(responseUtente.getBody());
+
+        ResponseEntity<Profilo> profilo = controller.getProfilo();
+        
+        assertEquals(HttpStatus.OK, profilo.getStatusCode());
+    }
+    
+    @Test
+    void testUpdateProfiloSuccess() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utente);
+        assertNotNull(responseUtente.getBody());
+
+        ProfiloUpdate newProfilo = new ProfiloUpdate();
+        newProfilo.setNome("Nicola");
+        newProfilo.setCognome("Ilsuocognome");
+        newProfilo.setEmailAziendale("unamail@unamail.unamail");
+        newProfilo.setTelefonoAziendale("0000000000");
+                
+        ResponseEntity<Utente> profilo = controller.updateProfilo(newProfilo);
+        
+        assertEquals(HttpStatus.OK, profilo.getStatusCode());
     }
 }
 

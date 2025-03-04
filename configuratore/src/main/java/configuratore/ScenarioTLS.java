@@ -107,7 +107,7 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 		try {
 			response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto);
 		} catch(TemplateException | IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			throw new ConfigurazioneException();
 		}
 		

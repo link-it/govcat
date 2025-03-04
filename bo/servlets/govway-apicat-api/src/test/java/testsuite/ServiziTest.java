@@ -34,6 +34,10 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.API;
+import org.govway.catalogo.servlets.model.APICreate;
+import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
+import org.govway.catalogo.servlets.model.APIDatiErogazione;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
@@ -72,6 +76,7 @@ import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
 import org.govway.catalogo.servlets.model.PagedModelItemServizioGruppo;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
+import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
@@ -102,6 +107,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -118,6 +124,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -126,7 +133,7 @@ import org.springframework.transaction.annotation.Transactional;
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+//@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 public class ServiziTest {
 
 	@Mock
@@ -386,6 +393,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateAllegatoServizioSuccess() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setEsterna(false);
@@ -445,6 +453,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateAllegatoServizioVisibilitaNonConsentita() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setEsterna(false);
@@ -501,6 +510,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateAllegatoServizioDuplicato() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setEsterna(false);
@@ -559,6 +569,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateAllegatoServizioAutorizzazioneFallita() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setEsterna(false);
@@ -616,6 +627,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateAllegatoServizioutenteAnonimo() {
         OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
         organizzazione.setEsterna(false);
@@ -673,6 +685,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateReferenteServizioSuccess() {
         Servizio servizio = this.getServizio();
 
@@ -688,6 +701,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateReferenteServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -704,6 +718,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateReferenteServizioAutorizzazioneFallita() {
         Servizio servizio = this.getServizio();
 
@@ -720,6 +735,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateReferenteServizioUtenteAnonimo() {
         Servizio servizio = this.getServizio();
 
@@ -736,6 +752,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateAllegatoMessaggioServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -758,6 +775,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateAllegatoMessaggioServizioMessaggioNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -777,6 +795,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateMessaggioServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -793,6 +812,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateMessaggioServizioServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -808,6 +828,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateServizioSuccess() {
         Servizio servizio = this.getServizio();
 
@@ -817,6 +838,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateServizioConflict() {
         Servizio servizio1 = this.getServizio();
         assertNotNull(servizio1);
@@ -844,6 +866,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateServizioAuthorizationFailed() {
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
@@ -853,6 +876,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testCreateServizioUtenteAnonimo() {
     	this.tearDown();
 
@@ -862,6 +886,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteAllegatoServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -884,6 +909,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteAllegatoServizioNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -899,6 +925,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteAllegatoServizioAuthorizationFailed() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -924,6 +951,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteAllegatoServizioUtenteAnonimo() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -949,6 +977,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteAllegatoMessaggioServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -972,6 +1001,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteAllegatoMessaggioServizioMessaggioNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -988,6 +1018,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteAllegatoMessaggioServizioAllegatoNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1009,6 +1040,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteReferenteServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1031,6 +1063,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteReferenteServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -1041,6 +1074,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDownloadAllegatoMessaggioServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1066,6 +1100,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDownloadAllegatoMessaggioServizioMessaggioNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1082,6 +1117,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDownloadAllegatoMessaggioServizioAllegatoNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1103,6 +1139,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDownloadAllegatoServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1127,6 +1164,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDownloadAllegatoServizioNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1142,6 +1180,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testGetServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1154,6 +1193,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testGetServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -1166,6 +1206,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListComunicazioniServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1202,6 +1243,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListComunicazioniServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -1214,6 +1256,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListMessaggiServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1237,6 +1280,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListMessaggiServizioWithSearchQuery() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1260,6 +1304,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListReferentiServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1275,6 +1320,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListReferentiServizioWithSearchQuery() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1290,6 +1336,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1322,6 +1369,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -1349,6 +1397,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testUpdateServizioConflict() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -1389,6 +1438,7 @@ public class ServiziTest {
 	}
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateStatoServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1409,6 +1459,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateStatoServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -1423,6 +1474,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateStatoServizioAuthorizationFailed() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1442,6 +1494,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateStatoServizioUtenteAnonimo() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1460,6 +1513,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziSuccess() {
         Servizio servizio = this.getServizio();
 
@@ -1506,6 +1560,7 @@ public class ServiziTest {
     }
   */  
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziSortedNameDesc() {
         this.getMultiServizi();
 
@@ -1530,6 +1585,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziSortedNameAsc() {
         this.getMultiServizi();
 
@@ -1554,6 +1610,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziMultiSorted() {
         this.getMultiServizi();
 
@@ -1581,6 +1638,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziMultiPage() {
     	int numeroElementiPerPagina = 10;
     	int numeroTotaleDiElementi = 40;
@@ -1599,6 +1657,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziWithFilters() {
         Servizio servizio = this.getServizio();
         UUID idDominio = servizio.getDominio().getIdDominio();
@@ -1620,6 +1679,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziInAttesaUnauthorized() {
         when(this.coreAuthorization.isAnounymous()).thenReturn(true);
         /*
@@ -1635,6 +1695,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testExportServiziSuccess() {
         Servizio servizio = this.getServizio();
 
@@ -1650,6 +1711,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteMessaggioServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1667,6 +1729,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteMessaggioServizioNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1682,6 +1745,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDeleteMessaggioServizioAuthorizationFailed() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1702,6 +1766,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateAllegatoServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1737,6 +1802,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateMessaggioServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1759,6 +1825,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListAllegatiServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1788,6 +1855,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListAllegatiServizioNotFound() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
@@ -1797,6 +1865,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateMessaggioServizioAuthorizationFailed() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1818,6 +1887,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateMessaggioServizioUtenteAnonimo() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1839,6 +1909,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateMessaggioServizioNotFound() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1858,6 +1929,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateAllegatoServizioAuthorizationFailed() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1893,6 +1965,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testUpdateAllegatoServizioUtenteAnonimo() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
@@ -1928,6 +2001,7 @@ public class ServiziTest {
     }
 
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListAllegatiServizioVisibilita() {
 	    // Creazione del servizio e allegati tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -1962,6 +2036,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListAllegatiServizioTipologia() {
 	    // Creazione del servizio e allegati tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -1996,6 +2071,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2010,6 +2086,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteServizioNotFound() {
 	    // UUID del servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -2021,6 +2098,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteServizioAuthorizationFailed() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2036,6 +2114,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteServizioUtenteAnonimo() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2050,7 +2129,8 @@ public class ServiziTest {
 	}
 	
 	@Test
-	public void testListServiziGruppiSuccess() {
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	public void testListServiziGruppiAllNullSuccess() {
 	    // Creazione del servizio e gruppo tramite getServizio
 	    Servizio servizio = this.getServizio();
 	    GruppoCreate gruppoPadre = CommonUtils.getGruppoCreate();
@@ -2071,6 +2151,56 @@ public class ServiziTest {
 	    assertEquals(HttpStatus.OK, response.getStatusCode());
 	    assertNotNull(response.getBody());
 	    assertFalse(response.getBody().getContent().isEmpty());   
+	}
+	
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	public void testListServiziGruppiTipoServizioAPISuccess() {
+	    // Creazione del servizio e gruppo tramite getServizio
+	    Servizio servizio = this.getServizio();
+	    GruppoCreate gruppoPadre = CommonUtils.getGruppoCreate();
+	    gruppoPadre.setNome("gruppo padre");
+	    ResponseEntity<Gruppo> createdGruppoPadre = gruppiController.createGruppo(gruppoPadre);
+	    UUID idGruppoPadre = createdGruppoPadre.getBody().getIdGruppo();
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), idGruppoPadre);
+	    //creo il gruppo
+	    GruppoCreate gruppo = CommonUtils.getGruppoCreate();
+	    gruppo.setPadre(idGruppoPadre);
+	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
+	    
+	    // Invocazione del metodo listServiziGruppi
+	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.API, null, 0, 10, null);
+
+	    // Verifica del successo
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	    assertNotNull(response.getBody());
+	    assertFalse(response.getBody().getContent().isEmpty());   
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	public void testListServiziGruppiTipoServizioGenericoSuccess() {
+	    // Creazione del servizio e gruppo tramite getServizio
+	    Servizio servizio = this.getServizio();
+	    GruppoCreate gruppoPadre = CommonUtils.getGruppoCreate();
+	    gruppoPadre.setNome("gruppo padre");
+	    ResponseEntity<Gruppo> createdGruppoPadre = gruppiController.createGruppo(gruppoPadre);
+	    UUID idGruppoPadre = createdGruppoPadre.getBody().getIdGruppo();
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), idGruppoPadre);
+	    //creo il gruppo
+	    GruppoCreate gruppo = CommonUtils.getGruppoCreate();
+	    gruppo.setPadre(idGruppoPadre);
+	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
+	    
+	    // Invocazione del metodo listServiziGruppi
+	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.GENERICO, null, 0, 10, null);
+
+	    // Verifica del successo
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	    assertNotNull(response.getBody());  
 	}
 	
 	 public Servizio getServizio(String nomeServizio) {
@@ -2125,6 +2255,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziGruppiSortedNameDesc() {
         UUID idPadre = this.getGruppiServizi(3);
 
@@ -2148,6 +2279,7 @@ public class ServiziTest {
     }
 	
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziGruppiSortedNameAsc() {
     	UUID idPadre = this.getGruppiServizi(3);
 
@@ -2171,6 +2303,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziGruppiMultiSorted() {
     	UUID idPadre = this.getGruppiServizi(3);
 
@@ -2196,6 +2329,7 @@ public class ServiziTest {
     }
     
     @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziGruppiMultiPage() {
     	UUID idPadre = this.getGruppiServizi(50);
     	int numeroElementiPerPagina = 10;
@@ -2288,6 +2422,7 @@ public class ServiziTest {
     }
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListOrganizzazioniAmmissibiliSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2385,6 +2520,7 @@ public class ServiziTest {
     }
     */
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListOrganizzazioniAmmissibiliNotFound() {
 	    // UUID del servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -2397,6 +2533,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListOrganizzazioniAmmissibiliWithQuery() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2414,6 +2551,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddGruppoServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2436,6 +2574,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddGruppoServizioNotFound() {
 	    // UUID del servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -2454,6 +2593,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddGruppoServizioGruppoNotFound() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2472,6 +2612,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddGruppoServizioAlreadyAssociated() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2497,6 +2638,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddGruppoServizioAuthorizationFailed() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2519,6 +2661,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddGruppoServizioUtenteAnonimo() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2540,6 +2683,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteGruppoServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2563,6 +2707,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteGruppoServizioNotFound() {
 	    // UUID del servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -2581,6 +2726,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteGruppoServizioGruppoNotFound() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2596,6 +2742,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteGruppoServizioAuthorizationFailed() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2621,6 +2768,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteGruppoServizioUtenteAnonimo() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2645,6 +2793,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListGruppiServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2672,6 +2821,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListGruppiServizioNotFound() {
 	    // UUID del servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -2683,6 +2833,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testGetGrantServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2700,6 +2851,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testGetGrantServizioNotFound() {
 	    // UUID del servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -2711,6 +2863,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddCategorieServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2752,6 +2905,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddCategorieServizioNotFound() {
 	    // UUID del servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -2772,6 +2926,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddCategorieServizioCategoriaNotFound() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2793,6 +2948,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddCategorieServizioCategoriaNonFoglia() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2834,6 +2990,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testAddCategorieServizioCategoriaGiaAssociata() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2877,6 +3034,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteCategoriaServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2915,6 +3073,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteCategoriaServizioServizioNotFound() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2944,6 +3103,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteCategoriaServizioCategoriaNotFound() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2959,6 +3119,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteCategoriaServizioAuthorizationFailed() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -2993,6 +3154,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testDeleteCategoriaServizioUtenteAnonimo() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -3026,6 +3188,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListCategorieServizioSuccess() {
 	    // Creazione del servizio tramite getServizio
 	    Servizio servizio = this.getServizio();
@@ -3066,6 +3229,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListCategorieServizioNotFound() {
 	    // UUID di un servizio inesistente
 	    UUID idServizioNonEsistente = UUID.randomUUID();
@@ -3077,6 +3241,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	public void testListCategorieServizioNoCategories() {
 	    // Creazione del servizio tramite getServizio senza aggiungere categorie
 	    Servizio servizio = this.getServizio();
@@ -3092,6 +3257,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testListComunicazioniServizio_Success() {
 		Servizio servizio = this.getServizio();
 		
@@ -3116,6 +3282,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testListComponentiPackageSuccess() {
 		Servizio servizio = this.getServizio();
 	    UUID idPackage = servizio.getIdServizio();
@@ -3129,6 +3296,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testListComponentiPackageNotFound() {
 	    UUID idPackageNonEsistente = UUID.randomUUID();
 	    Pageable pageable = PageRequest.of(0, 10);
@@ -3141,6 +3309,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testListComponentiPackageAuthorizationFailed() {
 	    UUID idPackage = UUID.randomUUID();
 	    Pageable pageable = PageRequest.of(0, 10);
@@ -3153,6 +3322,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testListComponentiPackageUtenteAnonimo() {
 	    UUID idPackage = UUID.randomUUID();
 	    Pageable pageable = PageRequest.of(0, 10);
@@ -3165,6 +3335,7 @@ public class ServiziTest {
 	}
 
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testDeleteComponentePackageSuccess() {
 		Servizio servizio = this.getServizio();
 		UUID idServizio = servizio.getIdServizio();
@@ -3211,6 +3382,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testDeleteComponentePackageAssociazioneNotFound() {
 		Servizio servizio = this.getServizio();
 		UUID idServizio = servizio.getIdServizio();
@@ -3225,6 +3397,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testAssociaComponentePackageSuccess() {
 		Servizio servizio = this.getServizio();
 		UUID idServizio = servizio.getIdServizio();
@@ -3268,6 +3441,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testAssociaComponentePackageNotFound() {
 		Servizio servizio = this.getServizio();
 		UUID idServizio = servizio.getIdServizio();
@@ -3284,6 +3458,7 @@ public class ServiziTest {
 	}
 	
 	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
 	void testAssociaComponentePackageNotFound2() {
 		Servizio servizio = this.getServizio();
 		UUID idServizio = servizio.getIdServizio();
@@ -3297,6 +3472,154 @@ public class ServiziTest {
 	    
 	    String expectedMessage = "Servizio con id [" + idPackage + "] non trovato";
 	    assertTrue(exception.getMessage().contains(expectedMessage));
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+	void testGetImmagineServizioSuccess() {
+		Dominio dominio = this.getDominio();
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setSkipCollaudo(true);
+
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	immagine.setContent(Base64.encodeBase64String("contenuto immagine di test".getBytes()));
+    	immagine.setContentType("image/png");
+    	immagine.setFilename("test_image.png");
+    	
+   		servizioCreate.setImmagine(immagine);
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+    	
+    	ResponseEntity<Resource> immagine = serviziController.getImmagineServizio(createdServizio.getBody().getIdServizio());
+    	
+    	assertEquals(HttpStatus.OK, immagine.getStatusCode());
+    	assertEquals(immagine.getBody().getFilename(), immagine.getBody().getFilename());
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	void testGetImmagineServizioNotFound() {
+		Dominio dominio = this.getDominio();
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setSkipCollaudo(true);
+
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+    	
+    	Exception exception = assertThrows(NotFoundException.class, () -> {
+    		serviziController.getImmagineServizio(createdServizio.getBody().getIdServizio());
+	    });
+    	assertEquals(exception.getMessage(), "Imagine per il servizio ["+ createdServizio.getBody().getIdServizio() +"] non trovata");
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	void testListTagsSuccess() {
+		Dominio dominio = this.getDominio();
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	String tag1 = "TAG-1";
+    	String tag2 = "TAG-2";
+    	String tag3 = "TAG-3";
+    	List<String> tags = new ArrayList<String>();
+    	tags.add(tag1);
+    	tags.add(tag2);
+    	tags.add(tag3);
+    	servizioCreate.setTags(tags);
+    	servizioCreate.setSkipCollaudo(true);
+
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	serviziController.createServizio(servizioCreate);
+    	
+    	ResponseEntity<List<String>> result = serviziController.listTags(null, 1, 10, null);
+    	assertEquals(HttpStatus.OK, result.getStatusCode());
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	void testExportServizioSuccess() {
+		Dominio dominio = this.getDominio();
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> servizio = serviziController.createServizio(servizioCreate);
+    	
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+        
+        apiCreate.setIdServizio(servizio.getBody().getIdServizio());
+        
+        APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+        
+        DocumentoCreate documento = new DocumentoCreate();
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
+        
+        apiDatiAmbienteCreate.setSpecifica(documento);
+        
+        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+        apiDatiErogazione.setNomeGateway("APIGateway");
+        apiDatiErogazione.setVersioneGateway(1);
+        apiDatiErogazione.setUrlPrefix("http://");
+        apiDatiErogazione.setUrl("testurl.com/test");
+        
+        apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+        
+        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreate);
+        
+        apiController.createApi(apiCreate);
+    	
+    	ResponseEntity<Resource> result = serviziController.exportServizio(servizio.getBody().getIdServizio());
+    	assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
 }
 

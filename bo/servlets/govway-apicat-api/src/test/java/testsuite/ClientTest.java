@@ -334,7 +334,48 @@ public class ClientTest {
 
         assertEquals("Client [" + idClientNonEsistente + "] non trovato", exception.getMessage());
     }
-    
+    /*
+    @Test
+    public void testDownloadAllegatoClient2Success() {
+        OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(organizzazioneCreate);
+        assertNotNull(responseOrganizzazione.getBody());
+
+        SoggettoCreate soggettoCreate = CommonUtils.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        ClientCreate clientCreate = CommonUtils.getClientCreate();
+        
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.pem");
+        documento.setContent(pemCert);
+
+        documento.setContentType("application/x-pem-file");
+        
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+        
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setIdSoggetto(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Client> responseClient = clientController.createClient(clientCreate);
+        assertNotNull(responseClient.getBody());
+        
+        UUID idAllegato = responseClient.getBody().getDatiSpecifici().getFinalita();
+        ResponseEntity<Resource> response = clientController.downloadAllegatoClient(responseClient.getBody().getIdClient(), idAllegato);
+        
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+    */
     @Test
     public void testDownloadAllegatoClientNotFoundAllegato() {
         OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
@@ -407,27 +448,6 @@ public class ClientTest {
         assertEquals("Client [" + idClientNonEsistente + "] non trovato", exception.getMessage());
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     @Test
     public void testListClientSuccess() {
         OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
@@ -580,7 +600,6 @@ public class ClientTest {
         DocumentoUpdateNew documento = new DocumentoUpdateNew();
         documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
         documento.setFilename("certificato.pem");
-        //String encodedContent = Base64.encodeBase64String(pemCert.getBytes(StandardCharsets.UTF_8));
         documento.setContent(pemCert);
 
         documento.setContentType("application/x-pem-file");
@@ -605,7 +624,7 @@ public class ClientTest {
         assertNotNull(responseDownload.getBody());
         assertEquals(HttpStatus.OK, responseDownload.getStatusCode());
     }
-*/
+     */
     @Test
     public void testDownloadAllegatoClientNotFound() {
         // Creazione dell'organizzazione necessaria

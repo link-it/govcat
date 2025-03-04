@@ -41,6 +41,7 @@ import org.govway.catalogo.servlets.model.AllegatoItemCreate;
 import org.govway.catalogo.servlets.model.AllegatoUpdate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.model.ApiUpdate;
+import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicy;
 import org.govway.catalogo.servlets.model.DatiCustomUpdate;
 import org.govway.catalogo.servlets.model.DatiGenericiApiUpdate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
@@ -2200,39 +2201,22 @@ public class APITest {
         // Verifica del messaggio di errore
         String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
         assertTrue(exception.getMessage().contains(expectedMessage));
-    }
-/*
- //TODO: controllare, nessuna autorizzazione richiesta
+    } 
+    
     @Test
-    @Transactional
-    void testListAllegatiApiAuthorizationFailed() {
-        // Creazione del servizio e API tramite metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
+    void testGetTokenPolicyAPISuccess() {
+    	ResponseEntity<API> api = this.getAPI();
 
-        UUID idApi = responseApi.getBody().getIdApi();
+    	ResponseEntity<ConfigurazioneTokenPolicy> response = apiController.getTokenPolicyAPI(api.getBody().getIdApi());
 
-        // Configura un InfoProfilo senza il ruolo richiesto
-        InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.find("xxx").get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
-
-        // Invocazione del metodo listAllegatiApi con autorizzazione fallita
-        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            apiController.listAllegatiApi(idApi, null, null, null, null, 0, 10, null);
-        });
-
-        // Verifica del messaggio di errore
-        String expectedMessage = "Required: Ruolo AMMINISTRATORE";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-
-        // Ripristino il profilo corretto per altri test
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
-*/
 
+    @Test
+    void testGetTokenPolicyAPIErrore() {
+    	assertThrows(Exception.class, () -> {
+    		apiController.getTokenPolicyAPI(UUID.randomUUID());
+        });
+    }
 }
 

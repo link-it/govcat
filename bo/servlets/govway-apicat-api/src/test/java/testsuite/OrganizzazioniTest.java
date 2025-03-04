@@ -229,26 +229,23 @@ public class OrganizzazioniTest {
 
         assertEquals("Utente non specificato", exception.getMessage());
     }
-/*
+
     @Test
-    @Transactional
-    public void testDeleteOrganizzazioneSuccess() throws Exception {
-        ResponseEntity<Organizzazione> createResponse = this.getResponse();
+    public void testDeleteOrganizzazioneSuccess() {
+    	OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
+        organizzazioneCreate.setNome(NOME_ORGANIZZAZIONE);
+        organizzazioneCreate.setDescrizione(DESCRIZIONE);
+        organizzazioneCreate.setCodiceEnte(CODICE_ENTE);
+    	
+        ResponseEntity<Organizzazione> createResponse = controller.createOrganizzazione(organizzazioneCreate);
         assertEquals(HttpStatus.OK, createResponse.getStatusCode());
         Organizzazione organizzazione = createResponse.getBody();
         assertNotNull(organizzazione);
         UUID id = organizzazione.getIdOrganizzazione();
-        Set<SoggettoEntity> soggetti = serv.find(id).get().getSoggetti();
-        Hibernate.initialize(soggetti.getClass()); // Inizializza la collezione Lazy
-        Iterator<SoggettoEntity> iterator = soggetti.iterator();
-        while (iterator.hasNext()) {
-            SoggettoEntity sogEnt = iterator.next();
-            System.out.println("ID Soggetto: " + sogEnt.getIdSoggetto());
-            soggettoService.delete(sogEnt);
-        }
+
         controller.deleteOrganizzazione(id);
     }
-*/
+
     @Test
     public void testDeleteOrganizzazioneBadRequest() {
         ResponseEntity<Organizzazione> createResponse = this.getResponse();

@@ -205,7 +205,7 @@ public class ConfigurazioneDemo implements IConfigurazioneExecutor {
 						clientToApis.get(adesioneApi.getClient()).add(new GruppoServizio(singleAPI));
 					}
 				} catch (IOException e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 			}
 		}

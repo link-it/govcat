@@ -78,6 +78,7 @@ import org.govway.catalogo.servlets.model.AuthTypeHttpsCreate;
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.CertificatoClientFornito;
 import org.govway.catalogo.servlets.model.CertificatoClientFornitoCreate;
+import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Client;
 import org.govway.catalogo.servlets.model.ClientCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
@@ -88,6 +89,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
+import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ItemAdesione;
@@ -5795,5 +5797,313 @@ public class AdesioniTest {
         DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
         
     	adesioniController.saveConfigurazioneCustomProduzioneAdesione(adesione.getIdAdesione(), datiCustom, null);
+    }
+
+    @Test
+    void testDownloadClientCollaudoAdesioneSuccess() {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_produzione", serviziController, servizio.getIdServizio());
+        
+        List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
+    	
+        ReferenteCreate newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+        
+        listaReferenti.add(newReferente);
+        
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        
+        listaReferenti.add(newReferente);
+
+        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(listaReferenti);
+        ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
+        
+        UUID idAdesione = adesione.getBody().getIdAdesione();
+        
+        //client
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.cer");
+        documento.setContent(pemCert);
+        documento.setContentType("application/cert");
+        
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+    	
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        
+        ResponseEntity<Client> clientResponse = clientController.createClient(clientCreate);
+        clientResponse.getBody().getIdClient();
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+        
+        adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
+
+        DatiSpecificiClient datiSpecificiClient = clientResponse.getBody().getDatiSpecifici();
+        
+        AuthTypeHttps val = (AuthTypeHttps) datiSpecificiClient;
+        CertificatoClientFornito certificatoClientFornito = (CertificatoClientFornito) val.getCertificatoAutenticazione();
+        
+        UUID idAllegato = certificatoClientFornito.getCertificato().getUuid();
+        
+        ResponseEntity<Resource> response = adesioniController.downloadClientCollaudoAdesione(adesione.getBody().getIdAdesione(), idAllegato);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("attachment; filename=certificato.cer", response.getHeaders().getFirst("Content-Disposition"));
+    }
+	
+    @Test
+    void testDownloadClientCollaudoAdesioneUnauthorized() {
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_produzione", serviziController, servizio.getIdServizio());
+        Adesione adesione = this.getAdesione();
+
+        UUID idAllegato = UUID.randomUUID();
+
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+
+        assertThrows(NotAuthorizedException.class, () -> adesioniController.downloadClientCollaudoAdesione(adesione.getIdAdesione(), idAllegato));
+    }
+
+    @Test
+    void testDownloadClientCollaudoAdesioneNotFound() {
+        UUID idAdesione = UUID.randomUUID();
+        UUID idAllegato = UUID.randomUUID();
+
+        assertThrows(NotFoundException.class, () -> adesioniController.downloadClientCollaudoAdesione(idAdesione, idAllegato));
+    }
+
+    @Test
+    void testDeleteAllegatoMessaggioAdesioneSuccess() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	Adesione adesione = this.getAdesione();
+    	
+    	MessaggioCreate messaggio = new MessaggioCreate();
+    	
+    	messaggio.setOggetto("Oggetto");
+    	messaggio.setTesto("Test");
+    	
+    	ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+    	
+    	AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
+    	allegatoMessaggio.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+    	allegatoMessaggio.setDescrizione("descrizione di test");
+    	allegatoMessaggio.setFilename("nome-allegato.pdf");
+    	allegatoMessaggio.setContentType("application/pdf");
+    	
+    	ResponseEntity<AllegatoMessaggio> response = adesioniController.createAllegatoMessaggioAdesione(adesione.getIdAdesione(), itemMessaggio.getBody().getIdMessaggio(), allegatoMessaggio);
+    	
+    	adesioniController.deleteAllegatoMessaggioAdesione(adesione.getIdAdesione(), itemMessaggio.getBody().getIdMessaggio(), UUID.fromString(response.getBody().getUuid()));
+    }
+    
+    @Test
+    void testDeleteAllegatoMessaggioErroreMessaggioNonTrovato() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	Adesione adesione = this.getAdesione();
+    	
+    	MessaggioCreate messaggio = new MessaggioCreate();
+    	
+    	messaggio.setOggetto("Oggetto");
+    	messaggio.setTesto("Test");
+    	
+    	ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+    	
+    	AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
+    	allegatoMessaggio.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+    	allegatoMessaggio.setDescrizione("descrizione di test");
+    	allegatoMessaggio.setFilename("nome-allegato.pdf");
+    	allegatoMessaggio.setContentType("application/pdf");
+    	
+    	UUID random = UUID.randomUUID();
+    	assertThrows(NotFoundException.class, () -> {
+    		adesioniController.deleteAllegatoMessaggioAdesione(adesione.getIdAdesione(), itemMessaggio.getBody().getIdMessaggio(), random);
+        });
+    }
+    
+    @Test
+    void testDeleteAllegatoMessaggioAdesioneNotAuthorized() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	Adesione adesione = this.getAdesione();
+    	
+    	MessaggioCreate messaggio = new MessaggioCreate();
+    	
+    	messaggio.setOggetto("Oggetto");
+    	messaggio.setTesto("Test");
+    	
+    	ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+    	
+    	AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
+    	allegatoMessaggio.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+    	allegatoMessaggio.setDescrizione("descrizione di test");
+    	allegatoMessaggio.setFilename("nome-allegato.pdf");
+    	allegatoMessaggio.setContentType("application/pdf");
+    	
+    	ResponseEntity<AllegatoMessaggio> response = adesioniController.createAllegatoMessaggioAdesione(adesione.getIdAdesione(), itemMessaggio.getBody().getIdMessaggio(), allegatoMessaggio);
+    	
+    	CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
+    	
+    	assertThrows(NotAuthorizedException.class, () -> {
+    		adesioniController.deleteAllegatoMessaggioAdesione(adesione.getIdAdesione(), itemMessaggio.getBody().getIdMessaggio(), UUID.fromString(response.getBody().getUuid()));
+        });
+    }
+    
+    /*
+    @Test
+    void testDownloadAllegatoAdesioneSuccess() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	Adesione adesione = this.getAdesione();
+    	
+    	MessaggioCreate messaggio = new MessaggioCreate();
+    	
+    	messaggio.setOggetto("Oggetto");
+    	messaggio.setTesto("Test");
+    	
+    	ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+    	
+    	AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
+    	allegatoMessaggio.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+    	allegatoMessaggio.setDescrizione("descrizione di test");
+    	allegatoMessaggio.setFilename("nome-allegato.pdf");
+    	allegatoMessaggio.setContentType("application/pdf");
+    	
+    	ResponseEntity<AllegatoMessaggio> response = adesioniController.createAllegatoMessaggioAdesione(adesione.getIdAdesione(), itemMessaggio.getBody().getIdMessaggio(), allegatoMessaggio);
+    	
+    	adesioniController.downloadAllegatoAdesione(adesione.getIdAdesione(), UUID.fromString(response.getBody().getUuid()));
+    }
+    */
+    
+    @Test
+    void testDownloadAllegatoAdesioneNotFound() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	Adesione adesione = this.getAdesione();
+    	
+    	UUID idAllegato = UUID.randomUUID();
+    	
+    	Exception ex = assertThrows(NotFoundException.class, () -> {
+    		adesioniController.downloadAllegatoAdesione(adesione.getIdAdesione(), idAllegato);
+        });
+    	
+    	assertEquals("Allegato con id ["+idAllegato+"] non trovato per l'adesione ["+adesione.getIdAdesione()+"]", ex.getMessage());
+    }
+    
+    @Test
+    void testCheckDatiAdesioneSuccess() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	Adesione adesione = this.getAdesione();
+    	
+    	ResponseEntity<CheckDati> response = adesioniController.checkDatiAdesione(adesione.getIdAdesione(), "bozza");
+    	
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+    
+    @Test
+    void testCheckDatiAdesioneErrore() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	assertThrows(Exception.class, () -> {
+    		adesioniController.checkDatiAdesione(UUID.randomUUID(), "bozza");
+        });
+    }
+    
+    @Test
+    void testGetGrantAdesioneSuccess() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	Adesione adesione = this.getAdesione();
+    	
+    	ResponseEntity<Grant> response = adesioniController.getGrantAdesione(adesione.getIdAdesione());
+    	
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+    
+    @Test
+    void testGetGrantAdesioneErrore() { 
+    	Dominio dominio = this.getDominio(null);
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	assertThrows(Exception.class, () -> {
+    		adesioniController.getGrantAdesione(UUID.randomUUID());
+        });
     }
 }

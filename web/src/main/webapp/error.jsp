@@ -4,7 +4,6 @@
 <%@ page isErrorPage = "true" %>
 <!doctype html>
 <html lang="en">
-
 <jsp:include page="includes/header.jsp" flush="true">
 	<jsp:param name="titoloPagina" value="Modi Catalogo | Errore" />
 </jsp:include>
