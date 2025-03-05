@@ -466,10 +466,11 @@ create sequence seq_utenti start with 1 increment by 1;
         cognome varchar(255) not null,
         email varchar(255),
         email_aziendale varchar(255),
-        id_utente varchar(255) not null,
+        id_utente binary not null,
         metadati binary(255),
         nome varchar(255) not null,
         note varchar(255),
+        principal varchar(255) not null,
         referente_tecnico boolean not null,
         ruoli_notifiche_abilitate varchar(255),
         ruolo varchar(255),
@@ -496,6 +497,9 @@ create sequence seq_utenti start with 1 increment by 1;
 
     alter table utenti 
        add constraint UK_83bc9wgqao3ad6r8y5sqxy9lq unique (id_utente);
+
+    alter table utenti 
+       add constraint UK_mvje76mmq8p7yyk5329geaucb unique (principal);
 
     alter table adesioni 
        add constraint FKt6ynph35hpekqnx5dxk27q710 
