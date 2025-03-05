@@ -143,7 +143,7 @@ public class APITest {
     @Autowired
     GruppiController gruppiController;
 
-    private static final String UTENTE_GESTORE = "gestore";
+    private static final UUID UTENTE_GESTORE = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
     @BeforeEach
     public void setUp() {
@@ -151,7 +151,7 @@ public class APITest {
         // Set up the mock security context and authentication
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 
-        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        CommonUtils.getSessionUtente(UTENTE_GESTORE.toString(), securityContext, authentication, utenteService);
 
         // Configura `coreAuthorization` per essere utilizzato nei test
         when(coreAuthorization.isAnounymous()).thenReturn(true);
@@ -229,7 +229,8 @@ public class APITest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-//    	referente.setIdUtente(UTENTE_GESTORE);
+    	//UUID idUtenteGestore = utenteService.findByPrincipal(UTENTE_GESTORE).get().getIdUtente();
+    	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -1818,9 +1819,6 @@ public class APITest {
             apiController.updateApi(idApi, apiUpdate);
         });
         
-        // Ripristino il profilo AMMINISTRATORE per gli altri test
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
     }
 
     @Test
