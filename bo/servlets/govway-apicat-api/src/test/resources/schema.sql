@@ -466,7 +466,7 @@ create sequence seq_utenti start with 1 increment by 1;
         cognome varchar(255) not null,
         email varchar(255),
         email_aziendale varchar(255),
-        id_utente binary not null,
+        id_utente varchar(255) not null,
         metadati binary(255),
         nome varchar(255) not null,
         note varchar(255),
