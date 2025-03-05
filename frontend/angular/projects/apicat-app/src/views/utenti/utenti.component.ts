@@ -78,7 +78,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     { field: 'email', label: 'APP.LABEL.email', type: 'string', condition: 'like' },
     { field: 'ruolo', label: 'APP.LABEL.Role', type: 'string', condition: 'like' },
     { field: 'stato', label: 'APP.LABEL.Status', type: 'string', condition: 'like' },
-    { field: 'username', label: 'APP.LABEL.Username', type: 'string', condition: 'like' },
+    { field: 'principal', label: 'APP.USERS.LABEL.Principal', type: 'string', condition: 'like' },
     { field: 'id_organizzazione', label: 'APP.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' } },
     { field: 'classe_utente', label: 'APP.LABEL.classi', type: 'array', condition: 'contain', params: { resource: 'classi-utente', field: 'nome' } },
     { field: 'referente_tecnico', label: 'APP.LABEL.ReferenteTecnico', type: 'enum', condition: 'equal', enumValues: this._enabledEnum }
@@ -179,7 +179,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
       email: new FormControl(''),
       ruolo: new FormControl(''),
       stato: new FormControl(''),
-      username: new FormControl(''),
+      principal: new FormControl(''),
       id_organizzazione: new FormControl(''),
       classe_utente: new FormControl(''),
       referente_tecnico: new FormControl('')
