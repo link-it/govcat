@@ -191,6 +191,7 @@ public class ServiziTest {
 	private DominiController dominiController;
 	
 	private static final String UTENTE_GESTORE = "gestore";
+	private static final String UTENTE_REFERENTE_SERVIZIO = "utente_referente__servizio";
 	
 	private static final String NOME_SERVIZIO_1 = "primo servizio - versione 3";
 	private static final String NOME_SERVIZIO_2 = "secondo servizio - versione 11";
@@ -291,6 +292,11 @@ public class ServiziTest {
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
     	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
+    	
+    	ReferenteCreate referente2 = new ReferenteCreate();
+    	referente2.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente2.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+    	referenti.add(referente2);
 
     	servizioCreate.setReferenti(referenti);
 
@@ -854,15 +860,13 @@ public class ServiziTest {
         referenti.add(referente);
         servizioCreateDuplicato.setReferenti(referenti);
 
-        /*
-         //TODO
         Exception exception = assertThrows(ConflictException.class, () -> {
             serviziController.createServizio(servizioCreateDuplicato);
         });
 
         String expectedMessage = "Servizio [" + servizio1.getNome() + " v" + servizio1.getVersione() + "] esiste gia";
         assertTrue(exception.getMessage().contains(expectedMessage));
-        */
+        
     }
 
     @Test
@@ -880,9 +884,37 @@ public class ServiziTest {
     void testCreateServizioUtenteAnonimo() {
     	this.tearDown();
 
-        Exception exception = assertThrows(NotAuthorizedException.class, () -> {
+        assertThrows(NotAuthorizedException.class, () -> {
             this.getServizio();
         });
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testCreateServizioErrore() {
+	    this.getDominio();
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+	
+		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+	
+		servizioCreate.setIdDominio(UUID.randomUUID());
+	
+		List<ReferenteCreate> referenti = new ArrayList<>();
+	
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(UTENTE_GESTORE);
+		referenti.add(referente);
+		
+		ReferenteCreate referente2 = new ReferenteCreate();
+		referente2.setTipo(TipoReferenteEnum.REFERENTE);
+		referente2.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+		referenti.add(referente2);
+	
+		servizioCreate.setReferenti(referenti);
+		assertThrows(Exception.class, () -> {
+			serviziController.createServizio(servizioCreate);
+		});
     }
 
     @Test
@@ -1064,15 +1096,27 @@ public class ServiziTest {
 
     @Test
     @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
-    void testDeleteReferenteServizioNotFound() {
+    void testDeleteReferenteServizioNullPointerException() {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
-        Exception exception = assertThrows(NullPointerException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             serviziController.deleteReferenteServizio(idServizioNonEsistente, responseUtente.getBody().getIdUtente(), TipoReferenteEnum.REFERENTE);
         });
 
     }
 
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testDeleteReferenteServizioNotFoundException() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        
+        assertThrows(NotFoundException.class, () -> {
+        	serviziController.deleteReferenteServizio(idServizio, "randomid", TipoReferenteEnum.REFERENTE);
+        });
+        
+    }
+    
     @Test
     @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testDownloadAllegatoMessaggioServizioSuccess() {
@@ -1302,6 +1346,20 @@ public class ServiziTest {
         assertEquals(1, messaggi.size());
         assertTrue(messaggi.get(0).getTesto().contains("ricerca"));
     }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testListMessaggiServizioErrore() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+
+        List<String> sort = new ArrayList<String>();
+        sort.add("..");
+        
+        assertThrows(Exception.class, () -> {
+        	serviziController.listMessaggiServizio(idServizio, null, 0, 10, sort);
+        });
+    }
 
     @Test
     @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -1333,6 +1391,20 @@ public class ServiziTest {
 
         List<Referente> referenti = response.getBody().getContent();
         assertEquals(1, referenti.size());
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testListReferentiServizioErrore() {
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+        
+        List<String> sort = new ArrayList<String>();
+        sort.add("..");
+        
+        assertThrows(Exception.class, () -> {
+        	serviziController.listReferentiServizio(idServizio, null, null, 0, 10, sort);
+        });
     }
 
     @Test
@@ -1512,6 +1584,40 @@ public class ServiziTest {
 
     }
 
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testListServiziCategoriaVisibilitaTipoInAttesaSuccess() {
+        this.getServizio();
+
+        List<String> categorie = new ArrayList<String>();
+        categorie.add(UUID.randomUUID().toString());
+        
+        boolean inAttesa = true; 
+        
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, VisibilitaServizioEnum.PUBBLICO, null, null, categorie, null, inAttesa, null, null, null, null, null, null, TipoServizio.GENERICO, null, 0, 10, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testListServiziCategoriaVisibilitaTipoInAttesaFalseSuccess() {
+        this.getServizio();
+
+        List<String> categorie = new ArrayList<String>();
+        categorie.add(UUID.randomUUID().toString());
+        
+        boolean inAttesa = false; 
+        
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, VisibilitaServizioEnum.PUBBLICO, null, null, categorie, null, inAttesa, null, null, null, null, null, null, TipoServizio.GENERICO, null, 0, 10, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+    
     @Test
     @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
     void testListServiziSuccess() {
@@ -2195,6 +2301,32 @@ public class ServiziTest {
 	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
 	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
 	    
+	    // Invocazione del metodo listServiziGruppi
+	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.GENERICO, null, 0, 10, null);
+
+	    // Verifica del successo
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	    assertNotNull(response.getBody());  
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	public void testListServiziGruppiTipoServizioGenericoUtenteReferenteServizioSuccess() {
+	    // Creazione del servizio e gruppo tramite getServizio
+	    Servizio servizio = this.getServizio();
+	    GruppoCreate gruppoPadre = CommonUtils.getGruppoCreate();
+	    gruppoPadre.setNome("gruppo padre");
+	    ResponseEntity<Gruppo> createdGruppoPadre = gruppiController.createGruppo(gruppoPadre);
+	    UUID idGruppoPadre = createdGruppoPadre.getBody().getIdGruppo();
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), idGruppoPadre);
+	    //creo il gruppo
+	    GruppoCreate gruppo = CommonUtils.getGruppoCreate();
+	    gruppo.setPadre(idGruppoPadre);
+	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
+    	
+	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
+
 	    // Invocazione del metodo listServiziGruppi
 	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.GENERICO, null, 0, 10, null);
 
@@ -3566,8 +3698,46 @@ public class ServiziTest {
 
     	serviziController.createServizio(servizioCreate);
     	
-    	ResponseEntity<List<String>> result = serviziController.listTags(null, 1, 10, null);
+    	ResponseEntity<List<String>> result = serviziController.listTags(null, 0, 10, null);
     	assertEquals(HttpStatus.OK, result.getStatusCode());
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	void testListTagsErrore() {
+		Dominio dominio = this.getDominio();
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	String tag1 = "TAG-1";
+    	String tag2 = "TAG-2";
+    	String tag3 = "TAG-3";
+    	List<String> tags = new ArrayList<String>();
+    	tags.add(tag1);
+    	tags.add(tag2);
+    	tags.add(tag3);
+    	servizioCreate.setTags(tags);
+    	servizioCreate.setSkipCollaudo(true);
+
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	serviziController.createServizio(servizioCreate);
+    	
+    	List<String> sort = new ArrayList<String>();
+        sort.add("..");
+        
+        assertThrows(Exception.class, () -> {
+        	serviziController.listTags(null, 0, 10, sort);
+        });
 	}
 	
 	@Test
@@ -3621,5 +3791,7 @@ public class ServiziTest {
     	ResponseEntity<Resource> result = serviziController.exportServizio(servizio.getBody().getIdServizio());
     	assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
+	
+
 }
 
