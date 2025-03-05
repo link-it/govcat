@@ -192,7 +192,7 @@ public class CommonUtils {
 		utente.setEmail(EMAIL_UTENTE);
 		utente.setEmailAziendale(EMAIL_AZIENDALE);
 		utente.setTelefonoAziendale(TELEFONO_AZIENDALE);
-		utente.setUsername(USERNAME);
+		utente.setPrincipal(USERNAME);
 		return utente;
 	}
 	
@@ -250,7 +250,7 @@ public class CommonUtils {
 	
 	private static InfoProfilo getInfoProfilo(String idUtente, UtenteService utenteService) {
 		return utenteService.runTransaction(() -> {
-			UtenteEntity utente = utenteService.find(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
+			UtenteEntity utente = utenteService.findByPrincipal(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
 			
 			if(utente.getOrganizzazione()!=null) {
 				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});

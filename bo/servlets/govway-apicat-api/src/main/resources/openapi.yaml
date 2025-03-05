@@ -1005,7 +1005,7 @@ paths:
       - $ref: "#/components/parameters/referente_tecnico_query_optional"
       - $ref: "#/components/parameters/classi_utente_query_optional"
       - $ref: "#/components/parameters/email_query_optional"
-      - $ref: "#/components/parameters/username_query_optional"
+      - $ref: "#/components/parameters/principal_query_optional"
       - $ref: "#/components/parameters/id_utente_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
@@ -7744,14 +7744,14 @@ components:
     UtenteCreate:
       type: "object"
       required:
-        - username
+        - principal
         - nome
         - cognome
         - telefono_aziendale
         - email_aziendale
         - stato
       properties:
-        username:
+        principal:
           $ref: "#/components/schemas/String255"
         nome:
           $ref: "#/components/schemas/String255"
@@ -7786,15 +7786,16 @@ components:
     UtenteUpdate:
       type: "object"
       required:
+        - principal
         - nome
         - cognome
         - telefono_aziendale
         - email_aziendale
         - stato
       properties:
-        nome:
+        principal:
           $ref: "#/components/schemas/String255"
-        username:
+        nome:
           $ref: "#/components/schemas/String255"
         cognome:
           $ref: "#/components/schemas/String255"
@@ -7854,6 +7855,7 @@ components:
       type: "object"
       required:
         - id_utente
+        - principal
         - nome
         - cognome
         - telefono_aziendale
@@ -7862,6 +7864,8 @@ components:
       properties:
         id_utente:
           $ref: "#/components/schemas/IdUtente"
+        principal:
+          $ref: "#/components/schemas/String255"
         nome:
           $ref: "#/components/schemas/String255"
         cognome:
@@ -7874,8 +7878,6 @@ components:
           $ref: "#/components/schemas/String255"
         email_aziendale:
           $ref: "#/components/schemas/Email"
-        username:
-          $ref: "#/components/schemas/IdUtente"
         note:
           $ref: "#/components/schemas/String255"
         metadati:
@@ -7896,6 +7898,7 @@ components:
       type: "object"
       required:
         - id_utente
+        - principal
         - nome
         - cognome
         - telefono_aziendale
@@ -7904,6 +7907,8 @@ components:
       properties:
         id_utente:
           $ref: "#/components/schemas/IdUtente"
+        principal:
+          $ref: "#/components/schemas/String255"
         nome:
           $ref: "#/components/schemas/String255"
         cognome:
@@ -7918,8 +7923,6 @@ components:
           $ref: "#/components/schemas/Email"
         note:
           $ref: "#/components/schemas/String255"
-        username:
-          $ref: "#/components/schemas/IdUtente"
         metadati:
           $ref: "#/components/schemas/String255"
         stato:
@@ -9047,7 +9050,8 @@ components:
       type: "string"
       format: "uuid"
     IdUtente:
-      $ref: "#/components/schemas/String255"
+      type: "string"
+      format: "uuid"
     IdDominio:
       type: "string"
       format: "uuid"
@@ -9817,10 +9821,10 @@ components:
       required: false
       schema:
         type: string
-    username_query_optional:
-      name: "username"
+    principal_query_optional:
+      name: "principal"
       in: "query"
-      description: "username Utente"
+      description: "principal Utente"
       required: false
       schema:
         type: string

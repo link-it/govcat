@@ -26,11 +26,8 @@ import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
-import org.govway.catalogo.servlets.model.ItemSoggetto;
 import org.govway.catalogo.servlets.model.ItemUtente;
 import org.govway.catalogo.servlets.model.Organizzazione;
-import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
-import org.govway.catalogo.servlets.model.PagedModelItemSoggetto;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
@@ -103,7 +100,7 @@ public class UtentiTest {
         MockitoAnnotations.initMocks(this);
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
 
         SecurityContextHolder.setContext(this.securityContext);
@@ -196,7 +193,7 @@ public class UtentiTest {
 
     @Test
     public void testDeleteUtenteNotFound() {
-        String idUtenteNonEsistente = "utente_non_esistente";
+        UUID idUtenteNonEsistente = UUID.randomUUID();
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.deleteUtente(idUtenteNonEsistente);
@@ -222,7 +219,7 @@ public class UtentiTest {
         utenteUpdate.setEmail(CommonUtils.EMAIL_UTENTE);
         utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
         utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
-        utenteUpdate.setUsername(CommonUtils.USERNAME);
+        utenteUpdate.setPrincipal(CommonUtils.USERNAME);
 
         ResponseEntity<Utente> responseUpdate = controller.updateUtente(responseUtente.getBody().getIdUtente(), utenteUpdate);
         assertNotNull(responseUpdate.getBody());
@@ -232,7 +229,7 @@ public class UtentiTest {
 
     @Test
     public void testUpdateUtenteNotFound() {
-        String idUtenteNonEsistente = "utente_non_esistente";
+        UUID idUtenteNonEsistente = UUID.randomUUID();
 
         UtenteUpdate utenteUpdate = new UtenteUpdate();
         utenteUpdate.setNome("NuovoNome");
@@ -241,7 +238,7 @@ public class UtentiTest {
         utenteUpdate.setEmail(CommonUtils.EMAIL_UTENTE);
         utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
         utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
-        utenteUpdate.setUsername(CommonUtils.USERNAME);
+        utenteUpdate.setPrincipal(CommonUtils.USERNAME);
 
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.updateUtente(idUtenteNonEsistente, utenteUpdate);
@@ -261,7 +258,7 @@ public class UtentiTest {
 
         UtenteCreate utenteCreate2 = CommonUtils.getUtenteCreate();
         utenteCreate2.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
-        utenteCreate2.setUsername("second.user");
+        utenteCreate2.setPrincipal("second.user");
         controller.createUtente(utenteCreate2);
 
         ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
@@ -284,7 +281,7 @@ public class UtentiTest {
 
         UtenteCreate utenteCreate2 = CommonUtils.getUtenteCreate();
         utenteCreate2.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
-        utenteCreate2.setUsername("second.user");
+        utenteCreate2.setPrincipal("second.user");
         utenteCreate2.setStato(StatoUtenteEnum.DISABILITATO);
         controller.createUtente(utenteCreate2);
 
@@ -307,7 +304,7 @@ public class UtentiTest {
     	for(int n = 0; n < 3; n++) {
     		// Creazione di alcuni utenti
             UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-            utenteCreate.setUsername("username"+n);
+            utenteCreate.setPrincipal("username"+n);
             utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
             utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
             controller.createUtente(utenteCreate);
@@ -326,9 +323,9 @@ public class UtentiTest {
         // Verifica che il gruppo filtrato sia presente nell'elenco
         List<ItemUtente> listUtenti = responseList.getBody().getContent();
         //listSoggetti.stream().forEach(s->{System.out.println(s.getNome());});
-        assertTrue(listUtenti.stream().anyMatch(s -> s.getUsername().equals("username"+0)));
+        assertTrue(listUtenti.stream().anyMatch(s -> s.getPrincipal().equals("username"+0)));
         // Verifica che il primo elemento sia quello che mi aspetto dall'ordinamento
-        assertEquals("username"+2, listUtenti.get(0).getUsername());
+        assertEquals("username"+2, listUtenti.get(0).getPrincipal());
     }
 	
     @Test
@@ -340,7 +337,7 @@ public class UtentiTest {
     	for(int n = 0; n < 3; n++) {
     		// Creazione di alcuni utenti
             UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-            utenteCreate.setUsername("username"+n);
+            utenteCreate.setPrincipal("username"+n);
             utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
             utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
             controller.createUtente(utenteCreate);
@@ -359,9 +356,9 @@ public class UtentiTest {
         // Verifica che il gruppo filtrato sia presente nell'elenco
         List<ItemUtente> listUtenti = responseList.getBody().getContent();
         //listSoggetti.stream().forEach(s->{System.out.println(s.getNome());});
-        assertTrue(listUtenti.stream().anyMatch(s -> s.getUsername().equals("username"+2)));
+        assertTrue(listUtenti.stream().anyMatch(s -> s.getPrincipal().equals("username"+2)));
         // Verifica che il primo elemento sia quello che mi aspetto dall'ordinamento
-        assertEquals("username"+0, listUtenti.get(0).getUsername());
+        assertEquals("username"+0, listUtenti.get(0).getPrincipal());
     }
     
     @Test
@@ -375,7 +372,7 @@ public class UtentiTest {
     	for(int n = 0; n < numeroTotaleDiElementi; n++) {
     		// Creazione di utenti
             UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-            utenteCreate.setUsername("username"+n);
+            utenteCreate.setPrincipal("username"+n);
             utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
             utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
             controller.createUtente(utenteCreate);
@@ -444,7 +441,7 @@ public class UtentiTest {
         utenteUpdate.setEmail(CommonUtils.EMAIL_UTENTE);
         utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
         utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
-        utenteUpdate.setUsername(CommonUtils.USERNAME);
+        utenteUpdate.setPrincipal(CommonUtils.USERNAME);
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
@@ -477,7 +474,7 @@ public class UtentiTest {
         utenteUpdate.setEmail(CommonUtils.EMAIL_UTENTE);
         utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
         utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
-        utenteUpdate.setUsername(CommonUtils.USERNAME);
+        utenteUpdate.setPrincipal(CommonUtils.USERNAME);
 
         this.tearDown();
 
@@ -581,7 +578,7 @@ public class UtentiTest {
         assertNotNull(responseUtente.getBody());
 
         // Configurazione del profilo utente per il test
-        CommonUtils.getSessionUtente(responseUtente.getBody().getIdUtente(), securityContext, authentication, utenteService);
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
         // Esecuzione del metodo
         ResponseEntity<Object> responseSettings = controller.getUtenteSettings(responseUtente.getBody().getIdUtente());
 
@@ -592,7 +589,7 @@ public class UtentiTest {
 
     @Test
     void testGetUtenteSettingsNotFound() {
-        String idUtenteNonEsistente = "utente_non_esistente";
+        UUID idUtenteNonEsistente = UUID.randomUUID();
 
         // Tentativo di recuperare le impostazioni di un utente inesistente
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -678,7 +675,7 @@ public class UtentiTest {
 
     @Test
     void testUpdateUtenteSettingsNotFound() {
-        String idUtenteNonEsistente = "utente_non_esistente";
+        UUID idUtenteNonEsistente = UUID.randomUUID();
         Map<String, Object> body = new HashMap<>();
         body.put("preference", "dark_mode");
         body.put("notifications", true);
@@ -778,7 +775,7 @@ public class UtentiTest {
 
     @Test
     void testGetUtenteSettingsNotificheNotFound() {
-        String idUtenteNonEsistente = "utente_non_esistente";
+        UUID idUtenteNonEsistente = UUID.randomUUID();
 
         // Tentativo di recuperare le notifiche di un utente inesistente
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
@@ -861,7 +858,7 @@ public class UtentiTest {
 
     @Test
     void testUpdateUtenteSettingsNotificheNotFound() {
-        String idUtenteNonEsistente = "utente_non_esistente";
+        UUID idUtenteNonEsistente = UUID.randomUUID();
         ConfigurazioneNotifiche configurazioneNotifiche = new ConfigurazioneNotifiche();
 
         // Tentativo di aggiornare le notifiche di un utente inesistente

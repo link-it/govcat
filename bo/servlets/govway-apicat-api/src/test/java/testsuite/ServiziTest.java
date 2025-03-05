@@ -282,7 +282,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+//    	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -316,7 +316,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+//    	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -376,7 +376,7 @@ public class ServiziTest {
 
         	ReferenteCreate referente = new ReferenteCreate();
         	referente.setTipo(TipoReferenteEnum.REFERENTE);
-        	referente.setIdUtente(UTENTE_GESTORE);
+//        	referente.setIdUtente(UTENTE_GESTORE);
         	referenti.add(referente);
 
         	servizioCreate.setReferenti(referenti);
@@ -678,7 +678,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        referenteCreate.setIdUtente(UTENTE_GESTORE);
+//        referenteCreate.setIdUtente(UTENTE_GESTORE);
 
         ResponseEntity<Referente> responseReferente = serviziController.createReferenteServizio(servizio.getIdServizio(), referenteCreate);
         
@@ -693,7 +693,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(UUID.randomUUID().toString());
+        referenteCreate.setIdUtente(UUID.randomUUID());
 
         Exception exception = assertThrows(NotFoundException.class, () -> {
             serviziController.createReferenteServizio(idServizioNonEsistente, referenteCreate);
@@ -709,7 +709,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(UUID.randomUUID().toString());
+        referenteCreate.setIdUtente(UUID.randomUUID());
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
@@ -725,7 +725,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(UUID.randomUUID().toString());
+        referenteCreate.setIdUtente(UUID.randomUUID());
 
         this.tearDown();
 
@@ -827,7 +827,7 @@ public class ServiziTest {
 
         ReferenteCreate referente = new ReferenteCreate();
         referente.setTipo(TipoReferenteEnum.REFERENTE);
-        referente.setIdUtente(UTENTE_GESTORE);
+//        referente.setIdUtente(UTENTE_GESTORE);
         List<ReferenteCreate> referenti = new ArrayList<>();
         referenti.add(referente);
         servizioCreateDuplicato.setReferenti(referenti);
@@ -1014,7 +1014,7 @@ public class ServiziTest {
         UUID idServizio = servizio.getIdServizio();
         
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setUsername("altro-username");
+        utente.setPrincipal("altro-username");
         utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente2 = utentiController.createUtente(utente);
@@ -1362,7 +1362,7 @@ public class ServiziTest {
 		ReferenteCreate referente = new ReferenteCreate();
 		referente.setTipo(TipoReferenteEnum.REFERENTE);
 
-		referente.setIdUtente(UTENTE_GESTORE);
+//		referente.setIdUtente(UTENTE_GESTORE);
 		List<ReferenteCreate> referenti = new ArrayList<ReferenteCreate>();
 		referenti.add(referente);
 		servizioCreate.setReferenti(referenti);
@@ -2090,7 +2090,7 @@ public class ServiziTest {
 
 	    	ReferenteCreate referente = new ReferenteCreate();
 	    	referente.setTipo(TipoReferenteEnum.REFERENTE);
-	    	referente.setIdUtente(UTENTE_GESTORE);
+//	    	referente.setIdUtente(UTENTE_GESTORE);
 	    	referenti.add(referente);
 
 	    	servizioCreate.setReferenti(referenti);
@@ -2275,7 +2275,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+//    	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -3195,7 +3195,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+//    	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -3253,7 +3253,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+//    	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);

@@ -116,8 +116,8 @@ public class UtentiController implements UtentiApi {
 
 			return this.service.runTransaction( () -> {
 
-				if(this.service.existsByKey(utenteCreate.getUsername())) {
-					throw new ConflictException("Utente ["+utenteCreate.getUsername()+"] esiste gia");
+				if(this.service.existsByPrincipal(utenteCreate.getPrincipal())) {
+					throw new ConflictException("Utente ["+utenteCreate.getPrincipal()+"] esiste gia");
 				}
 				
 				UtenteEntity entity = this.dettaglioAssembler.toEntity(utenteCreate);
@@ -144,7 +144,7 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Void> deleteUtente(String idUtente) {
+	public ResponseEntity<Void> deleteUtente(UUID idUtente) {
 		try {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
@@ -176,13 +176,13 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Utente> getUtente(String idUtente) {
+	public ResponseEntity<Utente> getUtente(UUID idUtente) {
 		try {
 			
 			return this.service.runTransaction( () -> {
 	
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
 	
 				this.authorization.authorizeGet(entity);
@@ -208,7 +208,7 @@ public class UtentiController implements UtentiApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemUtente> listUtenti(StatoUtenteEnum stato, UUID idOrganizzazione,
-			List<RuoloUtenteEnumSearch> ruolo, Boolean referenteTecnico, List<UUID> classiUtente, String email, String username, String idUtente, String q, Integer page,
+			List<RuoloUtenteEnumSearch> ruolo, Boolean referenteTecnico, List<UUID> classiUtente, String email, String principal, UUID idUtente, String q, Integer page,
 			Integer size, List<String> sort) {
 		try {
 			
@@ -223,7 +223,7 @@ public class UtentiController implements UtentiApi {
 				UtenteSpecification spec = new UtenteSpecification();
 				spec.setQ(Optional.ofNullable(q));
 				spec.setEmail(Optional.ofNullable(email));
-				spec.setUsername(Optional.ofNullable(username));
+				spec.setPrincipal(Optional.ofNullable(principal));
 				spec.setIdUtente(Optional.ofNullable(idUtente));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
 				spec.setReferenteTecnico(Optional.ofNullable(referenteTecnico));
@@ -279,12 +279,12 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Utente> updateUtente(String idUtente, UtenteUpdate utenteUpdate) {
+	public ResponseEntity<Utente> updateUtente(UUID idUtente, UtenteUpdate utenteUpdate) {
 		try {
 			return this.service.runTransaction( () -> {
 				
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
@@ -443,13 +443,13 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Object> getUtenteSettings(String idUtente) {
+	public ResponseEntity<Object> getUtenteSettings(UUID idUtente) {
 		try {
 			
 			return this.service.runTransaction( () -> {
 	
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
 	
 				this.authorization.authorizeGet(entity);
@@ -474,12 +474,12 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Object> updateUtenteSettings(String idUtente, Object body) {
+	public ResponseEntity<Object> updateUtenteSettings(UUID idUtente, Object body) {
 		try {
 			return this.service.runTransaction( () -> {
 				
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 
 				this.authorization.authorizeUpdate(entity);
@@ -507,13 +507,13 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<ConfigurazioneNotifiche> getUtenteSettingsNotifiche(String idUtente) {
+	public ResponseEntity<ConfigurazioneNotifiche> getUtenteSettingsNotifiche(UUID idUtente) {
 		try {
 			
 			return this.service.runTransaction( () -> {
 	
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
 	
 				this.authorization.authorizeGetNotifiche(entity);
@@ -538,12 +538,12 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<ConfigurazioneNotifiche> updateUtenteSettingsNotifiche(String idUtente, ConfigurazioneNotifiche configurazioneNotifiche) {
+	public ResponseEntity<ConfigurazioneNotifiche> updateUtenteSettingsNotifiche(UUID idUtente, ConfigurazioneNotifiche configurazioneNotifiche) {
 		try {
 			return this.service.runTransaction( () -> {
 				
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 
 				this.authorization.authorizeUpdate(configurazioneNotifiche, entity);

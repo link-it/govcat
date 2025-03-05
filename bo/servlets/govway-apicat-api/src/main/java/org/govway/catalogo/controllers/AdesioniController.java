@@ -430,7 +430,7 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<Void> deleteReferenteAdesione(UUID idAdesione, String idUtente,
+	public ResponseEntity<Void> deleteReferenteAdesione(UUID idAdesione, UUID idUtente,
 			TipoReferenteEnum tipoReferente, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
@@ -701,7 +701,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemAdesione> listAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
-			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, String richiedente, Boolean inAttesa, String q,  Integer page,
+			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, String q,  Integer page,
 			Integer size, List<String> sort) {
 
 		try {
@@ -720,6 +720,7 @@ public class AdesioniController implements AdesioniApi {
 				specification.setIdLogico(Optional.ofNullable(idLogico));
 				specification.setIdSoggetto(Optional.ofNullable(idSoggettoAderente));
 				specification.setIdOrganizzazione(Optional.ofNullable(idOrganizzazioneAderente));
+				specification.setIdRichiedente(Optional.ofNullable(richiedente));
 				specification.setIdServizio(Optional.ofNullable(idServizio));
 				
 				boolean admin = this.coreAuthorization.isAdmin();

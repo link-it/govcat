@@ -229,7 +229,7 @@ public class APITest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+//    	referente.setIdUtente(UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -1802,7 +1802,7 @@ public class APITest {
         UUID idApi = responseApi.getBody().getIdApi();
 
         // Configura un InfoProfilo senza il ruolo richiesto
-        InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.find("xxx").get(), List.of());
+        InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.findByPrincipal("xxx").get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
 
         // Creazione dell'update API
@@ -1819,7 +1819,7 @@ public class APITest {
         });
         
         // Ripristino il profilo AMMINISTRATORE per gli altri test
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
     }
 

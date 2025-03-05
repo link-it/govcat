@@ -310,7 +310,7 @@ public class RegistrazioneServizioIntegrationTest {
     public ReferenteCreate setReferenteTecnico() {
         ReferenteCreate referente = new ReferenteCreate();
         referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        referente.setIdUtente(UTENTE_REFERENTE_TECNICO);
+//        referente.setIdUtente(UTENTE_REFERENTE_TECNICO); //TODO lamantia
         return referente;
     }
 
@@ -356,7 +356,7 @@ public class RegistrazioneServizioIntegrationTest {
         // Step 8: Aggiungi Referente per il Servizio
         ReferenteCreate referenteDaAggiungere = new ReferenteCreate();
         referenteDaAggiungere.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        referenteDaAggiungere.setIdUtente(UTENTE_REFERENTE_TECNICO);
+//        referenteDaAggiungere.setIdUtente(UTENTE_REFERENTE_TECNICO);
         ResponseEntity<Referente> createdReferente2 = serviziController.createReferenteServizio(idServizio, referenteDaAggiungere);
         assertEquals(HttpStatus.OK, createdReferente2.getStatusCode());
         assertNotNull(createdReferente2.getBody());

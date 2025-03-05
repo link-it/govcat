@@ -72,10 +72,10 @@ public class AdesioneService extends AbstractService {
 		return this.referenteAdesioneRepo.findAll(spec, pageable);
 	}
 
-	public List<ReferenteAdesioneEntity> getReferenteAdesione(UUID idAdesione, String idUtente, TIPO_REFERENTE tipo) {
+	public List<ReferenteAdesioneEntity> getReferenteAdesione(UUID idAdesione, UUID idUtente, TIPO_REFERENTE tipo) {
 		ReferenteAdesioneSpecification spec = new ReferenteAdesioneSpecification();
 		spec.setIdAdesione(Optional.of(idAdesione.toString()));
-		spec.setIdUtente(Optional.of(idUtente.toString()));
+		spec.setIdUtente(Optional.of(idUtente));
 		spec.setTipoReferente(Optional.ofNullable(tipo));
 		
 		List<ReferenteAdesioneEntity> findAll = this.referenteAdesioneRepo.findAll(spec);
