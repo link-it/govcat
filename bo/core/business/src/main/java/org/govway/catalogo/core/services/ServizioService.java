@@ -134,7 +134,7 @@ public class ServizioService extends AbstractService {
 		return this.referenteServizioRepo.findAll(spec, pageable);
 	}
 
-	public List<ReferenteServizioEntity> getReferenteServizio(UUID idServizio, String idUtente, TIPO_REFERENTE tipo) {
+	public List<ReferenteServizioEntity> getReferenteServizio(UUID idServizio, UUID idUtente, TIPO_REFERENTE tipo) {
 		
 		ReferenteServizioSpecification spec = new ReferenteServizioSpecification();
 		spec.setIdServizio(Optional.of(idServizio));

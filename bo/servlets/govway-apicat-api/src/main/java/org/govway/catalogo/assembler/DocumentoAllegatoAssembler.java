@@ -71,7 +71,7 @@ public class DocumentoAllegatoAssembler extends RepresentationModelAssemblerSupp
 		BeanUtils.copyProperties(src, entity);
 		entity.setUuid(UUID.randomUUID().toString());
 		entity.setDataCreazione(new Date());
-		entity.setUtenteCreazione(utente.getIdUtente());
+		entity.setUtenteCreazione(utente.getPrincipal());
 		entity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		return entity;
 	}
@@ -81,7 +81,7 @@ public class DocumentoAllegatoAssembler extends RepresentationModelAssemblerSupp
 		BeanUtils.copyProperties(src, entity);
 		entity.setUuid(UUID.randomUUID().toString());
 		entity.setDataCreazione(new Date());
-		entity.setUtenteCreazione(utente.getIdUtente());
+		entity.setUtenteCreazione(utente.getPrincipal());
 		entity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		
 		return entity;
@@ -102,7 +102,7 @@ public class DocumentoAllegatoAssembler extends RepresentationModelAssemblerSupp
 		BeanUtils.copyProperties(src, entity);
 		entity.setUuid(UUID.randomUUID().toString());
 		entity.setDataCreazione(new Date());
-		entity.setUtenteCreazione(utente.getIdUtente());
+		entity.setUtenteCreazione(utente.getPrincipal());
 		entity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		if(src.getFilename()!=null) {
 			entity.setFilename(src.getFilename());

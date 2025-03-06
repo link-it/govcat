@@ -22,6 +22,7 @@ package org.govway.catalogo.core.dao.specifications;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -42,7 +43,7 @@ public class ReferenteAdesioneSpecification implements Specification<ReferenteAd
 
 	private Optional<String> q = Optional.empty();
 	private Optional<String> idAdesione = Optional.empty();
-	private Optional<String> idUtente = Optional.empty();
+	private Optional<UUID> idUtente = Optional.empty();
 	private Optional<TIPO_REFERENTE> tipoReferente = Optional.empty();
 	
 
@@ -114,11 +115,11 @@ public class ReferenteAdesioneSpecification implements Specification<ReferenteAd
 		return serialVersionUID;
 	}
 
-	public Optional<String> getIdUtente() {
+	public Optional<UUID> getIdUtente() {
 		return idUtente;
 	}
 
-	public void setIdUtente(Optional<String> idUtente) {
+	public void setIdUtente(Optional<UUID> idUtente) {
 		this.idUtente = idUtente;
 	}
 

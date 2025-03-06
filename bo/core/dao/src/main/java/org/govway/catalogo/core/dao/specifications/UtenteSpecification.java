@@ -44,13 +44,13 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private static final long serialVersionUID = 1L;
 
 	private Optional<String> q = Optional.empty();
-	private Optional<String> idUtente = Optional.empty();
+	private Optional<UUID> idUtente = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<Stato> stato = Optional.empty();
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private List<ClasseUtenteEntity> idClassiUtente = null;
 	private Optional<String> email = Optional.empty();
-	private Optional<String> username = Optional.empty();
+	private Optional<String> principal = Optional.empty();
 	private List<Ruolo> ruoli = null;
 	private Optional<Boolean> ruoloNull = Optional.empty();
 	private Optional<Boolean> referenteTecnico = Optional.empty();
@@ -70,7 +70,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		
 		if (q.isPresent()) {
 			List<Predicate> predLstQ = new ArrayList<>();
-			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.idUtente)), "%" + q.get().toUpperCase() + "%")); 
+			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), "%" + q.get().toUpperCase() + "%")); 
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + q.get().toUpperCase() + "%")); 
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + q.get().toUpperCase() + "%"));
 			predLstQ.add(cb.like(cb.upper(root.join(UtenteEntity_.organizzazione, JoinType.LEFT).get(OrganizzazioneEntity_.nome)), "%" + q.get().toUpperCase() + "%"));
@@ -113,9 +113,9 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
 		
-		if (username.isPresent()) {
-			String pattern = "%" + username.get().toUpperCase() + "%";
-			predLst.add(cb.like(cb.upper(root.get(UtenteEntity_.idUtente)), pattern)); 
+		if (principal.isPresent()) {
+			String pattern = "%" + principal.get().toUpperCase() + "%";
+			predLst.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), pattern)); 
 		}
 		
 		if (referenteTecnico.isPresent()) {
@@ -187,11 +187,11 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		this.q = q;
 	}
 
-	public Optional<String> getIdUtente() {
+	public Optional<UUID> getIdUtente() {
 		return idUtente;
 	}
 
-	public void setIdUtente(Optional<String> idUtente) {
+	public void setIdUtente(Optional<UUID> idUtente) {
 		this.idUtente = idUtente;
 	}
 
@@ -219,14 +219,6 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		this.email = email;
 	}
 
-	public Optional<String> getUsername() {
-		return username;
-	}
-
-	public void setUsername(Optional<String> username) {
-		this.username = username;
-	}
-
 	public Optional<Boolean> getRuoloNull() {
 		return ruoloNull;
 	}
@@ -249,6 +241,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setReferenteTecnico(Optional<Boolean> referenteTecnico) {
 		this.referenteTecnico = referenteTecnico;
+	}
+
+	public Optional<String> getPrincipal() {
+		return principal;
+	}
+
+	public void setPrincipal(Optional<String> principal) {
+		this.principal = principal;
 	}
 
 }

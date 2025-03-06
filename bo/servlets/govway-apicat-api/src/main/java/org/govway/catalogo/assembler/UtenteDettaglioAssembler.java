@@ -80,7 +80,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		BeanUtils.copyProperties(entity, dettaglio);
 
 
-		dettaglio.setUsername(entity.getIdUtente());
+		dettaglio.setPrincipal(entity.getPrincipal());
 		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
 
 		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
@@ -104,7 +104,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public UtenteEntity toEntity(UtenteUpdate src, UtenteEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 
-		entity.setIdUtente(src.getUsername());
+		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata")));
@@ -155,7 +155,8 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		UtenteEntity entity = new UtenteEntity();
 		BeanUtils.copyProperties(src, entity);
 		
-		entity.setIdUtente(src.getUsername());
+		entity.setIdUtente(UUID.randomUUID());
+		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata")));

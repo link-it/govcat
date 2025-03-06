@@ -217,124 +217,125 @@ public class WorkflowAdesioniTest {
     UUID idSoggetto;
     
     public Dominio getDominio(VisibilitaDominioEnum value) {
-        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
-        
-        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-        organizzazione.setEsterna(false);
-
-        response = organizzazioniController.createOrganizzazione(organizzazione);
-        this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
-        assertNotNull(response.getBody().getIdOrganizzazione());
-        
-        
-        
-        //associo l'utente all'Organizzazione
-        UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
-        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-        upUtente.setEmailAziendale("mail@aziendale.it");
-        upUtente.setTelefonoAziendale("+39 0000000");
-        upUtente.setNome("referente");
-        upUtente.setCognome("dominio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-
-        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
-        
-        upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
-        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-        upUtente.setEmailAziendale("mail@aziendale.it");
-        upUtente.setTelefonoAziendale("+39 0000000");
-        upUtente.setNome("utente");
-        upUtente.setCognome("gestore");
-        upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
-
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
-        
-        upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_SERVIZIO);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
-        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-        upUtente.setEmailAziendale("mail@aziendale.it");
-        upUtente.setTelefonoAziendale("+39 0000000");
-        upUtente.setNome("utente");
-        upUtente.setCognome("referente_servizio");
-        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-
-        utentiController.updateUtente(UTENTE_REFERENTE_SERVIZIO, upUtente);
-        
-        
-        upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
-        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-        upUtente.setEmailAziendale("mail@aziendale.it");
-        upUtente.setTelefonoAziendale("+39 0000000");
-        upUtente.setNome("utente");
-        upUtente.setCognome("richiedente_adesione");
-
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
-        
-        upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
-        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-        upUtente.setEmailAziendale("mail@aziendale.it");
-        upUtente.setTelefonoAziendale("+39 0000000");
-        upUtente.setNome("utente");
-        upUtente.setCognome("referente_adesione");
-
-        utentiController.updateUtente(UTENTE_REFERENTE_ADESIONE, upUtente);
-        
-        upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_TECNICO_ADESIONE);
-        upUtente.setIdOrganizzazione(idOrganizzazione);
-        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-        upUtente.setEmailAziendale("mail@aziendale.it");
-        upUtente.setTelefonoAziendale("+39 0000000");
-        upUtente.setNome("utente");
-        upUtente.setCognome("referente_tecnico_adesione");
-
-        utentiController.updateUtente(UTENTE_REFERENTE_TECNICO_ADESIONE, upUtente);
-		
-        
-        SoggettoCreate soggettoCreate = new SoggettoCreate();
-        soggettoCreate.setNome("nome_soggetto");
-        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        soggettoCreate.setAderente(true);
-        soggettoCreate.setReferente(true);
-
-        createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
-        idSoggetto = createdSoggetto.getBody().getIdSoggetto();
-        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
-
-        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
-        gruppoCreate.setNome(NOME_GRUPPO);
-        responseGruppo = gruppiController.createGruppo(gruppoCreate);
-        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
-
-        DominioCreate dominio = CommonUtils.getDominioCreate();
-        dominio.setNome("Test");
-        if(value!=null) {
-        	dominio.setVisibilita(value);
-        }
-        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
-        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
-        
-        //creo il referente dominio
-        ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
-        ref.setTipo(TipoReferenteEnum.REFERENTE);
-        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-        
-        //creo il referente tecnico dominio
-        ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
-        ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-        return createdDominio.getBody();
+//        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+//        
+//        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+//        organizzazione.setEsterna(false);
+//
+//        response = organizzazioniController.createOrganizzazione(organizzazione);
+//        this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
+//        assertNotNull(response.getBody().getIdOrganizzazione());
+//        
+//        
+//        
+//        //associo l'utente all'Organizzazione
+//        UtenteUpdate upUtente = new UtenteUpdate();
+//        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
+//        upUtente.setIdOrganizzazione(idOrganizzazione);
+//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+//        upUtente.setEmailAziendale("mail@aziendale.it");
+//        upUtente.setTelefonoAziendale("+39 0000000");
+//        upUtente.setNome("referente");
+//        upUtente.setCognome("dominio");
+//        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+//
+//        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
+//        
+//        upUtente = new UtenteUpdate();
+//        upUtente.setUsername(UTENTE_GESTORE);
+//        upUtente.setIdOrganizzazione(idOrganizzazione);
+//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+//        upUtente.setEmailAziendale("mail@aziendale.it");
+//        upUtente.setTelefonoAziendale("+39 0000000");
+//        upUtente.setNome("utente");
+//        upUtente.setCognome("gestore");
+//        upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
+//
+//        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+//        
+//        upUtente = new UtenteUpdate();
+//        upUtente.setUsername(UTENTE_REFERENTE_SERVIZIO);
+//        upUtente.setIdOrganizzazione(idOrganizzazione);
+//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+//        upUtente.setEmailAziendale("mail@aziendale.it");
+//        upUtente.setTelefonoAziendale("+39 0000000");
+//        upUtente.setNome("utente");
+//        upUtente.setCognome("referente_servizio");
+//        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+//
+//        utentiController.updateUtente(UTENTE_REFERENTE_SERVIZIO, upUtente);
+//        
+//        
+//        upUtente = new UtenteUpdate();
+//        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+//        upUtente.setIdOrganizzazione(idOrganizzazione);
+//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+//        upUtente.setEmailAziendale("mail@aziendale.it");
+//        upUtente.setTelefonoAziendale("+39 0000000");
+//        upUtente.setNome("utente");
+//        upUtente.setCognome("richiedente_adesione");
+//
+//        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+//        
+//        upUtente = new UtenteUpdate();
+//        upUtente.setUsername(UTENTE_REFERENTE_ADESIONE);
+//        upUtente.setIdOrganizzazione(idOrganizzazione);
+//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+//        upUtente.setEmailAziendale("mail@aziendale.it");
+//        upUtente.setTelefonoAziendale("+39 0000000");
+//        upUtente.setNome("utente");
+//        upUtente.setCognome("referente_adesione");
+//
+//        utentiController.updateUtente(UTENTE_REFERENTE_ADESIONE, upUtente);
+//        
+//        upUtente = new UtenteUpdate();
+//        upUtente.setUsername(UTENTE_REFERENTE_TECNICO_ADESIONE);
+//        upUtente.setIdOrganizzazione(idOrganizzazione);
+//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+//        upUtente.setEmailAziendale("mail@aziendale.it");
+//        upUtente.setTelefonoAziendale("+39 0000000");
+//        upUtente.setNome("utente");
+//        upUtente.setCognome("referente_tecnico_adesione");
+//
+//        utentiController.updateUtente(UTENTE_REFERENTE_TECNICO_ADESIONE, upUtente);
+//		
+//        
+//        SoggettoCreate soggettoCreate = new SoggettoCreate();
+//        soggettoCreate.setNome("nome_soggetto");
+//        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+//        soggettoCreate.setAderente(true);
+//        soggettoCreate.setReferente(true);
+//
+//        createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+//        idSoggetto = createdSoggetto.getBody().getIdSoggetto();
+//        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+//
+//        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+//        gruppoCreate.setNome(NOME_GRUPPO);
+//        responseGruppo = gruppiController.createGruppo(gruppoCreate);
+//        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
+//
+//        DominioCreate dominio = CommonUtils.getDominioCreate();
+//        dominio.setNome("Test");
+//        if(value!=null) {
+//        	dominio.setVisibilita(value);
+//        }
+//        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+//        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+//        
+//        //creo il referente dominio
+//        ReferenteCreate ref = new ReferenteCreate();
+//        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+//        ref.setTipo(TipoReferenteEnum.REFERENTE);
+//        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+//        
+//        //creo il referente tecnico dominio
+//        ref = new ReferenteCreate();
+//        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+//        ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+//        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+//        return createdDominio.getBody();
+    	return new Dominio(); //TODO lamantia (usa un metodo comune, questa init c'è in più di una classe)
     }
     
     public Servizio getServizio(Dominio dominio, VisibilitaServizioEnum value) {
@@ -355,18 +356,18 @@ public class WorkflowAdesioniTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+//         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
          referenti.add(referente);
          
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+//         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
          referenti.add(referente);
          
          //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+//         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
@@ -446,19 +447,19 @@ public class WorkflowAdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+//        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+//        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+//        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);

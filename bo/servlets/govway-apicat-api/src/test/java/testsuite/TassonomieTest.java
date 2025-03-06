@@ -107,7 +107,7 @@ public class TassonomieTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(),
+        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(),
                 List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
         SecurityContextHolder.setContext(this.securityContext);

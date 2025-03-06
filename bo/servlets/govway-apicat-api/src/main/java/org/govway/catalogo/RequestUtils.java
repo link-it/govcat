@@ -130,7 +130,8 @@ public class RequestUtils {
 	
 	public UtenteEntity getUtente() {
 		UtenteEntity utente = new UtenteEntity();
-		utente.setIdUtente(this.getUsername());
+		utente.setIdUtente(UUID.randomUUID());
+		utente.setPrincipal(this.getUsername());
 		utente.setEmailAziendale(this.getEmail());
 		utente.setNome(this.getFirstName());
 		utente.setCognome(this.getLastName());

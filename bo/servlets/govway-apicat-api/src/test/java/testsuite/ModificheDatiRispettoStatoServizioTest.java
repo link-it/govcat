@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.controllers.AdesioniController;
@@ -109,6 +110,14 @@ public class ModificheDatiRispettoStatoServizioTest {
 	private static final String UTENTE_REFERENTE_TECNICO_DOMINIO = "utente_referente_tecnico__dominio";
     private static final String UTENTE_GESTORE = "gestore";
     
+    private static UUID ID_UTENTE_QUALSIASI;
+	private static UUID ID_UTENTE_RICHIEDENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_DOMINIO;
+    private static UUID ID_UTENTE_GESTORE;
+    
 	private static final String STATO_RICHIESTO_IN_COLLAUDO = "richiesto_collaudo";
 	private static final String STATO_AUTORIZZATO_IN_COLLAUDO = "autorizzato_collaudo";
 	private static final String STATO_IN_CONFIGURAZIONE_COLLAUDO = "in_configurazione_collaudo";
@@ -160,6 +169,27 @@ public class ModificheDatiRispettoStatoServizioTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        ID_UTENTE_QUALSIASI = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_SERVIZIO, utenteService);
+        ID_UTENTE_RICHIEDENTE_SERVIZIO = info.utente.getIdUtente();
     }
 
     @AfterEach
@@ -194,7 +224,7 @@ public class ModificheDatiRispettoStatoServizioTest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -203,10 +233,10 @@ public class ModificheDatiRispettoStatoServizioTest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
+        upUtente.setPrincipal(UTENTE_GESTORE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -215,10 +245,10 @@ public class ModificheDatiRispettoStatoServizioTest {
         upUtente.setCognome("gestore");
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_SERVIZIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -227,10 +257,10 @@ public class ModificheDatiRispettoStatoServizioTest {
         upUtente.setCognome("referente_servizio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_SERVIZIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_SERVIZIO);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_SERVIZIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -238,7 +268,7 @@ public class ModificheDatiRispettoStatoServizioTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_servizio");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
 
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
@@ -278,13 +308,13 @@ public class ModificheDatiRispettoStatoServizioTest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         
         //creo il referente tecnico dominio
         ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         return createdDominio.getBody();
@@ -308,18 +338,18 @@ public class ModificheDatiRispettoStatoServizioTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
          referenti.add(referente);
          
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO);
          referenti.add(referente);
          
          //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
@@ -759,14 +789,14 @@ public class ModificheDatiRispettoStatoServizioTest {
     public API aggiornaSpecifica(UUID idAPI) {
     	ApiUpdate apiUpdate = new ApiUpdate();
     	DatiSpecificaApiUpdate datiSpecificaUpdate = new DatiSpecificaApiUpdate();
-//    	datiSpecificaUpdate.setProtocollo(ProtocolloEnum.REST);
+    	//datiSpecificaUpdate.setProtocollo(ProtocolloEnum.REST);
     	DocumentoUpdateNew documento = new DocumentoUpdateNew();
         documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
         documento.setContentType("application/yaml");
         documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
         documento.setFilename("aopenapi_modificato.yaml");
-//    	datiSpecificaUpdate.setSpecifica(documento);
-//    	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
+    	//datiSpecificaUpdate.setSpecifica(documento);
+    	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
         APIDatiAmbienteUpdate apiDatiAmbienteUpdate = new APIDatiAmbienteUpdate();
         apiDatiAmbienteUpdate.setSpecifica(documento);
         apiDatiAmbienteUpdate.setProtocollo(ProtocolloEnum.REST);

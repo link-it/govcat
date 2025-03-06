@@ -63,7 +63,7 @@ public class AutenticazioneUtenzeRegistrateService extends AbstractService imple
 			return new InfoProfilo(null);
 		} else {
 			UtenteSpecification filter = new UtenteSpecification();
-			filter.setIdUtente(Optional.of(principal));
+			filter.setPrincipal(Optional.of(principal));
 			return this.runTransaction(() -> {
 
 				Optional<UtenteEntity> contact = this.utenteRepo.findOne(filter);

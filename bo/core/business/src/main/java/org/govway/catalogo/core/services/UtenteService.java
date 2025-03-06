@@ -20,6 +20,7 @@
 package org.govway.catalogo.core.services;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.DominioSpecification;
@@ -84,23 +85,39 @@ public class UtenteService extends AbstractService {
 		return null;
 	}
 
-	public boolean exists(String key) {
+	public boolean exists(UUID key) {
 		return this.find(key).isPresent();
 	}
 
-	public Optional<UtenteEntity> find(String key) {
+	public Optional<UtenteEntity> find(UUID key) {
 		return this.utenteRepo.findOne(filterByKey(key));
+	}
+
+	public Optional<UtenteEntity> findByPrincipal(String principal) {
+
+		UtenteSpecification utenteFilter = new UtenteSpecification();
+		utenteFilter.setPrincipal(Optional.of(principal));
+		
+		return this.utenteRepo.findOne(utenteFilter);
 	}
 
 	public void save(UtenteEntity utente) {
 		this.utenteRepo.save(utente);
 	}
 
-	public boolean existsByKey(String idUtente) {
+	public boolean existsByKey(UUID idUtente) {
 		return this.utenteRepo.findOne(filterByKey(idUtente)).isPresent();
 	}
 
-	private Specification<UtenteEntity> filterByKey(String key) {
+	public boolean existsByPrincipal(String principal) {
+
+		UtenteSpecification utenteFilter = new UtenteSpecification();
+		utenteFilter.setPrincipal(Optional.of(principal));
+		
+		return this.utenteRepo.count(utenteFilter) > 0;
+	}
+
+	private Specification<UtenteEntity> filterByKey(UUID key) {
 		UtenteSpecification utenteFilter = new UtenteSpecification();
 		utenteFilter.setIdUtente(Optional.of(key));
 		return utenteFilter;

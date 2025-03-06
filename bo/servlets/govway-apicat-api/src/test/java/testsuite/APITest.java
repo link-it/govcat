@@ -144,6 +144,7 @@ public class APITest {
     GruppiController gruppiController;
 
     private static final String UTENTE_GESTORE = "gestore";
+    private static UUID ID_UTENTE_GESTORE;
 
     @BeforeEach
     public void setUp() {
@@ -151,8 +152,12 @@ public class APITest {
         // Set up the mock security context and authentication
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 
-        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
-
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        
+        //System.out.println("STAMPA ID "+info.utente.getIdUtente());
+        
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
         // Configura `coreAuthorization` per essere utilizzato nei test
         when(coreAuthorization.isAnounymous()).thenReturn(true);
 
@@ -229,7 +234,8 @@ public class APITest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -1802,8 +1808,9 @@ public class APITest {
         UUID idApi = responseApi.getBody().getIdApi();
 
         // Configura un InfoProfilo senza il ruolo richiesto
-        InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.find("xxx").get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
+        //InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.findByPrincipal("xxx").get(), List.of());
+        //when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
         // Creazione dell'update API
         ApiUpdate apiUpdate = new ApiUpdate();
@@ -1818,9 +1825,6 @@ public class APITest {
             apiController.updateApi(idApi, apiUpdate);
         });
         
-        // Ripristino il profilo AMMINISTRATORE per gli altri test
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
     }
 
     @Test
