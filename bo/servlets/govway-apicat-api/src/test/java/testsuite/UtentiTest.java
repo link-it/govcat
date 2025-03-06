@@ -311,7 +311,7 @@ public class UtentiTest {
     	}
 
         List<String> sort = new ArrayList<>();
-        sort.add("idUtente,desc");
+        sort.add("principal,desc");
         
         ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
         
@@ -344,7 +344,7 @@ public class UtentiTest {
     	}
 
         List<String> sort = new ArrayList<>();
-        sort.add("idUtente,asc");
+        sort.add("principal,asc");
         
         ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
         

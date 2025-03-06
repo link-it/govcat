@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.controllers.APIController;
@@ -142,6 +143,9 @@ public class NotificheTest {
 
     private static final String UTENTE_GESTORE = "gestore";
     private static final String UTENTE_REFERENTE_TECNICO = "barbarossa";
+    
+    private static UUID ID_UTENTE_GESTORE;
+    private static UUID ID_UTENTE_REFERENTE_TECNICO;
 
     @BeforeEach
     private void setUp() {
@@ -153,6 +157,12 @@ public class NotificheTest {
         when(coreAuthorization.isAnounymous()).thenReturn(true);
 
         SecurityContextHolder.setContext(this.securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO = info.utente.getIdUtente();
     }
 
     @AfterEach
@@ -165,61 +175,60 @@ public class NotificheTest {
     private UUID idOrganizzazione;
     
     private Dominio getDominio(VisibilitaDominioEnum value) {
-//        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
-//        
-//        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-//        organizzazione.setEsterna(false);
-//
-//        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
-//        idOrganizzazione = response.getBody().getIdOrganizzazione();
-//        assertNotNull(response.getBody().getIdOrganizzazione());
-//        
-//        
-//        
-//        //associo l'utente all'Organizzazione
-//        UtenteUpdate upUtente = new UtenteUpdate();
-//        upUtente.setUsername(UTENTE_GESTORE);
-//        upUtente.setIdOrganizzazione(idOrganizzazione);
-//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-//        upUtente.setEmailAziendale("mail@aziendale.it");
-//        upUtente.setTelefonoAziendale("+39 0000000");
-//        upUtente.setNome("referente");
-//        upUtente.setCognome("dominio");
-//        upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
-//
-//        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
-//        
-//        SoggettoCreate soggettoCreate = new SoggettoCreate();
-//        soggettoCreate.setNome("nome_soggetto");
-//        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-//        soggettoCreate.setAderente(true);
-//        soggettoCreate.setReferente(true);
-//
-//        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
-//        idSoggetto = createdSoggetto.getBody().getIdSoggetto();
-//        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
-//
-//        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
-//        gruppoCreate.setNome("Gruppo xyz");
-//        ResponseEntity<Gruppo> responseGruppo = gruppiController.createGruppo(gruppoCreate);
-//        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
-//
-//        DominioCreate dominio = CommonUtils.getDominioCreate();
-//        dominio.setNome("Test");
-//        if(value!=null) {
-//        	dominio.setVisibilita(value);
-//        }
-//        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
-//        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
-//        
-//        //creo il referente dominio
-//        ReferenteCreate ref = new ReferenteCreate();
-//        ref.setIdUtente(UTENTE_GESTORE);
-//        ref.setTipo(TipoReferenteEnum.REFERENTE);
-//        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-//
-//        return createdDominio.getBody();
-    	return new Dominio(); //TODO lamantia (usa un metodo comune, questa init c'è in più di una classe)
+        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        
+        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+        organizzazione.setEsterna(false);
+
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
+        idOrganizzazione = response.getBody().getIdOrganizzazione();
+        assertNotNull(response.getBody().getIdOrganizzazione());
+        
+        
+        
+        //associo l'utente all'Organizzazione
+        UtenteUpdate upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_GESTORE);
+        upUtente.setIdOrganizzazione(idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("referente");
+        upUtente.setCognome("dominio");
+        upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
+
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
+        
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("nome_soggetto");
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setAderente(true);
+        soggettoCreate.setReferente(true);
+
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        idSoggetto = createdSoggetto.getBody().getIdSoggetto();
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        gruppoCreate.setNome("Gruppo xyz");
+        ResponseEntity<Gruppo> responseGruppo = gruppiController.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
+
+        DominioCreate dominio = CommonUtils.getDominioCreate();
+        dominio.setNome("Test");
+        if(value!=null) {
+        	dominio.setVisibilita(value);
+        }
+        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+        
+        //creo il referente dominio
+        ReferenteCreate ref = new ReferenteCreate();
+        ref.setIdUtente(ID_UTENTE_GESTORE);
+        ref.setTipo(TipoReferenteEnum.REFERENTE);
+        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+
+        return createdDominio.getBody();
     }
     
     private Servizio getServizio(Dominio dominio, VisibilitaServizioEnum value) {
@@ -236,7 +245,7 @@ public class NotificheTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-//         referente.setIdUtente(UTENTE_GESTORE);
+         referente.setIdUtente(ID_UTENTE_GESTORE);
          referenti.add(referente);
          
          ReferenteCreate referente2 = new ReferenteCreate();
@@ -321,7 +330,7 @@ public class NotificheTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-//        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);

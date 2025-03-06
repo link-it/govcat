@@ -143,7 +143,8 @@ public class APITest {
     @Autowired
     GruppiController gruppiController;
 
-    private static final UUID UTENTE_GESTORE = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+    private static final String UTENTE_GESTORE = "gestore";
+    private static UUID ID_UTENTE_GESTORE;
 
     @BeforeEach
     public void setUp() {
@@ -151,8 +152,12 @@ public class APITest {
         // Set up the mock security context and authentication
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 
-        CommonUtils.getSessionUtente(UTENTE_GESTORE.toString(), securityContext, authentication, utenteService);
-
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        
+        //System.out.println("STAMPA ID "+info.utente.getIdUtente());
+        
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
         // Configura `coreAuthorization` per essere utilizzato nei test
         when(coreAuthorization.isAnounymous()).thenReturn(true);
 
@@ -229,8 +234,8 @@ public class APITest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	//UUID idUtenteGestore = utenteService.findByPrincipal(UTENTE_GESTORE).get().getIdUtente();
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -1803,8 +1808,9 @@ public class APITest {
         UUID idApi = responseApi.getBody().getIdApi();
 
         // Configura un InfoProfilo senza il ruolo richiesto
-        InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.findByPrincipal("xxx").get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
+        //InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.findByPrincipal("xxx").get(), List.of());
+        //when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
         // Creazione dell'update API
         ApiUpdate apiUpdate = new ApiUpdate();

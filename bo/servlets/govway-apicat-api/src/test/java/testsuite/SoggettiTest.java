@@ -107,6 +107,7 @@ public class SoggettiTest {
     private OrganizzazioniController controller;
 
     private static final String UTENTE_GESTORE = "gestore";
+    private static UUID ID_UTENTE_GESTORE;
     private static final String NOME_SOGGETTO = "NomeSoggettoTEST";
 
     @BeforeEach
@@ -123,6 +124,9 @@ public class SoggettiTest {
 
         // Set the security context in the SecurityContextHolder
         SecurityContextHolder.setContext(this.securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
     }
 
     @AfterEach

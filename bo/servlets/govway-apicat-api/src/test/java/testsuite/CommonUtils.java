@@ -248,7 +248,7 @@ public class CommonUtils {
         return infoProfiloGestore;
 	}
 	
-	private static InfoProfilo getInfoProfilo(String idUtente, UtenteService utenteService) {
+	public static InfoProfilo getInfoProfilo(String idUtente, UtenteService utenteService) {
 		return utenteService.runTransaction(() -> {
 			UtenteEntity utente = utenteService.findByPrincipal(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
 			

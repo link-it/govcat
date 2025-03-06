@@ -117,6 +117,7 @@ public class DominiTest {
     private SoggettiController soggettiController;
 
     private static final String UTENTE_GESTORE = "gestore";
+    private static final String UTENTE_QUALSIASI = "utente_qualsiasi";
 
     @BeforeEach
     public void setUp() {
@@ -495,14 +496,7 @@ public class DominiTest {
         assertEquals(2, responseList.getBody().getContent().size());
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
     }
-    
-    
-    
-    
-    
-    
-    
-    
+
     @Test
     void testListDominiSortedUsernameDesc() {
     	ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
@@ -603,11 +597,6 @@ public class DominiTest {
             assertFalse(responseList.getBody().getContent().isEmpty());
         }
     }
-    
-    
-    
-    
-    
 
     @Test
     public void testListDominiWithFilters() {
@@ -701,10 +690,12 @@ public class DominiTest {
     void testCreateReferenteDominioNotFound() {
         UUID idDominioNonEsistente = UUID.randomUUID();
 
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Creazione del referente
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-//        referenteCreate.setIdUtente("test");
+        referenteCreate.setIdUtente(info.utente.getIdUtente());
 
         org.govway.catalogo.exception.NotFoundException exception = assertThrows(org.govway.catalogo.exception.NotFoundException.class, () -> {
             controller.createReferenteDominio(idDominioNonEsistente, referenteCreate);
@@ -733,10 +724,12 @@ public class DominiTest {
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Tentativo di creare un referente senza autorizzazione
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-//        referenteCreate.setIdUtente("test");
+        referenteCreate.setIdUtente(info.utente.getIdUtente());
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);
         });
@@ -764,10 +757,12 @@ public class DominiTest {
 
         this.tearDown();        
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Tentativo di creare un referente senza autorizzazione
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-//        referenteCreate.setIdUtente("test");
+        referenteCreate.setIdUtente(info.utente.getIdUtente());
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);
         });
@@ -793,9 +788,11 @@ public class DominiTest {
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Creazione di un referente non valido (per esempio, senza il tiporeferente definito)
         ReferenteCreate referenteCreate = new ReferenteCreate();
-//        referenteCreate.setIdUtente("test");  // Nome del referente mancante
+        referenteCreate.setIdUtente(info.utente.getIdUtente());  // Nome del referente mancante
 
         ConstraintViolationException exception = assertThrows(ConstraintViolationException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);

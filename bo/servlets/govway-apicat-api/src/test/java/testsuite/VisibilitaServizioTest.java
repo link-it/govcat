@@ -305,7 +305,7 @@ public class VisibilitaServizioTest {
         utenteUpdate.setTelefonoAziendale("0000000");
         utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
         utenteUpdate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-//        utentiController.updateUtente(UTENTE_RICHIEDENTE_SERVIZIO, utenteUpdate); //TODO lamantia
+//        utentiController.updateUtente(UTENTE_RICHIEDENTE_SERVIZIO, utenteUpdate);
           
         utente = CommonUtils.getUtenteCreate();
         utente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
