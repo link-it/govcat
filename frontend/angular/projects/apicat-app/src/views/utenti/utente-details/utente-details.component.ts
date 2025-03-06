@@ -69,7 +69,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _useRoute: boolean = true;
 
-  breadcrumbs: any[] = [];
+  breadcrumbs: any[] = [
+    { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
+    { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },
+    { label: `...`, url: '', type: 'title' }
+  ];
 
   _error: boolean = false;
   _errorMsg: string = '';
@@ -113,7 +117,6 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
         this.id = params['id'];
-        this._initBreadcrumb();
         this._isDetails = true;
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
@@ -193,7 +196,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             break;
           case 'nome':
           case 'cognome':
-          case 'username':
+          case 'principal':
           case 'telefono_aziendale':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [
@@ -390,6 +393,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             this._initOrganizzazioniSelect([])
           }
           
+          this._initBreadcrumb();
+
           this._spin = false;
           // this.__initInformazioni();
         },
@@ -402,7 +407,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   _initBreadcrumb() {
-    const _title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    const _title = this.utente ? `${this.utente.nome} ${this.utente.cognome}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
       { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },

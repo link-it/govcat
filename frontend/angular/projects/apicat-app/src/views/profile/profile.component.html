@@ -65,8 +65,8 @@
                                     <div class="card-body text-center">
                                         <img ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
                                         <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
-                                        <h6 class="my-3" [title]="profile?.id_utente" *ngIf="false">{{ profile?.username }}</h6>
-                                        <p class="text-muted mb-1">
+                                        <h6 class="my-3" [title]="profile?.id_utente" *ngIf="false">{{ profile?.principal }}</h6>
+                                        <p class="text-muted mb-1" *ngIf="false">
                                             <span class="badge badge-secondary text-uppercase">
                                                 {{ profile.ruolo }}
                                             </span>
@@ -118,10 +118,10 @@
                                             <li class="list-group-item py-3" *ngIf="false">
                                                 <div class="row">
                                                     <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Username' | translate }}</p>
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Principal' | translate }}</p>
                                                     </div>
                                                     <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.username }}</p>
+                                                        <p class="text-muted mb-0">{{ profile?.principal }}</p>
                                                     </div>
                                                 </div>
                                             </li>
@@ -265,11 +265,11 @@
                                 <div class="row">
                                     <div class="col-6">
                                         <lnk-form-field
-                                            name="username"
-                                            [label]="'APP.USERS.LABEL.Username' | translate"
+                                            name="principal"
+                                            [label]="'APP.USERS.LABEL.Principal' | translate"
                                             [isEdit]="isEdit"
                                             [formGroup]="formGroup"
-                                            [value]="profile?.username"
+                                            [value]="profile?.principal"
                                             [inline]="false"
                                             [singleColumn]="true"
                                             [plainText]="true"
