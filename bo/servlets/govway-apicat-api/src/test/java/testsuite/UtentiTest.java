@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
+import org.govway.catalogo.RequestUtils;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.UtenteAuthorization;
 import org.govway.catalogo.controllers.OrganizzazioniController;
@@ -25,7 +26,9 @@ import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
+import org.govway.catalogo.servlets.model.ConfigurazioneUtente;
 import org.govway.catalogo.servlets.model.ItemSoggetto;
 import org.govway.catalogo.servlets.model.ItemUtente;
 import org.govway.catalogo.servlets.model.Organizzazione;
@@ -45,6 +48,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -939,6 +943,33 @@ public class UtentiTest {
         ResponseEntity<Utente> responseUtente = controller.createUtente(utente);
         assertNotNull(responseUtente.getBody());
 
+        ResponseEntity<Profilo> profilo = controller.getProfilo();
+        
+        assertEquals(HttpStatus.OK, profilo.getStatusCode());
+    }
+    
+    @Autowired
+	private RequestUtils requestUtils;
+    
+    @Mock
+    private ConfigurazioneUtente confU;
+    
+    @Test
+    void testGetProfiloSuccessCurrentUtenteNull() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utente);
+        assertNotNull(responseUtente.getBody());
+        
+        InfoProfilo info = new InfoProfilo(null);
+        
+        when(this.requestUtils.getPrincipal(false)).thenReturn(info);
+        when(this.confU.isAutoregistrazioneAbilitata()).thenReturn(true);
+        
         ResponseEntity<Profilo> profilo = controller.getProfilo();
         
         assertEquals(HttpStatus.OK, profilo.getStatusCode());

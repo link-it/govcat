@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -43,6 +44,8 @@ import org.govway.catalogo.servlets.model.AllegatoItemCreate;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AllegatoUpdate;
+import org.govway.catalogo.servlets.model.AuthTypeApiResource;
+import org.govway.catalogo.servlets.model.AuthTypeApiResourceProprietaCustom;
 import org.govway.catalogo.servlets.model.Categoria;
 import org.govway.catalogo.servlets.model.CategoriaCreate;
 import org.govway.catalogo.servlets.model.CategoriaFiglioCreate;
@@ -58,6 +61,7 @@ import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
+import org.govway.catalogo.servlets.model.ItemComunicazione;
 import org.govway.catalogo.servlets.model.ItemGruppo;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
 import org.govway.catalogo.servlets.model.ItemServizio;
@@ -79,6 +83,7 @@ import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
@@ -86,13 +91,16 @@ import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.Tassonomia;
 import org.govway.catalogo.servlets.model.TassonomiaCreate;
+import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.springframework.data.domain.Pageable;
@@ -396,6 +404,64 @@ public class ServiziTest {
 
         	serviziController.createServizio(servizioCreate);
     	}
+    }
+    
+    private API getAPI(UUID idServizio) {
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setIdServizio(idServizio);
+        apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+        
+        APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+        
+        DocumentoCreate documento = new DocumentoCreate();
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
+        
+        apiDatiAmbienteCreate.setSpecifica(documento);
+        
+        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+        apiDatiErogazione.setNomeGateway("APIGateway");
+        apiDatiErogazione.setVersioneGateway(1);
+        apiDatiErogazione.setUrlPrefix("http://");
+        apiDatiErogazione.setUrl("testurl.com/test");
+        
+        apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+        
+        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreate);
+        
+        
+        
+        List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
+        
+        AuthTypeApiResource authType = new AuthTypeApiResource();
+        authType.setProfilo("MODI_P1");
+        
+        List<String> risorse = new ArrayList<String>();
+        risorse.add("risorsa1");
+        authType.setResources(risorse);
+        
+        List<AuthTypeApiResourceProprietaCustom> proprietaCustom = new ArrayList<AuthTypeApiResourceProprietaCustom>();
+        
+        AuthTypeApiResourceProprietaCustom autResource = new AuthTypeApiResourceProprietaCustom();
+        autResource.setNome("custom resorce");
+        autResource.setValore("56");
+        
+        proprietaCustom.add(autResource);
+        
+        gruppiAuthType.add(authType);
+        
+        apiCreate.setGruppiAuthType(gruppiAuthType);
+        
+        DocumentoCreate doc = new DocumentoCreate();
+        doc.setFilename("SpecificaAPI.json");
+        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+        
+        ResponseEntity<API> response = apiController.createApi(apiCreate);
+        
+        return response.getBody();
     }
     
     @Test
@@ -1111,7 +1177,7 @@ public class ServiziTest {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
         
-        assertThrows(NotFoundException.class, () -> {
+        assertThrows(org.govway.catalogo.core.exceptions.NotFoundException.class, () -> {
         	serviziController.deleteReferenteServizio(idServizio, "randomid", TipoReferenteEnum.REFERENTE);
         });
         
@@ -1254,12 +1320,12 @@ public class ServiziTest {
     void testListComunicazioniServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
+        this.getAPI(idServizio);
 
         StatoUpdate stato = new StatoUpdate();
-        stato.setStato("bozza");
-        stato.setCommento("commento prova");
-        /*
-         //TODO:
+        stato.setStato("richiesto_collaudo");
+        stato.setCommento("richiesto collaudo");
+
         serviziController.updateStatoServizio(idServizio, stato);
 
         MessaggioCreate messaggio = new MessaggioCreate();
@@ -1275,15 +1341,12 @@ public class ServiziTest {
         assertFalse(response.getBody().getContent().isEmpty());
 
         List<ItemComunicazione> comunicazioni = response.getBody().getContent();
-        assertEquals(2, comunicazioni.size());
+        assertEquals(3, comunicazioni.size());
 
         ItemComunicazione messaggioC = comunicazioni.stream()
             .filter(c -> c.getTipo().equals(TipoComunicazione.MESSAGGIO))
             .findFirst().orElse(null);
         assertNotNull(messaggioC);
-        assertEquals(messaggio.getOggetto(), messaggioC.getOggetto());
-        assertEquals(messaggio.getTesto(), messaggioC.getTesto());
-        */
     }
 
     @Test
@@ -1374,7 +1437,7 @@ public class ServiziTest {
         assertFalse(response.getBody().getContent().isEmpty());
 
         List<Referente> referenti = response.getBody().getContent();
-        assertEquals(1, referenti.size());
+        assertEquals(2, referenti.size());
     }
 
     @Test
@@ -1430,7 +1493,15 @@ public class ServiziTest {
         datiGenerici.setDescrizione("Nuova descrizione");
         datiGenerici.setDescrizioneSintetica("stessa descrizione");
         servizioUpdate.setDatiGenerici(datiGenerici);
-
+        UtenteUpdate u = new UtenteUpdate();
+        u.setNome("abc");
+        u.setCognome("def");
+        u.setEmailAziendale("m@m.m");
+        u.setTelefonoAziendale("000000000");
+        u.setIdOrganizzazione(idOrganizzazione);
+        u.setUsername("generico");
+        u.setStato(StatoUtenteEnum.ABILITATO);
+        utentiController.updateUtente(UTENTE_REFERENTE_SERVIZIO, u);
         ResponseEntity<Servizio> response = serviziController.updateServizio(idServizio, servizioUpdate);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1514,20 +1585,18 @@ public class ServiziTest {
     void testUpdateStatoServizioSuccess() {
         Servizio servizio = this.getServizio();
         UUID idServizio = servizio.getIdServizio();
+        this.getAPI(idServizio);
 
         // Creazione di un aggiornamento di stato
         StatoUpdate statoServizioUpdate = new StatoUpdate();
-        statoServizioUpdate.setStato("bozza");
-        /*
-         //TODO:
+        statoServizioUpdate.setStato("richiesto_collaudo");
+
         // Invocazione del metodo updateStatoServizio
         ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("IN_PROGRESS", response.getBody().getStato());
-        */
     }
 
     @Test
@@ -1634,6 +1703,32 @@ public class ServiziTest {
         // Verifica che il servizio sia presente nell'elenco
         List<ItemServizio> servizi = response.getBody().getContent();
         assertTrue(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio())));
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testListServiziSuccessGruppi() {
+        Servizio servizio = this.getServizio();
+
+        // Invocazione del metodo listServizi senza filtri
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, responseGruppo.getBody().getIdGruppo(), null, null, null, null, null, true, true, null, null, null, null, null, null, null, 0, 10, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testListServiziSuccessGruppiInAttesaFalse() {
+        Servizio servizio = this.getServizio();
+
+        // Invocazione del metodo listServizi senza filtri
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, responseGruppo.getBody().getIdGruppo(), null, null, null, null, null, false, true, null, null, null, null, null, null, null, 0, 10, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
     }
     
     //TODO: ordinamento per versione non funzionante
@@ -1814,6 +1909,60 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getHeaders().get("Content-Disposition").get(0).contains("attachment; filename=servizi.csv"));
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testExportServiziSuccessInAttesaTrue() {
+        Servizio servizio = this.getServizio();
+        List<String> categoria = new ArrayList<String>();
+        categoria.add(UUID.randomUUID().toString());
+        VisibilitaServizioEnum visibilita = VisibilitaServizioEnum.PUBBLICO;
+        
+        // Invocazione del metodo exportServizi senza filtri
+        ResponseEntity<Resource> response = serviziController.exportServizi(
+            null, null, null, visibilita, null, null, categoria, null, true, true, null, null, null, null, null
+        );
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getHeaders().get("Content-Disposition").get(0).contains("attachment; filename=servizi.csv"));
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testExportServiziAllSuccessInAttesaFalse() {
+        Servizio servizio = this.getServizio();
+        List<String> categoria = new ArrayList<String>();
+        categoria.add(UUID.randomUUID().toString());
+        VisibilitaServizioEnum visibilita = VisibilitaServizioEnum.PUBBLICO;
+        
+        // Invocazione del metodo exportServizi senza filtri
+        ResponseEntity<Resource> response = serviziController.exportServizi(
+            null, null, null, visibilita, null, null, categoria, null, false, true, null, null, null, null, null
+        );
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getHeaders().get("Content-Disposition").get(0).contains("attachment; filename=servizi.csv"));
+    }
+    
+    @Test
+    @DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+    void testExportServiziErrore() {
+        this.getServizio();
+        List<String> categoria = new ArrayList<String>();
+        categoria.add("x");
+        VisibilitaServizioEnum visibilita = VisibilitaServizioEnum.PUBBLICO;
+        
+        assertThrows(Exception.class, () -> {
+        	serviziController.exportServizi(
+                    null, null, null, visibilita, null, null, categoria, null, true, true, null, null, null, null, null
+                );
+        });
+        
     }
 
     @Test
@@ -2249,7 +2398,8 @@ public class ServiziTest {
 	    gruppo.setPadre(idGruppoPadre);
 	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
 	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
-	    
+	    //CommonUtils.getSessionUtente("colombo", securityContext, authentication, utenteService);
+	    when(coreAuthorization.isAdmin(any())).thenReturn(false);
 	    // Invocazione del metodo listServiziGruppi
 	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, null, null, 0, 10, null);
 
@@ -2275,7 +2425,8 @@ public class ServiziTest {
 	    gruppo.setPadre(idGruppoPadre);
 	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
 	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
-	    
+	    //CommonUtils.getSessionUtente("colombo", securityContext, authentication, utenteService);
+	    when(coreAuthorization.isAdmin(any())).thenReturn(false);
 	    // Invocazione del metodo listServiziGruppi
 	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.API, null, 0, 10, null);
 
@@ -2300,7 +2451,8 @@ public class ServiziTest {
 	    gruppo.setPadre(idGruppoPadre);
 	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
 	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
-	    
+	    //CommonUtils.getSessionUtente("colombo", securityContext, authentication, utenteService);
+	    when(coreAuthorization.isAdmin(any())).thenReturn(false);
 	    // Invocazione del metodo listServiziGruppi
 	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.GENERICO, null, 0, 10, null);
 
@@ -2325,8 +2477,7 @@ public class ServiziTest {
 	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
 	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
     	
-	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
-
+	    when(coreAuthorization.isAdmin(any())).thenReturn(false);
 	    // Invocazione del metodo listServiziGruppi
 	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.GENERICO, null, 0, 10, null);
 
@@ -2335,6 +2486,33 @@ public class ServiziTest {
 	    assertNotNull(response.getBody());  
 	}
 	
+	/*
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	public void testListServiziGruppiTipoServizioGenericoUtenteReferenteServizioSuccess2() {
+	    // Creazione del servizio e gruppo tramite getServizio
+	    Servizio servizio = this.getServizio();
+	    GruppoCreate gruppoPadre = CommonUtils.getGruppoCreate();
+	    gruppoPadre.setNome("gruppo padre");
+	    ResponseEntity<Gruppo> createdGruppoPadre = gruppiController.createGruppo(gruppoPadre);
+	    UUID idGruppoPadre = createdGruppoPadre.getBody().getIdGruppo();
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), idGruppoPadre);
+	    //creo il gruppo
+	    GruppoCreate gruppo = CommonUtils.getGruppoCreate();
+	    gruppo.setPadre(idGruppoPadre);
+	    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
+	    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
+    	
+	    CommonUtils.getSessionUtente("colombo", securityContext, authentication, utenteService);
+	    //this.tearDown();
+	    // Invocazione del metodo listServiziGruppi
+	    ResponseEntity<PagedModelItemServizioGruppo> response = serviziController.listServiziGruppi(idGruppoPadre, null, TipoServizio.GENERICO, null, 0, 10, null);
+
+	    // Verifica del successo
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	    assertNotNull(response.getBody());  
+	}
+	*/
 	 public Servizio getServizio(String nomeServizio) {
 	    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
 	    	
@@ -2980,6 +3158,25 @@ public class ServiziTest {
 	    assertNotNull(grant);
 	    assertNotNull(grant.getRuoli());
 	    assertEquals(GrantType.SCRITTURA, grant.getIdentificativo());
+	}
+	
+	@Test
+	@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+	public void testGetGrantServizioIsAnounymous() {
+	    // Creazione del servizio tramite getServizio
+	    Servizio servizio = this.getServizio();
+	    UUID idServizio = servizio.getIdServizio();
+	    
+	    this.tearDown();
+	    
+	    // Invocazione del metodo getGrantServizio
+	    ResponseEntity<Grant> response = serviziController.getGrantServizio(idServizio);
+
+	    // Verifica del successo
+	    assertEquals(HttpStatus.OK, response.getStatusCode());
+	    Grant grant = response.getBody();
+	    assertNotNull(grant);
+	    assertNotNull(grant.getRuoli());
 	}
 	
 	@Test
@@ -3791,7 +3988,6 @@ public class ServiziTest {
     	ResponseEntity<Resource> result = serviziController.exportServizio(servizio.getBody().getIdServizio());
     	assertEquals(HttpStatus.OK, result.getStatusCode());
 	}
-	
 
 }
 
