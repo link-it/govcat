@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.controllers.AdesioniController;
@@ -97,6 +98,15 @@ public class VisibilitaServizioTest {
 	private static final String UTENTE_QUALSIASI_APPARTENENTE_CLASSE_UTENTI = "utente_qualsiasi_appartenente_classe_utenti";
     private static final String UTENTE_GESTORE = "gestore";
     
+    private static UUID ID_UTENTE_QUALSIASI;
+	private static UUID ID_UTENTE_RICHIEDENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_DOMINIO;
+	private static UUID ID_UTENTE_QUALSIASI_APPARTENENTE_CLASSE_UTENTI;
+    private static UUID ID_UTENTE_GESTORE;
+    
     private static final String NOME_GRUPPO = "Gruppo xyz";
     
     @Mock
@@ -153,10 +163,16 @@ public class VisibilitaServizioTest {
 
     private UUID idAPI;
 
+    private InfoProfilo info;
+    
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
     }
 
     @AfterEach
@@ -297,6 +313,10 @@ public class VisibilitaServizioTest {
         //utente.setCognome("Richiedente_servizio");
         //utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         //responseUtente = utentiController.createUtente(utente);
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_SERVIZIO, utenteService);
+        ID_UTENTE_RICHIEDENTE_SERVIZIO = info.utente.getIdUtente();
+        
         UtenteUpdate utenteUpdate = new UtenteUpdate();
         utenteUpdate.setPrincipal(UTENTE_RICHIEDENTE_SERVIZIO);
         utenteUpdate.setNome("Utente");
@@ -305,7 +325,7 @@ public class VisibilitaServizioTest {
         utenteUpdate.setTelefonoAziendale("0000000");
         utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
         utenteUpdate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-//        utentiController.updateUtente(UTENTE_RICHIEDENTE_SERVIZIO, utenteUpdate);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO, utenteUpdate);
           
         utente = CommonUtils.getUtenteCreate();
         utente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
@@ -337,6 +357,21 @@ public class VisibilitaServizioTest {
         utente.setCognome("Referente_tecnico_dominio");
         utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         responseUtente = utentiController.createUtente(utente);
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        ID_UTENTE_QUALSIASI = info.utente.getIdUtente();
     }
     
     public Dominio getDominio(VisibilitaServizioEnum value) {
@@ -389,51 +424,50 @@ public class VisibilitaServizioTest {
     }
     
     public Servizio getServizio(Dominio dominio, VisibilitaServizioEnum value, boolean conClasseUtente) {
-//    	 ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-//    	 if(value != null) {
-//    		 servizioCreate.setVisibilita(value);
-//    	 }
-//         servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
-//         servizioCreate.setIdDominio(dominio.getIdDominio());
-//         UUID idClasseUtente = null;
-//         if(conClasseUtente) {
-//        	 idClasseUtente = this.setClasseUtente().getIdClasseUtente();
-//        	 List<UUID> listClassi = new ArrayList<UUID>();
-//        	 listClassi.add(idClasseUtente);
-//        	 servizioCreate.setClassi(listClassi);
-//         }
-//
-//         if (immagine.getContent() != null) {
-//             servizioCreate.setImmagine(immagine);
-//         }
-//         
-//         List<ReferenteCreate> referenti = new ArrayList<>();
-//         
-//         ReferenteCreate referente = new ReferenteCreate();
-//         referente.setTipo(TipoReferenteEnum.REFERENTE);
-//         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
-//         referenti.add(referente);
-//         
-//         referente = new ReferenteCreate();
-//         referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-//         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
-//         referenti.add(referente);
-//         
-//         //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
-//         referente = new ReferenteCreate();
-//         referente.setTipo(TipoReferenteEnum.REFERENTE);
-//         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
-//         referenti.add(referente);
-//         
-//         servizioCreate.setReferenti(referenti);
-//
-//         ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
-//         Servizio servizio = createdServizio.getBody();
-//
-//         this.setIdServizio(servizio.getIdServizio());
-//         
-//         return servizio;
-    	return new Servizio(); //todo lamantia
+    	 ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	 if(value != null) {
+    		 servizioCreate.setVisibilita(value);
+    	 }
+         servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+         servizioCreate.setIdDominio(dominio.getIdDominio());
+         UUID idClasseUtente = null;
+         if(conClasseUtente) {
+        	 idClasseUtente = this.setClasseUtente().getIdClasseUtente();
+        	 List<UUID> listClassi = new ArrayList<UUID>();
+        	 listClassi.add(idClasseUtente);
+        	 servizioCreate.setClassi(listClassi);
+         }
+
+         if (immagine.getContent() != null) {
+             servizioCreate.setImmagine(immagine);
+         }
+         
+         List<ReferenteCreate> referenti = new ArrayList<>();
+         
+         ReferenteCreate referente = new ReferenteCreate();
+         referente.setTipo(TipoReferenteEnum.REFERENTE);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
+         referenti.add(referente);
+         
+         referente = new ReferenteCreate();
+         referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO);
+         referenti.add(referente);
+         
+         //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
+         referente = new ReferenteCreate();
+         referente.setTipo(TipoReferenteEnum.REFERENTE);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
+         referenti.add(referente);
+         
+         servizioCreate.setReferenti(referenti);
+
+         ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+         Servizio servizio = createdServizio.getBody();
+
+         this.setIdServizio(servizio.getIdServizio());
+         
+         return servizio;
     }
     
     public API getAPI() {
@@ -492,11 +526,11 @@ public class VisibilitaServizioTest {
     
     public void checkVisibilitaPubblica(Dominio dominio) {
     	ReferenteCreate referenteDominio = new ReferenteCreate();
-//        referenteDominio.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+        referenteDominio.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         referenteDominio.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(dominio.getIdDominio(), referenteDominio);
         referenteDominio = new ReferenteCreate();
-//        referenteDominio.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        referenteDominio.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         referenteDominio.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(dominio.getIdDominio(), referenteDominio);
     	
@@ -550,7 +584,7 @@ public class VisibilitaServizioTest {
         nuovaAdesione.setIdSoggetto(createdSoggetto.getBody().getIdSoggetto());
         ReferenteCreate referente = new ReferenteCreate();
         referente.setTipo(TipoReferenteEnum.REFERENTE);
-//        referente.setIdUtente(UTENTE_RICHIEDENTE_SERVIZIO);
+        referente.setIdUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO);
         List<ReferenteCreate> referenti = new ArrayList<>();
         referenti.add(referente);
         nuovaAdesione.setReferenti(referenti);
@@ -575,11 +609,11 @@ public class VisibilitaServizioTest {
     
     public void checkVisibilitaPrivata(Dominio dominio) {
     	ReferenteCreate referenteDominio = new ReferenteCreate();
-//        referenteDominio.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+        referenteDominio.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         referenteDominio.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(dominio.getIdDominio(), referenteDominio);
         referenteDominio = new ReferenteCreate();
-//        referenteDominio.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        referenteDominio.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         referenteDominio.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(dominio.getIdDominio(), referenteDominio);
     	
@@ -633,7 +667,7 @@ public class VisibilitaServizioTest {
         nuovaAdesione.setIdSoggetto(createdSoggetto.getBody().getIdSoggetto());
         ReferenteCreate referente = new ReferenteCreate();
         referente.setTipo(TipoReferenteEnum.REFERENTE);
-//        referente.setIdUtente(UTENTE_RICHIEDENTE_SERVIZIO);
+        referente.setIdUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO);
         List<ReferenteCreate> referenti = new ArrayList<>();
         referenti.add(referente);
         nuovaAdesione.setReferenti(referenti);
