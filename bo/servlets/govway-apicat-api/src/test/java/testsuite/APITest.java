@@ -1240,6 +1240,32 @@ public class APITest {
         assertNotNull(response.getBody());
         assertTrue(response.getHeaders().getContentDisposition().getFilename().contains("specifica_test.pdf"));
     }
+    
+    @Test
+    void testDownloadSpecificaAPISuccessWithAllegatoTryOutTrue() {
+        // Creazione di una API tramite il metodo di utilità
+        this.getAPI();
+
+        // Creazione di un allegato di tipo SPECIFICA
+        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
+        allegatoCreate.setContentType("application/yaml");
+        allegatoCreate.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        allegatoCreate.setFilename("openapi.yaml");
+        allegatoCreate.setTipologia(TipologiaAllegatoEnum.SPECIFICA);
+        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
+
+        List<AllegatoItemCreate> allegati = new ArrayList<>();
+        allegati.add(allegatoCreate);
+        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
+        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
+
+        // Invocazione del metodo downloadSpecificaAPI
+        ResponseEntity<Resource> response = apiController.downloadSpecificaAPI(idApi, AmbienteEnum.COLLAUDO, "1", true, true);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
 
     @Test
     void testDownloadSpecificaAPISuccessNoAllegato() {
@@ -1626,6 +1652,47 @@ public class APITest {
         assertNotNull(response.getBody());
         assertEquals("API_Modificata", response.getBody().getNome());
         assertEquals(2, response.getBody().getVersione().intValue());
+    }
+    
+    @Test
+    void testUpdateApiDatiCustomErrore() {
+        // Creazione del servizio e API tramite metodo di utilità
+        Servizio servizio = this.getServizio();
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setIdServizio(servizio.getIdServizio());
+        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
+        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
+
+        UUID idApi = responseApi.getBody().getIdApi();
+
+        // Creazione dell'update API
+        ApiUpdate apiUpdate = new ApiUpdate();
+
+        IdentificativoApiUpdate identificativo = new IdentificativoApiUpdate();
+        identificativo.setNome("API_Modificata");
+        identificativo.setVersione(2);
+        identificativo.setRuolo(RuoloAPIEnum.ADERENTE);
+
+        apiUpdate.setIdentificativo(identificativo);
+
+        DatiGenericiApiUpdate datiGenerici = new DatiGenericiApiUpdate();
+        datiGenerici.setDescrizione("Nuova descrizione");
+
+        apiUpdate.setDatiGenerici(datiGenerici);
+        
+        DatiCustomUpdate datiCustom = new DatiCustomUpdate();
+        List<ProprietaCustom> listProprietaCustom = new ArrayList<ProprietaCustom>();
+        ProprietaCustom proprietaCustom = new ProprietaCustom();
+        proprietaCustom.setGruppo("nonesiste");
+        listProprietaCustom.add(proprietaCustom);
+        datiCustom.setProprietaCustom(listProprietaCustom);
+        
+        apiUpdate.setDatiCustom(datiCustom);
+        
+        assertThrows(BadRequestException.class, () -> {
+        	apiController.updateApi(idApi, apiUpdate);
+        });
+
     }
     
     @Test

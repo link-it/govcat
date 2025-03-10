@@ -403,6 +403,37 @@ public class NotificheTest {
     }
   
     @Test
+    public void testListNotificheErrore() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+    	
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+    	
+        String q = null;
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.COMUNICAZIONE;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
+        UUID idEntitaNotifica = null;
+        String idMittente = null;
+        UUID idServizio = servizio.getIdServizio();
+        UUID idAdesione = null;
+        int page = 0;
+        int size = 10;
+        List<String> sort = List.of("--");
+
+        assertThrows(Exception.class, () -> {
+        	notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort);
+        });
+    }
+    
+    @Test
     public void testUpdateNotificaSuccess() {
     	// Creo il dominio
     	Dominio dominio = this.getDominio(null);
@@ -525,5 +556,101 @@ public class NotificheTest {
         notificheController.getNotifica(idNotifica));
 
         assertEquals("Notifica[" + idNotifica + "] non trovata", exception.getMessage());
+    }
+    
+    @Test
+    public void testGetSpecificationIdMittenteErrore() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+    	
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+    	
+        String q = null;
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.COMUNICAZIONE;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
+        UUID idEntitaNotifica = null;
+        String idMittente = UUID.randomUUID().toString();
+        UUID idServizio = servizio.getIdServizio();
+        UUID idAdesione = null;
+        int page = 0;
+        int size = 10;
+        List<String> sort = List.of("data,desc");
+
+        
+        assertThrows(NotFoundException.class, () -> 
+        	notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort)
+        );
+    }
+    
+    @Test
+    public void testGetSpecificationIdServizioErrore() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+    	
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+    	
+        String q = null;
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.COMUNICAZIONE;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
+        UUID idEntitaNotifica = null;
+        String idMittente = null;
+        UUID idServizio = UUID.randomUUID();
+        UUID idAdesione = null;
+        int page = 0;
+        int size = 10;
+        List<String> sort = List.of("data,desc");
+
+        
+        assertThrows(NotFoundException.class, () -> 
+        	notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort)
+        );
+    }
+    
+    @Test
+    public void testGetSpecificationIdAdesioneErrore() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+    	
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+    	
+        String q = null;
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.COMUNICAZIONE;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
+        UUID idEntitaNotifica = null;
+        String idMittente = null;
+        UUID idServizio = servizio.getIdServizio();
+        UUID idAdesione = UUID.randomUUID();
+        int page = 0;
+        int size = 10;
+        List<String> sort = List.of("data,desc");
+
+        
+        assertThrows(NotFoundException.class, () -> 
+        	notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort)
+        );
     }
 }

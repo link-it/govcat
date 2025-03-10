@@ -51,6 +51,9 @@ import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
+import org.govway.catalogo.servlets.model.Soggetto;
+import org.govway.catalogo.servlets.model.SoggettoCreate;
+import org.govway.catalogo.servlets.model.SoggettoUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -289,6 +292,42 @@ public class OrganizzazioniTest {
     }
     
     @Test
+    public void testDeleteOrganizzazioneSoggettoNotNull() {
+    	OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
+        organizzazioneCreate.setNome(NOME_ORGANIZZAZIONE);
+        organizzazioneCreate.setDescrizione(DESCRIZIONE);
+        organizzazioneCreate.setCodiceEnte(CODICE_ENTE);
+    	
+        ResponseEntity<Organizzazione> createResponse = controller.createOrganizzazione(organizzazioneCreate);
+        assertEquals(HttpStatus.OK, createResponse.getStatusCode());
+        Organizzazione organizzazione = createResponse.getBody();
+        
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("nomeSoggetto");
+        soggettoCreate.setSkipCollaudo(true);
+        soggettoCreate.setIdOrganizzazione(organizzazione.getIdOrganizzazione());
+        ResponseEntity<Soggetto> soggettoResponse = soggettiController.createSoggetto(soggettoCreate);
+        //UUID idSoggetto = soggettoResponse.getBody().getIdSoggetto();
+        
+        /*
+        SoggettoUpdate soggettoUpdate = new SoggettoUpdate();
+        soggettoUpdate.setNome("Nome Aggiornato");
+        soggettoUpdate.setIdOrganizzazione(organizzazione.getIdOrganizzazione());
+        soggettoUpdate.setIdOrganizzazione(organizzazione.getIdOrganizzazione());
+        soggettoUpdate.setNome(UTENTE_GESTORE);
+        
+        soggettiController.updateSoggetto(idSoggetto, soggettoUpdate);
+        assertNotNull(organizzazione);
+        */
+        
+        UUID id = organizzazione.getIdOrganizzazione();
+
+        assertThrows(BadRequestException.class, () -> {
+        	controller.deleteOrganizzazione(id);
+        });
+    }
+    
+    @Test
     public void testDeleteOrganizzazioneUtenteAnonimo() {
         ResponseEntity<Organizzazione> createResponse = this.getResponse();
         assertEquals(HttpStatus.OK, createResponse.getStatusCode());
@@ -319,6 +358,13 @@ public class OrganizzazioniTest {
         assertEquals(REFERENTE, organizzazione.isReferente());
         assertEquals(ADERENTE, organizzazione.isAderente());
         assertEquals(ESTERNA, organizzazione.isEsterna());
+    }
+    
+    @Test
+    public void testGetOrganizzazioneErrore() {
+        assertThrows(NotFoundException.class, () -> {
+        	controller.getOrganizzazione(UUID.randomUUID());
+        });
     }
 
     @Test
@@ -353,6 +399,26 @@ public class OrganizzazioniTest {
         assertEquals(true, organizzazioneAggiornata.isAderente());
         assertEquals(false, organizzazioneAggiornata.isEsterna());
     }
+    
+    @Test
+    public void testUpdateOrganizzazioneErrore() {
+        
+        UUID id = UUID.randomUUID();
+
+        OrganizzazioneUpdate organizzazioneUpdate = new OrganizzazioneUpdate();
+        organizzazioneUpdate.setNome("Nome Organizzazione Aggiornato");
+        organizzazioneUpdate.setDescrizione("Descrizione Aggiornata");
+        organizzazioneUpdate.setCodiceEnte("NuovoCodiceEnte");
+        organizzazioneUpdate.setCodiceFiscaleSoggetto("NuovoCodiceFiscaleSoggetto");
+        organizzazioneUpdate.setIdTipoUtente("NuovoTipoUtente");
+        organizzazioneUpdate.setReferente(false);
+        organizzazioneUpdate.setAderente(true);
+        organizzazioneUpdate.setEsterna(false);
+        
+        assertThrows(NotFoundException.class, () -> {
+        	controller.updateOrganizzazione(id, organizzazioneUpdate);
+        });
+     }
 
     @Test
     public void testListOrganizzazioniSuccess() {

@@ -25,28 +25,52 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
+import org.govway.catalogo.controllers.DominiController;
+import org.govway.catalogo.controllers.GruppiController;
+import org.govway.catalogo.controllers.OrganizzazioniController;
+import org.govway.catalogo.controllers.ServiziController;
+import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.TassonomieController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.Categoria;
 import org.govway.catalogo.servlets.model.CategoriaCreate;
 import org.govway.catalogo.servlets.model.CategoriaUpdate;
+import org.govway.catalogo.servlets.model.CategorieCreate;
+import org.govway.catalogo.servlets.model.Dominio;
+import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.Gruppo;
+import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ListItemCategoria;
+import org.govway.catalogo.servlets.model.Organizzazione;
+import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
 import org.govway.catalogo.servlets.model.PagedModelItemTassonomia;
+import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
+import org.govway.catalogo.servlets.model.Servizio;
+import org.govway.catalogo.servlets.model.ServizioCreate;
+import org.govway.catalogo.servlets.model.ServizioUpdate;
+import org.govway.catalogo.servlets.model.SoggettoCreate;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.Tassonomia;
 import org.govway.catalogo.servlets.model.TassonomiaCreate;
 import org.govway.catalogo.servlets.model.TassonomiaUpdate;
+import org.govway.catalogo.servlets.model.TipoReferenteEnum;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -197,6 +221,136 @@ public class TassonomieTest {
         });
         assertEquals("Categoria [" + idCategoriaNonEsistente + "] non trovata", exception.getMessage());
     }
+    
+    @Test
+    public void testDeleteCategoriaErrore() {
+        TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+        assertEquals(HttpStatus.OK, responseTassonomia.getStatusCode());
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+        CategoriaCreate categoriaCreate = new CategoriaCreate();
+        categoriaCreate.setNome("xyz");
+        categoriaCreate.setDescrizione("descrizione xyz");
+        ResponseEntity<Categoria> categoria = controller.createTassonomiaCategoria(idTassonomia, categoriaCreate);
+
+        UUID idCategoria = categoria.getBody().getIdCategoria();
+        UUID idTassonomia2 = UUID.randomUUID();
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            controller.deleteCategoria(idTassonomia2, idCategoria);
+        });
+        assertEquals("Categoria [" + idCategoria + "] non trovata per la tassonomia ["+idTassonomia2+"]", exception.getMessage());
+    }
+    
+    @Autowired
+    ServiziController serviziController;
+    @Autowired
+    SoggettiController soggettiController;
+    @Autowired
+    OrganizzazioniController organizzazioniController;
+    @Autowired
+    GruppiController gruppiController;
+    @Autowired
+    DominiController dominiController;
+    @Autowired
+    UtentiController utentiController;
+    
+    @Test
+    public void testDeleteCategoriaErrore2() {
+        TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
+        ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
+        assertEquals(HttpStatus.OK, responseTassonomia.getStatusCode());
+
+        UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
+        CategoriaCreate categoriaCreate = new CategoriaCreate();
+        categoriaCreate.setNome("xyz");
+        categoriaCreate.setDescrizione("descrizione xyz");
+        ResponseEntity<Categoria> categoria = controller.createTassonomiaCategoria(idTassonomia, categoriaCreate);
+
+        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+        organizzazione.setEsterna(false);
+
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("nome_soggetto");
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setAderente(true);
+        soggettoCreate.setReferente(true);
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        UUID idSoggetto = createdSoggetto.getBody().getIdSoggetto();
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        gruppoCreate.setNome("gruppo");
+        ResponseEntity<Gruppo> responseGruppo = gruppiController.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
+
+        DominioCreate dominio = CommonUtils.getDominioCreate();
+        dominio.setNome("Test");
+
+        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+        
+        UtenteUpdate upUtente = new UtenteUpdate();
+        upUtente.setUsername("utente_referente__dominio");
+        upUtente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("referente");
+        upUtente.setCognome("dominio");
+        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+
+        utentiController.updateUtente("utente_referente__dominio", upUtente);
+        
+        //creo il referente dominio
+        ReferenteCreate ref = new ReferenteCreate();
+        ref.setIdUtente("utente_referente__dominio");
+        ref.setTipo(TipoReferenteEnum.REFERENTE);
+        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+      
+        ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+   	 
+        servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+        servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
+
+        
+        List<ReferenteCreate> referenti = new ArrayList<>();
+        
+        ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente("utente_referente__servizio");
+        referenti.add(referente);
+        
+        referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente("utente_referente__dominio");
+        referenti.add(referente);
+        
+        servizioCreate.setReferenti(referenti);
+
+        ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+        
+        ServizioUpdate upServizio = new ServizioUpdate();
+        upServizio.setDatiGenerici(null);
+        upServizio.setIdentificativo(null);
+        
+        Servizio servizio = createdServizio.getBody();
+        
+        
+        CategorieCreate categorieCreate = new CategorieCreate();
+        List<UUID> categorie = new ArrayList<UUID>();
+        UUID idCategoria = categoria.getBody().getIdCategoria();
+        categorie.add(idCategoria);
+        categorieCreate.setCategorie(categorie);
+        serviziController.addCategorieServizio(servizio.getIdServizio(), categorieCreate);
+        
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            controller.deleteCategoria(idTassonomia, idCategoria);
+        });
+        assertEquals("Categoria [" + categoria.getBody().getNome() + "] non eliminabile in quanto associata a [1] servizi", exception.getMessage());
+    }
 
     @Test
     public void testGetTassonomiaSuccess() {
@@ -293,7 +447,16 @@ public class TassonomieTest {
         assertNotNull(responseList.getBody());
         assertEquals(10, responseList.getBody().getContent().size()); // Prima pagina, 10 elementi
     }
+    
+    /*
+    @Test
+    void testListTassonomieErrore() {
 
+        ResponseEntity<PagedModelItemTassonomia> responseList = controller.listTassonomie(UUID.randomUUID(), null, 0, 10, null);
+
+    }
+     */
+    
     @Test
     void testListCategorieSuccessNoFilters() {
         // Creazione di una tassonomia e alcune categorie
@@ -368,7 +531,21 @@ public class TassonomieTest {
         assertNotNull(responseList.getBody());
         assertEquals(0, responseList.getBody().getContent().size());
     }
+    
+    /*
+    @Test
+    void testListCategorieErrore() {
 
+        // Chiamata alla lista delle categorie con filtro che non corrisponde a nessuna categoria
+        ResponseEntity<ListItemCategoria> responseList = controller.listCategorie(UUID.randomUUID(), "");
+
+        // Verifica che non ci siano categorie nella lista
+        assertEquals(HttpStatus.OK, responseList.getStatusCode());
+        assertNotNull(responseList.getBody());
+        assertEquals(0, responseList.getBody().getContent().size());
+    }
+	*/
+    
     @Test
     void testUpdateCategoriaSuccess() {
         // Creazione di una tassonomia e di una categoria

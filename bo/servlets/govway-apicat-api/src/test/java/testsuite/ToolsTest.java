@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import javax.wsdl.WSDLException;
 
@@ -204,6 +205,40 @@ public class ToolsTest {
         ResponseEntity<List<String>> response = toolsController.listaRisorseApi(richiesta);
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
+    }
+    
+    @Test
+    public void testListaRisorseApi_TipoApiRisorsaEnumUUID() {
+    	//DocumentoApiInline documento = new DocumentoApiInline();
+    	DocumentoApiRef documento = new DocumentoApiRef();
+    	documento.setUuid(UUID.randomUUID().toString());
+        //documento.setContentType("application/yaml");
+        //documento.setDocument(Base64.getEncoder().encodeToString(CommonUtils.openApiSpec.getBytes()));
+        documento.setType(TipoApiRisorsaEnum.UUID);
+
+        ListaRisorseApiRichiesta richiesta = new ListaRisorseApiRichiesta();
+        richiesta.setDocument(documento);
+        richiesta.setApiType(ProtocolloEnum.REST);
+        
+        assertThrows(Exception.class, () -> 
+        	toolsController.listaRisorseApi(richiesta)
+        );
+    }
+    
+    @Test
+    public void testListaRisorseApi_REST_Errore() {
+    	DocumentoApiInline documento = new DocumentoApiInline();
+        documento.setContentType("application/yaml");
+        documento.setDocument(Base64.getEncoder().encodeToString("++++++".getBytes()));
+        documento.setType(TipoApiRisorsaEnum.INLINE);
+
+        ListaRisorseApiRichiesta richiesta = new ListaRisorseApiRichiesta();
+        richiesta.setDocument(documento);
+        richiesta.setApiType(ProtocolloEnum.REST);
+
+        assertThrows(Exception.class, () -> 
+    		toolsController.listaRisorseApi(richiesta)
+        );
     }
     
     @Test

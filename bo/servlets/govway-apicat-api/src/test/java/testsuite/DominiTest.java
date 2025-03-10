@@ -804,7 +804,51 @@ public class DominiTest {
         // Asserzioni
         assertEquals("createReferenteDominio.arg1.tipo: must not be null", exception.getMessage());
     }
+    
+    /*
+    @Autowired
+    DominiController dominiController;
+    
+    @Test
+    void testCreateReferenteDominioAdminFalse() {
+        // Dipendenza
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
 
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        // Creazione del dominio
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
+        assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
+
+        
+        //creo il referente dominio
+        ReferenteCreate ref = new ReferenteCreate();
+        ref.setIdUtente("utente_referente__dominio");
+        ref.setTipo(TipoReferenteEnum.REFERENTE);
+        //dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+      
+        CommonUtils.getSessionUtente("utente_referente__dominio", securityContext, authentication, utenteService);
+        
+        ResponseEntity<Referente> createdReferente = controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+
+        
+        // Asserzioni
+        assertEquals(HttpStatus.OK, createdReferente.getStatusCode());
+        //assertEquals(referenteCreate.getIdUtente(), createdReferente.getBody().getUtente().getIdUtente());
+    }
+     */
+    
     @Test
     void testDeleteReferenteDominioSuccess() {
         // Dipendenza
