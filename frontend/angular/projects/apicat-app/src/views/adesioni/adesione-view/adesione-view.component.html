@@ -143,10 +143,10 @@
                                     <div class="d-flex flex-row">
                                       <table class="table" aria-label="Tabella">
                                         <tbody>
-											<tr>
-    											<th scope="col">&nbsp;</th>
-    											<th scope="col">&nbsp;</th>
-  											</tr>
+                                          <tr class="d-none">
+                                            <th scope="col">&nbsp;</th>
+                                            <th scope="col">&nbsp;</th>
+                                          </tr>
                                           <tr *ngIf="mode.canDownloadAuthCertificate">
                                             <td>{{'APP.CLIENT.LABEL.AuthenticationCertificate' | translate}}</td>
                                             <td>
@@ -227,10 +227,10 @@
                                   <div class="d-flex flex-row">
                                     <table class="table" aria-label="Tabella">
                                       <tbody>
-										  <tr>
-    											<th scope="col">&nbsp;</th>
-    											<th scope="col">&nbsp;</th>
-  											</tr>
+                                        <tr class="d-none">
+                                          <th scope="col">&nbsp;</th>
+                                          <th scope="col">&nbsp;</th>
+                                        </tr>
                                         <tr>
                                           <td>{{'APP.LABEL.Url' | translate}}</td>
                                           <td>{{api.url}}</td>
