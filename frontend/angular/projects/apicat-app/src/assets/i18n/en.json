@@ -1756,6 +1756,7 @@
 				"Nome": "Name",
 				"Note": "Note",
 				"Phone": "Phone",
+				"Principal": "Principal",
 				"Role": "Role",
 				"Status": "State",
 				"UserClasses": "User Classes",

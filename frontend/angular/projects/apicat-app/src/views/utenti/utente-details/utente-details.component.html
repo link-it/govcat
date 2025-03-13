@@ -108,23 +108,23 @@
               </div>
             </div>
 
-            <div class="row username organizzazione">
+            <div class="row principal organizzazione">
 
               <div class="col-6">
                 <div class="form-group">
-                  <label class="label-bold" for="username">{{ 'APP.CLIENT.LABEL.Username' | translate }}
-                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'username'" *ngIf="_isEdit"></span>
+                  <label class="label-bold" for="principal">{{ 'APP.USERS.LABEL.Principal' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'principal'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('username')" type="text" name="username" id="username" formControlName="username">
-                    <p *ngIf="f['username'].invalid && (f['username'].dirty || f['username'].touched)" class="form-text text-danger">
-                      <span *ngIf="f['username'].errors && f['username'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      <span *ngIf="f['username'].errors && f['username'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['username'].errors['maxlength'].requiredLength } }}</span>
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" type="text" name="principal" id="principal" formControlName="principal">
+                    <p *ngIf="f['principal'].invalid && (f['principal'].dirty || f['principal'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['principal'].errors && f['principal'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['principal'].errors && f['principal'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['principal'].errors['maxlength'].requiredLength } }}</span>
                     </p>
-                    <ui-input-help field="username" context="USERS"></ui-input-help>
+                    <ui-input-help field="principal" context="USERS"></ui-input-help>
                   </div>
                   <div class="" *ngIf="!_isEdit">
-                    <input type="text" readonly class="form-control-plaintext" id="username" [value]="utente.username || '--'">
+                    <input type="text" readonly class="form-control-plaintext" id="principal" [value]="utente.principal || '--'">
                   </div>
                 </div>
               </div>

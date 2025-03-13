@@ -1,6 +1,6 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -74,7 +74,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _isEdit = false;
   _closeEdit = true;
   _isNew = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _adesione: Adesione = new Adesione({});
   _adesioneCreate: AdesioneCreate = new AdesioneCreate({});
   _adesioneUpdate: AdesioneUpdate = new AdesioneUpdate({});
@@ -373,71 +373,58 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         let value = '';
         switch (key) {
           case 'id_servizio':
-          // case 'organizzazione':
             value = data[key] ? data[key] : null;
-            if(this._isWeb) {
-              _group[key] = new UntypedFormControl({ value: value, disabled: true }, [Validators.required]);
+            if (this._isWeb) {
+              _group[key] = new FormControl({ value: value, disabled: true }, [Validators.required]);
             } else {
-              _group[key] = new UntypedFormControl(value, [Validators.required]);
+              _group[key] = new FormControl(value, [Validators.required]);
             }
             break;
-          // case 'id_soggetto':
           case 'referente_tecnico':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, []);
+            _group[key] = new FormControl(value, []);
             break;
           case 'referente':
-            if(this._isNew) {
-              const _referente_obbligatorio = this.generalConfig?.adesione.referente_obbligatorio || false;
-              value = data[key] ? data[key] : null;
-              _group[key] = new UntypedFormControl({ value: this._id_servizio, disabled: true }, _referente_obbligatorio ? [Validators.required] : []);
-            } else {
-              value = data[key] ? data[key] : null;
-              _group[key] = new UntypedFormControl(value, []);
-            }
+            value = data[key] ? data[key] : null;
+            const _referente_obbligatorio = this.generalConfig?.adesione.referente_obbligatorio || false;
+            _group[key] = new FormControl(value, (this._isNew &&_referente_obbligatorio) ? [Validators.required] : []);
             break;
           case 'servizio_nome':
           case 'soggetto_nome':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl({ value: value, disabled: true }, []);
+            _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
           case 'id_organizzazione':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl({ value: value, disabled: !!value }, [Validators.required]);
-            // if(this._id_servizio) {
-            //   _group[key] = new UntypedFormControl({ value: value }, [Validators.required]);
-            // } else {
-            //   _group[key] = new UntypedFormControl({ value: value, disabled: true }, [Validators.required]);
-            // }
+            _group[key] = new FormControl({ value: value, disabled: !!value }, [Validators.required]);
             break;
           case 'data_creazione':
           case 'data_ultimo_aggiornamento':
             const _now = moment().format('DD-MM-YYYY HH:mm:ss');
             value = data[key] ? moment(data[key]).format('DD-MM-YYYY HH:mm:ss') : _now;
-            _group[key] = new UntypedFormControl({ value: value, disabled: true }, []);
+            _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
           case 'id_logico':
             // if (this.generalConfig?.servizio.adesioni_multiple == true) {
             //   value = data[key] ? data[key] : null;
-            //   _group[key] = new UntypedFormControl(value, [Validators.required]);
+            //   _group[key] = new FormControl(value, [Validators.required]);
             // } else {
               value = data[key] ? data[key] : null;
-              _group[key] = new UntypedFormControl(value, []);
+              _group[key] = new FormControl(value, []);
             // }
             break;
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
-            // _group[key] = new UntypedFormControl({ value: value, disabled: true }, [Validators.required]);
-            _group[key] = new UntypedFormControl(value, [Validators.required]);
+            _group[key] = new FormControl(value, [Validators.required]);
             break;
           default:
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, []);
+            _group[key] = new FormControl(value, []);
             break;
         }
       });
 
-      this._formGroup = new UntypedFormGroup(_group);
+      this._formGroup = new FormGroup(_group);
 
       this.updateIdLogico(this._servizio);
 
@@ -459,7 +446,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   _prepareBodySaveAdesione(body: any) {
     if (this._isWeb) {
-      body.id_servizio = this._id_servizio
+      body.id_servizio = this._id_servizio;
     }
 
     const _newBody: any = {
@@ -471,11 +458,11 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     _newBody.referenti = [];
 
     if (body.referente) {
-      _newBody.referenti.push({ id_utente: body.referente, tipo: 'referente' })
+      _newBody.referenti.push({ id_utente: body.referente, tipo: 'referente' });
     }
 
     if (body.referente_tecnico) {
-      _newBody.referenti.push({ id_utente: body.referente_tecnico, tipo: 'referente_tecnico' })
+      _newBody.referenti.push({ id_utente: body.referente_tecnico, tipo: 'referente_tecnico' });
     }
 
     _newBody.referenti.length > 0 ? null : _newBody.referenti = null;
@@ -496,10 +483,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     };
 
     if(this._id_servizio){
-      _newBody.identificativo.id_servizio = this._id_servizio
+      _newBody.identificativo.id_servizio = this._id_servizio;
     }
 
-    this._removeNullProperties(_newBody.identificativo) 
+    this._removeNullProperties(_newBody.identificativo);
     return _newBody;
   }
 
@@ -511,8 +498,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._error = false;
     
     const _body = this._prepareBodySaveAdesione(body);
-    console.log('POST: ', _body)
+    console.log('__onSave body', body);
+    console.log('__onSave _body', _body);
     
+    return;
     this._spin = true;
 
     this.apiService.saveElement(this.model, _body).subscribe(
@@ -545,7 +534,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._error = false;
     
     const _body = this._prepareBodyUpdateAdesione(body);
-    console.log('PUT: ', _body)
 
     this._spin = true;
     if (_body) {
@@ -624,7 +612,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           throwError(resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -647,7 +634,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           throwError(resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -664,7 +650,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           throwError(resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -681,7 +666,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           throwError(resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -704,8 +688,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           } else {
             const _items = resp.content.map((item: any) => {
               item.nome_completo = `${item.nome} ${item.cognome}`;
-              // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
-              return item;
+                return item;
             });
             return _items;
           }
@@ -747,17 +730,17 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
               this._adesione = new Adesione({ ...response });
               
-              this._adesione.servizio = response.servizio.servizio
-              this._adesione.id_servizio = response.servizio.id_servizio
-              this._adesione.servizio_nome = response.servizio.nome
+              this._adesione.servizio = response.servizio.servizio;
+              this._adesione.id_servizio = response.servizio.id_servizio;
+              this._adesione.servizio_nome = response.servizio.nome;
               
-              this._adesione.soggetto = response.soggetto.soggetto
-              this._adesione.id_soggetto = response.soggetto.id_soggetto
-              this._adesione.soggetto_nome = response.soggetto.nome
+              this._adesione.soggetto = response.soggetto.soggetto;
+              this._adesione.id_soggetto = response.soggetto.id_soggetto;
+              this._adesione.soggetto_nome = response.soggetto.nome;
 
-              this._adesione.organizzazione = response.soggetto.organizzazione
-              this._adesione.id_organizzazione = response.soggetto.organizzazione.id_organizzazione
-              this._adesione.organizzazione_nome = response.soggetto.organizzazione.nome
+              this._adesione.organizzazione = response.soggetto.organizzazione;
+              this._adesione.id_organizzazione = response.soggetto.organizzazione.id_organizzazione;
+              this._adesione.organizzazione_nome = response.soggetto.organizzazione.nome;
 
               this._initForm({ ...this._adesione });
 
@@ -873,7 +856,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         tap(() => this.serviziLoading = true),
         switchMap((term: any) => {
           return this.getServizi(term).pipe(
-            catchError(() => of([])), // empty list on error
+            catchError(() => of([])),
             tap(() => this.serviziLoading = false)
           )
         })
@@ -893,7 +876,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         tap(() => this.soggettiLoading = true),
         switchMap((term: any) => {
           return this.getSoggetti(term).pipe(
-            catchError(() => of([])), // empty list on error
+            catchError(() => of([])),
             tap(() => this.soggettiLoading = false)
           )
         })
@@ -913,7 +896,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         tap(() => this.organizzazioniLoading = true),
         switchMap((term: any) => {
           return this.getOrganizzazioni(term).pipe(
-            catchError(() => of([])), // empty list on error
+            catchError(() => of([])),
             tap(() => this.organizzazioniLoading = false)
           )
         })
@@ -934,7 +917,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
           return this.getUtenti(term, this._formGroup.controls.id_organizzazione.value).pipe(
-            catchError(() => of([])), // empty list on error
+            catchError(() => of([])),
             tap(() => this.referentiLoading = false)
           )
         })
@@ -954,7 +937,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         tap(() => this.referentiTecniciLoading = true),
         switchMap((term: any) => {
           return this.getUtenti(term, null, 'abilitato', true).pipe(
-            catchError(() => of([])), // empty list on error
+            catchError(() => of([])),
             tap(() => this.referentiTecniciLoading = false)
           )
         })
@@ -997,22 +980,19 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     
     this._isBozza = (this.adesione.stato == 'bozza');
 
-    this._adesioneUpdate.id_logico = this.adesione.id_logico
-    this._adesioneUpdate.stato = this.adesione.stato
-    this._adesioneUpdate.servizio = this.adesione.servizio
-    this._adesioneUpdate.organizzazione = this.adesione.soggetto.organizzazione
-    this._adesioneUpdate.soggetto = this.adesione.soggetto
-    this._adesioneUpdate.id_servizio = this.adesione.servizio.id_servizio
-    this._adesioneUpdate.id_organizzazione = this.adesione.soggetto.organizzazione.id_organizzazione
-    this._adesioneUpdate.id_soggetto = this.adesione.soggetto.id_soggetto
+    this._adesioneUpdate.id_logico = this.adesione.id_logico;
+    this._adesioneUpdate.stato = this.adesione.stato;
+    this._adesioneUpdate.servizio = this.adesione.servizio;
+    this._adesioneUpdate.organizzazione = this.adesione.soggetto.organizzazione;
+    this._adesioneUpdate.soggetto = this.adesione.soggetto;
+    this._adesioneUpdate.id_servizio = this.adesione.servizio.id_servizio;
+    this._adesioneUpdate.id_organizzazione = this.adesione.soggetto.organizzazione.id_organizzazione;
+    this._adesioneUpdate.id_soggetto = this.adesione.soggetto.id_soggetto;
 
     this._initForm({ ...this._adesioneUpdate });
     this._initServiziSelect([this._adesioneUpdate.servizio]);
     this._initSoggettiSelect([this._adesioneUpdate.soggetto]);
     this._initOrganizzazioniSelect([this._adesioneUpdate.organizzazione]);
-    
-    // this._initReferentiSelect([]);
-    // this._initReferentiTecniciSelect([]);
 
     this._isEdit = true;
     this._error = false;
@@ -1197,8 +1177,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         this.adesione = response; // new Service({ ...response });
         this._adesione = new Adesione({ ...response });
         
-        this._adesione.servizio_nome = response.servizio.nome
-        this._adesione.soggetto_nome = response.soggetto.nome
+        this._adesione.servizio_nome = response.servizio.nome;
+        this._adesione.soggetto_nome = response.soggetto.nome;
 
         this._changingStatus = false;
         const _status: string = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione.stato);

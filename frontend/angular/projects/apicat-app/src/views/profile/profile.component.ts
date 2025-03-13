@@ -175,7 +175,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
 
   initForm() {
     this.formGroup = this.fb.group({
-        username: [{value: '', disabled: true}, [Validators.required]],
+        principal: [{value: '', disabled: true}, [Validators.required]],
         nome: ['', [Validators.required]],
         cognome: ['', [Validators.required]],
         telefono: ['', []],
