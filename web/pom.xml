@@ -171,6 +171,11 @@
 
 	<build>
 		<finalName>${web.warName}</finalName>
+		
+		<filters>
+			<filter>${filter-file}</filter>
+		</filters>
+		
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
