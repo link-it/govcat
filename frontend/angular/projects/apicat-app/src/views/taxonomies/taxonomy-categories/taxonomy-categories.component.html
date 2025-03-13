@@ -19,7 +19,7 @@
     <div class="nav-controls align-self-center d-flex">
       <div role="group" class="" *ngIf="!_spin">
         <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddCategory' | translate }}</span>
+          <em class="bi bi-plus-lg"></em><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddCategory' | translate }}</span>
         </button>
       </div>
     </div>
@@ -44,6 +44,7 @@
           <div form-search>
             <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
               <fieldset>
+				 <legend>&nbsp;</legend> 
                 <div class="row">
                 </div>
                 <button type="submit" class="d-none">hidden submit</button>
@@ -100,7 +101,7 @@
           <span *ngIf="_currentCategory">{{ 'APP.TITLE.To' | translate }} "{{ _currentCategory.nome }}"</span>
         </h5>
         <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary pull-right p-0-" aria-label="Close" (click)="closeModal()">
-          <i class="bi bi-x-lg"></i>
+          <em class="bi bi-x-lg"></em>
         </button>
       </div>
       <div class="modal-body">

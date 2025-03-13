@@ -25,8 +25,8 @@
     <div class="nav-control align-self-center d-flex">
       <div role="group" class="btn-group-">
         <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();">
-          <i class="bi bi-funnel-fill" *ngIf="_showFilter"></i>
-          <i class="bi bi-funnel" *ngIf="!_showFilter"></i>
+          <em class="bi bi-funnel-fill" *ngIf="_showFilter"></em>
+          <em class="bi bi-funnel" *ngIf="!_showFilter"></em>
         </button>
       </div>
     </div>
@@ -340,7 +340,7 @@
                   <div class="p-4 m-4 bg-lightest" *ngIf="!_pdndType.value?.view">
                     <pre>{{ jwk | json }}</pre>
                     <button (click)="download(jwk)" aria-label="Download" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Download' | translate" container="body">
-                      <i class="bi bi-download"></i>
+                      <em class="bi bi-download"></em>
                     </button>
                   </div>
 

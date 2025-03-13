@@ -14,12 +14,12 @@
                                 </div>
                                 <div class="" *ngIf="!_isEdit && !_spin && editable">
                                     <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Edit' | translate"  [placement]="'left'" [container]="'body'" (click)="_onEdit()">
-                                        <i class="bi bi-pencil"></i>
+                                        <em class="bi bi-pencil"></em>
                                     </button>
                                 </div>
                                 <div class="" *ngIf="_isEdit && !_spin && editable">
                                     <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [placement]="'left'" [container]="'body'" (click)="_onCancelEdit()">
-                                        <i class="bi bi-x-lg"></i>
+                                        <em class="bi bi-x-lg"></em>
                                     </button>
                                 </div>
                             </div>
@@ -66,7 +66,7 @@
                                                     <div class="d-flex align-items-center gap-2">
                                                         <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="(cfg().controls[cp.nome].value?.filename) || '-'">
                                                         <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" (click)="_downloadFile(cp)" *ngIf="cfg().controls[cp.nome].value">
-                                                            <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                            <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                         </button>
                                                     </div>
                                                 </ng-container>

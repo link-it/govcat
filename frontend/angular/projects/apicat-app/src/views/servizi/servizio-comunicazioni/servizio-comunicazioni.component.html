@@ -52,6 +52,7 @@
             <div form-search>
               <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
                 <fieldset>
+					<legend>&nbsp;</legend>
                   <div class="row">
                   </div>
                   <button type="submit" class="d-none">hidden submit</button>
@@ -107,7 +108,7 @@
                   <ng-container *ngSwitchCase="'cambio_stato'">
                     <div [id]="communication.id" class="message">
                       <div class="photo text-center type-status" [tooltip]="'APP.TOOLTIP.StatusChange' | translate">
-                        <i class="bi bi-node-plus fs-3"></i>
+                        <em class="bi bi-node-plus fs-3"></em>
                         <!-- <div class="online"></div> -->
                       </div>
                       <p class="text message-limit">
@@ -120,7 +121,7 @@
                   <ng-container *ngSwitchCase="'messaggio'">
                     <div [id]="communication.id" class="message" [class.justify-content-end]="_isMime(communication.source)">
                       <div class="photo text-center text-muted" *ngIf="!_isMime(communication.source)">
-                        <i class="bi bi-person fs-3"></i>
+                        <em class="bi bi-person fs-3"></em>
                         <!-- <div class="online"></div> -->
                       </div>
                       <div class="" [class.response]="_isMime(communication.source)">
@@ -139,14 +140,14 @@
                       <div class="d-flex flex-column align-content-between" style="width: auto;" *ngIf="_showAllegatoBoxed">
                         <div class="d-flex d-flex flex-column align-content-between py-2 px-3 text-bg-light">
                           <p class="fw-bold small">{{ _allegato.filename }}</p>
-                          <div class="d-flex flex-row"><i class="bi bi-file-earmark"></i><span class="ms-2">{{ 'file' }}</span></div>
+                          <div class="d-flex flex-row"><em class="bi bi-file-earmark"></em><span class="ms-2">{{ 'file' }}</span></div>
                         </div>
                         <div class="text-center text-bg-light mt-0 border-top border-white" (click)="__onDownload(communication.source, _allegato)">
                           <span class="btn btn-default btn-sm gl-button btn-default-tertiary rounded-0 px-3 py-2 w-100 fw-bolder">{{ 'APP.TOOLTIP.Download' | translate }}</span>
                         </div>
                       </div>
                       <button type="button" class="btn btn-md btn-default gl-button mt-2 text-bg-light" (click)="__onDownload(communication.source, _allegato)" [title]="'APP.TOOLTIP.Download' | translate" *ngIf="!_showAllegatoBoxed">
-                        <i class="bi bi-paperclip"></i>
+                        <em class="bi bi-paperclip"></em>
                         <span class="ms-2">{{ _allegato.filename }}</span>
                       </button>
                     </div>

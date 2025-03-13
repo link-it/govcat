@@ -1,6 +1,6 @@
 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
   <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="monitor_actions">
-    <i class="bi bi-three-dots-vertical"></i>
+    <em class="bi bi-three-dots-vertical"></em>
   </button>
   <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
     <div class="gl-new-dropdown-inner">
@@ -23,7 +23,7 @@
                       <li class="gl-new-dropdown-item">
                         <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(submenu);">
                           <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="submenu.icon">
-                            <i class="bi bi-{{ submenu.icon }}"></i>
+                            <em class="bi bi-{{ submenu.icon }}"></em>
                           </div>
                           <div class="gl-new-dropdown-item-text-wrapper">
                             <p class="gl-new-dropdown-item-text-primary">{{ submenu.title | translate }}</p>
@@ -42,7 +42,7 @@
                   <li class="gl-new-dropdown-item">
                     <button role="menuitem" type="button" class="dropdown-item" (click)="onAction(menu);">
                       <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="menu.icon">
-                        <i class="bi bi-{{ menu.icon }}"></i>
+                        <em class="bi bi-{{ menu.icon }}"></em>
                       </div>
                       <div class="gl-new-dropdown-item-text-wrapper">
                         <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>

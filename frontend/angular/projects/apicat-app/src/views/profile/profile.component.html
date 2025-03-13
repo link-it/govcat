@@ -63,7 +63,7 @@
                             <div class="col-lg-4">
                                 <div class="card mb-4">
                                     <div class="card-body text-center">
-                                        <img ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
+                                        <img ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)" alt="icona email">
                                         <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
                                         <h6 class="my-3" [title]="profile?.id_utente" *ngIf="false">{{ profile?.username }}</h6>
                                         <p class="text-muted mb-1">
@@ -77,23 +77,23 @@
                                     <div class="card-body p-0">
                                         <ul class="list-group list-group-flush rounded-3">
                                             <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-globe text-warning"></i>
+                                                <em class="bi bi-globe text-warning"></em>
                                                 <p class="mb-0">https://link.it</p>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-github" style="color: #333333;"></i>
+                                                <em class="bi bi-github" style="color: #333333;"></em>
                                                 <p class="mb-0">linkit</p>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-twitter" style="color: #55acee;"></i>
+                                                <em class="bi bi-twitter" style="color: #55acee;"></em>
                                                 <p class="mb-0">linkit</p>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-instagram" style="color: #ac2bac;"></i>
+                                                <em class="bi bi-instagram" style="color: #ac2bac;"></em>
                                                 <p class="mb-0">linkit</p>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-facebook" style="color: #3b5998;"></i>
+                                                <em class="bi bi-facebook" style="color: #3b5998;"></em>
                                                 <p class="mb-0">linkit</p>
                                             </li>
                                         </ul>

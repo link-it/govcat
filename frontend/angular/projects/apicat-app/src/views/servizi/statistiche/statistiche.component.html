@@ -28,14 +28,14 @@
     <div class="nav-control align-self-center d-flex">
       <div role="group" class="btn-group-">
         <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();">
-          <i class="bi bi-funnel-fill" *ngIf="_showFilter"></i>
-          <i class="bi bi-funnel" *ngIf="!_showFilter"></i>
+          <em class="bi bi-funnel-fill" *ngIf="_showFilter"></em>
+          <em class="bi bi-funnel" *ngIf="!_showFilter"></em>
         </button>
       </div>
       <div role="group" class="btn-group- ms-2">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
           <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary- dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
-            <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
+            <em class="bi bi-download"></em> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
           </button>
           <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
             <div class="gl-new-dropdown-inner">
@@ -43,7 +43,7 @@
                 <li class="gl-new-dropdown-item" *ngFor="let item of exportList">
                   <button *ngIf="tipoGrafico !== 'table' || item.action !== 'export-png'" role="menuitem" type="button" class="dropdown-item" (click)="onExport(item)">
                     <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="item.icon">
-                      <i class="bi bi-{{ item.icon }}"></i>
+                      <em class="bi bi-{{ item.icon }}"></em>
                     </div>
                     <div class="gl-new-dropdown-item-text-wrapper">
                       <p class="gl-new-dropdown-item-text-primary">{{ item.label | translate }}</p>
@@ -58,7 +58,7 @@
       <div role="group" class="btn-group- ms-1">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
           <button [disabled]="!colorSchemeChangeEnabled" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="themes">
-            <i class="bi bi-palette"></i> <span class="ms-2">{{ 'Color Scheme' }}</span>
+            <em class="bi bi-palette"></em> <span class="ms-2">{{ 'Color Scheme' }}</span>
           </button>
           <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
             <div class="gl-new-dropdown-inner">
@@ -66,7 +66,7 @@
                 <li role="presentation" class="gl-new-dropdown-item" *ngFor="let item of colorSets">
                   <button role="menuitem" type="button" class="dropdown-item" (click)="setColorScheme(item.name)">
                     <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                      <i class="bi bi-check2" *ngIf="selectedColorScheme == item.name"></i>
+                      <em class="bi bi-check2" *ngIf="selectedColorScheme == item.name"></em>
                     </div>
                     <div class="gl-new-dropdown-item-text-wrapper">
                       <p class="gl-new-dropdown-item-text-primary">{{ item.name }}</p>
@@ -186,10 +186,10 @@
                             <label class="label-bold">{{ 'APP.LABEL.ReportType' | translate }}</label>
                             <div class="text-center">
                               <div class="btn-group w-100" role="group" aria-label="Chart type">
-                                <button *ngIf="_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('line')" [class.btn-confirm]="tipoGrafico === 'line'"><i class="bi bi-graph-up"></i></button>
-                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('bar')" [class.btn-confirm]="tipoGrafico === 'bar'"><i class="bi bi-bar-chart"></i></button>
-                                <button *ngIf="!_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('pie')" [class.btn-confirm]="tipoGrafico === 'pie'"><i class="bi bi-pie-chart"></i></button>
-                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('table')" [class.btn-confirm]="tipoGrafico === 'table'"><i class="bi bi-table"></i></button>
+                                <button *ngIf="_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('line')" [class.btn-confirm]="tipoGrafico === 'line'"><em class="bi bi-graph-up"></em></button>
+                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('bar')" [class.btn-confirm]="tipoGrafico === 'bar'"><em class="bi bi-bar-chart"></em></button>
+                                <button *ngIf="!_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('pie')" [class.btn-confirm]="tipoGrafico === 'pie'"><em class="bi bi-pie-chart"></em></button>
+                                <button [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('table')" [class.btn-confirm]="tipoGrafico === 'table'"><em class="bi bi-table"></em></button>
                               </div>
                             </div>
                           </div>
@@ -518,7 +518,7 @@
 
                   <div class="mt-5 mb-5 table" *ngIf="tipoGrafico === 'table' && single.length > 0 && multi.length < 1">
                     <div class="w-100">
-                      <table class="table table-sm table-bordered table-hover">
+                      <table class="table table-sm table-bordered table-hover" aria-label="Tabella">
                         <thead class="table-light">
                           <tr>
                             <th scope="col">{{_formGroup.get('distribution_type')?.value.tableFirstColumnLabel}}</th>
@@ -537,7 +537,7 @@
 
                   <div class="mt-5 mb-5 table" *ngIf="tipoGrafico === 'table' && multi.length > 0">
                     <div class="w-100">
-                      <table class="table table-sm table-bordered table-hover">
+                      <table class="table table-sm table-bordered table-hover" aria-label="Tabella">
                         <thead class="table-light">
                           <tr>
                             <th scope="col">{{_formGroup.get('distribution_type')?.value.tableFirstColumnLabel}}</th>

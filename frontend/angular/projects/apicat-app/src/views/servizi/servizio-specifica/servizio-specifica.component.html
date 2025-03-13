@@ -30,7 +30,7 @@
     <div class="nav-controls align-self-center d-flex">
       <div role="group" class="gl-w-full btn-group-">
         <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddAttachment' | translate }}</span>
+          <em class="bi bi-plus-lg"></em><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddAttachment' | translate }}</span>
         </button>
       </div>
       </div>
@@ -55,6 +55,7 @@
           <div form-search>
             <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
               <fieldset>
+				  <legend>&nbsp;</legend>
                 <div class="row">
                 </div>
                 <button type="submit" class="d-none">hidden submit</button>
@@ -90,10 +91,10 @@
         </div>
         <div class="ms-5 me-3">
           <button aria-label="Download" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_downloadAllegato(allegato)" [disabled]="_downloading || _deleting" [tooltip]="'APP.TOOLTIP.Download' | translate">
-            <i class="bi bi-download"></i><span class="text-nowrap d-none">{{ 'APP.BUTTON.Download' | translate }}</span><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_downloading"></span>
+            <em class="bi bi-download"></em><span class="text-nowrap d-none">{{ 'APP.BUTTON.Download' | translate }}</span><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_downloading"></span>
           </button>
           <button aria-label="Remove" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="_deleteAllegato(allegato)" [disabled]="_downloading || _deleting" [tooltip]="'APP.TOOLTIP.Remove' | translate" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-            <i class="bi bi-trash text-danger"></i><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_deleting"></span>
+            <em class="bi bi-trash text-danger"></em><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_deleting"></span>
           </button>
         </div>
       </div>
@@ -108,7 +109,7 @@
       <div class="modal-header pb-2">
         <h5 class="modal-title pull-left">{{ (_isNew ? 'APP.TITLE.AddAttachmentSpecification' : 'APP.TITLE.EditAttachmentSpecification') | translate }}</h5>
         <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
-          <i class="bi bi-x-lg"></i>
+          <em class="bi bi-x-lg"></em>
         </button>
       </div>
       <div class="modal-body">

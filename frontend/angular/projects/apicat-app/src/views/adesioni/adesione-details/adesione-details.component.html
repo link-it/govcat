@@ -52,19 +52,19 @@
         <div class="btn-group me-1" *ngIf="_isNew">
           <div class="btn-group" id="actions">
             <button type="button" [tooltip]="'APP.TOOLTIP.ChangeStatus' | translate" class="btn btn-default btn-md gl-button" id="workflow_actions" disabled>
-              <i class="bi bi-node-plus"></i> <span class="ms-2">{{ 'APP.STATUS.' + _adesione.stato | translate }}</span>
+              <em class="bi bi-node-plus"></em> <span class="ms-2">{{ 'APP.STATUS.' + _adesione.stato | translate }}</span>
             </button>
           </div>
         </div>
         <div class="position-relative" *ngIf="!_isEdit && !_spin && _editable">
           <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditAdesione' | translate" (click)="_editAdesione()" [disabled]="!(_updateMapper | mapper:_canEditMapper) || adesione?.stato !== 'bozza'">
-            <i class="bi bi-pencil"></i>
+            <em class="bi bi-pencil"></em>
           </button>
         </div>
       </ng-container>
       <div class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
         <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
-          <i class="bi bi-x-lg"></i>
+          <em class="bi bi-x-lg"></em>
         </button>
       </div>
     </div>

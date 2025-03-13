@@ -44,7 +44,7 @@
         <div role="group" class="gl-w-full btn-group-">
           <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'create'"> -->
             <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-              <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
+              <em class="bi bi-plus-lg"></em><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
             </button>
           <!-- </ng-template> -->
         </div>
@@ -70,6 +70,7 @@
             <div form-search>
               <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
                 <fieldset>
+					<legend>&nbsp;</legend>
                   <div class="row">
                   </div>
                   <button type="submit" class="d-none">hidden submit</button>

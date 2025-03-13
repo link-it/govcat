@@ -25,7 +25,7 @@
             <div role="group" class="btn-group- ms-1" *ngIf="!_spin && !_isNew && _isPDND">
                 <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2" id="actions">
                     <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
-                        <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span> <i class="bi bi-chevron-down ms-2"></i>
+                        <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span> <em class="bi bi-chevron-down ms-2"></em>
                     </button>
                     <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
                         <div class="gl-new-dropdown-inner">
@@ -71,14 +71,14 @@
             </div> -->
             <div class="position-relative" *ngIf="!_isEdit && !_spin && _editable">
                 <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditApi' | translate" (click)="_editServizioApi()" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
-                    <i class="bi bi-pencil"></i>
+                    <em class="bi bi-pencil"></em>
                 </button>
             </div>
 
             <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin && _showExternalOtherActions">
                 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
                     <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
-                        <i class="bi bi-three-dots-vertical"></i>
+                        <em class="bi bi-three-dots-vertical"></em>
                     </button>
                     <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
                         <div class="gl-new-dropdown-inner">
@@ -86,7 +86,7 @@
                                 <li role="presentation" class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item" (click)="_downloadServizioApiExport()" [disabled]="!(_updateMapper | mapper:_canJoinMapper)">
                                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                                            <i class="bi bi-download"></i>
+                                            <em class="bi bi-download"></em>
                                         </div>
                                         <div class="gl-new-dropdown-item-text-wrapper">
                                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.ApiDescriptor' | translate }}</p>
@@ -99,7 +99,7 @@
                                 <li role="presentation" class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item" (click)="_confirmDelection()" [disabled]="!(_updateMapper | mapper:_canAddMapper)">
                                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                                            <i class="bi bi-trash text-danger"></i>
+                                            <em class="bi bi-trash text-danger"></em>
                                         </div>
                                         <div class="gl-new-dropdown-item-text-wrapper">
                                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.DeleteApi' | translate }}</p>
@@ -115,7 +115,7 @@
             </ng-container>
             <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
                 <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
-                    <i class="bi bi-x-lg"></i>
+                    <em class="bi bi-x-lg"></em>
                 </button>
             </div>
         </div>
@@ -389,7 +389,7 @@
                                                             </div>
                                                             <div class="col-6" *ngIf="f['authTypes'].value.length > 1 || (_customAuth || _customAuthOrig)">
                                                                 <!-- <pre class="overflow-auto" style="height: 200px;">{{ _risorseSelected | json }}</pre> -->
-                                                                <label class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'" *ngIf="_isEdit"></span> <span class="float-end" (click)="_changeResources(authIndex)" *ngIf="_isEdit && ('resources' | mapper:_canEditFieldMapper)"><i class="bi bi-pencil"></i></span></label>
+                                                                <label class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'" *ngIf="_isEdit"></span> <span class="float-end" (click)="_changeResources(authIndex)" *ngIf="_isEdit && ('resources' | mapper:_canEditFieldMapper)"><em class="bi bi-pencil"></em></span></label>
                                                                 <select class="form-select" formControlName="resources" multiple size="5" readonly>
                                                                     <option class="bg-transparent" *ngFor="let r of _geControlResourcest(authIndex)" [value]="r" disabled>{{ r }}</option>
                                                                 </select>

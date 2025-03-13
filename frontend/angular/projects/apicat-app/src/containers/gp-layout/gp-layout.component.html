@@ -41,11 +41,11 @@
                                         <a href="javascript: void(0);" class="gl-link cursor-pointer" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
                                             <span class="nav-icon-container">
                                                 <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_item)">{{ _item.icon}}</span>
-                                                <i class="bi bi-{{ _item.iconBs}}" *ngIf="sidebarNavHelper.hasIconBs(_item)"></i>
+                                                <em class="bi bi-{{ _item.iconBs}}" *ngIf="sidebarNavHelper.hasIconBs(_item)"></em>
                                             </span>
                                             <span class="nav-item-name">{{ _item.label + '' | translate }}</span>
                                             <span class="gl-badge badge badge-pill badge-info text-dark sm count" *ngIf="_item.counter && _counters[_item.counter]">{{ _counters[_item.counter] || 0 }}</span>
-                                            <span class="gl-badge text-info" *ngIf="_item.counter && _counters[_item.counter] && _sideBarCollapsed"><i class="bi bi-record-fill"></i></span>
+                                            <span class="gl-badge text-info" *ngIf="_item.counter && _counters[_item.counter] && _sideBarCollapsed"><em class="bi bi-record-fill"></em></span>
                                         </a>
                                         <ul class="sidebar-sub-level-items">
                                             <li class="fly-out-top-item" [appRouterLinkMatch]="{ 'active': _item.path + '' }">
@@ -75,7 +75,7 @@
                 </ul>
                 <context-menu #contextualMenuNav>
                     <ng-template contextMenuItem (execute)="_onContextualMenu($event)">
-                        <span class="me-2">{{ 'APP.MENU.OpenInNewWindow' | translate }}</span><i class="bi-box-arrow-up-right"></i>
+                        <span class="me-2">{{ 'APP.MENU.OpenInNewWindow' | translate }}</span><em class="bi-box-arrow-up-right"></em>
                     </ng-template>
                 </context-menu>
             </div>
@@ -97,7 +97,7 @@
                     <ul class="sidebar-top-level-items mb-0">
                         <li class="" appFlyOut>
                             <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="showInfo()">
-                                <span class="nav-icon-container" *ngIf="_showAbout || _sideBarCollapsed"><i class="bi bi-info-circle"></i></span>
+                                <span class="nav-icon-container" *ngIf="_showAbout || _sideBarCollapsed"><em class="bi bi-info-circle"></em></span>
                                 <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed">{{ 'v.' | translate }} {{ version }}</span>
                             </a>
                             <ul class="sidebar-sub-level-items">

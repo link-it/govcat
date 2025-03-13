@@ -27,7 +27,7 @@
     <div class="nav-controls align-self-center d-flex">
       <div role="group" class="btn-group">
         <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="_needRefresh ? ('APP.NOTIFICATIONS.TOOLTIP.NeedRefresh' | translate) : ''" [placement]="'top'" [container]="'body'" (click)="refresh();">
-          <i class="bi bi-arrow-clockwise"></i>
+          <em class="bi bi-arrow-clockwise"></em>
           <div class="need-refresh-indicator" *ngIf="_needRefresh"></div>
         </button>
       </div>
@@ -55,6 +55,7 @@
           <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
             <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
               <fieldset>
+				  <legend>&nbsp;</legend>
                 <div class="row mb-1">
                   <div class="col-sm-2">
                     <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
@@ -116,7 +117,7 @@
                 <div class="notification-list-item-actions d-none position-absolute top-0 bottom-0 end-0 mr-2 d-flex align-items-center">
                   <div class="action-hover">
                     <button class="btn btn-default btn-sm gl-button btn-default-tertiary- me-2" [tooltip]="('APP.NOTIFICATIONS.TOOLTIP.Archive' | translate)" [placement]="'top'" [container]="'body'" (click)="markNotification(element, notificationState.Archiviata, true)" *ngIf="element.stato !== notificationState.Archiviata">
-                      <i class="bi bi-check-lg"></i>
+                      <em class="bi bi-check-lg"></em>
                       <!-- <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Archive' | translate }}</span> -->
                     </button>
                     <button class="btn btn-default btn-sm gl-button btn-default-tertiary-" [tooltip]="_showTooltip ? ('APP.NOTIFICATIONS.TOOLTIP.MarkAsRead' | translate) : ''" [placement]="'right'" [container]="'body'" *ngIf="element.unread" (click)="markNotification(element, notificationState.Letta)">

@@ -16,18 +16,18 @@
             <div class="nav-controls align-self-center" *ngIf="!_production && _groupsView">
                 <div role="group" class="btn-group">
                     <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showImage" (click)="_showImage = !_showImage;refresh();">
-                        <i class="bi bi-image"></i><span class="ms-2 d-none d-lg-block">Show Image</span>
+                        <em class="bi bi-image"></em><span class="ms-2 d-none d-lg-block">Show Image</span>
                     </button>
                     <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showEmptyImage" (click)="_showEmptyImage = !_showEmptyImage;refresh();">
-                        <i class="bi bi-square"></i><span class="ms-2 d-none d-lg-block">Show Empty Image</span>
+                        <em class="bi bi-square"></em><span class="ms-2 d-none d-lg-block">Show Empty Image</span>
                     </button>
                     <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.disabled]="_showMasonry" [class.btn-confirm]="_fillBox" (click)="_fillBox = !_fillBox;refresh();">
-                        <i class="bi bi-arrows-fullscreen"></i><span class="ms-2 d-none d-lg-block">Fill Box</span>
+                        <em class="bi bi-arrows-fullscreen"></em><span class="ms-2 d-none d-lg-block">Fill Box</span>
                     </button>
                 </div>
                 <div role="group" class="btn-group ms-1">
                     <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showMasonry" (click)="_showMasonry = !_showMasonry;_showEmptyImage = false;refresh();">
-                        <i class="bi bi-columns-gap"></i><span class="ms-2 d-none d-lg-block">Show Masonry</span>
+                        <em class="bi bi-columns-gap"></em><span class="ms-2 d-none d-lg-block">Show Masonry</span>
                     </button>
                 </div>
             </div>
@@ -66,9 +66,9 @@
                 <div role="group" class="btn-group- d-inline-block" *ngIf="!_isEdit">
                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="export">
                         <button type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" id="export-actions">
-                            <i class="bi bi-download"></i>
+                            <em class="bi bi-download"></em>
                             <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
-                            <i class="bi bi-chevron-down ms-2"></i>
+                            <em class="bi bi-chevron-down ms-2"></em>
                         </button>
                         <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
                             <div class="gl-new-dropdown-inner">
@@ -121,16 +121,16 @@
             </div>
             <div role="group" class="btn-group-">
                 <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroups()">
-                    <i class="bi bi-list-task" *ngIf="_groupsView"></i>
-                    <i class="bi bi-grid" *ngIf="!_groupsView && !_showMasonry"></i>
-                    <i class="bi bi-columns-gap" *ngIf="!_groupsView && _showMasonry"></i>
+                    <em class="bi bi-list-task" *ngIf="_groupsView"></em>
+                    <em class="bi bi-grid" *ngIf="!_groupsView && !_showMasonry"></em>
+                    <em class="bi bi-columns-gap" *ngIf="!_groupsView && _showMasonry"></em>
                 </button>
             </div>
             <div role="group" class="btn-group- ms-1" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
                 <div role="group" class="btn-group- d-inline-block" *ngIf="!_isEdit">
                 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
                     <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
-                        <i class="bi bi-three-dots-vertical"></i>
+                        <em class="bi bi-three-dots-vertical"></em>
                     </button>
                     <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
                         <div class="gl-new-dropdown-inner">
@@ -138,7 +138,7 @@
                                 <li class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item" (click)="_onNew()">
                                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                                            <i class="bi bi-plus-lg"></i>
+                                            <em class="bi bi-plus-lg"></em>
                                         </div>
                                         <div class="gl-new-dropdown-item-text-wrapper">
                                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.AddService' | translate }}</p>
@@ -176,6 +176,7 @@
                     <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
                         <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
                             <fieldset>
+								<legend>&nbsp;</legend>
                                 <!-- <div class="row mb-1">
                                 <div class="col-2">
                                     <label class="col-form-label">{{ 'APP.LABEL.Date' | translate }}</label>
@@ -325,8 +326,8 @@
                                     <div class="col-sm-10">
                                         <div class="input-group mb-3">
                                             <input type="text" class="form-control form-control-sm cursor-pointer" id="id_gruppo_padre_label" formControlName="id_gruppo_padre_label" readonly (click)="openChoiceGroupModal($event)">
-                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="clearGroup($event)" *ngIf="_formGroup.controls['id_gruppo_padre'].value"><i class="bi bi-x-lg"></i></button>
-                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceGroupModal($event)"><i class="bi bi-collection"></i></button>
+                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="clearGroup($event)" *ngIf="_formGroup.controls['id_gruppo_padre'].value"><em class="bi bi-x-lg"></em></button>
+                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceGroupModal($event)"><em class="bi bi-collection"></em></button>
                                         </div>
                                     </div>
                                 </div>
@@ -343,7 +344,7 @@
                                                     (delete)="onDeleteCategory($event)"
                                                 ></ui-tassonomia-token>
                                             </div>
-                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag"></i></button>
+                                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><em class="bi bi-tag"></em></button>
                                         </div>
                                     </div>
                                 </div>
@@ -357,7 +358,7 @@
                                             <div class="input-group mb-3">
                                                 <input type="text" class="form-control form-control-sm cursor-pointer" id="categoriaLabel" formControlName="categoriaLabel" readonly (click)="openChoiceCategoriesModal($event)">
                                                 <input type="text" class="form-control form-control-sm cursor-pointer" id="categoria" formControlName="categoria" [placeholder]="'APP.PLACEHOLDER.SelectCategoria' | translate" hidden (click)="openChoiceCategoriesModal($event)">
-                                                <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><i class="bi bi-tag"></i></button>
+                                                <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceCategoriesModal($event)"><em class="bi bi-tag"></em></button>
                                             </div>
                                         </div>  
                                     </div>

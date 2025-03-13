@@ -27,7 +27,7 @@
     <div class="nav-controls">
       <div role="group" class="gl-w-full btn-group-">
         <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddReferent' | translate }}</span>
+          <em class="bi bi-plus-lg"></em><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddReferent' | translate }}</span>
         </button>
       </div>
     </div>
@@ -52,6 +52,7 @@
           <div form-search>
             <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
               <fieldset>
+				  <legend>&nbsp;</legend>
                 <div class="row">
                 </div>
                 <button type="submit" class="d-none">hidden submit</button>
@@ -90,7 +91,7 @@
               </ui-form-readonly>
               <div class="position-relative">
                 <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteReferente(referent)" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-                  <i class="bi bi-trash text-danger"></i>
+                  <em class="bi bi-trash text-danger"></em>
                 </button>
               </div>
             </div>
@@ -108,7 +109,7 @@
       <div class="modal-header pb-2">
         <h5 class="modal-title pull-left">{{ 'APP.TITLE.AddReferent' | translate }}</h5>
         <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
-          <i class="bi bi-x-lg"></i>
+          <em class="bi bi-x-lg"></em>
         </button>
       </div>
       <div class="modal-body">

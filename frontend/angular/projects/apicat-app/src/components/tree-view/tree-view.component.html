@@ -16,14 +16,14 @@
 
 <ng-template #tree let-children="children" let-search="search" let-level="level">
     <ng-container *ngFor="let item of children">
-        <li class="group-row" [class.is-open]="item.isOpen" [class.has-children-]="item.hasChildren || item.children || item.figli" (click)="onAction($event, 'select', item)">
+        <ol><li class="group-row" [class.is-open]="item.isOpen" [class.has-children-]="item.hasChildren || item.children || item.figli" (click)="onAction($event, 'select', item)">
             <div class="group-row-contents d-flex align-items-center py-2 pr-3" [class.not-selected]="isNotSelectable(item)" [class.group-over-display]="isEditable && !forceActions">
                 <div class="folder-toggle-wrap gl-mr-2 d-flex align-items-center">
                     <span class="folder-caret gl-display-inline-block gl-text-secondary gl-w-5 gl-mr-2" (click)="(item.hasChildren || item.children || item.figli) && onOpen(item)">
-                        <i class="bi gl-icon-12" [ngClass]="!(item.hasChildren || item.children || item.figli) ? 'bi-dash-lg' : item.isOpen ? 'bi-' + iconOpen : 'bi-' + iconClose"></i>
+                        <em class="bi gl-icon-12" [ngClass]="!(item.hasChildren || item.children || item.figli) ? 'bi-dash-lg' : item.isOpen ? 'bi-' + iconOpen : 'bi-' + iconClose"></em>
                     </span>
                     <span class="item-type-icon gl-display-inline-block gl-text-secondary">
-                        <i class="bi gl-icon-12" [ngClass]="(item.hasChildren || item.children || item.figli) ? 'bi-' + iconFolder : item.isOpen ? 'bi-' + iconLeaf : 'bi-' + iconClose"></i>
+                        <em class="bi gl-icon-12" [ngClass]="(item.hasChildren || item.children || item.figli) ? 'bi-' + iconFolder : item.isOpen ? 'bi-' + iconLeaf : 'bi-' + iconClose"></em>
                     </span>
                 </div>
                 <a class="gl-display-none gl-text-decoration-none! gl-mr-3 gl-sm-display-flex" (click)="onAction($event, 'link', item)" *ngIf="!hideImage">
@@ -31,7 +31,7 @@
                         <span>{{ item.nome[0] }}</span>
                     </div>
                     <div class="gl-avatar gl-avatar-identicon gl-avatar-s32" *ngIf="item.immagine">
-                        <img class="" [src]="{ path: item | mapper:getLogoMapper } | httpImgSrc" style="width: 32px;height: auto;">
+                        <img class="" alt="logo" [src]="{ path: item | mapper:getLogoMapper } | httpImgSrc" style="width: 32px;height: auto;">
                     </div>
                 </a>
                 <div class="group-text-container d-flex flex-fill align-items-center">
@@ -58,13 +58,13 @@
                                 <span class="stat-value"> 1 </span>
                             </span> -->
                             <button aria-label="Edit" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="onAction($event, 'edit', item)" [tooltip]="'APP.TOOLTIP.' + editTooltip | translate" container="body" *ngIf="isEditable && !selectable">
-                                <i class="bi bi-pencil"></i>
+                                <em class="bi bi-pencil"></em>
                             </button>
                             <button aria-label="Add" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="onAction($event, 'add', item)" [tooltip]="'APP.TOOLTIP.' + addTooltip | translate" container="body" *ngIf="isEditable && !selectable">
-                                <i class="bi bi-plus-lg"></i>
+                                <em class="bi bi-plus-lg"></em>
                             </button>
                             <button aria-label="Remove" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="onAction($event, 'remove', item)" [tooltip]="'APP.TOOLTIP.' + removeTooltip | translate" container="body" *ngIf="isEditable && isRemovable && !selectable" [disabled]="item.hasChildren || item.children || item.figli">
-                                <i class="bi bi-trash text-danger" [ngStyle]="{'opacity': (item.hasChildren || item.children || item.figli) ? '0.5' : '1.0'}"></i>
+                                <em class="bi bi-trash text-danger" [ngStyle]="{'opacity': (item.hasChildren || item.children || item.figli) ? '0.5' : '1.0'}"></em>
                             </button>
                             <!-- <button aria-label="Add" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="onAction($event, 'select', item)" [tooltip]="'APP.TOOLTIP.Select' | translate" container="body" *ngIf="selectable">
                                 <i class="bi bi-check2"></i>
@@ -92,6 +92,6 @@
                 (open)="onOpenInternal($event)"
                 (action)="onActionInternal($event)"
             ></ul>
-        </li>
+        </li></ol>
     </ng-container>
 </ng-template>

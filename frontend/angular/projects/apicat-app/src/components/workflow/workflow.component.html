@@ -1,9 +1,9 @@
 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
   <button aria-haspopup="true" aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions()">
-    <i class="bi bi-node-plus"></i>
+    <em class="bi bi-node-plus"></em>
     <span class="ms-2 d-none d-md-block" *ngIf="showStatus">{{ 'APP.WORKFLOW.STATUS.' + _currentStatus | translate }}</span>
     <span class="ms-2 d-none d-md-block" *ngIf="!showStatus">{{ 'APP.BUTTON.ChangeStatus' | translate }}</span>
-    <i class="bi bi-chevron-down ms-2"></i>
+    <em class="bi bi-chevron-down ms-2"></em>
   </button>
   <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
     <div class="gl-new-dropdown-inner">
@@ -12,7 +12,7 @@
           <li class="gl-new-dropdown-item">
             <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_precedente);" [disabled]="!('stato_precedente' | mapper:_isActionEnabledMapper)">
               <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                <i class="bi bi-backspace"></i>
+                <em class="bi bi-backspace"></em>
               </div>
               <div class="gl-new-dropdown-item-text-wrapper">
                 <p class="gl-new-dropdown-item-text-primary">{{'APP.WORKFLOW.MENU.BACK.' + _cambioStato.stato_precedente.nome | translate}}</p>
@@ -27,7 +27,7 @@
           <li class="gl-new-dropdown-item">
             <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_successivo);" [disabled]="!('stato_successivo' | mapper:_isActionEnabledMapper)">
               <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                <i class="bi bi-arrow-right-square"></i>
+                <em class="bi bi-arrow-right-square"></em>
               </div>
               <div class="gl-new-dropdown-item-text-wrapper">
                 <p class="gl-new-dropdown-item-text-primary">{{'APP.WORKFLOW.MENU.' + _cambioStato.stato_successivo.nome | translate}}</p>
@@ -42,8 +42,8 @@
           <li class="gl-new-dropdown-item" *ngFor="let status of _cambioStato.stati_ulteriori">
             <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', status);" [disabled]="!('stati_ulteriori' | mapper:_isActionEnabledMapper:status.nome)">
               <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                <i class="bi bi-archive" *ngIf="status.nome == _statoArchiviato.nome"></i>
-                <i class="bi bi-arrow-right-square" *ngIf="status.nome != _statoArchiviato.nome"></i>
+                <em class="bi bi-archive" *ngIf="status.nome == _statoArchiviato.nome"></em>
+                <em class="bi bi-arrow-right-square" *ngIf="status.nome != _statoArchiviato.nome"></em>
               </div>
               <div class="gl-new-dropdown-item-text-wrapper">
                 <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + status.nome | translate }}</p>
@@ -58,7 +58,7 @@
           <li class="gl-new-dropdown-item archiviato">
             <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _statoArchiviato);" [disabled]="!('' | mapper:_isGestoreMapper)">
               <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                <i class="bi bi-archive"></i>
+                <em class="bi bi-archive"></em>
               </div>
               <div class="gl-new-dropdown-item-text-wrapper">
                 <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + _statoArchiviato.nome | translate }}</p>
@@ -71,7 +71,7 @@
         <li class="gl-new-dropdown-item archiviato">
           <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _previousStatus);" [disabled]="!('' | mapper:_isGestoreMapper)">
             <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-              <i class="bi bi-arrow-left-square"></i>
+              <em class="bi bi-arrow-left-square"></em>
             </div>
             <div class="gl-new-dropdown-item-text-wrapper">
               <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + _previousStatus.nome | translate }}</p>

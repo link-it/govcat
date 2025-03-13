@@ -84,7 +84,7 @@
                   <div class="download-block row mt-4" *ngIf="_updateData | mapper:_canDownloadDescriptorMapper">
                     <div class="col-12">
                       <button class="btn btn-link btn-md gl-button" (click)="_downloadServizioExport()" [class.disabled]="_downloading">
-                        <i class="bi bi-download me-2"></i>
+                        <em class="bi bi-download me-2"></em>
                         <span>{{ 'APP.BUTTON.DownloadeServiceDescriptor' | translate }}</span>
                         <span class="spinner-border spinner-border-sm ms-2" *ngIf="_downloading"></span>
                       </button>
@@ -92,15 +92,15 @@
                     <div class="col-12 mt-3" *ngIf="_updateData | mapper:_canJoinMapper">
                       <!-- <ng-container *ngIf="_updateData | mapper:_isAmmissibileMapper"> -->
                         <button class="btn btn-link btn-md gl-button ms-2-" (click)="_joinServizio()" *ngIf="(!(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isReferenteMapper) && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
-                          <i class="bi bi-link me-2"></i>
+                          <em class="bi bi-link me-2"></em>
                           <span>{{ 'APP.BUTTON.JoinService' | translate }}</span>
                         </button>
                         <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesioni()" *ngIf="(_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
-                          <i class="bi bi-display"></i>
+                          <em class="bi bi-display"></em>
                           <span class="ms-2">{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
                         </button>
                         <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesione()" *ngIf="!(_updateData | mapper:_isGestoreMapper) && _hasJoined">
-                          <i class="bi bi-display"></i>
+                          <em class="bi bi-display"></em>
                           <span class="ms-2">{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
                         </button>
                       <!-- </ng-container> -->
@@ -118,7 +118,7 @@
                           <ng-container *ngFor="let referente of referenti;let index = index;">
                             <li class="d-flex project__leaders__item mb-3" [class.hide-more]="index >= _maxReferenti">
                               <span title="referente" target="_blank">
-                                <img class="align-top" ngxGravatar [email]="referente.utente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
+                                <img class="align-top" alt="icona email" ngxGravatar [email]="referente.utente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
                               </span>
                               <div class="ml-2 d-flex">
                                 <span title="referente" target="_blank" class="align-self-center">{{ referente.utente.nome }} {{ referente.utente.cognome }}</span>

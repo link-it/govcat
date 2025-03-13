@@ -4,17 +4,17 @@
       <div class="content">
         <div class="flash-container flash-container-page sticky">
           <div class="flash-alert mb-2" *ngIf="errorCode">
-            <i class="bi bi-exclamation-triangle s16 mr-2"></i>
+            <em class="bi bi-exclamation-triangle s16 mr-2"></em>
             <span>{{ 'APP.MESSAGE.LOGIN.login_' + errorCode | translate }}</span>
             <div class="close-icon-wrapper js-close-icon" (click)="_closeAlert()">
-              <i class="bi bi-x-lg"></i>
+              <em class="bi bi-x-lg"></em>
             </div>
           </div>
           <div class="flash-alert mb-2" *ngIf="!errorCode && error">
-            <i class="bi bi-exclamation-triangle s16 mr-2"></i>
+            <em class="bi bi-exclamation-triangle s16 mr-2"></em>
             <span>{{ (error.message || 'APP.MESSAGE.ERROR.Default') | translate }}</span>
             <div class="close-icon-wrapper js-close-icon" (click)="_closeAlert()">
-              <i class="bi bi-x-lg"></i>
+              <em class="bi bi-x-lg"></em>
             </div>
           </div>
         </div>
@@ -75,7 +75,7 @@
             <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="loading"></ui-box-spinner>
 
             <button type="button" class="btn btn-block btn-default gl-button" (click)="gotoHome()" *ngIf="!loading">
-              <i class="bi bi-home"></i>
+              <em class="bi bi-home"></em>
               <span>{{ 'APP.BUTTON.Continue' | translate }}</span>
             </button>
           </div>

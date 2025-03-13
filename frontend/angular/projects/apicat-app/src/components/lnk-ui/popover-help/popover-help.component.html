@@ -2,7 +2,7 @@
     <ng-template #popTemplate>
         <div markdown ngPreserveWhitespaces>{{ text }}</div>
     </ng-template>
-    <i class="cursor-pointer {{ iconHelp }}"
+    <em class="cursor-pointer {{ iconHelp }}"
         [popoverTitle]="title"
         [popover]="popTemplate"
         [adaptivePosition]="true"
@@ -10,5 +10,5 @@
         triggers="click"
         [outsideClick]="true"
         [containerClass]="helpContainerClass"
-    ></i>
+    ></em>
 </p>

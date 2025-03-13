@@ -59,7 +59,7 @@
                     <div class="download-block row mt-4" *ngIf="canDownloadSchedaAdesioneMapper()">
                       <div class="col-12">
                         <button class="btn btn-link btn-md gl-button" (click)="downloadSchedaAdesione()" [class.disabled]="_downloading">
-                          <i class="bi bi-download me-2"></i>
+                          <em class="bi bi-download me-2"></em>
                           <span>{{ 'APP.ADESIONI.LABEL.DownloadScheda' | translate }}</span>
                           <span class="spinner-border spinner-border-sm ms-2" *ngIf="_downloading"></span>
                         </button>
@@ -77,7 +77,7 @@
                             <ng-container *ngFor="let referente of referents;let index = index;">
                               <li class="d-flex project__leaders__item mb-3" [class.hide-more]="index >= maxReferenti">
                                 <span title="referente" target="_blank">
-                                  <img class="align-top" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
+                                  <img class="align-top" alt="icona email" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
                                 </span>
                                 <div class="flex-column">
                                   <div class="ml-2 mb-1 d-flex referente">
@@ -141,13 +141,17 @@
                                   [hostBackground]="'transparent'">
                                   <div collapse-content class="p-4 my-1 bg-lightest">
                                     <div class="d-flex flex-row">
-                                      <table class="table">
+                                      <table class="table" aria-label="Tabella">
                                         <tbody>
+											<tr>
+    											<th scope="col">&nbsp;</th>
+    											<th scope="col">&nbsp;</th>
+  											</tr>
                                           <tr *ngIf="mode.canDownloadAuthCertificate">
                                             <td>{{'APP.CLIENT.LABEL.AuthenticationCertificate' | translate}}</td>
                                             <td>
                                               <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.authCertificate" (click)="download(mode, mode.authCertificate)">
-                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                               </button>
                                             </td>
                                           </tr>
@@ -155,7 +159,7 @@
                                             <td>{{'APP.CLIENT.LABEL.SignCertificate' | translate}}</td>
                                             <td>
                                               <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.signCertificate" (click)="download(mode, mode.authCertificate)">
-                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                               </button>
                                             </td>
                                           </tr>
@@ -221,8 +225,12 @@
                                 [hostBackground]="'transparent'">
                                 <div collapse-content class="p-4 my-1 bg-lightest">
                                   <div class="d-flex flex-row">
-                                    <table class="table">
+                                    <table class="table" aria-label="Tabella">
                                       <tbody>
+										  <tr>
+    											<th scope="col">&nbsp;</th>
+    											<th scope="col">&nbsp;</th>
+  											</tr>
                                         <tr>
                                           <td>{{'APP.LABEL.Url' | translate}}</td>
                                           <td>{{api.url}}</td>

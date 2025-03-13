@@ -16,7 +16,7 @@
         <span class="spinner-border spinner-border-sm" [style.border-width.px]="2" [class.me-2]="!onlySpinner"></span>
       </ng-container>
       <ng-container *ngIf="!onlySpinner">
-        <i class="{{ icon }}" *ngIf="icon"></i>
+        <em class="{{ icon }}" *ngIf="icon"></em>
         <span class="" [class.ms-1]="icon" *ngIf="label && !onlyIcon">{{ label | translate }}</span>
       </ng-container>
       <ng-container *ngIf="badgeCount">

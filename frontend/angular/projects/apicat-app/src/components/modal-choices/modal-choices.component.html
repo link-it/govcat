@@ -14,10 +14,10 @@
               <input type="text" name="filter" class="form-control" [(ngModel)]="filter" placeholder="{{ 'APP.PLACEHOLDER.Search' | translate }}" (ngModelChange)="filterChanged($event)"/>
               <div class="input-group-append">
                 <button class="btn btn-primary-" (click)="filterChanged($event)" [disabled]="!filter">
-                  <i class="bi bi-search"></i>
+                  <em class="bi bi-search"></em>
                 </button>
                 <button class="btn btn-yellow-" (click)="clearFilter($event)" [hidden]="!filter">
-                  <i class="bi bi-x-lg"></i>
+                  <em class="bi bi-x-lg"></em>
                 </button>
               </div>
             </div>
@@ -32,7 +32,7 @@
             </div>
             <div class="text-center" *ngIf="loading">
               <div class="h3 text-muted text-center">
-                <i class="fa fa-circle-o-notch fa-spin"></i>
+                <em class="fa fa-circle-o-notch fa-spin"></em>
               </div>
             </div>
           </div>
@@ -40,8 +40,8 @@
             <li class="list-group-item pl-3 pr-3" [class.active-]="isSelected(item)" *ngFor="let item of list | orderBy : ['']" (click)="selectItem(item)">
               <div class="d-flex align-items-center">
                 <div class="flex-shrink-0">
-                  <i class="bi bi-check-square" *ngIf="isSelected(item)"></i>
-                  <i class="bi bi-square" *ngIf="!isSelected(item)"></i>
+                  <em class="bi bi-check-square" *ngIf="isSelected(item)"></em>
+                  <em class="bi bi-square" *ngIf="!isSelected(item)"></em>
                 </div>
                 <div class="flex-grow-1 ms-3">
                   <h6 class="mt-0 mb-1">{{ item.value || item }}</h6>

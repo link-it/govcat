@@ -28,7 +28,7 @@
                                 <div role="group" class="btn-group- me-2 d-inline-block" *ngIf="link.show">
                                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="other_actions">
                                         <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
-                                            <span>{{ link.title | translate }}</span> <i class="bi bi-chevron-down ms-1"></i>
+                                            <span>{{ link.title | translate }}</span> <em class="bi bi-chevron-down ms-1"></em>
                                         </button>
                                         <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
                                             <div class="gl-new-dropdown-inner">
@@ -72,7 +72,7 @@
                 <div role="group" class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
                         <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
-                            <i class="bi bi-three-dots-vertical"></i>
+                            <em class="bi bi-three-dots-vertical"></em>
                         </button>
                         <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
                             <div class="gl-new-dropdown-inner">
@@ -154,7 +154,7 @@
                                                 ></app-photo-base64>
                                             </div>
                                             <div class="mt-2" *ngIf="!_isEdit">
-                                                <img class="img-space" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+                                                <img class="img-space" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" alt="icona" />
                                             </div>
                                         </div>
                                     </div>
@@ -201,12 +201,12 @@
                                                 <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
                                                     <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
                                                     <label class="custom-control-label" for="package"></label>
-                                                    <span class="ms-1" *ngIf="hasHelpPackage" [tooltip]="helpTooltipPackage | translate" container="body"><i class="bi bi-question-circle"></i></span>
+                                                    <span class="ms-1" *ngIf="hasHelpPackage" [tooltip]="helpTooltipPackage | translate" container="body"><em class="bi bi-question-circle"></em></span>
                                                 </div>
                                                 <div class="" *ngIf="!_isEdit && !isComponente">
                                                     <span class="">
-                                                        <i class="bi bi-square" *ngIf="!data.package"></i>
-                                                        <i class="bi bi-check-square" *ngIf="data.package"></i>
+                                                        <em class="bi bi-square" *ngIf="!data.package"></em>
+                                                        <em class="bi bi-check-square" *ngIf="data.package"></em>
                                                     </span>
                                                 </div>
                                             </div>
@@ -711,12 +711,12 @@
                                             <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
                                                 <input class="custom-control-input" type="checkbox" name="adesione_consentita" id="adesione_consentita" formControlName="adesione_consentita">
                                                 <label class="custom-control-label" for="adesione_consentita"></label>
-                                                <span class="ms-1" *ngIf="isComponente" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
+                                                <span class="ms-1" *ngIf="isComponente" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><em class="bi bi-question-circle"></em></span>
                                             </div>
                                             <div class="" *ngIf="!_isEdit && !isComponente">
                                                 <span class="">
-                                                    <i class="bi bi-square" *ngIf="!data.adesione_consentita"></i>
-                                                    <i class="bi bi-check-square" *ngIf="data.adesione_consentita"></i>
+                                                    <em class="bi bi-square" *ngIf="!data.adesione_consentita"></em>
+                                                    <em class="bi bi-check-square" *ngIf="data.adesione_consentita"></em>
                                                 </span>
                                             </div>
                                         </div>
@@ -733,8 +733,8 @@
                                                 </div>
                                                 <div class="" *ngIf="!_isEdit">
                                                     <span class="text-">
-                                                        <i class="bi bi-square" *ngIf="!data.multi_adesione"></i>
-                                                        <i class="bi bi-check-square" *ngIf="data.multi_adesione"></i>
+                                                        <em class="bi bi-square" *ngIf="!data.multi_adesione"></em>
+                                                        <em class="bi bi-check-square" *ngIf="data.multi_adesione"></em>
                                                     </span>
                                                 </div>
                                             </div>
@@ -752,8 +752,8 @@
                                             </div>
                                             <div class="" *ngIf="!_isEdit">
                                                 <span class="">
-                                                    <i class="bi bi-square" *ngIf="!data.skip_collaudo"></i>
-                                                    <i class="bi bi-check-square" *ngIf="data.skip_collaudo"></i>
+                                                    <em class="bi bi-square" *ngIf="!data.skip_collaudo"></em>
+                                                    <em class="bi bi-check-square" *ngIf="data.skip_collaudo"></em>
                                                 </span>
                                             </div>
                                         </div>

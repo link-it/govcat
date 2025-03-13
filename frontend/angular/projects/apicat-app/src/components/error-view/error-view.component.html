@@ -1,7 +1,7 @@
 <div class="mb-2">
   <div class="d-flex justify-content-between align-items-start gap-3">
     <div class="mb-3 fs-6 fw-bold-600">{{ title }}</div>
-    <div class="cursor-pointer" *ngIf="showClose"><i class="bi bi-x-lg" (click)="closeMessages()"></i></div>
+    <div class="cursor-pointer" *ngIf="showClose"><em class="bi bi-x-lg" (click)="closeMessages()"></em></div>
   </div>
   <div class="fs-6 pb-1 mb-2 border-bottom" *ngIf="errors.length">{{ 'APP.WORKFLOW.ERROR.TitoloInformazioniMancanti' | translate }}</div>
   <ng-container *ngFor="let _err of errors">

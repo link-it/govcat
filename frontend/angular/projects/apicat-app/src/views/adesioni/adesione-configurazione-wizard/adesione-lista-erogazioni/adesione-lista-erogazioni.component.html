@@ -34,8 +34,8 @@
                         </div>
                         <div class="flex-initial" *ngIf="isEdit">
                             <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="onEdit(erogaz)">
-                                <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
-                                <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                                <em *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></em>
+                                <em *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></em>
                             </button>
                         </div>
                     </div>
@@ -53,14 +53,14 @@
             <div class="modal-header pb-2">
                 <h5 class="modal-title pull-left">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
                 <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
-                    <i class="bi bi-x-lg"></i>
+                    <em class="bi bi-x-lg"></em>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="p-3">
 
                     <fieldset>
-
+						<legend>&nbsp;</legend>
                         <div class="row">
                             <div class="form-group col-md-10 mb-2">
                                 <!-- nome -->

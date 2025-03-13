@@ -1,23 +1,23 @@
 <div class="layout-page login-page">
   <div class="page-wrap">
     <header class="navbar fixed-top navbar-empty" *ngIf="_version == 'v1'">
-      <img class="" [src]="_header">
+      <img class="" [src]="_header" alt="icona">
     </header>
     <div class="container navless-container">
       <div class="content">
         <div class="flash-container flash-container-page sticky">
           <div class="flash-alert mb-2" *ngIf="errorCode">
-            <i class="bi bi-exclamation-triangle s16 mr-2"></i>
+            <em class="bi bi-exclamation-triangle s16 mr-2"></em>
             <span>{{ 'APP.MESSAGE.LOGIN.login_' + errorCode | translate }}</span>
             <div class="close-icon-wrapper js-close-icon" (click)="_closeAlert()">
-              <i class="bi bi-x-lg"></i>
+              <em class="bi bi-x-lg"></em>
             </div>
           </div>
           <div class="flash-alert mb-2" *ngIf="!errorCode && error">
-            <i class="bi bi-exclamation-triangle s16 mr-2"></i>
+            <em class="bi bi-exclamation-triangle s16 mr-2"></em>
             <span>{{ (error.message || 'APP.MESSAGE.ERROR.Default') | translate }}</span>
             <div class="close-icon-wrapper js-close-icon" (click)="_closeAlert()">
-              <i class="bi bi-x-lg"></i>
+              <em class="bi bi-x-lg"></em>
             </div>
           </div>
         </div>
@@ -31,7 +31,7 @@
           </div>
           <div class="row mb-3">
             <div class="col-md-6 order-12 order-sm-1 brand-holder">
-              <img class="" [src]="_logo">
+              <img class="" [src]="_logo" alt="logo">
               <!-- <p dir="auto">Gitlab Laboratory at Link.it</p> -->
             </div>
             <div class="col-md-6 order-1 new-session-forms-container order-sm-12">
@@ -147,8 +147,8 @@
               <ng-container class="gl-px-5" *ngFor="let auth of OTHER_AUTHS">
                 <div class="gl-px-5" *ngIf="auth.enabled">
                   <button type="button" class="gl-button btn btn-block btn-default" (click)="logidWithUrlAction(auth)">
-                    <i class="bi bi-{{ auth.icon }} me-2" *ngIf="auth.icon"></i>
-                    <img class="me-2" width="16" height="16" [src]="'./assets/images/' + auth.image" *ngIf="auth.image && !auth.icon">
+                    <em class="bi bi-{{ auth.icon }} me-2" *ngIf="auth.icon"></em>
+                    <img class="me-2" width="16" height="16" [src]="'./assets/images/' + auth.image" *ngIf="auth.image && !auth.icon" alt="icona">
                     <span>{{ auth.label | translate }}</span>
                   </button>
                 </div>
@@ -164,7 +164,7 @@
               </div>
               <div class="gl-px-5">
                 <button type="button" class="gl-button btn btn-block btn-default" (click)="backToAnonymous()">
-                  <i class="bi bi-chevron-left me-2"></i>
+                  <em class="bi bi-chevron-left me-2"></em>
                   <span>{{ 'APP.BUTTON.BackToAnonymous' | translate }}</span>
                 </button>
               </div>

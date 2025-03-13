@@ -30,7 +30,7 @@
     <div class="nav-controls align-self-center d-flex">
       <div role="group" class="gl-w-full btn-group-">
         <button [attr.aria-label]="(_showAllAttachments ? 'APP.SERVICES.BUTTON.AddAttachment' : 'APP.SERVICES.BUTTON.AddAttachment-' + _tipoAllegato) | translate" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canEditMapper)">
-          <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ (_showAllAttachments ? 'APP.SERVICES.BUTTON.AddAttachment' : 'APP.SERVICES.BUTTON.AddAttachment-' + _tipoAllegato) | translate }}</span>
+          <em class="bi bi-plus-lg"></em><span class="text-nowrap ms-2">{{ (_showAllAttachments ? 'APP.SERVICES.BUTTON.AddAttachment' : 'APP.SERVICES.BUTTON.AddAttachment-' + _tipoAllegato) | translate }}</span>
         </button>
       </div>
     </div>
@@ -56,6 +56,7 @@
           <div form-search class="search-material-custom">
             <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
               <fieldset>
+				  <legend>&nbsp;</legend>
                 <div class="row mb-1">
                   <div class="col-sm-2">
                     <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.filename' | translate }}</label>
@@ -128,13 +129,13 @@
         </div>
         <div class="ms-3 me-3">
           <button aria-label="Download" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_downloadAllegato(allegato, index)" [disabled]="_downloading || _deleting" [tooltip]="'APP.TOOLTIP.Download' | translate" container="body">
-            <i class="bi bi-download"></i><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_downloadings[index]"></span>
+            <em class="bi bi-download"></em><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_downloadings[index]"></span>
           </button>
           <button aria-label="Edit" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="_onEdit($event, allegato)" [disabled]="_downloading || _deleting" [tooltip]="'APP.TOOLTIP.Edit' | translate" container="body" [disabled]="!(allegato.source.tipologia | mapper:_canTypeAttachmentMapper)">
-            <i class="bi bi-pencil" [ngClass]="{ 'text-muted opacity-50': !(allegato.source.tipologia | mapper:_canTypeAttachmentMapper) }"></i>
+            <em class="bi bi-pencil" [ngClass]="{ 'text-muted opacity-50': !(allegato.source.tipologia | mapper:_canTypeAttachmentMapper) }"></em>
           </button>
           <button aria-label="Remove" type="button" class="btn btn-default btn-md gl-button btn-icon ms-1" (click)="_confirmDelection(allegato)" [disabled]="_downloading || _deleting" [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body" [disabled]="!(allegato.source.tipologia | mapper:_canTypeAttachmentMapper)">
-            <i class="bi bi-trash text-danger" [ngClass]="{ 'text-muted opacity-50': !(allegato.source.tipologia | mapper:_canTypeAttachmentMapper) }"></i><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_deleting"></span>
+            <em class="bi bi-trash text-danger" [ngClass]="{ 'text-muted opacity-50': !(allegato.source.tipologia | mapper:_canTypeAttachmentMapper) }"></em><span class="ms-2 spinner-border spinner-border-sm" *ngIf="_deleting"></span>
           </button>
         </div>
       </div>

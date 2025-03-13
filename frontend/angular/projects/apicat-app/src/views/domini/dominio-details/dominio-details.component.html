@@ -15,14 +15,14 @@
         </div>
         <div class="position-relative" *ngIf="!_isEdit && !_spin">
           <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditDominio' | translate" (click)="_editDominio()">
-            <i class="bi bi-pencil"></i>
+            <em class="bi bi-pencil"></em>
           </button>
         </div>
         <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
           <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
             <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
               <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
-                <i class="bi bi-three-dots-vertical"></i>
+                <em class="bi bi-three-dots-vertical"></em>
               </button>
               <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
                 <div class="gl-new-dropdown-inner">
@@ -30,7 +30,7 @@
                     <li role="presentation" class="gl-new-dropdown-item">
                       <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteDominio()">
                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                          <i class="bi bi-trash text-danger"></i>
+                          <em class="bi bi-trash text-danger"></em>
                         </div>
                         <div class="gl-new-dropdown-item-text-wrapper">
                           <p class="gl-new-dropdown-item-text-primary">{{ 'APP.DOMINI.DeleteDomain' | translate }}</p>
@@ -45,7 +45,7 @@
         <!-- </ng-template> -->
         <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
           <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
-            <i class="bi bi-x-lg"></i>
+            <em class="bi bi-x-lg"></em>
           </button>
         </div>
       </div>

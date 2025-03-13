@@ -19,7 +19,7 @@
       <div class="position-relative" *ngIf="!_isEdit && !_spin ">
         <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon"
           [tooltip]="'APP.TOOLTIP.EditConfiguration' | translate" (click)="_isEdit = !_isEdit" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
-          <i class="bi bi-pencil"></i>
+          <em class="bi bi-pencil"></em>
         </button>
       </div>
 
@@ -28,7 +28,7 @@
           class="btn btn-default btn-md gl-button btn-default-tertiary ms-2"
           [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate"
           (click)="_onCancelEdit()">
-          <i class="bi bi-x-lg"></i>
+          <em class="bi bi-x-lg"></em>
         </button>
       </div>
     </div>
@@ -80,7 +80,7 @@
                             *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('nome_gateway')"
                             (click)="copyTestingValue('nome_gateway')"
                             [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
+                            <span><em class="bi bi-copy"></em></span>
                           </button>
                         </div>
                         <p *ngIf="f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)"
@@ -116,7 +116,7 @@
                             *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('versione_gateway')"
                             (click)="copyTestingValue('versione_gateway')"
                             [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
+                            <span><em class="bi bi-copy"></em></span>
                           </button>
                         </div>
                         <p *ngIf="f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)"
@@ -166,7 +166,7 @@
                             *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('protocollo')"
                             (click)="copyTestingValue('protocollo')"
                             [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
+                            <span><em class="bi bi-copy"></em></span>
                           </button>
                         </div>
                         <p *ngIf="f['protocollo'].invalid && (f['protocollo'].dirty || f['protocollo'].touched)"
@@ -190,7 +190,7 @@
                           <div class="col-3" *ngIf="_hasSpecifica">
                             <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-"
                               (click)="_downloadSpecifica()">
-                              <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                              <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                             </button>
                           </div>
                         </div>
@@ -204,7 +204,7 @@
                         <button class="btn btn-default btn-md gl-button btn-icon- bg-white-"
                           (click)="toggleHistorical()">
                           <span>{{ (showHistory ? 'APP.BUTTON.HideHistory' : 'APP.BUTTON.ShowHistory') | translate
-                            }}</span><i class="bi bi-clock-history ms-2"></i>
+                            }}</span><em class="bi bi-clock-history ms-2"></em>
                         </button>
                       </div>
                     </div>
@@ -222,12 +222,12 @@
                 </div>
                 <div class="box-historical mt-1 mb-4" *ngIf="showHistory">
                   <span class="fw-bold mb-2">{{ 'APP.LABEL.Storico' | translate }}</span>
-                  <table class="table table-border align-items-center border mt-2 mb-0">
+                  <table class="table table-border align-items-center border mt-2 mb-0" aria-label="Tabella">
                     <tbody>
                       <tr class="table-light">
-                        <th class="col-6 vertical">{{ 'APP.LABEL.FileName' | translate }}</th>
-                        <th class="col-3 text-center">{{ 'APP.LABEL.Version' | translate }}</th>
-                        <th class="col-3">{{ 'APP.LABEL.Actions' | translate }}</th>
+                        <th scope="col" class="col-6 vertical">{{ 'APP.LABEL.FileName' | translate }}</th>
+                        <th scope="col" class="col-3 text-center">{{ 'APP.LABEL.Version' | translate }}</th>
+                        <th scope="col" class="col-3">{{ 'APP.LABEL.Actions' | translate }}</th>
                       </tr>
                       <tr *ngFor="let item of _configuration?.specifica?.storico">
                         <td class="align-middle">{{ item.filename || '-' }}</td>
@@ -237,7 +237,7 @@
                             'APP.LABEL.Current' | translate }}</span>
                           <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-"
                             (click)="_downloadHistory(item)" *ngIf="item.versione">
-                            <i class="bi bi-download"></i>
+                            <em class="bi bi-download"></em>
                           </button>
                         </td>
                       </tr>
@@ -259,7 +259,7 @@
                           <button class="btn btn-default btn-md gl-button" type="button"
                             *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('url')"
                             (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
+                            <span><em class="bi bi-copy"></em></span>
                           </button>
                         </div>
                         <p *ngIf="f['url'].invalid && (f['url'].dirty || f['url'].touched)"
@@ -325,7 +325,7 @@
                                     [disabled]="!getCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
                                     (click)="copyCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
                                     [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                                    <span><i class="bi bi-copy"></i></span>
+                                    <span><em class="bi bi-copy"></em></span>
                                   </button>
                                 </div>
                                 <p *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)"

@@ -82,11 +82,11 @@
                                             </div>
                                             <div id="flex-initial">
                                                 <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="_showDialogDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
-                                                    <i class="bi bi-unlock-fill"></i>
+                                                    <em class="bi bi-unlock-fill"></em>
                                                 </button>
                                                 <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditClient(item)">
-                                                    <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
-                                                    <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                                                    <em *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></em>
+                                                    <em *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></em>
                                                 </button>
                                             </div>
                                         </div>
@@ -127,8 +127,8 @@
                                             </div>
                                             <div id="flex-initial">
                                                 <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditAdesioneErogaz(erogaz)">
-                                                    <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
-                                                    <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                                                    <em *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></em>
+                                                    <em *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></em>
                                                 </button>
                                             </div>
                                         </div>
@@ -229,11 +229,11 @@
                         </div>
                         <div id="flex-initial">
                             <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="_showDialogDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
-                                <i class="bi bi-unlock-fill"></i>
+                                <em class="bi bi-unlock-fill"></em>
                             </button>
                             <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditClient(item)">
-                                <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
-                                <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                                <em *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></em>
+                                <em *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></em>
                             </button>
                         </div>
                     </div>
@@ -259,8 +259,8 @@
                         </div>
                         <div id="flex-initial">
                             <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditAdesioneErogaz(erogaz)">
-                                <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
-                                <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
+                                <em *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></em>
+                                <em *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></em>
                             </button>
                         </div>
                     </div>
@@ -296,14 +296,14 @@
                 <h5 class="modal-title pull-left">{{ 'APP.TITLE.AuthTypeConfiguration' | translate }}</h5>
                 
                 <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
-                    <i class="bi bi-x-lg"></i>
+                    <em class="bi bi-x-lg"></em>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="p-3">
                     <form class="row" [formGroup]="_editFormGroupClients" (submit)="_onSubmit(_formGroup.value)">
                         <fieldset>
-
+							<legend>&nbsp;</legend>
                             <div class="row mb-3">
                                 <!-- credenziali -->
                                 <div *ngIf="(client | mapper:_isModifiableMapper)" class="form-group col-12 mb-2">
@@ -495,7 +495,7 @@
                                                 <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}&nbsp;</label>
                                                 <div class="mb-3">
                                                     <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_fornito)">
-                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                     </button>
                                                 </div>
                                             </div>
@@ -517,7 +517,7 @@
                                         <div *ngIf="_certificato_cn">
                                             <div class="mb-3">
                                                 <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_cn)">
-                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                 </button>
                                             </div>
                                         </div>
@@ -541,7 +541,7 @@
                                                 <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
                                                 <div class="mb-3">
                                                     <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_csr)">
-                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                     </button>
                                                 </div>
                                             </div>
@@ -564,7 +564,7 @@
                                                 <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
                                                 <div class="mb-3">
                                                     <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr)">
-                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                     </button>
                                                 </div>
                                             </div>
@@ -624,7 +624,7 @@
                                                 <label class="label-bold _space">{{ 'APP.LABEL.CertificatoFornitoLabel' | translate }}</label>
                                                 <div class="mb-3">
                                                     <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_fornito_firma)">
-                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                     </button>
                                                 </div>
                                             </div>
@@ -647,7 +647,7 @@
                                             </label>
                                             <div class="mb-3">
                                                 <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_cn_firma)">
-                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                 </button>
                                             </div>
                                         </div>
@@ -669,7 +669,7 @@
                                                 <label class="label-bold _space">{{ 'APP.LABEL.CertificatoRichiestoCSRLabel' | translate }}&nbsp;</label>
                                                 <div class="mb-3">
                                                     <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_certificato_csr_firma)">
-                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                     </button>
                                                 </div>
                                             </div>
@@ -692,7 +692,7 @@
                                                 <label class="label-bold _space_r">{{ 'APP.LABEL.ModuloRichiestaCSR' | translate }}&nbsp;</label>
                                                 <div class="mb-3">
                                                     <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr_firma)">
-                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                     </button>
                                                 </div>
                                             </div>
@@ -704,7 +704,7 @@
                                                 <label class="label-bold _space_r">{{ 'APP.LABEL.SignCertificate' | translate }}&nbsp;</label>
                                                 <div class="mb-3">
                                                     <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" [disabled]="!_downloadsEnabled()" (click)="_downloadAllegato(_modulo_richiesta_csr_firma_ceritifato)">
-                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                        <span>{{ 'APP.BUTTON.Download' | translate }}</span><em class="bi bi-download ms-2"></em>
                                                     </button>
                                                 </div>
                                             </div>
@@ -812,14 +812,14 @@
             <div class="modal-header pb-2">
                 <h5 class="modal-title pull-left">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
                 <button type="button" class="btn btn-default btn-md gl-tertiary pull-right p-0" aria-label="Close" (click)="closeModal()">
-                    <i class="bi bi-x-lg"></i>
+                    <em class="bi bi-x-lg"></em>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="p-3">
                     <form class="row" [formGroup]="_editFormGroupErogazioni" (submit)="_onSubmit(_formGroup.value)">
                         <fieldset>
-
+							<legend>&nbsp;</legend>
                             <div class="row">
                                 <div class="form-group col-md-10 mb-2">
                                     <!-- nome -->
