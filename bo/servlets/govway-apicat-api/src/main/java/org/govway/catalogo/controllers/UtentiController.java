@@ -223,7 +223,7 @@ public class UtentiController implements UtentiApi {
 				UtenteSpecification spec = new UtenteSpecification();
 				spec.setQ(Optional.ofNullable(q));
 				spec.setEmail(Optional.ofNullable(email));
-				spec.setPrincipal(Optional.ofNullable(principal));
+				spec.setPrincipalLike(Optional.ofNullable(principal));
 				spec.setIdUtente(Optional.ofNullable(idUtente));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
 				spec.setReferenteTecnico(Optional.ofNullable(referenteTecnico));

@@ -51,6 +51,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private List<ClasseUtenteEntity> idClassiUtente = null;
 	private Optional<String> email = Optional.empty();
 	private Optional<String> principal = Optional.empty();
+	private Optional<String> principalLike = Optional.empty();
 	private List<Ruolo> ruoli = null;
 	private Optional<Boolean> ruoloNull = Optional.empty();
 	private Optional<Boolean> referenteTecnico = Optional.empty();
@@ -113,9 +114,13 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
 		
-		if (principal.isPresent()) {
-			String pattern = "%" + principal.get().toUpperCase() + "%";
+		if (principalLike.isPresent()) {
+			String pattern = "%" + principalLike.get().toUpperCase() + "%";
 			predLst.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), pattern)); 
+		}
+		
+		if (principal.isPresent()) {
+			predLst.add(cb.equal(root.get(UtenteEntity_.principal), principal.get())); 
 		}
 		
 		if (referenteTecnico.isPresent()) {
@@ -249,6 +254,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setPrincipal(Optional<String> principal) {
 		this.principal = principal;
+	}
+
+	public Optional<String> getPrincipalLike() {
+		return principalLike;
+	}
+
+	public void setPrincipalLike(Optional<String> principalLike) {
+		this.principalLike = principalLike;
 	}
 
 }
