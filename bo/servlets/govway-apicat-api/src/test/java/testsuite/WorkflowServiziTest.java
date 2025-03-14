@@ -91,7 +91,17 @@ public class WorkflowServiziTest {
 	private static final String UTENTE_REFERENTE_TECNICO_DOMINIO = "utente_referente_tecnico__dominio";
     private static final String UTENTE_GESTORE = "gestore";
     
+    private static UUID ID_UTENTE_QUALSIASI;
+	private static UUID ID_UTENTE_RICHIEDENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_DOMINIO;
+    private static UUID ID_UTENTE_GESTORE;
+    
     private static final String NOME_GRUPPO = "Gruppo xyz";
+    
+    private InfoProfilo info;
     
     @Mock
     private SecurityContext securityContext;
@@ -133,6 +143,9 @@ public class WorkflowServiziTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
     }
 
     @AfterEach
@@ -985,87 +998,104 @@ public class WorkflowServiziTest {
     DocumentoCreate immagine = new DocumentoCreate();
     
     public Dominio getDominio(VisibilitaServizioEnum value) {
-//    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
-//        
-//        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
-//        organizzazione.setEsterna(false);
-//
-//        response = organizzazioniController.createOrganizzazione(organizzazione);
-//        this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
-//        assertNotNull(response.getBody().getIdOrganizzazione());
-//        
-//        //associo l'utente all'Organizzazione
-//        UtenteUpdate upUtente = new UtenteUpdate();
-//        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
-//        upUtente.setIdOrganizzazione(idOrganizzazione);
-//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-//        upUtente.setEmailAziendale("mail@aziendale.it");
-//        upUtente.setTelefonoAziendale("+39 0000000");
-//        upUtente.setNome("referente");
-//        upUtente.setCognome("dominio");
-//        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-//
-//        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
-//        
-//        upUtente = new UtenteUpdate();
-//        upUtente.setUsername(UTENTE_RICHIEDENTE_SERVIZIO);
-//        upUtente.setIdOrganizzazione(idOrganizzazione);
-//        upUtente.setStato(StatoUtenteEnum.ABILITATO);
-//        upUtente.setEmailAziendale("mail@aziendale.it");
-//        upUtente.setTelefonoAziendale("+39 0000000");
-//        upUtente.setNome("utente");
-//        upUtente.setCognome("richiedente_servizio");
-//
-//        utentiController.updateUtente(UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
-//        
-//        SoggettoCreate soggettoCreate = new SoggettoCreate();
-//        soggettoCreate.setNome("nome_soggetto");
-//        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-//        soggettoCreate.setAderente(true);
-//        soggettoCreate.setReferente(true);
-//
-//        createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
-//        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
-//
-//        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
-//        gruppoCreate.setNome(NOME_GRUPPO);
-//        responseGruppo = gruppiController.createGruppo(gruppoCreate);
-//        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
-//
-//        DominioCreate dominio = CommonUtils.getDominioCreate();
-//        if(value!=null) {
-//        	
-//        	VisibilitaDominioEnum valueDominio = null;
-//        	
-//        	switch(value) {
-//			case PRIVATO: valueDominio = VisibilitaDominioEnum.PRIVATO;
-//				break;
-//			case PUBBLICO: valueDominio = VisibilitaDominioEnum.PUBBLICO;
-//				break;
-//			case RISERVATO: valueDominio = VisibilitaDominioEnum.RISERVATO;
-//				break;
-//			case COMPONENTE: throw new InternalException("Impossibile impostare la visibilita componente per un dominio");
-//			default:
-//				break;}
-//
-//        	dominio.setVisibilita(valueDominio);
-//        }
-//        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
-//        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
-//        
-//        //creo il referente dominio
-//        ReferenteCreate ref = new ReferenteCreate();
-//        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
-//        ref.setTipo(TipoReferenteEnum.REFERENTE);
-//        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-//        
-//        //creo il referente tecnico dominio
-//        ref = new ReferenteCreate();
-//        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
-//        ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-//        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-//        return createdDominio.getBody();
-    	return new Dominio(); //TODO lamantia (usa un metodo comune, questa init c'è in più di una classe)
+    	CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        
+        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+        organizzazione.setEsterna(false);
+
+        response = organizzazioniController.createOrganizzazione(organizzazione);
+        this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        ID_UTENTE_QUALSIASI = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_SERVIZIO, utenteService);
+        ID_UTENTE_RICHIEDENTE_SERVIZIO = info.utente.getIdUtente();
+        
+        //associo l'utente all'Organizzazione
+        UtenteUpdate upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
+        upUtente.setIdOrganizzazione(idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("referente");
+        upUtente.setCognome("dominio");
+        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
+        
+        upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_SERVIZIO);
+        upUtente.setIdOrganizzazione(idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("utente");
+        upUtente.setCognome("richiedente_servizio");
+
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
+        
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("nome_soggetto");
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        soggettoCreate.setAderente(true);
+        soggettoCreate.setReferente(true);
+
+        createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        gruppoCreate.setNome(NOME_GRUPPO);
+        responseGruppo = gruppiController.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
+
+        DominioCreate dominio = CommonUtils.getDominioCreate();
+        if(value!=null) {
+        	
+        	VisibilitaDominioEnum valueDominio = null;
+        	
+        	switch(value) {
+			case PRIVATO: valueDominio = VisibilitaDominioEnum.PRIVATO;
+				break;
+			case PUBBLICO: valueDominio = VisibilitaDominioEnum.PUBBLICO;
+				break;
+			case RISERVATO: valueDominio = VisibilitaDominioEnum.RISERVATO;
+				break;
+			case COMPONENTE: throw new InternalException("Impossibile impostare la visibilita componente per un dominio");
+			default:
+				break;}
+
+        	dominio.setVisibilita(valueDominio);
+        }
+        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+        
+        //creo il referente dominio
+        ReferenteCreate ref = new ReferenteCreate();
+        ref.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
+        ref.setTipo(TipoReferenteEnum.REFERENTE);
+        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+        
+        //creo il referente tecnico dominio
+        ref = new ReferenteCreate();
+        ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
+        ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+        return createdDominio.getBody();
     }
     
     public Servizio getServizio(Dominio dominio, VisibilitaServizioEnum value) {
@@ -1086,18 +1116,18 @@ public class WorkflowServiziTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-//         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
          referenti.add(referente);
          
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-//         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO);
          referenti.add(referente);
          
          //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-//         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
