@@ -35,7 +35,7 @@ import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
-import org.govway.catalogo.servlets.model.ProfiloUpdate;
+import org.govway.catalogo.servlets.model.ProfiloUtenteUpdate;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
@@ -144,7 +144,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		return entity;
 	}
 	
-	public UtenteEntity toEntity(ProfiloUpdate src, UtenteEntity entity) {
+	public UtenteEntity toEntity(ProfiloUtenteUpdate src, UtenteEntity entity) {
 		BeanUtils.copyProperties(src, entity);
 
 		return entity;

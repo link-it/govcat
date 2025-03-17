@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.RequestUtils;
-import org.govway.catalogo.assembler.ProfiloAssembler;
+import org.govway.catalogo.assembler.ProfiloUtenteAssembler;
 import org.govway.catalogo.assembler.UtenteDettaglioAssembler;
 import org.govway.catalogo.assembler.UtenteEngineAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
@@ -51,8 +51,8 @@ import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
 import org.govway.catalogo.servlets.model.ItemUtente;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
-import org.govway.catalogo.servlets.model.Profilo;
-import org.govway.catalogo.servlets.model.ProfiloUpdate;
+import org.govway.catalogo.servlets.model.ProfiloUtente;
+import org.govway.catalogo.servlets.model.ProfiloUtenteUpdate;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnumSearch;
 import org.govway.catalogo.servlets.model.StatoProfiloEnum;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
@@ -97,7 +97,7 @@ public class UtentiController implements UtentiApi {
     private UtenteAuthorization authorization;   
 
     @Autowired
-    private ProfiloAssembler profiloAssembler;   
+    private ProfiloUtenteAssembler profiloAssembler;   
 
 	@Autowired
 	private Configurazione configurazione;
@@ -312,7 +312,7 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Utente> updateProfilo(ProfiloUpdate profiloUpdate) {
+	public ResponseEntity<Utente> updateProfiloUtente(ProfiloUtenteUpdate profiloUpdate) {
 		try {
 			return this.service.runTransaction( () -> {
 				
@@ -349,7 +349,7 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Profilo> getProfilo() {
+	public ResponseEntity<ProfiloUtente> getProfiloUtente() {
 		try {
 			return this.service.runTransaction(() -> {
 				
@@ -394,7 +394,7 @@ public class UtentiController implements UtentiApi {
 						
 						logger.info("PRE new Profilo");
 						
-						Profilo contact = new Profilo();
+						ProfiloUtente contact = new ProfiloUtente();
 						contact.setStato(StatoProfiloEnum.SCONOSCIUTO);
 						contact.setIdm(this.requestUtils.getIdm());
 						
@@ -406,7 +406,7 @@ public class UtentiController implements UtentiApi {
 					
 					logger.info("PRE assembler tomodel");
 					
-					Profilo convert = this.profiloAssembler.toModel(current.utente);
+					ProfiloUtente convert = this.profiloAssembler.toModel(current.utente);
 		
 					logger.info("POST assembler tomodel");
 					
@@ -422,7 +422,7 @@ public class UtentiController implements UtentiApi {
 				
 				logger.info("PRE new Profilo");
 				
-				Profilo contact = new Profilo();
+				ProfiloUtente contact = new ProfiloUtente();
 				contact.setStato(StatoProfiloEnum.SCONOSCIUTO);
 				contact.setIdm(this.requestUtils.getIdm());
 				

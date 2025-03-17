@@ -10,6 +10,7 @@ info:
     name: "GPL v3"
 tags:
 - name: "Configurazione"
+- name: "Profili"
 - name: "Organizzazioni"
 - name: "Soggetti"
 - name: "Utenti"
@@ -97,14 +98,14 @@ paths:
       tags:
       - "Utenti"
       description: "Info profilo attualmente loggato"
-      operationId: "getProfilo"
+      operationId: "getProfiloUtente"
       responses:
         "200":
           description: "Operazione completata con successo"
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Profilo"
+                $ref: "#/components/schemas/ProfiloUtente"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "403":
@@ -119,13 +120,13 @@ paths:
       tags:
       - "Utenti"
       description: "Aggiornamento delle informazioni dell'utente chiamante"
-      operationId: "updateProfilo"
+      operationId: "updateProfiloUtente"
       requestBody:
         description: "Dati per l'aggiornamento del Utente chiamante"
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProfiloUpdate'
+              $ref: '#/components/schemas/ProfiloUtenteUpdate'
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -401,6 +402,285 @@ paths:
       responses:
         "204":
           description: "Organizzazione eliminata con successo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profili:
+    get:
+      tags:
+      - "Profili"
+      description: "Elenco dei Profili"
+      operationId: "listProfili"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemProfilo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    post:
+      tags:
+      - "Profili"
+      description: "Creazione di un Profilo"
+      operationId: "createProfilo"
+      requestBody:
+        description: "Dati del Profilo da creare"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfiloCreate'
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/Profilo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profili/{id_profilo}:
+    parameters:
+    - $ref: "#/components/parameters/id_profilo"
+    get:
+      tags:
+      - "Profili"
+      description: "Dettaglio del Profilo"
+      operationId: "getProfilo"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profilo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "Profili"
+      description: "Aggiornamento del Profilo"
+      operationId: "updateProfilo"
+      requestBody:
+        description: "Dati per l'aggiornamento del Profilo"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfiloUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profilo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Profili"
+      description: "Cancellazione del Profilo"
+      operationId: "deleteProfilo"
+      responses:
+        "204":
+          description: "Profilo eliminato con successo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profili/{id_profilo}/domini:
+    parameters:
+    - $ref: "#/components/parameters/id_profilo"
+    get:
+      tags:
+      - "Profili"
+      description: "Lista dei Domini del Profilo"
+      operationId: "listDominiProfilo"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemDominio"
+    post:
+      tags:
+      - "Profili"
+      description: "Aggiunta di un Dominio al Profilo"
+      operationId: "createDominioProfilo"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dominio"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profili/{id_profilo}/domini/{id_dominio}:
+    parameters:
+    - $ref: "#/components/parameters/id_profilo"
+    - $ref: "#/components/parameters/id_dominio"
+    delete:
+      tags:
+      - "Profili"
+      description: "Cancellazione del Dominio dal Profilo"
+      operationId: "deleteDominioProfilo"
+      responses:
+        "204":
+          description: "Dominio eliminato con successo dal Profilo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profili/{id_profilo}/soggetti:
+    parameters:
+    - $ref: "#/components/parameters/id_profilo"
+    get:
+      tags:
+      - "Profili"
+      description: "Lista dei Soggetti del Profilo"
+      operationId: "listSoggettiProfilo"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemSoggetto"
+    post:
+      tags:
+      - "Profili"
+      description: "Aggiunta di un Soggetto al Profilo"
+      operationId: "createSoggettoProfilo"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Soggetto"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profili/{id_profilo}/soggetti/{id_soggetto}:
+    parameters:
+    - $ref: "#/components/parameters/id_profilo"
+    - $ref: "#/components/parameters/id_soggetto"
+    delete:
+      tags:
+      - "Profili"
+      description: "Cancellazione del Soggetto dal Profilo"
+      operationId: "deleteSoggettoProfilo"
+      responses:
+        "204":
+          description: "Soggetto eliminato con successo dal profilo"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "401":
@@ -6156,7 +6436,7 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/AllegatoMessaggio'
-    Profilo:
+    ProfiloUtente:
         type: "object"
         required:
           - utente
@@ -6356,6 +6636,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ItemOrganizzazione'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    PagedModelItemProfilo:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemProfilo'
         page:
           $ref: '#/components/schemas/PageMetadata'
     CountNotifica:
@@ -7570,6 +7859,53 @@ components:
           $ref: "#/components/schemas/ItemAdesione"
         tipo_entita_padre:
           $ref: "#/components/schemas/TipoEntitaNotifica"
+    Profilo:
+      allOf:
+        - $ref: "#/components/schemas/ItemProfilo"
+    ItemProfilo:
+      allOf:
+        - $ref: "#/components/schemas/ProfiloBaseRead"
+    ProfiloUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ProfiloCreate"
+    ProfiloCreate:
+      allOf:
+        - $ref: "#/components/schemas/ProfiloBaseWrite"
+    ProfiloBaseWrite:
+      allOf:
+        - $ref: "#/components/schemas/ProfiloBase"
+    ProfiloBaseRead:
+      allOf:
+        - $ref: "#/components/schemas/ProfiloBase"
+        - type: object
+          required:
+            - "id_profilo"
+          properties:
+            id_profilo:
+              $ref: "#/components/schemas/IdProfilo"
+    ProfiloBase:
+      type: "object"
+      required:
+        - "codice_interno"
+        - "etichetta"
+        - "auth_type"
+      properties:
+        codice_interno:
+          $ref: "#/components/schemas/String255"
+        etichetta:
+          $ref: "#/components/schemas/String255"
+        auth_type:
+          $ref: "#/components/schemas/AuthTypeEnum"
+        compatibilita:
+          $ref: "#/components/schemas/ConfigurazioneCompatibilitaApiEnum"
+        canale_default:
+          $ref: "#/components/schemas/String255"
+        profilo_govway:
+          type: "string"
+        tipo_dominio:
+          $ref: "#/components/schemas/ConfigurazioneTipoDominioEnum"
+        codice_token_policy:
+          type: "string"
     ItemOrganizzazione:
       type: "object"
       required:
@@ -7825,7 +8161,7 @@ components:
             $ref: "#/components/schemas/IdClasseUtente"
         settings:
           type: object
-    ProfiloUpdate:
+    ProfiloUtenteUpdate:
       type: "object"
       required:
         - nome
@@ -9031,6 +9367,9 @@ components:
         certificato_server:
           $ref: "#/components/schemas/CertificatoClientCreate"
     # Schemi di base interni
+    IdProfilo:
+      type: "string"
+      format: "uuid"
     IdOrganizzazione:
       type: "string"
       format: "uuid"
@@ -9212,6 +9551,13 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/IdNotifica"
+    id_profilo:
+      name: "id_profilo"
+      in: "path"
+      description: "identificativo Profilo"
+      required: true
+      schema:
+        $ref: "#/components/schemas/IdProfilo"
     id_organizzazione:
       name: "id_organizzazione"
       in: "path"

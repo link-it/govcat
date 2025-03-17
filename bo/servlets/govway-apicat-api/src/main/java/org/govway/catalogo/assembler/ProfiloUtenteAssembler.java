@@ -23,15 +23,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.govway.catalogo.RequestUtils;
-import org.govway.catalogo.controllers.OrganizzazioniController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
-import org.govway.catalogo.servlets.model.Profilo;
+import org.govway.catalogo.servlets.model.ProfiloUtente;
 import org.govway.catalogo.servlets.model.StatoProfiloEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
-public class ProfiloAssembler extends RepresentationModelAssemblerSupport<UtenteEntity, Profilo> {
+public class ProfiloUtenteAssembler extends RepresentationModelAssemblerSupport<UtenteEntity, ProfiloUtente> {
 
 	@Autowired
 	private UtenteDettaglioAssembler utenteDettaglioAssembler;
@@ -39,14 +39,14 @@ public class ProfiloAssembler extends RepresentationModelAssemblerSupport<Utente
 	@Autowired
 	private RequestUtils requestUtils;
 	
-	public ProfiloAssembler() {
-		super(OrganizzazioniController.class, Profilo.class);
+	public ProfiloUtenteAssembler() {
+		super(UtentiController.class, ProfiloUtente.class);
 	}
 
 	@Override
-	public Profilo toModel(UtenteEntity entity) {
+	public ProfiloUtente toModel(UtenteEntity entity) {
 		
-		Profilo dettaglio = instantiateModel(entity);
+		ProfiloUtente dettaglio = instantiateModel(entity);
 		dettaglio.setUtente(utenteDettaglioAssembler.toModel(entity));
 		dettaglio.setStato(toStatoProfilo(entity.getStato()));
 		dettaglio.setIdm(requestUtils.getIdm());

@@ -78,7 +78,7 @@ import org.govway.catalogo.assembler.OAuthClientCredentialsEstensioneClientAssem
 import org.govway.catalogo.assembler.OrganizzazioneDettaglioAssembler;
 import org.govway.catalogo.assembler.OrganizzazioneItemAssembler;
 import org.govway.catalogo.assembler.PdndEstensioneClientAssembler;
-import org.govway.catalogo.assembler.ProfiloAssembler;
+import org.govway.catalogo.assembler.ProfiloUtenteAssembler;
 import org.govway.catalogo.assembler.ReferenteAdesioneAssembler;
 import org.govway.catalogo.assembler.ReferenteDominioAssembler;
 import org.govway.catalogo.assembler.ReferenteServizioAssembler;
@@ -307,8 +307,8 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     }
     
     @Bean
-    public ProfiloAssembler profiloAssembler() {
-    	return new ProfiloAssembler();
+    public ProfiloUtenteAssembler profiloAssembler() {
+    	return new ProfiloUtenteAssembler();
     }
     
     @Bean
