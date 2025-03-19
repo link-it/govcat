@@ -52,7 +52,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private static final long serialVersionUID = 1L;
 
 	private Optional<String> q = Optional.empty();
-	private Optional<UUID> idAdesione = Optional.empty();
+	private List<UUID> idAdesioni = null;
 	private Optional<String> idLogico = Optional.empty();
 	private Optional<UUID> idRichiedente = Optional.empty();
 	private Optional<UUID> idServizio = Optional.empty();
@@ -98,8 +98,18 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
 
-		if (idAdesione.isPresent()) {
-			predLst.add(cb.equal(root.get(AdesioneEntity_.idAdesione), idAdesione.get().toString())); 
+		if(this.idAdesioni != null) {
+			if(!this.idAdesioni.isEmpty()) {
+				ArrayList<Predicate> preds2 = new ArrayList<>();
+				
+				for(UUID idAdesione: this.idAdesioni) {
+					preds2.add(cb.equal(root.get(AdesioneEntity_.idAdesione), idAdesione.toString()));
+				}
+				
+				predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
+			} else {
+				predLst.add(cb.disjunction());
+			}
 		}
 
 		if (idLogico.isPresent()) {
@@ -240,14 +250,6 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 		this.idLogico = idLogico;
 	}
 
-	public Optional<UUID> getIdAdesione() {
-		return idAdesione;
-	}
-
-	public void setIdAdesione(Optional<UUID> idAdesione) {
-		this.idAdesione = idAdesione;
-	}
-
 	public Optional<UUID> getClient() {
 		return client;
 	}
@@ -278,6 +280,14 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 
 	public void setIdRichiedente(Optional<UUID> idRichiedente) {
 		this.idRichiedente = idRichiedente;
+	}
+
+	public List<UUID> getIdAdesioni() {
+		return idAdesioni;
+	}
+
+	public void setIdAdesioni(List<UUID> idAdesioni) {
+		this.idAdesioni = idAdesioni;
 	}
 
 }

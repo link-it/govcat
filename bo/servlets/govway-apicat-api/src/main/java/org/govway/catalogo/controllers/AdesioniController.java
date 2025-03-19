@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -72,12 +73,15 @@ import org.govway.catalogo.servlets.model.AdesioneClientUpdate;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
+import org.govway.catalogo.servlets.model.AdesioniCambioStatoResponse;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.CheckDati;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneAutomatica;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.DatiCustomAdesioneUpdate;
+import org.govway.catalogo.servlets.model.ErroreCambioStatoResponse;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.ItemAdesione;
 import org.govway.catalogo.servlets.model.ItemComunicazione;
@@ -97,6 +101,7 @@ import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -252,7 +257,7 @@ public class AdesioniController implements AdesioniApi {
 			aspec.setUtente(Optional.of(utente));
 		}
 
-		aspec.setIdAdesione(Optional.of(idAdesione));
+		aspec.setIdAdesioni(List.of(idAdesione));
 
 		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException("Adesione con id ["+idAdesione+"] non trovata"));
 		
@@ -701,7 +706,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemAdesione> listAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
-			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, String q,  Integer page,
+			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, String q,  Integer page,
 			Integer size, List<String> sort) {
 
 		try {
@@ -712,11 +717,15 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				AdesioneSpecification specification = new AdesioneSpecification();
+//				specification.setStatoConfigurazioneAutomatica(Optional.ofNullable(statoConfigurazioneautomatica)); //TODO mflag aggiungere al filtro
 				specification.setQ(Optional.ofNullable(q));
 				specification.setGruppo(Optional.ofNullable(idGruppo));
 				specification.setDominio(Optional.ofNullable(idDominio));
 				specification.setClient(Optional.ofNullable(idClient));
-				specification.setIdAdesione(Optional.ofNullable(idAdesione));
+				Optional.ofNullable(idAdesione)
+					.ifPresent(a -> {
+						specification.setIdAdesioni(Arrays.asList(a));
+						});
 				specification.setIdLogico(Optional.ofNullable(idLogico));
 				specification.setIdSoggetto(Optional.ofNullable(idSoggettoAderente));
 				specification.setIdOrganizzazione(Optional.ofNullable(idOrganizzazioneAderente));
@@ -1672,6 +1681,165 @@ public class AdesioniController implements AdesioniApi {
 		return checkOnly != null && checkOnly;
 	}
 
+	@Override
+	public ResponseEntity<AdesioniCambioStatoResponse> updateStatoAdesioni(StatoUpdate statoUpdate,
+			List<String> stato, UUID idSoggetto, UUID idOrganizzazione, UUID idGruppoPadre,
+			UUID idDominio, UUID idServizio, String idLogico,
+			UUID idClient, UUID richiedente, Boolean inAttesa,
+			List<UUID> id, String q,
+			Integer page, Integer size, List<String> sort) {
+		try {
+
+			return this.service.runTransaction( () -> {
+				
+				AdesioniCambioStatoResponse response = new AdesioniCambioStatoResponse();
+				AtomicLong numeroOk = new AtomicLong(0);
+				long numeroKo = 0;
+				List<ErroreCambioStatoResponse> errori = new ArrayList<ErroreCambioStatoResponse>();
+
+				this.logger.info("Invocazione in corso ...");     
+				this.coreAuthorization.requireAdmin();
+				this.logger.debug("Autorizzazione completata con successo");     
+
+				AdesioneSpecification specification = new AdesioneSpecification();
+				specification.setQ(Optional.ofNullable(q));
+				specification.setGruppo(Optional.ofNullable(idGruppoPadre));
+				specification.setDominio(Optional.ofNullable(idDominio));
+				specification.setClient(Optional.ofNullable(idClient));
+				specification.setIdAdesioni(id);
+				specification.setIdLogico(Optional.ofNullable(idLogico));
+				specification.setIdSoggetto(Optional.ofNullable(idSoggetto));
+				specification.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
+				specification.setIdServizio(Optional.ofNullable(idServizio));
+				
+				boolean admin = this.coreAuthorization.isAdmin();
+
+				if(!admin) {
+					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+				}
+				
+				specification.setStati(stato);
+				
+				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("searchTerms"));
+
+				Page<AdesioneEntity> findAll = this.service.findAll(specification, pageable);
+				
+				List<ConfigurazioneAutomatica> lista = configurazione.getAdesione().getConfigurazioneAutomatica();
+				
+				List<AdesioneEntity> listAdesioniNonStatoIniziale = new ArrayList<AdesioneEntity>();
+				List<AdesioneEntity> listAdesioniNonCoerentiConStatoIniziale = new ArrayList<AdesioneEntity>();
+				//il ciclo seguente verifica lo stato_iniziale definito nel file configurazione
+				/*
+				"configurazione_automatica": [
+			    {
+			        "stato_iniziale": "autorizzato_collaudo",
+			        "stato_in_configurazione": "in_configurazione_collaudo",
+			        "stato_finale": "pubblicato_collaudo"
+			        },
+			        {
+			        "stato_iniziale": "autorizzato_produzione",
+			        "stato_in_configurazione": "in_configurazione_produzione",
+			        "stato_finale": "pubblicato_produzione"
+			        }
+			        ]
+			    */
+				for (ConfigurazioneAutomatica configurazioneAutomatica : lista) {
+					String statoIniziale = configurazioneAutomatica.getStatoIniziale();
+//	                String statoInConfigurazione = configurazioneAutomatica.getStatoInConfigurazione();
+//	                String statoFinale = configurazioneAutomatica.getStatoFinale();
+	                //se la lista non e' vuota verifico che nessuno degli elementi abbia lo stato_iniziale, eventualmente deve essere eliminato dalla lista
+	                if(!listAdesioniNonStatoIniziale.isEmpty()) {
+	                	findAll.stream().forEach(v->{
+		                	if(v.getStato().equals(statoIniziale)) 
+		                		listAdesioniNonStatoIniziale.remove(v);
+		                	});
+	                }
+	                findAll.stream().forEach(v->{
+	                	if(!v.getStato().equals(statoIniziale)) 
+	                		listAdesioniNonStatoIniziale.add(v);
+	                	});
+		        }
+				if(!listAdesioniNonStatoIniziale.isEmpty()) {
+					listAdesioniNonStatoIniziale.stream().forEach(v->{
+						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						errore.setIdAdesione(v.getIdAdesione());
+						errore.setMessaggio("Elemento non in uno degli stati stato_iniziale definiti in configurazione");
+						errori.add(errore);
+					});
+						//throw new BadRequestException("Uno o piu' elementi non sono in uno degli stati stato_iniziale definiti in configurazione");
+				}
+				//verifico che se lo stato iniziale sia ad esempio autorizzato_collaudo, allora lo statoUpdate faccia riferimento coerentemente al collaudo, stessa cosa con la produzione
+				findAll.stream().forEach(v->{
+                	if(v.getStato().contains("collaudo")) {
+                		if(statoUpdate.getStato().contains("produzione"))
+                			listAdesioniNonCoerentiConStatoIniziale.add(v);
+                	}
+                	else if(v.getStato().contains("produzione")) {
+                		if(statoUpdate.getStato().contains("collaudo"))
+                			listAdesioniNonCoerentiConStatoIniziale.add(v);
+                	}
+                	});
+				if(!listAdesioniNonCoerentiConStatoIniziale.isEmpty()) {
+					listAdesioniNonCoerentiConStatoIniziale.stream().forEach(v->{
+						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						errore.setIdAdesione(v.getIdAdesione());
+						errore.setMessaggio("Elemento non coerente con lo stato_iniziale");
+						errori.add(errore);
+					});
+					//throw new BadRequestException("Uno o piu' elementi non sono coerenti con lo stato_iniziale");
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				findAll.stream().forEach(v->{
+					try {
+					AdesioneEntity entity = findOne(UUID.fromString(v.getIdAdesione()));  
+	
+					String statoIniziale = entity.getStato();
+					String statoFinale = statoUpdate.getStato();
+					
+					this.authorization.authorizeCambioStato(entity, statoUpdate.getStato());
+					this.dettaglioAssembler.toEntity(statoUpdate, entity);
+					this.authorization.authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+	
+	
+					this.service.save(entity);
+	
+					List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(entity);
+					lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+	
+					numeroOk.incrementAndGet();
+					response.setNumeroOk(numeroOk.get());
+					} catch(NotAuthorizedException ex) {}
+				});
+				
+				numeroKo = findAll.getSize()-numeroOk.get();
+				
+				response.setNumeroKo(numeroKo);
+
+				response.setErrori(errori);
+
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.ok(response);
+
+			});
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(e);
+		}
+
+	    }
+	
 	@Override
 	public ResponseEntity<Resource> downloadAllegatoAdesione(UUID idAdesione, UUID idAllegato) {
 		try {
