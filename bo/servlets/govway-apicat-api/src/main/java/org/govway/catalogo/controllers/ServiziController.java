@@ -597,7 +597,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<Void> deleteReferenteServizio(UUID idServizio, String idUtente,
+	public ResponseEntity<Void> deleteReferenteServizio(UUID idServizio, UUID idUtente,
 			TipoReferenteEnum tipoReferente) {
 		try {
 			return this.service.runTransaction( () -> {

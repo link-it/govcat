@@ -370,7 +370,7 @@ public class GruppiTest {
 
     @Test
     public void testUpdateGruppoNotFound() {
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
 
         UUID idGruppoNonEsistente = UUID.randomUUID();

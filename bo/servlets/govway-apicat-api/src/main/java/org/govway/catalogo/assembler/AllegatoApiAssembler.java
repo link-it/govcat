@@ -81,7 +81,7 @@ public class AllegatoApiAssembler extends RepresentationModelAssemblerSupport<Al
 		DocumentoEntity docEntity = new DocumentoEntity();
 		docEntity.setUuid(UUID.randomUUID().toString());
 		docEntity.setDataCreazione(new Date());
-		docEntity.setUtenteCreazione(coreEngineAssembler.getUtenteSessione().getIdUtente());
+		docEntity.setUtenteCreazione(coreEngineAssembler.getUtenteSessione().getPrincipal());
 		docEntity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		docEntity.setTipo(src.getContentType());
 		docEntity.setFilename(src.getFilename());
@@ -114,7 +114,7 @@ public class AllegatoApiAssembler extends RepresentationModelAssemblerSupport<Al
 		DocumentoEntity docEntity = new DocumentoEntity();
 		docEntity.setUuid(UUID.randomUUID().toString());
 		docEntity.setDataCreazione(new Date());
-		docEntity.setUtenteCreazione(coreEngineAssembler.getUtenteSessione().getIdUtente());
+		docEntity.setUtenteCreazione(coreEngineAssembler.getUtenteSessione().getPrincipal());
 		docEntity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		entity.setDocumento(docEntity);
 		

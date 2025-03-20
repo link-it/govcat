@@ -91,7 +91,17 @@ public class WorkflowServiziTest {
 	private static final String UTENTE_REFERENTE_TECNICO_DOMINIO = "utente_referente_tecnico__dominio";
     private static final String UTENTE_GESTORE = "gestore";
     
+    private static UUID ID_UTENTE_QUALSIASI;
+	private static UUID ID_UTENTE_RICHIEDENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_DOMINIO;
+    private static UUID ID_UTENTE_GESTORE;
+    
     private static final String NOME_GRUPPO = "Gruppo xyz";
+    
+    private InfoProfilo info;
     
     @Mock
     private SecurityContext securityContext;
@@ -133,6 +143,9 @@ public class WorkflowServiziTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
     }
 
     @AfterEach
@@ -942,7 +955,7 @@ public class WorkflowServiziTest {
     
 	private InfoProfilo getInfoProfilo(String idUtente) {
 		return this.utenteService.runTransaction(() -> {
-			UtenteEntity utente = this.utenteService.find(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
+			UtenteEntity utente = this.utenteService.findByPrincipal(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
 			
 			if(utente.getOrganizzazione()!=null) {
 				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
@@ -994,9 +1007,27 @@ public class WorkflowServiziTest {
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
         assertNotNull(response.getBody().getIdOrganizzazione());
         
+        info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        ID_UTENTE_QUALSIASI = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_SERVIZIO, utenteService);
+        ID_UTENTE_RICHIEDENTE_SERVIZIO = info.utente.getIdUtente();
+        
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -1005,10 +1036,10 @@ public class WorkflowServiziTest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_SERVIZIO);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_SERVIZIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -1016,7 +1047,7 @@ public class WorkflowServiziTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_servizio");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("nome_soggetto");
@@ -1055,13 +1086,13 @@ public class WorkflowServiziTest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         
         //creo il referente tecnico dominio
         ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         return createdDominio.getBody();
@@ -1085,18 +1116,18 @@ public class WorkflowServiziTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
          referenti.add(referente);
          
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO);
          referenti.add(referente);
          
          //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);

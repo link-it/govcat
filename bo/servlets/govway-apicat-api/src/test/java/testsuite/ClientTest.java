@@ -407,27 +407,6 @@ public class ClientTest {
         assertEquals("Client [" + idClientNonEsistente + "] non trovato", exception.getMessage());
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     @Test
     public void testListClientSuccess() {
         OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();

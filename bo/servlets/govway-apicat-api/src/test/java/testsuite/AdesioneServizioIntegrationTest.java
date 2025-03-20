@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.controllers.AdesioniController;
@@ -123,6 +124,12 @@ public class AdesioneServizioIntegrationTest {
     private static final String NOME_GRUPPO = "Mari";
     private static final String UTENTE_ADERENTE = "magno";
     
+    private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+    private static UUID ID_UTENTE_REFERENTE_TECNICO;
+    private static UUID ID_UTENTE_GESTORE;
+    private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+    private static UUID ID_UTENTE_ADERENTE;
+    
     @Mock
     private SecurityContext securityContext;
 
@@ -179,6 +186,18 @@ public class AdesioneServizioIntegrationTest {
     private void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO = info.utente.getIdUtente();
     }
 
     @AfterEach
@@ -314,13 +333,13 @@ public class AdesioneServizioIntegrationTest {
 			servizioCreate.setImmagine(immagine);
 		ReferenteCreate referente = new ReferenteCreate();
 		referente.setTipo(TipoReferenteEnum.REFERENTE);
-		referente.setIdUtente(utenteService.find(UTENTE_GESTORE).get().getIdUtente());
+		referente.setIdUtente(ID_UTENTE_GESTORE);
 		ReferenteCreate referente2 = new ReferenteCreate();
 		referente2.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-		referente2.setIdUtente(utenteService.find(UTENTE_REFERENTE_TECNICO).get().getIdUtente());
+		referente2.setIdUtente(ID_UTENTE_REFERENTE_TECNICO);
 		ReferenteCreate referente3 = new ReferenteCreate();
 		referente3.setTipo(TipoReferenteEnum.REFERENTE);
-		referente3.setIdUtente(utenteService.find(UTENTE_REFERENTE_SERVIZIO).get().getIdUtente());
+		referente3.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
 		//referente.setIdUtente(responseUtente.getBody().getIdUtente());
 		//ReferenteCreate referenteTecnico = this.setReferenteTecnico();
 		List<ReferenteCreate> referenti = new ArrayList<ReferenteCreate>();
@@ -409,7 +428,7 @@ public class AdesioneServizioIntegrationTest {
          */
         
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setUsername(UTENTE_ADERENTE);
+        utente.setPrincipal(UTENTE_ADERENTE);
         utente.setNome(UTENTE_ADERENTE);
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         utente.setIdOrganizzazione(idOrganizzazione);
@@ -465,7 +484,7 @@ public class AdesioneServizioIntegrationTest {
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         UtenteCreate utente2 = CommonUtils.getUtenteCreate();
-        utente2.setUsername(UTENTE_ADERENTE);
+        utente2.setPrincipal(UTENTE_ADERENTE);
         utente2.setNome(UTENTE_ADERENTE);
         utente2.setRuolo(RuoloUtenteEnum.GESTORE);
         utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -495,14 +514,14 @@ public class AdesioneServizioIntegrationTest {
 			servizioCreate.setImmagine(immagine);
 		ReferenteCreate referente = new ReferenteCreate();
 		referente.setTipo(TipoReferenteEnum.REFERENTE);
-		referente.setIdUtente(utenteService.find(UTENTE_GESTORE).get().getIdUtente());
+		referente.setIdUtente(ID_UTENTE_GESTORE);
 		ReferenteCreate referente2 = new ReferenteCreate();
 		referente2.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-		referente2.setIdUtente(utenteService.find(UTENTE_REFERENTE_TECNICO).get().getIdUtente());
+		referente2.setIdUtente(ID_UTENTE_REFERENTE_TECNICO);
 		ReferenteCreate referente3 = new ReferenteCreate();
 		referente3.setTipo(TipoReferenteEnum.REFERENTE);
-		referente3.setIdUtente(utenteService.find(UTENTE_REFERENTE_SERVIZIO).get().getIdUtente());
-		//referente.setIdUtente(responseUtente.getBody().getIdUtente());
+		referente3.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
+		referente.setIdUtente(responseUtente.getBody().getIdUtente());
 		//ReferenteCreate referenteTecnico = this.setReferenteTecnico();
 		List<ReferenteCreate> referenti = new ArrayList<ReferenteCreate>();
 		referenti.add(referente);
@@ -591,9 +610,12 @@ public class AdesioneServizioIntegrationTest {
         
         soggettiController.createSoggetto(soggetto);
 
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_ADERENTE, securityContext, authentication, utenteService);
+        ID_UTENTE_ADERENTE = info.utente.getIdUtente();
+        
         ReferenteCreate referenteDaAggiungere = new ReferenteCreate();
         referenteDaAggiungere.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteDaAggiungere.setIdUtente(UTENTE_ADERENTE);
+        referenteDaAggiungere.setIdUtente(ID_UTENTE_ADERENTE);
         serviziController.createReferenteServizio(idServizio, referenteDaAggiungere);
 
         ResponseEntity<PagedModelReferente> s = serviziController.listReferentiServizio(idServizio, UTENTE_ADERENTE, TipoReferenteEnum.REFERENTE, 0, 10, null);
@@ -631,19 +653,19 @@ public class AdesioneServizioIntegrationTest {
         ResponseEntity<PagedModelReferente> listRef = serviziController.listReferentiServizio(idServizio, null, null, 0, 10, null);
         List<Referente> listReferente = listRef.getBody().getContent();
         Optional<Referente> referenteTrovato = listReferente.stream()
-                .filter(referente -> referente.getUtente().getIdUtente().equals(UTENTE_ADERENTE))
+                .filter(referente -> referente.getUtente().getIdUtente().equals(ID_UTENTE_ADERENTE))
                 .findFirst();
         assertTrue(referenteTrovato.isPresent());
         
         ///////////////////////////////
         
-        //InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        //InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
 		//when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
 		//when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 		
         CommonUtils.getSessionUtente(UTENTE_ADERENTE, securityContext, authentication, utenteService);
         
-        //InfoProfilo infoProfiloReferente2 = new InfoProfilo(UTENTE_ADERENTE, this.utenteService.find(UTENTE_ADERENTE).get(), List.of());
+        //InfoProfilo infoProfiloReferente2 = new InfoProfilo(UTENTE_ADERENTE, this.utenteService.findByPrincipal(UTENTE_ADERENTE).get(), List.of());
         //when(this.authentication.getPrincipal()).thenReturn(infoProfiloReferente2);
         //when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 		

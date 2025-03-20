@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.controllers.APIController;
@@ -142,6 +143,9 @@ public class NotificheTest {
 
     private static final String UTENTE_GESTORE = "gestore";
     private static final String UTENTE_REFERENTE_TECNICO = "barbarossa";
+    
+    private static UUID ID_UTENTE_GESTORE;
+    private static UUID ID_UTENTE_REFERENTE_TECNICO;
 
     @BeforeEach
     private void setUp() {
@@ -153,6 +157,12 @@ public class NotificheTest {
         when(coreAuthorization.isAnounymous()).thenReturn(true);
 
         SecurityContextHolder.setContext(this.securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO = info.utente.getIdUtente();
     }
 
     @AfterEach
@@ -178,7 +188,7 @@ public class NotificheTest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
+        upUtente.setPrincipal(UTENTE_GESTORE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -187,7 +197,7 @@ public class NotificheTest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         soggettoCreate.setNome("nome_soggetto");
@@ -214,7 +224,7 @@ public class NotificheTest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_GESTORE);
+        ref.setIdUtente(ID_UTENTE_GESTORE);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
 
@@ -235,12 +245,12 @@ public class NotificheTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_GESTORE);
+         referente.setIdUtente(ID_UTENTE_GESTORE);
          referenti.add(referente);
          
          ReferenteCreate referente2 = new ReferenteCreate();
  		 referente2.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
- 		 referente2.setIdUtente(utenteService.find(UTENTE_REFERENTE_TECNICO).get().getIdUtente());
+ 		 referente2.setIdUtente(utenteService.findByPrincipal(UTENTE_REFERENTE_TECNICO).get().getIdUtente());
          referenti.add(referente2);
  		 
          servizioCreate.setReferenti(referenti);
@@ -320,7 +330,7 @@ public class NotificheTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -356,7 +366,7 @@ public class NotificheTest {
         List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
         TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
         UUID idEntitaNotifica = null;
-        String idMittente = null;
+        UUID idMittente = null;
         UUID idServizio = servizio.getIdServizio();
         UUID idAdesione = null;
         
@@ -385,7 +395,7 @@ public class NotificheTest {
         List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
         TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
         UUID idEntitaNotifica = null;
-        String idMittente = null;
+        UUID idMittente = null;
         UUID idServizio = servizio.getIdServizio();
         UUID idAdesione = null;
         int page = 0;

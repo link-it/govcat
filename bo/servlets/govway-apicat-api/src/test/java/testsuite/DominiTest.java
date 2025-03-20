@@ -117,6 +117,7 @@ public class DominiTest {
     private SoggettiController soggettiController;
 
     private static final String UTENTE_GESTORE = "gestore";
+    private static final String UTENTE_QUALSIASI = "utente_qualsiasi";
 
     @BeforeEach
     public void setUp() {
@@ -495,14 +496,7 @@ public class DominiTest {
         assertEquals(2, responseList.getBody().getContent().size());
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
     }
-    
-    
-    
-    
-    
-    
-    
-    
+
     @Test
     void testListDominiSortedUsernameDesc() {
     	ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
@@ -603,11 +597,6 @@ public class DominiTest {
             assertFalse(responseList.getBody().getContent().isEmpty());
         }
     }
-    
-    
-    
-    
-    
 
     @Test
     public void testListDominiWithFilters() {
@@ -701,10 +690,12 @@ public class DominiTest {
     void testCreateReferenteDominioNotFound() {
         UUID idDominioNonEsistente = UUID.randomUUID();
 
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Creazione del referente
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente("test");
+        referenteCreate.setIdUtente(info.utente.getIdUtente());
 
         org.govway.catalogo.exception.NotFoundException exception = assertThrows(org.govway.catalogo.exception.NotFoundException.class, () -> {
             controller.createReferenteDominio(idDominioNonEsistente, referenteCreate);
@@ -733,10 +724,12 @@ public class DominiTest {
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Tentativo di creare un referente senza autorizzazione
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente("test");
+        referenteCreate.setIdUtente(info.utente.getIdUtente());
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);
         });
@@ -764,10 +757,12 @@ public class DominiTest {
 
         this.tearDown();        
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Tentativo di creare un referente senza autorizzazione
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente("test");
+        referenteCreate.setIdUtente(info.utente.getIdUtente());
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);
         });
@@ -793,9 +788,11 @@ public class DominiTest {
         ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
+        
         // Creazione di un referente non valido (per esempio, senza il tiporeferente definito)
         ReferenteCreate referenteCreate = new ReferenteCreate();
-        referenteCreate.setIdUtente("test");  // Nome del referente mancante
+        referenteCreate.setIdUtente(info.utente.getIdUtente());  // Nome del referente mancante
 
         ConstraintViolationException exception = assertThrows(ConstraintViolationException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);
@@ -843,8 +840,8 @@ public class DominiTest {
 
     @Test
     void testDeleteReferenteDominioNotFound() {
-        UUID idDominioNonEsistente = UUID.randomUUID();
-        String idUtente = "non_esistente";
+    	UUID idDominioNonEsistente = UUID.randomUUID();
+    	UUID idUtente = UUID.randomUUID();
         
         // Tentativo di cancellare un referente per un dominio inesistente
         org.govway.catalogo.core.exceptions.NotFoundException exception = assertThrows(org.govway.catalogo.core.exceptions.NotFoundException.class, () -> {
@@ -953,7 +950,7 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
 
         // Tentativo di cancellare un referente inesistente
-        String idUtenteNonEsistente = "non_esistente";
+        UUID idUtenteNonEsistente = UUID.randomUUID();
 
         org.govway.catalogo.core.exceptions.NotFoundException exception = assertThrows(org.govway.catalogo.core.exceptions.NotFoundException.class, () -> {
             controller.deleteReferenteDominio(createdDominio.getBody().getIdDominio(), idUtenteNonEsistente, TipoReferenteEnum.REFERENTE);
@@ -986,7 +983,7 @@ public class DominiTest {
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         UtenteCreate utente2 = CommonUtils.getUtenteCreate();
-        utente2.setUsername("altrousername");
+        utente2.setPrincipal("altrousername");
         utente2.setNome("utente 2");
         utente2.setCognome("cognome 2");
         utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -1034,7 +1031,7 @@ public class DominiTest {
 
     	for(int n = 0; n < 3; n++) {
     		UtenteCreate utente = CommonUtils.getUtenteCreate();
-    		utente.setUsername("nomeUtente"+n);
+    		utente.setPrincipal("nomeUtente"+n);
             utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
             utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
             ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
@@ -1047,7 +1044,7 @@ public class DominiTest {
             assertEquals(HttpStatus.OK, createdReferente1.getStatusCode());
     	}
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
-		utente.setUsername("nomeUtente"+3);
+		utente.setPrincipal("nomeUtente"+3);
         utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
@@ -1074,9 +1071,9 @@ public class DominiTest {
         List<Referente> listReferenti = responseList.getBody().getContent();
         //System.out.println(responseList.getBody().getContent().get(0));
         //listSoggetti.stream().forEach(s->{System.out.println(s.getNome());});
-        assertTrue(listReferenti.stream().anyMatch(s -> s.getUtente().getUsername().equals("nomeUtente"+0)));
+        assertTrue(listReferenti.stream().anyMatch(s -> s.getUtente().getPrincipal().equals("nomeUtente"+0)));
         // Verifica che il primo elemento sia quello che mi aspetto dall'ordinamento
-        assertEquals("nomeUtente"+3, listReferenti.get(0).getUtente().getUsername());
+        assertEquals("nomeUtente"+3, listReferenti.get(0).getUtente().getPrincipal());
     }
 	
     @Test
@@ -1098,7 +1095,7 @@ public class DominiTest {
 
     	for(int n = 0; n < 3; n++) {
     		UtenteCreate utente = CommonUtils.getUtenteCreate();
-    		utente.setUsername("nomeUtente"+n);
+    		utente.setPrincipal("nomeUtente"+n);
             utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
             utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
             ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
@@ -1111,7 +1108,7 @@ public class DominiTest {
             assertEquals(HttpStatus.OK, createdReferente1.getStatusCode());
     	}
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
-		utente.setUsername("nomeUtente"+3);
+		utente.setPrincipal("nomeUtente"+3);
         utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
@@ -1137,9 +1134,9 @@ public class DominiTest {
         // Verifica che il gruppo filtrato sia presente nell'elenco
         List<Referente> listReferenti = responseList.getBody().getContent();
         //listSoggetti.stream().forEach(s->{System.out.println(s.getNome());});
-        assertTrue(listReferenti.stream().anyMatch(s -> s.getUtente().getUsername().equals("nomeUtente"+2)));
+        assertTrue(listReferenti.stream().anyMatch(s -> s.getUtente().getPrincipal().equals("nomeUtente"+2)));
         // Verifica che il primo elemento sia quello che mi aspetto dall'ordinamento
-        assertEquals("nomeUtente"+0, listReferenti.get(0).getUtente().getUsername());
+        assertEquals("nomeUtente"+0, listReferenti.get(0).getUtente().getPrincipal());
     }
     
     @Test
@@ -1163,7 +1160,7 @@ public class DominiTest {
 
     	for(int n = 0; n < numeroTotaleDiElementi; n++) {
     		UtenteCreate utente = CommonUtils.getUtenteCreate();
-    		utente.setUsername("nomeUtente"+n);
+    		utente.setPrincipal("nomeUtente"+n);
             utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
             utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
             ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
@@ -1209,7 +1206,7 @@ public class DominiTest {
         ResponseEntity<Utente> responseUtente = controllerUtenti.createUtente(utente);
         
         UtenteCreate utente2 = CommonUtils.getUtenteCreate();
-        utente2.setUsername("altrousername");
+        utente2.setPrincipal("altrousername");
         utente2.setNome("utente 2");
         utente2.setCognome("cognome 2");
         utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());

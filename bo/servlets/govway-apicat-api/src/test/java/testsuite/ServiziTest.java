@@ -185,6 +185,8 @@ public class ServiziTest {
 	
 	private static final String UTENTE_GESTORE = "gestore";
 	
+	private static UUID ID_UTENTE_GESTORE;
+	
 	private static final String NOME_SERVIZIO_1 = "primo servizio - versione 3";
 	private static final String NOME_SERVIZIO_2 = "secondo servizio - versione 11";
 	private static final String NOME_SERVIZIO_3 = "terzo servizio - versione 2";
@@ -202,6 +204,9 @@ public class ServiziTest {
 
         // Set the security context in the SecurityContextHolder
         SecurityContextHolder.setContext(this.securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
     }
 
     @AfterEach
@@ -282,7 +287,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -316,7 +321,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -376,7 +381,7 @@ public class ServiziTest {
 
         	ReferenteCreate referente = new ReferenteCreate();
         	referente.setTipo(TipoReferenteEnum.REFERENTE);
-        	referente.setIdUtente(UTENTE_GESTORE);
+        	referente.setIdUtente(ID_UTENTE_GESTORE);
         	referenti.add(referente);
 
         	servizioCreate.setReferenti(referenti);
@@ -678,7 +683,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        referenteCreate.setIdUtente(UTENTE_GESTORE);
+        referenteCreate.setIdUtente(ID_UTENTE_GESTORE);
 
         ResponseEntity<Referente> responseReferente = serviziController.createReferenteServizio(servizio.getIdServizio(), referenteCreate);
         
@@ -693,7 +698,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(UUID.randomUUID().toString());
+        referenteCreate.setIdUtente(UUID.randomUUID());
 
         Exception exception = assertThrows(NotFoundException.class, () -> {
             serviziController.createReferenteServizio(idServizioNonEsistente, referenteCreate);
@@ -709,7 +714,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(UUID.randomUUID().toString());
+        referenteCreate.setIdUtente(UUID.randomUUID());
 
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
@@ -725,7 +730,7 @@ public class ServiziTest {
 
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(UUID.randomUUID().toString());
+        referenteCreate.setIdUtente(UUID.randomUUID());
 
         this.tearDown();
 
@@ -827,7 +832,7 @@ public class ServiziTest {
 
         ReferenteCreate referente = new ReferenteCreate();
         referente.setTipo(TipoReferenteEnum.REFERENTE);
-        referente.setIdUtente(UTENTE_GESTORE);
+        referente.setIdUtente(ID_UTENTE_GESTORE);
         List<ReferenteCreate> referenti = new ArrayList<>();
         referenti.add(referente);
         servizioCreateDuplicato.setReferenti(referenti);
@@ -1014,7 +1019,7 @@ public class ServiziTest {
         UUID idServizio = servizio.getIdServizio();
         
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setUsername("altro-username");
+        utente.setPrincipal("altro-username");
         utente.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         ResponseEntity<Utente> responseUtente2 = utentiController.createUtente(utente);
@@ -1362,7 +1367,7 @@ public class ServiziTest {
 		ReferenteCreate referente = new ReferenteCreate();
 		referente.setTipo(TipoReferenteEnum.REFERENTE);
 
-		referente.setIdUtente(UTENTE_GESTORE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
 		List<ReferenteCreate> referenti = new ArrayList<ReferenteCreate>();
 		referenti.add(referente);
 		servizioCreate.setReferenti(referenti);
@@ -2090,7 +2095,7 @@ public class ServiziTest {
 
 	    	ReferenteCreate referente = new ReferenteCreate();
 	    	referente.setTipo(TipoReferenteEnum.REFERENTE);
-	    	referente.setIdUtente(UTENTE_GESTORE);
+	    	referente.setIdUtente(ID_UTENTE_GESTORE);
 	    	referenti.add(referente);
 
 	    	servizioCreate.setReferenti(referenti);
@@ -2275,7 +2280,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -3195,7 +3200,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -3253,7 +3258,7 @@ public class ServiziTest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);

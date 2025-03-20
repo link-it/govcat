@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.ClasseUtenteAuthorization;
 import org.govway.catalogo.authorization.CoreAuthorization;
@@ -203,7 +204,12 @@ public class AdesioniTest {
     
     private static final String UTENTE_GESTORE = "gestore";
     private static final String UTENTE_RICHIEDENTE_ADESIONE = "utente_richiedente_adesione";
+    
     private static final String STATO_PUBBLICATO_IN_COLLAUDO = "pubblicato_collaudo";
+    
+    private static UUID ID_UTENTE_GESTORE;
+    private static UUID ID_UTENTE_RICHIEDENTE_ADESIONE;
+    
     private static final String PROFILO = "MODI_P1";
     
     private UUID idSoggetto;
@@ -223,6 +229,31 @@ public class AdesioniTest {
 
         // Set the security context in the SecurityContextHolder
         SecurityContextHolder.setContext(this.securityContext);
+        
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_ADESIONE, utenteService);
+        ID_UTENTE_RICHIEDENTE_ADESIONE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_ADESIONE, utenteService);
+        ID_UTENTE_REFERENTE_ADESIONE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_ADESIONE = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+
     }
 
     @AfterEach
@@ -244,7 +275,7 @@ public class AdesioniTest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
+        upUtente.setPrincipal(UTENTE_GESTORE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -253,7 +284,7 @@ public class AdesioniTest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         //soggettoCreate.setSkipCollaudo(true);
@@ -281,7 +312,7 @@ public class AdesioniTest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_GESTORE);
+        ref.setIdUtente(ID_UTENTE_GESTORE);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
 
@@ -302,7 +333,7 @@ public class AdesioniTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_GESTORE);
+         referente.setIdUtente(ID_UTENTE_GESTORE);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
@@ -389,7 +420,7 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -742,7 +773,7 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -750,10 +781,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
     	
     	ReferenteCreate referente = new ReferenteCreate();
-    	referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
     	
     	ResponseEntity<Referente> response = adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
@@ -779,7 +810,7 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -787,10 +818,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
     	
     	ReferenteCreate referente = new ReferenteCreate();
-    	referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
     	
     	CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
@@ -818,7 +849,7 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -826,10 +857,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
     	
     	ReferenteCreate referente = new ReferenteCreate();
-    	referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
     	
     	this.tearDown();    	
@@ -900,7 +931,7 @@ public class AdesioniTest {
         Adesione adesione = this.getAdesione();
 
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -908,16 +939,16 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
         
         ReferenteCreate referente = new ReferenteCreate();
-        referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         referente.setTipo(TipoReferenteEnum.REFERENTE);
         adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
 
         // Act
         ResponseEntity<Void> response = adesioniController.deleteReferenteAdesione(
-        		adesione.getIdAdesione(), UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null);
+        		adesione.getIdAdesione(), ID_UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -933,7 +964,7 @@ public class AdesioniTest {
         Adesione adesione = this.getAdesione();
 
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -941,10 +972,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
         
         ReferenteCreate referente = new ReferenteCreate();
-        referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         referente.setTipo(TipoReferenteEnum.REFERENTE);
         adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
 
@@ -953,7 +984,7 @@ public class AdesioniTest {
 
         // Act & Assert
         assertThrows(NotAuthorizedException.class, () -> adesioniController.deleteReferenteAdesione(
-            adesione.getIdAdesione(), UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null));
+            adesione.getIdAdesione(), ID_UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null));
     }
     
     @Test
@@ -963,7 +994,7 @@ public class AdesioniTest {
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> adesioniController.deleteReferenteAdesione(
-            randomId, "utente_non_esistente", TipoReferenteEnum.REFERENTE, null));
+            randomId, UUID.randomUUID(), TipoReferenteEnum.REFERENTE, null));
     }
 
     @Test
@@ -1919,18 +1950,20 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setUsername(UTENTE_GESTORE+2);
+        utenteCreate.setPrincipal(UTENTE_GESTORE+2);
         utenteCreate.setIdOrganizzazione(idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
+        
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE+2);
+        newReferente.setIdUtente(info.utente.getIdUtente());
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -1954,8 +1987,8 @@ public class AdesioniTest {
         //System.out.println(response);
         // Verifica che il messaggio sia presente nell'elenco
         List<Referente> referente = response.getBody().getContent();
-        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getUsername().equals(UTENTE_GESTORE)));
-        assertEquals(UTENTE_GESTORE+2, referente.get(0).getUtente().getUsername());
+        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getPrincipal().equals(UTENTE_GESTORE)));
+        assertEquals(UTENTE_GESTORE+2, referente.get(0).getUtente().getPrincipal());
     }
     
     @Test
@@ -1967,18 +2000,20 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setUsername(UTENTE_GESTORE+2);
+        utenteCreate.setPrincipal(UTENTE_GESTORE+2);
         utenteCreate.setIdOrganizzazione(idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
+        
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE+2);
+        newReferente.setIdUtente(info.utente.getIdUtente());
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -2001,8 +2036,8 @@ public class AdesioniTest {
 
         // Verifica che il messaggio sia presente nell'elenco
         List<Referente> referente = response.getBody().getContent();
-        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getUsername().equals(UTENTE_GESTORE+2)));
-        assertEquals(UTENTE_GESTORE, referente.get(0).getUtente().getUsername());
+        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getPrincipal().equals(UTENTE_GESTORE+2)));
+        assertEquals(UTENTE_GESTORE, referente.get(0).getUtente().getPrincipal());
     }
     
     @Test
@@ -2014,18 +2049,20 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setUsername(UTENTE_GESTORE+2);
+        utenteCreate.setPrincipal(UTENTE_GESTORE+2);
         utenteCreate.setIdOrganizzazione(idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
+        
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE+2);
+        newReferente.setIdUtente(info.utente.getIdUtente());
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -2050,7 +2087,7 @@ public class AdesioniTest {
 
         // Verifica che il messaggio sia presente nell'elenco
         List<Referente> referente = response.getBody().getContent();
-        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getUsername().equals(UTENTE_GESTORE+2)));
+        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getPrincipal().equals(UTENTE_GESTORE+2)));
     }
     
     @Test
@@ -2065,19 +2102,21 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         for(int num = 0; num < numeroTotaleDiElementi; num++) {
         	UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-            utenteCreate.setUsername(UTENTE_GESTORE+num);
+            utenteCreate.setPrincipal(UTENTE_GESTORE+num);
             utenteCreate.setIdOrganizzazione(idOrganizzazione);
             utentiController.createUtente(utenteCreate);
         	
+            InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+num, utenteService);
+            
         	newReferente = new ReferenteCreate();
-            newReferente.setIdUtente(UTENTE_GESTORE+num);
+            newReferente.setIdUtente(info.utente.getIdUtente());
             newReferente.setTipo(TipoReferenteEnum.REFERENTE);
             
             listaReferenti.add(newReferente);
@@ -2280,6 +2319,13 @@ public class AdesioniTest {
 	private static final String UTENTE_REFERENTE_DOMINIO = "utente_referente__dominio";
 	private static final String UTENTE_REFERENTE_TECNICO_DOMINIO = "utente_referente_tecnico__dominio";
 	
+	private static UUID ID_UTENTE_REFERENTE_ADESIONE;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_ADESIONE;
+	private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_DOMINIO;
+	
 	private static final String NOME_GRUPPO = "Gruppo xyz";
 	
     private Dominio getDominioFull(VisibilitaDominioEnum value) {
@@ -2296,7 +2342,7 @@ public class AdesioniTest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2305,10 +2351,10 @@ public class AdesioniTest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
+        upUtente.setPrincipal(UTENTE_GESTORE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2317,10 +2363,10 @@ public class AdesioniTest {
         upUtente.setCognome("gestore");
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_SERVIZIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2329,11 +2375,11 @@ public class AdesioniTest {
         upUtente.setCognome("referente_servizio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_SERVIZIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
         
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2341,10 +2387,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_REFERENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2352,10 +2398,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("referente_adesione");
 
-        utentiController.updateUtente(UTENTE_REFERENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_ADESIONE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        upUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2363,7 +2409,7 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("referente_tecnico_adesione");
 
-        utentiController.updateUtente(UTENTE_REFERENTE_TECNICO_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE, upUtente);
 		
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
@@ -2391,13 +2437,13 @@ public class AdesioniTest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         
         //creo il referente tecnico dominio
         ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         return createdDominio.getBody();
@@ -2421,18 +2467,18 @@ public class AdesioniTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
          referenti.add(referente);
          
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO);
          referenti.add(referente);
          
          //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
@@ -2504,19 +2550,19 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -2689,19 +2735,19 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -2784,7 +2830,7 @@ public class AdesioniTest {
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         
         final ReferenteCreate finalReferente = new ReferenteCreate();
-        finalReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        finalReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         finalReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
@@ -2801,19 +2847,19 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	
         listaReferenti.add(newReferente);
@@ -2873,7 +2919,7 @@ public class AdesioniTest {
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
-        adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, true);
+        adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, true);
     }
     
     @Test
@@ -2885,19 +2931,19 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	
         listaReferenti.add(newReferente);
@@ -2958,7 +3004,7 @@ public class AdesioniTest {
         
         adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
-        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null));
+        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null));
     }
 
     private String pemCert = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURhekNDQWxPZ0F3SUJBZ0lFSGZ2NzR6QU5CZ2txaGtpRzl3MEJBUXNGQURCbU1Rc3dDUVlEVlFRR0V3SkoNClZERU9NQXdHQTFVRUNCTUZTWFJoYkhreERUQUxCZ05WQkFjVEJGQnBjMkV4RFRBTEJnTlZCQW9UQkZSbGMzUXgNCkRUQUxCZ05WQkFzVEJGUmxjM1F4R2pBWUJnTlZCQU1URVVWNFlXMXdiR1ZEYkdsbGJuUXlTRk5OTUI0WERUSTANCk1EUXdPREE1TWpReE1Wb1hEVFEwTURRd016QTVNalF4TVZvd1pqRUxNQWtHQTFVRUJoTUNTVlF4RGpBTUJnTlYNCkJBZ1RCVWwwWVd4NU1RMHdDd1lEVlFRSEV3UlFhWE5oTVEwd0N3WURWUVFLRXdSVVpYTjBNUTB3Q3dZRFZRUUwNCkV3UlVaWE4wTVJvd0dBWURWUVFERXhGRmVHRnRjR3hsUTJ4cFpXNTBNa2hUVFRDQ0FTSXdEUVlKS29aSWh2Y04NCkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLMmNVQ29CcWptUTR4OWZoYlJDbk0rYmJ5ZjJwSWxSa3NRUVB5clcNCmlmWUVvaCtxZ1NROVYzS05uNWJpaTBSeWMzaDd3VGNJY2tCY2ZnczhKTGk1SHhHM2t4V1p2Z2xXL1NIOEEyVHUNClFYdkJwajlLNnd6UzB4RUduenFxaHlwVXJIL1lMRGZYandnVmZ1TS9IeEU1MjNGcFM3dGUwQXcwV2Jac1pxeTYNCmhNcWxLZk8wek52UTR1Rk5ML3NHV1pNN29kaDRPcGhaSUdOZDd0VnBnVkdQNDNDZUZvZnAyeGRxcmk5Ry9IMjINCmNQa2p4dFpoVFpuZk9RejFkNHVYRjZsU3M1dUV6RGI3ZGxKOERoZTJROUtTa0ZnRDZVME83UnZyNnpibEd4dUENCjVDdTRQSFNkeko0Y0RhZkJ4RDlrclJzYjI5cXFjK2g3alpwSzh2NkhoU2N4M2VjQ0F3RUFBYU1oTUI4d0hRWUQNClZSME9CQllFRkljWmh6UlZmYVRER1MwTm44cmRJU3FGbDhOK01BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQXYNCitYWFNiWWVDY1VmY2hhRkNzay9sc3hLZ0gwcFhyTlRoZXptOGd3YUpOem9KOVJQU2RnenJtSzYwOWl5M1RvaGcNClhpc040elorRkx3NVBTby9HNmU1OU5SZEdmTS93UFIwUGoyN2d0dWhITWpBeU8vY3FldWQ3S1lvZWxpTEZPRWwNCldyTWo2QmlxaGZQZmMzU3FqakZVWWtoR2s2eXZFeDREWGVPNnlmNSszczJMbTIwSTM3YU9ZblhBNVdmTGJwY1QNCnp2RWhGSk02Q3d6Q0VwbmI3M3E3ekc4ODJZTjcxL3RRS1VhS2dpV0ZPeDVvQ2dCMFZGNERlejd0ZFJYNHpZRlMNCmFKeUdIQ3F6NVZvR29CSHV1K0dpZERlRkdZZTRvZTA4cFpZWjFHS1dROG05RmlhYTlSQnJNNTNFclFidzNpWncNCnVqby9UMm9MSis3NWFTb3VCamFUCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K";
@@ -2971,7 +3017,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3013,15 +3059,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3081,15 +3127,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3149,15 +3195,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3234,15 +3280,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3320,15 +3366,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3388,15 +3434,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3448,15 +3494,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3521,15 +3567,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3594,15 +3640,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3685,15 +3731,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3777,15 +3823,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3845,15 +3891,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3913,15 +3959,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3999,15 +4045,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -4114,13 +4160,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4291,13 +4337,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4511,13 +4557,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4623,13 +4669,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4727,13 +4773,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -5028,15 +5074,15 @@ public class AdesioniTest {
         // 2) creo l'adesione a quel servizio e la mando nello stato pubblicato in collaudo
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -5132,12 +5178,12 @@ public class AdesioniTest {
     	Adesione adesione = this.getAPICasoUsoForceUpdate();
     	
     	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
-    	nuovoUtente.setUsername(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
     	
     	utentiController.createUtente(nuovoUtente);
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	referenteNew.setIdUtente(UUID.randomUUID());
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, null));
     }
@@ -5147,9 +5193,9 @@ public class AdesioniTest {
     	Adesione adesione = this.getAPICasoUsoForceUpdate();
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+    	referenteNew.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null));
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null));
     }
     
     private Adesione adesione;
@@ -5360,12 +5406,14 @@ public class AdesioniTest {
     	Adesione adesione = this.getAPICasoUsoForceUpdate();
     	
     	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
-    	nuovoUtente.setUsername(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
     	
     	utentiController.createUtente(nuovoUtente);
     	
+    	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
+    	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	referenteNew.setIdUtente(info.utente.getIdUtente());
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, true);
     }
@@ -5375,9 +5423,9 @@ public class AdesioniTest {
     	Adesione adesione = this.getAPICasoUsoForceUpdate();
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+    	referenteNew.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-    	adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, true);
+    	adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, true);
     }
     
     @Test
@@ -5494,15 +5542,15 @@ public class AdesioniTest {
 
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -5595,12 +5643,14 @@ public class AdesioniTest {
     	Adesione adesione = this.getAPICasoUsoForceUpdateConStessoProfilo();
     	
     	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
-    	nuovoUtente.setUsername(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
     	
     	utentiController.createUtente(nuovoUtente);
     	
+    	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
+    	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	referenteNew.setIdUtente(info.utente.getIdUtente());
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, null);
     }
@@ -5610,9 +5660,9 @@ public class AdesioniTest {
     	Adesione adesione = this.getAPICasoUsoForceUpdateConStessoProfilo();
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+    	referenteNew.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-    	adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null);
+    	adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null);
     }
     
     private void inizializzaTestConStessoProfilo() {

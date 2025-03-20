@@ -120,7 +120,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 		
 		entity.setUuid(UUID.randomUUID().toString());
 		entity.setDataCreazione(new Date());
-		entity.setUtenteCreazione(u.getIdUtente());
+		entity.setUtenteCreazione(u.getPrincipal());
 		entity.setVersione(1);
 
 		if(src.getFilename()!=null) {
@@ -178,7 +178,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 		
 		if(actual == null) {
 			entity.setDataCreazione(new Date());
-			entity.setUtenteCreazione(u.getIdUtente());
+			entity.setUtenteCreazione(u.getPrincipal());
 			entity.setUuid(UUID.randomUUID().toString());
 	        entity.setVersione(1);
 		} else {
@@ -189,7 +189,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 	        entity.setVersione(actual.getVersione() + 1); // Incrementa la versione
 			
 			entity.setDataUltimaModifica(new Date());
-			entity.setUtenteUltimaModifica(u.getIdUtente());
+			entity.setUtenteUltimaModifica(u.getPrincipal());
 		}
 		
 		if(src.getFilename()!=null) {

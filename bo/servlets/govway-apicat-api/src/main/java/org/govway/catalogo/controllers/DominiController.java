@@ -353,7 +353,7 @@ public class DominiController implements DominiApi {
 
 
 	@Override
-	public ResponseEntity<Void> deleteReferenteDominio(UUID idDominio, String idUtente, TipoReferenteEnum tipoReferente) {
+	public ResponseEntity<Void> deleteReferenteDominio(UUID idDominio, UUID idUtente, TipoReferenteEnum tipoReferente) {
 		try {
 			return this.service.runTransaction( () -> {
 	

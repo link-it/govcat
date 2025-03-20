@@ -118,7 +118,7 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 			e.setStato(entity.getStato());
 			e.setData(new Date());
 			UtenteSpecification utenteSpec = new UtenteSpecification();
-			utenteSpec.setUsername(Optional.of(this.utenteConfiguratore));
+			utenteSpec.setPrincipal(Optional.of(this.utenteConfiguratore));
 			e.setUtente(utenteRepository.findOne(utenteSpec).orElse(null));
 			entity.getStati().add(e);
 

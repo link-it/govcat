@@ -42,8 +42,12 @@
 								<configuration>
 									<outputDirectory>
 										${project.build.directory}/plugin</outputDirectory>
+									<buildFilters>
+										<buildFilter></buildFilter>
+									</buildFilters>
 									<resources>
 										<resource>
+											<filtering>false</filtering>
 											<directory>${default.plugin.dir}</directory>
 											<includes>
 												<include>*/**</include>

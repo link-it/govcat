@@ -54,7 +54,6 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.PagedModel;
-import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -275,7 +274,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 	}
 
 	@Override
-	public ResponseEntity<Void> deleteReferenteClasseUtente(UUID idClasseUtente, String idUtente,
+	public ResponseEntity<Void> deleteReferenteClasseUtente(UUID idClasseUtente, UUID idUtente,
 			TipoReferenteClasseUtenteEnum tipoReferente) {
 		//		try {
 		//			this.logger.info("Invocazione in corso ...");     
