@@ -48,6 +48,7 @@ import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioAdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.ReferenteAdesioneSpecification;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
@@ -717,7 +718,16 @@ public class AdesioniController implements AdesioniApi {
 			return this.service.runTransaction( () -> {
 
 				AdesioneSpecification specification = new AdesioneSpecification();
-//				specification.setStatoConfigurazioneAutomatica(Optional.ofNullable(statoConfigurazioneautomatica)); //TODO mflag aggiungere al filtro
+				specification.setStatoConfigurazione(Optional.ofNullable(statoConfigurazioneAutomatica).map(s -> {
+					switch(s) {
+					case FALLITA: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_FINALE;
+					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CORSO;
+					case KO: return STATO_CONFIGURAZIONE.KO_DEFINITIVO;
+					case OK: return STATO_CONFIGURAZIONE.OK;
+					case RETRY: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_RITENTA;
+					}
+					return null;
+				}));
 				specification.setQ(Optional.ofNullable(q));
 				specification.setGruppo(Optional.ofNullable(idGruppo));
 				specification.setDominio(Optional.ofNullable(idDominio));

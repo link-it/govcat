@@ -32,6 +32,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ClientEntity_;
@@ -63,6 +64,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private Optional<UUID> gruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
 	private Optional<UUID> client = Optional.empty();
+	private Optional<STATO_CONFIGURAZIONE> statoConfigurazione = Optional.empty();
 	private List<String> stati = null;
 	private List<String> tag = null;
 
@@ -114,6 +116,10 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 
 		if (idLogico.isPresent()) {
 			predLst.add(cb.equal(root.get(AdesioneEntity_.idLogico), idLogico.get())); 
+		}
+		
+		if (statoConfigurazione.isPresent()) {
+			predLst.add(cb.equal(root.get(AdesioneEntity_.statoConfigurazione), statoConfigurazione.get())); 
 		}
 		
 		if (idServizio.isPresent()) {
@@ -288,6 +294,14 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 
 	public void setIdAdesioni(List<UUID> idAdesioni) {
 		this.idAdesioni = idAdesioni;
+	}
+
+	public Optional<STATO_CONFIGURAZIONE> getStatoConfigurazione() {
+		return statoConfigurazione;
+	}
+
+	public void setStatoConfigurazione(Optional<STATO_CONFIGURAZIONE> statoConfigurazione) {
+		this.statoConfigurazione = statoConfigurazione;
 	}
 
 }
