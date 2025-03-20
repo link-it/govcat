@@ -10,6 +10,7 @@ info:
     name: "GPL v3"
 tags:
 - name: "Configurazione"
+- name: "TokenPolicies"
 - name: "Profili"
 - name: "Organizzazioni"
 - name: "Soggetti"
@@ -402,6 +403,145 @@ paths:
       responses:
         "204":
           description: "Organizzazione eliminata con successo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /token-policies:
+    get:
+      tags:
+      - "TokenPolicies"
+      description: "Elenco delle Token Policies"
+      operationId: "listTokenPolicies"
+      parameters:
+      - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemTokenPolicy"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    post:
+      tags:
+      - "TokenPolicies"
+      description: "Creazione di una Token Policy"
+      operationId: "createTokenPolicy"
+      requestBody:
+        description: "Dati del Profilo da creare"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenPolicyCreate'
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/TokenPolicy"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /token-policies/{id_token_policy}:
+    parameters:
+    - $ref: "#/components/parameters/id_token_policy"
+    get:
+      tags:
+      - "TokenPolicies"
+      description: "Dettaglio della Token Policy"
+      operationId: "getTokenPolicy"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPolicy"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "TokenPolicies"
+      description: "Aggiornamento della Token Policy"
+      operationId: "updateTokenPolicy"
+      requestBody:
+        description: "Dati per l'aggiornamento della TokenPolicy"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenPolicyUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPolicy"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "TokenPolicies"
+      description: "Cancellazione della TokenPolicy"
+      operationId: "deleteTokenPolicy"
+      responses:
+        "204":
+          description: "TokenPolicy eliminato con successo"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "401":
@@ -6092,7 +6232,7 @@ components:
           required:
             - alg_options
             - alg_default
-            - typ
+            - type
             - audience
             - scadenza
           properties:
@@ -6129,16 +6269,8 @@ components:
               $ref: '#/components/schemas/String255'
     ConfigurazioneTokenPolicyPdndAuditIntegrity:
       allOf:
-        - $ref: '#/components/schemas/ConfigurazioneTokenPolicyPdnd'
-        - type: "object"
-          required:
-            - audience_audit
-            - audience_integrity
-          properties:
-            audience_audit:
-              $ref: '#/components/schemas/String255'
-            audience_integrity:
-              $ref: '#/components/schemas/String255'
+        - $ref: '#/components/schemas/ConfigurazioneTokenPolicyPdndAudit'
+        - $ref: '#/components/schemas/ConfigurazioneTokenPolicyPdndIntegrity'
     ConfigurazionePackage:
       type: "object"
       required:
@@ -6636,6 +6768,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ItemOrganizzazione'
+        page:
+          $ref: '#/components/schemas/PageMetadata'
+    PagedModelItemTokenPolicy:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemTokenPolicy'
         page:
           $ref: '#/components/schemas/PageMetadata'
     PagedModelItemProfilo:
@@ -7874,6 +8015,12 @@ components:
     ProfiloBaseWrite:
       allOf:
         - $ref: "#/components/schemas/ProfiloBase"
+        - type: object
+          required:
+            - "id_token_policy"
+          properties:
+            id_token_policy:
+              $ref: "#/components/schemas/IdTokenPolicy"
     ProfiloBaseRead:
       allOf:
         - $ref: "#/components/schemas/ProfiloBase"
@@ -7883,6 +8030,8 @@ components:
           properties:
             id_profilo:
               $ref: "#/components/schemas/IdProfilo"
+            token_policy:
+              $ref: "#/components/schemas/ItemTokenPolicy"
     ProfiloBase:
       type: "object"
       required:
@@ -7904,8 +8053,33 @@ components:
           type: "string"
         tipo_dominio:
           $ref: "#/components/schemas/ConfigurazioneTipoDominioEnum"
-        codice_token_policy:
-          type: "string"
+    TokenPolicy:
+      allOf:
+        - $ref: "#/components/schemas/ItemTokenPolicy"
+    ItemTokenPolicy:
+      allOf:
+        - $ref: "#/components/schemas/TokenPolicyBaseRead"
+    TokenPolicyUpdate:
+      allOf:
+        - $ref: "#/components/schemas/TokenPolicyCreate"
+    TokenPolicyCreate:
+      allOf:
+        - $ref: "#/components/schemas/TokenPolicyBaseWrite"
+    TokenPolicyBaseWrite:
+      allOf:
+        - $ref: "#/components/schemas/TokenPolicyBase"
+    TokenPolicyBaseRead:
+      allOf:
+        - $ref: "#/components/schemas/TokenPolicyBase"
+        - type: object
+          required:
+            - "id_token_policy"
+          properties:
+            id_token_policy:
+              $ref: "#/components/schemas/IdTokenPolicy"
+    TokenPolicyBase:
+      allOf:
+        - $ref: "#/components/schemas/ConfigurazioneTokenPolicy"
     ItemOrganizzazione:
       type: "object"
       required:
@@ -9367,6 +9541,9 @@ components:
         certificato_server:
           $ref: "#/components/schemas/CertificatoClientCreate"
     # Schemi di base interni
+    IdTokenPolicy:
+      type: "string"
+      format: "uuid"
     IdProfilo:
       type: "string"
       format: "uuid"
@@ -9558,6 +9735,13 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/IdProfilo"
+    id_token_policy:
+      name: "id_token_policy"
+      in: "path"
+      description: "identificativo Token Policy"
+      required: true
+      schema:
+        $ref: "#/components/schemas/IdTokenPolicy"
     id_organizzazione:
       name: "id_organizzazione"
       in: "path"
