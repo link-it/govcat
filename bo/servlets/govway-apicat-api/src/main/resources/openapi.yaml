@@ -575,11 +575,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PagedModelItemDominio"
-    post:
+  /profili/{id_profilo}/domini/{id_dominio}:
+    parameters:
+    - $ref: "#/components/parameters/id_profilo"
+    - $ref: "#/components/parameters/id_dominio"
+    put:
       tags:
       - "Profili"
-      description: "Aggiunta di un Dominio al Profilo"
-      operationId: "createDominioProfilo"
+      description: "Associazione di un Dominio al Profilo"
+      operationId: "addDominioProfilo"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -599,10 +603,6 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
-  /profili/{id_profilo}/domini/{id_dominio}:
-    parameters:
-    - $ref: "#/components/parameters/id_profilo"
-    - $ref: "#/components/parameters/id_dominio"
     delete:
       tags:
       - "Profili"
@@ -645,11 +645,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PagedModelItemSoggetto"
-    post:
+  /profili/{id_profilo}/soggetti/{id_soggetto}:
+    parameters:
+    - $ref: "#/components/parameters/id_profilo"
+    - $ref: "#/components/parameters/id_soggetto"
+    put:
       tags:
       - "Profili"
-      description: "Aggiunta di un Soggetto al Profilo"
-      operationId: "createSoggettoProfilo"
+      description: "Associazione di un Soggetto al Profilo"
+      operationId: "addSoggettoProfilo"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -669,10 +673,6 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
-  /profili/{id_profilo}/soggetti/{id_soggetto}:
-    parameters:
-    - $ref: "#/components/parameters/id_profilo"
-    - $ref: "#/components/parameters/id_soggetto"
     delete:
       tags:
       - "Profili"
