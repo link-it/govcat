@@ -1826,7 +1826,17 @@ public class AdesioniController implements AdesioniApi {
 	
 					numeroOk.incrementAndGet();
 					response.setNumeroOk(numeroOk.get());
-					} catch(NotAuthorizedException ex) {}
+					} catch(UpdateEntitaComplessaNonValidaSemanticamenteException ex) {
+						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						errore.setIdAdesione(v.getIdAdesione());
+						errore.setMessaggio("Dati incompleti");
+						errori.add(errore);
+					} catch(NotAuthorizedException ex) {
+						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						errore.setIdAdesione(v.getIdAdesione());
+						errore.setMessaggio("Utente non autorizzato");
+						errori.add(errore);
+					}
 				});
 				
 				numeroKo = findAll.getSize()-numeroOk.get();
