@@ -428,7 +428,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(className) ? 2 : 1;
         } else {
-            return 0;
+            return this._hasCambioStato() ? 0 : 1;
         }
     }
 
@@ -446,12 +446,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(environment) ? 2 : 1;
         } else {
-            return 0;
+            return this._hasCambioStato() ? 0 : 1;
         }
     }
 
     isSottotipoCompletedMapper = (update: boolean, environment: string, tipo: string, identificativo: string): boolean => {
-        return this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo);
+        return this._hasCambioStato() ? this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo) : true;
     }
 
     configurazioni: any = {
