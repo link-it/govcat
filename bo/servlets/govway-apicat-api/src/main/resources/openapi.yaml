@@ -8948,12 +8948,14 @@ components:
       type: object
       required:
         - id_adesione
-        - messaggio
+        - messaggi
       properties:
         id_adesione:
           $ref: "#/components/schemas/String255"
-        messaggio:
-          $ref: "#/components/schemas/String255"
+        messaggi:
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     AdesioniCambioStatoResponse:
       type: object
       required:

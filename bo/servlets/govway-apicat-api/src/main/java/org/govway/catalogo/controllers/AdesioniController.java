@@ -1773,7 +1773,7 @@ public class AdesioniController implements AdesioniApi {
 					listAdesioniNonStatoIniziale.stream().forEach(v->{
 						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggio("Elemento non in uno degli stati stato_iniziale definiti in configurazione");
+						errore.setMessaggi(List.of("Elemento non in uno degli stati stato_iniziale definiti in configurazione"));
 						errori.add(errore);
 					});
 						//throw new BadRequestException("Uno o piu' elementi non sono in uno degli stati stato_iniziale definiti in configurazione");
@@ -1793,7 +1793,7 @@ public class AdesioniController implements AdesioniApi {
 					listAdesioniNonCoerentiConStatoIniziale.stream().forEach(v->{
 						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggio("Elemento non coerente con lo stato_iniziale");
+						errore.setMessaggi(List.of("Elemento non coerente con lo stato_iniziale"));
 						errori.add(errore);
 					});
 					//throw new BadRequestException("Uno o piu' elementi non sono coerenti con lo stato_iniziale");
@@ -1829,12 +1829,12 @@ public class AdesioniController implements AdesioniApi {
 					} catch(UpdateEntitaComplessaNonValidaSemanticamenteException ex) {
 						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggio("Dati incompleti");
+						errore.setMessaggi(List.of("Dati incompleti"));
 						errori.add(errore);
 					} catch(NotAuthorizedException ex) {
 						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggio("Utente non autorizzato");
+						errore.setMessaggi(List.of("Utente non autorizzato"));
 						errori.add(errore);
 					}
 				});
