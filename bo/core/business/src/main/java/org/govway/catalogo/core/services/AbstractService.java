@@ -23,31 +23,7 @@ import java.util.function.Supplier;
 
 import javax.persistence.EntityManager;
 
-import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
-import org.govway.catalogo.core.dao.repositories.AllegatoApiRepository;
-import org.govway.catalogo.core.dao.repositories.AllegatoServizioRepository;
-import org.govway.catalogo.core.dao.repositories.ApiRepository;
-import org.govway.catalogo.core.dao.repositories.CategoriaRepository;
-import org.govway.catalogo.core.dao.repositories.ClasseUtenteRepository;
-import org.govway.catalogo.core.dao.repositories.ClientRepository;
-import org.govway.catalogo.core.dao.repositories.DocumentoRepository;
-import org.govway.catalogo.core.dao.repositories.DominioRepository;
-import org.govway.catalogo.core.dao.repositories.EstensioneClientRepository;
-import org.govway.catalogo.core.dao.repositories.GruppoRepository;
-import org.govway.catalogo.core.dao.repositories.MessaggioAdesioneRepository;
-import org.govway.catalogo.core.dao.repositories.MessaggioServizioRepository;
-import org.govway.catalogo.core.dao.repositories.NotificaRepository;
-import org.govway.catalogo.core.dao.repositories.OrganizzazioneRepository;
-import org.govway.catalogo.core.dao.repositories.PackageServizioRepository;
-import org.govway.catalogo.core.dao.repositories.ReferenteAdesioneRepository;
-import org.govway.catalogo.core.dao.repositories.ReferenteDominioRepository;
-import org.govway.catalogo.core.dao.repositories.ReferenteServizioRepository;
-import org.govway.catalogo.core.dao.repositories.ServizioGruppoRepository;
-import org.govway.catalogo.core.dao.repositories.ServizioRepository;
-import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
-import org.govway.catalogo.core.dao.repositories.TagRepository;
-import org.govway.catalogo.core.dao.repositories.TassonomiaRepository;
-import org.govway.catalogo.core.dao.repositories.UtenteRepository;
+import org.govway.catalogo.core.dao.repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +83,12 @@ public class AbstractService {
 	protected CategoriaRepository categoriaRepo;
 	@Autowired
 	protected ApiRepository apiRepo;
+	@Autowired
+	protected ProfiloRepository profiloRepo;
+	@Autowired
+	protected DominioProfiloRepository dominioProfiloRepo;
+	@Autowired
+    protected SoggettoProfiloRepository soggettoProfiloRepo;
 
 	@Autowired
 	protected JpaTransactionManager txManager;
