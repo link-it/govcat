@@ -341,7 +341,7 @@
                   <li *ngFor="let error of bulkResponse.errori">
                     <span>{{ 'APP.LABEL.Adesione' | translate }}</span><span class="ms-2 fw-bold">{{ error.id_adesione }}</span>
                     <ul>
-                      <li>{{ error.messaggio }}</li>
+                      <li *ngFor="let messaggio of error.messaggi">{{ messaggio }}</li>
                     </ul>
                   </li>
                 </ul>
