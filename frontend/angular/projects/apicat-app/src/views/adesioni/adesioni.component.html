@@ -79,6 +79,20 @@
                     </div>
                   </div>
 
+                  <div class="row mb-1" *ngIf="isGestore">
+                    <div class="col-sm-2">
+                      <label class="col-form-label col-form-label-fix" for="stato">{{ 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus' | translate }}</label>
+                    </div>
+                    <div class="col-sm-10 pt-2">
+                      <select class="form-select form-control-sm" id="stato" formControlName="stato_configurazione_automatica">
+                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                        <option *ngFor="let stato of configStatusList" [value]="stato.value">
+                          {{ stato.label | translate }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div class="row mb-1">
                     <div class="col-sm-2">
                       <label class="col-form-label col-form-label-fix" for="id_dominio">{{ 'APP.ADESIONI.LABEL.Domain' | translate }}</label>

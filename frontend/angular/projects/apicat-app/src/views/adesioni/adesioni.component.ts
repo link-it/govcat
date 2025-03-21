@@ -24,6 +24,14 @@ import { Page} from '../../models/page';
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
 
+export enum StatoConfigurazione {
+  FALLITA = 'fallita',
+  IN_CODA = 'in_coda',
+  KO = 'ko',
+  OK = 'ok',
+  RETRY = 'retry'
+}
+
 @Component({
   selector: 'app-adesioni',
   templateUrl: 'adesioni.component.html',
@@ -76,6 +84,19 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   service: Servizio|null = null;
 
+  configStatusList: any = [
+    { value: StatoConfigurazione.FALLITA, label: 'APP.STATUS.fallita' },
+    { value: StatoConfigurazione.IN_CODA, label: 'APP.STATUS.in_coda' },
+    { value: StatoConfigurazione.KO, label: 'APP.STATUS.ko' },
+    { value: StatoConfigurazione.OK, label: 'APP.STATUS.ok' },
+    { value: StatoConfigurazione.RETRY, label: 'APP.STATUS.retry' }
+  ];
+  configStatusEnum: any = {};
+  _tempEnable = this.configStatusList.map((item: any) => {
+    this.configStatusEnum =  { ...this.configStatusEnum, [item.value]: item.label};
+    return item;
+  });
+
   searchFields: any[] = [
     { field: 'q', label: 'APP.ADESIONI.LABEL.Name', type: 'string', condition: 'like' },
     { field: 'stato', label: 'APP.LABEL.Status', type: 'enum', condition: 'equal', enumValues: Tools.StatiAdesioneEnum },
@@ -84,6 +105,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { field: 'id_organizzazione', label: 'APP.ADESIONI.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' }  },
     { field: 'id_soggetto', label: 'APP.ADESIONI.LABEL.Subject', type: 'text', condition: 'equal', params: { resource: 'soggetti', field: 'nome' } },
     { field: 'id_client', label: 'APP.ADESIONI.LABEL.Client', type: 'text', condition: 'equal', params: { resource: 'client', field: 'nome' }  },
+    { field: 'stato_configurazione_automatica', label: 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus', type: 'enum', condition: 'equal', enumValues: this.configStatusEnum },
   ];
   useCondition: boolean = false;
 
