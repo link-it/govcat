@@ -32,6 +32,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ClientEntity_;
@@ -52,7 +53,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private static final long serialVersionUID = 1L;
 
 	private Optional<String> q = Optional.empty();
-	private Optional<UUID> idAdesione = Optional.empty();
+	private List<UUID> idAdesioni = null;
 	private Optional<String> idLogico = Optional.empty();
 	private Optional<UUID> idRichiedente = Optional.empty();
 	private Optional<UUID> idServizio = Optional.empty();
@@ -63,6 +64,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private Optional<UUID> gruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
 	private Optional<UUID> client = Optional.empty();
+	private Optional<STATO_CONFIGURAZIONE> statoConfigurazione = Optional.empty();
 	private List<String> stati = null;
 	private List<String> tag = null;
 
@@ -98,12 +100,26 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
 
-		if (idAdesione.isPresent()) {
-			predLst.add(cb.equal(root.get(AdesioneEntity_.idAdesione), idAdesione.get().toString())); 
+		if(this.idAdesioni != null) {
+			if(!this.idAdesioni.isEmpty()) {
+				ArrayList<Predicate> preds2 = new ArrayList<>();
+				
+				for(UUID idAdesione: this.idAdesioni) {
+					preds2.add(cb.equal(root.get(AdesioneEntity_.idAdesione), idAdesione.toString()));
+				}
+				
+				predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
+			} else {
+				predLst.add(cb.disjunction());
+			}
 		}
 
 		if (idLogico.isPresent()) {
 			predLst.add(cb.equal(root.get(AdesioneEntity_.idLogico), idLogico.get())); 
+		}
+		
+		if (statoConfigurazione.isPresent()) {
+			predLst.add(cb.equal(root.get(AdesioneEntity_.statoConfigurazione), statoConfigurazione.get())); 
 		}
 		
 		if (idServizio.isPresent()) {
@@ -240,14 +256,6 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 		this.idLogico = idLogico;
 	}
 
-	public Optional<UUID> getIdAdesione() {
-		return idAdesione;
-	}
-
-	public void setIdAdesione(Optional<UUID> idAdesione) {
-		this.idAdesione = idAdesione;
-	}
-
 	public Optional<UUID> getClient() {
 		return client;
 	}
@@ -278,6 +286,22 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 
 	public void setIdRichiedente(Optional<UUID> idRichiedente) {
 		this.idRichiedente = idRichiedente;
+	}
+
+	public List<UUID> getIdAdesioni() {
+		return idAdesioni;
+	}
+
+	public void setIdAdesioni(List<UUID> idAdesioni) {
+		this.idAdesioni = idAdesioni;
+	}
+
+	public Optional<STATO_CONFIGURAZIONE> getStatoConfigurazione() {
+		return statoConfigurazione;
+	}
+
+	public void setStatoConfigurazione(Optional<STATO_CONFIGURAZIONE> statoConfigurazione) {
+		this.statoConfigurazione = statoConfigurazione;
 	}
 
 }

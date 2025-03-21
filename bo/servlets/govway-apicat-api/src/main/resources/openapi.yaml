@@ -780,6 +780,7 @@ paths:
       description: "Elenco delle Classi Utente"
       operationId: "listClassiUtente"
       parameters:
+      - $ref: "#/components/parameters/tipo_referente_classe_utente_query_optional"
       - $ref: "#/components/parameters/id_classe_utente_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
@@ -3566,6 +3567,7 @@ paths:
       - $ref: "#/components/parameters/id_client_query_optional"
       - $ref: "#/components/parameters/richiedente_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
+      - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -3610,6 +3612,57 @@ paths:
             application/json:
                 schema:
                   $ref: "#/components/schemas/Adesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/stato:
+    parameters:
+    - $ref: "#/components/parameters/stato_query_optional"
+    - $ref: "#/components/parameters/id_soggetto_query_optional"
+    - $ref: "#/components/parameters/id_organizzazione_query_optional"
+    - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
+    - $ref: "#/components/parameters/id_dominio_query_optional"
+    - $ref: "#/components/parameters/id_servizio_query_optional"
+    - $ref: "#/components/parameters/id_logico_query_optional"
+    - $ref: "#/components/parameters/id_client_query_optional"
+    - $ref: "#/components/parameters/richiedente_query_optional"
+    - $ref: "#/components/parameters/in_attesa_query_optional"
+    - $ref: "#/components/parameters/ids_adesione_query_optional"
+    - $ref: "#/components/parameters/q_query_optional"
+    - $ref: "#/components/parameters/page_query_optional"
+    - $ref: "#/components/parameters/size_query_optional"
+    - $ref: "#/components/parameters/sort_query_optional"
+    post:
+      tags:
+      - "Adesioni"
+      description: "Aggiunta di uno stato all'iter di lavorazione delle adesioni, bulk operation"
+      operationId: "updateStatoAdesioni"
+      requestBody:
+        required: true      
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatoUpdate"
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/AdesioniCambioStatoResponse"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "401":
@@ -5371,6 +5424,10 @@ components:
           $ref: '#/components/schemas/WorkflowProduzioneSenzaCollaudoEnum'
         workflow:
           $ref: '#/components/schemas/ConfigurazioneWorkflow'
+        configurazione_automatica:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneAutomatica'
         stati_scheda_adesione:
           type: array
           items:
@@ -5988,6 +6045,19 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneStato'
+    ConfigurazioneAutomatica:
+      type: "object"
+      required:
+        - stato_iniziale
+        - stato_in_configurazione
+        - stato_finale
+      properties:
+        stato_iniziale:
+          $ref: '#/components/schemas/ConfigurazioneNomeStato'
+        stato_in_configurazione:
+          $ref: '#/components/schemas/ConfigurazioneNomeStato'
+        stato_finale:
+          $ref: '#/components/schemas/ConfigurazioneNomeStato'
     ConfigurazioneWorkflow:
       type: "object"
       required:
@@ -8874,6 +8944,40 @@ components:
           format: "date-time"
         utente_richiedente:
           $ref: "#/components/schemas/ItemUtente"
+    ErroreCambioStatoResponse:
+      type: object
+      required:
+        - id_adesione
+        - messaggi
+      properties:
+        id_adesione:
+          $ref: "#/components/schemas/String255"
+        messaggi:
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
+    AdesioniCambioStatoResponse:
+      type: object
+      required:
+        - esito
+        - numero_ok
+        - numero_ko
+      properties:
+        esito:
+          type: string
+          enum:
+           - ok
+           - ko
+        numero_ok:
+          type: "integer"
+          format: "int64"
+        numero_ko:
+          type: "integer"
+          format: "int64"
+        errori:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErroreCambioStatoResponse"
     Adesione:
       type: object
       required:
@@ -8899,6 +9003,8 @@ components:
           $ref: "#/components/schemas/String255"
         stato_precedente:
           $ref: "#/components/schemas/String255"
+        configurazione_automatica:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomatica"
         data_creazione:
           type: "string"
           format: "date-time"
@@ -8917,6 +9023,23 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ErogazioneRichiesta"
+    StatoConfigurazioneAutomaticaEnum:
+      type: string
+      enum:
+       - ok
+       - ko
+       - in_coda
+       - retry
+       - fallita
+    StatoConfigurazioneAutomatica:
+      type: object
+      required:
+        - stato
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        dettaglio_errore:
+          $ref: "#/components/schemas/AuthTypeEnum"
     ClientRichiesto:
       type: object
       required:
@@ -9637,6 +9760,13 @@ components:
       required: false
       schema:
         type: "boolean"
+    stato_configurazione_automatica_query_optional:
+      name: "stato_configurazione_automatica"
+      in: "query"
+      description: "Filtro per stato configurazione automatica"
+      required: false
+      schema:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
     tag_query_optional:
       name: "tag"
       in: "query"
@@ -9758,6 +9888,15 @@ components:
       required: false
       schema:
         type: "boolean"
+    ids_adesione_query_optional:
+      name: "id"
+      in: "query"
+      description: "lista di identificativi adesione"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/IdAdesione"
     id_organizzazione_query_optional:
       name: "id_organizzazione"
       in: "query"

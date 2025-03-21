@@ -63,7 +63,7 @@ public class AdesioneService extends AbstractService {
 
 	public Optional<AdesioneEntity> findByIdAdesione(String idAdesione) {
 		AdesioneSpecification adesioneFilter = new AdesioneSpecification();
-		adesioneFilter.setIdAdesione(Optional.of(UUID.fromString(idAdesione)));
+		adesioneFilter.setIdAdesioni(List.of(UUID.fromString(idAdesione)));
 		return this.adesioneRepo.findOne(adesioneFilter);
 	}
 
