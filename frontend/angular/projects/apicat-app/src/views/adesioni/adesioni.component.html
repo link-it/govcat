@@ -16,12 +16,20 @@
         </div>
       </div>
       <div class="nav-controls align-self-center d-flex">
+        <ui-selection-dropdown *ngIf="hasMultiSelection"
+          [buttonTitle]="'APP.BUTTON.ChangeStatus'"
+          [menuTitle]="'APP.MENU.ChangeStatus' | translate:{ status: _updateMapper | mapper:getLabelStatoAutomaticoMapper }"
+          [totalSeleted]="elementsSelected.length"
+          [totalSearch]="_paging.totalElements"
+          [loading]="bilkExecutionInProgress"
+          [uncheckAllInTheMenu]="uncheckAllInTheMenu"
+          (action)="onSelectionAction($event)"
+        ></ui-selection-dropdown>
+
         <div role="group" class="gl-w-full btn-group-">
-          <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'create'"> -->
-            <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-              <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddSubscription' | translate }}</span>
-            </button>
-          <!-- </ng-template> -->
+          <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+            <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddSubscription' | translate }}</span>
+          </button>
         </div>
       </div>
     </div>
@@ -237,7 +245,7 @@
         </div>
       </div>
     </section>
-    <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+    <section id="container-scroller" class="container-fluid container-scroller px-0 position-relative" [class.container-scroller-no-search]="!_hasFilter"
       infiniteScroll
       [infiniteScrollDistance]="2"
       [infiniteScrollThrottle]="50"
@@ -254,12 +262,28 @@
 
       <div class="row">
         <div class="col-12">
-          <ui-item-row class="border-bottom" *ngFor="let service of adesioni; trackBy: _trackBy;"
-            [data]="service"
-            [config]="adesioniConfig"
-            [hasLink]="true"
-            (itemClick)="_onEdit($event, service)">
-          </ui-item-row>
+          <form>
+            <ng-container *ngFor="let element of adesioni; trackBy: _trackBy;">
+              <div class="px-2 border-bottom">
+                <div class="d-flex flex-column flex-md-row align-md-items-center">
+                  <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection">
+                    <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100">
+                      <label class="ps-2 py-2 mb-0 clearfix" *ngIf="hasMultiSelection">
+                        <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [value]="element.id" autocomplete="off" [checked]="element.selected" (click)="onSelect($event, element)">
+                      </label>
+                    </div>
+                    <ui-item-row class="flex-fill"
+                      [data]="element"
+                      [config]="adesioniConfig"
+                      [hasLink]="true"
+                      [hostBackground]="'transparent'"
+                      (itemClick)="_onEdit($event, element)"
+                    ></ui-item-row>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </form>
         </div>
       </div>
 
@@ -271,4 +295,49 @@
 
 <ng-template [ngIf]="_isEdit">
   <app-journal-details [id]="_editCurrent.id" [config]="adesioniConfig" (close)="_onCloseEdit()"></app-journal-details>
+</ng-template>
+
+<ng-template #reportTemplate>
+  <div class="modal-content">
+    <div class="modal-header pb-2">
+        <h5 class="modal-title pull-left">
+            {{ 'APP.TITLE.OperationReport' | translate }}
+        </h5>
+        <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary pull-right p-0-" aria-label="Close" (click)="closeErrorModal()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="p-3">
+          <div class="error-panel p-2" *ngIf="bulkResponse">
+            <div clas="error-panel-content border">
+              <div class="d-flex justify-content-around align-items-center bg-lightest py-3">
+                <div class="d-flex flex-column gap-1 align-items-center align-content-center w-50 border-right" [tooltip]="'APP.TOOLTIP.BulkEsitoOk' | translate">
+                  <i class="bi bi-check-circle text-success fs-4"></i>
+                  <span class="fw-bold fs-5">{{ bulkResponse.numero_ok || 0 }}</span>
+                </div>
+                <div class="d-flex flex-column gap-1 align-items-center w-50 " [tooltip]="'APP.TOOLTIP.BulkEsitoKo' | translate">
+                  <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+                  <span class="fw-bold fs-5">{{ bulkResponse.numero_ko || 0 }}</span>
+                </div>
+              </div>
+              <div class="error-list" *ngIf="bulkResponse.errori?.length > 0">
+                <h6>{{ 'APP.TITLE.ErrorDetails' | translate }}</h6>
+                <ul>
+                  <li *ngFor="let error of bulkResponse.errori">
+                    <span>{{ 'APP.LABEL.Adesione' | translate }}</span><span class="ms-2 fw-bold">{{ error.id_adesione }}</span>
+                    <ul>
+                      <li>{{ error.messaggio }}</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>              
+        </div>
+    </div>
+    <div class="modal-footer py-2">
+        <button type="button" class="btn btn-default btn-md gl-button" (click)="closeErrorModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
+    </div>
+  </div>
 </ng-template>

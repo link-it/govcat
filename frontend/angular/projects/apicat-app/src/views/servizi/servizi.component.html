@@ -110,6 +110,7 @@
                                             <div class="gl-new-dropdown-item-text-wrapper me-0">
                                                 <p class="gl-new-dropdown-item-text-primary d-flex justify-content-start">
                                                     <span>{{ 'APP.MENU.DeselectAll' | translate }}</span>
+                                                </p>
                                             </div>
                                         </button>
                                     </li>
@@ -461,9 +462,8 @@
                                 <div class="d-flex flex-column flex-md-row align-md-items-center">
                                     <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection">
                                         <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100">
-                                            <!-- <div class="notification-list-item-unread-indicator circle d-none d-md-block" [ngStyle]="{'margin-top': hasMultiSelection ? '0px' : '10px'}"></div> -->
                                             <label class="ps-2 py-2 mb-0 clearfix" *ngIf="hasMultiSelection">
-                                                <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [value]="element.id" autocomplete="off" (click)="_onSelect($event, element)">
+                                                <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [value]="element.id" autocomplete="off" [checked]="element.selected" (click)="_onSelect($event, element)">
                                             </label>
                                         </div>
                                         <ui-item-row class="flex-fill"
