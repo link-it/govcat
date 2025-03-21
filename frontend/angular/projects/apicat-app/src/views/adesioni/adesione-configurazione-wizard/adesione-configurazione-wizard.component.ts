@@ -193,7 +193,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         });
 
         this.eventsManagerService.on(EventType.WIZARD_CHECK_UPDATE, (action: any) => {
-            console.log('EventsManager', EventType.WIZARD_CHECK_UPDATE, action);
             this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
             this.loadConfigurazioni(AmbienteEnum.Collaudo);
             this.loadConfigurazioni(AmbienteEnum.Produzione);
@@ -201,7 +200,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
             this.generalConfig = Tools.Configurazione || null;
-            console.log('Configurazione Remota', Tools.Configurazione);
             this.updateMapper = new Date().getTime().toString();
         });
     }
@@ -234,7 +232,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             this.apiService.getDetails(this.model, this.id).subscribe({
                 next: (response: any) => {
                     this.adesione = response;
-                    console.log('adesione', this.adesione);
                     this.title = this._geServicetTitle();
 
                     this.isBozza = (this.adesione.stato == 'bozza');
@@ -411,7 +408,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             this.loadingCheckDati = true;
             this.apiService.getDetails(this.model, id, `check-dati/${stato}`).subscribe({
                 next: (response: any) => {
-                    console.log('checkDati', response);
                     this.dataStructureResults = response;
                     this.loadingCheckDati = false;
                 },
@@ -430,10 +426,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     getStatusCompleteMapper = (update: boolean, className: string): number => {
         if (this.isCompletedMapper(update, className)) {
             const next = this.getNextStateWorkflow();
-            console.log('next', className, next?.dati_non_applicabili);
             return next?.dati_non_applicabili?.includes(className) ? 2 : 1;
         } else {
-            return 0;
+            return  this._hasCambioStato() ? 0 : 1;
         }
     }
 
@@ -451,12 +446,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(environment) ? 2 : 1;
         } else {
-            return 0;
+            return  this._hasCambioStato() ? 0 : 1;
         }
     }
 
     isSottotipoCompletedMapper = (update: boolean, environment: string, tipo: string, identificativo: string): boolean => {
-        return this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo);
+        return this._hasCambioStato() ? this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo) : true;
     }
 
     configurazioni: any = {
