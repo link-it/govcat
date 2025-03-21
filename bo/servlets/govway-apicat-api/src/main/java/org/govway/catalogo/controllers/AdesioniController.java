@@ -23,7 +23,9 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -1691,6 +1693,27 @@ public class AdesioniController implements AdesioniApi {
 		return checkOnly != null && checkOnly;
 	}
 
+	private final List<String> errorIds = new ArrayList<>();
+	private final Map<String, List<String>> errorMessages = new HashMap<>();
+
+	// Metodo per registrare un errore
+    private boolean registraErrore(String id, String errorMessage) {
+        boolean isNewError = false;
+        // Se l'ID non è ancora stato registrato, lo aggiungo alla lista
+        if (!errorIds.contains(id)) {
+            errorIds.add(id);
+            isNewError = true;
+        }
+        // Aggiungo il messaggio di errore associato all'ID
+        errorMessages.computeIfAbsent(id, k -> new ArrayList<>()).add(errorMessage);  
+        return isNewError;
+    }
+
+    // Metodo per ottenere la lista di errori di un ID
+    private List<String> getErrorMessages(String id) {
+        return errorMessages.getOrDefault(id, new ArrayList<>());
+    }
+
 	@Override
 	public ResponseEntity<AdesioniCambioStatoResponse> updateStatoAdesioni(StatoUpdate statoUpdate,
 			List<String> stato, UUID idSoggetto, UUID idOrganizzazione, UUID idGruppoPadre,
@@ -1704,7 +1727,9 @@ public class AdesioniController implements AdesioniApi {
 				
 				AdesioniCambioStatoResponse response = new AdesioniCambioStatoResponse();
 				AtomicLong numeroOk = new AtomicLong(0);
-				long numeroKo = 0;
+				//List<String> numeroKo = new ArrayList<>();
+				//AtomicLong numeroKo = new AtomicLong(0);
+				//long numeroKo = 0;
 				List<ErroreCambioStatoResponse> errori = new ArrayList<ErroreCambioStatoResponse>();
 
 				this.logger.info("Invocazione in corso ...");     
@@ -1721,6 +1746,7 @@ public class AdesioniController implements AdesioniApi {
 				specification.setIdSoggetto(Optional.ofNullable(idSoggetto));
 				specification.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
 				specification.setIdServizio(Optional.ofNullable(idServizio));
+				specification.setIdRichiedente(Optional.ofNullable(richiedente));
 				
 				boolean admin = this.coreAuthorization.isAdmin();
 
@@ -1771,10 +1797,11 @@ public class AdesioniController implements AdesioniApi {
 		        }
 				if(!listAdesioniNonStatoIniziale.isEmpty()) {
 					listAdesioniNonStatoIniziale.stream().forEach(v->{
-						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
-						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggi(List.of("Elemento non in uno degli stati stato_iniziale definiti in configurazione"));
-						errori.add(errore);
+						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						//errore.setIdAdesione(v.getIdAdesione());
+						//errore.setMessaggio("Elemento non in uno degli stati stato_iniziale definiti in configurazione");
+						//errori.add(errore);
+						this.registraErrore(v.getIdAdesione(),"Elemento non in uno degli stati stato_iniziale definiti in configurazione");
 					});
 						//throw new BadRequestException("Uno o piu' elementi non sono in uno degli stati stato_iniziale definiti in configurazione");
 				}
@@ -1791,10 +1818,11 @@ public class AdesioniController implements AdesioniApi {
                 	});
 				if(!listAdesioniNonCoerentiConStatoIniziale.isEmpty()) {
 					listAdesioniNonCoerentiConStatoIniziale.stream().forEach(v->{
-						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
-						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggi(List.of("Elemento non coerente con lo stato_iniziale"));
-						errori.add(errore);
+						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						//errore.setIdAdesione(v.getIdAdesione());
+						//errore.setMessaggio("Elemento non coerente con lo stato_iniziale");
+						//errori.add(errore);
+						this.registraErrore(v.getIdAdesione(),"Elemento non coerente con lo stato_iniziale");
 					});
 					//throw new BadRequestException("Uno o piu' elementi non sono coerenti con lo stato_iniziale");
 				}
@@ -1827,22 +1855,33 @@ public class AdesioniController implements AdesioniApi {
 					numeroOk.incrementAndGet();
 					response.setNumeroOk(numeroOk.get());
 					} catch(UpdateEntitaComplessaNonValidaSemanticamenteException ex) {
-						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
-						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggi(List.of("Dati incompleti"));
-						errori.add(errore);
+						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						//errore.setIdAdesione(v.getIdAdesione());
+						//errore.setMessaggio("Dati incompleti");
+						//errori.add(errore);
+						this.registraErrore(v.getIdAdesione(),"Dati incompleti");
 					} catch(NotAuthorizedException ex) {
-						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
-						errore.setIdAdesione(v.getIdAdesione());
-						errore.setMessaggi(List.of("Utente non autorizzato"));
-						errori.add(errore);
+						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						//errore.setIdAdesione(v.getIdAdesione());
+						//errore.setMessaggio("Utente non autorizzato");
+						//errori.add(errore);
+						this.registraErrore(v.getIdAdesione(),"Utente non autorizzato");
 					}
 				});
 				
-				numeroKo = findAll.getSize()-numeroOk.get();
-				
-				response.setNumeroKo(numeroKo);
+				//numeroKo = findAll.getSize()-numeroOk.get();
+				long num = errorIds.size();
+				response.setNumeroKo(num);
 
+				if(!errorIds.isEmpty()) {
+					for (String error : errorIds){
+						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
+						errore.setIdAdesione(error);
+						errore.setMessaggi(this.getErrorMessages(error));
+						errori.add(errore);
+					}
+				}
+				
 				response.setErrori(errori);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1858,7 +1897,7 @@ public class AdesioniController implements AdesioniApi {
 			throw new InternalException(e);
 		}
 
-	    }
+	}
 	
 	@Override
 	public ResponseEntity<Resource> downloadAllegatoAdesione(UUID idAdesione, UUID idAllegato) {
