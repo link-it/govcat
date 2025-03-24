@@ -5986,4 +5986,5 @@ public class AdesioniTest {
         assertNotNull(response.getBody());
         //assertEquals("richiesto_collaudo", response.getBody().getStato());
     }
+     
 }
