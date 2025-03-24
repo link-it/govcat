@@ -80,11 +80,6 @@
                             <!--  -->
                         </div>
 
-                        <!-- <ng-container *ngIf="loadingDialog">
-                            <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2"></ui-box-spinner>
-                        </ng-container> -->
-                        
-                    <!-- <ng-container *ngIf="!loadingDialog"> -->
                         <div class="row" *ngIf="_show_nome_proposto && f['credenziali'].value === SelectedClientEnum.UsaClientEsistente">
                             <div class="form-group col-12 mb-2">
                                 <label class="label-bold" for="nome_proposto">{{ 'APP.ADESIONI.LABEL.NomeProposto' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'nome_proposto'"></span></label>
@@ -547,7 +542,6 @@
                                 <!--  -->
                             </div>
                         </ng-container>
-                    <!-- </ng-container> -->
 
                     </fieldset>
                 </div>
