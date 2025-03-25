@@ -409,7 +409,7 @@ export class AdesioneListaClientsComponent implements OnInit {
 
         // this.loadingDialog = false;
         this.showSubscription = this.modalService.onShown.subscribe(($event: any, reason: string) => {
-            setTimeout(() => {
+            // setTimeout(() => {
                 const _id_client =  client.id_client;
                 if (_isNomeProposto && !_id_client) {
                     this._editFormGroupClients.controls['credenziali'].setValue(SelectedClientEnum.UsaClientEsistente);
@@ -420,7 +420,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                     this.onChangeCredenziali(SelectedClientEnum.NuovoCliente);
                 }
                 // this.loadingDialog = false;
-            }, 400);
+            // }, 400);
         });
 
         if (!client.id_client || _isNotConfigurato || _isNomeProposto) {
