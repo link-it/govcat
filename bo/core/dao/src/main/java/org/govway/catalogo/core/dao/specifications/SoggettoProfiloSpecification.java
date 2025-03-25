@@ -58,7 +58,7 @@ public class SoggettoProfiloSpecification implements Specification<SoggettoProfi
         }
 
         if (idProfilo.isPresent()) {
-            predicateList.add(cb.equal(cb.upper(root.join(SoggettoProfiloEntity_.profilo, JoinType.LEFT).get(String.valueOf(ProfiloEntity_.idProfilo))), idProfilo.get().toString().toUpperCase()));
+            predicateList.add(cb.equal(root.join(SoggettoProfiloEntity_.profilo, JoinType.LEFT).get(ProfiloEntity_.idProfilo), idProfilo.get()));
         }
 
         if (idSoggetto.isPresent()) {

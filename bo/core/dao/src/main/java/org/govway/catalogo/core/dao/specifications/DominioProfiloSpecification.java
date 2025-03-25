@@ -60,7 +60,7 @@ public class DominioProfiloSpecification implements Specification<DominioProfilo
         }
 
         if (idProfilo.isPresent()) {
-            predicateList.add(cb.equal(cb.upper(root.join(DominioProfiloEntity_.profilo, JoinType.LEFT).get(String.valueOf(ProfiloEntity_.idProfilo))), idProfilo.get().toString().toUpperCase()));
+            predicateList.add(cb.equal(root.join(DominioProfiloEntity_.profilo, JoinType.LEFT).get(ProfiloEntity_.idProfilo), idProfilo.get()));
         }
 
         if (idDominio.isPresent()) {

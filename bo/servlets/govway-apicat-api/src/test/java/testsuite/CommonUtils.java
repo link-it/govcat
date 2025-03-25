@@ -37,31 +37,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
-import org.govway.catalogo.servlets.model.APICreate;
-import org.govway.catalogo.servlets.model.AmbienteEnum;
-import org.govway.catalogo.servlets.model.AuthTypeEnum;
-import org.govway.catalogo.servlets.model.AuthTypeHttpBasicCreate;
-import org.govway.catalogo.servlets.model.Campo;
-import org.govway.catalogo.servlets.model.ClientCreate;
-import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
-import org.govway.catalogo.servlets.model.DatiSpecificiClientCreate;
-import org.govway.catalogo.servlets.model.DominioCreate;
-import org.govway.catalogo.servlets.model.EntitaComplessaError;
-import org.govway.catalogo.servlets.model.GruppoCreate;
-import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
-import org.govway.catalogo.servlets.model.ProtocolloEnum;
-import org.govway.catalogo.servlets.model.RuoloAPIEnum;
-import org.govway.catalogo.servlets.model.ServizioCreate;
-import org.govway.catalogo.servlets.model.SoggettoCreate;
-import org.govway.catalogo.servlets.model.StatoClientEnum;
-import org.govway.catalogo.servlets.model.StatoUpdate;
-import org.govway.catalogo.servlets.model.StatoUtenteEnum;
-import org.govway.catalogo.servlets.model.TassonomiaCreate;
-import org.govway.catalogo.servlets.model.TipoServizio;
-import org.govway.catalogo.servlets.model.TipoSoggettoGateway;
-import org.govway.catalogo.servlets.model.UtenteCreate;
-import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
-import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
+import org.govway.catalogo.servlets.model.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 
@@ -140,7 +116,12 @@ public class CommonUtils {
 		    	    "                  message:\n" +
 		    	    "                    type: string\n" +
 		    	    "                    example: \"Ciao, mondo!\"\n";
-	
+
+	public static final String PROFILO_GOVWAY = "ModI";
+	public static final String CANALE_DEFAULT = "canale_default";
+	public static final String ETICHETTA = "HTTP Basic";
+	public static final String CODICE_INTERNO = "INTERNO_HTTP_BASIC";
+
 	public static OrganizzazioneCreate getOrganizzazioneCreate(){
 		// Creazione dell'istanza di OrganizzazioneCreate
         OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
@@ -354,4 +335,16 @@ public class CommonUtils {
             }
         }
     }
+
+	public static ProfiloCreate getProfiloCreate() {
+		ProfiloCreate profiloCreate = new ProfiloCreate();
+		profiloCreate.setAuthType(AuthTypeEnum.HTTP_BASIC);
+		profiloCreate.setProfiloGovway(PROFILO_GOVWAY);
+		profiloCreate.setCanaleDefault(CANALE_DEFAULT);
+		profiloCreate.setEtichetta(ETICHETTA);
+		profiloCreate.setCodiceInterno(CODICE_INTERNO);
+		profiloCreate.setIdTokenPolicy(UUID.randomUUID());
+
+		return profiloCreate;
+	}
 }

@@ -420,7 +420,7 @@ public class ProfiliController implements ProfiliApi {
 
 				DominioProfiloSpecification spec = new DominioProfiloSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				spec.setIdProfilo(Optional.of(idProfilo));
+				spec.setIdProfilo(Optional.ofNullable(idProfilo));
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, null);
 
@@ -466,7 +466,7 @@ public class ProfiliController implements ProfiliApi {
 
 				SoggettoProfiloSpecification spec = new SoggettoProfiloSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				spec.setIdProfilo(Optional.of(idProfilo));
+				spec.setIdProfilo(Optional.ofNullable(idProfilo));
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, null);
 
