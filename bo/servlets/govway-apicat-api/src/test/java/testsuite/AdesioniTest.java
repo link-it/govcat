@@ -67,6 +67,7 @@ import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneIdClient;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
+import org.govway.catalogo.servlets.model.AdesioniCambioStatoResponse;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
@@ -1453,7 +1454,7 @@ public class AdesioniTest {
         // Act
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-            null, null, null, null, false, null, 0, 10, null);
+            null, null, null, null, false, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1500,7 +1501,7 @@ public class AdesioniTest {
         
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, sort);
+                null, null, null, null, false, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1549,7 +1550,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, sort);
+                null, null, null, null, false, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1599,7 +1600,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, sort);
+                null, null, null, null, false, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1647,7 +1648,7 @@ public class AdesioniTest {
         	
         	ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                     null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                    null, null, null, null, false, null, n, numeroElementiPerPagina, null);
+                    null, null, null, null, false, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1689,7 +1690,7 @@ public class AdesioniTest {
 
         assertThrows(NotAuthorizedException.class, () -> adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, null));
+                null, null, null, null, false, null, null, 0, 10, null));
     }
 
     @Test
@@ -5846,4 +5847,144 @@ public class AdesioniTest {
         
     	adesioniController.saveConfigurazioneCustomProduzioneAdesione(adesione.getIdAdesione(), datiCustom, null);
     }
+    
+    private Servizio getServizioMultiAdesione(Dominio dominio, VisibilitaServizioEnum value) {
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	if(value != null) {
+    		servizioCreate.setVisibilita(value);
+    	}
+    	servizioCreate.setMultiAdesione(true);
+    	servizioCreate.setIdSoggettoInterno(idSoggetto);
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+
+    	ServizioUpdate upServizio = new ServizioUpdate();
+    	upServizio.setDatiGenerici(null);
+    	upServizio.setIdentificativo(null);
+
+    	Servizio servizio = createdServizio.getBody();
+
+    	idServizio = servizio.getIdServizio();
+
+    	return servizio;
+   }
+    
+    private UUID creaNuovaAdesione(List<ReferenteCreate> listaReferenti, boolean firstTime) {
+    	UUID result = null;
+    	AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(listaReferenti);
+        nuovaAdesione.setIdLogico("a");
+        ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
+        
+        result = adesione.getBody().getIdAdesione();
+        if(firstTime) {
+        //creo il client per il collaudo
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.cer");
+        documento.setContent(pemCert);
+        documento.setContentType("application/cert");
+        
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+    	
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        
+        ResponseEntity<Client> clientResponse = clientController.createClient(clientCreate);
+        clientResponse.getBody().getIdClient();
+        }
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+        
+        adesioniController.saveClientCollaudoAdesione(result, PROFILO, adesioneIdClient, null);
+
+    	return result;
+    }
+    
+    @Test
+    void testUpdateStatoAdesioniSuccess() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizioMultiAdesione(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        
+        List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
+    	
+        ReferenteCreate newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+        
+        listaReferenti.add(newReferente);
+        
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        
+        listaReferenti.add(newReferente);
+
+        UUID idAdesione = this.creaNuovaAdesione(listaReferenti,true);
+        UUID idAdesione2 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione3 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione4 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione5 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione6 = this.creaNuovaAdesione(listaReferenti,false);
+        
+        StatoUpdate stato = new StatoUpdate();
+    	stato.setStato("richiesto_collaudo");
+    	stato.setCommento("richiesta di collaudo");
+
+    	List<UUID> ids = new ArrayList<UUID>();
+    	ids.add(idAdesione);
+    	ids.add(idAdesione2);
+    	ids.add(idAdesione3);
+    	ids.add(idAdesione4);
+    	ids.add(idAdesione5);
+    	ids.add(idAdesione6);
+    	
+        // Act
+        ResponseEntity<AdesioniCambioStatoResponse> response = adesioniController.updateStatoAdesioni(stato,
+    			null, null, null, null,
+    			null, null, null,
+    			null, null, null,
+    			ids, null,
+    			0, 10, null);
+    	
+        // Assert
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        //assertEquals("richiesto_collaudo", response.getBody().getStato());
+    }
+     
 }
