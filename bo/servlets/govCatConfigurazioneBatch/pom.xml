@@ -11,7 +11,7 @@
 		<relativePath>../</relativePath>
 	</parent>
 
-	<artifactId>govCatConfigurazioneBatch</artifactId>
+	<artifactId>govway-apicat-configurazione-batch</artifactId>
 	<packaging>war</packaging>
 	<name>govCat Configurazione Batch</name>
 	<description>govCat Configurazione Batch</description>

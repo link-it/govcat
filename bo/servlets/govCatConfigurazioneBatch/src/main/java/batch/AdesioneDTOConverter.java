@@ -242,25 +242,9 @@ public class AdesioneDTOConverter {
 		return list;
 	}
 
-	private DTOAdesione.AmbienteEnum convertToDTOEnum(AmbienteEnum ambiente) {
-	    switch (ambiente) {
-	        case COLLAUDO:
-	            return DTOAdesione.AmbienteEnum.COLLAUDO;
-	        case PRODUZIONE:
-	            return DTOAdesione.AmbienteEnum.PRODUZIONE;
-	        default:
-	            throw new IllegalArgumentException("Unexpected AmbienteEnum value: " + ambiente);
-	    }
-	}
-	
 	private DTOApi buildDTOApi(ApiEntity apiEntity, Map<String, String> map, List<DTOAdesioneAPI> list) {
-		String protocollo;
-		if (DTOAdesione.AmbienteEnum.COLLAUDO == convertToDTOEnum(this.ambienteConfigurazione)) {
-	        protocollo = apiEntity.getCollaudo().getProtocollo().toString();
-	    } else {
-	        protocollo = apiEntity.getProduzione().getProtocollo().toString();
-	    }
-		
+
+		String protocollo = apiEntity.getCollaudo().getProtocollo().toString(); // TODO vedere se collaudo o produzione
 		return new DTOApi(
 				apiEntity.getNome(),
 				apiEntity.getVersione(),

@@ -68,7 +68,7 @@ public class ConfigurazioneBatchJobConfig {
 	    return new JpaPagingItemReaderBuilder<AdesioneEntity>()
 	        .name("configurazioneItemReader")
 	        .entityManagerFactory(entityManagerFactory)
-	        .queryString("SELECT a FROM AdesioneEntity a WHERE (a.stato = :stato1 OR a.stato = :stato2) AND"
+	        .queryString("SELECT a FROM AdesioneEntity a WHERE (statoConfigurazione= :stato_conf) AND (a.stato = :stato1 OR a.stato = :stato2) AND"
 	        		+ " (a.statoConfigurazione IS NULL OR a.statoConfigurazione = :stato_ok OR a.statoConfigurazione = :stato_ko_temporaneo )")
 	        .parameterValues(Map.of("stato1", "autorizzato_collaudo", "stato2", "autorizzato_produzione","stato_ko_temporaneo", STATO_CONFIGURAZIONE.KO_TEMPORANEO_RITENTA,"stato_ok",STATO_CONFIGURAZIONE.OK))
 	        .pageSize(1)

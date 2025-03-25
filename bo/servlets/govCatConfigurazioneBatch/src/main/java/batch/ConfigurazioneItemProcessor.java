@@ -104,7 +104,7 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 		entity.setTentativi(entity.getTentativi()+1);
 		switch (configurato.getEsito()) {
 		case OK:
-			if (c.getAmbienteConfigurazione()==AmbienteEnum.COLLAUDO) {
+			if (c.getAmbienteConfigurazione()==AmbienteEnum.COLLAUDO) {  //TODO mflag usare stato_finale
 				entity.setStato("pubblicato_collaudo");
 			} else {
 				entity.setStato("pubblicato_produzione");
