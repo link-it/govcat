@@ -28,6 +28,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
+import java.util.UUID;
+
 public class ProfiloDettaglioAssembler extends RepresentationModelAssemblerSupport<ProfiloEntity, Profilo> {
 
     private final ProfiloEngineAssembler profiloEngineAssembler;
@@ -62,6 +64,7 @@ public class ProfiloDettaglioAssembler extends RepresentationModelAssemblerSuppo
         ProfiloEntity entity = new ProfiloEntity();
         BeanUtils.copyProperties(profilo, entity);
 
+        entity.setIdProfilo(UUID.randomUUID());
         entity.setAuthType(profiloEngineAssembler.toEntity(profilo.getAuthType()));
 
         if(profilo.getCompatibilita()!= null) {

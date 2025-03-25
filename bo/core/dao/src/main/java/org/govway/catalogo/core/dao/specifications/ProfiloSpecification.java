@@ -62,7 +62,7 @@ public class ProfiloSpecification implements Specification<ProfiloEntity> {
         }
 
         if (idProfilo.isPresent()) {
-            predicateList.add(cb.equal(root.get(ProfiloEntity_.idProfilo), idProfilo.get().toString()));
+            predicateList.add(cb.equal(root.get(ProfiloEntity_.idProfilo), idProfilo.get()));
         }
 
         if (codiceInterno.isPresent()) {

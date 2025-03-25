@@ -33,79 +33,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.apache.tika.Tika;
-import org.govway.catalogo.assembler.AdesioneDettaglioAssembler;
-import org.govway.catalogo.assembler.AdesioneEngineAssembler;
-import org.govway.catalogo.assembler.AdesioneItemAssembler;
-import org.govway.catalogo.assembler.AllegatoApiAssembler;
-import org.govway.catalogo.assembler.AllegatoServizioAssembler;
-import org.govway.catalogo.assembler.ApiDettaglioAssembler;
-import org.govway.catalogo.assembler.ApiEngineAssembler;
-import org.govway.catalogo.assembler.ApiItemAssembler;
-import org.govway.catalogo.assembler.CategoriaDettaglioAssembler;
-import org.govway.catalogo.assembler.CategoriaEngineAssembler;
-import org.govway.catalogo.assembler.CategoriaItemAssembler;
-import org.govway.catalogo.assembler.CategoriaServizioItemAssembler;
-import org.govway.catalogo.assembler.ClasseUtenteDettaglioAssembler;
-import org.govway.catalogo.assembler.ClasseUtenteItemAssembler;
-import org.govway.catalogo.assembler.ClientAdesioneItemAssembler;
-import org.govway.catalogo.assembler.ClientDettaglioAssembler;
-import org.govway.catalogo.assembler.ClientEngineAssembler;
-import org.govway.catalogo.assembler.ClientItemAssembler;
-import org.govway.catalogo.assembler.CoreEngineAssembler;
-import org.govway.catalogo.assembler.DocumentoAllegatoAssembler;
-import org.govway.catalogo.assembler.DocumentoAssembler;
-import org.govway.catalogo.assembler.DominioDettaglioAssembler;
-import org.govway.catalogo.assembler.DominioEngineAssembler;
-import org.govway.catalogo.assembler.DominioItemAssembler;
-import org.govway.catalogo.assembler.ErogazioneItemAssembler;
-import org.govway.catalogo.assembler.GruppoDettaglioAssembler;
-import org.govway.catalogo.assembler.GruppoEngineAssembler;
-import org.govway.catalogo.assembler.GruppoItemAssembler;
-import org.govway.catalogo.assembler.HttpBasicEstensioneClientAssembler;
-import org.govway.catalogo.assembler.HttpsEstensioneClientAssembler;
-import org.govway.catalogo.assembler.HttpsPdndEstensioneClientAssembler;
-import org.govway.catalogo.assembler.HttpsPdndSignEstensioneClientAssembler;
-import org.govway.catalogo.assembler.HttpsSignEstensioneClientAssembler;
-import org.govway.catalogo.assembler.IndirizzoIpEstensioneClientAssembler;
-import org.govway.catalogo.assembler.ItemMessaggioAdesioneAssembler;
-import org.govway.catalogo.assembler.ItemMessaggioServizioAssembler;
-import org.govway.catalogo.assembler.NoDatiEstensioneClientAssembler;
-import org.govway.catalogo.assembler.NotificaDettaglioAssembler;
-import org.govway.catalogo.assembler.NotificaEngineAssembler;
-import org.govway.catalogo.assembler.NotificaItemAssembler;
-import org.govway.catalogo.assembler.OAuthAuthorizationCodeEstensioneClientAssembler;
-import org.govway.catalogo.assembler.OAuthClientCredentialsEstensioneClientAssembler;
-import org.govway.catalogo.assembler.OrganizzazioneDettaglioAssembler;
-import org.govway.catalogo.assembler.OrganizzazioneItemAssembler;
-import org.govway.catalogo.assembler.PdndEstensioneClientAssembler;
-import org.govway.catalogo.assembler.ProfiloUtenteAssembler;
-import org.govway.catalogo.assembler.ReferenteAdesioneAssembler;
-import org.govway.catalogo.assembler.ReferenteDominioAssembler;
-import org.govway.catalogo.assembler.ReferenteServizioAssembler;
-import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
-import org.govway.catalogo.assembler.ServizioEngineAssembler;
-import org.govway.catalogo.assembler.ServizioGruppoItemAssembler;
-import org.govway.catalogo.assembler.ServizioItemAssembler;
-import org.govway.catalogo.assembler.SignEstensioneClientAssembler;
-import org.govway.catalogo.assembler.SignPdndEstensioneClientAssembler;
-import org.govway.catalogo.assembler.SoggettoDettaglioAssembler;
-import org.govway.catalogo.assembler.SoggettoItemAssembler;
-import org.govway.catalogo.assembler.TassonomiaDettaglioAssembler;
-import org.govway.catalogo.assembler.TassonomiaItemAssembler;
-import org.govway.catalogo.assembler.UtenteDettaglioAssembler;
-import org.govway.catalogo.assembler.UtenteEngineAssembler;
-import org.govway.catalogo.assembler.UtenteItemAssembler;
-import org.govway.catalogo.authorization.AdesioneAuthorization;
-import org.govway.catalogo.authorization.ClasseUtenteAuthorization;
-import org.govway.catalogo.authorization.ClientAuthorization;
-import org.govway.catalogo.authorization.CoreAuthorization;
-import org.govway.catalogo.authorization.DominioAuthorization;
-import org.govway.catalogo.authorization.GruppoAuthorization;
-import org.govway.catalogo.authorization.OrganizzazioneAuthorization;
-import org.govway.catalogo.authorization.PackageAuthorization;
-import org.govway.catalogo.authorization.ServizioAuthorization;
-import org.govway.catalogo.authorization.SoggettoAuthorization;
-import org.govway.catalogo.authorization.UtenteAuthorization;
+import org.govway.catalogo.assembler.*;
+import org.govway.catalogo.authorization.*;
 import org.govway.catalogo.cache.CacheConfiguration;
 import org.govway.catalogo.cache.CatalogoCache;
 import org.govway.catalogo.cache.GovwayCache;
@@ -801,6 +730,22 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	}
     	return apiClient;
     }
-    
-    
+
+    @Bean
+    public ProfiloEngineAssembler profiloEngineAssembler() { return new ProfiloEngineAssembler(); }
+
+    @Bean
+    public ProfiloDettaglioAssembler profiloDettaglioAssembler() { return new ProfiloDettaglioAssembler(profiloEngineAssembler()); }
+
+    @Bean
+    public ProfiloItemAssembler profiloItemAssembler() { return new ProfiloItemAssembler(profiloEngineAssembler()); }
+
+    @Bean
+    public DominioProfiloAssembler dominioProfiloAssembler() { return new DominioProfiloAssembler(soggettoItemAssembler(), dominioEngineAssembler()); }
+
+    @Bean
+    public SoggettoProfiloAssembler soggettoProfiloAssembler() { return new SoggettoProfiloAssembler(organizzazioneItemAssembler()); }
+
+    @Bean
+    public ProfiloAuthorization profiloAuthorization() { return new ProfiloAuthorization(); }
 }

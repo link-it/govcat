@@ -30,15 +30,15 @@ import java.util.UUID;
 
 public class DominioProfiloAssembler extends RepresentationModelAssemblerSupport<DominioProfiloEntity, ItemDominio>  {
 
-    private final SoggettoItemAssembler soggettoItemAssmbler;
+    private final SoggettoItemAssembler soggettoItemAssembler;
 
-    private final DominioEngineAssembler dominioEngineAssmbler;
+    private final DominioEngineAssembler dominioEngineAssembler;
 
     @Autowired
-    public DominioProfiloAssembler(SoggettoItemAssembler soggettoItemAssmbler, DominioEngineAssembler dominioEngineAssmbler) {
+    public DominioProfiloAssembler(SoggettoItemAssembler soggettoItemAssembler, DominioEngineAssembler dominioEngineAssembler) {
         super(ProfiliController.class, ItemDominio.class);
-        this.soggettoItemAssmbler = soggettoItemAssmbler;
-        this.dominioEngineAssmbler = dominioEngineAssmbler;
+        this.soggettoItemAssembler = soggettoItemAssembler;
+        this.dominioEngineAssembler = dominioEngineAssembler;
     }
 
     @Override
@@ -49,8 +49,8 @@ public class DominioProfiloAssembler extends RepresentationModelAssemblerSupport
         dominio.setIdDominio(UUID.fromString(entity.getDominio().getIdDominio()));
         dominio.setDeprecato(entity.getDominio().isDeprecato());
 
-        dominio.setSoggettoReferente(this.soggettoItemAssmbler.toModel(entity.getDominio().getSoggettoReferente()));
-        dominio.setVisibilita(this.dominioEngineAssmbler.toVisibilita(entity.getDominio().getVisibilita()));
+        dominio.setSoggettoReferente(this.soggettoItemAssembler.toModel(entity.getDominio().getSoggettoReferente()));
+        dominio.setVisibilita(this.dominioEngineAssembler.toVisibilita(entity.getDominio().getVisibilita()));
 
         return dominio;
     }
