@@ -19,13 +19,16 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.Date;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.OrganizzazioniController;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -50,6 +53,9 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 	@Autowired
 	private SoggettoService soggettoService;
+	
+	@Autowired
+	private CoreEngineAssembler coreEngineAssembler;
 
 	public OrganizzazioneDettaglioAssembler() {
 		super(OrganizzazioniController.class, Organizzazione.class);
@@ -68,6 +74,8 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		dettaglio.setVincolaReferente(isVincolaReferente(entity));
 		
 		dettaglio.setCambioEsternaConsentito(isCambioConsentito(entity));
+		
+		
 		
 		if(entity.getSoggettoDefault()!=null) {
 			dettaglio.setSoggettoDefault(this.soggettoItemAssembler.toLimitedModel(entity.getSoggettoDefault()));
@@ -114,6 +122,15 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 	private Boolean isVincolaAderente(OrganizzazioneEntity entity) {
 		return entity.getSoggetti().stream().map(s -> this.soggettoDettaglioAssembler.isVincolaAderente(s)).reduce(Boolean.FALSE, Boolean::logicalOr);
+	}
+	
+	private UtenteEntity getUtenteSessione() {
+		return this.coreEngineAssembler.getUtenteSessione();
+	}
+	
+	private void setUltimaModifica(OrganizzazioneEntity entity) {
+		entity.setDataUltimaModifica(new Date());
+		entity.setUtenteUltimaModifica(getUtenteSessione());
 	}
 
 	public OrganizzazioneEntity toEntity(OrganizzazioneUpdate src, OrganizzazioneEntity entity) {

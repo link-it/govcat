@@ -19,10 +19,13 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.Date;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.SoggettiController;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -41,6 +44,9 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	@Autowired
 	private OrganizzazioneItemAssembler organizzazioneItemAssembler;
+	
+	@Autowired
+	private CoreEngineAssembler coreEngineAssembler;
 
 	public SoggettoDettaglioAssembler() {
 		super(SoggettiController.class, Soggetto.class);
@@ -124,6 +130,14 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		return entity;
 	}
 	
+	private UtenteEntity getUtenteSessione() {
+		return this.coreEngineAssembler.getUtenteSessione();
+	}
+	
+	private void setUltimaModifica(OrganizzazioneEntity entity) {
+		entity.setDataUltimaModifica(new Date());
+		entity.setUtenteUltimaModifica(getUtenteSessione());
+	}
 	
 	public SoggettoEntity toEntity(SoggettoCreate src) {
 		SoggettoEntity entity = new SoggettoEntity();

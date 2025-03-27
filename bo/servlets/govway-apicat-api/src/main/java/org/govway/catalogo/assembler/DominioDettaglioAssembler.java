@@ -19,13 +19,16 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.DominiController;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
@@ -55,6 +58,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 
 	@Autowired
 	private ClasseUtenteItemAssembler classeUtenteItemAssembler;
+	
+	@Autowired
+	private CoreEngineAssembler coreEngineAssembler;
 
 	public DominioDettaglioAssembler() {
 		super(DominiController.class, Dominio.class);
@@ -129,7 +135,14 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 	}
 	
 
+	private UtenteEntity getUtenteSessione() {
+		return this.coreEngineAssembler.getUtenteSessione();
+	}
 	
+	private void setUltimaModifica(OrganizzazioneEntity entity) {
+		entity.setDataUltimaModifica(new Date());
+		entity.setUtenteUltimaModifica(getUtenteSessione());
+	}
 	
 	public DominioEntity toEntity(DominioCreate src) {
 		DominioEntity entity = new DominioEntity();

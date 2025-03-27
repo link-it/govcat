@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.orm.entity;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -75,6 +76,20 @@ public class SoggettoEntity {
     
     @Column(name = "skip_collaudo", nullable = false)
     private boolean skipCollaudo;
+    
+    @Column(name = "data_creazione")
+    private Date dataCreazione;
+    
+    @Column(name = "data_ultima_modifica")
+    private Date dataUltimaModifica;
+    
+	@ManyToOne
+    @JoinColumn(name = "id_richiedente", referencedColumnName = "id")
+	private UtenteEntity richiedente;
+    
+	@ManyToOne
+    @JoinColumn(name = "id_utente_ultima_modifica", referencedColumnName = "id")
+	private UtenteEntity utenteUltimaModifica;
     
 	@ManyToOne
     @JoinColumn(name = "id_organizzazione", referencedColumnName = "id")

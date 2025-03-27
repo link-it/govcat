@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.orm.entity;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,6 +29,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
@@ -74,6 +76,20 @@ public class OrganizzazioneEntity {
     
     @Column(name = "esterna", nullable = false)
     private boolean esterna;
+    
+    @Column(name = "data_creazione")
+    private Date dataCreazione;
+    
+    @Column(name = "data_ultima_modifica")
+    private Date dataUltimaModifica;
+    
+	@ManyToOne
+    @JoinColumn(name = "id_richiedente", referencedColumnName = "id")
+	private UtenteEntity richiedente;
+    
+	@ManyToOne
+    @JoinColumn(name = "id_utente_ultima_modifica", referencedColumnName = "id")
+	private UtenteEntity utenteUltimaModifica;
     
     @OneToMany(mappedBy = "organizzazione")
     private Set<SoggettoEntity> soggetti = new HashSet<>();

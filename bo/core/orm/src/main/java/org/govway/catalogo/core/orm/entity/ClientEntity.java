@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.orm.entity;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -85,6 +86,20 @@ public class ClientEntity {
 
     @Column(name = "indirizzo_ip")
     private String indirizzoIp;
+    
+    @Column(name = "data_creazione")
+    private Date dataCreazione;
+    
+    @Column(name = "data_ultima_modifica")
+    private Date dataUltimaModifica;
+    
+	@ManyToOne
+    @JoinColumn(name = "id_richiedente", referencedColumnName = "id")
+	private UtenteEntity richiedente;
+    
+	@ManyToOne
+    @JoinColumn(name = "id_utente_ultima_modifica", referencedColumnName = "id")
+	private UtenteEntity utenteUltimaModifica;
 
 	@OneToMany(mappedBy = "client", orphanRemoval = true)
 	@Cascade(CascadeType.ALL)

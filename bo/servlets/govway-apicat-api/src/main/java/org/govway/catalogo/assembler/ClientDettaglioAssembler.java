@@ -20,6 +20,7 @@
 package org.govway.catalogo.assembler;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -30,6 +31,8 @@ import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -61,6 +64,9 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	
 	@Autowired
 	private Configurazione configurazione;
+	
+	@Autowired
+	private CoreEngineAssembler coreEngineAssembler;
 	
 	public ClientDettaglioAssembler() {
 		super(ClientController.class, Client.class);
@@ -148,6 +154,14 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		}
 	}
 	
+	private UtenteEntity getUtenteSessione() {
+		return this.coreEngineAssembler.getUtenteSessione();
+	}
+	
+	private void setUltimaModifica(OrganizzazioneEntity entity) {
+		entity.setDataUltimaModifica(new Date());
+		entity.setUtenteUltimaModifica(getUtenteSessione());
+	}
 	
 	public ClientEntity toEntity(ClientCreate src) {
 		ClientEntity entity = new ClientEntity();

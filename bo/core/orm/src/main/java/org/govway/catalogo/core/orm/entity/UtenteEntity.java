@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.orm.entity;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -102,6 +103,12 @@ public class UtenteEntity {
 	
     @Column(name = "ruoli_notifiche_abilitate")
 	private String ruoliNotificheAbilitate;
+    
+    @Column(name = "data_creazione")
+    private Date dataCreazione;
+    
+    @Column(name = "data_ultima_modifica")
+    private Date dataUltimaModifica;
 	
 	private byte[] metadati;
 	

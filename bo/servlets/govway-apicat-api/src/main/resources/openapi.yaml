@@ -6868,6 +6868,16 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     ItemClientAdesione:
       allOf:
       - $ref: "#/components/schemas/ItemClient"
@@ -6909,6 +6919,16 @@ components:
           $ref: "#/components/schemas/String255"
         dati_specifici:
           $ref: "#/components/schemas/DatiSpecificiClient"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     Client:
       type: "object"
       required:
@@ -6936,6 +6956,16 @@ components:
           $ref: "#/components/schemas/String255"
         dati_specifici:
           $ref: "#/components/schemas/DatiSpecificiClient"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     AdesioneClientCreate:
       allOf:
         - $ref: "#/components/schemas/AdesioneClientUpdate"
@@ -7472,6 +7502,16 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     Organizzazione:
       type: "object"
       required:
@@ -7510,6 +7550,16 @@ components:
           type: "boolean"
         cambio_esterna_consentito:
           type: "boolean"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     TipoEntitaNotifica:
       type: "string"
       enum:
@@ -7673,6 +7723,16 @@ components:
         esterna:
           type: "boolean"
           default: false
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     OrganizzazioneCreate:
       type: "object"
       required:
@@ -7964,6 +8024,12 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ItemClasseUtente"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
     Utente:
       type: "object"
       required:
@@ -8007,6 +8073,12 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ItemClasseUtente"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
     GruppoCreate:
       type: "object"
       required:
@@ -8217,6 +8289,16 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     Dominio:
       type: "object"
       required:
@@ -8254,6 +8336,16 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+        data_creazione:
+		  type: "string"
+		  format: "date-time"
+		data_ultimo_aggiornamento:
+		  type: "string"
+		  format: "date-time"
+		utente_richiedente:
+		  $ref: "#/components/schemas/ItemUtente"
+		utente_ultimo_aggiornamento:
+		  $ref: "#/components/schemas/ItemUtente"
     TipoReferenteEnum:
       type: "string"
       enum:
