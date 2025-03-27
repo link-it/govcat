@@ -41,6 +41,7 @@ public class AdesioneDTOConverter {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdesioneDTOConverter.class);
 
+	String externalPath;
 	AdesioneEntity adesione;
 	DTOAdesione dto;
 
@@ -58,8 +59,9 @@ public class AdesioneDTOConverter {
 	private static final String NOME_APPLICAZIONE = "nome_applicazione";
 	private static final String HELP_DESK = "help_desk";
 	
-	AdesioneDTOConverter(AdesioneEntity adesione) {
+	AdesioneDTOConverter(AdesioneEntity adesione, String externalPath) {
 		this.adesione = adesione;
+		this.externalPath = externalPath;
 	}
 
 	public void setDto(DTOAdesione dto) {
@@ -94,11 +96,11 @@ public class AdesioneDTOConverter {
 	}
 
 	void getAmbiente() throws ProcessingException {
-		if (adesione.getStato().equals("autorizzato_collaudo")) {
+		if (adesione.getStato().contains("collaudo")) {
 			ambienteConfigurazione = AmbienteEnum.COLLAUDO;
 			return;
 		}
-		if (adesione.getStato().equals("autorizzato_produzione")) {
+		if (adesione.getStato().contains("produzione")) {
 			ambienteConfigurazione = AmbienteEnum.PRODUZIONE;
 			return;
 		}
@@ -114,7 +116,7 @@ public class AdesioneDTOConverter {
 		List<EstensioneAdesioneEntity> estensioni = adesione.getEstensioni().stream().filter(e -> ((e.getApi() == null) == (api == null))).collect(Collectors.toList());
 		for (EstensioneAdesioneEntity estensione : estensioni) {
 			String gruppo = estensione.getGruppo();
-			ConfigurazioneReader confReader = new ConfigurazioneReader();
+			ConfigurazioneReader confReader = new ConfigurazioneReader(externalPath);
 			String classeDato = null;
 			classeDato = confReader.getClasseDatoAdesione(gruppo);
 			if (classeDato.equals(ambienteConfigurazione.toString().toLowerCase()) ||
@@ -144,41 +146,6 @@ public class AdesioneDTOConverter {
 
 		}
 		return map;
-
-		//    	for(ApiEntity apiServizio: adesione.getServizio().getApi()) {
-		//
-		//    		for (EstensioneApiEntity estensioneApi: apiServizio.getEstensioni()) {
-		//    			String gruppo = estensioneApi.getGruppo();
-		//
-		//    			ConfigurazioneReader confReader = new ConfigurazioneReader();
-		//    			String classeDato = null;
-		//				try {
-		//
-		//		            classeDato = confReader.getClasseDatoApi( gruppo);
-		//				} catch (IOException e) {
-		//					// TODO Auto-generated catch block
-		//					logger.error("[AdesioneDTOConverter]: errore durante la lettura del classe_dato");
-		//					e.printStackTrace();
-		//				}
-		//
-		//    			if (classeDato.equals(ambienteConfigurazione.toString().toLowerCase()) ||
-		//    					classeDato.equals("identificativo") ||
-		//    					classeDato.equals("specifica") ||
-		//    					classeDato.equals("generico") ||
-		//    					classeDato.equals("referenti")) {
-		//
-		//    				//TODO mflag bisogna leggere la configurazione come fatto nella classe SoggettoDTOFactory (spostato nel ConfigurazioneReader)
-		//    				// usare il metodo getClasseDatoApi(gruppo) per ottenere la classe dato
-		//
-		//    				//TODO mflag aggiungere solo le estensioni relative ai gruppi che hanno come classe_dato una di quelle comuni (identificativo, specifica, generico, referenti) 
-		//    				// oppure quelle specifiche dell'ambiente che si sta andando a configurare (collaudo, collaudo_configurato, produzione, produzione_configurato)
-		//
-		//    				String valore = estensioneApi.getValore();
-		//    				String nomeEstensione = estensioneApi.getNome();
-		//    				map.put(gruppo + "." + nomeEstensione, valore); // TODO mflag verifica che per una API vengano aggiunte le estensioni di quella API (con chiave gruppo.nome)
-		//    			}
-		//    		}
-		//    	}
 
 	}
 
@@ -243,8 +210,13 @@ public class AdesioneDTOConverter {
 	}
 
 	private DTOApi buildDTOApi(ApiEntity apiEntity, Map<String, String> map, List<DTOAdesioneAPI> list) {
-
-		String protocollo = apiEntity.getCollaudo().getProtocollo().toString(); // TODO vedere se collaudo o produzione
+		String protocollo = null;
+		if (ambienteConfigurazione.equals(AmbienteEnum.COLLAUDO)) {
+			protocollo = apiEntity.getCollaudo().getProtocollo().toString();
+		}
+		else {
+			protocollo = apiEntity.getProduzione().getProtocollo().toString();
+		}
 		return new DTOApi(
 				apiEntity.getNome(),
 				apiEntity.getVersione(),

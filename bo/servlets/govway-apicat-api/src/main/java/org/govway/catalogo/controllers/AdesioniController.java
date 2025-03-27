@@ -722,11 +722,11 @@ public class AdesioniController implements AdesioniApi {
 				AdesioneSpecification specification = new AdesioneSpecification();
 				specification.setStatoConfigurazione(Optional.ofNullable(statoConfigurazioneAutomatica).map(s -> {
 					switch(s) {
-					case FALLITA: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_FINALE;
-					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CORSO;
-					case KO: return STATO_CONFIGURAZIONE.KO_DEFINITIVO;
+					case FALLITA: return STATO_CONFIGURAZIONE.FALLITA;
+					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CODA;
+					case KO: return STATO_CONFIGURAZIONE.KO;
 					case OK: return STATO_CONFIGURAZIONE.OK;
-					case RETRY: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_RITENTA;
+					case RETRY: return STATO_CONFIGURAZIONE.RETRY;
 					}
 					return null;
 				}));

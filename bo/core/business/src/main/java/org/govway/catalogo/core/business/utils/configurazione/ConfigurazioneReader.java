@@ -23,23 +23,49 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.FileCopyUtils;
 import com.jayway.jsonpath.JsonPath;
 
+
 public class ConfigurazioneReader {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneReader.class);
 
+    
     static final String ERROR_STRING ="[ConfigurazioneReader] errore nella lettura del file di configurazione";
-    static final String EXCEPTION_STRING ="Nessus client associato alla adesione con id";
+    
+    String externalPath;
+    
+    public ConfigurazioneReader(String externalPath) {
+        logger.info("externalPath {}",externalPath);
+
+    	this.externalPath = externalPath;
+    }
     public String getConfigurazione() throws IOException {
-        Resource resource = new ClassPathResource("/configurazione.json");
-        
+        logger.info("externalPath {}",externalPath);
+        logger.info("externalPath {}",externalPath);
+
+		Resource resource = new FileSystemResource(this.externalPath+"/configurazione.json");
+		if (resource.exists()) {
+		    // Il file esiste
+			logger.info("File trovato!");
+		} else {
+		    // Il file non esiste
+			logger.info("File NON trovato!");
+		}
+
+        logger.info("externalPath {}",externalPath);
+        logger.info("externalPath {}",externalPath);
+
         logger.info("trovato file configurazione.json {}",resource.getFilename());
+        logger.info("trovato file configurazione.json {}",resource.getURI());
+
         try (InputStream inputStream = resource.getInputStream()) {
 
             byte[] fileData = FileCopyUtils.copyToByteArray(inputStream);
@@ -54,7 +80,7 @@ public class ConfigurazioneReader {
 			configurazioneJson = getConfigurazione();
 		} catch (IOException e) {
 			logger.error(ERROR_STRING);
-			throw new IOException(EXCEPTION_STRING);
+			throw new IOException(ERROR_STRING);
 		}
         return JsonPath.parse(configurazioneJson).read("$.monitoraggio.profilo_govway_default", String.class);
     }
@@ -68,7 +94,7 @@ public class ConfigurazioneReader {
 			configurazioneJson = getConfigurazione();
 		} catch (IOException e) {
 			logger.error(ERROR_STRING);
-			throw new IOException(EXCEPTION_STRING);
+			throw new IOException(ERROR_STRING);
 		}
      	String jsonPathQuery = String.format("$.adesione.proprieta_custom[?(@.nome_gruppo == '%s')].classe_dato", gruppo);
     	List<String> risultati = JsonPath.parse(configurazioneJson).read(jsonPathQuery);
@@ -90,7 +116,7 @@ public class ConfigurazioneReader {
 			configurazioneJson = getConfigurazione();
 		} catch (IOException e) {
 			logger.error(ERROR_STRING);
-			throw new IOException(EXCEPTION_STRING);
+			throw new IOException(ERROR_STRING);
 		}
         String jsonPathQuery = String.format("$.servizio.api.proprieta_custom[?(@.nome_gruppo == '%s')].classe_dato", gruppo);
     	List<String> risultati = JsonPath.parse(configurazioneJson).read(jsonPathQuery);
@@ -110,10 +136,11 @@ public class ConfigurazioneReader {
 			configurazioneJson = getConfigurazione();
 		} catch (IOException e) {
 			logger.error(ERROR_STRING);
-			throw new IOException(EXCEPTION_STRING);
+			throw new IOException(ERROR_STRING);
 		}
-     	String jsonPathQuery = String.format("$.adesione.[?(@.configurazione_automatica == '%s')].stato_in_configurazione", statoInConfigurazione);
-    	List<String> risultati = JsonPath.parse(configurazioneJson).read(jsonPathQuery);
+   //  	String jsonPathQuery = String.format("$.adesione.[?(@.configurazione_automatica == '%s')].stato_in_configurazione", statoInConfigurazione);
+	  	String jsonPathQuery = String.format("$.adesione.configurazione_automatica");
+		List<String> risultati = JsonPath.parse(configurazioneJson).read(jsonPathQuery);
 
     	if (risultati == null || risultati.isEmpty()) {
     		throw new IllegalArgumentException("Nessuna configurazione automatica trovata per lo stato di configurazione: " + statoInConfigurazione);
@@ -122,5 +149,26 @@ public class ConfigurazioneReader {
     	return risultati.get(0);
     	
     }
+    
+    public List<Map<String, String>> getTuttaConfigurazioneAutomatica() throws IOException {
+        String configurazioneJson;
+        try {
+            configurazioneJson = getConfigurazione();
+        } catch (IOException e) {
+            logger.error(ERROR_STRING);
+            throw new IOException(ERROR_STRING, e);
+        }
+
+        // JSONPath per ottenere tutta la configurazione automatica
+        String jsonPathQuery = "$.adesione.configurazione_automatica";
+        List<Map<String, String>> configurazioneAutomatica = JsonPath.parse(configurazioneJson).read(jsonPathQuery);
+
+        if (configurazioneAutomatica == null || configurazioneAutomatica.isEmpty()) {
+            throw new IllegalArgumentException("Nessuna configurazione automatica trovata.");
+        }
+
+        return configurazioneAutomatica;
+    }
+
     
 }

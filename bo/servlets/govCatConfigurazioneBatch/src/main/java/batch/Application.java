@@ -35,13 +35,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableScheduling
 @PropertySource("classpath:govcat-batch-configurazione.properties" )
 @PropertySource("file:${org.govway.api.catalogo.resource.path:/var/govcat/conf}/govcat-batch-configurazione.properties"  )
+@PropertySource("file:${org.govway.api.catalogo.resource.path:/var/govcat/conf}/configurazione.json"  )
 public class Application extends SpringBootServletInitializer{
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
     }
-
 
 	@Autowired
 	private JobLauncher jobLauncher;
@@ -65,7 +65,7 @@ public class Application extends SpringBootServletInitializer{
         try {
             jobExecution = jobLauncher.run(configurazioneJob, params);
         } catch (Exception e) {
-        	logger.error(e.getMessage());        	
+        	logger.error(e.getMessage()); 	
             throw new JobExecutionException(e.getMessage());
         }
         ExitStatus exitStatus = jobExecution.getExitStatus();
