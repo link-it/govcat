@@ -547,6 +547,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             let _group: any = {};
             Object.keys(data).forEach((key) => {
                 let value = '';
+                let boolValue = false;
                 switch (key) {
                     // case 'id_servizio':
                     //   value = data[key] ? data[key] : null;
@@ -624,6 +625,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     case 'skip_collaudo':
                         value = data[key] ? data[key] : false;
                         _group[key] = new UntypedFormControl(value, []);
+                        break;
+                    case 'adesione_consentita':
+                        boolValue = data[key] ? false : true;
+                        _group[key] = new UntypedFormControl(boolValue, []);
                         break;
                     default:
                         value = data[key] ? data[key] : null;
@@ -707,7 +712,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             classi: _classi,
             note: body.note || null,
             immagine: body.immagine,
-            adesione_consentita: body.adesione_consentita || false, // Deve essere gestita come "disabilitaa adesione"
+            adesione_consentita: !body.adesione_consentita || false, // Deve essere gestita come "disabilitaa adesione"
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
             skièp_collaudo: body.skièp_collaudo || false,
@@ -797,7 +802,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 visibilita: (body.visibilita === 'null') ? null : body.visibilita,
                 multi_adesione: body.multi_adesione,
                 classi: _classi,
-                adesione_consentita: !!body.adesione_consentita,
+                adesione_consentita: !body.adesione_consentita,
                 id_soggetto_interno: body.id_soggetto_interno || null,
                 package: body.package || false,
                 skip_collaudo: body.skip_collaudo || false
@@ -1546,7 +1551,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._formGroup.get('adesione_consentita')?.setValue(true);
             this._formGroup.get('adesione_consentita')?.disable();
         } else {
-            this._formGroup.get('adesione_consentita')?.setValue(false);
             this._formGroup.get('adesione_consentita')?.enable();
         }
         this._formGroup.get('adesione_consentita')?.updateValueAndValidity();
