@@ -169,6 +169,8 @@ public class DominiTest {
         assertEquals(CommonUtils.NOME_DOMINIO, createdDominio.getBody().getNome());
         assertEquals(CommonUtils.TAG, createdDominio.getBody().getTag());
         assertEquals(CommonUtils.VISIBILITA_DOMINIO, createdDominio.getBody().getVisibilita());
+        assertNotNull(createdDominio.getBody().getDataCreazione());
+        assertEquals(UTENTE_GESTORE, createdDominio.getBody().getUtenteRichiedente().getPrincipal());
     }
 
     @Test
@@ -383,6 +385,8 @@ public class DominiTest {
         assertEquals("UpdatedDomainName", responseUpdate.getBody().getNome());
         assertEquals("Descrizione aggiornata", responseUpdate.getBody().getDescrizione());
         assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+        assertNotNull(responseUpdate.getBody().getDataUltimoAggiornamento());
+        assertNotNull(responseUpdate.getBody().getUtenteUltimoAggiornamento());
     }
 
     @Test

@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.UUID;
 
@@ -56,6 +57,9 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 	
 	@Autowired
 	private CoreEngineAssembler coreEngineAssembler;
+	
+	@Autowired
+	private UtenteItemAssembler utenteAssembler;
 
 	public OrganizzazioneDettaglioAssembler() {
 		super(OrganizzazioniController.class, Organizzazione.class);
@@ -75,7 +79,17 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		
 		dettaglio.setCambioEsternaConsentito(isCambioConsentito(entity));
 		
+		dettaglio.setUtenteRichiedente(this.utenteAssembler.toModel(entity.getRichiedente()));
+
+		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
 		
+		if(entity.getDataUltimaModifica()!=null) {
+			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
+		}
+		
+		if(entity.getUtenteUltimaModifica()!=null) {
+			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
+		}
 		
 		if(entity.getSoggettoDefault()!=null) {
 			dettaglio.setSoggettoDefault(this.soggettoItemAssembler.toLimitedModel(entity.getSoggettoDefault()));
@@ -208,6 +222,8 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		entity.setAderente(src.isAderente());
 		entity.setReferente(src.isReferente());
 		entity.setEsterna(src.isEsterna());
+		entity.setDataCreazione(new Date());
+		entity.setRichiedente(this.getUtenteSessione());
 
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {

@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.UUID;
 
@@ -46,6 +47,9 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 	private OrganizzazioneItemAssembler organizzazioneItemAssembler;
 	
 	@Autowired
+	private UtenteItemAssembler utenteAssembler;
+	
+	@Autowired
 	private CoreEngineAssembler coreEngineAssembler;
 
 	public SoggettoDettaglioAssembler() {
@@ -62,6 +66,18 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		dettaglio.setIdSoggetto(UUID.fromString(entity.getIdSoggetto()));
 		dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
 
+		dettaglio.setUtenteRichiedente(this.utenteAssembler.toModel(entity.getRichiedente()));
+
+		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
+		
+		if(entity.getDataUltimaModifica()!=null) {
+			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
+		}
+		
+		if(entity.getUtenteUltimaModifica()!=null) {
+			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
+		}
+		
 		if(entity.getTipoGateway() != null) {
 			dettaglio.setTipoGateway(toTipoGateway(entity.getTipoGateway()));
 		}
@@ -147,6 +163,8 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.setTipoGateway(getTipoGateway(src.getTipoGateway()));
 		}
 
+		entity.setDataCreazione(new Date());
+		entity.setRichiedente(this.getUtenteSessione());
 		entity.setSkipCollaudo(src.isSkipCollaudo());
 		entity.setAderente(src.isAderente());
 		entity.setReferente(src.isReferente());

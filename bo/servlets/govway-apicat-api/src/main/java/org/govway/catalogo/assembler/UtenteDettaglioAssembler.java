@@ -21,6 +21,8 @@ package org.govway.catalogo.assembler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -84,6 +86,12 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
 
 		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
+		
+		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
+		
+		if(entity.getDataUltimaModifica()!=null) {
+			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
+		}
 
 		if(entity.getOrganizzazione()!=null) {
 			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
@@ -157,6 +165,9 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		entity.setIdUtente(UUID.randomUUID());
 		entity.setPrincipal(src.getPrincipal());
+		
+		entity.setDataCreazione(new Date());
+		
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata")));

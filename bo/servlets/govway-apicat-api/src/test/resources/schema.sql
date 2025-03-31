@@ -160,6 +160,10 @@ create sequence seq_utenti start with 1 increment by 1;
 
     create table client (
        id bigint not null,
+       data_creazione timestamp not null,
+       data_ultima_modifica timestamp,
+       id_richiedente bigint not null,
+       id_utente_ultima_modifica bigint,
         ambiente varchar(255) not null,
         auth_type varchar(255) not null,
         descrizione varchar(255),
@@ -198,6 +202,10 @@ create sequence seq_utenti start with 1 increment by 1;
 
     create table domini (
        id bigint not null,
+       data_creazione timestamp not null,
+       data_ultima_modifica timestamp,
+       id_richiedente bigint not null,
+       id_utente_ultima_modifica bigint,
         deprecato boolean not null,
         descrizione varchar(255),
         id_dominio varchar(255) not null,
@@ -319,6 +327,10 @@ create sequence seq_utenti start with 1 increment by 1;
 
     create table organizations (
        id bigint not null,
+       data_creazione timestamp not null,
+       data_ultima_modifica timestamp,
+       id_richiedente bigint not null,
+       id_utente_ultima_modifica bigint,
         aderente boolean not null,
         codice_ente varchar(255),
         codice_fiscale_soggetto varchar(255),
@@ -400,6 +412,10 @@ create sequence seq_utenti start with 1 increment by 1;
 
     create table soggetti (
        id bigint not null,
+       data_creazione timestamp not null,
+       data_ultima_modifica timestamp,
+       id_richiedente bigint not null,
+       id_utente_ultima_modifica bigint,
         aderente boolean not null,
         descrizione varchar(255),
         id_soggetto varchar(255) not null,
@@ -463,6 +479,8 @@ create sequence seq_utenti start with 1 increment by 1;
 
     create table utenti (
        id bigint not null,
+       data_creazione timestamp not null,
+       data_ultima_modifica timestamp,
         cognome varchar(255) not null,
         email varchar(255),
         email_aziendale varchar(255),

@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.services;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -71,6 +72,8 @@ public class OrganizzazioneService extends AbstractService {
 					.stream()
 					.findAny().orElseGet(() -> {
 						SoggettoEntity so = new SoggettoEntity();
+						so.setDataCreazione(new Date());
+						so.setRichiedente(organization.getRichiedente());
 						so.setIdSoggetto(UUID.randomUUID().toString());
 						so.setNome(customCamelCase);
 						so.setOrganizzazione(organization);

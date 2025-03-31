@@ -124,6 +124,7 @@ public class UtentiTest {
 
         assertEquals(HttpStatus.OK, responseUtente.getStatusCode());
         assertEquals(CommonUtils.NOME_UTENTE, responseUtente.getBody().getNome());
+        assertNotNull(responseUtente.getBody().getDataCreazione());
     }
 
     @Test
@@ -225,6 +226,7 @@ public class UtentiTest {
         assertNotNull(responseUpdate.getBody());
         assertEquals("NuovoNome", responseUpdate.getBody().getNome());
         assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+        assertNotNull(responseUpdate.getBody().getDataUltimoAggiornamento());
     }
 
     @Test

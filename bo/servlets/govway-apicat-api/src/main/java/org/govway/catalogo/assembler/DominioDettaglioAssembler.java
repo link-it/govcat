@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -60,6 +61,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 	private ClasseUtenteItemAssembler classeUtenteItemAssembler;
 	
 	@Autowired
+	private UtenteItemAssembler utenteAssembler;
+	
+	@Autowired
 	private CoreEngineAssembler coreEngineAssembler;
 
 	public DominioDettaglioAssembler() {
@@ -77,6 +81,18 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		dettaglio.setDeprecato(entity.isDeprecato());
 		dettaglio.setVincolaSkipCollaudo(isVincolaSkipCollaudo(entity));
 
+		dettaglio.setUtenteRichiedente(this.utenteAssembler.toModel(entity.getRichiedente()));
+
+		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
+		
+		if(entity.getDataUltimaModifica()!=null) {
+			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
+		}
+		
+		if(entity.getUtenteUltimaModifica()!=null) {
+			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
+		}
+		
 		dettaglio.setSoggettoReferente(this.soggettoItemAssmbler.toModel(entity.getSoggettoReferente()));
 		dettaglio.setVisibilita(this.engine.toVisibilita(entity.getVisibilita()));
 		dettaglio.setClassi(classeUtenteItemAssembler.toCollectionModel(entity.getClassi()).getContent().stream().collect(Collectors.toList()));
@@ -158,6 +174,9 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		
 		entity.setSoggettoReferente(soggetto);
 		entity.setVisibilita(this.engine.toVisibilita(src.getVisibilita()));
+		
+		entity.setDataCreazione(new Date());
+		entity.setRichiedente(this.getUtenteSessione());
 		
 		setSkipCollaudo(src.isSkipCollaudo(), entity);
 

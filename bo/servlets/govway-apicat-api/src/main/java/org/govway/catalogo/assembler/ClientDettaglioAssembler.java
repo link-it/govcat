@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -63,6 +64,9 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	private ClientEngineAssembler clientEngineAssembler;
 	
 	@Autowired
+	private UtenteItemAssembler utenteAssembler;
+	
+	@Autowired
 	private Configurazione configurazione;
 	
 	@Autowired
@@ -87,6 +91,18 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		dettaglio.setStato(clientEngineAssembler.toStatoClient(entity.getStato()));
 
+		dettaglio.setUtenteRichiedente(this.utenteAssembler.toModel(entity.getRichiedente()));
+
+		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
+		
+		if(entity.getDataUltimaModifica()!=null) {
+			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
+		}
+		
+		if(entity.getUtenteUltimaModifica()!=null) {
+			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
+		}
+		
 		boolean used = false;
 		
 		
@@ -174,6 +190,10 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		entity.setAuthType(clientEngineAssembler.getAuthType(src.getDatiSpecifici().getAuthType()));
 
+		entity.setDataCreazione(new Date());
+		
+		entity.setRichiedente(this.getUtenteSessione());
+		
 		if(src.getStato()!=null) {
 			entity.setStato(clientEngineAssembler.toStatoClient(src.getStato()));
 		} else {

@@ -159,6 +159,8 @@ public class ClientTest {
         assertNotNull(responseClient.getBody());
         assertEquals(HttpStatus.OK, responseClient.getStatusCode());
         assertEquals(CommonUtils.CLIENT_NOME, responseClient.getBody().getNome());
+        assertNotNull(responseClient.getBody().getDataCreazione());
+        assertEquals(UTENTE_GESTORE, responseClient.getBody().getUtenteRichiedente().getPrincipal());
     }
     /*
     @Test
@@ -306,6 +308,8 @@ public class ClientTest {
         assertNotNull(responseUpdate.getBody());
         assertEquals("UpdatedClient", responseUpdate.getBody().getNome());
         assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+        assertNotNull(responseUpdate.getBody().getDataUltimoAggiornamento());
+        assertNotNull(responseUpdate.getBody().getUtenteUltimoAggiornamento());
     }
 
     @Test

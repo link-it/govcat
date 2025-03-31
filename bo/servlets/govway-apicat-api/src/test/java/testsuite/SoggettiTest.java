@@ -153,6 +153,8 @@ public class SoggettiTest {
 
         assertNotNull(createdSoggetto);
         assertEquals(NOME_SOGGETTO, createdSoggetto.getBody().getNome());
+        assertNotNull(createdSoggetto.getBody().getDataCreazione());
+        assertEquals(UTENTE_GESTORE, createdSoggetto.getBody().getUtenteRichiedente().getPrincipal());
     }
 
     @Test
@@ -507,6 +509,8 @@ public class SoggettiTest {
         assertNotNull(updatedSoggetto);
         assertEquals("Nome Aggiornato", updatedSoggetto.getNome());
         assertEquals(idOrganizzazione, updatedSoggetto.getOrganizzazione().getIdOrganizzazione());
+        assertNotNull(updatedSoggetto.getDataUltimoAggiornamento());
+        assertNotNull(updatedSoggetto.getUtenteUltimoAggiornamento());
     }
 
     @Test

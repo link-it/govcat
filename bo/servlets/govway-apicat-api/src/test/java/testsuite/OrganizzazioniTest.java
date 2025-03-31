@@ -174,6 +174,10 @@ public class OrganizzazioniTest {
         assertEquals(REFERENTE, organizzazione.isReferente());
         assertEquals(ADERENTE, organizzazione.isAderente());
         assertEquals(ESTERNA, organizzazione.isEsterna());
+        //System.out.println(organizzazione.getUtenteRichiedente());
+        //System.out.println(organizzazione.getDataCreazione());
+        assertNotNull(organizzazione.getDataCreazione());
+        assertEquals(UTENTE_GESTORE, organizzazione.getUtenteRichiedente().getPrincipal());
     }
 
     @Test
@@ -355,6 +359,9 @@ public class OrganizzazioniTest {
         assertEquals(false, organizzazioneAggiornata.isReferente());
         assertEquals(true, organizzazioneAggiornata.isAderente());
         assertEquals(false, organizzazioneAggiornata.isEsterna());
+        System.out.println(organizzazioneAggiornata.getDataUltimoAggiornamento());
+        assertNotNull(organizzazioneAggiornata.getDataUltimoAggiornamento());
+        assertNotNull(organizzazioneAggiornata.getUtenteUltimoAggiornamento());
     }
 
     @Test
