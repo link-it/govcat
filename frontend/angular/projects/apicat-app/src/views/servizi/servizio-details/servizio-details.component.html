@@ -18,7 +18,6 @@
         <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.TITLE.EditService' | translate }}</h3>
         <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewService' | translate }}</h3>
         <div class="d-flex flex-grow-1">&nbsp;</div>
-        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
         <div class="nav-controls" *ngIf="_data?.id_servizio">
             <ng-container *ngIf="!_isEdit">
                 <ng-container *ngIf="!_spin && !_isNew">
@@ -68,7 +67,6 @@
                 <div class="position-relative d-inline-block" *ngIf="!_isEdit && !_spin && _editable">
                     <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
                 </div>
-            <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
                 <div role="group" class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
                         <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
@@ -95,13 +93,11 @@
                         </ul>
                     </div>
                 </div>
-            <!-- </ng-template> -->
             </ng-container>
             <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
                 <lnk-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></lnk-button>
             </div>
         </div>
-        <!-- </ng-template> -->
     </div>
     <div class="notification-area container-fluid container-limited limit-container-width px-0" *ngIf="!_spin && (_notification || _notificationId)">
         <app-notification-bar
@@ -181,7 +177,7 @@
                                     </div>
                                 </div>
                                 <div class="row stato">
-                                    <div class="" [class.col-4]="_isGestoreMapper()" [class.col-8]="!_isGestoreMapper()">
+                                    <div class="" [class.col-4]="(_updateData | mapper:_isGestoreMapper)" [class.col-8]="!(_updateData | mapper:_isGestoreMapper)">
                                         <div class="form-group">
                                             <label class="label-bold" for="stato">{{ 'APP.LABEL.stato' | translate }}</label>
                                             <div class="">
@@ -194,7 +190,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-4" *ngIf="_isGestoreMapper()">
+                                    <div class="col-4" *ngIf="(_updateData | mapper:_isGestoreMapper)">
                                         <div class="form-group package mt-2-">
                                             <div class="form-group">
                                                 <label class="label-bold" for="package" *ngIf="_isEdit || !isComponente">{{ 'APP.LABEL.package' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'" *ngIf="_isEdit"></span></label>
@@ -307,7 +303,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row visibilita" *ngIf="_isGestoreMapper()">
+                                <div class="row visibilita" *ngIf="(_updateData | mapper:_isGestoreMapper)">
                                     <div class="col-6">
                                         <lnk-form-field *ngIf="_isEdit"
                                             type="select"
@@ -697,7 +693,7 @@
                             </div>
                         </div>
 
-                        <div class="row mt-4" [class.justify-content-center]="_isNew || _singleColumn">
+                        <div class="row mt-4" [class.justify-content-center]="(_isNew || _singleColumn)" *ngIf="(_updateData | mapper:_isGestoreMapper)">
                             <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
                                 <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h4>
                                 <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.AdhesionInformations_sub' | translate }}</div>
@@ -715,8 +711,8 @@
                                             </div>
                                             <div class="" *ngIf="!_isEdit && !isComponente">
                                                 <span class="">
-                                                    <i class="bi bi-square" *ngIf="!data.adesione_consentita"></i>
-                                                    <i class="bi bi-check-square" *ngIf="data.adesione_consentita"></i>
+                                                    <i class="bi bi-square" *ngIf="data.adesione_consentita"></i>
+                                                    <i class="bi bi-check-square" *ngIf="!data.adesione_consentita"></i>
                                                 </span>
                                             </div>
                                         </div>

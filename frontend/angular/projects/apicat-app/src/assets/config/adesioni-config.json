@@ -104,7 +104,11 @@
         "rejected": { "label": "APP.WORKFLOW.STATUS.REJECTED", "background": "#FF8200", "border": "#FF8200", "color": "#1f1f1f" },
         "processing": { "label": "APP.WORKFLOW.STATUS.PROCESSING", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
         "denied": { "label": "APP.WORKFLOW.STATUS.DENIED", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
-        "bad_request": { "label": "APP.WORKFLOW.STATUS.BAD_REQUEST", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+        "bad_request": { "label": "APP.WORKFLOW.STATUS.BAD_REQUEST", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "in_configurazione_automatica_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_collaudo", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "in_configurazione_manuale_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_collaudo", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "in_configurazione_automatica_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_produzione", "background": "#326C1A", "border": "#326C1A", "color": "#ffffff" },
+        "in_configurazione_manuale_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_produzione", "background": "#326C1A", "border": "#326C1A", "color": "#ffffff" }
       }
     },
     "type": {

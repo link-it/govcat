@@ -498,10 +498,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._error = false;
     
     const _body = this._prepareBodySaveAdesione(body);
-    console.log('__onSave body', body);
-    console.log('__onSave _body', _body);
-    
-    return;
+
     this._spin = true;
 
     this.apiService.saveElement(this.model, _body).subscribe(
