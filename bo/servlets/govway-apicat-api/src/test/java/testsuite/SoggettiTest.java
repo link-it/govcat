@@ -215,7 +215,7 @@ public class SoggettiTest {
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         Soggetto soggetto = soggettiController.createSoggetto(soggettoCreate).getBody();
         assertEquals(soggetto.getNome(), NOME_SOGGETTO);
-        System.out.println(soggetto.getIdSoggetto());
+        //System.out.println(soggetto.getIdSoggetto());
         soggettiController.deleteSoggetto(soggetto.getIdSoggetto());
 
         assertThrows(NotFoundException.class, () -> {
@@ -511,6 +511,7 @@ public class SoggettiTest {
         assertEquals(idOrganizzazione, updatedSoggetto.getOrganizzazione().getIdOrganizzazione());
         assertNotNull(updatedSoggetto.getDataUltimoAggiornamento());
         assertNotNull(updatedSoggetto.getUtenteUltimoAggiornamento());
+        assertEquals(UTENTE_GESTORE, updatedSoggetto.getUtenteRichiedente().getPrincipal());
     }
 
     @Test

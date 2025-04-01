@@ -148,6 +148,10 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 				entity.getClassi().add(cu);
 			}
 		}
+		
+		if(entity.getDataUltimaModifica() == null) {
+			entity.setDataUltimaModifica(new Date());
+		}
 
 		return entity;
 	}

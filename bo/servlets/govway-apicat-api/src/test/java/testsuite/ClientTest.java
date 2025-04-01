@@ -308,8 +308,12 @@ public class ClientTest {
         assertNotNull(responseUpdate.getBody());
         assertEquals("UpdatedClient", responseUpdate.getBody().getNome());
         assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+        //System.out.println(responseUpdate.getBody().getDataUltimoAggiornamento());
         assertNotNull(responseUpdate.getBody().getDataUltimoAggiornamento());
+        //System.out.println(responseUpdate.getBody().getUtenteUltimoAggiornamento());
         assertNotNull(responseUpdate.getBody().getUtenteUltimoAggiornamento());
+        
+        assertEquals(UTENTE_GESTORE, responseUpdate.getBody().getUtenteRichiedente().getPrincipal());
     }
 
     @Test

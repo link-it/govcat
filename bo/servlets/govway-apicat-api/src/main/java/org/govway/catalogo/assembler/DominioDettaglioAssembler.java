@@ -126,6 +126,15 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		}
 
 		entity.setVisibilita(this.engine.toVisibilita(src.getVisibilita()));
+		
+		if(entity.getDataUltimaModifica() == null) {
+			entity.setDataUltimaModifica(new Date());
+		}
+		
+		if(entity.getUtenteUltimaModifica() == null) {
+			entity.setUtenteUltimaModifica(getUtenteSessione());
+		}
+		
 		if(src.getClassi()!= null) {
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {

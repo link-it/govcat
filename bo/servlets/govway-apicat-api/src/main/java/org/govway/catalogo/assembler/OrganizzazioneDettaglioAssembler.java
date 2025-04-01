@@ -210,6 +210,14 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 				throw new BadRequestException("IdTipoUtente obbligatorio");
 			}
 		}
+		
+		if(entity.getDataUltimaModifica() == null) {
+			entity.setDataUltimaModifica(new Date());
+		}
+		
+		if(entity.getUtenteUltimaModifica() == null) {
+			entity.setUtenteUltimaModifica(getUtenteSessione());
+		}
 
 		return entity;
 	}

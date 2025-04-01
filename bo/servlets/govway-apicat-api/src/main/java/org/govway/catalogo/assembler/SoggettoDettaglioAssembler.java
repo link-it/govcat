@@ -142,6 +142,14 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		entity.setReferente(src.isReferente());
 
+		if(entity.getDataUltimaModifica() == null) {
+			entity.setDataUltimaModifica(new Date());
+		}
+		
+		if(entity.getUtenteUltimaModifica() == null) {
+			entity.setUtenteUltimaModifica(getUtenteSessione());
+		}
+		
 		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata)")));
 		return entity;
 	}

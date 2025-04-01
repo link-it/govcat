@@ -387,6 +387,8 @@ public class DominiTest {
         assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
         assertNotNull(responseUpdate.getBody().getDataUltimoAggiornamento());
         assertNotNull(responseUpdate.getBody().getUtenteUltimoAggiornamento());
+        
+        assertEquals(UTENTE_GESTORE, responseUpdate.getBody().getUtenteRichiedente().getPrincipal());
     }
 
     @Test

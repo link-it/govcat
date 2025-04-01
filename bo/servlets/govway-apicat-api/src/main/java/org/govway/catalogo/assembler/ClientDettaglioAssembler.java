@@ -95,11 +95,11 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		dettaglio.setDataCreazione(entity.getDataCreazione().toInstant().atOffset(ZoneOffset.UTC));
 		
-		if(entity.getDataUltimaModifica()!=null) {
+		if(entity.getDataUltimaModifica()!= null) {
 			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
 		}
 		
-		if(entity.getUtenteUltimaModifica()!=null) {
+		if(entity.getUtenteUltimaModifica()!= null) {
 			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
 		}
 		
@@ -139,6 +139,14 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		entity.setAuthType(clientEngineAssembler.getAuthType(src.getDatiSpecifici().getAuthType()));
 
+		if(entity.getDataUltimaModifica() == null) {
+			entity.setDataUltimaModifica(new Date());
+		}
+		
+		if(entity.getUtenteUltimaModifica() == null) {
+			entity.setUtenteUltimaModifica(getUtenteSessione());
+		}
+		
 		return entity;
 	}
 	
