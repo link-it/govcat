@@ -541,6 +541,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   _onSearch(values: any) {
     this._filterData = values;
+    this.resetSeleted();
     this.updateMultiSelectionMapper();
     this._updateMapper = new Date().getTime().toString();
     this._loadAdesioni(this._filterData);
