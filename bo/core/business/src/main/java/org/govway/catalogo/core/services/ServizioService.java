@@ -226,4 +226,13 @@ public class ServizioService extends AbstractService {
 		return this.servizioRepo.getServiziByRichiedente(u.getId());
 	}
 
+	public boolean isEliminabile(ServizioEntity servizio) {
+	    boolean haAdesioni = adesioneRepo.existsByServizio_Id(servizio.getId());
+	    boolean haApi = apiRepo.existsByServizi_Id(servizio.getId());
+	    boolean haPackageSubServizi = servizio.is_package() && packageServizioRepo.existsByPackageId(servizio.getId());
+
+	    return !(haAdesioni || haApi || haPackageSubServizi);
+	}
+
+	
 }

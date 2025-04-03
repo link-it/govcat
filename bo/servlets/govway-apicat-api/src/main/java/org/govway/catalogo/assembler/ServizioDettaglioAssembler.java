@@ -132,7 +132,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 		dettaglio.setDominio(engine.getDominio(entity));
 		dettaglio.setTipo(engine.toTipo(entity.getTipo()));
-
+		
+		dettaglio.setEliminabile(servizioService.isEliminabile(entity));
+		
 		if(entity.getSoggettoInterno()!=null) {
 			dettaglio.setSoggettoInterno(soggettoItemAssembler.toModel(entity.getSoggettoInterno()));
 		}

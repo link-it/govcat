@@ -24,4 +24,9 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryImplementati
 
 public interface GruppoRepository extends JpaRepositoryImplementation<GruppoEntity, Long> {
 
+	//@Query("SELECT COUNT(g) > 0 FROM GruppoEntity g JOIN g.servizi s WHERE s.id = ?1")
+	//public boolean existsByServizioId(Long servizioId);
+
+	//public boolean existsByServizi_Id(Long servizioId);
+	
 }

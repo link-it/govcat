@@ -20,7 +20,14 @@
 package org.govway.catalogo.core.dao.repositories;
 
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
+import org.springframework.data.repository.query.Param;
 
 public interface PackageServizioRepository extends JpaRepositoryImplementation<PackageServizioEntity, Long> {
+
+	//public boolean existsBy_Package_Id(Long packageId);
+	@Query("SELECT COUNT(p) > 0 FROM PackageServizioEntity p WHERE p._package.id = :packageId")
+	public boolean existsByPackageId(@Param("packageId") Long packageId);
+
 }

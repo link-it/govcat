@@ -24,4 +24,8 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryImplementati
 
 public interface ApiRepository extends JpaRepositoryImplementation<ApiEntity, Long> {
 
+	//@Query("SELECT COUNT(a) > 0 FROM ApiEntity a JOIN a.servizi s WHERE s.id = ?1")
+	//public boolean existsByServizioId(Long servizioId);
+	public boolean existsByServizi_Id(Long servizioId);
+	
 }

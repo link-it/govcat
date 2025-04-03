@@ -137,6 +137,9 @@ public class ServizioEntity {
     @Column(name = "note", length=1000)
     private String note;
     
+    //@Column(name = "eliminabile")
+    //private boolean eliminabile = true;
+    
     @Column(name = "url_invocazione", nullable = true)
 	private String urlInvocazione;
     

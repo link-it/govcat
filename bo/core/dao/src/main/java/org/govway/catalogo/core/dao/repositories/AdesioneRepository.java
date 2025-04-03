@@ -45,6 +45,9 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
     @Query(value = "SELECT a FROM AdesioneEntity a WHERE a.stato = ?1 OR a.stato=?2")
     Page<AdesioneEntity> getAdesioniByStati(String stato1,String stato2, Pageable pageable);
 
+    //@Query(value = "SELECT COUNT(a) > 0 FROM AdesioneEntity a join a.servizio u WHERE u.id = ?1")
+    public boolean existsByServizio_Id(Long servizioId);
+    
  //   @Query(value = "SELECT a.idAdesione FROM AdesioneEntity a WHERE a.stato IN (?1, ?2)")
  //   public List<AdesioneEntity> getAdesioniByStati(String stato1, String stato2);
 
