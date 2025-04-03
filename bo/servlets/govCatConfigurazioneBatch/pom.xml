@@ -11,7 +11,7 @@
 		<relativePath>../</relativePath>
 	</parent>
 
-	<artifactId>govCatConfigurazioneBatch</artifactId>
+	<artifactId>govway-apicat-configurazione-batch</artifactId>
 	<packaging>war</packaging>
 	<name>govCat Configurazione Batch</name>
 	<description>govCat Configurazione Batch</description>
@@ -61,6 +61,12 @@
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>configuratore</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>

@@ -723,11 +723,11 @@ public class AdesioniController implements AdesioniApi {
 				AdesioneSpecification specification = new AdesioneSpecification();
 				specification.setStatoConfigurazione(Optional.ofNullable(statoConfigurazioneAutomatica).map(s -> {
 					switch(s) {
-					case FALLITA: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_FINALE;
-					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CORSO;
-					case KO: return STATO_CONFIGURAZIONE.KO_DEFINITIVO;
+					case FALLITA: return STATO_CONFIGURAZIONE.FALLITA;
+					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CODA;
+					case KO: return STATO_CONFIGURAZIONE.KO;
 					case OK: return STATO_CONFIGURAZIONE.OK;
-					case RETRY: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_RITENTA;
+					case RETRY: return STATO_CONFIGURAZIONE.RETRY;
 					}
 					return null;
 				}));
@@ -1695,8 +1695,11 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	// Metodo per registrare un errore
-    private boolean registraErrore(List<String> errorIds, Map<String, List<String>> errorMessages, String id, String errorMessage) {
-        boolean isNewError = false;
+    private boolean registraErrore(List<String> errorIds, Map<String, List<String>> errorMessages, AdesioneEntity entity, String errorMessage) {
+    	this.entityManager.detach(entity);
+    	
+    	String id = entity.getIdLogico() != null ? entity.getIdLogico() : entity.getSoggetto().getNome() + " / " + entity.getServizio().getNome() + " v" +entity.getServizio().getVersione();
+    	boolean isNewError = false;
         // Se l'ID non è ancora stato registrato, lo aggiungo alla lista
         if (!errorIds.contains(id)) {
             errorIds.add(id);
@@ -1799,7 +1802,7 @@ public class AdesioniController implements AdesioniApi {
 						//errore.setIdAdesione(v.getIdAdesione());
 						//errore.setMessaggio("Elemento non in uno degli stati stato_iniziale definiti in configurazione");
 						//errori.add(errore);
-						this.registraErrore(errorIds, errorMessages, v.getIdAdesione(),"Elemento non in uno degli stati stato_iniziale definiti in configurazione");
+						this.registraErrore(errorIds, errorMessages, v,"Elemento non in uno degli stati stato_iniziale definiti in configurazione");
 					});
 					//throw new BadRequestException("Uno o piu' elementi non sono in uno degli stati stato_iniziale definiti in configurazione");
 				}
@@ -1813,19 +1816,18 @@ public class AdesioniController implements AdesioniApi {
 							//if(!this.checkErrore(v.getIdAdesione())) {
 								//numeroOk.incrementAndGet();
 							//}
-							AdesioneEntity entity = findOne(UUID.fromString(v.getIdAdesione()));  
 
-							String statoIniziale = entity.getStato();
+							String statoIniziale = v.getStato();
 							String statoFinale = statoUpdate.getStato();
 
-							this.authorization.authorizeCambioStato(entity, statoUpdate.getStato());
-							this.dettaglioAssembler.toEntity(statoUpdate, entity);
-							this.authorization.authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+							this.authorization.authorizeCambioStato(v, statoUpdate.getStato());
+							this.dettaglioAssembler.toEntity(statoUpdate, v);
+							this.authorization.authorizeUtenteCambioStato(v, statoIniziale, statoFinale);
 
 
-							this.service.save(entity);
+							this.service.save(v);
 
-							List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(entity);
+							List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(v);
 							lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
 							numeroOk.incrementAndGet();
 						}
@@ -1834,13 +1836,13 @@ public class AdesioniController implements AdesioniApi {
 						//errore.setIdAdesione(v.getIdAdesione());
 						//errore.setMessaggio("Dati incompleti");
 						//errori.add(errore);
-						this.registraErrore(errorIds, errorMessages, v.getIdAdesione(),"Dati incompleti");
+						this.registraErrore(errorIds, errorMessages, v,"Dati incompleti");
 					} catch(NotAuthorizedException ex) {
 						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						//errore.setIdAdesione(v.getIdAdesione());
 						//errore.setMessaggio("Utente non autorizzato");
 						//errori.add(errore);
-						this.registraErrore(errorIds, errorMessages, v.getIdAdesione(),"Utente non autorizzato");
+						this.registraErrore(errorIds, errorMessages, v,"Utente non autorizzato");
 					}
 				});
 				response.setNumeroOk(numeroOk.get());

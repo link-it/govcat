@@ -8936,6 +8936,10 @@ components:
           default: false
         stato:
           $ref: "#/components/schemas/String255"
+        stato_configurazione_automatica:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        messaggio_configurazione:
+          $ref: "#/components/schemas/String4000"
         data_creazione:
           type: "string"
           format: "date-time"
@@ -9003,8 +9007,10 @@ components:
           $ref: "#/components/schemas/String255"
         stato_precedente:
           $ref: "#/components/schemas/String255"
-        configurazione_automatica:
-          $ref: "#/components/schemas/StatoConfigurazioneAutomatica"
+        stato_configurazione_automatica:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        messaggio_configurazione:
+          $ref: "#/components/schemas/String4000"
         data_creazione:
           type: "string"
           format: "date-time"

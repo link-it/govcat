@@ -60,10 +60,6 @@
             <AppenderRef ref="hibernate" />
         </Logger>
 
-        <Logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false">
-            <AppenderRef ref="hibernate" />
-        </Logger>
-
         <Root level="debug">
             <AppenderRef ref="core" />
         </Root>

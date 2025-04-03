@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.govway.catalogo.core.dto.DTOSoggetto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -76,6 +78,8 @@ public class GovwayConfigInvoker {
 	private static final String PATH_TEMPLATE_EROGAZIONE_APPLICATIVI = "erogazioneApplicativi.ftlh";
 	private static final String PATH_TEMPLATE_CREDENZIALI = "credenziali.ftlh";
 	private static final String PATH_TEMPLATE_SOGGETTO_AUTORIZZATO = "soggettoAutorizzato.ftlh";
+
+	private Logger logger = LoggerFactory.getLogger(GovwayConfigInvoker.class);
 
 	
 	public GovwayConfigInvoker credentials(String username, String password) {
@@ -123,6 +127,8 @@ public class GovwayConfigInvoker {
 		
 		url.addPathSegment(api.getNomeServizio())
 			.addPathSegment(api.getVersioneServizio().toString());
+		
+		this.logger.info("getUrlConfigurazioneServizio:" + url);
 		return url;
 	}
 	
@@ -412,6 +418,7 @@ public class GovwayConfigInvoker {
 				.addHeader(HEADER_AUTHORIZATION, this.credentials)
 				.get()
 				.build();
+		
 		
 		Response res = this.client.newCall(req).execute();
 		if (!res.isSuccessful())
