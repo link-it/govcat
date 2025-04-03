@@ -660,6 +660,7 @@ public class AdesioniController implements AdesioniApi {
 				
 				for(StatoAdesioneEntity stato: entity.getStati()) {
 					ItemComunicazione itemStato = new ItemComunicazione();
+					itemStato.setUuid(UUID.fromString(stato.getUuid()));
 					itemStato.setTipo(TipoComunicazione.CAMBIO_STATO);
 					itemStato.setAutore(itemUtenteAssembler.toModel(stato.getUtente()));
 					itemStato.setData(stato.getData().toInstant().atOffset(ZoneOffset.UTC));
