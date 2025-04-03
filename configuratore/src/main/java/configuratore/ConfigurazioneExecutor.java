@@ -206,7 +206,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 				singleAPI.nomeAPI(this.invokers.getConfigInvoker().getNomeApiFromSingleApi(singleAPI));
 			} catch (IOException e) {
 				messaggioErrore.add(e.getMessage());
-				this.logger.error("nome api non trovato, servizio: {}", singleAPI.getNomeServizio());
+				this.logger.error("nome api non trovato, servizio: {}", singleAPI.getNomeServizio(), e);
 				continue;
 			}
 			
@@ -221,7 +221,8 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 						clientToApis.get(adesioneApi.getClient()).add(new GruppoServizio(singleAPI));
 					}
 				} catch (IOException e) {
-					e.printStackTrace();
+					messaggioErrore.add(e.getMessage());
+					this.logger.error("risorse non trovate, servizio: {}", singleAPI.getNomeServizio(), e);
 				}
 			}
 		}
@@ -251,7 +252,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 						.forEach(row -> esito.getChiaveRestituita().put(client.getNome() + "." + row.getKey(), row.getValue()));
 				}
 			} catch(ConfigurazioneException e) {
-				this.logger.error("client [{}] non inizializzato, errore: {}", client.getNome(), e.getMessage());
+				this.logger.error("client [{}] non inizializzato", client.getNome(), e);
 				messaggioErrore.add(new StringBuilder("client[").append(client.getNome()).append("] non inizializzato, errore: ").append(e.getMessage()).toString());
 				continue;
 			}
@@ -269,7 +270,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 							.forEach(row -> esito.getChiaveRestituita().put(client.getNome() + "." + row.getKey(), row.getValue()));
 					}
 				} catch (ConfigurazioneException e) {
-					this.logger.error("errore api [{}]: {}", singleAPI, e.getMessage());
+					this.logger.error("errore api [{}]", singleAPI, e);
 					messaggioErrore.add(new StringBuilder("errore api ").append(singleAPI).append(": ").append(e.getMessage()).toString());
 				}
 			}

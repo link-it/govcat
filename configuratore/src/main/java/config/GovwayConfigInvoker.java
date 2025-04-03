@@ -128,7 +128,7 @@ public class GovwayConfigInvoker {
 		url.addPathSegment(api.getNomeServizio())
 			.addPathSegment(api.getVersioneServizio().toString());
 		
-		this.logger.info("getUrlConfigurazioneServizio:" + url);
+		this.logger.debug("getUrlConfigurazioneServizio:" + url);
 		return url;
 	}
 	
@@ -323,7 +323,9 @@ public class GovwayConfigInvoker {
 					.build();
 			
 			res = this.client.newCall(req).execute();
-			
+
+			this.logger.info("getNomiFromRisorse:" + url);
+
 			if (!res.isSuccessful())
 				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
 			
