@@ -3,7 +3,7 @@ import { LogLevel } from "../models/log.interface";
 export const environment = {
   production: true,
   version: '2.1.0',
-  build: '250403.1843',
+  build: '250404.1125',
 
   logLevel: LogLevel.info,
 

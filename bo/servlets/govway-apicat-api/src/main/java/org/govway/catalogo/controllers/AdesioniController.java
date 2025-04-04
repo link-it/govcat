@@ -1749,7 +1749,7 @@ public class AdesioniController implements AdesioniApi {
 				specification.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
 				specification.setIdServizio(Optional.ofNullable(idServizio));
 				specification.setIdRichiedente(Optional.ofNullable(richiedente));
-				//specification.setStati(stato);
+				specification.setStati(stato);
 				//specification.setUtente(null);
 
 				boolean admin = this.coreAuthorization.isAdmin();
@@ -1758,7 +1758,7 @@ public class AdesioniController implements AdesioniApi {
 					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
 				}
 
-				specification.setStati(stato);
+				//specification.setStati(stato);
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("searchTerms"));
 

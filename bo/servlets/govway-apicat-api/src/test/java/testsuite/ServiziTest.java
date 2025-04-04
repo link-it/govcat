@@ -2095,39 +2095,39 @@ public class ServiziTest {
 	    assertFalse(response.getBody().getContent().isEmpty());   
 	}
 	
-	 public Servizio getServizio(String nomeServizio) {
-	    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-	    	
-	    	servizioCreate.setNome(nomeServizio);
+	public Servizio getServizio(String nomeServizio, boolean packageBoolean) {
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
 
-	    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setNome(nomeServizio);
 
-	    	servizioCreate.setIdDominio(idDominio);
+		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 
-	    	if (immagine.getContent() != null) {
-	    		servizioCreate.setImmagine(immagine);
-	    	}
+		servizioCreate.setIdDominio(idDominio);
+		
+		if(packageBoolean) {
+			servizioCreate.setPackage(true);
+		}
 
-	    	List<ReferenteCreate> referenti = new ArrayList<>();
+		List<ReferenteCreate> referenti = new ArrayList<>();
 
-	    	ReferenteCreate referente = new ReferenteCreate();
-	    	referente.setTipo(TipoReferenteEnum.REFERENTE);
-	    	referente.setIdUtente(ID_UTENTE_GESTORE);
-	    	referenti.add(referente);
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		referenti.add(referente);
 
-	    	servizioCreate.setReferenti(referenti);
+		servizioCreate.setReferenti(referenti);
 
-	    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+		ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
 
-	    	Servizio servizio = createdServizio.getBody();
+		Servizio servizio = createdServizio.getBody();
 
-	    	return servizio;
-	    }
+		return servizio;
+	}
 
 	 private UUID getServizioComponentePackage() {
-		 Servizio servizio = this.getServizio();
-		 servizio.setPackage(true);
-		 Servizio servizio2 = this.getServizio(CommonUtils.NOME_SERVIZIO+1);
+		 this.getDominio();
+		 Servizio servizio = this.getServizio(CommonUtils.NOME_SERVIZIO, true);
+		 Servizio servizio2 = this.getServizio(CommonUtils.NOME_SERVIZIO+1,false);
 		 serviziController.associaComponentePackage(servizio.getIdServizio(), servizio2.getIdServizio());
 		 return servizio.getIdServizio();
 	 }
@@ -2136,7 +2136,11 @@ public class ServiziTest {
 	 void testDeleteServizi() {
 		 UUID servizioId = this.getServizioComponentePackage();
 
-		 serviziController.deleteServizio(servizioId);
+
+		 Exception ex = assertThrows(BadRequestException.class, () -> {
+			 serviziController.deleteServizio(servizioId);
+		 });
+		 assertEquals("Il servizio non è eliminabile", ex.getMessage());
 	 }
 	 
 	 
@@ -2350,7 +2354,7 @@ public class ServiziTest {
 	    	gruppo.setNome(CommonUtils.NOME_GRUPPO+n);
 		    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
 		    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
-		    servizio = this.getServizio(CommonUtils.NOME_SERVIZIO+n);
+		    servizio = this.getServizio(CommonUtils.NOME_SERVIZIO+n,false);
 		    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
 	    }
 	    return idGruppoPadre;

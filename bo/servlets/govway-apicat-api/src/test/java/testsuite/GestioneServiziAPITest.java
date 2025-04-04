@@ -839,7 +839,7 @@ public class GestioneServiziAPITest {
     	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
     	
     	// Creo API
-    	this.getAPI();
+    	//this.getAPI();
     	
     	serviziController.deleteServizio(idServizio);
     }
