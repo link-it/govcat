@@ -695,7 +695,7 @@ public class DominiTest {
         // Creazione del referente
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(info.utente.getIdUtente());
+        referenteCreate.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
 
         org.govway.catalogo.exception.NotFoundException exception = assertThrows(org.govway.catalogo.exception.NotFoundException.class, () -> {
             controller.createReferenteDominio(idDominioNonEsistente, referenteCreate);
@@ -729,7 +729,7 @@ public class DominiTest {
         // Tentativo di creare un referente senza autorizzazione
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(info.utente.getIdUtente());
+        referenteCreate.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);
         });
@@ -762,7 +762,7 @@ public class DominiTest {
         // Tentativo di creare un referente senza autorizzazione
         ReferenteCreate referenteCreate = new ReferenteCreate();
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteCreate.setIdUtente(info.utente.getIdUtente());
+        referenteCreate.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);
         });
@@ -792,7 +792,7 @@ public class DominiTest {
         
         // Creazione di un referente non valido (per esempio, senza il tiporeferente definito)
         ReferenteCreate referenteCreate = new ReferenteCreate();
-        referenteCreate.setIdUtente(info.utente.getIdUtente());  // Nome del referente mancante
+        referenteCreate.setIdUtente(UUID.fromString(info.utente.getIdUtente()));  // Nome del referente mancante
 
         ConstraintViolationException exception = assertThrows(ConstraintViolationException.class, () -> {
             controller.createReferenteDominio(createdDominio.getBody().getIdDominio(), referenteCreate);

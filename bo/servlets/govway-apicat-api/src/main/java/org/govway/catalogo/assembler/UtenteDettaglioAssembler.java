@@ -80,6 +80,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		BeanUtils.copyProperties(entity, dettaglio);
 
 
+		dettaglio.setIdUtente(UUID.fromString(entity.getIdUtente()));
 		dettaglio.setPrincipal(entity.getPrincipal());
 		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
 
@@ -155,7 +156,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		UtenteEntity entity = new UtenteEntity();
 		BeanUtils.copyProperties(src, entity);
 		
-		entity.setIdUtente(UUID.randomUUID());
+		entity.setIdUtente(UUID.randomUUID().toString());
 		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())

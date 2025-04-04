@@ -156,7 +156,7 @@ public class APITest {
         
         //System.out.println("STAMPA ID "+info.utente.getIdUtente());
         
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
         
         // Configura `coreAuthorization` per essere utilizzato nei test
         when(coreAuthorization.isAnounymous()).thenReturn(true);

@@ -199,16 +199,16 @@ public class RegistrazioneServizioIntegrationTest {
         SecurityContextHolder.setContext(securityContext);
         
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach

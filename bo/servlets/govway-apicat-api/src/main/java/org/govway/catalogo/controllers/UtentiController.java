@@ -183,7 +183,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -224,7 +224,7 @@ public class UtentiController implements UtentiApi {
 				spec.setQ(Optional.ofNullable(q));
 				spec.setEmail(Optional.ofNullable(email));
 				spec.setPrincipalLike(Optional.ofNullable(principal));
-				spec.setIdUtente(Optional.ofNullable(idUtente));
+				spec.setIdUtente(Optional.ofNullable(idUtente).map(u -> u.toString()));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
 				spec.setReferenteTecnico(Optional.ofNullable(referenteTecnico));
 				

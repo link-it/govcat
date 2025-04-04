@@ -158,7 +158,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(entity.getUtenteUltimaModifica()!=null) {
 			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
 		}
-		
+
 		dettaglio.setStatoConfigurazioneAutomatica(Optional.ofNullable(entity.getStatoConfigurazione()).map(statoConfigurazione -> {
 			switch(statoConfigurazione) {
 			case FALLITA: return StatoConfigurazioneAutomaticaEnum.FALLITA;

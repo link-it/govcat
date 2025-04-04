@@ -60,7 +60,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 	private Optional<UUID> idSoggetto = Optional.empty();
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
-	private Optional<UUID> idReferente = Optional.empty();
+	private Optional<String> idReferente = Optional.empty();
 	private Optional<UUID> gruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
 	private Optional<UUID> client = Optional.empty();
@@ -84,7 +84,7 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 		query.distinct(true); 
 
 		if(idReferente.isPresent()) {
-			Path<UUID> joinedReferentIds = root.join(AdesioneEntity_.referenti).join(ReferenteAdesioneEntity_.referente).get(UtenteEntity_.idUtente);
+			Path<String> joinedReferentIds = root.join(AdesioneEntity_.referenti).join(ReferenteAdesioneEntity_.referente).get(UtenteEntity_.idUtente);
 			predLst.add(cb.literal(idReferente.get()).in(joinedReferentIds));
 		}
 
@@ -204,11 +204,11 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 		this.idSoggetto = idSoggetto;
 	}
 
-	public Optional<UUID> getIdReferente() {
+	public Optional<String> getIdReferente() {
 		return idReferente;
 	}
 
-	public void setIdReferente(Optional<UUID> idReferente) {
+	public void setIdReferente(Optional<String> idReferente) {
 		this.idReferente = idReferente;
 	}
 

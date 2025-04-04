@@ -145,7 +145,7 @@ public class WorkflowServiziTest {
         SecurityContextHolder.setContext(securityContext);
         
         info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -1008,22 +1008,22 @@ public class WorkflowServiziTest {
         assertNotNull(response.getBody().getIdOrganizzazione());
         
         info = CommonUtils.getInfoProfilo(UTENTE_QUALSIASI, utenteService);
-        ID_UTENTE_QUALSIASI = info.utente.getIdUtente();
+        ID_UTENTE_QUALSIASI = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_SERVIZIO, utenteService);
-        ID_UTENTE_RICHIEDENTE_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_RICHIEDENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();

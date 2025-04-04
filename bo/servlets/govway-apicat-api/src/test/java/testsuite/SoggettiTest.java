@@ -126,7 +126,7 @@ public class SoggettiTest {
         SecurityContextHolder.setContext(this.securityContext);
         
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
