@@ -67,7 +67,8 @@ export class ItemTypeComponent implements OnInit, AfterViewInit {
             this._value = this._elem.default;
         }
         if (this._elem.tooltip) {
-            this._tooltip = this.translate.instant(this._elem.tooltip);
+            const _objectValueTooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+            this._tooltip = _objectValueTooltip || this.translate.instant(this._elem.tooltip);
             this._tooltipPlacement = this._elem.tooltipPlacement || this._tooltipPlacement;
         }
         if (this._elem.type === 'date') {
