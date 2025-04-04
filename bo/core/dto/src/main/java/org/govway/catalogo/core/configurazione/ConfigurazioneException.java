@@ -23,6 +23,9 @@ public class ConfigurazioneException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 	
+    public ConfigurazioneException() {
+    }
+	
     public ConfigurazioneException(String message) {
         super(message);
     }

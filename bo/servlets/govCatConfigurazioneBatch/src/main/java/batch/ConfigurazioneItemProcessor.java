@@ -29,10 +29,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity, AdesioneEntity> {
 
-	@Value("${numeroMassimoTentativi}")
+	@Value("${configurazione-automatica.batch.numeroMassimoTentativi}")
 	private int numeroMassimoTentativi;
 	
-	@Value("${configurazioneExecutorClass}")
+	@Value("${configurazione-automatica.batch.configurazioneExecutorClass}")
 	private String configurazioneExecutorClass;
 
 	@Autowired
@@ -41,7 +41,7 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 	@Autowired
 	private UtenteRepository utenteRepository;
 
-    @Value("${utente_configuratore}")
+    @Value("${configurazione-automatica.batch.utente_configuratore}")
 	String utenteConfiguratore;
 	
     @Autowired

@@ -214,14 +214,19 @@ public class AdesioneDTOConverter {
 
 	private DTOApi buildDTOApi(ApiEntity apiEntity, Map<String, String> map, List<DTOAdesioneAPI> list) {
 		String protocollo = null;
+		String nome = null;
 		if (ambienteConfigurazione.equals(AmbienteEnum.COLLAUDO)) {
 			protocollo = apiEntity.getCollaudo().getProtocollo().toString();
+			nome = apiEntity.getCollaudo().getNomeGateway() != null ? apiEntity.getCollaudo().getNomeGateway() : apiEntity.getNome();
+
 		}
 		else {
 			protocollo = apiEntity.getProduzione().getProtocollo().toString();
+			nome = apiEntity.getProduzione().getNomeGateway() != null ? apiEntity.getProduzione().getNomeGateway() : apiEntity.getNome();
+
 		}
 		return new DTOApi(
-				apiEntity.getNome(),
+				nome,
 				apiEntity.getVersione(),
 				DTOApi.RUOLO.valueOf(apiEntity.getRuolo().toString()),
 				DTOApi.PROTOCOLLO.valueOf(protocollo),
