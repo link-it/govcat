@@ -51,11 +51,18 @@
                 <div class="d-flex justify-content-between mb-5">
                     <div class="">
                         <h4 class="mb-2">{{ title }}</h4>
-                        <ui-data-type
-                            [data]="adesione"
-                            [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                            [config]="config"
-                        ></ui-data-type>
+                        <div class="d-flex gap-2">
+                            <ui-data-type
+                                [data]="adesione"
+                                [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                                [config]="config"
+                            ></ui-data-type>
+                            <ui-data-type
+                                [data]="adesione"
+                                [elem]="{ field: 'stato_configurazione_automatica', type: 'label', options: 'configuration_status', tooltip: 'messaggio_configurazione' }"
+                                [config]="config"
+                            ></ui-data-type>
+                        </div>
                     </div>
                     <div class="" *ngIf="showSkipCollaudo">
                         <lnk-button
