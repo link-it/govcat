@@ -50,7 +50,7 @@ import lombok.Setter;
 public class UtenteEntity {
 	
 	public enum Stato {DISABILITATO, NON_CONFIGURATO, ABILITATO}
-	public enum Ruolo {AMMINISTRATORE, REFERENTE_SERVIZIO}
+	public enum Ruolo {AMMINISTRATORE, COORDINATORE, REFERENTE_SERVIZIO}
 
     @Id
     @Column(name = "id")
