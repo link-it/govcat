@@ -231,7 +231,12 @@ public class ServizioService extends AbstractService {
 	    boolean haApi = apiRepo.existsByServizi_Id(servizio.getId());
 	    boolean haPackageSubServizi = servizio.is_package() && packageServizioRepo.existsByPackageId(servizio.getId());
 
-	    return !(haAdesioni || haApi || haPackageSubServizi);
+	    boolean eliminabile = !(haAdesioni || haApi || haPackageSubServizi);
+	    servizio.setEliminabile(eliminabile);
+
+	    servizioRepo.save(servizio);
+
+	    return eliminabile;
 	}
 
 	

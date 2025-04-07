@@ -1495,6 +1495,7 @@ public class ServiziTest {
 
         // Verifica che il servizio sia presente nell'elenco
         List<ItemServizio> servizi = response.getBody().getContent();
+        //System.out.println(servizi);
         assertTrue(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio())));
     }
     

@@ -372,7 +372,7 @@ create sequence seq_utenti start with 1 increment by 1;
     create table servizi (
        id bigint not null,
         package boolean not null,
-        /*eliminabile boolean,*/
+        eliminabile boolean,
         adesione_consentita boolean,
         data_creazione timestamp,
         data_ultima_modifica timestamp,
