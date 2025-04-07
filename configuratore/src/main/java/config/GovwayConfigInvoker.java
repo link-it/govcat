@@ -173,13 +173,16 @@ public class GovwayConfigInvoker {
 				.get()
 				.build();
 		
-		Response res = this.client.newCall(req).execute();
+		String content = "";
 		
-		if (!res.isSuccessful())
-			throw new IOException("ottenuto codice di errore HTTP: " + res.code());
-		
-		ResponseBody responseBody = res.body();
-		String content = responseBody.string();
+		try (Response res = this.client.newCall(req).execute()) {
+			
+			if (!res.isSuccessful())
+				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
+			
+			ResponseBody responseBody = res.body();
+			content = responseBody.string();
+		}
 		
 		return this.gson.fromJson(content, ControlloAccessiAutenticazione.class);
 	}
@@ -208,13 +211,15 @@ public class GovwayConfigInvoker {
 				.get()
 				.build();
 		
-		Response res = this.client.newCall(req).execute();
+		String content = "";
+		try (Response res = this.client.newCall(req).execute()) {
 		
-		if (!res.isSuccessful())
-			throw new IOException("ottenuto codice di errore HTTP: " + res.code());
-		
-		ResponseBody responseBody = res.body();
-		String content = responseBody.string();
+			if (!res.isSuccessful())
+				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
+			
+			ResponseBody responseBody = res.body();
+			content = responseBody.string();
+		}
 		
 		return this.gson.fromJson(content, ControlloAccessiGestioneToken.class);
 	}
@@ -234,13 +239,15 @@ public class GovwayConfigInvoker {
 				.get()
 				.build();
 		
-		Response res = this.client.newCall(req).execute();
+		String content = "";
+		try (Response res = this.client.newCall(req).execute()) {
 		
-		if (!res.isSuccessful())
-			throw new IOException("ottenuto codice di errore HTTP: " + res.code());
-		
-		ResponseBody responseBody = res.body();
-		String content = responseBody.string();
+			if (!res.isSuccessful())
+				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
+			
+			ResponseBody responseBody = res.body();
+			content = responseBody.string();
+		}
 		
 		return this.gson.fromJson(content, ControlloAccessiAutorizzazione.class);
 	}
@@ -336,7 +343,6 @@ public class GovwayConfigInvoker {
 				.build();
 		
 		Request req;
-		Response res;
 		ResponseBody responseBody;
 		String content;
 		
@@ -352,15 +358,15 @@ public class GovwayConfigInvoker {
 					.get()
 					.build();
 			
-			res = this.client.newCall(req).execute();
-
-			this.logger.info("getNomiFromRisorse:" + url);
-
-			if (!res.isSuccessful())
-				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
-			
-			responseBody = res.body();
-			content = responseBody.string();
+			try (Response res = this.client.newCall(req).execute()) {
+				this.logger.info("getNomiFromRisorse:" + url);
+	
+				if (!res.isSuccessful())
+					throw new IOException("ottenuto codice di errore HTTP: " + res.code());
+				
+				responseBody = res.body();
+				content = responseBody.string();
+			}
 			
 			listaRisorse = this.gson.fromJson(content, ListaApiRisorse.class);
 			
@@ -400,7 +406,6 @@ public class GovwayConfigInvoker {
 				.build();
 		
 		Request req;
-		Response res;
 		ResponseBody responseBody;
 		String content;
 		
@@ -416,13 +421,14 @@ public class GovwayConfigInvoker {
 					.get()
 					.build();
 			
-			res = this.client.newCall(req).execute();
+			try(Response res = this.client.newCall(req).execute()) {
 			
-			if (!res.isSuccessful())
-				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
-			
-			responseBody = res.body();
-			content = responseBody.string();
+				if (!res.isSuccessful())
+					throw new IOException("ottenuto codice di errore HTTP: " + res.code());
+				
+				responseBody = res.body();
+				content = responseBody.string();
+			}
 			
 			listaGruppi = this.gson.fromJson(content, ListaGruppi.class);
 			
@@ -453,15 +459,18 @@ public class GovwayConfigInvoker {
 				.build();
 		
 		
-		Response res = this.client.newCall(req).execute();
-		if (!res.isSuccessful())
-			throw new IOException("errore impossibile ottenere api dall'erogazione, code = " + res.code());
+		ErogazioneApiImplementata erogazioneApi;
 		
-		ResponseBody responseBody = res.body();
-		String content = responseBody.string();
-		
-		
-		ErogazioneApiImplementata erogazioneApi = this.gson.fromJson(content, ErogazioneApiImplementata.class);
+		try (Response res = this.client.newCall(req).execute()) {
+			if (!res.isSuccessful())
+				throw new IOException("errore impossibile ottenere api dall'erogazione, code = " + res.code());
+			
+			ResponseBody responseBody = res.body();
+			String content = responseBody.string();
+			
+			
+			erogazioneApi = this.gson.fromJson(content, ErogazioneApiImplementata.class);
+		}
 		
 		return erogazioneApi.getApiNome();
 		
@@ -481,12 +490,14 @@ public class GovwayConfigInvoker {
 				.get()
 				.build();
 		
-		Response res = this.client.newCall(req).execute();
-		if (!res.isSuccessful())
-			throw new IOException("errore nell'ottenere applicativo con nome = " + nome + ", code = " + res.code());
-		
-		ResponseBody responseBody = res.body();
-		String content = responseBody.string();
+		String content = "";
+		try (Response res = this.client.newCall(req).execute()) {
+			if (!res.isSuccessful())
+				throw new IOException("errore nell'ottenere applicativo con nome = " + nome + ", code = " + res.code());
+			
+			ResponseBody responseBody = res.body();
+			content = responseBody.string();
+		}
 		
 		
 		return this.gson.fromJson(content, Applicativo.class);

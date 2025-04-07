@@ -156,10 +156,10 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 				throw new IOException("autorizzazione non impostata in modalita richiedente");
 	
 			// infine associo il servizio applicativo ai richiedenti
-			Response response = configInvoker.postApplicativoToServizio(api, client.getNome(), null);
-			
-			if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-				throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			try (Response response = configInvoker.postApplicativoToServizio(api, client.getNome(), null)) {
+				if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
+					throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			}
 		} catch (IOException | TemplateException e) {
 			throw new ConfigurazioneException();
 		}
