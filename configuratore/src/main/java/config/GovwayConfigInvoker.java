@@ -29,7 +29,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.govway.catalogo.core.dto.DTOApi.PROTOCOLLO;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +80,7 @@ public class GovwayConfigInvoker {
 	private static final String PATH_TEMPLATE_EROGAZIONE_APPLICATIVI = "erogazioneApplicativi.ftlh";
 	private static final String PATH_TEMPLATE_CREDENZIALI = "credenziali.ftlh";
 	private static final String PATH_TEMPLATE_SOGGETTO_AUTORIZZATO = "soggettoAutorizzato.ftlh";
+	private static final String PATH_TEMPLATE_CREATE_SOGGETTO = "createSoggetto.ftlh";
 
 	private Logger logger = LoggerFactory.getLogger(GovwayConfigInvoker.class);
 
@@ -87,7 +90,7 @@ public class GovwayConfigInvoker {
 		return this;
 	}
 	
-	public GovwayConfigInvoker(HttpUrl url, Configuration cfg) throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException {
+	public GovwayConfigInvoker(HttpUrl url, Configuration cfg) {
 		this.baseUrl = url;
 		this.client = new OkHttpClient();
 		
@@ -106,6 +109,24 @@ public class GovwayConfigInvoker {
 		
 		byte[] content = stream.toByteArray();
 		return RequestBody.create(content, type);
+	}
+	
+	public Response createSoggetto(DTOSoggetto soggetto) throws IOException, TemplateException {
+		HttpUrl url = this.baseUrl.newBuilder()
+				.addPathSegment("soggetti")
+				.addQueryParameter(QUERY_PROFILO, soggetto.getTipoGateway()).build();
+		
+		
+		RequestBody body = templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_CREATE_SOGGETTO), soggetto);
+		Request req = new Request.Builder()
+				.url(url)
+				.addHeader(HEADER_AUTHORIZATION, credentials)
+				.post(body)
+				.build();
+		
+		Response res = this.client.newCall(req).execute();
+		
+		return res;
 	}
 	
 	
@@ -227,7 +248,6 @@ public class GovwayConfigInvoker {
 	public Response postServizioApplicativo(ServizioApplicativo sa, DTOSoggetto soggetto) throws IOException, TemplateException {			
 		HttpUrl url = this.baseUrl.newBuilder()
 				.addPathSegment("applicativi")
-				.addQueryParameter(QUERY_SOGGETTO, soggetto.getNomeGateway())
 				.addQueryParameter(QUERY_PROFILO, soggetto.getTipoGateway())
 				.build();
 		
@@ -292,6 +312,16 @@ public class GovwayConfigInvoker {
 	}
 	
 	private List<String> getNomiFromRisorse(GruppoServizio singleAPI, List<String> risorse) throws IOException {
+		
+		if (singleAPI.getProtocolloApi().equals(PROTOCOLLO.WSDL11) || singleAPI.getProtocolloApi().equals(PROTOCOLLO.WSDL12)) {
+			return risorse
+					.stream()
+					.map(s -> s.split("\\."))
+					.filter(a -> a.length > 1)
+					.map(s -> s[1])
+					.collect(Collectors.toList());
+		}
+		
 		Integer limit = 100;
 		Integer offset = 0;
 		HttpUrl url = this.baseUrl.newBuilder()
@@ -359,6 +389,7 @@ public class GovwayConfigInvoker {
 		List<String> nomiRisorse = this.getNomiFromRisorse(api, risorse);
 		Set<String> azioni = new HashSet<>();
 		azioni.addAll(nomiRisorse);
+		
 		
 		HttpUrl url = this.getUrlConfigurazioneServizio(api)
 				.addPathSegments("gruppi")

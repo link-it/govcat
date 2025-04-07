@@ -155,7 +155,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		ScenariEnum possibleScenario = null;
 		for (ScenariEnum scenario : ScenariEnum.values()) {
 			ScenarioCondition condition = this.scenariConditions.get(scenario);
-			if (condition.check(client.getClass().getSimpleName(), gruppiServizio.get(0).getEstensioni()))
+			if (condition != null && condition.check(client.getClass().getSimpleName(), gruppiServizio.get(0).getEstensioni()))
 				possibleScenario = scenario;
 		}
 		if (possibleScenario == null)
@@ -183,7 +183,7 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 	public EsitoConfigurazioneAdesione configura(ConfigurazioneAdesioneInput adesione) throws ConfigurazioneException {
 		DTOAdesione dtoAdesione = adesione.getAdesione();
 		EsitoConfigurazioneAdesione esito = new EsitoConfigurazioneAdesione();
-		List<String> messaggioErrore = new ArrayList<String>();
+		List<String> messaggioErrore = new ArrayList<>();
 		
 		this.logger.debug("nuova richiesta configurazione");
 		esito.setChiaveRestituita(new HashMap<>());

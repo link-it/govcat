@@ -29,6 +29,8 @@ import org.govway.catalogo.core.configurazione.ConfigurazioneException;
 import org.govway.catalogo.core.dto.DTOClient;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.govway.catalogo.core.dto.HttpsClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import config.ControlloAccessiAutenticazione;
 import config.ControlloAccessiAutorizzazione;
@@ -60,6 +62,8 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 	private Invokers invokers;
 	
 	private boolean ignoreConflict;
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	public ScenarioTLS(Invokers invokers, Properties properties) {
 		this.invokers = invokers;
@@ -99,20 +103,28 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 			if (apis.get(0).isFruizione()) {
 				soggetto = apis.get(0).getSoggettoFruitore();
 			} else {
-				soggetto = apis.get(0).getSoggettoErogatore();
+				soggetto = apis.get(0).getSoggettoAderente();
 			}
+		} else {
+			return Map.of();
 		}
 		
-		Response response;
-		try {
-			response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto);
+		try (Response res = this.invokers.getConfigInvoker().createSoggetto(soggetto)){
+			if (res.isSuccessful() && (res.code() != 409 || !this.ignoreConflict))
+				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
 		} catch(TemplateException | IOException e) {
-			e.printStackTrace();
+			this.logger.error("errore nell'aggiunta del soggetto {}@{}", soggetto.getNomeGateway(), soggetto.getTipoGateway(), e);
 			throw new ConfigurazioneException();
 		}
 		
-		if (!response.isSuccessful() && (response.code() != 409 || !this.ignoreConflict))
+		
+		try(Response res = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto)) {
+			if (!res.isSuccessful() && (res.code() != 409 || !this.ignoreConflict))
+				throw new ConfigurazioneException();
+		} catch(TemplateException | IOException e) {
+			this.logger.error("errore nell'aggiunta del servizio applicativo {}", sa.getNomeApplicativo(), e);
 			throw new ConfigurazioneException();
+		}
 		return Map.of();
 	}
 
