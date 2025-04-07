@@ -8330,6 +8330,8 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+        eliminabile:
+          type: "boolean"
     ServizioCreate:
       type: "object"
       required:
@@ -8481,6 +8483,8 @@ components:
           $ref: "#/components/schemas/ItemUtente"
         utente_ultima_modifica:
           $ref: "#/components/schemas/ItemUtente"
+        eliminabile:
+          type: "boolean"
     ServizioUpdate:
       type: "object"
       properties:

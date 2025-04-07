@@ -19,6 +19,7 @@ import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.DominioAuthorization;
 import org.govway.catalogo.controllers.APIController;
+import org.govway.catalogo.controllers.AdesioniController;
 import org.govway.catalogo.controllers.DominiController;
 import org.govway.catalogo.controllers.GruppiController;
 import org.govway.catalogo.controllers.OrganizzazioniController;
@@ -34,11 +35,19 @@ import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.API;
+import org.govway.catalogo.servlets.model.APICreate;
+import org.govway.catalogo.servlets.model.APIDatiAmbienteCreate;
+import org.govway.catalogo.servlets.model.APIDatiErogazione;
+import org.govway.catalogo.servlets.model.Adesione;
+import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.Allegato;
 import org.govway.catalogo.servlets.model.AllegatoItemCreate;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AllegatoUpdate;
+import org.govway.catalogo.servlets.model.AuthTypeApiResource;
+import org.govway.catalogo.servlets.model.AuthTypeApiResourceProprietaCustom;
 import org.govway.catalogo.servlets.model.Categoria;
 import org.govway.catalogo.servlets.model.CategoriaCreate;
 import org.govway.catalogo.servlets.model.CategoriaFiglioCreate;
@@ -72,8 +81,10 @@ import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemServizio;
 import org.govway.catalogo.servlets.model.PagedModelItemServizioGruppo;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
+import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
@@ -81,6 +92,7 @@ import org.govway.catalogo.servlets.model.ServizioUpdate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.Tassonomia;
 import org.govway.catalogo.servlets.model.TassonomiaCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -88,7 +100,9 @@ import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
+import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.springframework.data.domain.Pageable;
 
@@ -1156,6 +1170,9 @@ public class ServiziTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(idServizio, response.getBody().getIdServizio());
+        
+        //System.out.println(servizio.isEliminabile());
+        assertEquals(true, servizio.isEliminabile());
     }
 
     @Test
@@ -1478,6 +1495,7 @@ public class ServiziTest {
 
         // Verifica che il servizio sia presente nell'elenco
         List<ItemServizio> servizi = response.getBody().getContent();
+        //System.out.println(servizi);
         assertTrue(servizi.stream().anyMatch(s -> s.getIdServizio().equals(servizio.getIdServizio())));
     }
     
@@ -2078,38 +2096,252 @@ public class ServiziTest {
 	    assertFalse(response.getBody().getContent().isEmpty());   
 	}
 	
-	 public Servizio getServizio(String nomeServizio) {
-	    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
-	    	
-	    	servizioCreate.setNome(nomeServizio);
+	public Servizio getServizio(String nomeServizio, boolean packageBoolean) {
+		ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
 
-	    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+		servizioCreate.setNome(nomeServizio);
 
-	    	servizioCreate.setIdDominio(idDominio);
+		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 
-	    	if (immagine.getContent() != null) {
-	    		servizioCreate.setImmagine(immagine);
-	    	}
+		servizioCreate.setIdDominio(idDominio);
+		
+		if(packageBoolean) {
+			servizioCreate.setPackage(true);
+		}
 
-	    	List<ReferenteCreate> referenti = new ArrayList<>();
+		List<ReferenteCreate> referenti = new ArrayList<>();
 
-	    	ReferenteCreate referente = new ReferenteCreate();
-	    	referente.setTipo(TipoReferenteEnum.REFERENTE);
-	    	referente.setIdUtente(ID_UTENTE_GESTORE);
-	    	referenti.add(referente);
+		ReferenteCreate referente = new ReferenteCreate();
+		referente.setTipo(TipoReferenteEnum.REFERENTE);
+		referente.setIdUtente(ID_UTENTE_GESTORE);
+		referenti.add(referente);
 
-	    	servizioCreate.setReferenti(referenti);
+		servizioCreate.setReferenti(referenti);
 
-	    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+		ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
 
-	    	Servizio servizio = createdServizio.getBody();
+		Servizio servizio = createdServizio.getBody();
 
-	    	return servizio;
+		return servizio;
+	}
+
+	 private UUID getServizioComponentePackage() {
+		 this.getDominio();
+		 Servizio servizio = this.getServizio(CommonUtils.NOME_SERVIZIO, true);
+		 Servizio servizio2 = this.getServizio(CommonUtils.NOME_SERVIZIO+1,false);
+		 serviziController.associaComponentePackage(servizio.getIdServizio(), servizio2.getIdServizio());
+		 return servizio.getIdServizio();
+	 }
+
+	 @Test
+	 void testDeleteServizi() {
+		 UUID servizioId = this.getServizioComponentePackage();
+
+
+		 Exception ex = assertThrows(BadRequestException.class, () -> {
+			 serviziController.deleteServizio(servizioId);
+		 });
+		 assertEquals("Il servizio non è eliminabile", ex.getMessage());
+	 }
+	 
+	 
+	 private Dominio getDominio(VisibilitaDominioEnum value) {
+	        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+	        
+	        OrganizzazioneCreate organizzazione = CommonUtils.getOrganizzazioneCreate();
+	        organizzazione.setEsterna(false);
+
+	        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(organizzazione);
+	        idOrganizzazione = response.getBody().getIdOrganizzazione();
+	        assertNotNull(response.getBody().getIdOrganizzazione());
+	        
+	        
+	        
+	        //associo l'utente all'Organizzazione
+	        UtenteUpdate upUtente = new UtenteUpdate();
+	        upUtente.setPrincipal(UTENTE_GESTORE);
+	        upUtente.setIdOrganizzazione(idOrganizzazione);
+	        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+	        upUtente.setEmailAziendale("mail@aziendale.it");
+	        upUtente.setTelefonoAziendale("+39 0000000");
+	        upUtente.setNome("referente");
+	        upUtente.setCognome("dominio");
+	        upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
+
+	        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
+	        
+	        SoggettoCreate soggettoCreate = new SoggettoCreate();
+	        //soggettoCreate.setSkipCollaudo(true);
+	        soggettoCreate.setNome("nome_soggetto");
+	        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+	        soggettoCreate.setAderente(true);
+	        soggettoCreate.setReferente(true);
+
+	        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+	        idSoggetto = createdSoggetto.getBody().getIdSoggetto();
+	        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+	        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+	        gruppoCreate.setNome("Gruppo xyz");
+	        ResponseEntity<Gruppo> responseGruppo = gruppiController.createGruppo(gruppoCreate);
+	        assertEquals(HttpStatus.OK, responseGruppo.getStatusCode());
+
+	        DominioCreate dominio = CommonUtils.getDominioCreate();
+	        dominio.setNome("Test");
+	        if(value!=null) {
+	        	dominio.setVisibilita(value);
+	        }
+	        dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+	        ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
+	        
+	        //creo il referente dominio
+	        ReferenteCreate ref = new ReferenteCreate();
+	        ref.setIdUtente(ID_UTENTE_GESTORE);
+	        ref.setTipo(TipoReferenteEnum.REFERENTE);
+	        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+
+	        return createdDominio.getBody();
 	    }
-	
+	    UUID idServizio;
+	    private Servizio getServizio(Dominio dominio, VisibilitaServizioEnum value) {
+	    	 ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+	    	 if(value != null) {
+	    		 servizioCreate.setVisibilita(value);
+	    	 }
+	    	 
+	         servizioCreate.setIdSoggettoInterno(idSoggetto);
+
+	         servizioCreate.setIdDominio(dominio.getIdDominio());
+	         
+	         List<ReferenteCreate> referenti = new ArrayList<>();
+	         
+	         ReferenteCreate referente = new ReferenteCreate();
+	         referente.setTipo(TipoReferenteEnum.REFERENTE);
+	         referente.setIdUtente(ID_UTENTE_GESTORE);
+	         referenti.add(referente);
+	         
+	         servizioCreate.setReferenti(referenti);
+
+	         ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+	         
+	         ServizioUpdate upServizio = new ServizioUpdate();
+	         upServizio.setDatiGenerici(null);
+	         upServizio.setIdentificativo(null);
+	         
+	         Servizio servizio = createdServizio.getBody();
+
+	         idServizio = servizio.getIdServizio();
+	         
+	         return servizio;
+	    }
+	    
+	    private static final String PROFILO = "MODI_P1";
+	    private API getAPI() {
+	    	APICreate apiCreate = CommonUtils.getAPICreate();
+	        apiCreate.setIdServizio(idServizio);
+	        apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+	        
+	        APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+	        apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+	        
+	        DocumentoCreate documento = new DocumentoCreate();
+	        documento.setContentType("application/yaml");
+	        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+	        documento.setFilename("openapi.yaml");
+	        
+	        apiDatiAmbienteCreate.setSpecifica(documento);
+	        
+	        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+	        apiDatiErogazione.setNomeGateway("APIGateway");
+	        apiDatiErogazione.setVersioneGateway(1);
+	        apiDatiErogazione.setUrlPrefix("http://");
+	        apiDatiErogazione.setUrl("testurl.com/test");
+	        
+	        apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+	        
+	        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+	        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreate);
+	        
+	        
+	        
+	        List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
+	        
+	        AuthTypeApiResource authType = new AuthTypeApiResource();
+	        authType.setProfilo(PROFILO);
+	        
+	        List<String> risorse = new ArrayList<String>();
+	        risorse.add("risorsa1");
+	        authType.setResources(risorse);
+	        
+	        List<AuthTypeApiResourceProprietaCustom> proprietaCustom = new ArrayList<AuthTypeApiResourceProprietaCustom>();
+	        
+	        AuthTypeApiResourceProprietaCustom autResource = new AuthTypeApiResourceProprietaCustom();
+	        autResource.setNome("custom resorce");
+	        autResource.setValore("56");
+	        
+	        proprietaCustom.add(autResource);
+	        
+	        gruppiAuthType.add(authType);
+	        
+	        //apiErogazione.setGruppiAuthType(gruppiAuthType);
+	        
+	        //apiCreate.setDatiErogazione(apiErogazione);
+	        
+	        apiCreate.setGruppiAuthType(gruppiAuthType);
+	        
+	        DocumentoCreate doc = new DocumentoCreate();
+	        doc.setFilename("SpecificaAPI.json");
+	        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+	        
+	        
+	        //apiCreate.setSpecifica(doc);
+	        
+	        ResponseEntity<API> response = apiController.createApi(apiCreate);
+	        
+	        return response.getBody();
+	    }
+	    
+	    @Autowired
+	    private AdesioniController adesioniController;
+	    
+	    private Adesione getAdesione() {
+	    	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
+	    	
+	        ReferenteCreate newReferente = new ReferenteCreate();
+	        newReferente.setIdUtente(ID_UTENTE_GESTORE);
+	        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+	        
+	        listaReferenti.add(newReferente);
+	    	
+	        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+	        nuovaAdesione.setIdServizio(idServizio);
+	        nuovaAdesione.setIdSoggetto(idSoggetto);
+	        nuovaAdesione.setReferenti(listaReferenti);
+	        ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
+	        
+	        return adesione.getBody();
+	    }
+	    
+	    @Test
+	    void testDeleteServizioAdesione() { 
+	    	Dominio dominio = this.getDominio(null);
+	    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);	    	
+	    	this.getAPI();
+
+	    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+	    	this.getAdesione();
+	    	
+	    	Exception ex = assertThrows(BadRequestException.class, () -> {
+	    		serviziController.deleteServizio(servizio.getIdServizio());
+		    });
+	    	assertEquals("Il servizio non è eliminabile", ex.getMessage());
+	    }
+	 
 	private UUID getGruppiServizi(int numGruppi) {
 		// Creazione del servizio e gruppo tramite getServizio
 	    Servizio servizio = this.getServizio();
+	    servizio.getIdServizio();
 	    GruppoCreate gruppoPadre = CommonUtils.getGruppoCreate();
 	    gruppoPadre.setNome("gruppo padre");
 	    ResponseEntity<Gruppo> createdGruppoPadre = gruppiController.createGruppo(gruppoPadre);
@@ -2123,7 +2355,7 @@ public class ServiziTest {
 	    	gruppo.setNome(CommonUtils.NOME_GRUPPO+n);
 		    ResponseEntity<Gruppo> createdGruppo = gruppiController.createGruppo(gruppo);
 		    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
-		    servizio = this.getServizio(CommonUtils.NOME_SERVIZIO+n);
+		    servizio = this.getServizio(CommonUtils.NOME_SERVIZIO+n,false);
 		    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
 	    }
 	    return idGruppoPadre;
@@ -2149,7 +2381,7 @@ public class ServiziTest {
         //gruppiServizio.stream().forEach(s->{System.out.println(s.getNome());});
         assertTrue(gruppiServizio.stream().anyMatch(s -> s.getNome().equals(CommonUtils.NOME_GRUPPO+0)));
         // Verifica che il primo elemento sia quello che mi aspetto dall'ordinamento
-        assertEquals(CommonUtils.NOME_GRUPPO+2, gruppiServizio.get(1).getNome());
+        assertEquals(CommonUtils.NOME_GRUPPO+2, gruppiServizio.get(1).getNome());      
     }
 	
     @Test

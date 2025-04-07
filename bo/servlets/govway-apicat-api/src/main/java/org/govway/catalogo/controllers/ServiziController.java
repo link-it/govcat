@@ -1590,8 +1590,11 @@ public class ServiziController implements ServiziApi {
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
-
-				this.service.delete(entity);
+				if (service.isEliminabile(entity)) {
+				    service.delete(entity);
+				} else {
+				    throw new BadRequestException("Il servizio non è eliminabile");
+				}
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.noContent().build();
 			});
