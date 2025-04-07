@@ -7735,12 +7735,14 @@ components:
       enum:
         - referente_servizio
         - gestore
+        - coordinatore
     RuoloUtenteEnumSearch:
       type: "string"
       enum:
         - nessun_ruolo
         - referente_servizio
         - gestore
+        - coordinatore
     UtenteCreate:
       type: "object"
       required:
