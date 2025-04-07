@@ -227,16 +227,11 @@ public class ServizioService extends AbstractService {
 	}
 
 	public boolean isEliminabile(ServizioEntity servizio) {
-	    boolean haAdesioni = adesioneRepo.existsByServizio_Id(servizio.getId());
-	    boolean haApi = apiRepo.existsByServizi_Id(servizio.getId());
-	    boolean haPackageSubServizi = servizio.is_package() && packageServizioRepo.existsByPackageId(servizio.getId());
+	    boolean haAdesioni = !servizio.getAdesioni().isEmpty();
+	    boolean haApi = !servizio.getApi().isEmpty();
+	    boolean haPackageSubServizi = servizio.is_package() && !servizio.getComponenti().isEmpty();
 
-	    boolean eliminabile = !(haAdesioni || haApi || haPackageSubServizi);
-	    servizio.setEliminabile(eliminabile);
-
-	    servizioRepo.save(servizio);
-
-	    return eliminabile;
+	    return !(haAdesioni || haApi || haPackageSubServizi);
 	}
 
 	
