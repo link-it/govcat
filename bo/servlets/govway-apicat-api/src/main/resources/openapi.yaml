@@ -5256,6 +5256,8 @@ components:
       properties:
         generale:
           $ref: '#/components/schemas/ConfigurazioneGenerale'
+        amministrazione:
+          $ref: '#/components/schemas/ConfigurazioneAmministrazione'
         dashboard:
           $ref: '#/components/schemas/ConfigurazioneDashboard'
         organizzazione:
@@ -6037,6 +6039,39 @@ components:
         site:
           type: "string"
           format: "URI"
+    AccessoAmministrazioneItem:
+      type: "object"
+      required:
+        - lettura
+        - scrittura
+      properties:
+        lettura:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuoloUtenteEnum'
+        scrittura:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuoloUtenteEnum'
+    ConfigurazioneAmministrazione:
+      type: "object"
+      properties:
+        generale:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        gruppi:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        domini:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        client:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        soggetti:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        organizzazioni:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        utenti:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        classi_utente:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
     ConfigurazioneDashboard:
       type: "object"
       required:
