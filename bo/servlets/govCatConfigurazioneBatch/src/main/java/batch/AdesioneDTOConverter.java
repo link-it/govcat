@@ -151,7 +151,7 @@ public class AdesioneDTOConverter {
 
 	private ClientEntity getClientFromClientAdesione(Set<ClientAdesioneEntity> set, String profilo) throws ProcessingException {
 		for (ClientAdesioneEntity clientAdesione : set) {
-			if (clientAdesione.getProfilo().equals(profilo))
+			if (clientAdesione.getProfilo().equals(profilo) && clientAdesione.getAmbiente().toString().equals(ambienteConfigurazione.toString()))
 				return clientAdesione.getClient();
 		}
 
