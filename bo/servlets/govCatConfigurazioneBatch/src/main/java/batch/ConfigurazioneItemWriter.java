@@ -1,7 +1,6 @@
 package batch;
 
 import java.util.List;
-
 import javax.persistence.EntityManager;
 
 import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
@@ -15,18 +14,20 @@ public class ConfigurazioneItemWriter implements ItemWriter<AdesioneEntity> {
 
 	@Autowired
 	private AdesioneRepository entityRepository;
-
 	@Autowired
 	protected EntityManager entityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneItemWriter.class);
 
+    @Autowired
+    IntermediateStateService intermediateStateService;
 
 	@Override
 	public void write(List<? extends AdesioneEntity> items) throws Exception {
 		for (AdesioneEntity entityAdesione : items) {
-				logger.info("Salvo l'adesione " + entityAdesione.getIdAdesione() + " numero stati: " + entityAdesione.getStati().size());
-				entityRepository.save(entityAdesione);
+			entityRepository.save(entityAdesione);
+			entityRepository.flush();
+			entityManager.clear();
 		}
 	}
 }

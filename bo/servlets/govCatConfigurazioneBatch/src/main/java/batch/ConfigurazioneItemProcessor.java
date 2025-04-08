@@ -6,10 +6,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.EntityManager;
+
 import org.govway.catalogo.core.configurazione.ConfigurazioneAdesioneInput;
 import org.govway.catalogo.core.configurazione.EsitoConfigurazioneAdesione;
 import org.govway.catalogo.core.configurazione.IConfigurazioneExecutor;
-import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.dto.DTOAdesione;
@@ -36,9 +37,6 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 	private String configurazioneExecutorClass;
 
 	@Autowired
-	private AdesioneRepository entityRepository;
-
-	@Autowired
 	private UtenteRepository utenteRepository;
 
     @Value("${utente_configuratore}")
@@ -49,8 +47,14 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
     
 	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
     String externalPath;
+	
+    @Autowired
+	IntermediateStateService updateService;
     
     private final List<Map<String, String>> statoConf;
+
+	@Autowired
+	protected EntityManager entityManager;
 
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneItemProcessor.class);
@@ -80,16 +84,15 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 		}
 	}
 
+	
+	
 
-    
-    
 	@Override
 	public AdesioneEntity process(AdesioneEntity entity) throws Exception {
 		logger.info("[Processor] Configurazione della adesione [ {} ] in corso",entity.getIdAdesione());
 
 		entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.IN_CODA);
-
-		entityRepository.save(entity);
+		updateService.updateIntermediateState(entity);
 
         logger.debug("[Processor] {} configurazioni automatiche disponibili", statoConf.size());
 
@@ -101,8 +104,6 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
             .findFirst()
             .orElse(null);
 
-        logger.debug("[Processor] {} configurazioni automatiche disponibili", statoConf.size());
-		
 		ConfigurazioneAdesioneInput conf = new ConfigurazioneAdesioneInput();
 		AdesioneDTOConverter b = new AdesioneDTOConverter(entity, externalPath);
 		b.setDto(new DTOAdesione(null, null, null, null, null, null, null, null));
@@ -117,16 +118,16 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 		// Serialize object to JSON
 		json  = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(configurato.getChiaveRestituita());
 
-		logger.info("valore di ritorno ricevuti dal configuratore:  ");
-		logger.info("chiave restituita:  {}", json);
-		logger.info("messaggio di errore:  {}", configurato.getMessaggioErrore());
-		logger.info("esito:  {}", configurato.getEsito());
+		logger.debug("[Processor] chiave restituita:  {}", json);
+		logger.debug("[Processor] messaggio di errore:  {}", configurato.getMessaggioErrore());
+		logger.debug("[Processor] esito:  {}", configurato.getEsito());
 
 		if (entity.getTentativi()==null) entity.setTentativi(0);
 
 		entity.setTentativi(entity.getTentativi()+1);
 		switch (configurato.getEsito()) {
-		case OK:
+		case OK:	
+
 			entity.setStato(statoFinale);
 			StatoAdesioneEntity e = new StatoAdesioneEntity();
 			e.setUuid(UUID.randomUUID().toString());
@@ -137,9 +138,9 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 			utenteSpec.setPrincipal(Optional.of(this.utenteConfiguratore));
 			e.setUtente(utenteRepository.findOne(utenteSpec).orElse(null));
 			entity.getStati().add(e);
-
+			entity.getStati().forEach(s -> logger.debug("[Processor] stato durante la gestione della adesione: uuid={}, stato={}, data={}", s.getUuid(), s.getStato(), s.getData()));
 			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.OK);
-
+			
 			break;
 
 		case KO_DEFINITIVO:
