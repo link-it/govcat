@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.EntityManager;
 
 import org.govway.catalogo.core.configurazione.ConfigurazioneAdesioneInput;
 import org.govway.catalogo.core.configurazione.EsitoConfigurazioneAdesione;
@@ -47,14 +46,11 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
     
 	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
     String externalPath;
-	
+
     @Autowired
 	IntermediateStateService updateService;
-    
-    private final List<Map<String, String>> statoConf;
 
-	@Autowired
-	protected EntityManager entityManager;
+    private final List<Map<String, String>> statoConf;
 
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneItemProcessor.class);
@@ -140,7 +136,7 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 			entity.getStati().add(e);
 			entity.getStati().forEach(s -> logger.debug("[Processor] stato durante la gestione della adesione: uuid={}, stato={}, data={}", s.getUuid(), s.getStato(), s.getData()));
 			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.OK);
-			
+
 			break;
 
 		case KO_DEFINITIVO:

@@ -19,15 +19,12 @@ public class ConfigurazioneItemWriter implements ItemWriter<AdesioneEntity> {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneItemWriter.class);
 
-    @Autowired
-    IntermediateStateService intermediateStateService;
-
 	@Override
 	public void write(List<? extends AdesioneEntity> items) throws Exception {
 		for (AdesioneEntity entityAdesione : items) {
 			entityRepository.save(entityAdesione);
-			entityRepository.flush();
-			entityManager.clear();
+	        entityManager.clear();
+
 		}
 	}
 }
