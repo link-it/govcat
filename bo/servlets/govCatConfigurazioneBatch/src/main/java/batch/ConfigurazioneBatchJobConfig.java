@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecutionListener;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -32,15 +31,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 
 import org.springframework.context.annotation.Configuration;
 
-
 @Configuration
-@EnableBatchProcessing
-@EnableTransactionManagement
 public class ConfigurazioneBatchJobConfig {
 
 	@Autowired
@@ -79,7 +74,6 @@ public class ConfigurazioneBatchJobConfig {
 	}
 
 	@Bean
-	@StepScope
 	@Qualifier("ConfigurazioneItemReader")
 	public JpaPagingItemReader<AdesioneEntity> configurazioneItemReader(        EntityManagerFactory entityManagerFactory) throws IOException {
 
@@ -89,7 +83,6 @@ public class ConfigurazioneBatchJobConfig {
 		List<String> statiInConfigurazione = statoConf.stream()
 				.map(m -> m.get("stato_in_configurazione"))
 				.collect(Collectors.toList());
-
 
 		return new JpaPagingItemReaderBuilder<AdesioneEntity>()
 				.name("configurazioneItemReader")

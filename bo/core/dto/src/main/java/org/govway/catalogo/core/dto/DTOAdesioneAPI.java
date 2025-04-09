@@ -19,11 +19,16 @@
  */
 package org.govway.catalogo.core.dto;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 public class DTOAdesioneAPI {
 
     private String profilo;
     private String risorse;
     private String client;
+	private static final Logger logger = LoggerFactory.getLogger(DTOAdesioneAPI.class);
 
     public DTOAdesioneAPI(String profilo, String risorse, String client) {
         this.profilo = profilo;
