@@ -353,8 +353,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException("Servizio ["+servizioK+"] non in stato in cui è consentita l'adesione");
 		}
 
-		if(!entity.getServizio().isAdesioneConsentita()) {
-			throw new BadRequestException("Adesione non consentita per il servizio : " + servizioK);
+		if(entity.getServizio().isAdesioneDisabilitata()) {
+			throw new BadRequestException("Adesione disabilitata per il servizio : " + servizioK);
 		}
 
 		if(entity.getServizio().getVisibilita() != null && entity.getServizio().getVisibilita().equals(VISIBILITA.COMPONENTE)) {

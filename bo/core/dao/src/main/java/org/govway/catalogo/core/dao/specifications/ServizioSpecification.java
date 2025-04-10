@@ -214,7 +214,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 			}
 			
 			predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
-			predLst.add(cb.equal(root.get(ServizioEntity_.adesioneConsentita), true));
+			predLst.add(cb.equal(root.get(ServizioEntity_.adesioneDisabilitata), false));
 		}
 		
 		if(tag != null && !tag.isEmpty()) {

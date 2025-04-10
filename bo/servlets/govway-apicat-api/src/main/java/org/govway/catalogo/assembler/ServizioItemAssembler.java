@@ -58,7 +58,7 @@ public class ServizioItemAssembler extends RepresentationModelAssemblerSupport<S
 		
 		dettaglio.setVisibilita(engine.toVisibilita(entity.getVisibilita()));
 		dettaglio.setImmagine(engine.getImmagine(entity));
-		dettaglio.setAdesioneConsentita(entity.isAdesioneConsentita());
+		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 		dettaglio.setEliminabile(engine.isEliminabile(entity));
 
 		return dettaglio;

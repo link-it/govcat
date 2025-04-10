@@ -163,8 +163,8 @@ public class ServizioEntity {
     @Column(name = "multi_adesione")
     private boolean multiAdesione;
 
-    @Column(name = "adesione_consentita")
-    private boolean adesioneConsentita;
+    @Column(name = "adesione_disabilitata")
+    private boolean adesioneDisabilitata;
 
     @ManyToMany
     @JoinTable(

@@ -540,7 +540,7 @@ public class APITest {
     @Test
     public void testDeleteAPIUsedInAdesioni() {
         soggettoCreate.setAderente(true);
-        servizioCreate.setAdesioneConsentita(true);
+        servizioCreate.setAdesioneDisabilitata(false);
         servizioCreate.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
         servizioCreate.setMultiAdesione(true);
 

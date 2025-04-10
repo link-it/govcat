@@ -1323,7 +1323,7 @@ public class ServiziTest {
         identificativo.setIdDominio(idDominio);
         identificativo.setIdSoggettoInterno(idSoggetto);
         identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
-        identificativo.setAdesioneConsentita(true);
+        identificativo.setAdesioneDisabilitata(false);
         identificativo.setMultiAdesione(true);
         identificativo.setTipo(TipoServizio.API);
         identificativo.setPackage(false);
@@ -1354,7 +1354,7 @@ public class ServiziTest {
         identificativo.setIdDominio(UUID.randomUUID());
         identificativo.setIdSoggettoInterno(UUID.randomUUID());
         identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
-        identificativo.setAdesioneConsentita(true);
+        identificativo.setAdesioneDisabilitata(false);
         identificativo.setMultiAdesione(true);
         identificativo.setPackage(false);
         identificativo.setTipo(TipoServizio.API);
@@ -1399,7 +1399,7 @@ public class ServiziTest {
 	    identificativo.setIdDominio(idDominio);
 	    identificativo.setIdSoggettoInterno(idSoggetto);
 	    identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
-	    identificativo.setAdesioneConsentita(true);
+	    identificativo.setAdesioneDisabilitata(false);
 	    identificativo.setMultiAdesione(true);
 	    identificativo.setTipo(TipoServizio.GENERICO);
 	    servizioUpdate.setIdentificativo(identificativo);

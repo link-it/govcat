@@ -8311,7 +8311,7 @@ components:
           $ref: "#/components/schemas/String255"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         dominio:
             $ref: "#/components/schemas/Dominio"
@@ -8384,7 +8384,7 @@ components:
           default: false
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         url_invocazione:
           $ref: "#/components/schemas/String255"
@@ -8465,7 +8465,7 @@ components:
           type: "boolean"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         url_invocazione:
           $ref: "#/components/schemas/String255"
@@ -8523,7 +8523,7 @@ components:
             $ref: "#/components/schemas/IdClasseUtente"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         package:
           type: "boolean"
