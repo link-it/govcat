@@ -42,6 +42,9 @@ import org.govway.catalogo.core.dto.DTOClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import config.GovwayConfigInvoker;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
@@ -178,10 +181,30 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 		}
 	}
 	
+	public void stampaCampi(DTOAdesione a) throws JsonProcessingException {
+		// Create ObjectMapper instance
+		ObjectMapper objectMapper = new ObjectMapper();
+		String json = null;
+		// Serialize object to JSON
+		json  = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(a);
+
+		logger.info("stampa del contenuto del dto:");
+		logger.info(json);
+	}
+
 	// ***************************************** Entry point configuratore ************************************************
 	@Override
 	public EsitoConfigurazioneAdesione configura(ConfigurazioneAdesioneInput adesione) throws ConfigurazioneException {
 		DTOAdesione dtoAdesione = adesione.getAdesione();
+		
+		try {
+			stampaCampi(dtoAdesione);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		EsitoConfigurazioneAdesione esito = new EsitoConfigurazioneAdesione();
 		List<String> messaggioErrore = new ArrayList<>();
 		
