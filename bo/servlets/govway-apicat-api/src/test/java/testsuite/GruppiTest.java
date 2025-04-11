@@ -33,6 +33,7 @@ import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.GruppoAuthorization;
 import org.govway.catalogo.controllers.GruppiController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
@@ -43,7 +44,10 @@ import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.GruppoUpdate;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
+import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,6 +107,9 @@ public class GruppiTest {
 
     @Autowired
     private GruppiController controller;
+    
+    @Autowired
+    private UtentiController utentiController;
 
     @Autowired
     private WebApplicationContext wac;
@@ -147,6 +154,23 @@ public class GruppiTest {
         assertNotNull(createdGruppo.getBody());
         assertEquals(CommonUtils.NOME_GRUPPO, createdGruppo.getBody().getNome());
         assertEquals(CommonUtils.DESCRIZIONE_GRUPPO, createdGruppo.getBody().getDescrizione());
+    }
+    
+    @Test
+    public void testReadGruppoSuccessCoordinatore() {
+        GruppoCreate gruppo = CommonUtils.getGruppoCreate();
+        ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppo);
+        
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        Gruppo gruppox = controller.getGruppo(createdGruppo.getBody().getIdGruppo()).getBody();
+        //System.out.println(gruppox.getNome());
     }
 
     @Test
@@ -193,6 +217,18 @@ public class GruppiTest {
         assertEquals(HttpStatus.OK, createdGruppo.getStatusCode());
 
         UUID idGruppo = createdGruppo.getBody().getIdGruppo();
+        
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        
         ResponseEntity<Void> responseDelete = controller.deleteGruppo(idGruppo);
 
         assertEquals(HttpStatus.OK, responseDelete.getStatusCode());

@@ -26,7 +26,7 @@ import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 
 public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,UtenteUpdate,UtenteEntity> {
-	
+	/*
 	@Override
 	public void authorizeUpdate(UtenteUpdate update, UtenteEntity entity) {
 		
@@ -38,7 +38,7 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 			}
 		}
 	}
-	
+	*/
 	public void authorizeUpdate(UtenteEntity entity) {
 		
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
@@ -63,5 +63,20 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 	
 	public void authorizeUpdate(ConfigurazioneNotifiche update, UtenteEntity entity) {
 		this.authorizeGetNotifiche(entity);
+	}
+	
+	@Override
+	public void authorizeCreate(UtenteCreate create) {
+		authorizeWrite(EntitaEnum.UTENTE);
+	}
+
+	@Override
+	public void authorizeUpdate(UtenteUpdate update, UtenteEntity entity) {
+		authorizeWrite(EntitaEnum.UTENTE);
+	}
+
+	@Override
+	public void authorizeDelete(UtenteEntity entity) {
+		authorizeWrite(EntitaEnum.UTENTE);
 	}
 }

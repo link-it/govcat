@@ -44,17 +44,30 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 		}
 		
 		switch(entita) {
-		case CLASSE_UTENTE: authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
-		case CLIENT: authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClient());
-		case DOMINIO: authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getDomini());
-		case GRUPPO: authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getGruppi());
-		case ORGANIZZAZIONE: authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getOrganizzazioni());
-		case SOGGETTO: authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getSoggetti());
-		case UTENTE: authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getUtenti());
+			case CLASSE_UTENTE: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
+				break;
+			case CLIENT: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClient());
+				break;
+			case DOMINIO: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getDomini());
+				break;
+			case GRUPPO: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getGruppi());
+				break;
+			case ORGANIZZAZIONE: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getOrganizzazioni());
+				break;
+			case SOGGETTO: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getSoggetti());
+				break;
+			case UTENTE: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getUtenti());
+				break;
+			default:
+				coreAuthorization.requireAdmin();
 		}
-		
-		coreAuthorization.requireAdmin();
-		
 	}
 	
 	private void authorize(boolean read,
@@ -72,8 +85,20 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 	}
 	
 	private void authorizeContains(List<RuoloUtenteEnum> scrittura, Ruolo ruolo) {
-		//TODO lamantia check che scrittura contenga il ruolo, attenzione alla conversione tra tipi
-		coreAuthorization.requireAdmin();
+		//check che scrittura contenga il ruolo, attenzione alla conversione tra tipi
+		if (scrittura == null || ruolo == null) {
+			coreAuthorization.requireAdmin();
+		}
+
+		try {
+			RuoloUtenteEnum ruoloUtenteEnum = RuoloUtenteEnum.valueOf(ruolo.name());
+			if (!scrittura.contains(ruoloUtenteEnum)) {
+				coreAuthorization.requireAdmin();
+			}
+		} catch (IllegalArgumentException e) {
+			// Il ruolo dell'utente non ha un corrispondente in RuoloUtenteEnum
+			coreAuthorization.requireAdmin();
+		}
 	}
 
 	private void authorizeRead(AccessoAmministrazioneItem generale,
@@ -91,17 +116,29 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 			return coreAuthorization.isAdmin();
 		
 		switch(entita) {
-		case CLASSE_UTENTE: authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
-		case CLIENT: authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClient());
-		case DOMINIO: authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getDomini());
-		case GRUPPO: authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getGruppi());
-		case ORGANIZZAZIONE: authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getOrganizzazioni());
-		case SOGGETTO: authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getSoggetti());
-		case UTENTE: authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getUtenti());
+			case CLASSE_UTENTE: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
+				break;
+			case CLIENT: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClient());
+				break;
+			case DOMINIO: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getDomini());
+				break;
+			case GRUPPO: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getGruppi());
+				break;
+			case ORGANIZZAZIONE: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getOrganizzazioni());
+				break;
+			case SOGGETTO: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getSoggetti());
+				break;
+			case UTENTE: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getUtenti());
+				break;
 		}
-		
-		return coreAuthorization.isAdmin();
-		
+		return coreAuthorization.isAdmin();	
 	}
 	
 	@Override

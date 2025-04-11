@@ -37,6 +37,7 @@ import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.OrganizzazioneAuthorization;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.dao.repositories.OrganizzazioneRepository;
 import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
 import org.govway.catalogo.core.services.OrganizzazioneService;
@@ -51,6 +52,9 @@ import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
+import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -111,6 +115,9 @@ public class OrganizzazioniTest {
 
     @Autowired
     UtenteService utenteService;
+    
+    @Autowired
+    UtentiController utentiController;
 
     @Autowired
     private OrganizzazioniController controller;
@@ -161,6 +168,30 @@ public class OrganizzazioniTest {
 
     @Test
     public void testCreateOrganizzazioneSuccess() {
+        ResponseEntity<Organizzazione> response = this.getResponse();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Organizzazione organizzazione = response.getBody();
+        assertNotNull(organizzazione);
+        assertEquals(NOME_ORGANIZZAZIONE, organizzazione.getNome());
+        assertEquals(DESCRIZIONE, organizzazione.getDescrizione());
+        assertEquals(CODICE_ENTE, organizzazione.getCodiceEnte());
+        assertEquals(CODICE_FISCALE_SOGGETTO, organizzazione.getCodiceFiscaleSoggetto());
+        assertEquals(ID_TIPO_UTENTE, organizzazione.getIdTipoUtente());
+        assertEquals(REFERENTE, organizzazione.isReferente());
+        assertEquals(ADERENTE, organizzazione.isAderente());
+        assertEquals(ESTERNA, organizzazione.isEsterna());
+    }
+    
+    @Test
+    public void testCreateOrganizzazioneAltroUtenteSuccess() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
         ResponseEntity<Organizzazione> response = this.getResponse();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
