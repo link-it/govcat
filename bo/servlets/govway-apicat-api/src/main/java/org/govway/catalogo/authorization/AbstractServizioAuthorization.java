@@ -343,6 +343,10 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		if(this.coreAuthorization.isAdmin(u)) {
 			lst.add(Ruolo.GESTORE);
 		}
+		
+		if(this.coreAuthorization.isCoordinatore(u)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
+		}
 
 		boolean refDominio = entity.getDominio().getReferenti().stream()
 				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));

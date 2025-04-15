@@ -42,7 +42,7 @@ export class ServizioCreate {
 	gruppo: any = null;
 
 	stato: string = 'bozza';
-	adesione_consentita: boolean = true;
+	adesione_disabilitata: boolean = false;
 	
 	id_organizzazione_interna: number | null = null;
 	id_soggetto_interno: number | null = null;

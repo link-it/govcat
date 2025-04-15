@@ -326,7 +326,7 @@ public class AdesioneServizioIntegrationTest {
         servizioCreate.setNome("jonio");
 		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
-		servizioCreate.setAdesioneConsentita(true);
+		servizioCreate.setAdesioneDisabilitata(false);
 		servizioCreate.setMultiAdesione(false);
 		servizioCreate.setVersione("1");
 		if(immagine.getContent()!=null)

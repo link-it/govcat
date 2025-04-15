@@ -51,6 +51,7 @@ import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
@@ -278,6 +279,62 @@ public class WorkflowServiziTest {
 	    statoServizioUpdate.setCommento("pubblicato in produzione");
 	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
 	    */
+    }
+    
+    @Test
+    public void daStatoBozzaAStatoInConfigurazioneInCollaudoUtenteCoordinatore() {
+    	Dominio dominio = this.getDominio(null);
+    	
+    	String utenteCoordinatore = "utente_coordinatore";
+    	
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+    	utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+    	utente.setPrincipal(utenteCoordinatore);
+        utente.setIdOrganizzazione(idOrganizzazione);
+        utente.setStato(StatoUtenteEnum.ABILITATO);
+
+        ResponseEntity<Utente> utenteC = utentiController.createUtente(utente);
+        
+        ReferenteCreate ref = new ReferenteCreate();
+        ref.setIdUtente(utenteC.getBody().getIdUtente());
+        ref.setTipo(TipoReferenteEnum.REFERENTE);
+        dominiController.createReferenteDominio(dominio.getIdDominio(), ref);
+
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	
+    	ReferenteCreate referente = new ReferenteCreate();
+        referente.setTipo(TipoReferenteEnum.REFERENTE);
+        referente.setIdUtente(utenteC.getBody().getIdUtente());
+    	
+    	serviziController.createReferenteServizio(servizio.getIdServizio(), referente);
+    	
+    	this.getAPI();
+    	//System.out.println(servizio.getIdServizio());
+
+    	CommonUtils.getSessionUtente(utenteCoordinatore, securityContext, authentication, utenteService);
+    	
+    	StatoUpdate statoServizioUpdate = new StatoUpdate();
+	    statoServizioUpdate.setStato("richiesto_collaudo");
+	    statoServizioUpdate.setCommento("richiesta di collaudo");
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(servizio.getIdServizio(), statoServizioUpdate);
+    	
+    	assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
+    	
+    	CommonUtils.getSessionUtente(utenteCoordinatore, securityContext, authentication, utenteService);
+
+    	statoServizioUpdate = new StatoUpdate();
+    	statoServizioUpdate.setStato("autorizzato_collaudo");
+    	statoServizioUpdate.setCommento("autorizzato collaudo");
+    	servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+
+    	CommonUtils.getSessionUtente(utenteCoordinatore, securityContext, authentication, utenteService);
+
+    	assertThrows(NotAuthorizedException.class, ()->{
+    		StatoUpdate statoServizioUpdaten = new StatoUpdate();
+    		statoServizioUpdaten.setStato("in_configurazione_collaudo");
+    		statoServizioUpdaten.setCommento("in configurazione collaudo");
+    		serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+    	}, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     }
     
     @Test

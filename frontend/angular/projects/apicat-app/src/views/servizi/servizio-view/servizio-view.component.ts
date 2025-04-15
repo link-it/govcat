@@ -218,7 +218,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         this._initBreadcrumb();
                         this.loadCurrentData();
 
-                        if (this.data.adesione_consentita && !this.authenticationService.isAnonymous()) {
+                        if (!this.data.adesione_disabilitata && !this.authenticationService.isAnonymous()) {
                             this._loadJoined(false);
                             this._loadAmmissibili(false);
                         }
@@ -496,7 +496,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _canJoin() {
-        return this.authenticationService.canJoin('servizio', this.data.stato) && this.data.adesione_consentita;
+        return this.authenticationService.canJoin('servizio', this.data.stato) && !this.data.adesione_disabilitata;
     }
 
     _canJoinMapper = (): boolean => {

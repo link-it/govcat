@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
+import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.exception.BadRequestException;
@@ -46,6 +47,13 @@ public class ServizioEngineAssembler extends CoreEngineAssembler {
 
 	@Autowired
 	private GruppoDettaglioAssembler gruppoDettaglioAssembler;
+
+	@Autowired
+	private ServizioService service;
+
+	public boolean isEliminabile(ServizioEntity entity) {
+		return service.isEliminabile(entity);
+	}
 
 	public VisibilitaServizioEnum toVisibilita(VISIBILITA visibilita) {
 		if(visibilita == null) {

@@ -594,7 +594,7 @@ public class ModificheDatiRispettoStatoServizioTest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(idDominio);
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setPackage(false);

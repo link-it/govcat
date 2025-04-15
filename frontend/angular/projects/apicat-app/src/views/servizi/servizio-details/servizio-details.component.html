@@ -700,19 +700,19 @@
                             </div>
                             <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
 
-                                <div class="row adesione_consentita">
-                                    <div class="col-6" *ngIf="_hasFlagAdesioneConsentita">
+                                <div class="row adesione_disabilitata">
+                                    <div class="col-6" *ngIf="_hasFlagConsentiNonSottoscrivibile">
                                         <div class="form-group">
-                                            <label class="label-bold" for="adesione_consentita" *ngIf="_isEdit || !isComponente">{{ 'APP.LABEL.DisabilitaAdesione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'adesione_consentita'" *ngIf="_isEdit"></span></label>
+                                            <label class="label-bold" for="adesione_disabilitata" *ngIf="_isEdit || !isComponente">{{ 'APP.LABEL.DisabilitaAdesione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'adesione_disabilitata'" *ngIf="_isEdit"></span></label>
                                             <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                                                <input class="custom-control-input" type="checkbox" name="adesione_consentita" id="adesione_consentita" formControlName="adesione_consentita">
-                                                <label class="custom-control-label" for="adesione_consentita"></label>
+                                                <input class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                                                <label class="custom-control-label" for="adesione_disabilitata"></label>
                                                 <span class="ms-1" *ngIf="isComponente" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
                                             </div>
                                             <div class="" *ngIf="!_isEdit && !isComponente">
                                                 <span class="">
-                                                    <i class="bi bi-square" *ngIf="data.adesione_consentita"></i>
-                                                    <i class="bi bi-check-square" *ngIf="!data.adesione_consentita"></i>
+                                                    <i class="bi bi-square" *ngIf="!data.adesione_disabilitata"></i>
+                                                    <i class="bi bi-check-square" *ngIf="data.adesione_disabilitata"></i>
                                                 </span>
                                             </div>
                                         </div>

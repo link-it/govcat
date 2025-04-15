@@ -305,7 +305,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _hasMultiDominio: boolean = false;
     _multiDominioEmail: string | null = null;
-    _hasFlagAdesioneConsentita: boolean = false;
+    _hasFlagConsentiNonSottoscrivibile: boolean = false;
     _hasAdesioniMultiple: boolean = false;
     
     _isDominioEsterno: boolean = false;
@@ -359,7 +359,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
         this._hasMultiDominio = Tools.Configurazione?.dominio?.multi_dominio || false;
         this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
-        this._hasFlagAdesioneConsentita = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
+        this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
 
         this.loadAnagrafiche();
@@ -431,7 +431,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this.generalConfig = Tools.Configurazione || null;
             this._hasMultiDominio = Tools.Configurazione?.dominio?.multi_dominio || false;
             this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
-            this._hasFlagAdesioneConsentita = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
+            this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
             this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
             this._updateOtherLinks()
         });
@@ -626,8 +626,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         value = data[key] ? data[key] : false;
                         _group[key] = new UntypedFormControl(value, []);
                         break;
-                    case 'adesione_consentita':
-                        boolValue = data[key] ? false : true;
+                    case 'adesione_disabilitata':
+                        boolValue = data[key] ? data[key] : false;
                         _group[key] = new UntypedFormControl(boolValue, []);
                         break;
                     default:
@@ -712,7 +712,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             classi: _classi,
             note: body.note || null,
             immagine: body.immagine,
+<<<<<<< HEAD
             adesione_consentita: !body.adesione_consentita || false, // Deve essere gestita come "disabilitaa adesione"
+=======
+            adesione_disabilitata: body.adesione_disabilitata || false,
+>>>>>>> 438-adesione-consentita-ribaltato
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
             skièp_collaudo: body.skièp_collaudo || false,
@@ -802,7 +806,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 visibilita: (body.visibilita === 'null') ? null : body.visibilita,
                 multi_adesione: body.multi_adesione,
                 classi: _classi,
-                adesione_consentita: !!body.adesione_consentita,
+                adesione_disabilitata: body.adesione_disabilitata || false,
                 id_soggetto_interno: body.id_soggetto_interno || null,
                 package: body.package || false,
                 skip_collaudo: body.skip_collaudo || false
@@ -1278,10 +1282,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _changeEdit(edit: boolean) {
         if (edit) {
-            // this._formGroup.get('adesione_consentita')?.enable();
+            // this._formGroup.get('adesione_disabilitata')?.enable();
             this._formGroup.get('multi_adesione')?.enable();
         } else {
-            // this._formGroup.get('adesione_consentita')?.disable();
+            // this._formGroup.get('adesione_disabilitata')?.disable();
             this._formGroup.get('multi_adesione')?.disable();
         }
     }
@@ -1548,12 +1552,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     enableDisableControlAdesioneConsentita() {
         if (this.isComponente) {
-            this._formGroup.get('adesione_consentita')?.setValue(true);
-            this._formGroup.get('adesione_consentita')?.disable();
+            this._formGroup.get('adesione_disabilitata')?.setValue(false);
+            this._formGroup.get('adesione_disabilitata')?.disable();
         } else {
+<<<<<<< HEAD
             this._formGroup.get('adesione_consentita')?.enable();
+=======
+            this._formGroup.get('adesione_disabilitata')?.enable();
+>>>>>>> 438-adesione-consentita-ribaltato
         }
-        this._formGroup.get('adesione_consentita')?.updateValueAndValidity();
+        this._formGroup.get('adesione_disabilitata')?.updateValueAndValidity();
     }
 
     _getLogoMapper = (data: any): string => {
