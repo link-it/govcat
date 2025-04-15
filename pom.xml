@@ -73,7 +73,7 @@
 
 			<properties>
 				<plugin.groupId>org.govway.catalogo</plugin.groupId>
-				<plugin.version>1.0</plugin.version>
+				<plugin.version>${project.version}</plugin.version>
 			</properties>
 
 			<dependencies>
