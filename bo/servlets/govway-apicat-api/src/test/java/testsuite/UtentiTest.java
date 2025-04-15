@@ -922,5 +922,56 @@ public class UtentiTest {
         // Asserzioni
         assertEquals("Utente non specificato", exception.getMessage());
     }
+    
+    @Autowired
+    UtentiController utentiController;
+    
+    @Test
+    public void testCreateDeleteUtenteCoordinatoreSuccess() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+        
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Utente> responseUtente2 = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente2.getBody());
+
+        ResponseEntity<Void> responseDelete = controller.deleteUtente(responseUtente2.getBody().getIdUtente());
+        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
+    }
+    
+    @Test
+    public void testCreateUtenteReferenteServizioError() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	controller.createUtente(utenteCreate);
+    	});
+
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+    }
 }
 

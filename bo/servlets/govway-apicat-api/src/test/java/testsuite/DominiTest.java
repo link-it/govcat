@@ -1274,5 +1274,65 @@ public class DominiTest {
         });
     }
 
+    @Autowired
+    UtentiController utentiController;
+    
+    @Test
+    public void testCreateDeleteDominioCoordinatoreSuccess() {
+    	ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+        
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
+        assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
+
+        ResponseEntity<Void> responseDelete = controller.deleteDominio(createdDominio.getBody().getIdDominio());
+
+        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
+    }
+    
+    @Test
+    public void testCreateDominioReferenteServizioErrore() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+            	
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominioCreate = this.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+       
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+    	NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+    		controller.createDominio(dominioCreate);
+    	});
+
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+    }
 }
 

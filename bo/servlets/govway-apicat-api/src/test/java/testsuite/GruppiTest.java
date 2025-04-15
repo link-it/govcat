@@ -218,22 +218,82 @@ public class GruppiTest {
 
         UUID idGruppo = createdGruppo.getBody().getIdGruppo();
         
-        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        ResponseEntity<Void> responseDelete = controller.deleteGruppo(idGruppo);
+
+        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
+    }
+    
+    @Test
+    public void testCreateReadDeleteGruppoReferenteServizioSuccess() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
         utente.setReferenteTecnico(false);
         utente.setPrincipal("unoqualsiasi");
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
         
-        
         CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, createdGruppo.getStatusCode());
 
+        UUID idGruppo = createdGruppo.getBody().getIdGruppo();
+        ResponseEntity<Gruppo> readGruppo = controller.getGruppo(idGruppo);
+        
+        assertEquals(HttpStatus.OK, readGruppo.getStatusCode());
         
         ResponseEntity<Void> responseDelete = controller.deleteGruppo(idGruppo);
 
         assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
     }
+    
+    @Test
+    public void testCreateGruppoCoordinatoreErrore() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	controller.createGruppo(gruppoCreate);
+        });
 
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+    }
+    
+    /*
+    @Test
+    public void testReadGruppoCoordinatoreError() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, createdGruppo.getStatusCode());
+
+        UUID idGruppo = createdGruppo.getBody().getIdGruppo();
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	controller.getGruppo(idGruppo);
+        });
+
+        assertEquals("Utente non abilitato", exception.getMessage());
+    }
+	*/
+    
     @Test
     public void testDeleteGruppoNotFound() {
         UUID idGruppoNonEsistente = UUID.randomUUID();

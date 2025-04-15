@@ -569,4 +569,38 @@ public class OrganizzazioniTest {
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
     }
 
+    @Test
+    public void testCreateOrganizzazioneReferenteServizioSuccess() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+    	ResponseEntity<Organizzazione> createResponse = this.getResponse();
+        assertEquals(HttpStatus.OK, createResponse.getStatusCode());
+        Organizzazione organizzazione = createResponse.getBody();
+        assertNotNull(organizzazione);
+    }
+    
+    @Test
+    public void testCreateOrganizzazioneCoordinatoreError() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+        
+    	NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+    		this.getResponse();
+    	});
+
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+    }
 }

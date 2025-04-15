@@ -65,9 +65,8 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 			case UTENTE: 
 				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getUtenti());
 				break;
-			default:
-				coreAuthorization.requireAdmin();
 		}
+		coreAuthorization.requireAdmin();
 	}
 	
 	private void authorize(boolean read,
@@ -90,15 +89,15 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 			coreAuthorization.requireAdmin();
 		}
 
-		try {
-			RuoloUtenteEnum ruoloUtenteEnum = RuoloUtenteEnum.valueOf(ruolo.name());
-			if (!scrittura.contains(ruoloUtenteEnum)) {
-				coreAuthorization.requireAdmin();
-			}
-		} catch (IllegalArgumentException e) {
-			// Il ruolo dell'utente non ha un corrispondente in RuoloUtenteEnum
+		RuoloUtenteEnum ruoloUtenteEnum;
+		if(ruolo.name() == "AMMINISTRATORE")
+			ruoloUtenteEnum = RuoloUtenteEnum.GESTORE;
+		else
+			ruoloUtenteEnum = RuoloUtenteEnum.valueOf(ruolo.name());
+		if (!scrittura.contains(ruoloUtenteEnum)) {
 			coreAuthorization.requireAdmin();
 		}
+		return;
 	}
 
 	private void authorizeRead(AccessoAmministrazioneItem generale,
@@ -114,7 +113,6 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 	protected boolean authorizeWrite(EntitaEnum entita) {
 		if(this.configurazione.getAmministrazione() == null)
 			return coreAuthorization.isAdmin();
-		
 		switch(entita) {
 			case CLASSE_UTENTE: 
 				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
