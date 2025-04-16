@@ -712,11 +712,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             classi: _classi,
             note: body.note || null,
             immagine: body.immagine,
-<<<<<<< HEAD
-            adesione_consentita: !body.adesione_consentita || false, // Deve essere gestita come "disabilitaa adesione"
-=======
             adesione_disabilitata: body.adesione_disabilitata || false,
->>>>>>> 438-adesione-consentita-ribaltato
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
             skièp_collaudo: body.skièp_collaudo || false,
@@ -1555,11 +1551,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._formGroup.get('adesione_disabilitata')?.setValue(false);
             this._formGroup.get('adesione_disabilitata')?.disable();
         } else {
-<<<<<<< HEAD
-            this._formGroup.get('adesione_consentita')?.enable();
-=======
             this._formGroup.get('adesione_disabilitata')?.enable();
->>>>>>> 438-adesione-consentita-ribaltato
         }
         this._formGroup.get('adesione_disabilitata')?.updateValueAndValidity();
     }
