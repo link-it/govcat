@@ -94,6 +94,10 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 					throw new ConflictException("Organization ["+organizzazioneCreate.getNome()+"] esiste gia");
 				}
 				
+				if(this.soggettoService.existsByNome(organizzazioneCreate.getNome())) {
+					throw new ConflictException("Soggetto ["+organizzazioneCreate.getNome()+"] esiste gia");
+				}
+				
 				this.service.save(entity);
 				Organizzazione model = this.dettaglioAssembler.toModel(entity);
 
@@ -264,6 +268,10 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 				this.dettaglioAssembler.toEntity(organizzazioneUpdate, entity);
 	
+				if(this.soggettoService.existsByNome(organizzazioneUpdate.getNome())) {
+					throw new ConflictException("Soggetto ["+organizzazioneUpdate.getNome()+"] esiste gia");
+				}
+				
 				this.service.save(entity);
 				Organizzazione model = this.dettaglioAssembler.toModel(entity);
 	
