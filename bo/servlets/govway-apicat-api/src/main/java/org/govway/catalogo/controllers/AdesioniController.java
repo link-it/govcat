@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -659,6 +660,7 @@ public class AdesioniController implements AdesioniApi {
 				
 				for(StatoAdesioneEntity stato: entity.getStati()) {
 					ItemComunicazione itemStato = new ItemComunicazione();
+					itemStato.setUuid(UUID.fromString(stato.getUuid()));
 					itemStato.setTipo(TipoComunicazione.CAMBIO_STATO);
 					itemStato.setAutore(itemUtenteAssembler.toModel(stato.getUtente()));
 					itemStato.setData(stato.getData().toInstant().atOffset(ZoneOffset.UTC));
@@ -722,11 +724,11 @@ public class AdesioniController implements AdesioniApi {
 				AdesioneSpecification specification = new AdesioneSpecification();
 				specification.setStatoConfigurazione(Optional.ofNullable(statoConfigurazioneAutomatica).map(s -> {
 					switch(s) {
-					case FALLITA: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_FINALE;
-					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CORSO;
-					case KO: return STATO_CONFIGURAZIONE.KO_DEFINITIVO;
+					case FALLITA: return STATO_CONFIGURAZIONE.FALLITA;
+					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CODA;
+					case KO: return STATO_CONFIGURAZIONE.KO;
 					case OK: return STATO_CONFIGURAZIONE.OK;
-					case RETRY: return STATO_CONFIGURAZIONE.KO_TEMPORANEO_RITENTA;
+					case RETRY: return STATO_CONFIGURAZIONE.RETRY;
 					}
 					return null;
 				}));
@@ -1693,12 +1695,12 @@ public class AdesioniController implements AdesioniApi {
 		return checkOnly != null && checkOnly;
 	}
 
-	private final List<String> errorIds = new ArrayList<>();
-	private final Map<String, List<String>> errorMessages = new HashMap<>();
-
 	// Metodo per registrare un errore
-    private boolean registraErrore(String id, String errorMessage) {
-        boolean isNewError = false;
+    private boolean registraErrore(List<String> errorIds, Map<String, List<String>> errorMessages, AdesioneEntity entity, String errorMessage) {
+    	this.entityManager.detach(entity);
+    	
+    	String id = entity.getIdLogico() != null ? entity.getIdLogico() : entity.getSoggetto().getNome() + " / " + entity.getServizio().getNome() + " v" +entity.getServizio().getVersione();
+    	boolean isNewError = false;
         // Se l'ID non è ancora stato registrato, lo aggiungo alla lista
         if (!errorIds.contains(id)) {
             errorIds.add(id);
@@ -1714,15 +1716,10 @@ public class AdesioniController implements AdesioniApi {
     }
 
     // Metodo per ottenere la lista di errori di un ID
-    private List<String> getErrorMessages(String id) {
+    private List<String> getErrorMessages(Map<String, List<String>> errorMessages, String id) {
         return errorMessages.getOrDefault(id, new ArrayList<>());
     }
     
-    // Metodo per verificare la presenza di errori nell'adesione con idAdesione
-    private Boolean checkErrore(String idAdesione) {
-    	return errorIds.contains(idAdesione);
-    }
-
 	@Override
 	public ResponseEntity<AdesioniCambioStatoResponse> updateStatoAdesioni(StatoUpdate statoUpdate,
 		List<String> stato, UUID idSoggetto, UUID idOrganizzazione, UUID idGruppoPadre,
@@ -1774,7 +1771,6 @@ public class AdesioniController implements AdesioniApi {
 				List<ConfigurazioneAutomatica> lista = configurazione.getAdesione().getConfigurazioneAutomatica();
 
 				List<AdesioneEntity> listAdesioniNonStatoIniziale = new ArrayList<AdesioneEntity>();
-				List<AdesioneEntity> listAdesioniNonCoerentiConStatoIniziale = new ArrayList<AdesioneEntity>();
 				//il ciclo seguente verifica lo stato_iniziale definito nel file configurazione
 				/*
 					"configurazione_automatica": [
@@ -1790,76 +1786,49 @@ public class AdesioniController implements AdesioniApi {
 				        }
 				        ]
 				 */
-				for (ConfigurazioneAutomatica configurazioneAutomatica : lista) {
-					String statoIniziale = configurazioneAutomatica.getStatoIniziale();
-					//	                String statoInConfigurazione = configurazioneAutomatica.getStatoInConfigurazione();
-					//	                String statoFinale = configurazioneAutomatica.getStatoFinale();
-					//se la lista non e' vuota verifico che nessuno degli elementi abbia lo stato_iniziale, eventualmente deve essere eliminato dalla lista
-					if(!listAdesioniNonStatoIniziale.isEmpty()) {
-						findAll.stream().forEach(v->{
-							if(v.getStato().equals(statoIniziale)) 
-								listAdesioniNonStatoIniziale.remove(v);
-						});
-					}
-					findAll.stream().forEach(v->{
-						if(!v.getStato().equals(statoIniziale)) 
-							listAdesioniNonStatoIniziale.add(v);
-					});
-				}
+				Set<String> statiIniziali = lista.stream().map(confAutomatica -> confAutomatica.getStatoIniziale()).collect(Collectors.toSet());
+				
+				findAll.stream().forEach(v->{
+					if(!statiIniziali.contains(v.getStato())) {
+						listAdesioniNonStatoIniziale.add(v);
+					} 
+				});
+				
+				List<String> errorIds = new ArrayList<>();
+				Map<String, List<String>> errorMessages = new HashMap<>();
+
 				if(!listAdesioniNonStatoIniziale.isEmpty()) {
 					listAdesioniNonStatoIniziale.stream().forEach(v->{
 						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						//errore.setIdAdesione(v.getIdAdesione());
 						//errore.setMessaggio("Elemento non in uno degli stati stato_iniziale definiti in configurazione");
 						//errori.add(errore);
-						this.registraErrore(v.getIdAdesione(),"Elemento non in uno degli stati stato_iniziale definiti in configurazione");
+						this.registraErrore(errorIds, errorMessages, v,"Elemento non in uno degli stati stato_iniziale definiti in configurazione");
 					});
 					//throw new BadRequestException("Uno o piu' elementi non sono in uno degli stati stato_iniziale definiti in configurazione");
-				}
-				//verifico che se lo stato iniziale sia ad esempio autorizzato_collaudo, allora lo statoUpdate faccia riferimento coerentemente al collaudo, stessa cosa con la produzione
-				findAll.stream().forEach(v->{
-					if(v.getStato().contains("collaudo")) {
-						if(statoUpdate.getStato().contains("produzione"))
-							listAdesioniNonCoerentiConStatoIniziale.add(v);
-					}
-					else if(v.getStato().contains("produzione")) {
-						if(statoUpdate.getStato().contains("collaudo"))
-							listAdesioniNonCoerentiConStatoIniziale.add(v);
-					}
-				});
-				if(!listAdesioniNonCoerentiConStatoIniziale.isEmpty()) {
-					listAdesioniNonCoerentiConStatoIniziale.stream().forEach(v->{
-						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
-						//errore.setIdAdesione(v.getIdAdesione());
-						//errore.setMessaggio("Elemento non coerente con lo stato_iniziale");
-						//errori.add(errore);
-						this.registraErrore(v.getIdAdesione(),"Elemento non coerente con lo stato_iniziale");
-					});
-					//throw new BadRequestException("Uno o piu' elementi non sono coerenti con lo stato_iniziale");
 				}
 
 				findAll.stream().forEach(v->{
 					try {
 						//Se non dovessero esserci errori che riguardano l'adesione allora procedo al cambio di stato
-						if(this.getErrorMessages(v.getIdAdesione()).isEmpty()) {
+						if(this.getErrorMessages(errorMessages, v.getIdAdesione()).isEmpty()) {
 							// nel caso in cui non dovesse esserci un errore riguardo l'adesione incremento il numero di ok
 							// e procedo al cambio di stato
 							//if(!this.checkErrore(v.getIdAdesione())) {
 								//numeroOk.incrementAndGet();
 							//}
-							AdesioneEntity entity = findOne(UUID.fromString(v.getIdAdesione()));  
 
-							String statoIniziale = entity.getStato();
+							String statoIniziale = v.getStato();
 							String statoFinale = statoUpdate.getStato();
 
-							this.authorization.authorizeCambioStato(entity, statoUpdate.getStato());
-							this.dettaglioAssembler.toEntity(statoUpdate, entity);
-							this.authorization.authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+							this.authorization.authorizeCambioStato(v, statoUpdate.getStato());
+							this.dettaglioAssembler.toEntity(statoUpdate, v);
+							this.authorization.authorizeUtenteCambioStato(v, statoIniziale, statoFinale);
 
 
-							this.service.save(entity);
+							this.service.save(v);
 
-							List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(entity);
+							List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoAdesione(v);
 							lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
 							numeroOk.incrementAndGet();
 						}
@@ -1868,13 +1837,13 @@ public class AdesioniController implements AdesioniApi {
 						//errore.setIdAdesione(v.getIdAdesione());
 						//errore.setMessaggio("Dati incompleti");
 						//errori.add(errore);
-						this.registraErrore(v.getIdAdesione(),"Dati incompleti");
+						this.registraErrore(errorIds, errorMessages, v,"Dati incompleti");
 					} catch(NotAuthorizedException ex) {
 						//ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						//errore.setIdAdesione(v.getIdAdesione());
 						//errore.setMessaggio("Utente non autorizzato");
 						//errori.add(errore);
-						this.registraErrore(v.getIdAdesione(),"Utente non autorizzato");
+						this.registraErrore(errorIds, errorMessages, v,"Utente non autorizzato");
 					}
 				});
 				response.setNumeroOk(numeroOk.get());
@@ -1886,7 +1855,7 @@ public class AdesioniController implements AdesioniApi {
 					for (String error : errorIds){
 						ErroreCambioStatoResponse errore = new ErroreCambioStatoResponse();
 						errore.setIdAdesione(error);
-						errore.setMessaggi(this.getErrorMessages(error));
+						errore.setMessaggi(this.getErrorMessages(errorMessages, error));
 						errori.add(errore);
 					}
 				}

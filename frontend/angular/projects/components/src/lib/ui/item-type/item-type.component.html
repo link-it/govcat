@@ -29,7 +29,7 @@
         <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ _value }}</span>
     </ng-container>
     <ng-container *ngSwitchCase="'label'">
-        <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color" *ngIf="_value">
+        <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" *ngIf="_value">
             <span class="status-link status-label-link">
                 <span class="status-label-text">{{_label | translate}}</span>
                 <span class="status-label-text-scoped">{{_value | translate}}</span>
@@ -37,7 +37,7 @@
         </span>
     </ng-container>
     <ng-container *ngSwitchCase="'simplelabel'">
-        <span class="">{{_value | translate}}</span>
+        <span class="" [tooltip]="_elem.tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
     </ng-container>
     <ng-container *ngSwitchCase="'status'">
         <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color">
@@ -48,14 +48,14 @@
         </span>
     </ng-container>
     <ng-container *ngSwitchCase="'tag'">
-        <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color" *ngIf="_showBadged">{{_value | translate}}</span>
+        <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color" *ngIf="_showBadged" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
         <span class="" *ngIf="!_showBadged">{{_value | translate}}</span>
     </ng-container>
     <ng-container *ngSwitchCase="'cardinal'">
-        <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">#{{ _value }}</span>
+        <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">#{{ _value }}</span>
     </ng-container>
     <ng-container *ngSwitchCase="'currency'">
-        <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ utilsLib.currencyFormatter(_value) }}</span>
+        <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ utilsLib.currencyFormatter(_value) }}</span>
     </ng-container>
     <ng-container *ngSwitchCase="'progress'">
         <span class="progress">{{ _value }}</span>

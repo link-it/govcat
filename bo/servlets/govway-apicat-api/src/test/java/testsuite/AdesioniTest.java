@@ -232,28 +232,28 @@ public class AdesioniTest {
         SecurityContextHolder.setContext(this.securityContext);
         
         InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_ADESIONE, utenteService);
-        ID_UTENTE_RICHIEDENTE_ADESIONE = info.utente.getIdUtente();
+        ID_UTENTE_RICHIEDENTE_ADESIONE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_ADESIONE, utenteService);
-        ID_UTENTE_REFERENTE_ADESIONE = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_ADESIONE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_ADESIONE = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_ADESIONE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = UUID.fromString(info.utente.getIdUtente());
 
     }
 
@@ -1964,7 +1964,7 @@ public class AdesioniTest {
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(info.utente.getIdUtente());
+        newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -2014,7 +2014,7 @@ public class AdesioniTest {
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(info.utente.getIdUtente());
+        newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -2063,7 +2063,7 @@ public class AdesioniTest {
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(info.utente.getIdUtente());
+        newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -2117,7 +2117,7 @@ public class AdesioniTest {
             InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+num, utenteService);
             
         	newReferente = new ReferenteCreate();
-            newReferente.setIdUtente(info.utente.getIdUtente());
+            newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
             newReferente.setTipo(TipoReferenteEnum.REFERENTE);
             
             listaReferenti.add(newReferente);
@@ -5414,7 +5414,7 @@ public class AdesioniTest {
     	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(info.utente.getIdUtente());
+    	referenteNew.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, true);
     }
@@ -5651,7 +5651,7 @@ public class AdesioniTest {
     	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
     	
     	ReferenteCreate referenteNew = new ReferenteCreate();
-    	referenteNew.setIdUtente(info.utente.getIdUtente());
+    	referenteNew.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
     	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, null);
     }

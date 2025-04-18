@@ -169,7 +169,7 @@ export class AdesioneListaErogazioniComponent implements OnInit {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili.includes(this.environment) ? 2 : 1;
         } else {
-            return 0;
+            return this._hasCambioStato() ? 0 : 1;
         }
     }
 
@@ -193,6 +193,12 @@ export class AdesioneListaErogazioniComponent implements OnInit {
             }
         }
         return false;
+    }
+
+    _hasCambioStato() {
+        if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
+        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);
+        return _statoSuccessivo;
     }
 
     onEdit(erogaz: any) {

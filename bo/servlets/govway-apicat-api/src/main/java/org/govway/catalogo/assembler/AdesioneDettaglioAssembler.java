@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -78,6 +79,7 @@ import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProprietaCustomAdesione;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoAdesioneClientUpdateEnum;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
@@ -156,7 +158,19 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(entity.getUtenteUltimaModifica()!=null) {
 			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
 		}
-		
+
+		dettaglio.setStatoConfigurazioneAutomatica(Optional.ofNullable(entity.getStatoConfigurazione()).map(statoConfigurazione -> {
+			switch(statoConfigurazione) {
+			case FALLITA: return StatoConfigurazioneAutomaticaEnum.FALLITA;
+			case IN_CODA: return StatoConfigurazioneAutomaticaEnum.IN_CODA;
+			case KO: return StatoConfigurazioneAutomaticaEnum.KO;
+			case OK: return StatoConfigurazioneAutomaticaEnum.OK;
+			case RETRY: return StatoConfigurazioneAutomaticaEnum.RETRY;
+			}
+			
+			return null;	
+		}).orElse(null));
+
 		List<ClientRichiesto> client = this.adesioneAuthorization.getClientRichiesti(entity.getServizio());
 		List<ErogazioneRichiesta> erogazioni = this.adesioneAuthorization.getErogazioniRichieste(entity.getServizio());
 		dettaglio.setClientRichiesti(client);
@@ -353,8 +367,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException("Servizio ["+servizioK+"] non in stato in cui è consentita l'adesione");
 		}
 
-		if(!entity.getServizio().isAdesioneConsentita()) {
-			throw new BadRequestException("Adesione non consentita per il servizio : " + servizioK);
+		if(entity.getServizio().isAdesioneDisabilitata()) {
+			throw new BadRequestException("Adesione disabilitata per il servizio : " + servizioK);
 		}
 
 		if(entity.getServizio().getVisibilita() != null && entity.getServizio().getVisibilita().equals(VISIBILITA.COMPONENTE)) {

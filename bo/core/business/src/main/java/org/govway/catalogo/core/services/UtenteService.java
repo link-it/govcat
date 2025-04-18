@@ -119,7 +119,7 @@ public class UtenteService extends AbstractService {
 
 	private Specification<UtenteEntity> filterByKey(UUID key) {
 		UtenteSpecification utenteFilter = new UtenteSpecification();
-		utenteFilter.setIdUtente(Optional.of(key));
+		utenteFilter.setIdUtente(Optional.of(key.toString()));
 		return utenteFilter;
 	}
 

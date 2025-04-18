@@ -20,11 +20,14 @@
 package org.govway.catalogo.assembler;
 
 import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.AdesioniController;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.servlets.model.ItemAdesione;
+import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
@@ -62,7 +65,19 @@ public class AdesioneItemAssembler extends RepresentationModelAssemblerSupport<A
 		if(entity.getDataUltimaModifica()!=null) {
 			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
 		}
-
+		
+		dettaglio.setStatoConfigurazioneAutomatica(Optional.ofNullable(entity.getStatoConfigurazione()).map(statoConfigurazione -> {
+			switch(statoConfigurazione) {
+			case FALLITA: return StatoConfigurazioneAutomaticaEnum.FALLITA;
+			case IN_CODA: return StatoConfigurazioneAutomaticaEnum.IN_CODA;
+			case KO: return StatoConfigurazioneAutomaticaEnum.KO;
+			case OK: return StatoConfigurazioneAutomaticaEnum.OK;
+			case RETRY: return StatoConfigurazioneAutomaticaEnum.RETRY;
+			}
+			
+			return null;	
+		}).orElse(null));
+		
 		return dettaglio;
 	}
 

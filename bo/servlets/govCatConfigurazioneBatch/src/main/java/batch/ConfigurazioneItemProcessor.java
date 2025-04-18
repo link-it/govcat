@@ -1,18 +1,18 @@
 package batch;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+
 import org.govway.catalogo.core.configurazione.ConfigurazioneAdesioneInput;
-import org.govway.catalogo.core.configurazione.DummyConfigurazioneExecutor;
 import org.govway.catalogo.core.configurazione.EsitoConfigurazioneAdesione;
 import org.govway.catalogo.core.configurazione.IConfigurazioneExecutor;
-import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.dto.DTOAdesione;
-import org.govway.catalogo.core.dto.DTOAdesione.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
@@ -23,29 +23,49 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity, AdesioneEntity> {
 
-	@Value("${numeroMassimoTentativi}")
+	@Value("${configurazione-automatica.batch.numeroMassimoTentativi}")
 	private int numeroMassimoTentativi;
 	
-	@Value("${configurazioneExecutorClass}")
+	@Value("${configurazione-automatica.batch.configurazioneExecutorClass}")
 	private String configurazioneExecutorClass;
-
-	@Autowired
-	private AdesioneRepository entityRepository;
 
 	@Autowired
 	private UtenteRepository utenteRepository;
 
-    @Value("${utente_configuratore}")
+    @Value("${configurazione-automatica.batch.utente_configuratore}")
 	String utenteConfiguratore;
 	
     @Autowired
     SoggettoDTOFactory soggettoDTOFactory;
+    
+	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
+    String externalPath;
+
+    @Autowired
+	IntermediateStateService updateService;
+
+    private final List<Map<String, String>> statoConf;
+
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneItemProcessor.class);
+    
+
+    public ConfigurazioneItemProcessor(
+        @Value("#{stepExecutionContext['STATO_CONF_JSON']}") String statoConfJson
+        ) {
+            try {
+                ObjectMapper om = new ObjectMapper();
+                this.statoConf = om.readValue(statoConfJson, new TypeReference<>() {});
+            } catch (Exception e) {
+                throw new RuntimeException("Impossibile convertire JSON in statoConf", e);
+            }
+        }
 
     
     
@@ -60,31 +80,32 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 		}
 	}
 
+	
+	
 
-    
-    
 	@Override
 	public AdesioneEntity process(AdesioneEntity entity) throws Exception {
 		logger.info("[Processor] Configurazione della adesione [ {} ] in corso",entity.getIdAdesione());
 
-		entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.IN_CORSO);
+		entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.IN_CODA);
+		updateService.updateIntermediateState(entity);
 
-		entityRepository.save(entity);
+        logger.debug("[Processor] {} configurazioni automatiche disponibili", statoConf.size());
+
+        String statoInConf = entity.getStato();
+
+        String statoFinale = statoConf.stream()
+            .filter(m -> statoInConf.equals(m.get("stato_in_configurazione")))
+            .map(m -> m.get("stato_finale"))
+            .findFirst()
+            .orElse(null);
 
 		ConfigurazioneAdesioneInput conf = new ConfigurazioneAdesioneInput();
-		AdesioneDTOConverter b = new AdesioneDTOConverter(entity);
+		AdesioneDTOConverter b = new AdesioneDTOConverter(entity, externalPath);
 		b.setDto(new DTOAdesione(null, null, null, null, null, null, null, null));
 		DTOAdesione c = b.converter(soggettoDTOFactory);
 
 		conf.setAdesione(c);
-
-		/*
-		ObjectMapper objectMapper2 = new ObjectMapper();
-		String json2 = null;
-		json2  = objectMapper2.writerWithDefaultPrettyPrinter().writeValueAsString(conf.getAdesione());
-		DummyConfigurazioneExecutor dummy = new DummyConfigurazioneExecutor();
- 		EsitoConfigurazioneAdesione configurato = dummy.configura(conf);
-		 */
 
 		EsitoConfigurazioneAdesione configurato = configurazioneExecutor().configura(conf);
 
@@ -93,50 +114,41 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 		// Serialize object to JSON
 		json  = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(configurato.getChiaveRestituita());
 
-		logger.info("valore di ritorno ricevuti dal configuratore:  ");
-		logger.info("chiave restituita:  {}", json);
-		logger.info("messaggio di errore:  {}", configurato.getMessaggioErrore());
-		logger.info("esito:  {}", configurato.getEsito());
+		logger.debug("[Processor] chiave restituita:  {}", json);
+		logger.debug("[Processor] messaggio di errore:  {}", configurato.getMessaggioErrore());
+		logger.debug("[Processor] esito:  {}", configurato.getEsito());
 
-		new AdesioneDTOConverter(entity).getDto();
 		if (entity.getTentativi()==null) entity.setTentativi(0);
 
 		entity.setTentativi(entity.getTentativi()+1);
 		switch (configurato.getEsito()) {
-		case OK:
-			if (c.getAmbienteConfigurazione()==AmbienteEnum.COLLAUDO) {
-				entity.setStato("pubblicato_collaudo");
-			} else {
-				entity.setStato("pubblicato_produzione");
-			}
+		case OK:	
 
-			logger.info("numero stati prima {}", entity.getStati().size());
-
+			entity.setStato(statoFinale);
 			StatoAdesioneEntity e = new StatoAdesioneEntity();
 			e.setUuid(UUID.randomUUID().toString());
 			e.setAdesione(entity);
-			e.setStato(entity.getStato());
+			e.setStato(statoFinale);
 			e.setData(new Date());
 			UtenteSpecification utenteSpec = new UtenteSpecification();
 			utenteSpec.setPrincipal(Optional.of(this.utenteConfiguratore));
 			e.setUtente(utenteRepository.findOne(utenteSpec).orElse(null));
+			logger.info("# stati:  {}", entity.getStati().size());
 			entity.getStati().add(e);
-
-			logger.info("numero stati dopo {}", entity.getStati().size());
-			
+			entity.getStati().forEach(s -> logger.debug("[Processor] stato durante la gestione della adesione: uuid={}, stato={}, data={}", s.getUuid(), s.getStato(), s.getData()));
 			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.OK);
 
 			break;
 
 		case KO_DEFINITIVO:
-			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.KO_DEFINITIVO);
+			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.KO);
 			break;
 
 		case KO_TEMPORANEO:
 			if (entity.getTentativi() >= numeroMassimoTentativi) {
-				entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.KO_TEMPORANEO_FINALE);
+				entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.FALLITA);
 			} else {
-				entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.KO_TEMPORANEO_RITENTA);
+				entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.RETRY);
 			}
 			break;
 		}

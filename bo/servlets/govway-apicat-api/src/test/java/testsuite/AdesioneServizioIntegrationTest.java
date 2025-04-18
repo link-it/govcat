@@ -188,16 +188,16 @@ public class AdesioneServizioIntegrationTest {
         SecurityContextHolder.setContext(securityContext);
         
         InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -326,7 +326,7 @@ public class AdesioneServizioIntegrationTest {
         servizioCreate.setNome("jonio");
 		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
-		servizioCreate.setAdesioneConsentita(true);
+		servizioCreate.setAdesioneDisabilitata(false);
 		servizioCreate.setMultiAdesione(false);
 		servizioCreate.setVersione("1");
 		if(immagine.getContent()!=null)
@@ -611,7 +611,7 @@ public class AdesioneServizioIntegrationTest {
         soggettiController.createSoggetto(soggetto);
 
         InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_ADERENTE, securityContext, authentication, utenteService);
-        ID_UTENTE_ADERENTE = info.utente.getIdUtente();
+        ID_UTENTE_ADERENTE = UUID.fromString(info.utente.getIdUtente());
         
         ReferenteCreate referenteDaAggiungere = new ReferenteCreate();
         referenteDaAggiungere.setTipo(TipoReferenteEnum.REFERENTE);

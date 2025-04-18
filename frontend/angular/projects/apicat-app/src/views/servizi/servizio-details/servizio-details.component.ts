@@ -305,7 +305,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _hasMultiDominio: boolean = false;
     _multiDominioEmail: string | null = null;
-    _hasFlagAdesioneConsentita: boolean = false;
+    _hasFlagConsentiNonSottoscrivibile: boolean = false;
     _hasAdesioniMultiple: boolean = false;
     
     _isDominioEsterno: boolean = false;
@@ -359,7 +359,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
         this._hasMultiDominio = Tools.Configurazione?.dominio?.multi_dominio || false;
         this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
-        this._hasFlagAdesioneConsentita = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
+        this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
 
         this.loadAnagrafiche();
@@ -431,7 +431,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this.generalConfig = Tools.Configurazione || null;
             this._hasMultiDominio = Tools.Configurazione?.dominio?.multi_dominio || false;
             this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
-            this._hasFlagAdesioneConsentita = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
+            this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
             this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
             this._updateOtherLinks()
         });
@@ -547,6 +547,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             let _group: any = {};
             Object.keys(data).forEach((key) => {
                 let value = '';
+                let boolValue = false; 
                 switch (key) {
                     // case 'id_servizio':
                     //   value = data[key] ? data[key] : null;
@@ -624,6 +625,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     case 'skip_collaudo':
                         value = data[key] ? data[key] : false;
                         _group[key] = new UntypedFormControl(value, []);
+                        break;
+                    case 'adesione_disabilitata':
+                        boolValue = data[key] ? data[key] : false;
+                        _group[key] = new UntypedFormControl(boolValue, []);
                         break;
                     default:
                         value = data[key] ? data[key] : null;
@@ -707,7 +712,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             classi: _classi,
             note: body.note || null,
             immagine: body.immagine,
-            adesione_consentita: body.adesione_consentita || false, // Deve essere gestita come "disabilitaa adesione"
+            adesione_disabilitata: body.adesione_disabilitata || false,
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
             skièp_collaudo: body.skièp_collaudo || false,
@@ -797,7 +802,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 visibilita: (body.visibilita === 'null') ? null : body.visibilita,
                 multi_adesione: body.multi_adesione,
                 classi: _classi,
-                adesione_consentita: !!body.adesione_consentita,
+                adesione_disabilitata: body.adesione_disabilitata || false,
                 id_soggetto_interno: body.id_soggetto_interno || null,
                 package: body.package || false,
                 skip_collaudo: body.skip_collaudo || false
@@ -873,6 +878,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         if (term) { _options.params.q = term; }
         if (role) { _options.params.ruolo = role; }
         if (stato) { _options.params.stato = stato; }
+
+        // In caso di erogazione filtrare per organizzazione
+        if (!this._isDominioEsterno && this.selectedDominio) {
+            _options.params.id_organizzazione = this.selectedDominio.soggetto_referente.organizzazione.id_organizzazione;
+        }
 
         return this.apiService.getList('utenti', _options)
             .pipe(map(resp => {
@@ -1273,10 +1283,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _changeEdit(edit: boolean) {
         if (edit) {
-            // this._formGroup.get('adesione_consentita')?.enable();
+            // this._formGroup.get('adesione_disabilitata')?.enable();
             this._formGroup.get('multi_adesione')?.enable();
         } else {
-            // this._formGroup.get('adesione_consentita')?.disable();
+            // this._formGroup.get('adesione_disabilitata')?.disable();
             this._formGroup.get('multi_adesione')?.disable();
         }
     }
@@ -1543,13 +1553,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     enableDisableControlAdesioneConsentita() {
         if (this.isComponente) {
-            this._formGroup.get('adesione_consentita')?.setValue(true);
-            this._formGroup.get('adesione_consentita')?.disable();
+            this._formGroup.get('adesione_disabilitata')?.setValue(false);
+            this._formGroup.get('adesione_disabilitata')?.disable();
         } else {
-            this._formGroup.get('adesione_consentita')?.setValue(false);
-            this._formGroup.get('adesione_consentita')?.enable();
+            this._formGroup.get('adesione_disabilitata')?.enable();
         }
-        this._formGroup.get('adesione_consentita')?.updateValueAndValidity();
+        this._formGroup.get('adesione_disabilitata')?.updateValueAndValidity();
     }
 
     _getLogoMapper = (data: any): string => {

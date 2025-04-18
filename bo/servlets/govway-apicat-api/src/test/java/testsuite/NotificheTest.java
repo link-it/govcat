@@ -159,10 +159,10 @@ public class NotificheTest {
         SecurityContextHolder.setContext(this.securityContext);
         
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -250,7 +250,7 @@ public class NotificheTest {
          
          ReferenteCreate referente2 = new ReferenteCreate();
  		 referente2.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
- 		 referente2.setIdUtente(utenteService.findByPrincipal(UTENTE_REFERENTE_TECNICO).get().getIdUtente());
+ 		 referente2.setIdUtente(UUID.fromString(utenteService.findByPrincipal(UTENTE_REFERENTE_TECNICO).get().getIdUtente()));
          referenti.add(referente2);
  		 
          servizioCreate.setReferenti(referenti);

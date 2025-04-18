@@ -36,12 +36,10 @@ public class DummyConfigurazioneExecutor implements IConfigurazioneExecutor {
 
 	@Override
 	public EsitoConfigurazioneAdesione configura(ConfigurazioneAdesioneInput adesioneInput) {
-		logger.info("stampaaaaaaaaaa:");
 
 		EsitoConfigurazioneAdesione esito = new EsitoConfigurazioneAdesione();
 		DTOAdesione a = adesioneInput.getAdesione();
 		try {
-			logger.info("stampaaaaaaaaaa:");
 //			logger.info(a.getAmbienteConfigurazione());
 			//			logger.info(a.getClients());
 			//			logger.info(a.getEstensioni());
@@ -49,8 +47,6 @@ public class DummyConfigurazioneExecutor implements IConfigurazioneExecutor {
 			stampaCampi(a);
 		} catch (JsonProcessingException e) {
 			logger.info("errore :");
-
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		esito.setEsito(ESITO.OK);

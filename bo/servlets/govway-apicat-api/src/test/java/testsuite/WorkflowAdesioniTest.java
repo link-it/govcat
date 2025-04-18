@@ -205,7 +205,7 @@ public class WorkflowAdesioniTest {
         SecurityContextHolder.setContext(securityContext);
         
         info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -243,25 +243,25 @@ public class WorkflowAdesioniTest {
         assertNotNull(response.getBody().getIdOrganizzazione());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_ADESIONE, utenteService);
-        ID_UTENTE_REFERENTE_ADESIONE = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_ADESIONE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_ADESIONE = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_ADESIONE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_ADESIONE, utenteService);
-        ID_UTENTE_RICHIEDENTE_ADESIONE = info.utente.getIdUtente();
+        ID_UTENTE_RICHIEDENTE_ADESIONE = UUID.fromString(info.utente.getIdUtente());
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();

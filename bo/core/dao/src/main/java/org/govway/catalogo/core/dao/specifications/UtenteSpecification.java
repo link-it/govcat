@@ -44,7 +44,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private static final long serialVersionUID = 1L;
 
 	private Optional<String> q = Optional.empty();
-	private Optional<UUID> idUtente = Optional.empty();
+	private Optional<String> idUtente = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<Stato> stato = Optional.empty();
 	private Optional<UUID> idOrganizzazione = Optional.empty();
@@ -192,11 +192,11 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		this.q = q;
 	}
 
-	public Optional<UUID> getIdUtente() {
+	public Optional<String> getIdUtente() {
 		return idUtente;
 	}
 
-	public void setIdUtente(Optional<UUID> idUtente) {
+	public void setIdUtente(Optional<String> idUtente) {
 		this.idUtente = idUtente;
 	}
 

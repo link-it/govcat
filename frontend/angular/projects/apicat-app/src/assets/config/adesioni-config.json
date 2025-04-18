@@ -32,6 +32,7 @@
       { "field": "servizio.versione", "type": "text" }
     ],
     "secondaryText": [
+      { "field": "stato_configurazione_automatica", "type": "label", "options": "configuration_status", "tooltip": "messaggio_configurazione", "hideEmpty": true },
       { "field": "stato", "type": "label", "options": "status" }
     ],
     "metadata": {
@@ -104,7 +105,11 @@
         "rejected": { "label": "APP.WORKFLOW.STATUS.REJECTED", "background": "#FF8200", "border": "#FF8200", "color": "#1f1f1f" },
         "processing": { "label": "APP.WORKFLOW.STATUS.PROCESSING", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
         "denied": { "label": "APP.WORKFLOW.STATUS.DENIED", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
-        "bad_request": { "label": "APP.WORKFLOW.STATUS.BAD_REQUEST", "background": "#E82323", "border": "#E82323", "color": "#ffffff" }
+        "bad_request": { "label": "APP.WORKFLOW.STATUS.BAD_REQUEST", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "in_configurazione_automatica_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_collaudo", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "in_configurazione_manuale_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_collaudo", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "in_configurazione_automatica_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_produzione", "background": "#326C1A", "border": "#326C1A", "color": "#ffffff" },
+        "in_configurazione_manuale_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_produzione", "background": "#326C1A", "border": "#326C1A", "color": "#ffffff" }
       }
     },
     "type": {
@@ -120,9 +125,19 @@
         "referente_dominio": { "label": "APP.ROLE.referente_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
         "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" }
       }
+    },
+    "configuration_status": {
+      "label": "APP.LABEL.StatoConfigurazioneAutomatica",
+      "small": true,
+      "values": {
+        "fallita": { "label": "APP.STATUS.fallita", "background": "#E57373", "border": "#E57373", "color": "#ffffff" },
+        "in_coda": { "label": "APP.STATUS.in_coda", "background": "#FFF176", "border": "#FFF176", "color": "#1f1f1f" },
+        "ko": { "label": "APP.STATUS.ko", "background": "#FFB74D", "border": "#FFB74D", "color": "#1f1f1f" },
+        "ok": { "label": "APP.STATUS.ok", "background": "#81C784", "border": "#81C784", "color": "#1f1f1f" },
+        "retry": { "label": "APP.STATUS.retry", "background": "#64B5F6", "border": "#64B5F6", "color": "#ffffff" }
+      }
     }
   },
-
 
   "erogazioni_itemRow": {
     "primaryText": [

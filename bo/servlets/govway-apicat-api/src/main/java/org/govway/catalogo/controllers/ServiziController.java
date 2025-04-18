@@ -373,9 +373,9 @@ public class ServiziController implements ServiziApi {
 			if(!admin) {
 				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
+						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getNome()+" "+referenteEntity.getReferente().getCognome()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
 					} else {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] non associato ad alcuna organizzazione");
+						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getNome()+" "+referenteEntity.getReferente().getCognome()+"] non associato ad alcuna organizzazione");
 					}
 				}
 				
@@ -502,6 +502,7 @@ public class ServiziController implements ServiziApi {
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
+				this.checkReferenti(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
@@ -1590,8 +1591,11 @@ public class ServiziController implements ServiziApi {
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
-
-				this.service.delete(entity);
+				if (service.isEliminabile(entity)) {
+				    service.delete(entity);
+				} else {
+				    throw new BadRequestException("Il servizio non è eliminabile");
+				}
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.noContent().build();
 			});

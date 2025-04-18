@@ -1,0 +1,55 @@
+<div role="group" class="btn-group- me-2">
+  <div role="group" class="btn-group- d-inline-block">
+    <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="selection">
+      <button type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" id="selection-actions" [disabled]="loading">
+        <ng-container *ngIf="loading">
+          <span class="spinner-border spinner-border-sm" [style.border-width.px]="2"></span>
+        </ng-container>
+        <i class="bi bi-node-plus" *ngIf="!loading"></i>
+        <span class="ms-2">{{ buttonTitle | translate }}</span>
+        <i class="bi bi-chevron-down ms-2"></i>
+      </button>
+      <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+        <div class="gl-new-dropdown-inner">
+          <div class="gl-new-dropdown-contents">
+            <li class="pt-2 gl-dropdown-item">
+              <label class="label-bold gl-px-4! mb-2">{{ menuTitle }}</label>
+            </li>
+            <li class="gl-new-dropdown-item">
+              <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('search')" [disabled]="totalSearch === 0">
+                <div class="gl-new-dropdown-item-text-wrapper me-0">
+                  <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
+                      <span>{{ 'APP.MENU.EsportSearch' | translate }}</span>
+                      <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ totalSearch }}</span>
+                  </p>
+                </div>
+              </button>
+            </li>
+            <li class="gl-new-dropdown-item">
+              <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('selection')" [disabled]="totalSeleted === 0">
+                <div class="gl-new-dropdown-item-text-wrapper me-0">
+                    <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
+                        <span>{{ 'APP.MENU.EsportSelected' | translate }}</span>
+                        <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ totalSeleted }}</span>
+                    </p>
+                </div>
+              </button>
+            </li>
+            <li class="gl-new-dropdown-divider" *ngIf="totalSeleted && uncheckAllInTheMenu">
+              <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+            </li>
+              <li class="gl-new-dropdown-item" *ngIf="totalSeleted && uncheckAllInTheMenu">
+                <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('uncheckAll')">
+                  <div class="gl-new-dropdown-item-text-wrapper me-0">
+                    <p class="gl-new-dropdown-item-text-primary d-flex justify-content-start">
+                      <span>{{ 'APP.MENU.DeselectAll' | translate }}</span>
+                    </p>
+                  </div>
+                </button>
+              </li>
+          </div>
+        </div>
+      </ul>
+    </div>
+  </div>
+</div>

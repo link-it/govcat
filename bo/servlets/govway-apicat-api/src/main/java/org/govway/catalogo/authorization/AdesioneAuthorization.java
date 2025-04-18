@@ -456,6 +456,10 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		if(this.coreAuthorization.isAdmin(u)) {
 			lst.add(Ruolo.GESTORE);
 		}
+		
+		if(this.coreAuthorization.isCoordinatore(u)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
+		}
 
 		boolean refServizio = entity.getServizio().getReferenti().stream()
 				.anyMatch(r -> r.getReferente().getId().equals(u.getId()) && r.getTipo().equals(TIPO_REFERENTE.REFERENTE));

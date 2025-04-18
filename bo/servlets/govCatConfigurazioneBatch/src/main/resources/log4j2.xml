@@ -45,6 +45,16 @@
             <DefaultRolloverStrategy max="5" />
         </RollingFile>
  
+        <RollingFile name="configuratore"
+            fileName="${APP_LOG_ROOT}/govcat-configurazione-configuratore.log"
+            filePattern="${APP_LOG_ROOT}/govcat-configurazione-configuratore.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+ 
     </Appenders>
     <Loggers>
         
@@ -52,15 +62,15 @@
             <AppenderRef ref="batch" />
         </Logger>
 
+        <Logger name="configuratore" level="debug" additivity="false">
+            <AppenderRef ref="configuratore" />
+        </Logger>
+
         <Logger name="org.springframework" level="debug" additivity="false">
             <AppenderRef ref="spring" />
         </Logger>
 
         <Logger name="org.hibernate" level="debug" additivity="false">
-            <AppenderRef ref="hibernate" />
-        </Logger>
-
-        <Logger name="org.hibernate.type.descriptor.sql" level="trace" additivity="false">
             <AppenderRef ref="hibernate" />
         </Logger>
 

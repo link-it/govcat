@@ -59,9 +59,17 @@ public class CoreAuthorization {
 	public boolean isAdmin() {
 		return isAdmin(getUtenteSessione());
 	}
+	
+	public boolean isCoordinatore() {
+		return isCoordinatore(getUtenteSessione());
+	}
 
 	public boolean isAdmin(UtenteEntity utente) {
 		return utente != null && Ruolo.AMMINISTRATORE.equals(utente.getRuolo());
+	}
+	
+	public boolean isCoordinatore(UtenteEntity utente) {
+		return utente != null && Ruolo.COORDINATORE.equals(utente.getRuolo());
 	}
 	
 	public void requireAdmin() {

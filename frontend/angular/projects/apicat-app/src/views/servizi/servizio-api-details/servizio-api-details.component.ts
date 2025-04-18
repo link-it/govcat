@@ -471,9 +471,15 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     content: body.content,
                     filename: body.filename
                 };
+                if (configurazioneProduzione) {
+                    configurazioneProduzione.specifica = {
+                        content_type: body.estensione ? body.estensione : null,
+                        content: body.content,
+                        filename: body.filename
+                    };
+                }
             };
         }
-
 
         if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {;
             _newBody.gruppi_auth_type = body.authTypes.map((item: any):ApiAuthTypeGroup => {

@@ -185,7 +185,7 @@ export class AdesioneListaClientsComponent implements OnInit {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
-            return 0;
+            return this._hasCambioStato() ? 0 : 1;
         }
     }
 
@@ -194,7 +194,7 @@ export class AdesioneListaClientsComponent implements OnInit {
     }
 
     isSottotipoCompletedMapper = (update: string, tipo: string, identificativo: string): boolean => {
-        return this.ckeckProvider.isSottotipoCompleted(this.dataCheck, this.environment, tipo, identificativo);
+        return this._hasCambioStato() ? this.ckeckProvider.isSottotipoCompleted(this.dataCheck, this.environment, tipo, identificativo) : true;
     }
 
     _isGestoreMapper = (): boolean => {
@@ -220,6 +220,12 @@ export class AdesioneListaClientsComponent implements OnInit {
             }
         }
         return false;
+    }
+
+    _hasCambioStato() {
+        if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
+        const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);
+        return _statoSuccessivo;
     }
 
     onEdit(client: any) {
@@ -401,9 +407,8 @@ export class AdesioneListaClientsComponent implements OnInit {
         const _isNomeProposto = client?.source?.nome_proposto ? true : false;
         this._show_nome_proposto = _isNomeProposto;
 
-        // this.loadingDialog = false;
         this.showSubscription = this.modalService.onShown.subscribe(($event: any, reason: string) => {
-            setTimeout(() => {
+            // setTimeout(() => {
                 const _id_client =  client.id_client;
                 if (_isNomeProposto && !_id_client) {
                     this._editFormGroupClients.controls['credenziali'].setValue(SelectedClientEnum.UsaClientEsistente);
@@ -413,8 +418,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                     this._editFormGroupClients.controls['credenziali'].setValue(_id_client || SelectedClientEnum.NuovoCliente);
                     this.onChangeCredenziali(SelectedClientEnum.NuovoCliente);
                 }
-                // this.loadingDialog = false;
-            }, 400);
+            // }, 400);
         });
 
         if (!client.id_client || _isNotConfigurato || _isNomeProposto) {
@@ -1684,17 +1688,17 @@ export class AdesioneListaClientsComponent implements OnInit {
             _payload.nome = _nome || this._currClient.nome,
             _payload.dati_specifici = _datiSpecifici;
 
-            console.log('PUT for UPDATING: ', _payload);
-
             this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe(
                 (response: any) => {
                     this.loadAdesioneClients(this.environment);
                     this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
                     this.closeModal();
+                    this._saving = false;
                 },
                 (error: any) => {
                     this._error = true;
                     this._errorMsg = Tools.GetErrorMsg(error);
+                    this._saving = false;
                 }
             );
         } else {
@@ -1709,8 +1713,6 @@ export class AdesioneListaClientsComponent implements OnInit {
             _payload.nome = _nome;
             _payload.dati_specifici = _datiSpecifici;
             
-            console.log('PUT: ', _payload);
-
             this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe(
                 (response: any) => {
                     this.loadAdesioneClients(this.environment);

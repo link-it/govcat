@@ -21,7 +21,6 @@ package org.govway.catalogo.core.orm.entity;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -50,7 +49,7 @@ import lombok.Setter;
 public class UtenteEntity {
 	
 	public enum Stato {DISABILITATO, NON_CONFIGURATO, ABILITATO}
-	public enum Ruolo {AMMINISTRATORE, REFERENTE_SERVIZIO}
+	public enum Ruolo {AMMINISTRATORE, COORDINATORE, REFERENTE_SERVIZIO}
 
     @Id
     @Column(name = "id")
@@ -59,7 +58,7 @@ public class UtenteEntity {
 	private Long id;
 
     @Column(name = "id_utente", nullable=false, unique = true)
-    private UUID idUtente;
+    private String idUtente;
     
     @Column(name = "principal", nullable=false, unique = true)
     private String principal;

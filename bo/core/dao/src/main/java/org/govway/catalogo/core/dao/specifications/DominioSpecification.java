@@ -49,7 +49,7 @@ public class DominioSpecification implements Specification<DominioEntity> {
 	private Optional<Boolean> esterno = Optional.empty();
 	private Optional<UUID> idDominio = Optional.empty();
 	private Optional<UUID> idSoggetto = Optional.empty();
-	private Optional<UUID> idReferente = Optional.empty();
+	private Optional<String> idReferente = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<VISIBILITA> visibilita = Optional.empty();
 
@@ -102,7 +102,7 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		}
 		
 		if(idReferente.isPresent()) {
-			Path<UUID> joinedReferentIds = root.join(DominioEntity_.referenti).join(ReferenteDominioEntity_.referente).get(UtenteEntity_.idUtente);
+			Path<String> joinedReferentIds = root.join(DominioEntity_.referenti).join(ReferenteDominioEntity_.referente).get(UtenteEntity_.idUtente);
 			predLst.add(cb.literal(idReferente.get()).in(joinedReferentIds));
 		}
 
@@ -133,11 +133,11 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		this.nome = nome;
 	}
 
-	public Optional<UUID> getIdReferente() {
+	public Optional<String> getIdReferente() {
 		return idReferente;
 	}
 
-	public void setIdReferente(Optional<UUID> idReferente) {
+	public void setIdReferente(Optional<String> idReferente) {
 		this.idReferente = idReferente;
 	}
 

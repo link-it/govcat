@@ -156,7 +156,7 @@ public class APITest {
         
         //System.out.println("STAMPA ID "+info.utente.getIdUtente());
         
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
         
         // Configura `coreAuthorization` per essere utilizzato nei test
         when(coreAuthorization.isAnounymous()).thenReturn(true);
@@ -540,7 +540,7 @@ public class APITest {
     @Test
     public void testDeleteAPIUsedInAdesioni() {
         soggettoCreate.setAderente(true);
-        servizioCreate.setAdesioneConsentita(true);
+        servizioCreate.setAdesioneDisabilitata(false);
         servizioCreate.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
         servizioCreate.setMultiAdesione(true);
 

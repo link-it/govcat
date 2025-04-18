@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.OrganizzazioniController;
@@ -49,7 +50,7 @@ public class UtenteItemAssembler extends RepresentationModelAssemblerSupport<Ute
 		ItemUtente dettaglio = instantiateModel(entity);
 		BeanUtils.copyProperties(entity, dettaglio);
 		
-		dettaglio.setIdUtente(entity.getIdUtente());
+		dettaglio.setIdUtente(UUID.fromString(entity.getIdUtente()));
 		dettaglio.setPrincipal(entity.getPrincipal());
 		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
 

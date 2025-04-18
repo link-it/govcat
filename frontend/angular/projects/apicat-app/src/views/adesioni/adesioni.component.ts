@@ -4,12 +4,14 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { ConfigService } from 'projects/tools/src/lib/config.service';
 import { Tools } from 'projects/tools/src/lib/tools.service';
 import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+import { AuthenticationService } from '@app/services/authentication.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
@@ -22,6 +24,14 @@ import { Page} from '../../models/page';
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
 
+export enum StatoConfigurazione {
+  FALLITA = 'fallita',
+  IN_CODA = 'in_coda',
+  KO = 'ko',
+  OK = 'ok',
+  RETRY = 'retry'
+}
+
 @Component({
   selector: 'app-adesioni',
   templateUrl: 'adesioni.component.html',
@@ -32,6 +42,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   readonly model: string = 'adesioni';
 
   @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('reportTemplate') reportTemplate!: any;
 
   Tools = Tools;
 
@@ -73,6 +84,19 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   service: Servizio|null = null;
 
+  configStatusList: any = [
+    { value: StatoConfigurazione.FALLITA, label: 'APP.STATUS.fallita' },
+    { value: StatoConfigurazione.IN_CODA, label: 'APP.STATUS.in_coda' },
+    { value: StatoConfigurazione.KO, label: 'APP.STATUS.ko' },
+    { value: StatoConfigurazione.OK, label: 'APP.STATUS.ok' },
+    { value: StatoConfigurazione.RETRY, label: 'APP.STATUS.retry' }
+  ];
+  configStatusEnum: any = {};
+  _tempEnable = this.configStatusList.map((item: any) => {
+    this.configStatusEnum =  { ...this.configStatusEnum, [item.value]: item.label};
+    return item;
+  });
+
   searchFields: any[] = [
     { field: 'q', label: 'APP.ADESIONI.LABEL.Name', type: 'string', condition: 'like' },
     { field: 'stato', label: 'APP.LABEL.Status', type: 'enum', condition: 'equal', enumValues: Tools.StatiAdesioneEnum },
@@ -81,6 +105,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { field: 'id_organizzazione', label: 'APP.ADESIONI.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' }  },
     { field: 'id_soggetto', label: 'APP.ADESIONI.LABEL.Subject', type: 'text', condition: 'equal', params: { resource: 'soggetti', field: 'nome' } },
     { field: 'id_client', label: 'APP.ADESIONI.LABEL.Client', type: 'text', condition: 'equal', params: { resource: 'client', field: 'nome' }  },
+    { field: 'stato_configurazione_automatica', label: 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus', type: 'enum', condition: 'equal', enumValues: this.configStatusEnum },
   ];
   useCondition: boolean = false;
 
@@ -123,15 +148,28 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _useViewRoute: boolean = false;
   _useEditWizard: boolean = false;
 
+  hasMultiSelection: boolean = false;
+  elementsSelected: any[] = [];
+  bilkExecutionInProgress: boolean = false;
+  uncheckAllInTheMenu: boolean = true;
+
+  bulkResponse: any = null
+
+  modalReportRef!: BsModalRef;
+  
+  _updateMapper: string = '';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private translate: TranslateService,
     private configService: ConfigService,
-    public tools: Tools,
+    private tools: Tools,
     private eventsManagerService: EventsManagerService,
-    public apiService: OpenAPIService,
-    private utils: UtilService
+    private apiService: OpenAPIService,
+    private utils: UtilService,
+    private authenticationService: AuthenticationService,
+    private modalService: BsModalService
   ) {
 
     this.route.data.subscribe((data) => {
@@ -175,6 +213,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       this.generalConfig = Tools.Configurazione || null;
       this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
       this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
+      this.updateMultiSelectionMapper();
     });
   }
 
@@ -200,6 +239,10 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this.desktop = (window.innerWidth >= 992);
   }
 
+  get isGestore(): boolean {
+    return this.authenticationService.isGestore();
+  }
+
   refresh() {
     // this.searchGoogleForm._clearSearch(null);
     this._filterData = {};
@@ -220,12 +263,13 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
       q: new UntypedFormControl(''),
-      stato: new UntypedFormControl(null),
+      stato: new UntypedFormControl(''),
       id_dominio: new UntypedFormControl(null),
       id_servizio: new UntypedFormControl(null),
       id_organizzazione: new UntypedFormControl(null),
       id_soggetto: new UntypedFormControl(null),
       id_client: new UntypedFormControl(null),
+      stato_configurazione_automatica: new UntypedFormControl(''),
     });
   }
 
@@ -256,9 +300,10 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
           const _list: any = response.content.map((adesione: any) => {
             const _adesione = { ...adesione, id_logico: this._adesioni_multiple ? adesione.id_logico : null };
             const element = {
-              id: adesione.id,
+              id: adesione.id_adesione,
               editMode: false,
-              source: _adesione
+              source: _adesione,
+              selected: false
             };
             return element;
           });
@@ -423,7 +468,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this._organizzazioneSelected = event;
     this._formGroup.get('id_soggetto')?.setValue(null);
 
-    this.showSoggetto = this._organizzazioneSelected.multi_soggetto;
+    this.showSoggetto = this._organizzazioneSelected?.multi_soggetto || false;
     if (this.showSoggetto) {
       this._initSoggettiSelect([]);
     }
@@ -496,6 +541,9 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   _onSearch(values: any) {
     this._filterData = values;
+    this.resetSeleted();
+    this.updateMultiSelectionMapper();
+    this._updateMapper = new Date().getTime().toString();
     this._loadAdesioni(this._filterData);
   }
 
@@ -530,5 +578,141 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   _resetScroll() {
     Tools.ScrollElement('container-scroller', 0);
+  }
+
+  getStatoAutomatico() {
+    const configAutomatica = this.generalConfig?.adesione?.configurazione_automatica || null;
+    if (configAutomatica?.length > 0) {
+      const status = this._formGroup.get('stato')?.value;
+      return  configAutomatica.find((item: any) => item.stato_iniziale === status);
+    }
+    return null;
+  }
+
+  getLabelStatoAutomaticoMapper = () => {
+    const stato = this.getStatoAutomatico();
+    return stato ? this.translate.instant('APP.WORKFLOW.STATUS.' + stato.stato_in_configurazione) : '<NO STATUS>';
+  }
+
+  updateMultiSelectionMapper() {
+    const configAutomatica = this.generalConfig?.adesione?.configurazione_automatica || null;
+    if (configAutomatica?.length > 0) {
+      const status = this._formGroup.get('stato')?.value;
+      const index = configAutomatica.findIndex((item: any) => item.stato_iniziale === status);
+      this.hasMultiSelection = this.isGestore && index !== -1;
+    } else {
+      this.hasMultiSelection = false;
+    }
+  }
+
+  resetSeleted() {
+    this.elementsSelected = [];
+    this._updateMapper = new Date().getTime().toString();
+  }
+
+  deselectAll() {
+    this.elementsSelected = [];
+    const _elements = this.adesioni.map((element: any) => {
+        return { ...element, selected: false };
+    });
+    this.adesioni = [ ..._elements ];
+    this._updateMapper = new Date().getTime().toString();
+  }
+
+  onSelect(event: any, element: any) {
+    event.stopPropagation();
+    const _index = this.elementsSelected.findIndex((item: any) => item === element.id);
+    if (_index === -1) {
+      element.selected = true;
+      this.elementsSelected.push(element.id);
+    } else {
+      element.selected = false;
+      this.elementsSelected.splice(_index, 1);
+    }
+  }
+
+  onSelectionAction(action: any) {
+    switch (action.action) {
+      case 'search':
+        this.onConfirmBulkAction('search')
+        break;
+      case 'selection':
+        this.onConfirmBulkAction('selection')
+        break;
+      case 'uncheckAll':
+        this.deselectAll();
+        break;
+      default:
+        break;
+    }
+  }
+
+  resetReport() {
+    this.bulkResponse = null;
+  }
+
+  onConfirmBulkAction(type: string) {
+    const stato = this.getStatoAutomatico();
+    if (stato) {
+      const toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + stato.stato_in_configurazione);
+      const fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + stato.stato_iniziale);
+      this.resetReport();
+      const data = {
+        title: 'APP.MESSAGE.ConfirmBulkAction',
+        message: 'APP.MESSAGE.ConfirmBulkActionMessage',
+        confirm: 'APP.BUTTON.Confirm',
+        cancel: 'APP.BUTTON.Cancel',
+        type: type,
+        stato: stato.stato_in_configurazione
+      };
+      const count = (type === 'search') ? this._paging.totalElements : this.elementsSelected.length;
+      const message = this.translate.instant('APP.WORKFLOW.MESSAGE.AreYouSureBulk', { next: toStatus, count: count });
+      this.utils._confirmDialog(message, data, this.onBulkAction.bind(this));
+    } else {
+      Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.NoAutomaticStatus'), 'danger', true);
+    }
+  }
+
+  onBulkAction(data: any) {
+    let aux: any;
+    let query = null;
+
+    if (data.type === 'search') {
+        query = { ...this._filterData };
+    } else {
+        query = { id: [...this.elementsSelected ] };
+    }
+
+    if (query)  aux = { params: this.utils._queryToHttpParams(query) };
+
+    const body = {
+      stato: data.stato
+    };
+
+    this.bilkExecutionInProgress = true;
+    this.apiService.postElement(`${this.model}/stato`, body, aux).subscribe({
+      next: (response: any) => {
+        this.bilkExecutionInProgress = false;
+        this.bulkResponse = response;
+        this.showReportDialog();
+        this._onSearch(this._filterData);
+      },
+      error: (error: any) => {
+        this.bilkExecutionInProgress = false;
+        this._setErrorMessages(true);
+        Tools.OnError(error);
+      }
+    });
+  }
+
+  showReportDialog() {
+    this.modalReportRef = this.modalService.show(this.reportTemplate, {
+        ignoreBackdropClick: false,
+        class: 'modal-half'
+    });
+  }
+
+  closeErrorModal(){
+    this.modalReportRef.hide();
   }
 }

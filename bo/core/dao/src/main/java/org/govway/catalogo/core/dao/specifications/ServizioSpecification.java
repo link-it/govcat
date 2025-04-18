@@ -63,7 +63,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<Boolean> _package = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<String> versione = Optional.empty();
-	private Optional<UUID> idReferente = Optional.empty();
+	private Optional<String> idReferente = Optional.empty();
 	private List<UUID> gruppoList = null;
 	private Optional<UUID> dominio = Optional.empty();
 	private List<UUID> categorie = null;
@@ -97,7 +97,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		query.distinct(true); 
 
 		if(idReferente.isPresent()) {
-			Path<UUID> joinedReferentIds = root.join(ServizioEntity_.referenti).join(ReferenteServizioEntity_.referente).get(UtenteEntity_.idUtente);
+			Path<String> joinedReferentIds = root.join(ServizioEntity_.referenti).join(ReferenteServizioEntity_.referente).get(UtenteEntity_.idUtente);
 			predLst.add(cb.literal(idReferente.get()).in(joinedReferentIds));
 		}
 
@@ -214,7 +214,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 			}
 			
 			predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
-			predLst.add(cb.equal(root.get(ServizioEntity_.adesioneConsentita), true));
+			predLst.add(cb.equal(root.get(ServizioEntity_.adesioneDisabilitata), false));
 		}
 		
 		if(tag != null && !tag.isEmpty()) {
@@ -377,11 +377,11 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		this.classiDominio = classiDominio;
 	}
 
-	public Optional<UUID> getIdReferente() {
+	public Optional<String> getIdReferente() {
 		return idReferente;
 	}
 
-	public void setIdReferente(Optional<UUID> idReferente) {
+	public void setIdReferente(Optional<String> idReferente) {
 		this.idReferente = idReferente;
 	}
 

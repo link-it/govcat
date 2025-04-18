@@ -1,0 +1,4 @@
+{
+	"nome": "${nomeGateway}",
+	"dominio": "esterno"
+}

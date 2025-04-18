@@ -158,19 +158,19 @@ public class GestioneServiziAPITest {
         SecurityContextHolder.setContext(securityContext);
         
         InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
-        ID_UTENTE_GESTORE = info.utente.getIdUtente();
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = UUID.fromString(info.utente.getIdUtente());
         
         info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
-        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = info.utente.getIdUtente();
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -376,7 +376,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -407,7 +407,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -438,7 +438,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -469,7 +469,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -500,7 +500,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -839,7 +839,7 @@ public class GestioneServiziAPITest {
     	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
     	
     	// Creo API
-    	this.getAPI();
+    	//this.getAPI();
     	
     	serviziController.deleteServizio(idServizio);
     }

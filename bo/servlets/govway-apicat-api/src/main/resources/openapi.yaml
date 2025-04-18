@@ -7805,12 +7805,14 @@ components:
       enum:
         - referente_servizio
         - gestore
+        - coordinatore
     RuoloUtenteEnumSearch:
       type: "string"
       enum:
         - nessun_ruolo
         - referente_servizio
         - gestore
+        - coordinatore
     UtenteCreate:
       type: "object"
       required:
@@ -8379,7 +8381,7 @@ components:
           $ref: "#/components/schemas/String255"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         dominio:
             $ref: "#/components/schemas/Dominio"
@@ -8400,6 +8402,8 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+        eliminabile:
+          type: "boolean"
     ServizioCreate:
       type: "object"
       required:
@@ -8450,7 +8454,7 @@ components:
           default: false
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         url_invocazione:
           $ref: "#/components/schemas/String255"
@@ -8531,7 +8535,7 @@ components:
           type: "boolean"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         url_invocazione:
           $ref: "#/components/schemas/String255"
@@ -8551,6 +8555,8 @@ components:
           $ref: "#/components/schemas/ItemUtente"
         utente_ultima_modifica:
           $ref: "#/components/schemas/ItemUtente"
+        eliminabile:
+          type: "boolean"
     ServizioUpdate:
       type: "object"
       properties:
@@ -8587,7 +8593,7 @@ components:
             $ref: "#/components/schemas/IdClasseUtente"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         package:
           type: "boolean"
@@ -8936,6 +8942,10 @@ components:
           default: false
         stato:
           $ref: "#/components/schemas/String255"
+        stato_configurazione_automatica:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        messaggio_configurazione:
+          $ref: "#/components/schemas/String4000"
         data_creazione:
           type: "string"
           format: "date-time"
@@ -9003,8 +9013,10 @@ components:
           $ref: "#/components/schemas/String255"
         stato_precedente:
           $ref: "#/components/schemas/String255"
-        configurazione_automatica:
-          $ref: "#/components/schemas/StatoConfigurazioneAutomatica"
+        stato_configurazione_automatica:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        messaggio_configurazione:
+          $ref: "#/components/schemas/String4000"
         data_creazione:
           type: "string"
           format: "date-time"
