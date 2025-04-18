@@ -1,5 +1,5 @@
 .top-area {
-  border-bottom: 1px solid #dbdbdb;
+  border-bottom: 1px solid var(--top-area-border-color, #dbdbdb);
   display: flex;
   height: 48px;
 
@@ -12,7 +12,7 @@
 
 .gp-tabs-nav {
   border-style: solid;
-  border-color: #dbdbdb;
+  border-color: var(--top-area-border-color, #dbdbdb);
   border-width: 0;
   border-bottom-width: 1px;
 }
@@ -37,6 +37,12 @@
 .top-area .nav-controls {
   display: inline-block;
   text-align: right;
+}
+@media (min-width: 768px) {
+  .top-area .nav-controls {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .gp-tab-content {

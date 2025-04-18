@@ -110,6 +110,17 @@
   padding-left: 0;
 }
 
+.top-area {
+  border-bottom: 1px solid var(--top-area-border-color, #dbdbdb);
+  display: flex;
+  align-items: center !important;
+}
+
+.top-area .nav-controls {
+  display: inline-block;
+  text-align: right;
+}
+
 .close-nav-button,
 .toggle-sidebar-button {
   transition: width .3s;
@@ -185,6 +196,7 @@
     overflow-y: auto;
     padding-top: .75rem;
     padding-bottom: 50px;
+    scroll-behavior: smooth;
 
     &:hover {
       &::-webkit-scrollbar-thumb {
@@ -197,6 +209,10 @@
 
       &.container-scroller-no-top-area {
         height: calc(100vh - 48px - var(--header-height));
+
+        &.container-scroller-no-breadcrumb {
+          height: calc(100vh - var(--header-height));
+        }
       }
 
       &.container-notifications {

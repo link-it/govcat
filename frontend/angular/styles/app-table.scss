@@ -43,3 +43,240 @@
 .table-row .table-cell:last-of-type {
   // font-weight: 600;
 }
+
+// flex-table
+
+$table-header: #ffffff;
+$table-header-color: #333333;
+$table-header-bgcolor: #f5f5f5;
+$table-header-border: #d2d2d2;
+$table-border: #d2d2d2;
+$row-bg: #ffffff;
+$columns: 5;
+
+.table-container {
+  display: block;
+  width: 100%;
+  max-width: 1320px;
+
+  &.disabled {
+    opacity: 0.6;
+  }
+
+  &.fs-smaller {
+    font-size: 85%;
+  }
+}
+
+.flag-icon {
+  margin-right: .1em;
+}
+
+.flex-table {
+  display: flex;
+  flex-flow: row wrap;
+  // border-left: solid 1px $table-border;
+  // transition: .5s;
+  background-color: $row-bg;
+  min-height: 47px;
+
+  &.first-of-type {
+    // border-top: solid 1px $table-border;
+    // border-left: solid 1px $table-header-border;
+  }
+
+  &.first-of-type .flex-table-row {
+    background: $table-header;
+    color: $table-header-color;
+    border-color: $table-header-border;
+  }
+
+  &:hover {
+    // background: #F5F5F5;
+    // transition: 500ms;
+  }
+}
+
+.flex-table-row {
+  width: calc(100% / $columns);
+  // text-align: center;
+  padding: .5em;
+  // border-right: solid 1px $table-border;
+  // border-bottom: solid 1px $table-border;
+  background-color: $row-bg;
+  // min-height: 57px;
+
+  &.flex-table-row-editable {
+    background-color: #fffede;
+  }
+}
+
+.rowspan {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.column {
+  display: flex;
+  flex-flow: column wrap;
+  width: 75%;
+  padding: 0;
+
+  .flex-table-row {
+    display: flex;
+    flex-flow: row wrap;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-bottom: solid 1px $table-border;
+
+    &:hover {
+      // background: #F5F5F5;
+      // transition: 500ms;
+    }
+  }
+}
+
+.flex-table-cell {
+  width: calc(100% / 3); //1px = border right
+  text-align: center;
+  padding: .5em;
+  // border-right: solid 1px $table-border;
+  //flex: 1 1 33.3%;
+  &:last-child {
+    // border-right: 0;
+  }
+}
+@media all and (max-width: 767px) {
+  .flex-table-row {
+    width: calc(100% / 3) !important; // 1px = border right
+
+    &.first {
+      width: 15% !important;
+    
+      &.first-top {
+        min-height: auto;
+      }
+    }
+    &.second {
+      width: 20% !important;
+    }
+    &.thirth {
+      width: 20% !important;
+    }
+    &.fourth {
+      width: 20% !important;
+    }
+    &.fifth {
+      width: 15% !important;
+    }
+    &.sixth {
+      width: 10% !important;
+    }
+  }
+
+  .column {
+    width: 100%;
+  }
+}
+@media all and (max-width: 430px) {
+  .flex-table-table {
+    .flex-table-row {
+      border-bottom: 0;
+    }
+
+    .flex-table-row:last-of-type {
+      // border-bottom: solid 1px $table-border;
+    }
+  }
+
+  .header {
+    .flex-table-row {
+      // border-bottom: solid 1px;
+    }
+  }
+
+  .flex-table-row {
+    width: 100%; //1px = border right
+
+    &.first {
+      width: 100%;
+      // border-bottom: solid 1px $table-border;
+    }
+  }
+
+  .column {
+    width: 100%;
+
+    .flex-table-row {
+      border-bottom: solid 1px $table-border;
+    }
+  }
+
+  .flex-table-cell {
+    width: 100%; //1px = border right
+  }
+}
+
+.first {
+  width: 15%;
+
+  &.first-top {
+    min-height: 57px;
+  }
+}
+.second {
+  width: 20%;
+}
+.thirth {
+  width: 20%;
+}
+.fourth {
+  width: 20%;
+}
+.fifth {
+  width: 15%;
+}
+.sixth {
+  width: 10%;
+}
+
+.gl-avatars-inline {
+  &.gl-avatars-collapsed {
+    .gl-avatars-inline-child {
+      margin-right: -0.5rem;
+    }
+  }
+}
+
+.table-flex {
+  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
+
+  &.table-flex-bordered {
+    padding-bottom: 0;
+    padding-top: 0;
+    border: 1px solid #dbdbdb;
+    border-bottom: none;
+
+    .flex-table-item-container {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+
+    .flex-table {
+      &.header {
+        border-bottom: 1px solid #dbdbdb;
+        background-color: $table-header-bgcolor;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+
+      .flex-table-row {
+        background-color: transparent;
+      }
+    }
+  }
+}

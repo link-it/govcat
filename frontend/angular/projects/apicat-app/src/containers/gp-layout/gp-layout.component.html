@@ -32,7 +32,7 @@
                 <ul class="sidebar-top-level-items" *ngIf="!_spin">
                     <ng-container *ngFor="let _item of navItems">
                         <ng-container *ngIf="_item | mapper:_showMenu">
-                            <li class="position-relative" [ngClass]="{ 'js-collapsed-desktop': _sideBarCollapsed && desktop, 'js-expanded-mobile': _sideBarCollapsed && !desktop, 'js-mobile': mobile, 'expanded': (_item.expanded && mobile) || _forceMenuOpen, 'force-menu-open': _forceMenuOpen }" [appRouterLinkMatch]="{ 'active': _item.path + '' }" appFlyOut [contextMenu]="contextualMenuNav" [contextMenuSubject]="_item">
+                            <li class="position-relative" [ngClass]="{ 'js-collapsed-desktop': _sideBarCollapsed && desktop, 'js-expanded-mobile': _sideBarCollapsed && !desktop, 'js-mobile': mobile, 'expanded': (_item.expanded && mobile) || _forceMenuOpen, 'force-menu-open': _forceMenuOpen }" [appRouterLinkMatch]="{ 'active': _item.path + '' }" appFlyOut>
                                 <ng-container [ngSwitch]="sidebarNavHelper.itemType(_item)">
                                     <ng-container *ngSwitchCase="'divider'">
                                         <a class="divider"></a>
@@ -56,7 +56,7 @@
                                             </li>
                                             <li class="divider fly-out-top-item"></li>
                                             <ng-container *ngFor="let _subItem of _item.children">
-                                                <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" [contextMenu]="contextualMenuNav" [contextMenuSubject]="_subItem" *ngIf="_subItem | mapper:_showMenu">
+                                                <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
                                                     <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="_onClickMenu($event, _subItem)">
                                                         <!-- <span class="nav-icon-container">
                                                         <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
@@ -93,12 +93,12 @@
                 <div class="about-area" *ngIf="_showAboutMiniBox && !_sideBarCollapsed">
                     <app-about-mini-box></app-about-mini-box>
                 </div>
-                <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed" *ngIf="_showVersion">
+                <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed" *ngIf="_showVersion || _showAbout">
                     <ul class="sidebar-top-level-items mb-0">
                         <li class="" appFlyOut>
-                            <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="showInfo()">
-                                <span class="nav-icon-container" *ngIf="_showAbout || _sideBarCollapsed"><i class="bi bi-info-circle"></i></span>
-                                <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed">{{ 'v.' | translate }} {{ version }}</span>
+                            <a class="gl-link cursor-pointer d-flex gap-2" (click)="showInfo()">
+                                <span class="nav-icon-container mr-0" *ngIf="_showAbout"><i class="bi bi-info-circle"></i></span>
+                                <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed && _showVersion">{{ 'v.' | translate }} {{ version }}</span>
                             </a>
                             <ul class="sidebar-sub-level-items">
                                 <li class="fly-out-top-item">

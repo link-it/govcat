@@ -1,11 +1,11 @@
 .row-content-block {
   margin-top: 0;
-  background-color: #fafafa;
+  background-color: var(--row-content-block-background-color, #fafafa);
   padding: 16px;
   margin-bottom: 0;
-  border-top: 1px solid #eaeaea;
-  border-bottom: 1px solid #eaeaea;
-  color: #303030;
+  border-top: 1px solid var(--row-content-block-border-color, #eaeaea);
+  border-bottom: 1px solid var(--row-content-block-border-color, #eaeaea);
+  color: var(--row-content-block-color, #303030);
 }
 
 .row-content-block.oneline-block {

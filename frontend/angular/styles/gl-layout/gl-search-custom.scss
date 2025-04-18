@@ -1,0 +1,59 @@
+.custom-search-token {
+
+  .gl-filtered-search-token {
+    
+    .gl-button.gl-button.btn-icon.btn-sm {
+      padding: 0.25rem;
+    }
+  
+    .gl-filtered-search-token-segment {
+
+      
+      .gl-token {
+
+        &.gl-token-view-only {
+          padding-right: 0.5rem;
+        }
+
+        &.gl-filtered-search-token-type {
+          background-color: #f0f0f0;
+          margin-right: 0px;
+          padding-right: 0.1rem !important;
+        }
+      
+        &.gl-filtered-search-token-operator {
+          background-color: #f0f0f0;
+          margin-right: 0px;
+          padding-right: 0.1rem !important;
+        }
+      
+        &.gl-filtered-search-token-data {
+          background-color: #f0f0f0;
+        }
+      }
+    }
+
+    &:hover {
+      .gl-filtered-search-token-segment {
+        .gl-token {
+
+          &.gl-token-view-only {
+            background-color: #bfbfbf;
+          }
+  
+          &.gl-filtered-search-token-type {
+            background-color: #dbdbdb;
+          }
+
+          &.gl-filtered-search-token-operator {
+            background-color: #dbdbdb;
+          }
+
+          &.gl-filtered-search-token-data {
+            background-color: #dbdbdb;
+          }
+        }
+      }
+    }
+  }
+}
