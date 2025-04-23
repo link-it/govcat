@@ -373,6 +373,7 @@ create sequence seq_utenti start with 1 increment by 1;
        id bigint not null,
         package boolean not null,
         adesione_consentita boolean,
+        adesione_disabilitata boolean,
         data_creazione timestamp,
         data_ultima_modifica timestamp,
         descrizione varchar(4000),

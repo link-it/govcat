@@ -42,8 +42,8 @@ public class ReferenteDominioSpecification implements Specification<ReferenteDom
 	private static final long serialVersionUID = 1L;
 
 	private Optional<String> q = Optional.empty();
-	private Optional<UUID> idDominio = Optional.empty();
-	private Optional<UUID> idUtente = Optional.empty();
+	private Optional<String> idDominio = Optional.empty();
+	private Optional<String> idUtente = Optional.empty();
 	private Optional<TIPO_REFERENTE> tipoReferente = Optional.empty();
 	
 
@@ -95,11 +95,11 @@ public class ReferenteDominioSpecification implements Specification<ReferenteDom
 		this.q = q;
 	}
 
-	public Optional<UUID> getIdDominio() {
+	public Optional<String> getIdDominio() {
 		return idDominio;
 	}
 
-	public void setIdDominio(Optional<UUID> idDominio) {
+	public void setIdDominio(Optional<String> idDominio) {
 		this.idDominio = idDominio;
 	}
 
@@ -115,11 +115,11 @@ public class ReferenteDominioSpecification implements Specification<ReferenteDom
 		return serialVersionUID;
 	}
 
-	public Optional<UUID> getIdUtente() {
+	public Optional<String> getIdUtente() {
 		return idUtente;
 	}
 
-	public void setIdUtente(Optional<UUID> idUtente) {
+	public void setIdUtente(Optional<String> idUtente) {
 		this.idUtente = idUtente;
 	}
 

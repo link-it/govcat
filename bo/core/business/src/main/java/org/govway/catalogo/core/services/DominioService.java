@@ -82,8 +82,8 @@ public class DominioService extends AbstractService {
 	public List<ReferenteDominioEntity> getReferenteDominio(UUID idDominio, UUID idUtente, TIPO_REFERENTE tipo) {
 		
 		ReferenteDominioSpecification spec = new ReferenteDominioSpecification();
-		spec.setIdDominio(Optional.of(idDominio));
-		spec.setIdUtente(Optional.of(idUtente));
+		spec.setIdDominio(Optional.of(idDominio.toString()));
+		spec.setIdUtente(Optional.of(idUtente.toString()));
 		spec.setTipoReferente(Optional.ofNullable(tipo));
 		
 		List<ReferenteDominioEntity> findAll = this.referenteDominioRepo.findAll(spec);

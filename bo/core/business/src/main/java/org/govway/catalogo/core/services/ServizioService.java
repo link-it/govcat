@@ -137,8 +137,8 @@ public class ServizioService extends AbstractService {
 	public List<ReferenteServizioEntity> getReferenteServizio(UUID idServizio, UUID idUtente, TIPO_REFERENTE tipo) {
 		
 		ReferenteServizioSpecification spec = new ReferenteServizioSpecification();
-		spec.setIdServizio(Optional.of(idServizio));
-		spec.setIdUtente(Optional.of(idUtente));
+		spec.setIdServizio(Optional.of(idServizio.toString()));
+		spec.setIdUtente(Optional.of(idUtente.toString()));
 		spec.setTipoReferente(Optional.ofNullable(tipo));
 		
 		List<ReferenteServizioEntity> findAll = this.referenteServizioRepo.findAll(spec);

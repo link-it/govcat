@@ -397,7 +397,7 @@ public class DominiController implements DominiApi {
 	
 				ReferenteDominioSpecification spec = new ReferenteDominioSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				spec.setIdDominio(Optional.of(idDominio));
+				spec.setIdDominio(Optional.of(idDominio.toString()));
 
 				if(tipoReferente!= null) {
 					spec.setTipoReferente(Optional.of(this.referenteAssembler.toTipoReferente(tipoReferente)));

@@ -861,7 +861,7 @@ public class ServiziController implements ServiziApi {
 	
 				ReferenteServizioSpecification spec = new ReferenteServizioSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				spec.setIdServizio(Optional.of(idServizio));
+				spec.setIdServizio(Optional.of(idServizio.toString()));
 
 				if(tipoReferente!= null) {
 					spec.setTipoReferente(Optional.of(this.referenteAssembler.toTipoReferente(tipoReferente)));
