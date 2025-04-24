@@ -57,7 +57,7 @@
                                 [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
                                 [config]="config"
                             ></ui-data-type>
-                            <ui-data-type
+                            <ui-data-type *ngIf="adesione.stato_configurazione_automatica"
                                 [data]="adesione"
                                 [elem]="{ field: 'stato_configurazione_automatica', type: 'label', options: 'configuration_status', tooltip: 'messaggio_configurazione' }"
                                 [config]="config"
