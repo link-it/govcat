@@ -43,7 +43,7 @@ public class ReferenteAdesioneSpecification implements Specification<ReferenteAd
 
 	private Optional<String> q = Optional.empty();
 	private Optional<String> idAdesione = Optional.empty();
-	private Optional<UUID> idUtente = Optional.empty();
+	private Optional<String> idUtente = Optional.empty();
 	private Optional<TIPO_REFERENTE> tipoReferente = Optional.empty();
 	
 
@@ -115,11 +115,11 @@ public class ReferenteAdesioneSpecification implements Specification<ReferenteAd
 		return serialVersionUID;
 	}
 
-	public Optional<UUID> getIdUtente() {
+	public Optional<String> getIdUtente() {
 		return idUtente;
 	}
 
-	public void setIdUtente(Optional<UUID> idUtente) {
+	public void setIdUtente(Optional<String> idUtente) {
 		this.idUtente = idUtente;
 	}
 

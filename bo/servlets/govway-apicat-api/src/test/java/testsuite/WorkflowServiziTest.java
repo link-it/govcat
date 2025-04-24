@@ -1084,6 +1084,18 @@ public class WorkflowServiziTest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
+        upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
+        upUtente.setIdOrganizzazione(idOrganizzazione);
+        upUtente.setStato(StatoUtenteEnum.ABILITATO);
+        upUtente.setEmailAziendale("mail@aziendale.it");
+        upUtente.setTelefonoAziendale("+39 0000000");
+        upUtente.setNome("referente");
+        upUtente.setCognome("servizio");
+        upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
+        
+        upUtente = new UtenteUpdate();
         upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);

@@ -68,6 +68,7 @@ import org.govway.catalogo.servlets.model.ItemNotifica;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
+import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelItemNotifica;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
@@ -81,9 +82,11 @@ import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -299,6 +302,22 @@ public class AdesioneServizioIntegrationTest {
         organizzazione.setCodiceFiscaleSoggetto(NOME_GRUPPO);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
+        /*
+        OrganizzazioneUpdate organizzazioneUpdate = new OrganizzazioneUpdate();
+        organizzazioneUpdate.setIdSoggettoDefault(ID_UTENTE_REFERENTE_SERVIZIO);
+        organizzazioneUpdate.setNome("NomeOrganizzazione");
+        organizzazioniController.updateOrganizzazione(response.getBody().getIdOrganizzazione(), organizzazioneUpdate);
+        */
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        utenteUpdate.setNome("Cesare");
+        utenteUpdate.setCognome("Rossi");
+        utenteUpdate.setEmailAziendale("qualsiais@mail.com");
+        utenteUpdate.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
+        utenteUpdate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteUpdate.setTelefonoAziendale("0000000000");
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, utenteUpdate);
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
         assertNotNull(response.getBody().getIdOrganizzazione());
         
