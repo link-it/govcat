@@ -1245,7 +1245,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._isEdit = true;
         this._changeEdit(this._isEdit);
         this.__resetError();
-        this.utils._showMandatoryFields(this._formGroup);
+        if (this.debugMandatoryFields) { this.utils._showMandatoryFields(this._formGroup); }
     }
 
     _onClose() {

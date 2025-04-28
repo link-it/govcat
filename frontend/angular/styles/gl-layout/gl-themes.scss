@@ -15,6 +15,7 @@ body.ui-linkit .navbar-gitlab {
 
 body.ui-linkit .btn:first-child:focus,
 body.ui-linkit .btn:focus {
+  box-shadow: inset 0 0 0 1px #064787, 0 0 0 1px #fff, 0 0 0 3px #428fdc;
   color: var(--bs-btn-active-color);
   background-color: var(--bs-btn-active-bg);
   border-color: var(--bs-btn-active-border-color);
@@ -41,5 +42,15 @@ body.ui-indigo .navbar-gitlab {
 
 .gl-button.gl-button.btn-block.btn-confirm:focus,
 .gl-button.gl-button.btn-confirm:focus {
-  color: var(--bs-btn-active-color, #ffffff);
+  box-shadow: inset 0 0 0 1px #064787, 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+  color: var(--bs-btn-active-color);
+  background-color: var(--bs-btn-active-bg);
+  border-color: var(--bs-btn-active-border-color);
+}
+
+.gl-button.gl-button.btn-block.btn-info:focus,
+.gl-button.gl-button.btn-info:focus {
+  box-shadow: inset 0 0 0 1px #064787, 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+  outline: none;
+  background-color: inherit;
 }
