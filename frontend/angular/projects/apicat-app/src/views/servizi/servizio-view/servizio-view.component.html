@@ -10,7 +10,7 @@
       </div> -->
       <app-monitor-dropdown *ngIf="_updateData | mapper:_canManagementComunicazioniMapper"
         [showComunications]="_updateData | mapper:_canManagementComunicazioniMapper"
-        [showMonitoring]="(_updateData | mapper:_canManagementMapper) && (_updateData | mapper:_canJoinMapper)"
+        [showMonitoring]="(_updateData | mapper:_canManagementMapper) && (_updateData | mapper:_canJoinMapper) && (_updateData | mapper:_canMonitoraggioMapper)"
         [showManagement]="_updateData | mapper:_canManagementMapper"
         [returnWeb]="false"
         (action)="onActionMonitor($event)">

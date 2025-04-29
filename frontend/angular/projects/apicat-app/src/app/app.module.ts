@@ -24,6 +24,7 @@ import { AuthGuard } from '../guard/auth.guard';
 import { GestoreGuard } from '../guard/gestore.guard';
 import { ForbidAnonymousGuard } from '../guard/forbid-anonymous.guard';
 import { CategorieGuard } from '../guard/categorie.guard';
+import { MonitoraggioGuard } from '../guard/monitoraggio.guard';
 
 import { httpInterceptorProviders } from 'projects/tools/src/lib/interceptors/index';
 import { appHttpInterceptorProviders } from '@app/interceptors/index';
@@ -122,7 +123,8 @@ export function ConfigLoader(configService: ConfigService) {
     AuthGuard,
     GestoreGuard,
     ForbidAnonymousGuard,
-    CategorieGuard
+    CategorieGuard,
+    MonitoraggioGuard
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   bootstrap: [AppComponent]

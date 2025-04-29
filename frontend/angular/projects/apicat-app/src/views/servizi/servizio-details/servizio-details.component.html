@@ -7,7 +7,7 @@
                 <app-back-web [service_id]="data.id_servizio"></app-back-web>
             </div> -->
             <app-monitor-dropdown *ngIf="data"
-                [showMonitoring]="Tools.Configurazione.servizio.api.transazioni && _canJoin()"
+                [showMonitoring]="Tools.Configurazione.servizio.api.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
                 [returnWeb]="true"
                 [otherActions]="_showExternalOtherActions ? _otherActions : []"
                 (action)="onActionMonitor($event)"

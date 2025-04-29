@@ -112,8 +112,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _showMarkdown: boolean = false;
     _showMarkdownPreview: boolean = false;
 
-    _showDropdown: boolean = true;
-
     _otherLinks: any[] = [];
     _otherLinksDefault: any[] = [
         {
@@ -171,69 +169,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             buttonIcon: 'navigate_next',
             route: 'categorie',
             show: true
-        },
-        {
-            title: 'APP.SERVICES.TITLE.ShowCommunications',
-            subTitle: 'APP.SERVICES.TITLE.ShowCommunications_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
-            route: 'comunicazioni',
-            show: false
-        },
-        {
-            title: 'APP.SERVICES.TITLE.Monitoring',
-            type: 'dropdown',
-            show: false, // Tools.Configurazione.servizio.api.transazioni
-            submenu: [
-                {
-                    title: 'APP.SERVICES.TITLE.Transactions',
-                    subTitle: 'APP.SERVICES.TITLE.Transactions_sub',
-                    buttonTitle: 'APP.BUTTON.Go',
-                    buttonIcon: 'navigate_next',
-                    route: 'transazioni',
-                    show: false
-                },
-                {
-                    title: 'APP.SERVICES.TITLE.Statistics',
-                    subTitle: 'APP.SERVICES.TITLE.Statistics_sub',
-                    buttonTitle: 'APP.BUTTON.Go',
-                    buttonIcon: 'navigate_next',
-                    route: 'statistiche',
-                    show: false
-                },
-                {
-                    title: 'APP.SERVICES.TITLE.Checks',
-                    subTitle: 'APP.SERVICES.TITLE.Checks_sub',
-                    buttonTitle: 'APP.BUTTON.Go',
-                    buttonIcon: 'navigate_next',
-                    route: 'verifiche',
-                    show: false
-                }
-            ]
-        },
-        {
-            title: 'APP.SERVICES.TITLE.Transactions',
-            subTitle: 'APP.SERVICES.TITLE.Transactions_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
-            route: 'transazioni',
-            show: Tools.Configurazione?.servizio.api.transazioni && !this._showDropdown
-        },
-        {
-            title: 'APP.SERVICES.TITLE.Statistics',
-            subTitle: 'APP.SERVICES.TITLE.Statistics_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
-            route: 'statistiche',
-            show: Tools.Configurazione?.servizio.api.transazioni && !this._showDropdown
-        },
-        {
-            title: 'APP.SERVICES.TITLE.Checks',
-            subTitle: 'APP.SERVICES.TITLE.Checks_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
-            route: 'verifiche',
-            show: Tools.Configurazione?.servizio.api.transazioni && !this._showDropdown
         }
     ];
 
@@ -468,12 +403,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return (this._isVisibilitaNull() && (!this._isNew || this.selectedDominio));
     }
 
+    _canMonitoraggioMapper = (): boolean => {
+        return this.authenticationService.canMonitoraggio(this._grant?.ruoli);
+    }
+
     _updateOtherLinks() {
         this._otherLinks = this._otherLinksDefault.filter((item: any) => {
-            if (item.route === 'transazioni') {
-                const _canJoin = this._canJoin();
-                return this.authenticationService.canMonitoraggio(this._grant?.ruoli) && _canJoin;
-            }
             if (item.route === 'categorie') {
                 const _taxonomiesRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
                 const _showTaxonomies = _taxonomiesRemoteConfig?.tassonomie_abilitate || false;

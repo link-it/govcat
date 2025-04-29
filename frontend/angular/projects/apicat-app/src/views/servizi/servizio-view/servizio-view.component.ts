@@ -648,7 +648,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _canManagement = this.authenticationService.canManagement('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
         const _isPackage = this.data && this.data.package || false;
         const _isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
+        const _canMonitoraggio = this.authenticationService.canMonitoraggio(this._grant?.ruoli);
         return _isPackage ? _isGestore : _canManagement;
+    }
+
+    _canMonitoraggioMapper = (): boolean => {
+        return this.authenticationService.canMonitoraggio(this._grant?.ruoli);
     }
 
     _canManagementComunicazioniMapper = (): boolean => {
