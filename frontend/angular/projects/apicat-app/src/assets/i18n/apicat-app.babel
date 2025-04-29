@@ -9371,6 +9371,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>GruppoPadre</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>help_desk</name>
 										<description/>
 										<comment/>
@@ -11272,6 +11287,21 @@
 									</concept_node>
 									<concept_node>
 										<name>Role</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>RootGroup</name>
 										<description/>
 										<comment/>
 										<translations>
