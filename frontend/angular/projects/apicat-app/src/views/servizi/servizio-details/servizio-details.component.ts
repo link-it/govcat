@@ -832,20 +832,20 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         }
     }
 
-    _confirmDelection(data: any) {
+    _confirmDelection(data: any = null) {
         this.utils._confirmDelection(data, this.__deleteService.bind(this));
     }
 
     __deleteService() {
-        this.apiService.deleteElement(this.model, this.data.id_servizio).subscribe(
-            (response) => {
-                this.save.emit({ id: this.id, service: response, update: false });
+        this.apiService.deleteElement(this.model, this.data.id_servizio).subscribe({
+            next: (response) => {
+                this.router.navigate([this.model], { relativeTo: this.route });
             },
-            (error) => {
+            error: (error) => {
                 this._error = true;
                 this._errorMsg = Tools.GetErrorMsg(error);
             }
-        );
+        });
     }
 
     trackByFn(item: any) {
@@ -936,6 +936,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                 }
                                 this._enableDisableSkipCollaudo(this.data.dominio);
                             }
+                            this._showDeleteActions = this.data.eliminabile || false;
                         },
                         error: (error: any) => {
                             Tools.OnError(error);

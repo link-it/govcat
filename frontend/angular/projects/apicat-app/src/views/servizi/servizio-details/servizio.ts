@@ -33,6 +33,7 @@ export class Servizio {
     id_dominio: string | null = null;
     visibilita: string | null = null;
     multi_adesione: boolean = false;
+    eliminabile: boolean = false;
 
     id_gruppo: string | null = null;
     descrizione: string | null = null;
