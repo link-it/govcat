@@ -707,7 +707,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                         this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
                     }
                 }
-                this.onChangeCredenziali(this._currClient ? null : SelectedClientEnum.NuovoCliente);
+                this.onChangeCredenziali(this._currClient?.id_client ? null : SelectedClientEnum.NuovoCliente);
             },
             error: (error: any) => {
                 this._setErrorMessages(true);
