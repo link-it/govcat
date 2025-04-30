@@ -1745,6 +1745,7 @@ paths:
       - $ref: "#/components/parameters/id_servizio_query_optional_multi"
       - $ref: "#/components/parameters/package_query_optional"
       - $ref: "#/components/parameters/tipo_servizio_query_optional"
+      - $ref: "#/components/parameters/profili_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -10018,6 +10019,18 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/IdErogazione"
+    profili_query_optional:
+      name: profili
+      in: query
+      description: Filtra i servizi per uno o più profili
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+        example: ["profiloA", "profiloB"]
+      style: form
+      explode: true
   responses:
     "201Created":
       description: "Resource created"

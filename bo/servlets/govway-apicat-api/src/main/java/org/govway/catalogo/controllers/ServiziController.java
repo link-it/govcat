@@ -32,6 +32,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.AllegatoServizioAssembler;
 import org.govway.catalogo.assembler.CategoriaServizioItemAssembler;
@@ -63,6 +66,8 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
+import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
@@ -1061,9 +1066,27 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+	public static Specification<ServizioEntity> hasAuthTypeWithProfili(List<String> profili) {
+	    return (root, query, builder) -> {
+	        
+	        query.distinct(true);
+
+	        // root: ServizioEntity
+	        // join a ApiEntity (servizio.api)
+	        Join<ServizioEntity, ApiEntity> apiJoin = root.join("api", JoinType.INNER);
+
+	        // join a AuthTypeEntity (api.authType)
+	        Join<ApiEntity, AuthTypeEntity> authTypeJoin = apiJoin.join("authType", JoinType.INNER);
+
+	        // filtro su authType.profilo in (profili)
+	        return authTypeJoin.get("profilo").in(profili);
+	    };
+	}
+
+	
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi, Boolean adesioneConsentita,String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi, Boolean adesioneConsentita,String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, List<String> profili, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			return this.service.runTransaction( () -> {
@@ -1081,7 +1104,6 @@ public class ServiziController implements ServiziApi {
 				specification.set_package(Optional.ofNullable(_package));
 				specification.setNome(Optional.ofNullable(nome));
 				specification.setVersione(Optional.ofNullable(versione));
-
 
 				specification.setGruppoList(getGruppi(idGruppo));
 				
@@ -1158,6 +1180,10 @@ public class ServiziController implements ServiziApi {
 					realSpecification = specification;
 				}
 
+				if(profili != null && !profili.isEmpty()) {
+					realSpecification = realSpecification.and(hasAuthTypeWithProfili(profili));
+				}
+				
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome","versione"));
 
 				Page<ServizioEntity> findAll = this.service.findAll(

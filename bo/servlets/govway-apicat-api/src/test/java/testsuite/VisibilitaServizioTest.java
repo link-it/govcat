@@ -536,7 +536,7 @@ public class VisibilitaServizioTest {
     	
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
     	
-        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente GESTORE in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -544,7 +544,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Servizio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -552,7 +552,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Tecnico Servizio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -560,7 +560,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Dominio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -568,7 +568,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Tecnico Dominio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -592,7 +592,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_SERVIZIO, securityContext, authentication, utenteService);
         
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Richiedente Servizio quando in stato COLLAUDO
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -600,7 +600,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un utente qualsiasi quando in stato COLLAUDO
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -619,7 +619,7 @@ public class VisibilitaServizioTest {
     	
         CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
     	
-        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente GESTORE in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -627,7 +627,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Servizio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -635,7 +635,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Tecnico Servizio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -643,7 +643,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Dominio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -651,7 +651,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Referente Tecnico Dominio in stato BOZZA
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -675,7 +675,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_SERVIZIO, securityContext, authentication, utenteService);
         
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //Visibile ad un Utente Richiedente Servizio quando in stato COLLAUDO
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));
@@ -683,7 +683,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
     	
-        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //NON Visibile ad un utente qualsiasi
         assertTrue(listServizi.getBody().getContent().isEmpty());
     }
@@ -693,7 +693,7 @@ public class VisibilitaServizioTest {
 
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI_APPARTENENTE_CLASSE_UTENTI, securityContext, authentication, utenteService);
     	
-        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, dominio.getIdDominio(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         
         assertNotNull(listServizi.getBody().getContent().get(0));
         assertTrue(listServizi.getBody().getContent().stream().anyMatch(o -> o.getNome().equals(CommonUtils.NOME_SERVIZIO)));

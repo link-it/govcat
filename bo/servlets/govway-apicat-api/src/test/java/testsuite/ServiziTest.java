@@ -1486,7 +1486,7 @@ public class ServiziTest {
         Servizio servizio = this.getServizio();
 
         // Invocazione del metodo listServizi senza filtri
-        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1537,7 +1537,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1561,7 +1561,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1588,7 +1588,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1611,7 +1611,7 @@ public class ServiziTest {
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
         	// Invocazione del metodo listServizi con filtri
             ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-                null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
+                null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
             );
 
             // Verifica del successo
@@ -1629,7 +1629,7 @@ public class ServiziTest {
 
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, nomeServizio, null, null, null, null, null, 0, 10, null
+            null, idDominio, null, null, null, null, null, null, false, false, null, nomeServizio, null, null, null, null, null, null, 0, 10, null
         );
 
         // Verifica del successo
@@ -3535,5 +3535,150 @@ public class ServiziTest {
 	    String expectedMessage = "Servizio con id [" + idPackage + "] non trovato";
 	    assertTrue(exception.getMessage().contains(expectedMessage));
 	}
+
+    private API getAPIProfilo(String nomeAPI, UUID id_servizio, String profilo) {
+    	APICreate apiCreate = CommonUtils.getAPICreate();
+    	apiCreate.setNome(nomeAPI);
+        apiCreate.setIdServizio(id_servizio);
+        apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+        
+        APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+        
+        DocumentoCreate documento = new DocumentoCreate();
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
+        
+        apiDatiAmbienteCreate.setSpecifica(documento);
+        
+        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+        apiDatiErogazione.setNomeGateway("APIGateway");
+        apiDatiErogazione.setVersioneGateway(1);
+        apiDatiErogazione.setUrlPrefix("http://");
+        apiDatiErogazione.setUrl("testurl.com/test");
+        
+        apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+        
+        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreate);
+
+        List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
+        
+        AuthTypeApiResource authType = new AuthTypeApiResource();
+        authType.setProfilo(profilo);
+        
+        List<String> risorse = new ArrayList<String>();
+        risorse.add("risorsa1");
+        authType.setResources(risorse);
+        
+        List<AuthTypeApiResourceProprietaCustom> proprietaCustom = new ArrayList<AuthTypeApiResourceProprietaCustom>();
+        
+        AuthTypeApiResourceProprietaCustom autResource = new AuthTypeApiResourceProprietaCustom();
+        autResource.setNome("custom resorce");
+        autResource.setValore("56");
+        
+        proprietaCustom.add(autResource);
+        
+        gruppiAuthType.add(authType);
+        
+        apiCreate.setGruppiAuthType(gruppiAuthType);
+        
+        ResponseEntity<API> response = apiController.createApi(apiCreate);
+        
+        return response.getBody();
+    }
+	
+    private static final String PROFILO1 = "MODI_P1";
+    private static final String PROFILO2 = "MODI_P2";
+    private static final String PROFILO3 = "MODI_P3";
+    private static final String PROFILO4 = "INTERNO_NO_DATI";
+    
+	private void getMultiServiziMultiProfili() {
+    	Dominio dominio = this.getDominio();
+    	
+    	this.setIdDominio(dominio.getIdDominio());
+    	
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setNome(NOME_SERVIZIO_1);
+
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+    	
+    	servizioCreate.setVersione("3");
+
+    	if (immagine.getContent() != null) {
+    		servizioCreate.setImmagine(immagine);
+    	}
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> servizio1 = serviziController.createServizio(servizioCreate);
+    	this.getAPIProfilo("api1", servizio1.getBody().getIdServizio(), PROFILO1);
+    	this.getAPIProfilo("api2", servizio1.getBody().getIdServizio(), PROFILO2);
+    	
+    	//Creo un secondo servizio
+    	servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setNome(NOME_SERVIZIO_2);
+    	
+    	servizioCreate.setVersione("11");
+
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	servizioCreate.setReferenti(referenti);
+    	
+    	ResponseEntity<Servizio> servizio2 = serviziController.createServizio(servizioCreate);
+    	this.getAPIProfilo("api3", servizio2.getBody().getIdServizio(), PROFILO4);
+    	
+    	//Creo un terzo servizio
+    	servizioCreate = CommonUtils.getServizioCreate();
+    	servizioCreate.setNome(NOME_SERVIZIO_3);
+    	
+    	servizioCreate.setVersione("2");
+
+    	servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> servizio3 = serviziController.createServizio(servizioCreate);
+    	this.getAPIProfilo("api4", servizio2.getBody().getIdServizio(), PROFILO3);
+    }
+	
+	@Test
+    void testListServiziProfiliMultipliSuccess() {
+        this.getMultiServiziMultiProfili();
+        
+        List<String> profili = new ArrayList<String>();
+        profili.add(PROFILO1);
+        profili.add(PROFILO4);
+        
+        // Invocazione del metodo listServizi senza filtri
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, profili, null, 0, 10, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().getContent().isEmpty());
+
+        // Verifica che il servizio sia presente nell'elenco
+        List<ItemServizio> servizi = response.getBody().getContent();
+        //System.out.println(servizi);
+        assertTrue(servizi.stream().anyMatch(s -> s.getNome().equals(NOME_SERVIZIO_1)));
+        assertTrue(servizi.stream().anyMatch(s -> s.getNome().equals(NOME_SERVIZIO_2)));
+        assertFalse(servizi.stream().anyMatch(s -> s.getNome().equals(NOME_SERVIZIO_3)));
+        //System.out.println(servizi);
+    }
 }
 
