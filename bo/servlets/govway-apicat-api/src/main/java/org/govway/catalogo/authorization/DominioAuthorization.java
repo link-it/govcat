@@ -25,4 +25,18 @@ import org.govway.catalogo.servlets.model.DominioUpdate;
 
 public class DominioAuthorization extends DefaultAuthorization<DominioCreate,DominioUpdate,DominioEntity> {
 
+	@Override
+	public void authorizeCreate(DominioCreate create) {
+		authorizeWrite(EntitaEnum.DOMINIO);
+	}
+	
+	@Override
+	public void authorizeUpdate(DominioUpdate update, DominioEntity entity) {
+		authorizeWrite(EntitaEnum.DOMINIO);
+	}
+	
+	@Override
+	public void authorizeDelete(DominioEntity entity) {
+		authorizeWrite(EntitaEnum.DOMINIO);
+	}
 }

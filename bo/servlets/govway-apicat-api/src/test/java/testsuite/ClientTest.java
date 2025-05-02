@@ -25,6 +25,7 @@ import org.govway.catalogo.controllers.AdesioniController;
 import org.govway.catalogo.controllers.ClientController;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.dao.repositories.ClientRepository;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
@@ -50,11 +51,14 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemClient;
 import org.govway.catalogo.servlets.model.RateLimiting;
 import org.govway.catalogo.servlets.model.RateLimitingPeriodoEnum;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
 import org.govway.catalogo.servlets.model.StatoClientUpdate;
 import org.govway.catalogo.servlets.model.TipoCertificatoEnum;
+import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -615,5 +619,67 @@ public class ClientTest {
         assertEquals("Allegato [" + idAllegatoNonEsistente + "] non trovato", exception.getMessage());
     }
 
+    @Autowired
+    UtentiController utentiController;
+    
+    @Test
+    public void testCreateDeleteClientReferenteServizioSuccess() {
+        OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(organizzazioneCreate);
+        assertNotNull(responseOrganizzazione.getBody());
+
+        SoggettoCreate soggettoCreate = CommonUtils.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        ClientCreate clientCreate = CommonUtils.getClientCreate();
+        clientCreate.setIdSoggetto(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Client> responseClient = clientController.createClient(clientCreate);
+        assertNotNull(responseClient.getBody());
+
+        ResponseEntity<Void> responseDelete = clientController.deleteClient(responseClient.getBody().getIdClient());
+
+        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
+    }
+    
+    @Test
+    public void testCreateClientCoordinatoreError() {
+        OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(organizzazioneCreate);
+        assertNotNull(responseOrganizzazione.getBody());
+
+        SoggettoCreate soggettoCreate = CommonUtils.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        ClientCreate clientCreate = CommonUtils.getClientCreate();
+        clientCreate.setIdSoggetto(responseSoggetto.getBody().getIdSoggetto());
+        
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	clientController.createClient(clientCreate);
+    	});
+
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+    }
 }
 

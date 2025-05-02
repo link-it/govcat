@@ -1,4 +1,75 @@
 {
+"amministrazione": {
+    "gruppi": {
+      "lettura": [
+        "gestore"
+      ],
+      "scrittura": [
+        "gestore",
+        "referente_servizio"
+      ]
+    },
+    "domini": {
+      "lettura": [
+        "gestore", 
+        "coordinatore"
+      ],
+      "scrittura": [
+        "gestore", 
+        "coordinatore"
+      ]
+    },
+    "organizzazioni": {
+      "lettura": [
+        "gestore", 
+        "coordinatore"
+      ],
+      "scrittura": [
+        "gestore", 
+        "referente_servizio"
+      ]
+    },
+    "soggetti": {
+      "lettura": [
+        "gestore", 
+        "coordinatore"
+      ],
+      "scrittura": [
+        "gestore", 
+        "coordinatore"
+      ]
+    },
+    "client": {
+      "lettura": [
+        "gestore", 
+        "coordinatore"
+      ],
+      "scrittura": [
+        "gestore", 
+        "referente_servizio"
+      ]
+    },
+    "utenti": {
+      "lettura": [
+        "gestore", 
+        "coordinatore"
+      ],
+      "scrittura": [
+        "gestore", 
+        "coordinatore"
+      ]
+    },
+    "classi_utente": {
+      "lettura": [
+        "gestore", 
+        "coordinatore"
+      ],
+      "scrittura": [
+        "gestore", 
+        "referente_servizio"
+      ]
+    }
+  },
   "dashboard": {
     "abilitato": false,
         "periodi": {

@@ -39,4 +39,20 @@ public class GruppoAuthorization extends DefaultAuthorization<GruppoCreate,Grupp
 		}
 	}
 
+	@Override
+	public void authorizeCreate(GruppoCreate create) {
+		authorizeWrite(EntitaEnum.GRUPPO);
+	}
+
+	@Override
+	public void authorizeUpdate(GruppoUpdate update, GruppoEntity entity) {
+		authorizeWrite(EntitaEnum.GRUPPO);
+	}
+
+	@Override
+	public void authorizeDelete(GruppoEntity entity) {
+		System.out.println("TEST");
+		authorizeWrite(EntitaEnum.GRUPPO);
+	}
+	
 }

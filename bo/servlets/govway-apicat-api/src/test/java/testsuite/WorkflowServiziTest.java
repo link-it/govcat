@@ -390,6 +390,26 @@ public class WorkflowServiziTest {
 	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
+	    
+	    
+	    /*
+	    UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+	    
+        assertThrows(NotAuthorizedException.class, ()->{
+	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
+	    	statoServizioUpdaten.setStato("autorizzato_collaudo");
+		    statoServizioUpdaten.setCommento("autorizzato collaudo");
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
+        */
+        
+        
+	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
 
 	    assertThrows(NotAuthorizedException.class, ()->{

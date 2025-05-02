@@ -24,5 +24,18 @@ import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.SoggettoUpdate;
 
 public class SoggettoAuthorization extends DefaultAuthorization<SoggettoCreate,SoggettoUpdate,SoggettoEntity> {
+	@Override
+	public void authorizeCreate(SoggettoCreate create) {
+		authorizeWrite(EntitaEnum.SOGGETTO);
+	}
 
+	@Override
+	public void authorizeUpdate(SoggettoUpdate update, SoggettoEntity entity) {
+		authorizeWrite(EntitaEnum.SOGGETTO);
+	}
+
+	@Override
+	public void authorizeDelete(SoggettoEntity entity) {
+		authorizeWrite(EntitaEnum.SOGGETTO);
+	}
 }

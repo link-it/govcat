@@ -19,7 +19,13 @@
  */
 package org.govway.catalogo.authorization;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
+import org.govway.catalogo.servlets.model.AccessoAmministrazioneItem;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAuthorization<CREATE,UPDATE,ENTITY> {
@@ -29,6 +35,109 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 	
 	@Autowired
 	protected Configurazione configurazione;
+
+	public enum EntitaEnum {GRUPPO, DOMINIO, CLIENT, SOGGETTO, ORGANIZZAZIONE, UTENTE, CLASSE_UTENTE}
+
+	protected void authorizeRead(EntitaEnum entita) {
+		if(this.configurazione.getAmministrazione() == null) {
+			coreAuthorization.requireAdmin();
+		}
+		
+		switch(entita) {
+			case CLASSE_UTENTE: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
+				break;
+			case CLIENT: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClient());
+				break;
+			case DOMINIO: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getDomini());
+				break;
+			case GRUPPO: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getGruppi());
+				break;
+			case ORGANIZZAZIONE: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getOrganizzazioni());
+				break;
+			case SOGGETTO: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getSoggetti());
+				break;
+			case UTENTE: 
+				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getUtenti());
+				break;
+		}
+		coreAuthorization.requireAdmin();
+	}
+	
+	private void authorize(boolean read,
+			AccessoAmministrazioneItem specifico) {
+
+		if(specifico == null) {
+			coreAuthorization.requireAdmin();
+		}
+		
+		if(read) {
+			authorizeContains(specifico.getLettura(), this.coreAuthorization.getUtenteSessione().getRuolo());
+		} else {
+			authorizeContains(specifico.getScrittura(), this.coreAuthorization.getUtenteSessione().getRuolo());
+		}
+	}
+	
+	private void authorizeContains(List<RuoloUtenteEnum> scrittura, Ruolo ruolo) {
+		//check che scrittura contenga il ruolo, attenzione alla conversione tra tipi
+		if (scrittura == null || ruolo == null) {
+			coreAuthorization.requireAdmin();
+		}
+
+		RuoloUtenteEnum ruoloUtenteEnum;
+		if(ruolo.name() == "AMMINISTRATORE")
+			ruoloUtenteEnum = RuoloUtenteEnum.GESTORE;
+		else
+			ruoloUtenteEnum = RuoloUtenteEnum.valueOf(ruolo.name());
+		if (!scrittura.contains(ruoloUtenteEnum)) {
+			coreAuthorization.requireAdmin();
+		}
+		return;
+	}
+
+	private void authorizeRead(AccessoAmministrazioneItem generale,
+			AccessoAmministrazioneItem specifico) {
+		authorize(true, Optional.ofNullable(generale).orElse(specifico));
+	}
+
+	private void authorizeWrite(AccessoAmministrazioneItem generale,
+			AccessoAmministrazioneItem specifico) {
+		authorize(false, Optional.ofNullable(generale).orElse(specifico));
+	}
+
+	protected boolean authorizeWrite(EntitaEnum entita) {
+		if(this.configurazione.getAmministrazione() == null)
+			return coreAuthorization.isAdmin();
+		switch(entita) {
+			case CLASSE_UTENTE: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
+				break;
+			case CLIENT: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClient());
+				break;
+			case DOMINIO: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getDomini());
+				break;
+			case GRUPPO: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getGruppi());
+				break;
+			case ORGANIZZAZIONE: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getOrganizzazioni());
+				break;
+			case SOGGETTO: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getSoggetti());
+				break;
+			case UTENTE: 
+				authorizeWrite(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getUtenti());
+				break;
+		}
+		return coreAuthorization.isAdmin();	
+	}
 	
 	@Override
 	public void authorizeCreate(CREATE create) {
