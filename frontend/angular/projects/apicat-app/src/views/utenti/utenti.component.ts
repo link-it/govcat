@@ -17,6 +17,7 @@ import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Page} from '../../models/page';
+import { Ruolo, Stato } from './utente-details/utente';
 
 @Component({
   selector: 'app-utenti',
@@ -72,12 +73,22 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     this._enabledEnum =  { ...this._enabledEnum, [item.value]: item.label};
     return item;
   });
+  _roleEnum: any = {};
+  _tempRole = Object.values(Ruolo).map((value: any) => {
+    this._roleEnum =  { ...this._roleEnum, [value]: `APP.USERS.ROLES.${value}`};
+    return value;
+  });
+  _statoEnum: any = {};
+  _tempStato = Object.values(Stato).map((value: any) => {
+    this._statoEnum =  { ...this._statoEnum, [value]: `APP.USERS.STATUS.${value}`};
+    return value;
+  });
 
   searchFields: any[] = [
     { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'string', condition: 'like' },
     { field: 'email', label: 'APP.LABEL.email', type: 'string', condition: 'like' },
-    { field: 'ruolo', label: 'APP.LABEL.Role', type: 'string', condition: 'like' },
-    { field: 'stato', label: 'APP.LABEL.Status', type: 'string', condition: 'like' },
+    { field: 'ruolo', label: 'APP.LABEL.Role', type: 'enum', condition: 'equal', enumValues: this._roleEnum },
+    { field: 'stato', label: 'APP.LABEL.Status', type: 'enum', condition: 'equal', enumValues: this._statoEnum },
     { field: 'principal', label: 'APP.USERS.LABEL.Principal', type: 'string', condition: 'like' },
     { field: 'id_organizzazione', label: 'APP.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' } },
     { field: 'classe_utente', label: 'APP.LABEL.classi', type: 'array', condition: 'contain', params: { resource: 'classi-utente', field: 'nome' } },
@@ -128,8 +139,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   ngOnInit() {
-    this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
-    this._ruoloArr = [ 'nessun_ruolo', 'referente_servizio', 'gestore' ];
+    this._statoArr = Object.values(Stato);
+    this._ruoloArr = Object.values(Ruolo);
 
     this.configService.getConfig(this.model).subscribe(
       (config: any) => {

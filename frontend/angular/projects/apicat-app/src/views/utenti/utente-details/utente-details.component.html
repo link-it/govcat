@@ -296,7 +296,7 @@
                   </label>
                   <div class="" *ngIf="_isEdit">
                     <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_changeRuolo($event)">
-                      <option *ngFor="let stato of _statoArr" [value]="stato">{{ stato }}</option>
+                      <option *ngFor="let stato of _statoArr" [value]="stato">{{'APP.USERS.STATUS.' + stato | translate }}</option>
                     </select>  
                     <p *ngIf="f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)" class="form-text text-danger">
                       <span *ngIf="f['stato'].errors && f['stato'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>

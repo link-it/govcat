@@ -1780,8 +1780,9 @@
 				"Username": "Username"
 			},
 			"ROLES": {
+				"coordinatore": "Coordinatore",
 				"gestore": "Gestore",
-				"nessun_ruolo": "--",
+				"nessun_ruolo": "Nessun ruolo",
 				"referente_servizio": "Referente servizio"
 			},
 			"STATUS": {

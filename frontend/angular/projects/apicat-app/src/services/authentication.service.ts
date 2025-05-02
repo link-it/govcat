@@ -19,6 +19,10 @@ export const PERMISSIONS: any = {
     { name: 'SERVIZI', view: true, edit: true, create: true, delete: true },
     { name: 'ADESIONI', view: true, edit: true, create: true, delete: true },
   ],
+  "coordinatore": [
+    { name: 'SERVIZI', view: true, edit: true, create: true, delete: true },
+    { name: 'ADESIONI', view: true, edit: true, create: true, delete: true },
+  ],
   // RTD
   "referente-tecnico-dominio": [
     { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },

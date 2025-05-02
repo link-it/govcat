@@ -14,7 +14,7 @@ import { FieldClass } from 'projects/components/src/lib/classes/definitions';
 
 import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
 
-import { Utente } from './utente';
+import { Utente, Ruolo, Stato } from './utente';
 
 import { concat, from, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -111,8 +111,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   ngOnInit() {
-    this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
-    this._ruoloArr = [ 'nessun_ruolo','referente_servizio', 'gestore' ];
+    this._statoArr = Object.values(Stato);
+    this._ruoloArr = Object.values(Ruolo); // [ 'nessun_ruolo','referente_servizio', 'gestore' ];
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -128,7 +128,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._isNew = true;
         this._isEdit = true;
 
-        this._statoArr = [ 'abilitato', 'disabilitato' ];
+        this._statoArr = Object.values(Stato).slice(1);
 
         this._initBreadcrumb();
 
@@ -235,10 +235,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._formGroup.updateValueAndValidity();
       } 
 
-      if(this._utente.stato == 'non configurato') {
-        this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
+      if (this._utente.stato === Stato.NON_CONFIGURATO) {
+        this._statoArr = Object.values(Stato);
       } else {
-        this._statoArr = [ 'abilitato', 'disabilitato' ];
+        this._statoArr = Object.values(Stato).slice(1);
       }
     }
   }
@@ -313,7 +313,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     }
     const _newBody: any = {
       ...body,
-      ruolo: (body.ruolo == 'nessun_ruolo') ? null : body.ruolo,
+      ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
       classi_utente: _classi
     };
     delete _newBody.organizzazione;
@@ -375,7 +375,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
           this.utente.ruolo = this._checkRuolo(response);
           this._utente.ruolo = this._checkRuolo(response);
-          // this._utente.ruolo = response?.ruolo || 'nessun_ruolo';
+          // this._utente.ruolo = response?.ruolo || Ruolo.NESSUN_RUOLO;
           
           const aux: any = {
             id_classe_utente: this.utente.classi_utente?.id_classe_utente || null,
@@ -565,7 +565,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     organizationFormControl.updateValueAndValidity();
   }
 
-  _checkRuolo(data: any) : string {
-    return data?.ruolo || 'nessun_ruolo';
+  _checkRuolo(data: any) : Ruolo | null {
+    return data?.ruolo || Ruolo.NESSUN_RUOLO;
   }
 }
