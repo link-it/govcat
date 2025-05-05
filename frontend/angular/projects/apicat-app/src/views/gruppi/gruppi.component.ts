@@ -15,6 +15,7 @@ import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/mo
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+import { AuthenticationService } from '@app/services/authentication.service';
 
 import { CardType } from 'projects/components/src/lib/ui/card/card.component';
 import { Page} from '../../models/page';
@@ -131,8 +132,9 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         private configService: ConfigService,
         public tools: Tools,
         private eventsManagerService: EventsManagerService,
-        public apiService: OpenAPIService,
-        public utils: UtilService
+        private apiService: OpenAPIService,
+        private utils: UtilService,
+        private authenticationService: AuthenticationService
     ) {
         this.config = this.configService.getConfiguration();
         this.apiUrl = this.config.AppConfig.GOVAPI.HOST;
@@ -248,10 +250,6 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         }
     }
 
-    _dummyAction(event: any, param: any) {
-        console.log(event, param);
-    }
-
     _onSubmit(form: any) {
         if (this.searchBarForm) {
             this.searchBarForm._onSearch();
@@ -318,8 +316,6 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
     _initEditForm(data: any = null) {
         this._isEdit = true;
-        console.log('_editCurrent', this._editCurrent);
-        console.log('_currentGroup', this._currentGroup);
         const _gruppoPadre: Gruppo | null = this._editCurrent ? this.findParentOfGroup(this.gruppi, this._editCurrent.id_gruppo) : this._currentGroup;
         const _padre = _gruppoPadre ? _gruppoPadre.id_gruppo : null;
         const _padre_label = _gruppoPadre ? _gruppoPadre.nome : this._rootName;
@@ -473,6 +469,10 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
     _getLogoMapper = (data: any): string => {
         return data?.immagine ? `${this.apiUrl}/gruppi/${data.id_gruppo}/immagine`: '';
+    }
+
+    _hasPermissioMapper = (menu: string, grant: string): boolean => {
+        return this.authenticationService.hasPermission(menu, grant);
     }
 
     modalChoiceRef!: BsModalRef;

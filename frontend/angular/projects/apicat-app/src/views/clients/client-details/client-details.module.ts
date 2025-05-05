@@ -11,7 +11,6 @@ import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.
 import { WorkflowModule } from '@app/components/workflow/workflow.module';
 import { ErrorViewModule } from '@app/components/error-view/error-view.module';
 
-
 import { ClientDetailsComponent } from './client-details.component';
 import { ClientDetailsRoutingModule } from './client-details-routing.module';
 

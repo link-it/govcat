@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 
 import { UtentiComponent } from './utenti.component';
 import { UtentiRoutingModule } from './utenti-routing.module';
@@ -18,6 +19,7 @@ import { UtenteDetailsModule } from './utente-details/utente-details.module';
     TranslateModule,
     VendorsModule,
     ComponentsModule,
+    HasPermissionModule,
     UtentiRoutingModule,
     UtenteDetailsModule
   ],

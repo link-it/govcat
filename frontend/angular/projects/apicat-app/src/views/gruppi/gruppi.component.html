@@ -20,11 +20,13 @@
             <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4" *ngIf="_spin">
                 <span class="spinner-border spinner-border-sm text-primary"></span>
             </button>
-            <div role="group" class="">
-                <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button" (click)="_onNew()">
-                    <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddGroup' | translate }}</span>
-                </button>
-            </div>
+            <ng-template [appHasPermission]="'gruppi'" [action]="'create'">
+                <div role="group" class="">
+                    <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button" (click)="_onNew()">
+                        <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddGroup' | translate }}</span>
+                    </button>
+                </div>
+            </ng-template>
         </div>
     </div>
     <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
@@ -73,23 +75,12 @@
             [subMessage]="_messageHelp | translate"
         ></ui-box-message>
 
-        <ng-template [ngIf]="false">
-            <div class="row">
-                <div class="col-12">
-                    <ui-item-row class="border-bottom" *ngFor="let item of gruppi"
-                        [data]="item"
-                        [config]="gruppiConfig"
-                        [hasLink]="true"
-                        (itemClick)="_onEdit($event, item)"
-                    ></ui-item-row>
-                </div>
-            </div>
-        </ng-template>
         <ng-template [ngIf]="true">
             <div class="mt-0">
                 <container
                     recursive
                     [children]="gruppi"
+                    [isEditable]="'gruppi' | mapper:_hasPermissioMapper:'create'"
                     (open)="onOpen($event)"
                     (action)="onAction($event)"
                 ></container>

@@ -27,11 +27,11 @@
       </div>
       <div class="nav-controls align-self-center d-flex">
         <div role="group" class="gl-w-full btn-group-">
-          <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'create'"> -->
+          <ng-template [appHasPermission]="'domini'" [action]="'create'">
             <button *ngIf="_canAddDomain" aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
               <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.DOMINI.NewDomain' | translate }}</span>
             </button>
-          <!-- </ng-template> -->
+          </ng-template>
         </div>
       </div>
     </div>
