@@ -52,9 +52,9 @@ import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
-import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
@@ -572,7 +572,6 @@ public class OrganizzazioniTest {
     }
 
     @Test
-<<<<<<< HEAD
     public void testCreateOrganizzazioneConflictException() {
     	String nome = "X";
     	
@@ -650,6 +649,8 @@ public class OrganizzazioniTest {
         });
         
         assertEquals(exception.getMessage(), "Soggetto ["+ nome +"] esiste gia");
+    }
+    
     public void testCreateOrganizzazioneReferenteServizioSuccess() {
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
