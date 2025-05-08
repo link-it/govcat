@@ -709,6 +709,7 @@
 			"gruppo": "Group",
 			"Gruppo": "Group",
 			"gruppo_gateway": "Gateway group",
+			"GruppoPadre": "Parent group",
 			"help_desk": "Help desk",
 			"HTTP": "HTTP",
 			"id": "ID",
@@ -845,6 +846,7 @@
 			"Richiedente": "Applicant",
 			"Risorse": "Resources",
 			"Role": "Role",
+			"RootGroup": "No parent",
 			"ruolo": "Role",
 			"ScheduledExpeditionDate": "Scheduled expedition date",
 			"SearchType": "Search Type",
@@ -1608,6 +1610,7 @@
 			"Completed": "Completed",
 			"ComponentsList": "Components list",
 			"CopyTestingValue": "Copy testing value",
+			"DeleteService": "Delete service",
 			"Download": "Download",
 			"Edit": "Edit",
 			"EditAdesione": "Edit membership",
@@ -1777,8 +1780,9 @@
 				"Username": "Username"
 			},
 			"ROLES": {
+				"coordinatore": "Coordinator",
 				"gestore": "Manager",
-				"nessun_ruolo": "--",
+				"nessun_ruolo": "No role",
 				"referente_servizio": "Service contact person"
 			},
 			"STATUS": {

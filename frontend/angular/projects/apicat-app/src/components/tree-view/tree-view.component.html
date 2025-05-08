@@ -78,6 +78,7 @@
                 [children]="item.children || item.figli" 
                 [parent]="self" 
                 [level]="level !== undefined ? level + 1 : 1"
+                [isEditable]="isEditable"
                 [search]="search"
                 [selectable]="selectable"
                 [notSelectable]="notSelectable"

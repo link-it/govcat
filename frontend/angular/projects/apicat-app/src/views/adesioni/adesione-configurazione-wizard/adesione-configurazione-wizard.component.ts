@@ -464,7 +464,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     };
 
     loadConfigurazioni(environmentId: string) {
-        const proprietaCustom = this.authenticationService._getConfigModule('adesione').proprieta_custom;
+        const proprietaCustom = this.authenticationService._getConfigModule('adesione').proprieta_custom || [];
         if (this.id) {
             this.apiService.getDetails(this.model, this.id, environmentId + '/configurazioni').subscribe({
                 next: (response: any) => {

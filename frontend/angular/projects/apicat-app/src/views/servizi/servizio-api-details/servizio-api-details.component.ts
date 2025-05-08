@@ -1010,7 +1010,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     __loadRisorse() {
-        this._error = false;
+        this.__resetError();
         const controls = this._formGroup.controls;
         const _apiType: string = controls.protocollo.value;
         const _contentType: string = controls.estensione.value ? controls.estensione.value : null;
@@ -1497,12 +1497,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
                     const _ruoli = this._grant?.ruoli || [];
                     const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
-
-                    console.group('proprieta_custom');
-                    console.log(item);
-                    console.log('ruoli', _ruoli);
-                    console.log('hasRuolo', _hasRuolo);
-                    console.groupEnd();
 
                     if (_hasRuolo) {
                         let required = false;

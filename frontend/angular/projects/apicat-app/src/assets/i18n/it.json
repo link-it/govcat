@@ -709,6 +709,7 @@
 			"gruppo": "Gruppo",
 			"Gruppo": "Gruppo",
 			"gruppo_gateway": "Gruppo gateway",
+			"GruppoPadre": "Gruppo padre",
 			"help_desk": "Help desk",
 			"HTTP": "HTTP",
 			"id": "ID",
@@ -845,6 +846,7 @@
 			"Richiedente": "Richiedente",
 			"Risorse": "Risorse",
 			"Role": "Ruolo",
+			"RootGroup": "Nessun padre",
 			"ruolo": "Ruolo",
 			"ScheduledExpeditionDate": "Data di spedizione pianificata",
 			"SearchType": "Tipo ricerca",
@@ -1608,6 +1610,7 @@
 			"Completed": "Completato",
 			"ComponentsList": "Lista componenti",
 			"CopyTestingValue": "Copia valore collaudo",
+			"DeleteService": "Elimina servizio",
 			"Download": "Scarica",
 			"Edit": "Modifica",
 			"EditAdesione": "Modifica adesione",
@@ -1777,8 +1780,9 @@
 				"Username": "Username"
 			},
 			"ROLES": {
+				"coordinatore": "Coordinatore",
 				"gestore": "Gestore",
-				"nessun_ruolo": "--",
+				"nessun_ruolo": "Nessun ruolo",
 				"referente_servizio": "Referente servizio"
 			},
 			"STATUS": {

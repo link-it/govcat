@@ -58,6 +58,8 @@ export class AdesioneListaClientsComponent implements OnInit {
 
     SelectedClientEnum = SelectedClientEnum;
 
+    debugMandatoryFields: boolean = false;
+
     constructor(
         private modalService: BsModalService,
         private translate: TranslateService,
@@ -433,8 +435,8 @@ export class AdesioneListaClientsComponent implements OnInit {
         } else {
             this.isEditClient = true;
 
-            this.apiService.getDetails('client', client.id_client).subscribe(
-                (response: any) => {
+            this.apiService.getDetails('client', client.id_client).subscribe({
+                next: (response: any) => {
                     this._currClient = { ...response };
 
                     setTimeout(() => {
@@ -442,12 +444,12 @@ export class AdesioneListaClientsComponent implements OnInit {
                         this._modalEditRef = this.modalService.show(this.editClients, _modalConfig);
                     }, 200);
                 },
-                (error: any) => {
+                error: (error: any) => {
                     this._error = true;
                     this._errorMsg = Tools.GetErrorMsg(error);
                     // this.closeModal();
                 }
-            );
+            });
         }
     }
 
@@ -493,9 +495,8 @@ export class AdesioneListaClientsComponent implements OnInit {
         let _client_id: string | null = null;
         let _username: string | null = null;
 
-        const ambiente: string = this.environment; // this._collaudo ? 'collaudo' : 'produzione';
+        const ambiente: string = this.environment;
         const organizzazione: string = this.adesione?.soggetto?.organizzazione?.id_organizzazione || '';
-        // const organizzazione: string = this.adesione?.servizio?.dominio?.soggetto?.organizzazione?.id_organizzazione || '';
         this._loadCredenziali(this._auth_type, organizzazione, ambiente);
 
         if (data) {
@@ -672,7 +673,7 @@ export class AdesioneListaClientsComponent implements OnInit {
 
         this._editFormGroupClients.updateValueAndValidity();
 
-        this.utils._showMandatoryFields(this._editFormGroupClients);
+        if (this.debugMandatoryFields) { this.utils._showMandatoryFields(this._editFormGroupClients); }
     }
 
     _loadCredenziali(auth_type: string = '', organizzazione: string = '', ambiente: string = '') {
@@ -704,9 +705,9 @@ export class AdesioneListaClientsComponent implements OnInit {
                     const _riuso_client_obbligatorio: boolean = this._generalConfig.adesione.riuso_client_obbligatorio;
                     if (this._arr_clients_riuso.length === 0 || !_riuso_client_obbligatorio) {
                         this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
-                        // this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.ScegliCredenziali'), 'id_client': SelectedClientEnum.Default});
                     }
                 }
+                this.onChangeCredenziali(this._currClient?.id_client ? null : SelectedClientEnum.NuovoCliente);
             },
             error: (error: any) => {
                 this._setErrorMessages(true);
@@ -736,10 +737,6 @@ export class AdesioneListaClientsComponent implements OnInit {
             this._isFornito = (tipo_cert == 'fornito')
             this._isRichiesto_cn = (tipo_cert == 'richiesto_cn')
             this._isRichiesto_csr = (tipo_cert == 'richiesto_csr')
-
-            // this._isFornito_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'fornito')
-            // this._isRichiesto_cn_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_cn')
-            // this._isRichiesto_csr_firma = (this.client.dati_specifici.certificato_firma.tipo_certificato == 'richiesto_csr')
         }
     }
 
@@ -1208,7 +1205,6 @@ export class AdesioneListaClientsComponent implements OnInit {
 
                     controls.finalita.disable();
                     controls.finalita.patchValue(_aux?.dati_specifici?.finalita);
-                    // controls.finalita.clearValidators();
 
                     controls.tipo_certificato.updateValueAndValidity();
                     controls.tipo_certificato_firma.updateValueAndValidity();
@@ -1265,7 +1261,7 @@ export class AdesioneListaClientsComponent implements OnInit {
         controls.tipo_certificato.updateValueAndValidity();
         controls.tipo_certificato_firma.updateValueAndValidity();
 
-        this.utils._showMandatoryFields(this._editFormGroupClients);
+        if (this.debugMandatoryFields) { this.utils._showMandatoryFields(this._editFormGroupClients); }
     }
 
     _resetCertificatesAll() {
@@ -1454,8 +1450,6 @@ export class AdesioneListaClientsComponent implements OnInit {
         const _partial = `${_ambiente}/client/${data.uuid}/download`;
         this.apiService.download(this.model, this.id, _partial).subscribe({
             next: (response: any) => {
-                // const _ext = data.filename.split('/')[1];
-                // let name: string = `${data.filename}.${_ext}`;
                 let name: string = `${data.filename}`;
                 saveAs(response.body, name);
                 this._downloading = false;
@@ -1518,7 +1512,6 @@ export class AdesioneListaClientsComponent implements OnInit {
 
         const _body:any = {...body};
         const _payload:any = {};
-        const auth_type: any = this._auth_type || null;
 
         const _tipoCert: any = this._editFormGroupClients.getRawValue().tipo_certificato;
         const _tipoCertFirma: any = this._editFormGroupClients.getRawValue().tipo_certificato_firma;
@@ -1531,7 +1524,6 @@ export class AdesioneListaClientsComponent implements OnInit {
 
         delete _body.credenziali;
 
-        // this._collaudo ? _body.ambiente = 'collaudo' : _body.ambiente = 'produzione';
         _body.ambiente = this.environment;
 
         let _datiSpecifici: Datispecifici = {
@@ -1688,19 +1680,19 @@ export class AdesioneListaClientsComponent implements OnInit {
             _payload.nome = _nome || this._currClient.nome,
             _payload.dati_specifici = _datiSpecifici;
 
-            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe(
-                (response: any) => {
+            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe({
+                next: (response: any) => {
                     this.loadAdesioneClients(this.environment);
                     this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
                     this.closeModal();
                     this._saving = false;
                 },
-                (error: any) => {
+                error: (error: any) => {
                     this._error = true;
                     this._errorMsg = Tools.GetErrorMsg(error);
                     this._saving = false;
                 }
-            );
+            });
         } else {
         // se NON è presente id_client ==> devo registrare un nuovo client
 
@@ -1713,19 +1705,19 @@ export class AdesioneListaClientsComponent implements OnInit {
             _payload.nome = _nome;
             _payload.dati_specifici = _datiSpecifici;
             
-            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe(
-                (response: any) => {
+            this.apiService.putElementRelated('adesioni', id_adesione, path, _payload).subscribe({
+                next: (response: any) => {
                     this.loadAdesioneClients(this.environment);
                     this.eventsManagerService.broadcast(EventType.WIZARD_CHECK_UPDATE, true);
                     this._saving = false;
                     this.closeModal();
                 },
-                (error: any) => {
+                error: (error: any) => {
                     this._error = true;
                     this._errorMsg = Tools.GetErrorMsg(error);
                     this._saving = false;
                 }
-            );
+            });
         }
     }
 

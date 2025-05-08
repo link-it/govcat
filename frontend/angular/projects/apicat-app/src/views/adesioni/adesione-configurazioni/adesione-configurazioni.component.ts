@@ -2272,8 +2272,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                 if (data[key].hasValidator(Validators.required)) {
                     console.log(index + ') ', key)
                     _nessuno = false
-                    }
-                
+                }
             });
             (_nessuno == true) ? console.log('NESSUN CAMPO OBBLIGATORIO') : null;
             console.groupEnd()

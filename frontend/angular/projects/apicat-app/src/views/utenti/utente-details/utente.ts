@@ -9,6 +9,19 @@ export interface Organizzazione {
   nome: string | null;
 }
 
+export enum Ruolo {
+  NESSUN_RUOLO = 'nessun_ruolo',
+  GESTOERE = 'gestore',
+  REFERENTE_SERVIZIO = 'referente_servizio',
+  COORDINATORE = 'coordinatore'
+}
+
+export enum Stato {
+  NON_CONFIGURATO = 'non_configurato',
+  ABILITATO = 'abilitato',
+  DISABILITATO = 'disabilitato'
+}
+
 export class Utente {
 
   id: number | null = null;
@@ -22,8 +35,8 @@ export class Utente {
   email_aziendale: string | null = null;
   note: string | null = null;
   metadati: string | null = null;
-  stato: string | null = null;
-  ruolo: string | null = null;
+  stato: Stato | null = null;
+  ruolo: Ruolo | null = null;
   id_organizzazione: string | null = null;
   // classi_utente: Array<any> = [];
   organizzazione: Organizzazione | null = null;

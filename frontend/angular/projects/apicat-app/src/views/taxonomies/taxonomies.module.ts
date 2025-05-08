@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 
 import { TaxonomiesComponent } from './taxonomies.component';
 import { TaxonomiesRoutingModule } from './taxonomies-routing.module';
@@ -18,6 +19,7 @@ import { TaxonomyDetailsModule } from './taxonomy-details/taxonomy-details.modul
     TranslateModule,
     VendorsModule,
     ComponentsModule,
+    HasPermissionModule,
     TaxonomiesRoutingModule,
     TaxonomyDetailsModule
   ],

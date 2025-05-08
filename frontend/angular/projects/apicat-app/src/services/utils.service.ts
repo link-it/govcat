@@ -84,8 +84,8 @@ export class UtilService {
       // }
     });
 
-    forkJoin(reqs).subscribe(
-      (results: Array<any>) => {
+    forkJoin(reqs).subscribe({
+      next: (results: Array<any>) => {
         tables.forEach((table, index) => {
           const _table = (typeof table === 'string') ? table : table.name;
           switch (_table) {
@@ -153,10 +153,10 @@ export class UtilService {
           }
         });
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('getAnagrafiche forkJoin', error);
       }
-    );
+    });
 
     return this.cacheAnagrafiche;
   }

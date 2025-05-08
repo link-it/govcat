@@ -11,12 +11,38 @@ import { ConfigService } from 'projects/tools/src/lib/config.service';
 import { Tools } from 'projects/tools/src/lib/tools.service';
 import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
 import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+import { AuthenticationService } from '@app/services/authentication.service';
 
 import { CardType } from 'projects/components/src/lib/ui/card/card.component';
 import { Page} from '../../models/page';
+
+export interface Gruppo {
+    id_gruppo: string;
+    nome: string;
+    tipo: string;
+    descrizione_sintetica: string;
+    descrizione: string;
+    immagine: Immagine;
+    figli: Gruppo[];
+    path_gruppo: ItemPathGruppo[];
+}
+
+interface ItemPathGruppo {
+    id_gruppo: string;
+    nome: string;
+}
+
+interface Immagine {
+    uuid: string;
+    versione: number;
+    content_type: string;
+    filename: string;
+    storico: Immagine[];
+}
 
 @Component({
     selector: 'app-gruppi',
@@ -96,6 +122,8 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     _saving: boolean = false;
     _deleting: boolean = false;
 
+    _rootName: string = this.translate.instant('APP.LABEL.RootGroup');
+
     constructor(
         private route: ActivatedRoute,
         private router: Router,
@@ -104,8 +132,9 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         private configService: ConfigService,
         public tools: Tools,
         private eventsManagerService: EventsManagerService,
-        public apiService: OpenAPIService,
-        public utils: UtilService
+        private apiService: OpenAPIService,
+        private utils: UtilService,
+        private authenticationService: AuthenticationService
     ) {
         this.config = this.configService.getConfiguration();
         this.apiUrl = this.config.AppConfig.GOVAPI.HOST;
@@ -221,10 +250,6 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         }
     }
 
-    _dummyAction(event: any, param: any) {
-        console.log(event, param);
-    }
-
     _onSubmit(form: any) {
         if (this.searchBarForm) {
             this.searchBarForm._onSearch();
@@ -291,13 +316,16 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
     _initEditForm(data: any = null) {
         this._isEdit = true;
-        // const _padre = this._currentGroup ? this._currentGroup.id_gruppo : null;
+        const _gruppoPadre: Gruppo | null = this._editCurrent ? this.findParentOfGroup(this.gruppi, this._editCurrent.id_gruppo) : this._currentGroup;
+        const _padre = _gruppoPadre ? _gruppoPadre.id_gruppo : null;
+        const _padre_label = _gruppoPadre ? _gruppoPadre.nome : this._rootName;
         const _nome = data ? data.nome : null;
         const _tipo = data ? data.tipo : 'API';
         const _descrizione = data ? data.descrizione : null;
         const _descrizione_sintetica = data ? data.descrizione_sintetica : null;
         this._editFormGroup = new FormGroup({
-            // padre: new FormControl(_padre, []),
+            id_gruppo_padre: new FormControl(_padre, []),
+            id_gruppo_padre_label: new FormControl(_padre_label, []),
             nome: new FormControl(_nome, [Validators.required, Validators.maxLength(255)]),
             tipo: new FormControl(_tipo, [Validators.required, Validators.maxLength(255)]),
             descrizione: new FormControl(_descrizione, [Validators.maxLength(255)]),
@@ -316,18 +344,18 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
             this._initEditForm();
             this._showDialog();
         } else {
-            this.apiService.getDetails(this.model, this._editCurrent.id_gruppo).subscribe(
-                (response: any) => {
+            this.apiService.getDetails(this.model, this._editCurrent.id_gruppo).subscribe({
+                next: (response: any) => {
                     this._data = response;
                     this._initEditForm(response);
                     this._showDialog();
                 },
-                (error: any) => {
+                error: (error: any) => {
                     this._error = true;
                     this._errorMsg = Tools.GetErrorMsg(error);
                     _open = false;
                 }
-            );
+            });
         }
     }
 
@@ -349,19 +377,19 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         } else {
             _resultObject = this.apiService.putElement(this.model, this._editCurrent.id_gruppo, _body);
         }
-        _resultObject.subscribe(
-            (response: any) => {
+        _resultObject.subscribe({
+            next: (response: any) => {
                 this._saving = false;
                 this._modalEditRef.hide();
                 this._onCloseEdit(null);
                 this._loadGruppi();
             },
-            (error: any) => {
+            error: (error: any) => {
                 this._saving = false;
                 this._error = true;
                 this._errorMsg = Tools.GetErrorMsg(error);
             }
-        );
+        });
     }
 
     _prepareBodyGruppo(body: any) {
@@ -374,13 +402,8 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
             _immagine = body.immagine;
         }
 
-        let _padre = this._currentGroup?.id_gruppo;
-        if (this._editCurrent?.path_gruppo) {
-            _padre = this._editCurrent.path_gruppo[this._editCurrent.path_gruppo.length - 1].id_gruppo;
-        }
-
         const _newBody: any = {
-            padre: _padre,
+            padre: body.id_gruppo_padre,
             nome: body.nome || '',
             tipo: body.tipo || '',
             descrizione_sintetica: body.descrizione_sintetica || undefined,
@@ -403,17 +426,17 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     __deleteGruppo(data: any) {
         this.__resetError();
         this._deleting = true;
-        this.apiService.deleteElement(this.model, this._currentGroup.id_gruppo).subscribe(
-            (response) => {
+        this.apiService.deleteElement(this.model, this._currentGroup.id_gruppo).subscribe({
+            next: (response) => {
                 this._deleting = false;
                 this._loadGruppi();
             },
-            (error) => {
+            error: (error) => {
                 this._error = true;
                 this._errorMsg = Tools.GetErrorMsg(error);
                 this._deleting = false;
             }
-        );
+        });
     }
 
     _hasControlError(name: string) {
@@ -445,6 +468,80 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     }
 
     _getLogoMapper = (data: any): string => {
-        return data.immagine ? `${this.apiUrl}/gruppi/${data.id_gruppo}/immagine`: '';
+        return data?.immagine ? `${this.apiUrl}/gruppi/${data.id_gruppo}/immagine`: '';
+    }
+
+    _hasPermissioMapper = (menu: string, grant: string): boolean => {
+        return this.authenticationService.hasPermission(menu, grant);
+    }
+
+    modalChoiceRef!: BsModalRef;
+
+    openChoiceGroupModal(event: any) {
+        const initialState = {
+            gruppi: [],
+            selected: [],
+            notSelectable: this._editCurrent ? this.flattenGroup(this._editCurrent) : [],
+        };
+        this.modalChoiceRef = this.modalService.show(ModalGroupChoiceComponent, {
+            ignoreBackdropClick: true,
+            // class: 'modal-lg-custom',
+            initialState: initialState
+        });
+        this.modalChoiceRef.content.onClose.subscribe(
+            (result: any) => {
+                this._currentGroup = result[0];
+                this._editFormGroup.patchValue({
+                    id_gruppo_padre: result[0].id_gruppo,
+                    id_gruppo_padre_label: result[0].nome
+                })
+            }
+        );
+    }
+
+    clearGroup($event: any) {
+        this._currentGroup = null;
+        this._editFormGroup.patchValue({
+            id_gruppo_padre: null,
+            id_gruppo_padre_label: this._rootName
+        });
+    }
+
+    // Groups utilities
+    
+    findGroupById(groups: Gruppo[] | undefined, uuid: string): Gruppo | null {
+        if (!groups) return null;
+
+        for (const group of groups) {
+            if (group.id_gruppo === uuid) return group;
+            const found = this.findGroupById(group.figli, uuid);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    findParentOfGroup(groups: Gruppo[] | undefined, uuid: string): Gruppo | null {
+        if (!groups) return null;
+
+        for (const group of groups) {
+            if (group.figli?.some(child => child.id_gruppo === uuid)) {
+                return group;
+            }
+            const found = this.findParentOfGroup(group.figli, uuid);
+            if (found) return found;
+        }
+        return null;
+    }
+
+    flattenGroup(group: Gruppo): Gruppo[] {
+        const result: Gruppo[] = [group];
+
+        if (group.figli) {
+            for (const child of group.figli) {
+                result.push(...this.flattenGroup(child));
+            }
+        }
+
+        return result;
     }
 }

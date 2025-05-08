@@ -7,7 +7,7 @@
                 <app-back-web [service_id]="data.id_servizio"></app-back-web>
             </div> -->
             <app-monitor-dropdown *ngIf="data"
-                [showMonitoring]="Tools.Configurazione.servizio.api.transazioni && _canJoin()"
+                [showMonitoring]="Tools.Configurazione.servizio.api.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
                 [returnWeb]="true"
                 [otherActions]="_showExternalOtherActions ? _otherActions : []"
                 (action)="onActionMonitor($event)"
@@ -68,30 +68,7 @@
                     <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
                 </div>
                 <div role="group" class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
-                    <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
-                        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
-                            <div class="gl-new-dropdown-inner">
-                                <div class="gl-new-dropdown-contents">
-                                    <!-- <li role="presentation" class="gl-new-dropdown-divider">
-                                        <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
-                                    </li>
-                                    <li role="presentation" class="gl-new-dropdown-item">
-                                        <button role="menuitem" type="button" class="dropdown-item" (click)="_confirmDelection()">
-                                            <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                                                <i class="bi bi-trash text-danger"></i>
-                                            </div>
-                                            <div class="gl-new-dropdown-item-text-wrapper">
-                                                <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.DeleteService' | translate }}</p>
-                                            </div>
-                                        </button>
-                                    </li> -->
-                                </div>
-                            </div>
-                        </ul>
-                    </div>
+                    <lnk-button [type]="'button'" [icon]="'bi bi-trash text-danger'" [onlyIcon]="true" (onAction)="_confirmDelection()" [btnTooltip]="'APP.TOOLTIP.DeleteService'"></lnk-button>
                 </div>
             </ng-container>
             <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
