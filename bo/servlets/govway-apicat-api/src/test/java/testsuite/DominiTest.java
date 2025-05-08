@@ -1270,30 +1270,19 @@ public class DominiTest {
             controller.listReferentiDominio(createdDominio.getBody().getIdDominio(), null, null, 0, 10, null);
         });
     }
-    
-    @Test
-    public void testListDominiSpecialCharacterSuccess() {
-    	String q = "dominio_";
-        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
-        assertNotNull(response.getBody().getIdOrganizzazione());
-
-<<<<<<< HEAD
     @Autowired
     UtentiController utentiController;
     
     @Test
-    public void testCreateDeleteDominioCoordinatoreSuccess() {
-    	ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+    public void testListDominiSpecialCharacterSuccess() {
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
-=======
->>>>>>> 535c1530b546991b759ec90b12cc394c36a726b5
         SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-<<<<<<< HEAD
         UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
         utente.setReferenteTecnico(false);
@@ -1315,6 +1304,7 @@ public class DominiTest {
     
     @Test
     public void testCreateDominioReferenteServizioErrore() {
+    	String q = "dominio_";
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
         utente.setReferenteTecnico(false);
@@ -1322,29 +1312,6 @@ public class DominiTest {
         
         ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
             	
-=======
-        DominioCreate dominioCreate1 = this.getDominioCreate();
-        dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
-        ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
-        assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
-
-        DominioCreate dominioCreate2 = this.getDominioCreate();
-        dominioCreate2.setNome("SecondDomain");
-        dominioCreate2.setDescrizione("dominio questa e' la descrizione");
-        dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
-        ResponseEntity<Dominio> createdDominio2 = controller.createDominio(dominioCreate2);
-        assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
-
-        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, q, 0, 10, null);
-
-        assertNotNull(responseList.getBody());
-        assertEquals(0, responseList.getBody().getContent().size());
-    }
-    
-    @Test
-    public void testListDominiSpecialCharacterSuccess2() {
-    	String q = "dominio";
->>>>>>> 535c1530b546991b759ec90b12cc394c36a726b5
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
         assertNotNull(response.getBody().getIdOrganizzazione());
 
@@ -1353,18 +1320,6 @@ public class DominiTest {
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
-<<<<<<< HEAD
-        DominioCreate dominioCreate = this.getDominioCreate();
-        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
-       
-        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
-
-    	NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-    		controller.createDominio(dominioCreate);
-    	});
-
-        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
-=======
         DominioCreate dominioCreate1 = this.getDominioCreate();
         dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
@@ -1383,7 +1338,6 @@ public class DominiTest {
         assertEquals(1, responseList.getBody().getContent().size());
         //Questo e' il nome del dominio con la descrizione contenente la keyword "dominio"
         assertEquals(dominioCreate2.getNome(), responseList.getBody().getContent().get(0).getNome());
->>>>>>> 535c1530b546991b759ec90b12cc394c36a726b5
     }
 }
 
