@@ -70,14 +70,14 @@
                 </button>
             </div> -->
             <div class="position-relative" *ngIf="!_isEdit && !_spin && _editable">
-                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditApi' | translate" (click)="_editServizioApi()" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
+                <button aria-label="Modifica" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditApi' | translate" (click)="_editServizioApi()" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
                     <i class="bi bi-pencil"></i>
                 </button>
             </div>
 
             <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin && _showExternalOtherActions">
                 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
-                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+                    <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
@@ -114,7 +114,7 @@
 
             </ng-container>
             <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-                <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+                <button aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>

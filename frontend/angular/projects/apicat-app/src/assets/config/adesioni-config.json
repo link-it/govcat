@@ -78,7 +78,7 @@
       "label": "APP.LABEL.Status",
       "small": true,
       "values": {
-        "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+        "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#dbdbdb", "border": "#dbdbdb", "color": "#000000" },
         "richiesto_collaudo": { "label": "APP.WORKFLOW.STATUS.richiesto_collaudo", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
         "in_configurazione_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_collaudo", "background": "#d4d700", "border": "#d4d700", "color": "#1f1f1f" },
         "pubblicato_collaudo": { "label": "APP.WORKFLOW.STATUS.pubblicato_collaudo", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },

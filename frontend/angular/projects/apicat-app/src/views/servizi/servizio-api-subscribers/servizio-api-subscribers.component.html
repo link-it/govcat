@@ -3,9 +3,6 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
-      <!-- <div class="position-relative" *ngIf="service">
-        <app-back-web [service_id]="service.id_servizio"></app-back-web>
-      </div> -->
       <app-monitor-dropdown *ngIf="service"
         [showComunications]="false"
         [showMonitoring]="false"
@@ -18,31 +15,20 @@
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+        <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [class.disabled]="!_hasTabCollaudo">
+            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [class.disabled]="!_hasTabCollaudo" [attr.aria-label]="_allElements || servizioapisubscribers.length">
               <span title="Testing">{{ 'APP.FILTER.Testing' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements" *ngIf="_isCollaudo()">{{ _allElements || servizioapisubscribers.length }}</span>
             </a>
           </li>
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()" [class.disabled]="!_hasTabProduzione">
+            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()" [class.disabled]="!_hasTabProduzione" [attr.aria-label]="_allElements || servizioapisubscribers.length">
               <span title="Production">{{ 'APP.FILTER.Production' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements" *ngIf="_isProduzione()">{{ _allElements || servizioapisubscribers.length }}</span>
             </a>
           </li>
         </ul>
       </div>
     </div>
-    <!-- <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
-      <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
-          <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
-              <span title="Show all referents.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioapisubscribers.length">{{ _page.totalElements || servizioapisubscribers.length }}</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div> -->
     <div class="nav-controls align-self-center d-flex">
     </div>
   </div>

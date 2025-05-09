@@ -16,16 +16,16 @@
     <div class="top-area">
       <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
         <div class="">
-          <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <ul  class="nav gp-border-b-0 gp-tabs-nav">
             <li class="nav-item" *ngIf="serviceApiDominio.length">
-              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isSoggettoDominio" (click)="_showSoggettoDominio()">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isSoggettoDominio" (click)="_showSoggettoDominio()" [attr.aria-label]="'APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0) | translate:{soggetto: service?.dominio?.soggetto_referente?.organizzazione?.nome }">
                 <span>
                   {{ ('APP.ROLE.ErogatoSoggettoDominio' | pluralTranslate:(serviceApiDominio.length || 0)) | translate:{soggetto: service?.dominio?.soggetto_referente?.organizzazione?.nome } }}
                 </span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApiDominio.length">{{ _pagingDominio.totalElements || serviceApiDominio.length }}</span>
               </a>
             </li>
             <li class="nav-item" *ngIf="serviceApiAderente.length">
-              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" [class.gp-tab-nav-item-active]="!_isSoggettoDominio" (click)="_showSoggettoAderente()">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" [class.gp-tab-nav-item-active]="!_isSoggettoDominio" (click)="_showSoggettoAderente()" [attr.aria-label]="'APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)">
                 <span>{{ ('APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)) | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApiAderente.length">{{ _pagingAderente.totalElements || serviceApiAderente.length }}</span>
               </a>
             </li>
@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="nav-controls align-self-center d-flex">
-        <div role="group" class="gl-w-full btn-group-">
+        <div class="gl-w-full btn-group-">
           <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canEditMapper)">
             <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
           </button>
