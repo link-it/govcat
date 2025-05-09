@@ -6,14 +6,14 @@
     <ng-container *ngIf="!showDetails">
       <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
         <div class="">
-          <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <ul class="nav gp-border-b-0 gp-tabs-nav">
             <li class="nav-item">
-              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
                 <span>{{ 'APP.FILTER.Testing' | translate }}</span>
               </a>
             </li>
             <li class="nav-item">
-              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProduzione()" (click)="_showProduzione()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
                 <span>{{ 'APP.FILTER.Production' | translate }}</span>
               </a>
             </li>
@@ -21,12 +21,12 @@
         </div>
       </div>
       <div class="nav-control align-self-center d-flex">
-        <!-- <div role="group" class="d-flex justify-content-center align-items-center small" *ngIf="!_production">
+        <!-- <div class="d-flex justify-content-center align-items-center small" *ngIf="!_production">
           <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleTheme();">
             <i class="bi bi-palette"></i><span class="ms-1">Toggle theme</span>
           </button>
         </div> -->
-        <div role="group" class="btn-group">
+        <div class="btn-group">
           <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="refresh();">
             <!-- [tooltip]="_updateMapper | mapper:_tooltipPeriod" [placement]="'left'" [container]="'body'" -->
             <i class="bi bi-arrow-clockwise"></i>
@@ -37,7 +37,7 @@
     <ng-container *ngIf="showDetails">
       <div class="top-area container-fluid px-0">
         <div class="nav-control align-self-center d-flex">
-          <div role="group" class="btn-group">
+          <div class="btn-group">
             <button type="button" class="btn btn-default btn-md btn-default-tertiary gl-button btn-icon" (click)="closeDetails()">
               <i class="bi bi-chevron-left"></i>
             </button>

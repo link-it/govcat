@@ -88,47 +88,42 @@ export class UtilService {
       next: (results: Array<any>) => {
         tables.forEach((table, index) => {
           const _table = (typeof table === 'string') ? table : table.name;
+          const resultContent = results[index].content || results[index].items || [];
           switch (_table) {
             case 'utenti':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_utente,
                   nome: `${item.nome} ${item.cognome}`
                 })).sort(this._order);
               break;
             case 'domini':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_dominio,
                   nome: `${item.nome}`
                 })).sort(this._order);
               break;
             case 'organizzazioni':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_organizzazione,
                   nome: `${item.nome}`,
                   // descrizione: `${item.descrizione}`
                 })).sort(this._order);
               break;
             case 'classi-utente':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id_classe_utente: item.id_classe_utente,
                   nome: `${item.nome}`
                 })).sort(this._order);
               break;
             case 'gruppi':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_gruppo,
                   nome: item.nome,
                   descrizione: item.descrizione_sintetica
                 })).sort(this._order);
               break;
             case 'tassonomie':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_tassonomia,
                   nome: item.nome,
                   descrizione: item.descrizione,

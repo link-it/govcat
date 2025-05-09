@@ -5,9 +5,9 @@
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+        <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements">
               <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="organizzazioni.length">{{ _paging.totalElements || 0 }}</span>
             </a>
           </li>
@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="nav-controls align-self-center d-flex">
-      <div role="group" class="gl-w-full btn-group- position-relative">
+      <div class="gl-w-full btn-group- position-relative">
         <ng-template [appHasPermission]="'organizzazioni'" [action]="'create'">
           <button aria-label="Add payment" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
             <span class="material-icons-outlined">add</span> <span class="ms-2">{{ 'APP.BUTTON.AddOrganization' | translate }}</span>

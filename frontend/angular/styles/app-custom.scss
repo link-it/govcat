@@ -975,6 +975,13 @@ input[type=color].form-control:disabled {
   }
 }
 
+input[type=checkbox], input[type=radio] {
+  &:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+    outline: none;
+  }
+}
+
 // Introdotto per l'accessibilità
 
 .icon-status {

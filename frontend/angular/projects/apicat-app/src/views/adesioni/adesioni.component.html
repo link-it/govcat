@@ -6,10 +6,10 @@
     <div class="top-area">
       <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
         <div class="">
-          <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+          <ul class="nav gp-border-b-0 gp-tabs-nav">
             <li class="nav-item">
-              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
-                <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="adesioni.length">{{ _paging.totalElements || 0 }}</span>
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements">
+                <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_paging.totalElements">{{ _paging.totalElements || 0 }}</span>
               </a>
             </li>
           </ul>
@@ -26,7 +26,7 @@
           (action)="onSelectionAction($event)"
         ></ui-selection-dropdown>
 
-        <div role="group" class="gl-w-full btn-group-">
+        <div class="gl-w-full btn-group-">
           <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
             <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddSubscription' | translate }}</span>
           </button>
@@ -81,10 +81,10 @@
 
                   <div class="row mb-1" *ngIf="isGestore">
                     <div class="col-sm-2">
-                      <label class="col-form-label col-form-label-fix" for="stato">{{ 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus' | translate }}</label>
+                      <label class="col-form-label col-form-label-fix" for="statoAutomatico">{{ 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus' | translate }}</label>
                     </div>
                     <div class="col-sm-10 pt-2">
-                      <select class="form-select form-control-sm" id="stato" formControlName="stato_configurazione_automatica">
+                      <select class="form-select form-control-sm" id="statoAutomatico" formControlName="stato_configurazione_automatica">
                         <option value="">{{ 'APP.LABEL.All' | translate }}</option>
                         <option *ngFor="let stato of configStatusList" [value]="stato.value">
                           {{ stato.label | translate }}

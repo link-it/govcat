@@ -1,7 +1,7 @@
 <div [ngClass]="__headBarClass()">
   <div class="d-flex justify-content-between w-100">
     <div class="d-flex flex-row align-content-center flex-grow-1">
-      <img [src]="'assets/images/' + logo" class="header-logo" *ngIf="logo">
+      <img [src]="'assets/images/' + logo" alt="Logo" class="header-logo" *ngIf="logo">
       <p class="my-0 flex-grow-1 align-self-center" [class.ms-4]="logo" [class.h4-]="!logo" *ngIf="title">{{ title }}</p>
     </div>
     <div class="align-self-center d-flex justify-content-end">
@@ -28,7 +28,7 @@
                   </div>
                 </div>
                 <div class="ui-menu-item app-switcher-wide-item app-switcher-heading" role="menuitem" aria-disabled="true" tabindex="-1">App</div>
-                <div class="ui-menu-item app-switcher-grid-cell" [ngClass]="{'menu-disabled': !menu.enabled}" role="menuitem" aria-label="Apri Mail" tabindex="-1" *ngFor="let menu of _menuAppActions" (click)="_onMenuAppAction(menu)">
+                <div class="ui-menu-item app-switcher-grid-cell" [ngClass]="{'menu-disabled': !menu.enabled}" role="menuitem" aria-label="Altre azioni" tabindex="-1" *ngFor="let menu of _menuAppActions" (click)="_onMenuAppAction(menu)">
                   <div class="app-icon">
                     <ng-container [ngSwitch]="menu.type">
                       <ng-container *ngSwitchCase="'image'">
@@ -71,7 +71,7 @@
         <div class="ml-auto" *ngIf="loggedIn">
           <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
             <!-- <img width="23" height="23" class="header-user-avatar" [alt]="_username" src="./assets/images/avatar.png"> -->
-            <img #avatar class="" ngxGravatar [email]="_username" [size]="23" fallback="mp" (error)="onAvatarError($event)">
+            <img #avatar class="" [alt]="_username" ngxGravatar [email]="_username" [size]="23" fallback="mp" (error)="onAvatarError($event)">
             <!-- <img class="bg-white rounded-circle border border-white" src="./assets/images/_avatar.png" width="23" (error)="onAvatarError($event)"> -->
             <!-- <div class="d-inline ms-2 align-middle">{{ _username }}</div> -->
             <span class="material-icons-outlined align-middle mx-1">expand_more</span>

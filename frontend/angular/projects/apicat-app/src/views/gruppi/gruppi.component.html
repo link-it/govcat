@@ -5,10 +5,9 @@
     <div class="top-area">
         <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
             <div class="">
-                <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+                <ul class="nav gp-border-b-0 gp-tabs-nav">
                     <li class="nav-item">
-                        <a role="tab" tabindex="-1" target="_self"
-                        class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+                        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + gruppi.length">
                             <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span>
                             <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="gruppi.length">{{ gruppi.length }}</span>
                         </a>
@@ -21,7 +20,7 @@
                 <span class="spinner-border spinner-border-sm text-primary"></span>
             </button>
             <ng-template [appHasPermission]="'gruppi'" [action]="'create'">
-                <div role="group" class="">
+                <div class="">
                     <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button" (click)="_onNew()">
                         <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddGroup' | translate }}</span>
                     </button>

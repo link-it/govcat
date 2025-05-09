@@ -5,16 +5,16 @@
     <div class="top-area container-fluid px-0" [class.container-limited]="_contentLimeted">
         <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
             <div class="">
-                <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav" *ngIf="!_groupsView">
-                <li class="nav-item">
-                    <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()">
-                        <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || 0 }}</span>
-                    </a>
-                </li>
+                <ul class="nav gp-border-b-0 gp-tabs-nav" *ngIf="!_groupsView">
+                    <li class="nav-item">
+                        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
+                            <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || 0 }}</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
             <div class="nav-controls align-self-center" *ngIf="!_production && _groupsView">
-                <div role="group" class="btn-group">
+                <div class="btn-group">
                     <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showImage" (click)="_showImage = !_showImage;refresh();">
                         <i class="bi bi-image"></i><span class="ms-2 d-none d-lg-block">Show Image</span>
                     </button>
@@ -25,7 +25,7 @@
                         <i class="bi bi-arrows-fullscreen"></i><span class="ms-2 d-none d-lg-block">Fill Box</span>
                     </button>
                 </div>
-                <div role="group" class="btn-group ms-1">
+                <div class="btn-group ms-1">
                     <button type="button" class="btn btn-default btn-md gl-button btn-icon" [class.btn-confirm]="_showMasonry" (click)="_showMasonry = !_showMasonry;_showEmptyImage = false;refresh();">
                         <i class="bi bi-columns-gap"></i><span class="ms-2 d-none d-lg-block">Show Masonry</span>
                     </button>
@@ -33,39 +33,39 @@
             </div>
         </div>
         <div class="nav-controls align-self-center d-flex">
-            <!-- <div role="group" class="btn-group ms-3 me-5" *ngIf="!_production">
+            <!-- <div class="btn-group ms-3 me-5" *ngIf="!_production">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="numColoms" [checked]="_col === 4" (click)="_toggleCols()">
                     <label class="form-check-label" for="numColoms">{{ '3 Col' | translate }}</label>
                 </div>
             </div> -->
-            <!-- <div role="group" class="btn-group me-5" *ngIf="!_production">
+            <!-- <div class="btn-group me-5" *ngIf="!_production">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="searchUI" [checked]="_useNewSearchUI" (click)="_toggleSearchUI()">
                     <label class="form-check-label" for="searchUI">{{ 'New Search UI' | translate }}</label>
                 </div>
             </div> -->
-            <div role="group" class="btn-group me-5" *ngIf="!_production">
+            <div class="btn-group me-5" *ngIf="!_production">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="groupsView" [checked]="_groupsView" (click)="_toggleGroups()" disabled>
                     <label class="form-check-label" for="groupsView">{{ 'Groups' | translate }}</label>
                 </div>
             </div>
-            <div role="group" class="btn-group me-4" *ngIf="_updateMapper | mapper:_hasMyServiceMapper">
+            <div class="btn-group me-4" *ngIf="_updateMapper | mapper:_hasMyServiceMapper">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="myServices" [checked]="_isMyServices" (click)="_onMyServices()">
                     <label class="form-check-label" for="myServices">{{ 'APP.LABEL.MyServices' | translate }}</label>
                 </div>
             </div>
-            <div role="group" class="btn-group- me-2" *ngIf="elementsSelected.length && !uncheckAllInTheMenu">
+            <div class="btn-group- me-2" *ngIf="elementsSelected.length && !uncheckAllInTheMenu">
                 <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="deselectAll()">
                     {{ 'APP.BUTTON.DeselectAll' | translate }}
                 </button>
             </div>
-            <div role="group" class="btn-group- me-2" *ngIf="hasMultiSelection && !_groupsView">
-                <div role="group" class="btn-group- d-inline-block" *ngIf="!_isEdit">
+            <div class="btn-group- me-2" *ngIf="hasMultiSelection && !_groupsView">
+                <div class="btn-group- d-inline-block" *ngIf="!_isEdit">
                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="export">
-                        <button type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" id="export-actions">
+                        <button type="button" aria-label="Menu esportazione" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" id="export-actions">
                             <i class="bi bi-download"></i>
                             <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
                             <i class="bi bi-chevron-down ms-2"></i>
@@ -120,17 +120,17 @@
                     </div>
                 </div>
             </div>
-            <div role="group" class="btn-group-">
-                <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroups()">
+            <div class="btn-group-">
+                <button type="button" aria-label="Cambio di vista Gruppi/Lista" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroups()">
                     <i class="bi bi-list-task" *ngIf="_groupsView"></i>
                     <i class="bi bi-grid" *ngIf="!_groupsView && !_showMasonry"></i>
                     <i class="bi bi-columns-gap" *ngIf="!_groupsView && _showMasonry"></i>
                 </button>
             </div>
-            <div role="group" class="btn-group- ms-1" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
-                <div role="group" class="btn-group- d-inline-block" *ngIf="!_isEdit">
+            <div class="btn-group- ms-1" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
+                <div class="btn-group- d-inline-block" *ngIf="!_isEdit">
                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
-                        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+                        <button aria-label="Altre azioni" aria-label="Altre azioni" aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
                             <i class="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
