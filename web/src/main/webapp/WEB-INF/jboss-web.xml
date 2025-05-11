@@ -1,0 +1,4 @@
+<jboss-web>
+<!-- nome del security-domain JAAS definito in standalone.xml -->
+<security-domain>java:/jaas/other</security-domain>
+</jboss-web>

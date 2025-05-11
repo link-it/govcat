@@ -5,12 +5,12 @@
 	      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	version="3.0">
 	<display-name>Catalogo - ModI</display-name>
-	
+
 	<servlet>
 		<servlet-name>error</servlet-name>
 		<jsp-file>/error.jsp</jsp-file>
 	</servlet>
-	
+
 	<servlet>
 		<servlet-name>code-grant-authorization</servlet-name>
 		<jsp-file>/index.jsp</jsp-file>
@@ -30,9 +30,37 @@
 		<error-code>404</error-code>
 		<location>/index.jsp</location>
 	</error-page>
-	
+
 	<welcome-file-list>
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
 
+	<!-- 1. Definizione delle aree protette -->
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Area Protetta</web-resource-name>
+			<!-- proteggi tutto sotto /protected/* -->
+			<url-pattern>/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<!-- chi può accedere -->
+			<role-name>user</role-name>
+		</auth-constraint>
+		<!-- opzionale: disabilita la trasmissione in chiaro -->
+		<user-data-constraint>
+			<transport-guarantee>CONFIDENTIAL</transport-guarantee>
+		</user-data-constraint>
+	</security-constraint>
+
+	<!-- 2. Configurazione del metodo di autenticazione -->
+	<login-config>
+		<!-- BASIC oppure FORM -->
+		<auth-method>BASIC</auth-method>
+		<realm-name>ApplicationRealm</realm-name>
+	</login-config>
+
+	<!-- 3. Dichiarazione dei ruoli riconosciuti dall’applicazione -->
+	<security-role>
+		<role-name>user</role-name>
+	</security-role>
 </web-app>
