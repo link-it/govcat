@@ -67,7 +67,6 @@ public class ApiSpecification implements Specification<ApiEntity> {
 			List<Predicate> predLstQ = new ArrayList<>();
 			String pattern = "%" + q.get().toUpperCase() + "%";
 			predLstQ.add(cb.like(cb.upper(root.get(ApiEntity_.nome)), pattern)); 
-//			predLstQ.add(cb.like(cb.upper(root.get(ApiEntity_.descrizione)), pattern));
 			
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}

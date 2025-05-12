@@ -130,19 +130,19 @@ public class SchedaAdesioneBuilder {
 
 			List<AuthTypeEntity> authTypeList = apiEntity.getAuthType();
 			
-			if(!authTypeList.isEmpty()) {
-				RowType modauth = new RowType();
-				modauth.setLabel("Modalità di autenticazione");
-				String profilo = authTypeList.stream().findAny().get().getProfilo();
+			authTypeList.stream().findAny().ifPresent(authType -> {
+			    RowType modauth = new RowType();
+			    modauth.setLabel("Modalità di autenticazione");
+			    String profilo = authType.getProfilo();
 
-				if(this.configurazione.getProfili().containsKey(profilo)) {
-					modauth.setValore(this.configurazione.getProfili().get(profilo));
-				} else {
-					modauth.setValore("--");
-				}
+			    if (this.configurazione.getProfili().containsKey(profilo)) {
+			        modauth.setValore(this.configurazione.getProfili().get(profilo));
+			    } else {
+			        modauth.setValore("--");
+			    }
 
-				api.getRow().add(modauth);
-			}
+			    api.getRow().add(modauth);
+			});
 
 		}
 
@@ -153,30 +153,34 @@ public class SchedaAdesioneBuilder {
 		ConfigType produzioneConfig = new ConfigType();
 
 		for(ClientAdesioneEntity client: adesione.getClient()) {
-			ApiType apiConf = new ApiType();
 			
-			// riga client
-			RowType row1 = new RowType();
-			row1.setLabel("Client");
-			row1.setValore(client.getClient().getNome());
-			apiConf.getRow().add(row1);
-			
-			// riga profilo
-			RowType row2 = new RowType();
-			row2.setLabel("Profilo");
-			row2.setValore(this.configurazione.getProfili().get(client.getProfilo()));
-			apiConf.getRow().add(row2);
-			
-			// Common Name
-			RowType row3 = new RowType();
-			row3.setLabel("Common Name");
-			row3.setValore(getValoreConfClient(client.getClient()));
-			
-			apiConf.getRow().add(row3);
-			if(client.getClient().getAmbiente().equals(AmbienteEnum.COLLAUDO)) {
-				collaudoConfig.getApi().add(apiConf);
-			} else {
-				produzioneConfig.getApi().add(apiConf);
+			if(client.getClient()!=null) {
+				ApiType apiConf = new ApiType();
+				
+				// riga client
+				RowType row1 = new RowType();
+				row1.setLabel("Client");
+				row1.setValore(client.getClient().getNome());
+				apiConf.getRow().add(row1);
+				
+				// riga profilo
+				RowType row2 = new RowType();
+				row2.setLabel("Profilo");
+				row2.setValore(this.configurazione.getProfili().get(client.getProfilo()));
+				apiConf.getRow().add(row2);
+				
+				// Common Name
+				RowType row3 = new RowType();
+//				row3.setLabel("Common Name");
+				row3.setLabel(getLabelConfClient(client.getClient()));
+				row3.setValore(getValoreConfClient(client.getClient()));
+				
+				apiConf.getRow().add(row3);
+				if(client.getClient().getAmbiente().equals(AmbienteEnum.COLLAUDO)) {
+					collaudoConfig.getApi().add(apiConf);
+				} else {
+					produzioneConfig.getApi().add(apiConf);
+				}
 			}
 		}
 
@@ -341,6 +345,27 @@ public class SchedaAdesioneBuilder {
 		return null;
 	}
 
+	private String getLabelConfClient(ClientEntity client) {
+		switch(client.getAuthType()) {
+		case HTTPS:
+		case HTTPS_SIGN:
+		case SIGN:
+		case HTTPS_PDND:
+		case HTTPS_PDND_SIGN:
+		case PDND:
+		case SIGN_PDND:
+		case HTTP_BASIC:
+		case INDIRIZZO_IP:
+		case NO_DATI: return "Common Name";
+		case OAUTH_AUTHORIZATION_CODE:
+		case OAUTH_CLIENT_CREDENTIALS: return "Client ID";
+		}
+
+		this.logger.debug("Implementare authtype: " + client.getAuthType());
+		
+		return null;
+	}
+
 	private String getValoreConfClient(ClientEntity client) {
 		switch(client.getAuthType()) {
 		case HTTPS: return getCNAutenticazione(client.getEstensioni());
@@ -355,9 +380,9 @@ public class SchedaAdesioneBuilder {
 		case NO_DATI: return null;
 		case OAUTH_AUTHORIZATION_CODE:return getClientId(client.getEstensioni());
 		case OAUTH_CLIENT_CREDENTIALS:return getClientId(client.getEstensioni());
-		default: this.logger.debug("Implementare authtype: " + client.getAuthType());
 		}
 		
+		this.logger.debug("Implementare authtype: " + client.getAuthType());
 		return null;
 	}
 

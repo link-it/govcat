@@ -13,7 +13,7 @@ export class Utente {
 
   id: number | null = null;
   id_utente: string | null = null;
-  username: string | null = null;
+  principal: string | null = null;
   nome: string | null = null;
   cognome: string | null = null;
   telefono: string | null = null;
@@ -28,6 +28,7 @@ export class Utente {
   // classi_utente: Array<any> = [];
   organizzazione: Organizzazione | null = null;
   classi_utente: ClassiUtente | null = null;
+  referente_tecnico: boolean = false;
 
   constructor(_data?: any) {
     if (_data) {

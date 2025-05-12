@@ -102,7 +102,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { field: 'nome', label: 'APP.LABEL.nome', icon: '' }
     ];
 
-
     _statiServizioEnum: any = { ...Tools.StatiServizioEnum };
 
     _tipiVisibilitaServizio: {value: string, label: string}[] = [
@@ -199,7 +198,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // containerStyle: null,
     };
 
-    hasMultiSelection: boolean = false;
+    hasMultiSelection: boolean = true;
     elementsSelected: any[] = [];
     _downloading: boolean = true;
     uncheckAllInTheMenu: boolean = true;
@@ -541,7 +540,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             multiplo: service.multi_adesione || false,
                             primaryText: service.label ? service.label : ((service.nome && service.versione) ? `${service.nome} - v.${service.versione}` : service.nome),
                             secondaryText: '', // (service.descrizione || ''),
-                            metadata: _meta.join(', ')
+                            metadata: _meta.join(', '),
+                            selected: false,
                         };
                         return element;
                     });
@@ -1131,8 +1131,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         event.stopPropagation();
         const _index = this.elementsSelected.findIndex((item: any) => item === element.idServizio);
         if (_index === -1) {
+            element.selected = true;
             this.elementsSelected.push(element.idServizio);
         } else {
+            element.selected = false;
             this.elementsSelected.splice(_index, 1);
         }
     }

@@ -42,7 +42,7 @@ public class ReferenteServizioSpecification implements Specification<ReferenteSe
 	private static final long serialVersionUID = 1L;
 
 	private Optional<String> q = Optional.empty();
-	private Optional<UUID> idServizio = Optional.empty();
+	private Optional<String> idServizio = Optional.empty();
 	private Optional<String> idUtente = Optional.empty();
 	private Optional<TIPO_REFERENTE> tipoReferente = Optional.empty();
 	
@@ -95,11 +95,11 @@ public class ReferenteServizioSpecification implements Specification<ReferenteSe
 		this.q = q;
 	}
 
-	public Optional<UUID> getIdServizio() {
+	public Optional<String> getIdServizio() {
 		return idServizio;
 	}
 
-	public void setIdServizio(Optional<UUID> idServizio) {
+	public void setIdServizio(Optional<String> idServizio) {
 		this.idServizio = idServizio;
 	}
 

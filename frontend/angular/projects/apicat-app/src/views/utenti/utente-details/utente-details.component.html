@@ -70,7 +70,6 @@
               
             <div class="row nome cognome">  
               <div class="col-6">
-                <!-- nome -->
                 <div class="form-group">
                   <label class="label-bold" for="nome">{{ 'APP.USERS.LABEL.Nome' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span>
@@ -87,11 +86,9 @@
                     <input type="text" readonly class="form-control-plaintext" id="nome" [value]="utente.nome">
                   </div>
                 </div>
-                <!--  -->
               </div>
 
               <div class="col-6">
-                <!-- cognome -->
                 <div class="form-group">
                   <label class="label-bold" for="cognome">{{ 'APP.USERS.LABEL.Cognome' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'cognome'" *ngIf="_isEdit"></span>
@@ -108,13 +105,70 @@
                     <input type="text" readonly class="form-control-plaintext" id="cognome" [value]="utente.cognome">
                   </div>
                 </div>
-                <!--  -->
               </div>
             </div>
 
-            <div class="row telefono email"> 
+            <div class="row principal organizzazione">
+
               <div class="col-6">
-                <!-- telefono -->
+                <div class="form-group">
+                  <label class="label-bold" for="principal">{{ 'APP.USERS.LABEL.Principal' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'principal'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" type="text" name="principal" id="principal" formControlName="principal">
+                    <p *ngIf="f['principal'].invalid && (f['principal'].dirty || f['principal'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['principal'].errors && f['principal'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['principal'].errors && f['principal'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['principal'].errors['maxlength'].requiredLength } }}</span>
+                    </p>
+                    <ui-input-help field="principal" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="principal" [value]="utente.principal || '--'">
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6">
+                <div class="form-group">
+                  <label class="label-bold" for="id_organizzazione">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                      [items]="organizzazioni$ | async"
+                      [trackByFn]="trackByFn"
+                      [typeahead]="organizzazioniInput$"
+                      [minTermLength]="minLengthTerm" 
+                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                      bindValue="id_organizzazione"
+                      bindLabel="nome"
+                      labelForId="id_organizzazione"
+                      [editableSearchTerm]="true"
+                      formControlName="id_organizzazione">
+                      <ng-template ng-label-tmp let-item="item">
+                        {{ item.nome }}
+                      </ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                        <div class="fw-bold">{{ item.nome }}</div>
+                      </ng-template>
+                    </ng-select>
+                    <p *ngIf="f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    </p>
+                    <ui-input-help field="id_organizzazione" context="SOGGETTI"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <input type="text" readonly class="form-control-plaintext" id="id_organizzazione" [value]="utente.organizzazione?.nome || '--'">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="row telefono email">
+              <div class="col-6">
                 <div class="form-group">
                   <label class="label-bold" for="telefono">{{ 'APP.USERS.LABEL.Phone' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono'" *ngIf="_isEdit"></span>
@@ -131,11 +185,9 @@
                     <input type="text" readonly class="form-control-plaintext" id="telefono" [value]="utente.telefono || '--'">
                   </div>
                 </div>
-                <!--  -->
               </div>
 
               <div class="col-6">
-                <!-- email -->
                 <div class="form-group">
                   <label class="label-bold" for="email">{{ 'APP.LABEL.email' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email'" *ngIf="_isEdit"></span>
@@ -153,13 +205,11 @@
                     <input type="text" readonly class="form-control-plaintext" id="email" [value]="utente.email || '--'">
                   </div>
                 </div>
-                <!--  -->
               </div>
             </div>
 
             <div class="row telefono_aziendale email_aziendale"> 
               <div class="col-6">
-                <!-- telefono_aziendale -->
                 <div class="form-group">
                   <label class="label-bold" for="telefono_aziendale">{{ 'APP.USERS.LABEL.CorporatePhone' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono_aziendale'" *ngIf="_isEdit"></span>
@@ -176,11 +226,9 @@
                     <input type="text" readonly class="form-control-plaintext" id="telefono_aziendale" [value]="utente.telefono_aziendale || '--'">
                   </div>
                 </div>
-                <!--  -->
               </div>
             
               <div class="col-6">
-                <!-- email_aziendale -->
                 <div class="form-group">
                   <label class="label-bold" for="email_aziendale">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email_aziendale'" *ngIf="_isEdit"></span>
@@ -198,40 +246,11 @@
                     <input type="text" readonly class="form-control-plaintext" id="email_aziendale" [value]="utente.email_aziendale || '--'">
                   </div>
                 </div>
-                <!--  -->
               </div>
             </div>
 
-            <div class="row stato ruolo">
+            <div class="row ruolo referente_tecnico">
               <div class="col-6">
-                <!-- stato -->
-                <div class="form-group">
-                  <label class="label-bold" for="stato">{{ 'APP.USERS.LABEL.Status' | translate }} 
-                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'stato'" *ngIf="_isEdit"></span>
-                  </label>
-                  <div class="" *ngIf="_isEdit">
-                    <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_changeRuolo($event)">
-                      <option *ngFor="let stato of _statoArr" [value]="stato">{{ stato }}</option>
-                    </select>  
-                    <p *ngIf="f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)" class="form-text text-danger">
-                      <span *ngIf="f['stato'].errors && f['stato'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    </p>
-                    <ui-input-help field="stato" context="USERS"></ui-input-help>
-                  </div>
-                  <div class="" *ngIf="!_isEdit"><!-- 
-                    <input type="text" readonly class="form-control-plaintext" id="stato" [value]="utente.stato"> -->
-                    <ui-data-type *ngIf="utente"
-                      [data]="utente"
-                      [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                      [config]="config">
-                    </ui-data-type>
-                  </div>
-                </div>
-                <!--  -->
-              </div>
-
-              <div class="col-6">
-                <!-- ruolo -->
                 <div class="form-group">
                   <label class="label-bold" for="ruolo">{{ 'APP.USERS.LABEL.Role' | translate }} 
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'" *ngIf="_isEdit"></span>
@@ -249,13 +268,52 @@
                     {{ 'APP.USERS.ROLES.' + utente.ruolo | translate }}
                   </div>
                 </div>
-                <!--  -->
+              </div>
+
+              <div class="col-6">
+                <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.ReferenteTecnico' | translate }}<span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'" *ngIf="_isNew || _isEdit"></span></label>
+                <div class="" *ngIf="_isEdit">
+                  <div class="form-check form-switch ml-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="referente_tecnico" [checked]="utente?.referente_tecnico" formControlName="referente_tecnico">
+                    <p *ngIf="f['referente_tecnico'].invalid && (f['referente_tecnico'].dirty || f['referente_tecnico'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['referente_tecnico'].errors && f['referente_tecnico'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    </p>
+                  </div>
+                </div>
+                <div class="" *ngIf="!_isEdit">
+                  <div class="form-check form-switch ml-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="referente_tecnico" [checked]="utente.referente_tecnico" disabled>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="row classi_utente id_organizzazione">
+            <div class="row stato classi_utente">
+              <div class="col-6">
+                <div class="form-group">
+                  <label class="label-bold" for="stato">{{ 'APP.USERS.LABEL.Status' | translate }} 
+                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'stato'" *ngIf="_isEdit"></span>
+                  </label>
+                  <div class="" *ngIf="_isEdit">
+                    <select class="form-select" id="stato" formControlName="stato" [class.gl-field-error-outline]="_hasControlError('stato')" (change)="_changeRuolo($event)">
+                      <option *ngFor="let stato of _statoArr" [value]="stato">{{ stato }}</option>
+                    </select>  
+                    <p *ngIf="f['stato'].invalid && (f['stato'].dirty || f['stato'].touched)" class="form-text text-danger">
+                      <span *ngIf="f['stato'].errors && f['stato'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                    </p>
+                    <ui-input-help field="stato" context="USERS"></ui-input-help>
+                  </div>
+                  <div class="" *ngIf="!_isEdit">
+                    <ui-data-type *ngIf="utente"
+                      [data]="utente"
+                      [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                      [config]="config">
+                    </ui-data-type>
+                  </div>
+                </div>
+              </div>
+
               <div class="col-md-6">
-                <!-- classi_utente -->
                 <div class="form-group classi_utente">
                   <label class="label-bold" for="classi_utente">{{ 'APP.USERS.LABEL.UserClasses' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi_utente'" *ngIf="_isEdit"></span>
@@ -279,64 +337,21 @@
                     <ui-input-help field="classi_utente" context="USERS"></ui-input-help>
                   </div>
                   <div class="mt-1" *ngIf="!_isEdit">
-                    <!-- <input type="text" readonly class="form-control-plaintext" id="classi" [value]="data?.classi"> -->
                     <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1" *ngFor="let classe of utente.classi_utente">{{ classe?.nome }}</span>
                   </div>
                 </div>
-                <!--  -->
               </div>
 
-              <div class="col-6">
-                <!-- id_organizzazione -->
-                <div class="form-group">
-                  <label class="label-bold" for="id_organizzazione">{{ 'APP.SOGGETTI.LABEL.OrganizationName' | translate }}
-                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'" *ngIf="_isEdit"></span>
-                  </label>
-                  <div class="" *ngIf="_isEdit">
-                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
-                      [items]="organizzazioni$ | async"
-                      [trackByFn]="trackByFn"
-                      [typeahead]="organizzazioniInput$"
-                      [minTermLength]="minLengthTerm" 
-                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                      bindValue="id_organizzazione"
-                      bindLabel="nome"
-                      labelForId="id_organizzazione"
-                      [editableSearchTerm]="true"
-                      formControlName="id_organizzazione">
-                      <ng-template ng-label-tmp let-item="item">
-                        {{ item.nome }}
-                      </ng-template>
-                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                        <div class="fw-bold">{{ item.nome }}</div>
-                        <!-- <div class="">
-                          <span class="small text-muted">{{ item.nome }} - {{ item.id_organizzazione }}</span>
-                        </div> -->
-                      </ng-template>
-                    </ng-select>
-                    <p *ngIf="f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)" class="form-text text-danger">
-                      <span *ngIf="f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    </p>
-                    <ui-input-help field="id_organizzazione" context="SOGGETTI"></ui-input-help>
-                  </div>
-                  <div class="" *ngIf="!_isEdit">
-                    <input type="text" readonly class="form-control-plaintext" id="id_organizzazione" [value]="utente.organizzazione?.nome || '--'">
-                  </div>
-                </div>
-                <!--  -->
-              </div>
             </div>
 
-            <div class="row note username">
-              <div class="col-6">
-                <!-- note -->
+            <div class="row note">
+              <div class="col-12">
                 <div class="form-group">
                   <label class="label-bold" for="note">{{ 'APP.LABEL.note' | translate }}
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'note'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note">
+                    <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" name="note" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="note" formControlName="note" rows="3"></textarea>
                     <p *ngIf="f['note'].invalid && (f['note'].dirty || f['note'].touched)" class="form-text text-danger">
                       <span *ngIf="f['note'].errors && f['note'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                       <span *ngIf="f['note'].errors && f['note'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors['maxlength'].requiredLength } }}</span>
@@ -347,29 +362,8 @@
                     <input type="text" readonly class="form-control-plaintext" id="note" [value]="utente.note || '--'">
                   </div>
                 </div>
-                <!--  -->
               </div>
 
-              <div class="col-6">
-                <!-- username -->
-                <div class="form-group">
-                  <label class="label-bold" for="username">{{ 'APP.CLIENT.LABEL.Username' | translate }}
-                    <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'username'" *ngIf="_isEdit"></span>
-                  </label>
-                  <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('username')" type="text" name="username" id="username" formControlName="username">
-                    <p *ngIf="f['username'].invalid && (f['username'].dirty || f['username'].touched)" class="form-text text-danger">
-                      <span *ngIf="f['username'].errors && f['username'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      <span *ngIf="f['username'].errors && f['username'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['username'].errors['maxlength'].requiredLength } }}</span>
-                    </p>
-                    <ui-input-help field="username" context="USERS"></ui-input-help>
-                  </div>
-                  <div class="" *ngIf="!_isEdit">
-                    <input type="text" readonly class="form-control-plaintext" id="username" [value]="utente.username || '--'">
-                  </div>
-                </div>
-                <!--  -->
-              </div>
             </div>
 
             <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">

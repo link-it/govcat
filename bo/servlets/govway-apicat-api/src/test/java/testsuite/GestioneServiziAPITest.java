@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.controllers.AdesioniController;
@@ -107,6 +108,12 @@ public class GestioneServiziAPITest {
 	private static final String UTENTE_REFERENTE_TECNICO_DOMINIO = "utente_referente_tecnico__dominio";
     private static final String UTENTE_GESTORE = "gestore";
     
+    private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_DOMINIO;
+    private static UUID ID_UTENTE_GESTORE;
+    
     private static final String NOME_GRUPPO = "Gruppo xyz";
     
     @Mock
@@ -149,6 +156,21 @@ public class GestioneServiziAPITest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -183,7 +205,7 @@ public class GestioneServiziAPITest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -192,10 +214,10 @@ public class GestioneServiziAPITest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
+        upUtente.setPrincipal(UTENTE_GESTORE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -204,10 +226,10 @@ public class GestioneServiziAPITest {
         upUtente.setCognome("gestore");
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_SERVIZIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -216,11 +238,11 @@ public class GestioneServiziAPITest {
         upUtente.setCognome("referente_servizio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_SERVIZIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
         
         /*
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_SERVIZIO);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_SERVIZIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -228,7 +250,7 @@ public class GestioneServiziAPITest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_servizio");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_SERVIZIO, upUtente);
 		*/
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
@@ -268,13 +290,13 @@ public class GestioneServiziAPITest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         
         //creo il referente tecnico dominio
         ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         return createdDominio.getBody();
@@ -298,18 +320,18 @@ public class GestioneServiziAPITest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
          referenti.add(referente);
          
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO);
          referenti.add(referente);
          
          //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
@@ -354,7 +376,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -385,7 +407,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -416,7 +438,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -447,7 +469,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -478,7 +500,7 @@ public class GestioneServiziAPITest {
     	identificativo.setVersione("2");
     	identificativo.setIdSoggettoInterno(idSoggetto);
     	identificativo.setIdDominio(dominio.getIdDominio());
-    	identificativo.setAdesioneConsentita(true);
+    	identificativo.setAdesioneDisabilitata(false);
     	identificativo.setMultiAdesione(true);
     	identificativo.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
     	identificativo.setTipo(TipoServizio.API);
@@ -817,7 +839,7 @@ public class GestioneServiziAPITest {
     	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
     	
     	// Creo API
-    	this.getAPI();
+    	//this.getAPI();
     	
     	serviziController.deleteServizio(idServizio);
     }

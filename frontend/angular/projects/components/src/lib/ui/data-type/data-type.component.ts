@@ -43,6 +43,10 @@ export class DataTypeComponent implements OnInit, AfterViewInit {
   _class: string = '';
   _showBadged: boolean = false;
 
+  _tooltip: string = '';
+  _tooltipDelay: number = 300;
+  _tooltipPlacement: any = 'top';
+
   constructor(
     private sanitized: DomSanitizer,
     private translate: TranslateService,
@@ -51,6 +55,11 @@ export class DataTypeComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this._value = this.utilsLib.getObjectValue(this._data, this._elem.field);
+    if (this._elem.tooltip) {
+      const _objectValueTooltip = this.utilsLib.getObjectValue(this._data, this._elem.tooltip);
+      this._tooltip = _objectValueTooltip || this.translate.instant(this._elem.tooltip);
+      this._tooltipPlacement = this._elem.tooltipPlacement || this._tooltipPlacement;
+    }
     if (this._elem.type === 'date') {
       this._value = this.utilsLib.dateFormatter(this._value, this._elem.format);
     }

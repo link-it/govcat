@@ -48,7 +48,6 @@ public class SoggettoEntity {
     @SequenceGenerator(name = "seq_soggetti", sequenceName = "seq_soggetti", allocationSize = 1)
 	private Long id;
 	
-    // si, sia per fruitore che erogatore(ci si arriva dal dominio del servizio a cui aderisce)
     @Column(name = "nome", nullable = false, unique = true)
 	private String nome;
     

@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { AppComponentsModule } from '@app/components/components.module';
 
 import { CheckboxArrayModule } from '@app/directives/checkbox-array/checkbox-array.module';
 
@@ -19,6 +20,7 @@ import { ProfileComponent } from './profile.component';
     TranslateModule,
     VendorsModule,
     ComponentsModule,
+    AppComponentsModule,
     CheckboxArrayModule,
     ProfileRoutingModule
   ],

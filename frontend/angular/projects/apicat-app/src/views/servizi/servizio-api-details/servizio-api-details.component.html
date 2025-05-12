@@ -146,7 +146,16 @@
                             <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
                                 <div class="row">
                                     <div class="col-9">
-                                        <div class="form-group nome">
+                                        <lnk-form-field
+                                            name="nome"
+                                            [label]="'APP.LABEL.nome' | translate"
+                                            [formGroup]="_formGroup"
+                                            [value]="servizioApi?.nome"
+                                            [isEdit]="_isEdit"
+                                            [plainText]="true"
+                                            [helpContext]="'API.POPOVER'"
+                                        ></lnk-form-field>
+                                        <!-- <div class="form-group nome">
                                             <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
                                                 <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
@@ -159,10 +168,19 @@
                                             <div class="" *ngIf="!_isEdit">
                                                 <input type="text" readonly class="form-control-plaintext" id="nome" [value]="servizioApi?.nome || '-'">
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="col-3">
-                                        <div class="form-group versione">
+                                        <lnk-form-field
+                                            name="versione"
+                                            [label]="'APP.LABEL.versione' | translate"
+                                            [formGroup]="_formGroup"
+                                            [value]="servizioApi?.versione"
+                                            [isEdit]="_isEdit"
+                                            [plainText]="true"
+                                            [helpContext]="'API.POPOVER'"
+                                        ></lnk-form-field>
+                                        <!-- <div class="form-group versione">
                                             <label class="label-bold" for="versione">{{ 'APP.LABEL.versione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
                                                 <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione')" type="number" name="versione" id="versione" formControlName="versione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" min="1">
@@ -175,7 +193,7 @@
                                             <div class="" *ngIf="!_isEdit">
                                                 <input type="text" readonly class="form-control-plaintext" id="versione" [value]="servizioApi?.versione || '-'">
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
                                 </div>
                                 <div class="row" *ngIf="_isNew && _info_gateway_visualizzate && _isGestore()">
@@ -208,7 +226,21 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-12">
-                                        <div class="form-group ruolo">
+                                        <lnk-form-field
+                                            [type]="'select'"
+                                            name="ruolo"
+                                            [label]="'APP.LABEL.ruolo' | translate"
+                                            [selectOptions]="_ruoli"
+                                            [clearable]="false"
+                                            [placeholder]="'APP.MESSAGE.SelectRole' | translate"
+                                            [formGroup]="_formGroup"
+                                            [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente"
+                                            [isEdit]="_isEdit"
+                                            [plainText]="true"
+                                            [helpContext]="'API.POPOVER'"
+                                            (changeEvent)="__changeRuolo($event)"
+                                        ></lnk-form-field>
+                                        <!-- <div class="form-group ruolo">
                                             <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
                                                 <select class="form-select" id="ruolo" formControlName="ruolo" [class.gl-field-error-outline]="_hasControlError('ruolo')" (change)="__changeRuolo($event)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
@@ -223,7 +255,7 @@
                                             <div class="" *ngIf="!_isEdit">
                                                 <input type="text" readonly class="form-control-plaintext" id="ruolo" [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente">
                                             </div>
-                                        </div>
+                                        </div> -->
                                     </div>
                                 </div>
                                 <div *ngIf="_isNew" class="row">
@@ -255,7 +287,7 @@
                                             <ui-allegato #des class="miw-50"
                                                 [control]="_descrittoreCtrl"
                                                 [label]="'APP.LABEL.specifica' | translate"
-                                                [required]="_specificaObbligatorio || this._hasSpecifica"
+                                                [required]="_specificaObbligatorio || _hasSpecifica"
                                                 (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                                                 (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                                                 [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
@@ -324,7 +356,7 @@
                                     <div class="col-12 mb-2" *ngIf="(_customAuth || _customAuthOrig)">
                                         <h4 class="pb-2 border-bottom">{{ 'APP.TITLE.Autenticazioni' | translate }}</h4>
                                     </div>
-                                    <div class="col-12 mb-4" *ngIf="!(_customAuth || _customAuthOrig)">
+                                    <div class="col-12 mb-4" *ngIf="(_customAuth || _customAuthOrig)">
                                         <div class="border-bottom"></div>
                                     </div>
 

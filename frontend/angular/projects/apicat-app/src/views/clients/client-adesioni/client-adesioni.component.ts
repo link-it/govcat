@@ -360,33 +360,6 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
     return item.id;
   }
 
-  // _initReferentiSelect(defaultValue: any[] = []) {
-  //   this.referenti$ = concat(
-  //     of(defaultValue),
-  //     this.referentiInput$.pipe(
-  //       filter(res => {
-  //         return res !== null && res.length >= this.minLengthTerm
-  //       }),
-  //       distinctUntilChanged(),
-  //       debounceTime(500),
-  //       tap(() => this.referentiLoading = true),
-  //       switchMap((term: any) => {
-  //         // return this.utilService.getUtenti(term, this.referentiFilter).pipe(
-  //         let aux: any = null;
-  //         this.referentiTipo == 'referente' ? aux = this.adesione.soggetto.organizzazione.id_organizzazione : aux = null;
-  //         return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux).pipe(
-  //           catchError(() => of([])), // empty list on error
-  //           tap(() => this.referentiLoading = false)
-  //         )
-  //       })
-  //     )
-  //   );
-  // }
-
-  // _onChangeTipoReferente(isReferent: boolean) {
-  //   this.referentiFilter = isReferent ? 'referente_servizio,gestore' : '';
-  // }
-
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
       { nome: 'referente', filter: '' },

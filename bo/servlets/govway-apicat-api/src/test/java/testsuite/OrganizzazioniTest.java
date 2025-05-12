@@ -51,6 +51,8 @@ import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemOrganizzazione;
+import org.govway.catalogo.servlets.model.Soggetto;
+import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -534,8 +536,87 @@ public class OrganizzazioniTest {
         SecurityContextHolder.clearContext();
 
         // Ripristina il profilo autorizzato per gli altri test
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
     }
 
+    @Test
+    public void testCreateOrganizzazioneConflictException() {
+    	String nome = "X";
+    	
+    	OrganizzazioneCreate organizzazioneA = CommonUtils.getOrganizzazioneCreate();
+    	organizzazioneA.setEsterna(false);
+
+    	ResponseEntity<Organizzazione> responseOrganizzazione = controller.createOrganizzazione(organizzazioneA);
+    	responseOrganizzazione.getBody().getIdOrganizzazione();
+    	assertNotNull(responseOrganizzazione.getBody().getIdOrganizzazione());
+    	
+    	SoggettoCreate soggettoCreate = new SoggettoCreate();
+    	soggettoCreate.setSkipCollaudo(true);
+    	soggettoCreate.setNome(nome);
+    	soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+    	soggettoCreate.setAderente(true);
+    	soggettoCreate.setReferente(true);
+
+    	ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+    	assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+    	
+    	OrganizzazioneCreate organizzazioneCreate = new OrganizzazioneCreate();
+        organizzazioneCreate.setNome(nome);
+        organizzazioneCreate.setDescrizione(DESCRIZIONE);
+        organizzazioneCreate.setCodiceEnte(CODICE_ENTE);
+        organizzazioneCreate.setCodiceFiscaleSoggetto(CODICE_FISCALE_SOGGETTO);
+        organizzazioneCreate.setIdTipoUtente(ID_TIPO_UTENTE);
+        organizzazioneCreate.setReferente(REFERENTE);
+        organizzazioneCreate.setAderente(ADERENTE);
+        organizzazioneCreate.setEsterna(ESTERNA);
+    	
+        ConflictException exception = assertThrows(ConflictException.class, () -> {
+        	controller.createOrganizzazione(organizzazioneCreate);
+        });
+        
+        assertEquals(exception.getMessage(), "Soggetto ["+ nome +"] esiste gia");
+    }
+    
+    @Test
+    public void testUpdateOrganizzazioneConflictException() {
+    	String nome = "X";
+    	
+        ResponseEntity<Organizzazione> createResponse = this.getResponse();
+        assertEquals(HttpStatus.OK, createResponse.getStatusCode());
+        Organizzazione organizzazione = createResponse.getBody();
+        assertNotNull(organizzazione);
+        UUID id = organizzazione.getIdOrganizzazione();
+
+        OrganizzazioneCreate organizzazioneA = CommonUtils.getOrganizzazioneCreate();
+    	organizzazioneA.setEsterna(false);
+    	ResponseEntity<Organizzazione> responseOrganizzazione = controller.createOrganizzazione(organizzazioneA);
+    	responseOrganizzazione.getBody().getIdOrganizzazione();
+    	assertNotNull(responseOrganizzazione.getBody().getIdOrganizzazione());
+    	
+    	SoggettoCreate soggettoCreate = new SoggettoCreate();
+    	soggettoCreate.setSkipCollaudo(true);
+    	soggettoCreate.setNome(nome);
+    	soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+    	soggettoCreate.setAderente(true);
+    	soggettoCreate.setReferente(true);
+    	ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+    	assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+        
+        OrganizzazioneUpdate organizzazioneUpdate = new OrganizzazioneUpdate();
+        organizzazioneUpdate.setNome(nome);
+        organizzazioneUpdate.setDescrizione("Descrizione Aggiornata");
+        organizzazioneUpdate.setCodiceEnte("NuovoCodiceEnte");
+        organizzazioneUpdate.setCodiceFiscaleSoggetto("NuovoCodiceFiscaleSoggetto");
+        organizzazioneUpdate.setIdTipoUtente("NuovoTipoUtente");
+        organizzazioneUpdate.setReferente(false);
+        organizzazioneUpdate.setAderente(true);
+        organizzazioneUpdate.setEsterna(false);
+
+        ConflictException exception = assertThrows(ConflictException.class, () -> {
+        	controller.updateOrganizzazione(id, organizzazioneUpdate);
+        });
+        
+        assertEquals(exception.getMessage(), "Soggetto ["+ nome +"] esiste gia");
+    }
 }

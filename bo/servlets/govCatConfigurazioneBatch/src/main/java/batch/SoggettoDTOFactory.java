@@ -25,7 +25,7 @@ public class SoggettoDTOFactory {
 	private String getTipoGatewayConfigurazione() {
 		if(!this.tipoGatewayConfigurazioneLetto) {
 			try {
-				ConfigurazioneReader confReader = new ConfigurazioneReader ();
+				ConfigurazioneReader confReader = new ConfigurazioneReader (externalPath);
 				String json = confReader.getConfigurazione();
 		        this.tipoGatewayConfigurazione = JsonPath.parse(json).read("$.monitoraggio.profilo_govway_default", String.class);
 		        logger.debug("tipoGatewayConfigurazione: " + this.tipoGatewayConfigurazione);

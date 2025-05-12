@@ -4,9 +4,6 @@
       <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
       <div class="d-flex flex-grow-1">&nbsp;</div>
       <div class="nav-controls">
-        <!-- <div class="position-relative" *ngIf="service">
-          <app-back-web [service_id]="service.id_servizio"></app-back-web>
-        </div> -->
         <app-monitor-dropdown *ngIf="service"
           [showComunications]="false"
           [showMonitoring]="false"
@@ -20,11 +17,6 @@
       <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
         <div class="">
           <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
-            <!-- <li class="nav-item">
-              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
-                <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="serviceApi.length">{{ _paging.totalElements || serviceApi.length }}</span>
-              </a>
-            </li> -->
             <li class="nav-item" *ngIf="serviceApiDominio.length">
               <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isSoggettoDominio" (click)="_showSoggettoDominio()">
                 <span>
@@ -42,11 +34,9 @@
       </div>
       <div class="nav-controls align-self-center d-flex">
         <div role="group" class="gl-w-full btn-group-">
-          <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'create'"> -->
-            <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-              <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
-            </button>
-          <!-- </ng-template> -->
+          <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canEditMapper)">
+            <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddApi' | translate }}</span>
+          </button>
         </div>
       </div>
     </div>

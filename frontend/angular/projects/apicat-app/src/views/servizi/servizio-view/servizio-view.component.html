@@ -59,7 +59,6 @@
                   </div>
 
                   <div class="organizzazione-block stato-block mt-2">
-                    <!-- <pre>{{ data | json }}</pre> -->
                     <p class="lead pt-3 pb-3 project__desc">
                       <span class="text-break">{{ data?.dominio?.soggetto_referente?.organizzazione?.nome }}</span>
                       <span class="mx-1">-</span>
@@ -90,22 +89,18 @@
                       </button>
                     </div>
                     <div class="col-12 mt-3" *ngIf="_updateData | mapper:_canJoinMapper">
-                      <!-- <ng-container *ngIf="_updateData | mapper:_isAmmissibileMapper"> -->
-                        <button class="btn btn-link btn-md gl-button ms-2-" (click)="_joinServizio()" *ngIf="(!(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isReferenteMapper) && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
-                          <i class="bi bi-link me-2"></i>
-                          <span>{{ 'APP.BUTTON.JoinService' | translate }}</span>
-                        </button>
-                        <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesioni()" *ngIf="(_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
-                          <i class="bi bi-display"></i>
-                          <!-- <span class="material-icons-outlined me-2">card_membership</span> -->
-                          <span class="ms-2">{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
-                        </button>
-                        <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesione()" *ngIf="!(_updateData | mapper:_isGestoreMapper) && _hasJoined">
-                          <i class="bi bi-display"></i>
-                          <!-- <span class="material-icons-outlined me-2">card_membership</span> -->
-                          <span class="ms-2">{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
-                        </button>
-                      <!-- </ng-container> -->
+                      <button class="btn btn-link btn-md gl-button ms-2-" (click)="_joinServizio()" *ngIf="(!(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isReferenteMapper) && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
+                        <i class="bi bi-link me-2"></i>
+                        <span>{{ 'APP.BUTTON.JoinService' | translate }}</span>
+                      </button>
+                      <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesioni()" *ngIf="(_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
+                        <i class="bi bi-display"></i>
+                        <span class="ms-2">{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
+                      </button>
+                      <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesione()" *ngIf="!(_updateData | mapper:_isGestoreMapper) && _hasJoined">
+                        <i class="bi bi-display"></i>
+                        <span class="ms-2">{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
+                      </button>
                     </div>
                   </div>
 

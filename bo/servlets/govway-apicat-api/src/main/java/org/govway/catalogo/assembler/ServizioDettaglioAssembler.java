@@ -132,7 +132,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 		dettaglio.setDominio(engine.getDominio(entity));
 		dettaglio.setTipo(engine.toTipo(entity.getTipo()));
-
+		
+		dettaglio.setEliminabile(engine.isEliminabile(entity));
+		
 		if(entity.getSoggettoInterno()!=null) {
 			dettaglio.setSoggettoInterno(soggettoItemAssembler.toModel(entity.getSoggettoInterno()));
 		}
@@ -171,7 +173,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			dettaglio.setTags(tags);
 		}
 		
-		dettaglio.setAdesioneConsentita(entity.isAdesioneConsentita());
+		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 		dettaglio.setMultiAdesione(entity.isMultiAdesione());
 
 		return dettaglio;
@@ -224,19 +226,19 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		if(this.configurazione.getServizio().isConsentiNonSottoscrivibile() != null && 
 				this.configurazione.getServizio().isConsentiNonSottoscrivibile()) {
-			if(src.isAdesioneConsentita() != null) {
-				entity.setAdesioneConsentita(src.isAdesioneConsentita());
+			if(src.isAdesioneDisabilitata() != null) {
+				entity.setAdesioneDisabilitata(src.isAdesioneDisabilitata());
 			} else {
-				entity.setAdesioneConsentita(true);
+				entity.setAdesioneDisabilitata(false);
 			}
 		} else {
-			entity.setAdesioneConsentita(true);
+			entity.setAdesioneDisabilitata(false);
 		}
 
 		if(entity.getVisibilita() != null && entity.getVisibilita().equals(VISIBILITA.COMPONENTE)) {
 			// imposto package e adesione consentita a false
 			entity.set_package(false);
-			entity.setAdesioneConsentita(false);
+			entity.setAdesioneDisabilitata(true);
 		}
 
 		entity.setMultiAdesione(src.isMultiAdesione());
@@ -387,13 +389,13 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		if(this.configurazione.getServizio().isConsentiNonSottoscrivibile() != null && 
 				this.configurazione.getServizio().isConsentiNonSottoscrivibile()) {
-			if(src.isAdesioneConsentita() != null) {
-				entity.setAdesioneConsentita(src.isAdesioneConsentita());
+			if(src.isAdesioneDisabilitata() != null) {
+				entity.setAdesioneDisabilitata(src.isAdesioneDisabilitata());
 			} else {
-				entity.setAdesioneConsentita(true);
+				entity.setAdesioneDisabilitata(false);
 			}
 		} else {
-			entity.setAdesioneConsentita(true);
+			entity.setAdesioneDisabilitata(false);
 		}
 
 		entity.set_package(src.isPackage());
@@ -401,7 +403,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(entity.getVisibilita() != null && entity.getVisibilita().equals(VISIBILITA.COMPONENTE)) {
 			// imposto package e adesione consentita a false
 			entity.set_package(false);
-			entity.setAdesioneConsentita(false);
+			entity.setAdesioneDisabilitata(true);
 		}
 
 		entity.setMultiAdesione(src.isMultiAdesione() != null ? src.isMultiAdesione(): false);

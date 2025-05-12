@@ -373,6 +373,7 @@ create sequence seq_utenti start with 1 increment by 1;
        id bigint not null,
         package boolean not null,
         adesione_consentita boolean,
+        adesione_disabilitata boolean,
         data_creazione timestamp,
         data_ultima_modifica timestamp,
         descrizione varchar(4000),
@@ -470,6 +471,8 @@ create sequence seq_utenti start with 1 increment by 1;
         metadati binary(255),
         nome varchar(255) not null,
         note varchar(255),
+        principal varchar(255) not null,
+        referente_tecnico boolean not null,
         ruoli_notifiche_abilitate varchar(255),
         ruolo varchar(255),
         stato varchar(255) not null,
@@ -495,6 +498,9 @@ create sequence seq_utenti start with 1 increment by 1;
 
     alter table utenti 
        add constraint UK_83bc9wgqao3ad6r8y5sqxy9lq unique (id_utente);
+
+    alter table utenti 
+       add constraint UK_mvje76mmq8p7yyk5329geaucb unique (principal);
 
     alter table adesioni 
        add constraint FKt6ynph35hpekqnx5dxk27q710 

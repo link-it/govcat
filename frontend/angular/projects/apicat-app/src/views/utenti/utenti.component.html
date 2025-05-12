@@ -99,10 +99,10 @@
 
                 <div class="row mb-1">
                   <div class="col-2">
-                    <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Username' | translate }}</label>
+                    <label class="col-form-label col-form-label-fix">{{ 'APP.USERS.LABEL.Principal' | translate }}</label>
                   </div>
                   <div class="col-10">
-                    <input type="text" class="form-control form-control-sm" id="username" formControlName="username">
+                    <input type="text" class="form-control form-control-sm" id="principal" formControlName="principal">
                   </div>
                 </div>
 
@@ -158,6 +158,22 @@
                         <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome}}
                       </ng-template>
                     </ng-select>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-sm-12 col-md-6">
+                    <div class="row mb-1">
+                      <div class="col-sm-4">
+                        <label class="col-form-label col-form-label-fix" for="referente_tecnico">{{ 'APP.LABEL.ReferenteTecnico' | translate }}</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <select class="form-select form-control-sm" id="referente_tecnico" formControlName="referente_tecnico">
+                          <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                          <option *ngFor="let stato of yesNoList" [value]="stato.value">{{ stato.label | translate }}</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

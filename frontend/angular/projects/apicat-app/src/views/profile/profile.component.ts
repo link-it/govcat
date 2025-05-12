@@ -1,7 +1,6 @@
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -40,11 +39,18 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
   config: any;
   profileConfig: any;
 
-  _isProfile: boolean = true;
+  isProfile: boolean = true;
 
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  isEdit: boolean = false;
+  saving: boolean = false;
+  formGroup: FormGroup = new FormGroup({});
 
-  _spin: boolean = true;
+  error: boolean = false;
+  errorMsg: string = '';
+
+  optionsForm: any = null;
+
+  spin: boolean = true;
   desktop: boolean = false;
 
   _message: string = 'APP.MESSAGE.NoResults';
@@ -81,11 +87,12 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
     { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' },
   ];
 
-  _formSettingsSettings!: UntypedFormGroup;
+  _formSettingsSettings!: FormGroup;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    protected fb: FormBuilder,
     private translate: TranslateService,
     private configService: ConfigService,
     public tools: Tools,
@@ -107,12 +114,8 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
         this.profileConfig = config;
 
         this.session = this.authenticationService.getCurrentSession();
-        this.profile = this.authenticationService.getUser();
-        this.settings = this.authenticationService.getSettings();
 
-        this._spin = false;
-
-        this._loadSettingsNotifications();
+        this.loadProfile();
       }
     );
   }
@@ -123,6 +126,23 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
 
   ngAfterContentChecked(): void {
     this.desktop = (window.innerWidth >= 992);
+  }
+
+  loadProfile() {
+    this.spin = true;
+    this.apiService.getList('profilo').subscribe(
+      (response: any) => {
+
+        this.profile = response.utente;
+        this.settings = response.settings;
+
+        this.initForm();
+
+        this.loadSettingsNotifications();
+
+        this.spin = false;
+      }
+    );
   }
 
   _setErrorMessages(error: boolean) {
@@ -140,18 +160,81 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
     this.router.navigate([event.url]);
   }
 
+  onEdit() {
+    this.isEdit = true;
+    this.error = false;
+    this.errorMsg = '';
+  }
+
+  onCancelEdit() {
+    this.isEdit = false;
+    this.error = false;
+    this.errorMsg = '';
+    this.initForm();
+  }
+
+  initForm() {
+    this.formGroup = this.fb.group({
+        principal: [{value: '', disabled: true}, [Validators.required]],
+        nome: ['', [Validators.required]],
+        cognome: ['', [Validators.required]],
+        telefono: ['', []],
+        email: ['', [Validators.email]],
+        telefono_aziendale: ['', [Validators.required]],
+        email_aziendale: ['', [Validators.required, Validators.email]],
+        note: ['', []],
+    });
+
+    this.formGroup.patchValue(this.profile);
+  }
+
+  submitProfile(formValue: any) {
+    if (this.isEdit && this.formGroup.valid) {
+        this.onUpdateProfile(this.profile.id_utente, formValue);
+    }
+  }
+
+  prepareBodyUpdate(body: any) {
+    const _body = { 
+      nome: body.nome,
+      cognome: body.cognome,
+      telefono: body.telefono || null,
+      email: body.email || null,
+      telefono_aziendale: body.telefono_aziendale,
+      email_aziendale: body.email_aziendale,
+      note: body.note || null
+    };
+
+    return _body;
+  }
+
+  onUpdateProfile(id: string, body: any) {
+    const _body = this.prepareBodyUpdate(body);
+
+    this.apiService.putElement('profilo', null, _body).subscribe({
+      next: (response: any) => {
+        this.loadProfile();
+        this.onCancelEdit();
+      },
+      error: (error: any) => {
+        this.error = true;
+        this.errorMsg = Tools.GetErrorMsg(error);
+      }
+    })
+  }
+
   _showProfile() {
-    this._isProfile = true;
+    this.isProfile = true;
   }
 
   _showSettings() {
-    this._isProfile = false;
+    this.isProfile = false;
   }
 
-  _loadSettingsNotifications() {
+  loadSettingsNotifications() {
     this.apiService.getDetails('utenti', this.profile.id_utente, 'settings/notifiche').subscribe({
       next: (response: any) => {
-        console.log('_loadSettingsNotifications', response);
+        console.log('loadSettingsNotifications', response);
         this._serverSettings = { ...response };
         this.serverSettings = new ServerSettings({ ...response });
         this._initServerForm({ ...this.serverSettings });
@@ -198,23 +281,23 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
         switch (key) {
           case 'emetti_per_tipi':
             const _emetti_per_tipi: any[] = data['emetti_per_tipi'] || [];
-            _group[key] = new UntypedFormControl(_emetti_per_tipi, []);
+            _group[key] = new FormControl(_emetti_per_tipi, []);
             break;
           case 'emetti_per_entita':
             const _emetti_per_entita: any[] = data['emetti_per_entita'] || [];
-            _group[key] = new UntypedFormControl(_emetti_per_entita, []);
+            _group[key] = new FormControl(_emetti_per_entita, []);
             break;
           case 'emetti_per_ruoli':
             const _emetti_per_ruoli: any[] = data['emetti_per_ruoli'] || [];
-            _group[key] = new UntypedFormControl(_emetti_per_ruoli, []);
+            _group[key] = new FormControl(_emetti_per_ruoli, []);
             break;
           default:
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, []);
+            _group[key] = new FormControl(value, []);
             break;
         }
       });
-      this._formSettingsSettings = new UntypedFormGroup(_group);
+      this._formSettingsSettings = new FormGroup(_group);
 
       if (data.emetti_per_tipi || data.emetti_per_tipi || data.emetti_per_tipi) {
         this._formSettingsSettings.get('enable_notifications')?.setValue(true, {emitEvent: false});

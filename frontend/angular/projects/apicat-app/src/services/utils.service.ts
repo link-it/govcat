@@ -31,11 +31,12 @@ export class UtilService {
     private modalService: BsModalService,
   ) { }
 
-  getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', organizzazione: string | null = null): Observable<any> {
+  getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', organizzazione: string | null = null, referenteTecnico: boolean = false): Observable<any> {
     const _options: any = { params: { q: term } };
     if (role) { _options.params.ruolo = role; }
     if (stato) { _options.params.stato = stato; }
     if (organizzazione) { _options.params.id_organizzazione = organizzazione; }
+    if (referenteTecnico) { _options.params.referente_tecnico = true; }
 
     return this.apiService.getList('utenti', _options)
       .pipe(map(resp => {

@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 import { AbstractControl, FormGroup } from '@angular/forms';
 
+import { AvailbleBSPositions } from 'ngx-bootstrap/positioning';
+
 type InputType = 'text' | 'date' | 'textarea' | 'number' | 'checkbox' | 'password' | 'select';
 
 @Component({
@@ -19,6 +21,7 @@ export class LnkFormFieldComponent implements OnInit {
     @Input() value: any = '';
 
     @Input() selectOptions: string[] = [];
+    @Input() clearable: boolean = true;
 
     @Input() autocomplete: string = 'off';
     @Input() placeholder?: string;
@@ -32,6 +35,13 @@ export class LnkFormFieldComponent implements OnInit {
     @Input() uppercase: boolean = false;
     @Input() reduced: boolean = false;
     @Input() useParagraph: boolean = false;
+
+    @Input() showHelp: boolean = true;
+    @Input() showHelpOnlyEdit: boolean = true;
+    @Input() iconHelp: string = 'bi bi-info-circle';
+    @Input() helpPlacement: AvailbleBSPositions = 'left';
+    @Input() helpContext: string = '';
+    @Input() helpParams: any = {};
 
     @Input() options: any = null;
 
@@ -78,5 +88,12 @@ export class LnkFormFieldComponent implements OnInit {
 
     get colClassValue(): string {
         return this.singleColumn && !this.inline ? `col-lg-12` : (this.options ? `col-lg-${this.options.Formfield.colValue}` : `col-lg-8`);
+    }
+
+    hasHelpMapper = (isEdit: boolean, key: string) => {
+        if (this.showHelp) {
+            return this.showHelpOnlyEdit ? isEdit : true
+        }
+        return false;
     }
 }

@@ -185,7 +185,11 @@ export class Tools {
     IN_CONFIGURAZIONE_PRODUZIONE_SENZA_COLLAUDO: { Code: 'in_configurazione_produzione_senza_collaudo', Label: 'In configurazione in produzione senza collaudo', Order: 14 },
     PUBBLICATO_PRODUZIONE: { Code: 'pubblicato_produzione', Label: 'Pubblicato in produzione', Order: 16 },
     PUBBLICATO_PRODUZIONE_SENZA_COLLAUDO: { Code: 'pubblicato_produzione_senza_collaudo', Label: 'Pubblicato in produzione senza collaudo', Order: 16 },
-    ARCHIVIATO: { Code: 'archiviato', Label: 'Archiviato', Order: 18 }
+    ARCHIVIATO: { Code: 'archiviato', Label: 'Archiviato', Order: 18 },
+    IN_CONFIGURAZIONE_AUTOMATICA_COLLAUDO: { Code: 'in_configurazione_automatica_collaudo', Label: 'In configurazione automatica collaudo', Order: 18 },
+    IN_CONFIGURAZIONE_MANUALE_COLLAUDO: { Code: 'in_configurazione_manuale_collaudo', Label: 'In configurazione manuale collaudo', Order: 18 },
+    IN_CONFIGURAZIONE_AUTOMATICA_PRODUZIONE: { Code: 'in_configurazione_automatica_produzione', Label: 'In configurazione automatica produzione', Order: 18 },
+    IN_CONFIGURAZIONE_MANUALE_PRODUZIONE: { Code: 'in_configurazione_manuale_produzione', Label: 'In configurazione manuale produzione', Order: 18 }
   };
   public static StatiAdesione: any[] = Object.keys(Tools.StatoAdesione).map((key: string) => {
     return { label: Tools.StatoAdesione[key].Label, value: Tools.StatoAdesione[key].Code, order: Tools.StatoAdesione[key].Order };

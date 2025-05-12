@@ -109,17 +109,31 @@ export class ModalAddReferentComponent implements OnInit {
         if (!term) {
             return of([]);
         }
-        let aux: any = null;
-        this.referentiTipo === 'referente' ? aux = this.adesione.soggetto.organizzazione.id_organizzazione : aux = null;
-        return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux).pipe(
-            // tap((response: any) => console.log(response)),
-            map((response: any) => response.map(
-                (item: any) => item.id_utente ? ({
-                    label: `${item.nome} ${item.cognome}`,
-                    value: item.id_utente
-                }) : null
-            ).filter((item: any) => item !== null))
-        )
+
+        const _options: any = { params: { q: term } };
+        // _options.params.ruolo = this.referentiFilter;
+        _options.params.stato = 'abilitato';
+        if (this.referentiTipo === 'referente') {
+            _options.params.id_organizzazione = this.adesione.soggetto.organizzazione.id_organizzazione;
+        } else {
+            _options.params.referente_tecnico = true;
+        }
+    
+        return this.apiService.getList('utenti', _options)
+            .pipe(map(resp => {
+                    if (resp.Error) {
+                        return [];
+                    } else {
+                        const _items = resp.content.map((item: any) => {
+                            return {
+                                label: `${item.nome} ${item.cognome}`,
+                                value: item.id_utente
+                            };
+                        });
+                        return _items;
+                    }
+                })
+            );
     }
 
 }

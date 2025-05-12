@@ -8,6 +8,7 @@ import { TranslateModule } from "@ngx-translate/core";
 import { NgSelectModule } from "@ng-select/ng-select";
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { AccordionModule } from 'ngx-bootstrap/accordion';
+import { PopoverModule } from 'ngx-bootstrap/popover';
 import { MarkdownModule } from 'ngx-markdown';
 
 // import { ErrorViewComponent } from "@app/components/error-view/error-view.component";
@@ -15,6 +16,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { LnkButtonComponent } from "@app/components/lnk-ui/button/button.component";
 import { LnkDropdwnButtonComponent } from '@app/components/lnk-ui/dropdown-button/dropdown-button.component';
 import { LnkIconToggleComponent } from '@app/components/lnk-ui/icon-toggle/icon-toggle.component';
+import { PopoverHelpComponent } from '@app/components/lnk-ui/popover-help/popover-help.component';
 
 import { LnkFormFieldComponent  } from "@app/components/lnk-ui/form-field/form-field.component";
 import { LnkFormFieldsetComponent  } from "@app/components/lnk-ui/form-fieldset/form-fieldset.component";
@@ -36,6 +38,7 @@ import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
         LnkButtonComponent,
         LnkDropdwnButtonComponent,
         LnkIconToggleComponent,
+        PopoverHelpComponent,
 
         LnkFormFieldComponent,
         LnkFormFieldsetComponent,
@@ -57,6 +60,7 @@ import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
         TranslateModule,
         TooltipModule.forRoot(),
         AccordionModule.forRoot(),
+        PopoverModule.forRoot(),
         MarkdownModule,
 
         MarkAsteriskModule,
@@ -68,6 +72,7 @@ import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
         LnkButtonComponent,
         LnkDropdwnButtonComponent,
         LnkIconToggleComponent,
+        PopoverHelpComponent,
 
         LnkFormFieldComponent,
         LnkFormFieldsetComponent,

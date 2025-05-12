@@ -32,6 +32,7 @@ import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.model.ItemApi;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,12 +82,15 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 			AuthTypeApiResource g = new AuthTypeApiResource();
 			g.setNote(authType.getNote());
 			
-			this.configurazione.getServizio().getApi().getProfili()
+			Optional<ConfigurazioneProfilo> configurazioneProfilo = this.configurazione.getServizio().getApi().getProfili()
 					.stream()
 					.filter(p -> p.getCodiceInterno().equals(authType.getProfilo()))
-					.findAny()
-					.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
-				
+					.findAny();
+					//.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
+			if (configurazioneProfilo.isEmpty()) {
+			    String errorMessage = String.format("Profilo [%s] non trovato", authType.getProfilo());
+			    throw new BadRequestException(errorMessage);
+			}
 
 			g.setProfilo(authType.getProfilo());
 			g.setResources(Arrays.asList(new String(authType.getResources()).split(SEPARATOR)));

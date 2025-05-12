@@ -63,7 +63,7 @@ public class AdesioneService extends AbstractService {
 
 	public Optional<AdesioneEntity> findByIdAdesione(String idAdesione) {
 		AdesioneSpecification adesioneFilter = new AdesioneSpecification();
-		adesioneFilter.setIdAdesione(Optional.of(UUID.fromString(idAdesione)));
+		adesioneFilter.setIdAdesioni(List.of(UUID.fromString(idAdesione)));
 		return this.adesioneRepo.findOne(adesioneFilter);
 	}
 
@@ -72,7 +72,7 @@ public class AdesioneService extends AbstractService {
 		return this.referenteAdesioneRepo.findAll(spec, pageable);
 	}
 
-	public List<ReferenteAdesioneEntity> getReferenteAdesione(UUID idAdesione, String idUtente, TIPO_REFERENTE tipo) {
+	public List<ReferenteAdesioneEntity> getReferenteAdesione(UUID idAdesione, UUID idUtente, TIPO_REFERENTE tipo) {
 		ReferenteAdesioneSpecification spec = new ReferenteAdesioneSpecification();
 		spec.setIdAdesione(Optional.of(idAdesione.toString()));
 		spec.setIdUtente(Optional.of(idUtente.toString()));

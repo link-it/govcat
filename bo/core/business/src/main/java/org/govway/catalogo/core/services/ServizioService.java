@@ -134,11 +134,11 @@ public class ServizioService extends AbstractService {
 		return this.referenteServizioRepo.findAll(spec, pageable);
 	}
 
-	public List<ReferenteServizioEntity> getReferenteServizio(UUID idServizio, String idUtente, TIPO_REFERENTE tipo) {
+	public List<ReferenteServizioEntity> getReferenteServizio(UUID idServizio, UUID idUtente, TIPO_REFERENTE tipo) {
 		
 		ReferenteServizioSpecification spec = new ReferenteServizioSpecification();
-		spec.setIdServizio(Optional.of(idServizio));
-		spec.setIdUtente(Optional.of(idUtente));
+		spec.setIdServizio(Optional.of(idServizio.toString()));
+		spec.setIdUtente(Optional.of(idUtente.toString()));
 		spec.setTipoReferente(Optional.ofNullable(tipo));
 		
 		List<ReferenteServizioEntity> findAll = this.referenteServizioRepo.findAll(spec);
@@ -226,4 +226,13 @@ public class ServizioService extends AbstractService {
 		return this.servizioRepo.getServiziByRichiedente(u.getId());
 	}
 
+	public boolean isEliminabile(ServizioEntity servizio) {
+	    boolean haAdesioni = !servizio.getAdesioni().isEmpty();
+	    boolean haApi = !servizio.getApi().isEmpty();
+	    boolean haPackageSubServizi = servizio.is_package() && !servizio.getComponenti().isEmpty();
+
+	    return !(haAdesioni || haApi || haPackageSubServizi);
+	}
+
+	
 }

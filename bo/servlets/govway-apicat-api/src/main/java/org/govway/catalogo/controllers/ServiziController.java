@@ -32,6 +32,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.AllegatoServizioAssembler;
 import org.govway.catalogo.assembler.CategoriaServizioItemAssembler;
@@ -63,6 +66,8 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
+import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
@@ -373,9 +378,9 @@ public class ServiziController implements ServiziApi {
 			if(!admin) {
 				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
+						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getNome()+" "+referenteEntity.getReferente().getCognome()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
 					} else {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] non associato ad alcuna organizzazione");
+						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getNome()+" "+referenteEntity.getReferente().getCognome()+"] non associato ad alcuna organizzazione");
 					}
 				}
 				
@@ -500,7 +505,9 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
+				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
+				this.checkReferenti(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
@@ -596,7 +603,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<Void> deleteReferenteServizio(UUID idServizio, String idUtente,
+	public ResponseEntity<Void> deleteReferenteServizio(UUID idServizio, UUID idUtente,
 			TipoReferenteEnum tipoReferente) {
 		try {
 			return this.service.runTransaction( () -> {
@@ -859,7 +866,7 @@ public class ServiziController implements ServiziApi {
 	
 				ReferenteServizioSpecification spec = new ReferenteServizioSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				spec.setIdServizio(Optional.of(idServizio));
+				spec.setIdServizio(Optional.of(idServizio.toString()));
 
 				if(tipoReferente!= null) {
 					spec.setTipoReferente(Optional.of(this.referenteAssembler.toTipoReferente(tipoReferente)));
@@ -1059,9 +1066,27 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+	public static Specification<ServizioEntity> hasAuthTypeWithProfili(List<String> profili) {
+	    return (root, query, builder) -> {
+	        
+	        query.distinct(true);
+
+	        // root: ServizioEntity
+	        // join a ApiEntity (servizio.api)
+	        Join<ServizioEntity, ApiEntity> apiJoin = root.join("api", JoinType.INNER);
+
+	        // join a AuthTypeEntity (api.authType)
+	        Join<ApiEntity, AuthTypeEntity> authTypeJoin = apiJoin.join("authType", JoinType.INNER);
+
+	        // filtro su authType.profilo in (profili)
+	        return authTypeJoin.get("profilo").in(profili);
+	    };
+	}
+
+	
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi, Boolean adesioneConsentita,String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi, Boolean adesioneConsentita,String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, List<String> profili, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			return this.service.runTransaction( () -> {
@@ -1079,7 +1104,6 @@ public class ServiziController implements ServiziApi {
 				specification.set_package(Optional.ofNullable(_package));
 				specification.setNome(Optional.ofNullable(nome));
 				specification.setVersione(Optional.ofNullable(versione));
-
 
 				specification.setGruppoList(getGruppi(idGruppo));
 				
@@ -1156,6 +1180,10 @@ public class ServiziController implements ServiziApi {
 					realSpecification = specification;
 				}
 
+				if(profili != null && !profili.isEmpty()) {
+					realSpecification = realSpecification.and(hasAuthTypeWithProfili(profili));
+				}
+				
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome","versione"));
 
 				Page<ServizioEntity> findAll = this.service.findAll(
@@ -1589,8 +1617,11 @@ public class ServiziController implements ServiziApi {
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
-
-				this.service.delete(entity);
+				if (service.isEliminabile(entity)) {
+				    service.delete(entity);
+				} else {
+				    throw new BadRequestException("Il servizio non è eliminabile");
+				}
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.noContent().build();
 			});
@@ -1717,18 +1748,35 @@ public class ServiziController implements ServiziApi {
 	}
 	
 
-	
+	/*
 	private boolean isEmpty(ServizioGruppoEntity sg) {
 		if(sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
 			return false;
 		}
+		Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
+		GruppoEntity gruppo = null;
+		if(gruppoEntity.isPresent())
+			gruppoEntity.get();
 
-		GruppoEntity gruppo = this.gruppoService.find(UUID.fromString(sg.getIdEntita())).get();
+		return isEmpty(gruppo);	
+	}
+	 */
+	
+	private boolean isEmpty(ServizioGruppoEntity sg) {
+	    if (sg.getTipo().equals(TipoServizioGruppoEnum.SERVIZIO)) {
+	        return false;
+	    }
 
-		return isEmpty(gruppo);
-		
+	    Optional<GruppoEntity> gruppoEntity = this.gruppoService.find(UUID.fromString(sg.getIdEntita()));
+
+	    if (gruppoEntity.isPresent()) {
+	        return isEmpty(gruppoEntity.get());
+	    }
+
+	    return true;
 	}
 
+	
 	private boolean isEmpty(GruppoEntity gruppo) {
 
 		if(!gruppo.getServizi().isEmpty()) {
@@ -1791,7 +1839,7 @@ public class ServiziController implements ServiziApi {
 				}
 
 			} else {
-				if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO)) {
+				if(visibilita != null && visibilita == org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.PUBBLICO) {
 					List<String> statiAdesione = this.configurazione.getServizio().getStatiAdesioneConsentita();
 					contains =  contains || statiAdesione.contains(servizio.getStato());
 				}

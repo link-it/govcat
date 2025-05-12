@@ -1,7 +1,4 @@
-// @import 'app-material-theme-link';
 @import 'app-variables';
-// @import 'app-material-theme';
-// @import 'material-icons/iconfont/material-icons.css';
 @import 'material-icons/iconfont/filled.css';
 @import 'material-icons/iconfont/outlined.css';
 @import 'bootstrap/dist/css/bootstrap.min.css';
@@ -10,9 +7,7 @@
 @import "ngx-bootstrap/datepicker/bs-datepicker.css";
 @import 'placeholder-loading/src/scss/placeholder-loading';
 @import 'app-sidenav';
-// @import 'app-angular';
 @import 'app-table';
-@import 'app-custom';
 @import 'app-animate';
 @import 'app-highlighter';
 @import 'app-status-label';
@@ -24,3 +19,4 @@
 @import 'app-search-material-custom';
 @import 'app-dashboard';
 @import 'gl-layout/gl-all';
+@import 'app-custom';

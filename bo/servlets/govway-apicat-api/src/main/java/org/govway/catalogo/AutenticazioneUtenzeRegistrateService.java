@@ -63,22 +63,24 @@ public class AutenticazioneUtenzeRegistrateService extends AbstractService imple
 			return new InfoProfilo(null);
 		} else {
 			UtenteSpecification filter = new UtenteSpecification();
-			filter.setIdUtente(Optional.of(principal));
+			filter.setPrincipal(Optional.of(principal));
 			return this.runTransaction(() -> {
 
-				Optional<UtenteEntity> contact = this.utenteRepo.findOne(filter);
+				Optional<UtenteEntity> oContact = this.utenteRepo.findOne(filter);
 				
-				if (!contact.isPresent()) {
+				if(!oContact.isPresent()) {
 					return new InfoProfilo(principal);
 				}
 				
-				if(contact.get().getOrganizzazione()!=null) {
-					contact.get().getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
+				UtenteEntity contact = oContact.get();
+				
+				if(contact.getOrganizzazione()!=null) {
+					contact.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
 				}
 				
-				contact.get().getClassi().stream().forEach( e-> {e.getNome();});
+				contact.getClassi().stream().forEach( e-> {e.getNome();});
 				
-				return new InfoProfilo(principal, contact.get(), authorities);
+				return new InfoProfilo(principal, contact, authorities);
 			});
 		}
 	}

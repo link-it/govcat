@@ -81,7 +81,7 @@ public class PdndEstensioneClientAssembler extends AbstractEstensioneClientAssem
 
 		List<String> errori = new ArrayList<>();
 		
-		if(specDsc.getClientId() == null) {
+		if(specDsc.getClientId() == null || specDsc.getClientId().trim().isEmpty()) {
 			errori.add("client_id");
 		}
 		

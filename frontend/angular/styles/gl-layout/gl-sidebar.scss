@@ -207,7 +207,7 @@
 }
 
 .nav-sidebar.sidebar-collapsed-desktop li.active:not(.fly-out-top-item) > a {
-  background-color: rgba(41, 41, 97, 0.08);
+  background-color: var(--navbar-link-active-back-color,  rgba(41, 41, 97, 0.08));
 }
 
 .nav-sidebar.sidebar-expanded-mobile {
@@ -238,12 +238,12 @@
   width: auto;
   line-height: 1rem;
   transition: none;
-  margin: 1px 8px;
+  margin: 3px 8px;
 }
 
 .nav-sidebar li > .fly-out-top-item-container:hover,
 .nav-sidebar li > a:hover {
-  background-color: rgba(41, 41, 97, 0.08);
+  background-color: var(--navbar-link-active-back-color,  rgba(41, 41, 97, 0.08));
 }
 
 .nav-sidebar li > a.divider:hover {
@@ -256,7 +256,7 @@
 }
 
 .nav-sidebar li.active:not(.fly-out-top-item) > a:not(.has-sub-items) {
-  background-color: rgba(41, 41, 97, 0.08);
+  background-color: var(--navbar-link-active-back-color,  rgba(41, 41, 97, 0.08));
 }
 
 .nav-sidebar ul {
@@ -390,7 +390,7 @@
   }
 
   .nav-sidebar:not(.sidebar-expanded-mobile) li.active:not(.fly-out-top-item) > a {
-    background-color: rgba(41, 41, 97, 0.08);
+    background-color: var(--navbar-link-active-back-color,  rgba(41, 41, 97, 0.08));
   }
 
   .nav-sidebar:not(.sidebar-expanded-mobile) .context-header {
@@ -470,7 +470,7 @@
 }
 
 .nav-sidebar-inner-scroll > div.context-header a:hover {
-  background-color: rgba(41, 41, 97, 0.08);
+  background-color: var(--navbar-link-active-back-color,  rgba(41, 41, 97, 0.08));
 }
 
 .nav-sidebar-inner-scroll > div.context-header a .avatar-container {

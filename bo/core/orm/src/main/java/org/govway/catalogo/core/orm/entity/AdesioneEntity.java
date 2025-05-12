@@ -49,7 +49,7 @@ import lombok.Setter;
 @Table(name = "adesioni")
 public class AdesioneEntity {
 
-	public enum STATO_CONFIGURAZIONE {OK,KO_DEFINITIVO,IN_CORSO, KO_TEMPORANEO_RITENTA, KO_TEMPORANEO_FINALE}
+	public enum STATO_CONFIGURAZIONE {OK,KO,IN_CODA, RETRY, FALLITA}
 
 	@Id
     @Column(name = "id")

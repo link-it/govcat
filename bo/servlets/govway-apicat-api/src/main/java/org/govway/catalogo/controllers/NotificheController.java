@@ -98,7 +98,7 @@ public class NotificheController implements NotificheApi {
 	@Override
 	public ResponseEntity<CountNotifica> countNotifiche(String q, TipoNotificaEnum tipoNotifica,
 			List<StatoNotifica> statoNotifica, TipoEntitaNotifica tipoEntitaNotifica,
-			UUID idEntitaNotifica, String idMittente, UUID idServizio,
+			UUID idEntitaNotifica, UUID idMittente, UUID idServizio,
 			UUID idAdesione) {
 
 		try {
@@ -131,7 +131,7 @@ public class NotificheController implements NotificheApi {
 	@Override
 	public ResponseEntity<PagedModelItemNotifica> listNotifiche(String q, TipoNotificaEnum tipoNotifica,
 			List<StatoNotifica> statoNotifica, TipoEntitaNotifica tipoEntitaNotifica,
-			UUID idEntitaNotifica, String idMittente, UUID idServizio,
+			UUID idEntitaNotifica, UUID idMittente, UUID idServizio,
 			UUID idAdesione, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
@@ -173,7 +173,7 @@ public class NotificheController implements NotificheApi {
 	}
 
 	private NotificaSpecification getSpecification(String q, TipoNotificaEnum tipoNotifica, List<StatoNotifica> statoNotifica,
-			TipoEntitaNotifica tipoEntitaNotifica, UUID idEntitaNotifica, String idMittente, UUID idServizio, UUID idAdesione) {
+			TipoEntitaNotifica tipoEntitaNotifica, UUID idEntitaNotifica, UUID idMittente, UUID idServizio, UUID idAdesione) {
 
 		UtenteEntity mittente = null;
 		if(idMittente != null) {

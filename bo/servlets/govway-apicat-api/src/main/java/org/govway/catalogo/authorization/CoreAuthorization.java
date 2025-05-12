@@ -59,9 +59,17 @@ public class CoreAuthorization {
 	public boolean isAdmin() {
 		return isAdmin(getUtenteSessione());
 	}
+	
+	public boolean isCoordinatore() {
+		return isCoordinatore(getUtenteSessione());
+	}
 
 	public boolean isAdmin(UtenteEntity utente) {
 		return utente != null && Ruolo.AMMINISTRATORE.equals(utente.getRuolo());
+	}
+	
+	public boolean isCoordinatore(UtenteEntity utente) {
+		return utente != null && Ruolo.COORDINATORE.equals(utente.getRuolo());
 	}
 	
 	public void requireAdmin() {
@@ -74,6 +82,30 @@ public class CoreAuthorization {
 		if(isAnounymous()) {
 			throw new NotAuthorizedException("Required: Utente autenticato");
 		}
+	}
+
+	public void requireReferenteTecnico() {
+		if(!isAdmin() && !isReferenteServizio() && !isReferenteTecnico()) {
+			throw new NotAuthorizedException("Required: Utente referente tecnico");
+		}
+	}
+
+	private boolean isReferenteTecnico() {
+		InfoProfilo principal = this.requestUtils.getPrincipal(false);
+		if(principal == null || principal.utente == null) {
+			return false;
+		}
+		
+		return principal.utente.isReferenteTecnico();
+	}
+
+	private boolean isReferenteServizio() {
+		InfoProfilo principal = this.requestUtils.getPrincipal(false);
+		if(principal == null || principal.utente == null) {
+			return false;
+		}
+		
+		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.REFERENTE_SERVIZIO);
 	}
 
 	public boolean isAnounymous() {

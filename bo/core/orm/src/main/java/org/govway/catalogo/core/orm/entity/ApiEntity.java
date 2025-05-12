@@ -119,7 +119,8 @@ public class ApiEntity {
     private Set<ServizioEntity> servizi = new HashSet<>();
 
     public ServizioEntity getServizio() {
-    	return this.servizi.stream().findAny().get();
+        return this.servizi.stream()
+            .findAny()
+            .orElseThrow(() -> new IllegalStateException("Nessun servizio disponibile"));
     }
-
 }

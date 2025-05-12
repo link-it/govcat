@@ -66,16 +66,16 @@ export class AboutDialogComponent implements OnInit {
 
     const reqs: Observable<any>[] = [];
     reqs.push( this.configService.getPage('about', 'about').pipe( catchError((err) => { return of(''); })) );
-    forkJoin(reqs).subscribe(
-      (results: Array<any>) => {
+    forkJoin(reqs).subscribe({
+      next: (results: Array<any>) => {
         this.contentHtml = this._replacePlaceholder(results[0], { appVersion: this.version, appBuild: this.build, ...this.backInfo });
         this._spin = false;
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('_loadPage forkJoin error', error);
         this._spin = false;
       }
-    );
+    });
   }
 
   _replacePlaceholder(text: string, data: any) {

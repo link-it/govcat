@@ -49,7 +49,7 @@ import lombok.Setter;
 public class UtenteEntity {
 	
 	public enum Stato {DISABILITATO, NON_CONFIGURATO, ABILITATO}
-	public enum Ruolo {AMMINISTRATORE, REFERENTE_SERVIZIO}
+	public enum Ruolo {AMMINISTRATORE, COORDINATORE, REFERENTE_SERVIZIO}
 
     @Id
     @Column(name = "id")
@@ -60,12 +60,18 @@ public class UtenteEntity {
     @Column(name = "id_utente", nullable=false, unique = true)
     private String idUtente;
     
+    @Column(name = "principal", nullable=false, unique = true)
+    private String principal;
+    
     @Column(nullable=false)
     @Enumerated(EnumType.STRING)
 	private Stato stato;
 
     @Enumerated(EnumType.STRING)
 	private Ruolo ruolo;
+	
+    @Column(name = "referente_tecnico", nullable=false)
+	private boolean referenteTecnico;
 	
 	@ManyToOne
     @JoinColumn(name = "id_organizzazione", referencedColumnName = "id")

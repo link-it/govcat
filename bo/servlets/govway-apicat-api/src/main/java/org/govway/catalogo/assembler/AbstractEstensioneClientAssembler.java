@@ -111,7 +111,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 	private List<String> getErroriConfigurabileCertificatoFornito(CertificatoClientFornito c, String nome) {
 
 		List<String> lst = new ArrayList<>();
-		if(c.getCertificato() == null) {
+		if(c == null || c.getCertificato() == null) {
 			lst.add("certificato_"+nome);
 		}
 		return lst;

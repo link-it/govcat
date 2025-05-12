@@ -44,6 +44,7 @@ import org.govway.catalogo.servlets.model.PagedModelItemClasseUtente;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
@@ -351,7 +351,7 @@ public class ClassiUtenteTest {
         controller.createClasseUtente(classeUtenteCreate2);
 
         // Recupero della lista di ClassiUtente senza filtri
-        ResponseEntity<PagedModelItemClasseUtente> responseList = controller.listClassiUtente(null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemClasseUtente> responseList = controller.listClassiUtente(null, null, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -365,7 +365,7 @@ public class ClassiUtenteTest {
 
         // Tentativo di recuperare la lista di ClassiUtente senza essere loggato
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            controller.listClassiUtente(null, null, 0, 10, null);
+            controller.listClassiUtente(null, null, null, 0, 10, null);
         });
     }
 

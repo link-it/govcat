@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>govcat</artifactId>
-		<version>2.0</version>
+		<version>2.1</version>
 	</parent>
 
 	<artifactId>configuratore</artifactId>
@@ -14,6 +14,8 @@
 
 	<properties>
 		<slf4j.version>2.0.6</slf4j.version>
+		<rel-to-parent>..</rel-to-parent>
+		<filter-file>${api-filter-file}</filter-file>
 	</properties>
 
 	<dependencies>

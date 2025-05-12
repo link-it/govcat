@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.ClasseUtenteAuthorization;
 import org.govway.catalogo.authorization.CoreAuthorization;
@@ -66,6 +67,7 @@ import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.AdesioneErogazioneUpdate;
 import org.govway.catalogo.servlets.model.AdesioneIdClient;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
+import org.govway.catalogo.servlets.model.AdesioniCambioStatoResponse;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AmbienteEnum;
@@ -139,6 +141,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -203,7 +206,12 @@ public class AdesioniTest {
     
     private static final String UTENTE_GESTORE = "gestore";
     private static final String UTENTE_RICHIEDENTE_ADESIONE = "utente_richiedente_adesione";
+    
     private static final String STATO_PUBBLICATO_IN_COLLAUDO = "pubblicato_collaudo";
+    
+    private static UUID ID_UTENTE_GESTORE;
+    private static UUID ID_UTENTE_RICHIEDENTE_ADESIONE;
+    
     private static final String PROFILO = "MODI_P1";
     
     private UUID idSoggetto;
@@ -223,6 +231,31 @@ public class AdesioniTest {
 
         // Set the security context in the SecurityContextHolder
         SecurityContextHolder.setContext(this.securityContext);
+        
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_RICHIEDENTE_ADESIONE, utenteService);
+        ID_UTENTE_RICHIEDENTE_ADESIONE = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_ADESIONE, utenteService);
+        ID_UTENTE_REFERENTE_ADESIONE = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_ADESIONE = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO_DOMINIO = UUID.fromString(info.utente.getIdUtente());
+
     }
 
     @AfterEach
@@ -244,7 +277,7 @@ public class AdesioniTest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
+        upUtente.setPrincipal(UTENTE_GESTORE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -253,7 +286,7 @@ public class AdesioniTest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
         //soggettoCreate.setSkipCollaudo(true);
@@ -281,7 +314,7 @@ public class AdesioniTest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_GESTORE);
+        ref.setIdUtente(ID_UTENTE_GESTORE);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
 
@@ -302,7 +335,7 @@ public class AdesioniTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_GESTORE);
+         referente.setIdUtente(ID_UTENTE_GESTORE);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
@@ -351,7 +384,7 @@ public class AdesioniTest {
         List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
         
         AuthTypeApiResource authType = new AuthTypeApiResource();
-        authType.setProfilo("MODI_P1");
+        authType.setProfilo(PROFILO);
         
         List<String> risorse = new ArrayList<String>();
         risorse.add("risorsa1");
@@ -389,7 +422,7 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -742,7 +775,7 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -750,10 +783,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
     	
     	ReferenteCreate referente = new ReferenteCreate();
-    	referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
     	
     	ResponseEntity<Referente> response = adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
@@ -779,7 +812,7 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -787,10 +820,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
     	
     	ReferenteCreate referente = new ReferenteCreate();
-    	referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
     	
     	CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
@@ -818,7 +851,7 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -826,10 +859,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
     	
     	ReferenteCreate referente = new ReferenteCreate();
-    	referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+    	referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
     	
     	this.tearDown();    	
@@ -900,7 +933,7 @@ public class AdesioniTest {
         Adesione adesione = this.getAdesione();
 
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -908,16 +941,16 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
         
         ReferenteCreate referente = new ReferenteCreate();
-        referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         referente.setTipo(TipoReferenteEnum.REFERENTE);
         adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
 
         // Act
         ResponseEntity<Void> response = adesioniController.deleteReferenteAdesione(
-        		adesione.getIdAdesione(), UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null);
+        		adesione.getIdAdesione(), ID_UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -933,7 +966,7 @@ public class AdesioniTest {
         Adesione adesione = this.getAdesione();
 
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -941,10 +974,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
         
         ReferenteCreate referente = new ReferenteCreate();
-        referente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        referente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         referente.setTipo(TipoReferenteEnum.REFERENTE);
         adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referente, null);
 
@@ -953,7 +986,7 @@ public class AdesioniTest {
 
         // Act & Assert
         assertThrows(NotAuthorizedException.class, () -> adesioniController.deleteReferenteAdesione(
-            adesione.getIdAdesione(), UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null));
+            adesione.getIdAdesione(), ID_UTENTE_RICHIEDENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null));
     }
     
     @Test
@@ -963,7 +996,7 @@ public class AdesioniTest {
 
         // Act & Assert
         assertThrows(NotFoundException.class, () -> adesioniController.deleteReferenteAdesione(
-            randomId, "utente_non_esistente", TipoReferenteEnum.REFERENTE, null));
+            randomId, UUID.randomUUID(), TipoReferenteEnum.REFERENTE, null));
     }
 
     @Test
@@ -1422,7 +1455,7 @@ public class AdesioniTest {
         // Act
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-            null, null, null, null, false, null, 0, 10, null);
+            null, null, null, null, false, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1469,7 +1502,7 @@ public class AdesioniTest {
         
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, sort);
+                null, null, null, null, false, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1518,7 +1551,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, sort);
+                null, null, null, null, false, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1568,7 +1601,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, sort);
+                null, null, null, null, false, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1616,7 +1649,7 @@ public class AdesioniTest {
         	
         	ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                     null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                    null, null, null, null, false, null, n, numeroElementiPerPagina, null);
+                    null, null, null, null, false, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1658,7 +1691,7 @@ public class AdesioniTest {
 
         assertThrows(NotAuthorizedException.class, () -> adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, 0, 10, null));
+                null, null, null, null, false, null, null, 0, 10, null));
     }
 
     @Test
@@ -1919,18 +1952,20 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setUsername(UTENTE_GESTORE+2);
+        utenteCreate.setPrincipal(UTENTE_GESTORE+2);
         utenteCreate.setIdOrganizzazione(idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
+        
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE+2);
+        newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -1954,8 +1989,8 @@ public class AdesioniTest {
         //System.out.println(response);
         // Verifica che il messaggio sia presente nell'elenco
         List<Referente> referente = response.getBody().getContent();
-        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getUsername().equals(UTENTE_GESTORE)));
-        assertEquals(UTENTE_GESTORE+2, referente.get(0).getUtente().getUsername());
+        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getPrincipal().equals(UTENTE_GESTORE)));
+        assertEquals(UTENTE_GESTORE+2, referente.get(0).getUtente().getPrincipal());
     }
     
     @Test
@@ -1967,18 +2002,20 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setUsername(UTENTE_GESTORE+2);
+        utenteCreate.setPrincipal(UTENTE_GESTORE+2);
         utenteCreate.setIdOrganizzazione(idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
+        
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE+2);
+        newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -2001,8 +2038,8 @@ public class AdesioniTest {
 
         // Verifica che il messaggio sia presente nell'elenco
         List<Referente> referente = response.getBody().getContent();
-        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getUsername().equals(UTENTE_GESTORE+2)));
-        assertEquals(UTENTE_GESTORE, referente.get(0).getUtente().getUsername());
+        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getPrincipal().equals(UTENTE_GESTORE+2)));
+        assertEquals(UTENTE_GESTORE, referente.get(0).getUtente().getPrincipal());
     }
     
     @Test
@@ -2014,18 +2051,20 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-        utenteCreate.setUsername(UTENTE_GESTORE+2);
+        utenteCreate.setPrincipal(UTENTE_GESTORE+2);
         utenteCreate.setIdOrganizzazione(idOrganizzazione);
         utentiController.createUtente(utenteCreate);
         
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+2, utenteService);
+        
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE+2);
+        newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
@@ -2050,7 +2089,7 @@ public class AdesioniTest {
 
         // Verifica che il messaggio sia presente nell'elenco
         List<Referente> referente = response.getBody().getContent();
-        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getUsername().equals(UTENTE_GESTORE+2)));
+        assertTrue(referente.stream().anyMatch(s -> s.getUtente().getPrincipal().equals(UTENTE_GESTORE+2)));
     }
     
     @Test
@@ -2065,19 +2104,21 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         for(int num = 0; num < numeroTotaleDiElementi; num++) {
         	UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
-            utenteCreate.setUsername(UTENTE_GESTORE+num);
+            utenteCreate.setPrincipal(UTENTE_GESTORE+num);
             utenteCreate.setIdOrganizzazione(idOrganizzazione);
             utentiController.createUtente(utenteCreate);
         	
+            InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE+num, utenteService);
+            
         	newReferente = new ReferenteCreate();
-            newReferente.setIdUtente(UTENTE_GESTORE+num);
+            newReferente.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
             newReferente.setTipo(TipoReferenteEnum.REFERENTE);
             
             listaReferenti.add(newReferente);
@@ -2280,6 +2321,13 @@ public class AdesioniTest {
 	private static final String UTENTE_REFERENTE_DOMINIO = "utente_referente__dominio";
 	private static final String UTENTE_REFERENTE_TECNICO_DOMINIO = "utente_referente_tecnico__dominio";
 	
+	private static UUID ID_UTENTE_REFERENTE_ADESIONE;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_ADESIONE;
+	private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_SERVIZIO;
+	private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+	private static UUID ID_UTENTE_REFERENTE_TECNICO_DOMINIO;
+	
 	private static final String NOME_GRUPPO = "Gruppo xyz";
 	
     private Dominio getDominioFull(VisibilitaDominioEnum value) {
@@ -2296,7 +2344,7 @@ public class AdesioniTest {
         
         //associo l'utente all'Organizzazione
         UtenteUpdate upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_DOMINIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_DOMINIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2305,10 +2353,10 @@ public class AdesioniTest {
         upUtente.setCognome("dominio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_DOMINIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_DOMINIO, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_GESTORE);
+        upUtente.setPrincipal(UTENTE_GESTORE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2317,10 +2365,10 @@ public class AdesioniTest {
         upUtente.setCognome("gestore");
         upUtente.setRuolo(RuoloUtenteEnum.GESTORE);
 
-        utentiController.updateUtente(UTENTE_GESTORE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_GESTORE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_SERVIZIO);
+        upUtente.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2329,11 +2377,11 @@ public class AdesioniTest {
         upUtente.setCognome("referente_servizio");
         upUtente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
 
-        utentiController.updateUtente(UTENTE_REFERENTE_SERVIZIO, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, upUtente);
         
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_RICHIEDENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_RICHIEDENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2341,10 +2389,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("richiedente_adesione");
 
-        utentiController.updateUtente(UTENTE_RICHIEDENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_RICHIEDENTE_ADESIONE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_ADESIONE);
+        upUtente.setPrincipal(UTENTE_REFERENTE_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2352,10 +2400,10 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("referente_adesione");
 
-        utentiController.updateUtente(UTENTE_REFERENTE_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_ADESIONE, upUtente);
         
         upUtente = new UtenteUpdate();
-        upUtente.setUsername(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        upUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE);
         upUtente.setIdOrganizzazione(idOrganizzazione);
         upUtente.setStato(StatoUtenteEnum.ABILITATO);
         upUtente.setEmailAziendale("mail@aziendale.it");
@@ -2363,7 +2411,7 @@ public class AdesioniTest {
         upUtente.setNome("utente");
         upUtente.setCognome("referente_tecnico_adesione");
 
-        utentiController.updateUtente(UTENTE_REFERENTE_TECNICO_ADESIONE, upUtente);
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE, upUtente);
 		
         
         SoggettoCreate soggettoCreate = new SoggettoCreate();
@@ -2391,13 +2439,13 @@ public class AdesioniTest {
         
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         
         //creo il referente tecnico dominio
         ref = new ReferenteCreate();
-        ref.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
         return createdDominio.getBody();
@@ -2421,18 +2469,18 @@ public class AdesioniTest {
          
          ReferenteCreate referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
          referenti.add(referente);
          
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-         referente.setIdUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_SERVIZIO);
          referenti.add(referente);
          
          //NOTA BENE: I REFERENTI DOMINIO (NON TECNICI) DOVRANNO AVERE IL RUOLO REFERENTE SERVIZIO
          referente = new ReferenteCreate();
          referente.setTipo(TipoReferenteEnum.REFERENTE);
-         referente.setIdUtente(UTENTE_REFERENTE_DOMINIO);
+         referente.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
          referenti.add(referente);
          
          servizioCreate.setReferenti(referenti);
@@ -2477,7 +2525,7 @@ public class AdesioniTest {
         List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
         
         AuthTypeApiResource authType = new AuthTypeApiResource();
-        authType.setProfilo("MODI_P1");
+        authType.setProfilo(PROFILO);
         
         List<String> risorse = new ArrayList<String>();
         risorse.add("risorsa1");
@@ -2495,10 +2543,6 @@ public class AdesioniTest {
         
         apiCreate.setGruppiAuthType(gruppiAuthType);
         
-        DocumentoCreate doc = new DocumentoCreate();
-        doc.setFilename("SpecificaAPI.json");
-        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        
         ResponseEntity<API> response = apiController.createApi(apiCreate);
         
         return response.getBody();
@@ -2508,19 +2552,19 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -2574,7 +2618,7 @@ public class AdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientCollaudoAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
         
         
         //creo il client per la produzione
@@ -2614,7 +2658,7 @@ public class AdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientProduzioneAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientProduzioneAdesione(idAdesione, PROFILO, adesioneIdClient, null);
         
         
         return adesione.getBody();
@@ -2682,28 +2726,30 @@ public class AdesioniTest {
         }
     }
     
-    @Test
-    void testCreateReferenteAdesione() {
+    private Servizio servizio;
+    private ReferenteCreate newReferente;
+    
+    private ResponseEntity<Adesione> getInizializza() {
     	Dominio dominio = this.getDominioFull(null);
-        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+        servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
         this.getAPIFull();
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
-        ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -2739,7 +2785,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
         clientCreateP.setIdSoggetto(idSoggetto);
@@ -2750,102 +2796,47 @@ public class AdesioniTest {
         clientCreateP.setIndirizzoIp("1.1.1.1");
         clientCreateP.setStato(StatoClientEnum.CONFIGURATO);
         clientController.createClient(clientCreateP);
+        return adesione;
+    }
+    
+    @Test
+    void testCreateReferenteAdesione() {
+    	ResponseEntity<Adesione> adesione = this.getInizializza();
 
         AdesioneIdClient adesioneIdClientP = new AdesioneIdClient();
         adesioneIdClientP.setNome("ClientTestP");
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         //apiController.deleteAPI(api.getIdApi());
         //serviziController.deleteServizio(servizio.getIdServizio());
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         adesioniController.createReferenteAdesione(adesione.getBody().getIdAdesione(), newReferente, true);
     }
     
     @Test
     void testCreateReferenteAdesioneErrore() {
-    	Dominio dominio = this.getDominioFull(null);
-        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
-        API api = this.getAPIFull();
-        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
-    	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
-    	
-        ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
-        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
-        
-        listaReferenti.add(newReferente);
-        
-        newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
-        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        
-        listaReferenti.add(newReferente);
-    	
-        AdesioneCreate nuovaAdesione = new AdesioneCreate();
-        nuovaAdesione.setIdServizio(servizio.getIdServizio());
-        nuovaAdesione.setIdSoggetto(idSoggetto);
-        nuovaAdesione.setReferenti(listaReferenti);
-        ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
-        ClientCreate clientCreate = new ClientCreate();
-        clientCreate.setIdSoggetto(idSoggetto);
-        clientCreate.setNome("ClientTest");
-        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
-        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
-        dati.setAuthType(AuthTypeEnum.HTTPS);    
-        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
-        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
-
-        DocumentoUpdateNew documento = new DocumentoUpdateNew();
-        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setFilename("certificato.pem"); 
-        documento.setContent(pemCert);
-        documento.setContentType("application/x-pem-file");
-        certificato.setCertificato(documento);
-
-        dati.setCertificatoAutenticazione(certificato);
-        clientCreate.setDatiSpecifici(dati);
-        clientCreate.setDescrizione("descrizione");
-        clientCreate.setIndirizzoIp("1.1.1.1");
-        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
-        clientController.createClient(clientCreate);
-
-        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
-        adesioneIdClient.setNome("ClientTest");
-        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
-        adesioneIdClient.setIdSoggetto(idSoggetto);
-        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
-        //Produzione
-        ClientCreate clientCreateP = new ClientCreate();
-        clientCreateP.setIdSoggetto(idSoggetto);
-        clientCreateP.setNome("ClientTestP");
-        clientCreateP.setAmbiente(AmbienteEnum.PRODUZIONE);
-        clientCreateP.setDatiSpecifici(dati);
-        clientCreateP.setDescrizione("descrizione");
-        clientCreateP.setIndirizzoIp("1.1.1.1");
-        clientCreateP.setStato(StatoClientEnum.CONFIGURATO);
-        clientController.createClient(clientCreateP);
+    	ResponseEntity<Adesione> adesione = this.getInizializza();
 
         AdesioneIdClient adesioneIdClientP = new AdesioneIdClient();
         adesioneIdClientP.setNome("ClientTestP");
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         
         final ReferenteCreate finalReferente = new ReferenteCreate();
-        finalReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        finalReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         finalReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, ()->adesioniController.createReferenteAdesione(adesione.getBody().getIdAdesione(), finalReferente, null));
     }
     
@@ -2858,19 +2849,19 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	
         listaReferenti.add(newReferente);
@@ -2908,7 +2899,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
         clientCreateP.setIdSoggetto(idSoggetto);
@@ -2925,12 +2916,12 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, true);
     }
     
     @Test
@@ -2942,19 +2933,19 @@ public class AdesioniTest {
     	List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
     	
         listaReferenti.add(newReferente);
@@ -2992,7 +2983,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
         clientCreateP.setIdSoggetto(idSoggetto);
@@ -3009,13 +3000,13 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
         this.tornaAStato(servizio.getIdServizio(),"pubblicato_collaudo", "bozza");
         
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null));
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null));
     }
 
     private String pemCert = "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURhekNDQWxPZ0F3SUJBZ0lFSGZ2NzR6QU5CZ2txaGtpRzl3MEJBUXNGQURCbU1Rc3dDUVlEVlFRR0V3SkoNClZERU9NQXdHQTFVRUNCTUZTWFJoYkhreERUQUxCZ05WQkFjVEJGQnBjMkV4RFRBTEJnTlZCQW9UQkZSbGMzUXgNCkRUQUxCZ05WQkFzVEJGUmxjM1F4R2pBWUJnTlZCQU1URVVWNFlXMXdiR1ZEYkdsbGJuUXlTRk5OTUI0WERUSTANCk1EUXdPREE1TWpReE1Wb1hEVFEwTURRd016QTVNalF4TVZvd1pqRUxNQWtHQTFVRUJoTUNTVlF4RGpBTUJnTlYNCkJBZ1RCVWwwWVd4NU1RMHdDd1lEVlFRSEV3UlFhWE5oTVEwd0N3WURWUVFLRXdSVVpYTjBNUTB3Q3dZRFZRUUwNCkV3UlVaWE4wTVJvd0dBWURWUVFERXhGRmVHRnRjR3hsUTJ4cFpXNTBNa2hUVFRDQ0FTSXdEUVlKS29aSWh2Y04NCkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLMmNVQ29CcWptUTR4OWZoYlJDbk0rYmJ5ZjJwSWxSa3NRUVB5clcNCmlmWUVvaCtxZ1NROVYzS05uNWJpaTBSeWMzaDd3VGNJY2tCY2ZnczhKTGk1SHhHM2t4V1p2Z2xXL1NIOEEyVHUNClFYdkJwajlLNnd6UzB4RUduenFxaHlwVXJIL1lMRGZYandnVmZ1TS9IeEU1MjNGcFM3dGUwQXcwV2Jac1pxeTYNCmhNcWxLZk8wek52UTR1Rk5ML3NHV1pNN29kaDRPcGhaSUdOZDd0VnBnVkdQNDNDZUZvZnAyeGRxcmk5Ry9IMjINCmNQa2p4dFpoVFpuZk9RejFkNHVYRjZsU3M1dUV6RGI3ZGxKOERoZTJROUtTa0ZnRDZVME83UnZyNnpibEd4dUENCjVDdTRQSFNkeko0Y0RhZkJ4RDlrclJzYjI5cXFjK2g3alpwSzh2NkhoU2N4M2VjQ0F3RUFBYU1oTUI4d0hRWUQNClZSME9CQllFRkljWmh6UlZmYVRER1MwTm44cmRJU3FGbDhOK01BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQXYNCitYWFNiWWVDY1VmY2hhRkNzay9sc3hLZ0gwcFhyTlRoZXptOGd3YUpOem9KOVJQU2RnenJtSzYwOWl5M1RvaGcNClhpc040elorRkx3NVBTby9HNmU1OU5SZEdmTS93UFIwUGoyN2d0dWhITWpBeU8vY3FldWQ3S1lvZWxpTEZPRWwNCldyTWo2QmlxaGZQZmMzU3FqakZVWWtoR2s2eXZFeDREWGVPNnlmNSszczJMbTIwSTM3YU9ZblhBNVdmTGJwY1QNCnp2RWhGSk02Q3d6Q0VwbmI3M3E3ekc4ODJZTjcxL3RRS1VhS2dpV0ZPeDVvQ2dCMFZGNERlejd0ZFJYNHpZRlMNCmFKeUdIQ3F6NVZvR29CSHV1K0dpZERlRkdZZTRvZTA4cFpZWjFHS1dROG05RmlhYTlSQnJNNTNFclFidzNpWncNCnVqby9UMm9MSis3NWFTb3VCamFUCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K";
@@ -3028,7 +3019,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3070,15 +3061,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3115,7 +3106,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         //Fine creazione e configurazione Adesione
         //----------------------------------------
         
@@ -3123,7 +3114,7 @@ public class AdesioniTest {
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_collaudo");
         
         //(2) Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
     }
     
     @Test
@@ -3138,15 +3129,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3183,7 +3174,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         //Fine creazione e configurazione Adesione
         //----------------------------------------
         
@@ -3191,7 +3182,7 @@ public class AdesioniTest {
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_collaudo");
         
         //(2) Disconnetto (cancello) il Client dall'Adesione
-        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", null));
+        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, null));
     }
     
     @Test
@@ -3206,15 +3197,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3251,7 +3242,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
         clientCreateP.setIdSoggetto(idSoggetto);
@@ -3268,7 +3259,7 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         //Fine creazione e configurazione Adesione
         //----------------------------------------
         
@@ -3276,7 +3267,7 @@ public class AdesioniTest {
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
         
         //(2) Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
     }
     
     @Test
@@ -3291,15 +3282,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3337,7 +3328,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
         clientCreateP.setIdSoggetto(idSoggetto);
@@ -3354,7 +3345,7 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         //Fine creazione e configurazione Adesione
         //----------------------------------------
         
@@ -3362,7 +3353,7 @@ public class AdesioniTest {
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_produzione");
         
         //(2) Disconnetto (cancello) il Client dall'Adesione
-        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", null));
+        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, null));
     }
 
     @Test
@@ -3377,15 +3368,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3422,15 +3413,15 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "pubblicato_collaudo");
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         //adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), UTENTE_REFERENTE_ADESIONE, TipoReferenteEnum.REFERENTE, null);
         //adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), UTENTE_REFERENTE_TECNICO_DOMINIO, TipoReferenteEnum.REFERENTE_TECNICO, null);
         //adesioniController.deleteReferenteAdesione(adesione.getBody().getIdAdesione(), UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null);
         //this.tornaAStato(servizio.getIdServizio(), "pubblicato_collaudo", "bozza");
         //serviziController.deleteServizio(servizio.getIdServizio());
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
     }
     
     @Test
@@ -3445,15 +3436,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3490,7 +3481,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
     }
     
     @Test
@@ -3505,15 +3496,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3550,12 +3541,12 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         
         //a questo punto l'operazione con la force a false dovrebbe fallire
         
@@ -3578,15 +3569,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3616,19 +3607,19 @@ public class AdesioniTest {
         clientCreate.setDescrizione("descrizione");
         clientCreate.setIndirizzoIp("1.1.1.1");
         clientCreate.setStato(StatoClientEnum.CONFIGURATO);
-        ResponseEntity<Client> clientResponse = clientController.createClient(clientCreate);
-        clientResponse.getBody().getIdClient();
+        clientController.createClient(clientCreate);
+
         AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
         adesioneIdClient.setNome("ClientTest");
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         
         //a questo punto l'operazione con la force a false dovrebbe fallire
         
@@ -3651,15 +3642,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3696,7 +3687,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
@@ -3714,12 +3705,12 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         
         //a questo punto l'operazione con la force a false dovrebbe fallire
         
@@ -3742,15 +3733,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3787,7 +3778,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
@@ -3805,13 +3796,13 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         
         //a questo punto l'operazione con la force a false dovrebbe fallire
         
@@ -3834,15 +3825,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3879,12 +3870,12 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
         
         adesioniController.saveConfigurazioneCustomCollaudoAdesione(adesione.getBody().getIdAdesione(), datiCustom, true);
@@ -3902,15 +3893,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -3947,12 +3938,12 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
         
         assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveConfigurazioneCustomCollaudoAdesione(adesione.getBody().getIdAdesione(), datiCustom, null));
@@ -3970,15 +3961,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -4015,7 +4006,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
@@ -4033,12 +4024,12 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
         
         adesioniController.saveConfigurazioneCustomProduzioneAdesione(adesione.getBody().getIdAdesione(), datiCustom, true);
@@ -4056,15 +4047,15 @@ public class AdesioniTest {
         //------------------------------------
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         listaReferenti.add(newReferente);
         AdesioneCreate nuovaAdesione = new AdesioneCreate();
@@ -4101,7 +4092,7 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
         
         //Produzione
         ClientCreate clientCreateP = new ClientCreate();
@@ -4119,13 +4110,13 @@ public class AdesioniTest {
         adesioneIdClientP.setAmbiente(AmbienteEnum.PRODUZIONE);
         adesioneIdClientP.setIdSoggetto(idSoggetto);
         adesioneIdClientP.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
-        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", adesioneIdClientP, null);
+        adesioniController.saveClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClientP, null);
         
         this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), "richiesto_collaudo");
         
         //Disconnetto (cancello) il Client dall'Adesione
-        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
-        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), "MODI_P1", true);
+        adesioniController.deleteClientProduzioneAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
+        adesioniController.deleteClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, true);
         DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
         
         assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveConfigurazioneCustomProduzioneAdesione(adesione.getBody().getIdAdesione(), datiCustom, null));
@@ -4171,13 +4162,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4226,7 +4217,7 @@ public class AdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientCollaudoAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
         
         // Act
         ResponseEntity<Adesione> response = adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
@@ -4348,13 +4339,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4403,7 +4394,7 @@ public class AdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientCollaudoAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
 
         StatoUpdate stato = new StatoUpdate();
     	stato.setStato("richiesto_collaudo");
@@ -4568,13 +4559,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4623,26 +4614,13 @@ public class AdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        ResponseEntity<Adesione> adesioneResponse = adesioniController.saveClientProduzioneAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
-        /*
-        MessaggioCreate msg = new MessaggioCreate();
-        msg.setOggetto("test di prova");
-        msg.setTesto("questo e' un test di prova");
-        ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getBody().getIdAdesione(), msg);
-        
-        AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
-        allegatoMessaggio.setDescrizione("file di prova");
-        allegatoMessaggio.setFilename("fileprova.pdf");
-        allegatoMessaggio.setContent(pemCert);
-        allegatoMessaggio.setContentType("application/pdf");
-        ResponseEntity<AllegatoMessaggio> allegato = adesioniController.createAllegatoMessaggioAdesione(adesione.getBody().getIdAdesione(), messaggio.getBody().getIdMessaggio(), allegatoMessaggio);
-        */
-        //UUID idAllegato = UUID.fromString(allegato.getBody().getUuid());
+        adesioniController.saveClientProduzioneAdesione(idAdesione, PROFILO, adesioneIdClient, null);
+
         DatiSpecificiClient datiSpecificiClient = clientResponse.getBody().getDatiSpecifici();
-        //System.out.println(datiSpecificiClient);
+        
         AuthTypeHttps val = (AuthTypeHttps) datiSpecificiClient;
         CertificatoClientFornito certificatoClientFornito = (CertificatoClientFornito) val.getCertificatoAutenticazione();
-        //System.out.println(val.getCertificatoAutenticazione());
+        
         UUID idAllegato = certificatoClientFornito.getCertificato().getUuid();
         
         // Act
@@ -4693,13 +4671,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4748,7 +4726,7 @@ public class AdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientCollaudoAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientCollaudoAdesione(idAdesione, PROFILO, adesioneIdClient, null);
 
         // Act
         ResponseEntity<Adesione> response = adesioniController.deleteClientCollaudoAdesione(idAdesione, PROFILO, null); //TODO lamantia
@@ -4797,13 +4775,13 @@ public class AdesioniTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
     	
         ReferenteCreate newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_GESTORE);
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE);
         
         listaReferenti.add(newReferente);
         
         newReferente = new ReferenteCreate();
-        newReferente.setIdUtente(UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
         newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         
         listaReferenti.add(newReferente);
@@ -4852,7 +4830,7 @@ public class AdesioniTest {
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
-        adesioniController.saveClientProduzioneAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
+        adesioniController.saveClientProduzioneAdesione(idAdesione, PROFILO, adesioneIdClient, null);
 
         String profilo = PROFILO;
 
@@ -5070,4 +5048,945 @@ public class AdesioniTest {
         assertThrows(NotFoundException.class, () -> adesioniController.saveConfigurazioneCustomProduzioneAdesione(randomIdAdesione, datiCustomUpdate, null));
     }
 
+    /*
+     * Caso d'uso per force update:
+ 
+		1) si parte con un servizio con una singola API con un profilo (es. MTLS), si manda il servizio in configurato in collaudo (in_configurazione_collaudo?)
+		2) si crea una adesione per quel servizio, si configura il client per il profilo indicato dalla API (es. MTLS), si manda l'adesione in configurata in collaudo
+		3) si aggiunge un'altra API, con un diverso profilo (es. PDND) al servizio
+		 
+		In questo momento l'adesione si trova configurata in collaudo ma, essendo stato aggiunto un altro profilo, non è completamente configurata. Si trova quindi in uno stato di inconsistenza in cui tutte le operazioni di scrittura (ad eccezione di quella che risolverebbe l'inconsistenza) falliscono a causa di un errore di validazione.
+		 
+		4) verificare che qualsiasi operazione (update adesione, add/delete referenti, add / delete di client, erogazioni, configurazioni) su quella adesione fallisca con errore di validazione
+		5) verificare che le stesse operazioni, richiamate col parametro force impostato a true, abbiano successo
+		6) configurare il client PDND per l'adesione
+		7) verificare che le operazioni ora vadano di nuovo a buon fine anche senza il force=true
+		 
+		8) ripetere il processo dal punto 1 per la produzione
+     */
+    private API apiV = null;
+    //Punti 1), 2), 3)
+    private Adesione getAPICasoUsoForceUpdate() {
+    	// 1) creo il servizio con singola API e lo mando nello stato pubblicato in collaudo
+        Dominio dominio = this.getDominioFull(null);
+        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+        apiV = this.getAPIFull();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, servizio.getIdServizio());
+        
+        // 2) creo l'adesione a quel servizio e la mando nello stato pubblicato in collaudo
+        List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
+        ReferenteCreate newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+        listaReferenti.add(newReferente);
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        listaReferenti.add(newReferente);
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        listaReferenti.add(newReferente);
+        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(listaReferenti);
+        ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);    
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.pem"); 
+        documento.setContent(pemCert);
+        documento.setContentType("application/x-pem-file");
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        ResponseEntity<Client> clientResponse = clientController.createClient(clientCreate);
+        clientResponse.getBody().getIdClient();
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
+        this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), STATO_PUBBLICATO_IN_COLLAUDO);
+        
+        // 3) aggiungo un'altra api con diverso profilo al servizio
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setNome("API 2");
+        apiCreate.setIdServizio(idServizio);
+        apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+        APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+        DocumentoCreate documentoOpenAPI = new DocumentoCreate();
+        documentoOpenAPI.setContentType("application/yaml");
+        documentoOpenAPI.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documentoOpenAPI.setFilename("openapi.yaml");
+        apiDatiAmbienteCreate.setSpecifica(documentoOpenAPI);
+        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+        apiDatiErogazione.setNomeGateway("APIGateway");
+        apiDatiErogazione.setVersioneGateway(1);
+        apiDatiErogazione.setUrlPrefix("http://");
+        apiDatiErogazione.setUrl("testurl.com/test");
+        apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreate);
+        List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
+        AuthTypeApiResource authType = new AuthTypeApiResource();
+
+        authType.setProfilo("INTERNO_HTTPS");
+        
+        List<String> risorse = new ArrayList<String>();
+        risorse.add("risorsa1");
+        authType.setResources(risorse);
+        List<AuthTypeApiResourceProprietaCustom> proprietaCustom = new ArrayList<AuthTypeApiResourceProprietaCustom>();
+        AuthTypeApiResourceProprietaCustom autResource = new AuthTypeApiResourceProprietaCustom();
+        autResource.setNome("custom resorce");
+        autResource.setValore("56");
+        proprietaCustom.add(autResource);
+        gruppiAuthType.add(authType);
+        apiCreate.setGruppiAuthType(gruppiAuthType);
+        DocumentoCreate doc = new DocumentoCreate();
+        doc.setFilename("SpecificaAPI.json");
+        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+        ResponseEntity<API> api = apiController.createApi(apiCreate);
+        return adesione.getBody();
+    }
+    
+    // inizio con il punto 4) verificare che qualsiasi operazione (update adesione, add/delete referenti, add / delete di client, erogazioni, configurazioni) su quella adesione fallisca con errore di validazione
+    
+    @Test
+    void testCasoUsoForceUpdate_UpdateAdesioneErrore() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdate();
+
+        AdesioneUpdate adesioneUpdate = new AdesioneUpdate();
+
+        assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.updateAdesione(adesione.getIdAdesione(), adesioneUpdate, null));
+
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateCreateReferenteAdesioneErrore() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdate();
+    	
+    	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
+    	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	
+    	utentiController.createUtente(nuovoUtente);
+    	
+    	ReferenteCreate referenteNew = new ReferenteCreate();
+    	referenteNew.setIdUtente(UUID.randomUUID());
+    	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteReferenteAdesioneErrore() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdate();
+    	
+    	ReferenteCreate referenteNew = new ReferenteCreate();
+    	referenteNew.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
+    	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null));
+    }
+    
+    private Adesione adesione;
+    private AdesioneIdClient adesioneIdClient;
+    private UUID idClient;
+    private ClientCreate clientCreate;
+    private AuthTypeHttpsCreate dati;
+    private CertificatoClientFornitoCreate certificato;
+    private DocumentoUpdateNew documento;
+    private ResponseEntity<Client> clientResponse;
+    
+    private void inizializzaTest() {
+    	adesione = this.getAPICasoUsoForceUpdate();
+    	
+    	//creo il client per il collaudo
+        clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest2");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+
+        dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        
+        certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        
+        documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.pem");
+        documento.setContent(pemCert);
+
+        documento.setContentType("application/x-pem-file");
+        
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+    	
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        
+        clientResponse = clientController.createClient(clientCreate);
+        idClient = clientResponse.getBody().getIdClient();
+        
+        adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveClientCollaudoAdesioneErrore() {
+    	this.inizializzaTest();
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveClientCollaudoAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteClientCollaudoAdesioneErrore() {
+    	this.inizializzaTest();
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteClientCollaudoAdesione(adesione.getIdAdesione(), PROFILO, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveErogazioneCollaudoAdesioneErrore() {
+    	this.inizializzaTest();
+
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteErogazioneCollaudoAdesioneErrore() {
+    	this.inizializzaTest();
+
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        adesioniController.saveErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveConfigurazioneCustomCollaudoAdesioneErrore() {
+    	this.inizializzaTest();
+
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveConfigurazioneCustomCollaudoAdesione(adesione.getIdAdesione(), datiCustom, null));
+    }
+    
+    // 8) ripetere il processo dal punto 1 per la produzione
+    
+    private void inizializzaTestCasoProduzione() {
+    	//creo il client per la produzione
+        clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest");
+        clientCreate.setAmbiente(AmbienteEnum.PRODUZIONE);
+
+        dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        
+        certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        
+        documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.cer");
+        documento.setContent(pemCert);
+        documento.setContentType("application/cert");
+        
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+    	
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+            
+        clientResponse = clientController.createClient(clientCreate);
+        idClient = clientResponse.getBody().getIdClient();
+        
+        adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest");
+        adesioneIdClient.setAmbiente(AmbienteEnum.PRODUZIONE);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveClientProduzioneAdesioneErrore() {
+    	this.inizializzaTest();
+        
+        this.inizializzaTestCasoProduzione();
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteClientProduzioneAdesioneErrore() {
+    	this.inizializzaTest();
+
+    	this.inizializzaTestCasoProduzione();
+               
+    	adesioniController.saveClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, true);
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveErogazioneProduzioneAdesioneErrore() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteErogazioneProduzioneAdesioneErrore() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.deleteErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, null));
+    }
+    
+    @Test
+    void testCasoUsoForceUpdatesaveConfigurazioneCustomProduzioneAdesioneErrore() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        
+    	assertThrows(UpdateEntitaComplessaNonValidaSemanticamenteException.class, () -> adesioniController.saveConfigurazioneCustomProduzioneAdesione(adesione.getIdAdesione(), datiCustom, null));
+    }
+    
+    //punto 5) verificare che le stesse operazioni, richiamate col parametro force impostato a true, abbiano successo
+    @Test
+    void testCasoUsoForceUpdate_UpdateAdesione() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdate();
+
+        AdesioneUpdate adesioneUpdate = new AdesioneUpdate();
+
+        adesioniController.updateAdesione(adesione.getIdAdesione(), adesioneUpdate, true);
+
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateCreateReferenteAdesione() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdate();
+    	
+    	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
+    	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	
+    	utentiController.createUtente(nuovoUtente);
+    	
+    	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
+    	
+    	ReferenteCreate referenteNew = new ReferenteCreate();
+    	referenteNew.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
+    	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+    	adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteReferenteAdesione() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdate();
+    	
+    	ReferenteCreate referenteNew = new ReferenteCreate();
+    	referenteNew.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
+    	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+    	adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveClientCollaudoAdesione() {
+    	this.inizializzaTest();
+        
+    	adesioniController.saveClientCollaudoAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteClientCollaudoAdesione() {
+    	this.inizializzaTest();
+        
+    	adesioniController.deleteClientCollaudoAdesione(adesione.getIdAdesione(), PROFILO, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveErogazioneCollaudoAdesione() {
+    	this.inizializzaTest();
+
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        
+    	adesioniController.saveErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteErogazioneCollaudoAdesione() {
+    	this.inizializzaTest();
+
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        adesioniController.saveErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    	adesioniController.deleteErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveConfigurazioneCustomCollaudoAdesione() {
+    	this.inizializzaTest();
+
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        
+    	adesioniController.saveConfigurazioneCustomCollaudoAdesione(adesione.getIdAdesione(), datiCustom, true);
+    }
+    
+    // 8) ripetere il processo dal punto 1 per la produzione
+    
+    @Test
+    void testCasoUsoForceUpdateSaveClientProduzioneAdesione() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+        
+    	adesioniController.saveClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteClientProduzioneAdesione() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+        
+    	adesioniController.saveClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, true);
+        
+    	adesioniController.deleteClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveErogazioneProduzioneAdesione() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        
+    	adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteErogazioneProduzioneAdesione() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    	adesioniController.deleteErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, true);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdatesaveConfigurazioneCustomProduzioneAdesione() {
+    	this.inizializzaTest();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        
+    	adesioniController.saveConfigurazioneCustomProduzioneAdesione(adesione.getIdAdesione(), datiCustom, true);
+    }
+    
+    // 6) e 7) configurare il client PDND per l'adesione e verificare che le operazioni ora vadano di nuovo a buon fine anche senza il force=true
+    
+    private Adesione getAPICasoUsoForceUpdateConStessoProfilo() {
+        Dominio dominio = this.getDominioFull(null);
+        Servizio servizio = this.getServizioFull(dominio, VisibilitaServizioEnum.PUBBLICO);
+        apiV = this.getAPIFull();
+        CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, servizio.getIdServizio());
+
+        List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
+        ReferenteCreate newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_ADESIONE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+        listaReferenti.add(newReferente);
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        listaReferenti.add(newReferente);
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        listaReferenti.add(newReferente);
+        AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(listaReferenti);
+        ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);    
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.pem"); 
+        documento.setContent(pemCert);
+        documento.setContentType("application/x-pem-file");
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        ResponseEntity<Client> clientResponse = clientController.createClient(clientCreate);
+        clientResponse.getBody().getIdClient();
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+        adesioniController.saveClientCollaudoAdesione(adesione.getBody().getIdAdesione(), PROFILO, adesioneIdClient, null);
+        this.cambioStatoAdesioneFinoA(adesione.getBody().getIdAdesione(), STATO_PUBBLICATO_IN_COLLAUDO);
+
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setNome("API 2");
+        apiCreate.setIdServizio(idServizio);
+        apiCreate.setRuolo(RuoloAPIEnum.DOMINIO);
+        APIDatiAmbienteCreate apiDatiAmbienteCreate = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
+        DocumentoCreate documentoOpenAPI = new DocumentoCreate();
+        documentoOpenAPI.setContentType("application/yaml");
+        documentoOpenAPI.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documentoOpenAPI.setFilename("openapi.yaml");
+        apiDatiAmbienteCreate.setSpecifica(documentoOpenAPI);
+        APIDatiErogazione apiDatiErogazione = new APIDatiErogazione();
+        apiDatiErogazione.setNomeGateway("APIGateway");
+        apiDatiErogazione.setVersioneGateway(1);
+        apiDatiErogazione.setUrlPrefix("http://");
+        apiDatiErogazione.setUrl("testurl.com/test");
+        apiDatiAmbienteCreate.setDatiErogazione(apiDatiErogazione);
+        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreate);
+        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreate);
+        List<AuthTypeApiResource> gruppiAuthType = new ArrayList<AuthTypeApiResource>();
+        AuthTypeApiResource authType = new AuthTypeApiResource();
+
+        authType.setProfilo(PROFILO);
+        
+        List<String> risorse = new ArrayList<String>();
+        risorse.add("risorsa1");
+        authType.setResources(risorse);
+        List<AuthTypeApiResourceProprietaCustom> proprietaCustom = new ArrayList<AuthTypeApiResourceProprietaCustom>();
+        AuthTypeApiResourceProprietaCustom autResource = new AuthTypeApiResourceProprietaCustom();
+        autResource.setNome("custom resorce");
+        autResource.setValore("56");
+        proprietaCustom.add(autResource);
+        gruppiAuthType.add(authType);
+        apiCreate.setGruppiAuthType(gruppiAuthType);
+        DocumentoCreate doc = new DocumentoCreate();
+        doc.setFilename("SpecificaAPI.json");
+        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+        ResponseEntity<API> api = apiController.createApi(apiCreate);
+        return adesione.getBody();
+    }
+    
+    @Test
+    void testCasoUsoForceUpdate_UpdateAdesioneConStessoProfilo() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdateConStessoProfilo();
+
+        AdesioneUpdate adesioneUpdate = new AdesioneUpdate();
+
+        adesioniController.updateAdesione(adesione.getIdAdesione(), adesioneUpdate, null);
+
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateCreateReferenteAdesioneConStessoProfilo() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdateConStessoProfilo();
+    	
+    	UtenteCreate nuovoUtente = CommonUtils.getUtenteCreate();
+    	nuovoUtente.setPrincipal(UTENTE_REFERENTE_TECNICO_ADESIONE+2);
+    	
+    	utentiController.createUtente(nuovoUtente);
+    	
+    	InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO_ADESIONE+2, utenteService);
+    	
+    	ReferenteCreate referenteNew = new ReferenteCreate();
+    	referenteNew.setIdUtente(UUID.fromString(info.utente.getIdUtente()));
+    	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+    	adesioniController.createReferenteAdesione(adesione.getIdAdesione(), referenteNew, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteReferenteAdesioneConStessoProfilo() {
+    	Adesione adesione = this.getAPICasoUsoForceUpdateConStessoProfilo();
+    	
+    	ReferenteCreate referenteNew = new ReferenteCreate();
+    	referenteNew.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_ADESIONE);
+    	referenteNew.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+    	adesioniController.deleteReferenteAdesione(adesione.getIdAdesione(), ID_UTENTE_REFERENTE_TECNICO_ADESIONE, TipoReferenteEnum.REFERENTE_TECNICO, null);
+    }
+    
+    private void inizializzaTestConStessoProfilo() {
+    	adesione = this.getAPICasoUsoForceUpdateConStessoProfilo();
+    	
+    	//creo il client per il collaudo
+        clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest2");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+
+        dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        
+        certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        
+        documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.pem");
+        documento.setContent(pemCert);
+
+        documento.setContentType("application/x-pem-file");
+        
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+    	
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        
+        clientResponse = clientController.createClient(clientCreate);
+        idClient = clientResponse.getBody().getIdClient();
+        
+        adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest2");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveClientCollaudoAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+        
+    	adesioniController.saveClientCollaudoAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteClientCollaudoAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+        
+        adesioniController.saveClientCollaudoAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, null);
+    	
+    	try {	
+        	adesioniController.deleteClientCollaudoAdesione(adesione.getIdAdesione(), PROFILO, true);
+	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
+	        List<EntitaComplessaError> errori = e.getErrori();
+	        for (EntitaComplessaError errore : errori) {
+	            System.out.println("Errore:");
+	            System.out.println("Sottotipo: " + errore.getSottotipo());
+
+	            // Se 'dato' è un oggetto complesso, puoi accedere ai suoi attributi se disponibili
+	            ConfigurazioneClasseDato dato = errore.getDato();
+	            if (dato != null) {
+	                System.out.println("Dato: " + dato.getValue());
+	            }
+
+	            // Stampa i parametri se presenti
+	            Map<String, String> params = errore.getParams();
+	            if (params != null && !params.isEmpty()) {
+	                System.out.println("Parametri:");
+	                for (Map.Entry<String, String> entry : params.entrySet()) {
+	                    System.out.println("  " + entry.getKey() + ": " + entry.getValue());
+	                }
+	            }
+
+	            // Stampa i campi se presenti
+	            List<Campo> campi = errore.getCampi();
+	            if (campi != null && !campi.isEmpty()) {
+	                System.out.println("Campi:");
+	                for (Campo campo : campi) {
+	                    System.out.println("  Nome Campo: " + campo.getNomeCampo());
+	                }
+	            }
+	            System.out.println("-------------");
+	        }
+	        fail("Si è verificata un'eccezione: " + e.getMessage());
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        fail("Si è verificata un'eccezione inattesa: " + e.getMessage());
+	    }
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveErogazioneCollaudoAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        
+    	adesioniController.saveErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteErogazioneCollaudoAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        adesioniController.saveErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    	adesioniController.deleteErogazioneCollaudoAdesione(adesione.getIdAdesione(), idErogazione, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveConfigurazioneCustomCollaudoAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        
+    	adesioniController.saveConfigurazioneCustomCollaudoAdesione(adesione.getIdAdesione(), datiCustom, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveClientProduzioneAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+        
+        this.inizializzaTestCasoProduzione();
+        
+    	adesioniController.saveClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteClientProduzioneAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+
+    	this.inizializzaTestCasoProduzione();
+               
+    	adesioniController.saveClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, adesioneIdClient, true);
+        
+    	adesioniController.deleteClientProduzioneAdesione(adesione.getIdAdesione(), PROFILO, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateSaveErogazioneProduzioneAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        
+    	adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdateDeleteErogazioneProduzioneAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        AdesioneErogazioneUpdate adesioneErogazioneUpdate = new AdesioneErogazioneUpdate();
+        adesioneErogazioneUpdate.setUrl("http://urltest.com/");
+        UUID idErogazione = apiV.getIdApi();
+        adesioniController.saveErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, adesioneErogazioneUpdate, true);
+    	adesioniController.deleteErogazioneProduzioneAdesione(adesione.getIdAdesione(), idErogazione, null);
+    }
+    
+    @Test
+    void testCasoUsoForceUpdatesaveConfigurazioneCustomProduzioneAdesioneConStessoProfilo() {
+    	this.inizializzaTestConStessoProfilo();
+        
+    	this.inizializzaTestCasoProduzione();
+    	
+        DatiCustomAdesioneUpdate datiCustom = new DatiCustomAdesioneUpdate();
+        
+    	adesioniController.saveConfigurazioneCustomProduzioneAdesione(adesione.getIdAdesione(), datiCustom, null);
+    }
+    
+    private Servizio getServizioMultiAdesione(Dominio dominio, VisibilitaServizioEnum value) {
+    	ServizioCreate servizioCreate = CommonUtils.getServizioCreate();
+    	if(value != null) {
+    		servizioCreate.setVisibilita(value);
+    	}
+    	servizioCreate.setMultiAdesione(true);
+    	servizioCreate.setIdSoggettoInterno(idSoggetto);
+
+    	servizioCreate.setIdDominio(dominio.getIdDominio());
+
+    	List<ReferenteCreate> referenti = new ArrayList<>();
+
+    	ReferenteCreate referente = new ReferenteCreate();
+    	referente.setTipo(TipoReferenteEnum.REFERENTE);
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
+    	referenti.add(referente);
+
+    	servizioCreate.setReferenti(referenti);
+
+    	ResponseEntity<Servizio> createdServizio = serviziController.createServizio(servizioCreate);
+
+    	ServizioUpdate upServizio = new ServizioUpdate();
+    	upServizio.setDatiGenerici(null);
+    	upServizio.setIdentificativo(null);
+
+    	Servizio servizio = createdServizio.getBody();
+
+    	idServizio = servizio.getIdServizio();
+
+    	return servizio;
+   }
+    
+    private UUID creaNuovaAdesione(List<ReferenteCreate> listaReferenti, boolean firstTime) {
+    	UUID result = null;
+    	AdesioneCreate nuovaAdesione = new AdesioneCreate();
+        nuovaAdesione.setIdServizio(idServizio);
+        nuovaAdesione.setIdSoggetto(idSoggetto);
+        nuovaAdesione.setReferenti(listaReferenti);
+        nuovaAdesione.setIdLogico("a");
+        ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
+        
+        result = adesione.getBody().getIdAdesione();
+        if(firstTime) {
+        //creo il client per il collaudo
+        ClientCreate clientCreate = new ClientCreate();
+        clientCreate.setIdSoggetto(idSoggetto);
+        clientCreate.setNome("ClientTest");
+        clientCreate.setAmbiente(AmbienteEnum.COLLAUDO);
+
+        AuthTypeHttpsCreate dati = new AuthTypeHttpsCreate();
+        dati.setAuthType(AuthTypeEnum.HTTPS);
+        
+        CertificatoClientFornitoCreate certificato = new CertificatoClientFornitoCreate();
+        certificato.setTipoCertificato(TipoCertificatoEnum.FORNITO);
+        
+        DocumentoUpdateNew documento = new DocumentoUpdateNew();
+        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
+        documento.setFilename("certificato.cer");
+        documento.setContent(pemCert);
+        documento.setContentType("application/cert");
+        
+        certificato.setCertificato(documento);
+        dati.setCertificatoAutenticazione(certificato);
+    	
+        clientCreate.setDatiSpecifici(dati);
+        clientCreate.setDescrizione("descrizione");
+        
+        clientCreate.setIndirizzoIp("1.1.1.1");
+        clientCreate.setStato(StatoClientEnum.CONFIGURATO);
+        
+        ResponseEntity<Client> clientResponse = clientController.createClient(clientCreate);
+        clientResponse.getBody().getIdClient();
+        }
+        AdesioneIdClient adesioneIdClient = new AdesioneIdClient();
+        adesioneIdClient.setNome("ClientTest");
+        adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
+        adesioneIdClient.setIdSoggetto(idSoggetto);
+        adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+        
+        adesioniController.saveClientCollaudoAdesione(result, PROFILO, adesioneIdClient, null);
+
+    	return result;
+    }
+    
+    @Test
+    void testUpdateStatoAdesioniSuccess() {
+        // Setup
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizioMultiAdesione(dominio, VisibilitaServizioEnum.PUBBLICO);
+        this.getAPI();
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
+        
+        List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
+    	
+        ReferenteCreate newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_GESTORE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE);
+        
+        listaReferenti.add(newReferente);
+        
+        newReferente = new ReferenteCreate();
+        newReferente.setIdUtente(ID_UTENTE_RICHIEDENTE_ADESIONE);
+        newReferente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        
+        listaReferenti.add(newReferente);
+
+        UUID idAdesione = this.creaNuovaAdesione(listaReferenti,true);
+        UUID idAdesione2 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione3 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione4 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione5 = this.creaNuovaAdesione(listaReferenti,false);
+        UUID idAdesione6 = this.creaNuovaAdesione(listaReferenti,false);
+        
+        StatoUpdate stato = new StatoUpdate();
+    	stato.setStato("richiesto_collaudo");
+    	stato.setCommento("richiesta di collaudo");
+
+    	List<UUID> ids = new ArrayList<UUID>();
+    	ids.add(idAdesione);
+    	ids.add(idAdesione2);
+    	ids.add(idAdesione3);
+    	ids.add(idAdesione4);
+    	ids.add(idAdesione5);
+    	ids.add(idAdesione6);
+    	/*
+        // Act
+        ResponseEntity<AdesioniCambioStatoResponse> response = adesioniController.updateStatoAdesioni(stato,
+    			null, null, null, null,
+    			null, null, null,
+    			null, null, null,
+    			ids, null,
+    			0, 10, null);
+    	
+        // Assert
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        //assertEquals("richiesto_collaudo", response.getBody().getStato());
+        */
+    }
+     
 }

@@ -126,7 +126,7 @@ public class GruppoServizio {
 	}
 
 	public String getProfilo() {
-		return adesioneAPI.getProfilo();
+		return getSoggettoAderente().getTipoGateway();
 	}
 	
 	public String getGruppo() {

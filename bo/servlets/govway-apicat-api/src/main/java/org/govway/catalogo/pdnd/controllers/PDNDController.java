@@ -1,27 +1,15 @@
-/*
- * GovCat - GovWay API Catalogue
- * https://github.com/link-it/govcat
- *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3, as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
 package org.govway.catalogo.pdnd.controllers;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.govway.catalogo.PdndV1Controller;
 import org.govway.catalogo.servlets.pdnd.client.api.GatewayApi;
@@ -43,6 +31,7 @@ import org.govway.catalogo.servlets.pdnd.model.Events;
 import org.govway.catalogo.servlets.pdnd.model.JWK;
 import org.govway.catalogo.servlets.pdnd.model.Organization;
 import org.govway.catalogo.servlets.pdnd.model.Problem;
+import org.govway.catalogo.servlets.pdnd.model.ProblemError;
 import org.govway.catalogo.servlets.pdnd.model.Purpose;
 import org.govway.catalogo.servlets.pdnd.model.Purposes;
 import org.govway.catalogo.servlets.pdnd.model.Subscribers;
@@ -52,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @PdndV1Controller
 public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway.catalogo.servlets.pdnd.server.api.GatewayApi, org.govway.catalogo.servlets.pdnd.server.api.HealthApi {
@@ -108,8 +98,19 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 	}
 
 	private String getProblem(ResponseEntity<Problem> status) {
-		if(status.getBody()!=null && status.getBody().getErrors()!= null && !status.getBody().getErrors().isEmpty()) {
-			return status.getBody().getErrors().stream().map(e -> e.getCode() + " " + e.getDetail()).collect(Collectors.joining(","));
+		
+		if (status != null) {
+		    Problem body = status.getBody();
+
+		    if (body != null) {
+		        List<ProblemError> errors = body.getErrors();
+
+		        if (errors != null && !errors.isEmpty()) {
+		            return errors.stream()
+		                         .map(e -> e.getCode() + " " + e.getDetail())
+		                         .collect(Collectors.joining(","));
+		        }
+		    }
 		}
 
 		return null;
@@ -254,7 +255,7 @@ public class PDNDController implements CatalogApi, ConfigurazioneApi, org.govway
 
 			return this.getClientCollaudo().getEventsFromId(lastEventId, limit);
 		else
-			return this.getClientCollaudo().getEventsFromId(lastEventId, limit);
+			return this.getClientProduzione().getEventsFromId(lastEventId, limit);
 	}
 
 	@Override

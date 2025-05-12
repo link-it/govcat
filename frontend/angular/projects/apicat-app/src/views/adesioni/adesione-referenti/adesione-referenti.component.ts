@@ -468,7 +468,6 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
         debounceTime(500),
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
-          // return this.utilService.getUtenti(term, this.referentiFilter).pipe(
           let aux: any = null;
           this.referentiTipo == 'referente' ? aux = this.adesione.soggetto.organizzazione.id_organizzazione : aux = null;
           return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux).pipe(
