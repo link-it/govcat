@@ -4,15 +4,15 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components'
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 import { Page} from '../../models/page';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
@@ -21,7 +21,9 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 @Component({
   selector: 'app-domini',
   templateUrl: 'domini.component.html',
-  styleUrls: ['domini.component.scss']
+  styleUrls: ['domini.component.scss'],
+  standalone: false
+
 })
 export class DominiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'DominiComponent';

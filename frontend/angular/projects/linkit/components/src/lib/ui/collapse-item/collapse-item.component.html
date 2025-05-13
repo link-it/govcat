@@ -1,0 +1,44 @@
+<div class="header-box">
+  <div #ci class="active-item d-flex flex-grow-1 align-items-center" (touchstart)="__swipe($event, 'start')" (touchend)="__swipe($event, 'end')">
+    <div class="pl-3 pr-1 mb-n1" *ngIf="_editMode">
+      <mat-checkbox #cb class="edit-selector" [color]="_checkboxColor.toString()" [disabled]="_checkDisabled || __gestureDetect" (change)="__change($event)"></mat-checkbox>
+    </div>
+    <div class="collapse-item-header">
+      <div class="d-flex align-items-center">
+        <div class="btn btn-default btn-sm gl-button btn-default-tertiary btn-icon button-collapse flex-shrink-0">
+          <em class="bi" [class.bi-chevron-down]="!expanded" [class.bi-chevron-up]="expanded" *ngIf="enableCollapse" (click)="__toggle($event, ci)"></em>
+        </div>
+        <div class="flex-grow-1 primary-text">
+          <div class="d-block">
+            <div class="pb-0">
+              <span class="fw-bold-600 text-hover cursor-pointer" [innerHtml]="_primaryText" (click)="__toggle($event, ci)"></span>
+            </div>
+          </div>
+          <div class="d-block meta-data" *ngIf="_metadata">
+            <p *ngIf="!keepTextFormat" [innerHtml]="_metadata"></p>
+            <pre *ngIf="keepTextFormat" class="m-0" [innerHtml]="_metadata"></pre>
+          </div>
+        </div>
+        <div class="secondary-text text-end ps-3" *ngIf="_secondaryText" [style.--simple-item-secondary-text-background-color]="_secondaryFeedback">
+          <div class="main-data d-block" *ngIf="_secondaryText" [style.--simple-item-secondary-text-background-color]="_secondaryFeedback">
+            <span class="secondary-text d-block" [style.--simple-item-secondary-text-color]="_secondaryTextColor" [innerHtml]="_secondaryText"></span>
+          </div>
+          <div class="d-block meta-data" *ngIf="_secondaryMetadata">
+            <p class="d-block" [innerHtml]="_secondaryMetadata"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div matRipple [matRippleColor]="__ripple" role="button" [matRippleDisabled]="actionDisabled"
+      [style.--simple-item-action-background-color]="_actionBackgroundColor"
+      [style.--simple-item-hover-action-background-color]="_actionHoverColor"
+      (click)="__simpleActionClick($event, _action)" [class]="__setClass()" *ngIf="_action">
+    <em class="material-icons-outlined">{{ _action }}</em>
+  </div>
+</div>
+<div class="collapse-item-body" role="region" [class.expanded]="expandedChange|async" [@transition]="expanded"
+    (@transition.done)="__endTransition($event)" (@transition.start)="__startTransition($event)"
+    [attr.aria-labelledby]="'collapse-item-body'">
+  <ng-content select="[collapse-content]"></ng-content>
+</div>

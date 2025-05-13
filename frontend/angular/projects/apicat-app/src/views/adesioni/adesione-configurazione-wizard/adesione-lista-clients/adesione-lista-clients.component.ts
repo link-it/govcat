@@ -4,13 +4,13 @@ import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/fo
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { EventsManagerService } from '@linkit/components';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { TipoClientEnum, SelectedClientEnum, StatoConfigurazioneEnum, fake_tipoCertificatoEnum, fake_credenziali } from '../../adesione-configurazioni/adesione-configurazioni.component';
@@ -29,7 +29,9 @@ import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
 @Component({
     selector: 'app-adesione-lista-clients',
     templateUrl: './adesione-lista-clients.component.html',
-    styleUrls: ['./adesione-lista-clients.component.scss']
+    styleUrls: ['./adesione-lista-clients.component.scss'],
+    standalone: false
+
 })
 export class AdesioneListaClientsComponent implements OnInit {
 

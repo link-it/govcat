@@ -5,8 +5,8 @@ import { animate, query, stagger, style, transition, trigger } from '@angular/an
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
@@ -18,7 +18,9 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-verifiche',
   templateUrl: 'verifiche.component.html',
-  styleUrls: ['verifiche.component.scss']
+  styleUrls: ['verifiche.component.scss'],
+  standalone: false
+
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

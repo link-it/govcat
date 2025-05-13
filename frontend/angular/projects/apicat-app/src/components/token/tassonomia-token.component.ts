@@ -3,7 +3,9 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 @Component({
   selector: 'ui-tassonomia-token',
   templateUrl: './tassonomia-token.component.html',
-  styleUrls: ['./tassonomia-token.component.scss']
+  styleUrls: ['./tassonomia-token.component.scss'],
+  standalone: false
+
 })
 export class TassonomiaTokenComponent implements OnInit {
 

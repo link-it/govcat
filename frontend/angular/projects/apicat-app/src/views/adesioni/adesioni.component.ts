@@ -6,9 +6,9 @@ import { HttpParams } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -16,9 +16,9 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 import { Page} from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
@@ -35,7 +35,9 @@ export enum StatoConfigurazione {
 @Component({
   selector: 'app-adesioni',
   templateUrl: 'adesioni.component.html',
-  styleUrls: ['adesioni.component.scss']
+  styleUrls: ['adesioni.component.scss'],
+  standalone: false
+
 })
 export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioniComponent';

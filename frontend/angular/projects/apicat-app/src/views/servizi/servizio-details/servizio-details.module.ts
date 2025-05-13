@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 
 import { AppComponentsModule } from "@app/components/components.module";
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
@@ -22,14 +21,14 @@ import { ServizioDetailsComponent } from './servizio-details.component';
 import { ServizioDetailsRoutingModule } from './servizio-details-routing.module';
 
 import { NotificationBarModule } from '../../notifications/notification-bar/notification-bar.module';
+import { MarkdownModule } from 'ngx-markdown';
 
 @NgModule({
     imports: [
         CommonModule,
         FormsModule,
         TranslateModule,
-        VendorsModule,
-        ComponentsModule,
+             ComponentsModule,
         AppComponentsModule,
         HasPermissionModule,
         DisablePermissionModule,
@@ -41,7 +40,8 @@ import { NotificationBarModule } from '../../notifications/notification-bar/noti
         ErrorViewModule,
         MonitorDropdwnModule,
         ServizioDetailsRoutingModule,
-        NotificationBarModule
+        NotificationBarModule,
+        MarkdownModule
     ],
     declarations: [
         ServizioDetailsComponent

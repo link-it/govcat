@@ -1,7 +1,9 @@
 import { Directive, ElementRef, OnInit } from '@angular/core';
 
 @Directive({
-  selector: '[remove-host]'
+  selector: '[remove-host]',
+  standalone:false
+
 })
 export class RemoveHostDirective implements OnInit {
   constructor(private elementRef: ElementRef) {

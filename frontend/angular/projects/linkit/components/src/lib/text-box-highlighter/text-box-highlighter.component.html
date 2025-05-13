@@ -1,0 +1,29 @@
+<ng-template [ngIf]="type == 'TYPE_DEFAULT'">
+  <div class="highlighter-box border px-2 py-4 text-monospace overflow-auto" *ngIf="!_analizing && _displayText" [innerHtml]="_displayText"></div>
+  <div class="border px-2 py-4 text-monospace overflow-auto text-center" *ngIf="!_analizing && !_displayText">{{ 'Nessun contenuto' }}</div>
+</ng-template>
+
+<ng-template [ngIf]="type == 'TYPE_ROWS'">
+  <div class="highlighter-box border px-2 py-4 mt-5 text-monospace overflow-auto">
+    <div class="d-block" style="white-space: pre;" *ngFor="let row of _displayRows" [innerHtml]="row"></div>
+  </div>
+</ng-template>
+
+<ng-template [ngIf]="type == 'TYPE_ROWS_HTML'">
+  <div class="highlighter-box border px-2 py-4 mt-5 text-monospace overflow-auto">
+    <div class="d-block" style="white-space: pre;" *ngFor="let items of _itemList">
+      <ng-container *ngFor="let item of items">
+        <ng-container [ngSwitch]="item.type">
+          <ng-container *ngSwitchCase="'text'">
+            <span>{{ item.content }}</span>
+          </ng-container>
+          <ng-container *ngSwitchCase="'highlight'">
+            <span class="highlight-item {{ item.option.class }}" [style]="{ color: item.option.color || '#414141' }" [matTooltip]="showTooltip ? (item.option.tooltip || item.option.label) : ''" [matTooltipPosition]="'above'">
+              {{ item.content }}<span class="highlight-tooltip">{{ item.option.label }}</span>
+            </span>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>

@@ -4,14 +4,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
 
@@ -22,8 +22,8 @@ import { forkJoin, Observable } from 'rxjs';
 import { Grant, RightsEnum } from '@app/model/grant';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
 import { ReferentView, Referent } from '../adesione-view/adesione-view.component';
-import { FieldClass } from 'projects/components/src/public-api';
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { FieldClass } from '@linkit/components';
+import { MenuAction } from '@linkit/components';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
@@ -41,7 +41,9 @@ export enum AccordionType {
 @Component({
     selector: 'app-adesione-configurazione-wizard',
     templateUrl: './adesione-configurazione-wizard.component.html',
-    styleUrls: ['./adesione-configurazione-wizard.component.scss']
+    styleUrls: ['./adesione-configurazione-wizard.component.scss'],
+    standalone: false
+
 })
 export class AdesioneConfigurazioneWizardComponent implements OnInit {
 

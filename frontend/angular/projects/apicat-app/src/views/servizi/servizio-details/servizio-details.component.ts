@@ -5,10 +5,10 @@ import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } fro
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { MenuAction } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -23,7 +23,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 
 // import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 import { Grant } from '@app/model/grant';
 
 declare const saveAs: any;
@@ -32,7 +32,9 @@ import * as moment from 'moment';
 @Component({
     selector: 'app-servizio-details',
     templateUrl: 'servizio-details.component.html',
-    styleUrls: ['servizio-details.component.scss']
+    styleUrls: ['servizio-details.component.scss'],
+    standalone: false
+
 })
 export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioDetailsComponent';

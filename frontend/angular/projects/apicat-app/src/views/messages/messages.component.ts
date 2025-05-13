@@ -4,20 +4,22 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { Page } from '../../models/page';
 
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 @Component({
   selector: 'app-messages',
   templateUrl: 'messages.component.html',
-  styleUrls: ['messages.component.scss']
+  styleUrls: ['messages.component.scss'],
+  standalone: false
+
 })
 export class MessagesComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'MessagesComponent';

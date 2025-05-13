@@ -1,7 +1,9 @@
 import {Directive, ElementRef, HostListener, Input} from '@angular/core';
 
 @Directive({
-    selector: '[appUppercase]'
+    selector: '[appUppercase]',
+    standalone:false
+
 })
 export class UppercaseDirective {
     @Input('appUppercase') isEnabled: boolean = true;

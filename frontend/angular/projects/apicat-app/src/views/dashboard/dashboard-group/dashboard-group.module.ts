@@ -2,8 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { RemoveHostModule } from '@app/directives/remove-host/remove-host.module';
+ import { RemoveHostModule } from '@app/directives/remove-host/remove-host.module';
 
 import { DashboardGroupComponent } from './dashboard-group.component';
 import { DashboardCardModule } from '../dashboard-card/dashboard-card.module';
@@ -15,8 +14,7 @@ import { DashboardCardModule } from '../dashboard-card/dashboard-card.module';
   imports: [
     CommonModule,
     TranslateModule,
-    VendorsModule,
-    RemoveHostModule,
+     RemoveHostModule,
     DashboardCardModule
   ],
   exports: [

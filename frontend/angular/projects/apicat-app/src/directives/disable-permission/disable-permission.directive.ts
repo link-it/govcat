@@ -5,7 +5,9 @@ import { Grant } from '@app/model/grant';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 @Directive({
-  selector: '[disablePermission]'
+  selector: '[disablePermission]',
+  standalone:false
+
 })
 export class DisablePermissionDirective implements OnInit, OnChanges {
 

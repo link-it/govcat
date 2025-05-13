@@ -3,12 +3,14 @@ import { Router } from '@angular/router';
 
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { MenuAction } from '@linkit/components';
 
 @Component({
   selector: 'app-monitor-dropdown',
   templateUrl: './monitor-dropdown.component.html',
-  styleUrls: ['./monitor-dropdown.component.scss']
+  styleUrls: ['./monitor-dropdown.component.scss'],
+  standalone: false
+
 })
 export class MonitorDropdwnComponent implements OnInit, OnChanges {
 

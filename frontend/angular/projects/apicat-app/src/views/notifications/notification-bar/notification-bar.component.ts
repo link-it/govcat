@@ -10,7 +10,9 @@ import { NotificationState, NotificationType, NotificationEntityType } from '../
 @Component({
   selector: 'app-notification-bar',
   templateUrl: 'notification-bar.component.html',
-  styleUrls: ['notification-bar.component.scss']
+  styleUrls: ['notification-bar.component.scss'],
+  standalone: false
+
 })
 export class NotificationBarComponent implements OnInit, OnChanges {
 

@@ -3,7 +3,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'serviceGroupFilter',
-  pure: false
+  pure: false,
+  standalone: false
+
 })
 export class ServiceGroupFilterPipe implements PipeTransform {
   transform(items: any[], _value: string, dictionary: any, stato: string): any {
@@ -24,7 +26,9 @@ export class ServiceGroupFilterPipe implements PipeTransform {
 
 @Pipe({
   name: 'serviceFilter',
-  pure: false
+  pure: false,
+  standalone: false
+
 })
 export class ServiceFilterPipe implements PipeTransform {
   transform(items: any[], _value: string): any {
@@ -40,7 +44,9 @@ export class ServiceFilterPipe implements PipeTransform {
 
 @Pipe({
   name: 'groupFilter',
-  pure: false
+  pure: false,
+  standalone: false
+
 })
 export class GroupFilterPipe implements PipeTransform {
   transform(items: any[], _value: string, _all: boolean = false): any {
@@ -57,7 +63,9 @@ export class GroupFilterPipe implements PipeTransform {
 
 @Pipe({
   name: 'dominiFilterList',
-  pure: false
+  pure: false,
+  standalone: false
+
 })
 export class DominiFilterListPipe implements PipeTransform {
   transform(items: any[], _value: string): any {
@@ -75,7 +83,9 @@ export class DominiFilterListPipe implements PipeTransform {
 
 @Pipe({
   name: 'propertyFilter',
-  pure: false
+  pure: false,
+  standalone: false
+
 })
 export class PropertyFilterPipe implements PipeTransform {
   transform(items: any[], _property: string, _value: string): any {
@@ -91,7 +101,9 @@ export class PropertyFilterPipe implements PipeTransform {
 
 @Pipe({
   name: 'risorseFilter',
-  pure: false
+  pure: false,
+  standalone: false
+
 })
 export class RisorseFilterPipe implements PipeTransform {
   transform(items: any[], values: any[]): any {
@@ -106,7 +118,9 @@ export class RisorseFilterPipe implements PipeTransform {
 
 @Pipe({
   name: 'authFilter',
-  pure: false
+  pure: false,
+  standalone: false
+
 })
 export class AuthFilterPipe implements PipeTransform {
   transform(items: any[], values: any[]): any {

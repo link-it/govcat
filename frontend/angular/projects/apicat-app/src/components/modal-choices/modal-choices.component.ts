@@ -9,7 +9,9 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-modal-choices',
   templateUrl: './modal-choices.component.html',
-  styleUrls: ['./modal-choices.component.scss']
+  styleUrls: ['./modal-choices.component.scss'],
+  standalone: false
+
 })
 export class ModalChoicesComponent implements OnInit, OnChanges {
 

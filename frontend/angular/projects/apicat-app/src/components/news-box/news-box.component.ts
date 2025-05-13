@@ -3,7 +3,9 @@ import { Component, Input, OnInit } from '@angular/core';
 @Component({
   selector: 'app-news-box',
   templateUrl: './news-box.component.html',
-  styleUrls: ['./news-box.component.scss']
+  styleUrls: ['./news-box.component.scss'],
+  standalone: false
+
 })
 export class NewsBoxComponent implements OnInit {
 

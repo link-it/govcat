@@ -5,19 +5,21 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components';
 
 import { Page} from '../../models/page';
 
 @Component({
   selector: 'app-taxonomies',
   templateUrl: 'taxonomies.component.html',
-  styleUrls: ['taxonomies.component.scss']
+  styleUrls: ['taxonomies.component.scss'],
+  standalone: false
+
 })
 export class TaxonomiesComponent implements OnInit, OnDestroy {
   static readonly Name = 'TaxonomiesComponent';

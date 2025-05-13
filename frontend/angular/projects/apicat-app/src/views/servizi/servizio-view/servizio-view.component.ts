@@ -8,9 +8,9 @@ import { catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components'
+import { EventsManagerService } from '@linkit/components'
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -24,8 +24,8 @@ import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authemti
 import { CodeGrantDialogComponent } from '@app/components/authemtications-dialogs/code-grant-dialog/code-grant-dialog.component';
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { MenuAction } from '@linkit/components'
+import { EventType } from '@linkit/components';
 
 import { environment } from '@app/environments/environment';
 
@@ -39,7 +39,9 @@ import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDef
 @Component({
     selector: 'app-servizio-view',
     templateUrl: 'servizio-view.component.html',
-    styleUrls: ['servizio-view.component.scss']
+    styleUrls: ['servizio-view.component.scss'],
+    standalone: false
+
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServizioViewComponent';

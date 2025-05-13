@@ -13,6 +13,8 @@ import { ViewType } from '../verifiche.component';
   selector: 'ui-verifica-api',
   styleUrls: ['./verifica-api.component.scss'],
   templateUrl: './verifica-api.component.html',
+  standalone: false
+
 })
 export class VerificaApiComponent {
 

@@ -4,6 +4,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angul
   selector: 'app-scroll',
   templateUrl: './scroll.component.html',
   styleUrls: ['./scroll.component.scss'],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ScrollComponent {

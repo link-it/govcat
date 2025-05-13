@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { jwtDecode } from "jwt-decode";
 
 @Injectable({
     providedIn: 'root',

@@ -3,8 +3,8 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -16,7 +16,9 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-servizio-api-pdnd-informations',
   templateUrl: 'servizio-api-pdnd-informations.component.html',
-  styleUrls: ['servizio-api-pdnd-informations.component.scss']
+  styleUrls: ['servizio-api-pdnd-informations.component.scss'],
+  standalone: false
+
 })
 export class ServizioApiPdndInformationsComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiPdndInformationsComponent';

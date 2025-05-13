@@ -2,7 +2,7 @@ import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
-import { ComponentsModule } from "projects/components/src/lib/components.module";
+import { ComponentsModule } from '@linkit/components'
 
 import { TranslateModule } from "@ngx-translate/core";
 import { NgSelectModule } from "@ng-select/ng-select";

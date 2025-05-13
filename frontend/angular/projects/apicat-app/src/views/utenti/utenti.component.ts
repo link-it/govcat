@@ -5,13 +5,13 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
@@ -22,7 +22,9 @@ import { Ruolo, Stato } from './utente-details/utente';
 @Component({
   selector: 'app-utenti',
   templateUrl: 'utenti.component.html',
-  styleUrls: ['utenti.component.scss']
+  styleUrls: ['utenti.component.scss'],
+  standalone: false
+
 })
 export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtentiComponent';

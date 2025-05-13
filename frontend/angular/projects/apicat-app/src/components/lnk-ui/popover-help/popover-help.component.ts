@@ -3,11 +3,12 @@ import { DomSanitizer } from '@angular/platform-browser';
 
 import { TranslateService } from '@ngx-translate/core';
 import _ from 'lodash';
-import { AvailbleBSPositions } from 'ngx-bootstrap/positioning';
+import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
 
 @Component({
     selector: 'lnk-popover-help',
     templateUrl: './popover-help.component.html',
+    standalone: false,
     styleUrls: [
         './popover-help.component.scss'
     ]
@@ -19,7 +20,7 @@ export class PopoverHelpComponent implements OnInit, OnChanges {
     @Input() params: any = {};
 
     @Input() iconHelp: string = 'bi bi-info-circle';
-    @Input() helpPlacement: AvailbleBSPositions = 'left';
+    @Input() helpPlacement: AvailableBSPositions = 'left';
     @Input() helpContainerClass: string = '';
     
     keyContent: string = '';

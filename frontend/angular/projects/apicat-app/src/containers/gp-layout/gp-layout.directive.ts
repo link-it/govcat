@@ -2,7 +2,9 @@ import {AfterViewInit, Directive, ElementRef, HostBinding, HostListener, Inject,
 import {DOCUMENT} from '@angular/common';
 
 @Directive({
-    selector: '[appSidebarMinimizer]'
+    selector: '[appSidebarMinimizer]',
+    standalone:false
+
 })
 export class SidebarMinimizeDirective {
     constructor(
@@ -21,7 +23,9 @@ export class SidebarMinimizeDirective {
 }
 
 @Directive({
-    selector: '[appMobileSidebarToggler]'
+    selector: '[appMobileSidebarToggler]',
+    standalone:false
+
 })
 export class MobileSidebarToggleDirective {
     constructor(
@@ -43,7 +47,9 @@ export class MobileSidebarToggleDirective {
  * Allows the off-canvas sidebar to be closed via click.
  */
 @Directive({
-    selector: '[appSidebarClose]'
+    selector: '[appSidebarClose]',
+    standalone:false
+
 })
 export class SidebarOffCanvasCloseDirective {
     constructor(
@@ -65,7 +71,9 @@ export class SidebarOffCanvasCloseDirective {
 }
 
 @Directive({
-    selector: '[appBrandMinimizer]'
+    selector: '[appBrandMinimizer]',
+    standalone:false
+
 })
 export class BrandMinimizeDirective {
     constructor(
@@ -85,7 +93,9 @@ export class BrandMinimizeDirective {
 
 
 @Directive({
-    selector: '[appHtmlAttr]'
+    selector: '[appHtmlAttr]',
+    standalone:false
+
 })
 export class HtmlAttributesDirective implements OnInit {
     @Input() appHtmlAttr!: { [key: string]: string; };
@@ -129,7 +139,9 @@ export class HtmlAttributesDirective implements OnInit {
 }
 
 @Directive({
-    selector: '[appFlyOut]'
+    selector: '[appFlyOut]',
+    standalone:false
+
 })
 export class FlyOutDirective implements AfterViewInit {
     protected _elementClass: string[] = [];

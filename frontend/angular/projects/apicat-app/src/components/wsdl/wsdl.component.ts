@@ -1,13 +1,15 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { Tools } from '@linkit/components';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 @Component({
   selector: 'ui-wsdl',
   templateUrl: './wsdl.component.html',
-  styleUrls: ['./wsdl.component.scss']
+  styleUrls: ['./wsdl.component.scss'],
+  standalone: false
+
 })
 export class WsdlComponent implements OnInit {
 

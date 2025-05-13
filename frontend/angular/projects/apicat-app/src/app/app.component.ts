@@ -3,8 +3,8 @@ import { Router } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { Tools } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { ConsoleToggleService } from '@services/console-toggle.service';
 
@@ -31,7 +31,8 @@ enum AppLanguageCode {
 @Component({
   selector: 'app-root',
   template: '<router-outlet></router-outlet>',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  standalone: false
 })
 export class AppComponent implements OnInit {
   title = 'apicat-app';

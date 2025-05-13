@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
   selector: 'app-back-web',
   templateUrl: './back-web.component.html',
   styleUrls: ['./back-web.component.scss'],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BackWebComponent {

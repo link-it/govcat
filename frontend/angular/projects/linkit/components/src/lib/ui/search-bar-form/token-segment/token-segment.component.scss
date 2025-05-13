@@ -1,0 +1,9 @@
+.gl-token-content {
+    &.gl-token-content-truncate {
+        display: inline-block;
+        max-width: 350px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

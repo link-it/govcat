@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -12,7 +12,8 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-about-dialog',
   templateUrl: './about-dialog.component.html',
-  styleUrls: ['./about-dialog.component.scss']
+  styleUrls: ['./about-dialog.component.scss'],
+  standalone: false
 })
 export class AboutDialogComponent implements OnInit {
 

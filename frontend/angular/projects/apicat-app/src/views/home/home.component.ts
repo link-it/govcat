@@ -3,14 +3,16 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.component.html',
-  styleUrls: ['home.component.scss']
+  styleUrls: ['home.component.scss'],
+  standalone: false
+
 })
 export class HomeComponent implements OnInit, OnDestroy {
   static readonly Name = 'HomeComponent';

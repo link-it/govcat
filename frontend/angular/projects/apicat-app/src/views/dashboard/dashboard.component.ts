@@ -4,14 +4,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { EventType } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components'
 import { AuthenticationService } from '../../services/authentication.service';
 import { OpenAPIService } from '../../services/openAPI.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { Tools } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { INavData } from '../../containers/gp-layout/gp-sidebar-nav';
@@ -27,7 +27,9 @@ import * as moment from 'moment';
 @Component({
   selector: 'app-dashboard',
   templateUrl: 'dashboard.component.html',
-  styleUrls: ['dashboard.component.scss']
+  styleUrls: ['dashboard.component.scss'],
+  standalone: false
+
 })
 export class DashboardComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'DashboardComponent';

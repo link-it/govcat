@@ -7,35 +7,37 @@ import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { LocalStorageService } from 'projects/tools/src/lib/local-storage.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { LocalStorageService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { BreadcrumbService } from 'projects/components/src/lib/ui/breadcrumb/breadcrumb.service';
+import { EventType } from '@linkit/components';
+import { BreadcrumbService } from '@linkit/components'
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components'
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { CardType } from 'projects/components/src/lib/ui/card/card.component';
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
 
 import * as _ from 'lodash';
+import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 declare const saveAs: any;
 
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
-    styleUrls: ['servizi.component.scss']
+    styleUrls: ['servizi.component.scss'],
+    standalone: false
+
     })
 export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServiziComponent';

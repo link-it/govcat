@@ -9,9 +9,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { Tools } from '@linkit/components';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import { jwtDecode } from "jwt-decode";
@@ -19,7 +19,9 @@ import { jwtDecode } from "jwt-decode";
 @Component({
 selector: 'app-code-grant-dialog',
 templateUrl: './code-grant-dialog.component.html',
-styleUrls: ['./code-grant-dialog.component.scss']
+styleUrls: ['./code-grant-dialog.component.scss'],
+standalone: false
+
 })
 export class CodeGrantDialogComponent implements OnInit {
 

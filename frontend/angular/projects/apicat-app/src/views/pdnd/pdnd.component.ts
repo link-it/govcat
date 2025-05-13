@@ -3,11 +3,11 @@ import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
-import { uuid } from 'projects/tools/src/lib/custom-forms-validators/uuid/validator';
 import { Attribute, EserviceDescriptor, EserviceResponse, OrganizationResponse, PdndBaseUri, PdndEventType, PdndResponse, PdndService } from './pdnd.service';
 import { forkJoin, of } from 'rxjs';
 
 import { PdndView } from './components/pdnd-view';
+import { uuid } from 'projects/linkit/validators/src/lib/uuid/validator';
 
 interface PdndType {
   uri: PdndBaseUri;
@@ -221,6 +221,7 @@ const eventListConfiguration = {
   selector: 'app-pdnd',
   templateUrl: 'pdnd.component.html',
   styleUrls: ['pdnd.component.scss'],
+  standalone: false,
   encapsulation: ViewEncapsulation.None
 })
 export class PdndComponent {

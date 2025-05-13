@@ -6,24 +6,24 @@ import { HttpHeaders, HttpParams } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 
-import { uuid } from 'projects/tools/src/lib/custom-forms-validators/uuid/validator';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 import { Page } from '@app/models/page';
 
 import * as moment from 'moment';
 import * as _ from 'lodash';
+import { uuid } from 'projects/linkit/validators/src/lib/uuid/validator';
 declare const saveAs: any;
 
 enum TransactionOutcome {
@@ -44,7 +44,9 @@ enum SearchTypeEnum {
 @Component({
   selector: 'app-transazioni',
   templateUrl: 'transazioni.component.html',
-  styleUrls: ['transazioni.component.scss']
+  styleUrls: ['transazioni.component.scss'],
+  standalone: false
+
 })
 export class TransazioniComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'TransazioniComponent';

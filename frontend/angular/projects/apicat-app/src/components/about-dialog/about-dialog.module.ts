@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { ComponentsModule } from '@linkit/components';
 
 import { AboutDialogComponent } from './about-dialog.component';
 

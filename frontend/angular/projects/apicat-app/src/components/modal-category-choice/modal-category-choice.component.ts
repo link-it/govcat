@@ -14,7 +14,9 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-modal-category-choice',
   templateUrl: './modal-category-choice.component.html',
-  styleUrls: ['./modal-category-choice.component.scss']
+  styleUrls: ['./modal-category-choice.component.scss'],
+  standalone: false
+
 })
 export class ModalCategoryChoiceComponent implements OnInit {
 

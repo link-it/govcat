@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 // import { AppComponentsModule } from '@app/components/components.module';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 
@@ -18,8 +17,7 @@ import { DominioDetailsModule } from './dominio-details/dominio-details.module';
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     // AppComponentsModule,
     HasPermissionModule,
     DominiRoutingModule,

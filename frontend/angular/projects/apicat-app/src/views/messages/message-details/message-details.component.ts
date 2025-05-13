@@ -4,18 +4,20 @@ import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } fro
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { FieldClass } from 'projects/components/src/lib/classes/definitions';
+import { FieldClass } from '@linkit/components';
 
 import { Message } from './message';
 
 @Component({
   selector: 'app-message-details',
   templateUrl: 'message-details.component.html',
-  styleUrls: ['message-details.component.scss']
+  styleUrls: ['message-details.component.scss'],
+  standalone: false
+
 })
 export class MessageDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'MessageDetailsComponent';

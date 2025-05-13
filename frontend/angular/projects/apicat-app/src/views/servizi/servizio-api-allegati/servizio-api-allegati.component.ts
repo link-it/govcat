@@ -6,11 +6,11 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchGoogleFormComponent } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 // import { AllegatoComponent } from 'projects/components/src/lib/ui/allegato/allegato.component';
@@ -22,14 +22,16 @@ import { AllegatiDialogComponent } from '@app/components/allegati-dialog/allegat
 import { Page } from '@app/models/page';
 import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
 import { Grant } from '@app/model/grant';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 declare const saveAs: any;
 
 @Component({
   selector: 'app-servizio-api-allegati',
   templateUrl: 'servizio-api-allegati.component.html',
-  styleUrls: ['servizio-api-allegati.component.scss']
+  styleUrls: ['servizio-api-allegati.component.scss'],
+  standalone: false
+
 })
 export class ServizioApiAllegatiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioAllegatiComponent';

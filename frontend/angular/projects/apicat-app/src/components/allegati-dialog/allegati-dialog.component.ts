@@ -4,7 +4,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
-import { Tools } from 'projects/tools/src/public-api';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 
 import { Observable, Subject } from 'rxjs';
@@ -15,7 +15,9 @@ import { Grant } from '@app/model/grant';
 @Component({
     selector: 'app-allegati-dialog',
     templateUrl: './allegati-dialog.component.html',
-    styleUrls: ['./allegati-dialog.component.scss']
+    styleUrls: ['./allegati-dialog.component.scss'],
+    standalone: false
+
 })
 export class AllegatiDialogComponent implements OnInit {
 

@@ -1,9 +1,10 @@
 import { Component, HostBinding, HostListener } from '@angular/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 @Component({
   selector: 'app-simple-layout',
+  standalone: false,
   template: '<router-outlet></router-outlet>',
 })
 export class SimpleLayoutComponent {

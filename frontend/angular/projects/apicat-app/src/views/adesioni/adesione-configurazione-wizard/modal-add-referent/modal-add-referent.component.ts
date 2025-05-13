@@ -13,7 +13,9 @@ import { map, tap } from 'rxjs/operators';
 @Component({
     selector: 'app-modal-add-referent',
     templateUrl: './modal-add-referent.component.html',
-    styleUrls: ['./modal-add-referent.component.scss']
+    styleUrls: ['./modal-add-referent.component.scss'],
+    standalone: false
+
 })
 export class ModalAddReferentComponent implements OnInit {
 

@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 @Component({
     selector: 'lnk-button',
     templateUrl: './button.component.html',
+    standalone: false,
     styleUrls: ['./button.component.scss']
 })
 export class LnkButtonComponent implements OnInit {

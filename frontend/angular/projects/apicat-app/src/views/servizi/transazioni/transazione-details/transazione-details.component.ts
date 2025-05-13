@@ -4,8 +4,8 @@ import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } fro
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -18,7 +18,9 @@ declare const saveAs: any;
 @Component({
   selector: 'app-transazione-details',
   templateUrl: 'transazione-details.component.html',
-  styleUrls: ['transazione-details.component.scss']
+  styleUrls: ['transazione-details.component.scss'],
+  standalone: false
+
 })
 export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'TransazioneDetailsComponent';

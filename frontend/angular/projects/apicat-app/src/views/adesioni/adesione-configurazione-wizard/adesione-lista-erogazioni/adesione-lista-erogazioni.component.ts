@@ -3,13 +3,13 @@ import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/fo
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { EventsManagerService } from '@linkit/components';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { StatoConfigurazioneEnum } from '../../adesione-configurazioni/adesione-configurazioni.component';
@@ -22,7 +22,9 @@ import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
 @Component({
     selector: 'app-adesione-lista-erogazioni',
     templateUrl: './adesione-lista-erogazioni.component.html',
-    styleUrls: ['./adesione-lista-erogazioni.component.scss']
+    styleUrls: ['./adesione-lista-erogazioni.component.scss'],
+    standalone: false
+
 })
 export class AdesioneListaErogazioniComponent implements OnInit {
 

@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, Type } from '@angular/core';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
@@ -47,7 +47,9 @@ type FileType = {
 @Component({
     selector: 'app-custom-properties',
     templateUrl: './custom-properties.component.html',
-    styleUrls: ['./custom-properties.component.scss']
+    styleUrls: ['./custom-properties.component.scss'],
+    standalone: false
+
 })
 export class CustomPropertiesComponent implements OnInit, OnChanges {
 

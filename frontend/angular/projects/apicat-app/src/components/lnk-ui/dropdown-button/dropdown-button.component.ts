@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { MenuAction } from '@linkit/components';
 
 @Component({
   selector: 'lnk-dropdown-button',
   templateUrl: './dropdown-button.component.html',
+  standalone: false,
   styleUrls: ['./dropdown-button.component.scss']
 })
 export class LnkDropdwnButtonComponent implements OnInit {

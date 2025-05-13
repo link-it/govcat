@@ -3,7 +3,9 @@ import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 @Component({
   selector: 'lnk-icon-toggle',
   templateUrl: './icon-toggle.component.html',
-  styleUrls: ['./icon-toggle.component.scss']
+  styleUrls: ['./icon-toggle.component.scss'],
+  standalone: false
+
 })
 export class LnkIconToggleComponent implements OnInit, OnChanges {
 

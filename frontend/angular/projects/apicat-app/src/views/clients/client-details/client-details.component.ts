@@ -5,12 +5,12 @@ import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFor
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -33,7 +33,9 @@ declare const saveAs: any;
 @Component({
   selector: 'app-client-details',
   templateUrl: 'client-details.component.html',
-  styleUrls: ['client-details.component.scss']
+  styleUrls: ['client-details.component.scss'],
+  standalone: false
+
 })
 export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientDetailsComponent';

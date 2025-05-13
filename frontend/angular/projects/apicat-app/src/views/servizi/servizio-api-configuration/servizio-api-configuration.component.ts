@@ -4,8 +4,8 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Untype
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -41,7 +41,9 @@ export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
 @Component({
   selector: 'app-servizio-api-configuration',
   templateUrl: 'servizio-api-configuration.component.html',
-  styleUrls: ['servizio-api-configuration.component.scss']
+  styleUrls: ['servizio-api-configuration.component.scss'],
+  standalone: false
+
 })
 export class ServizioApiConfigurationComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';

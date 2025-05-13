@@ -5,12 +5,12 @@ import { AbstractControl, FormBuilder, UntypedFormControl, UntypedFormGroup, Val
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Dominio } from './dominio';
 
@@ -25,7 +25,9 @@ import { DominioCreateUpdateRequest } from './dominio-create-update';
 @Component({
   selector: 'app-dominio-details',
   templateUrl: 'dominio-details.component.html',
-  styleUrls: ['dominio-details.component.scss']
+  styleUrls: ['dominio-details.component.scss'],
+  standalone: false
+
 })
 export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'DominioDetailsComponent';

@@ -1,0 +1,34 @@
+<div class="d-flex align-items-center">
+  <div #si class="active-item d-flex flex-grow-1 align-items-center" (touchstart)="__swipe($event, 'start')" (touchend)="__swipe($event, 'end')">
+    <div class="pl-3 pr-1 mb-n1" *ngIf="_editMode">
+      <mat-checkbox class="edit-selector" [color]="_checkboxColor.toString()" [disabled]="_checkDisabled || __gestureDetect" (change)="__change($event)"></mat-checkbox>
+    </div>
+    <div class="d-flex align-items-center w-100 main-content">
+      <div class="main-info">
+        <div class="main-data">
+          <div class="primary-text text-break">
+            <span class="fw-bold-600" [class.text-hover]="hasLink" [class.cursor-pointer]="hasLink" [innerHtml]="_primaryText" (click)="__simpleClick($event, si)"></span>
+          </div>
+        </div>
+        <div class="meta-data" *ngIf="_metadata">
+          <p *ngIf="!keepTextFormat" [innerHtml]="_metadata"></p>
+          <pre *ngIf="keepTextFormat" class="m-0" [innerHtml]="_metadata"></pre>
+        </div>
+      </div>
+      <div class="meta-info" *ngIf="_secondaryText" [style.--simple-item-secondary-text-background-color]="_secondaryFeedback">
+        <div class="main-data d-block" *ngIf="_secondaryText" [style.--simple-item-secondary-text-background-color]="_secondaryFeedback">
+          <span class="secondary-text d-block" [style.--simple-item-secondary-text-color]="_secondaryTextColor" [innerHtml]="_secondaryText"></span>
+        </div>
+        <div class="meta-data" *ngIf="_secondaryMetadata">
+          <p class="d-block" [innerHtml]="_secondaryMetadata"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div matRipple [matRippleColor]="__ripple" role="button" [matRippleDisabled]="actionDisabled"
+      [style.--simple-item-action-background-color]="_actionBackgroundColor"
+      [style.--simple-item-hover-action-background-color]="_actionHoverColor"
+      (click)="__simpleActionClick($event, _action)" [class]="__setClass()" *ngIf="_action">
+    <em class="material-icons-outlined">{{ _action }}</em>
+  </div>
+</div>

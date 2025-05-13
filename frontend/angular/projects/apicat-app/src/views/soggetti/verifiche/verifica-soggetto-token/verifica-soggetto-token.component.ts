@@ -12,6 +12,8 @@ import { catchError } from 'rxjs/operators';
   selector: 'ui-verifica-soggetto-token',
   styleUrls: ['./verifica-soggetto-token.component.scss'],
   templateUrl: './verifica-soggetto-token.component.html',
+  standalone: false
+
 })
 export class VerificaSoggettoTokenComponent {
 

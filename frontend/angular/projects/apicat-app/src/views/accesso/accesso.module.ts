@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 
 import { AccessoComponent } from './accesso.component';
 import { AccessoRoutingModule } from './accesso-routing.module';
@@ -15,8 +14,7 @@ import { AccessoRoutingModule } from './accesso-routing.module';
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     AccessoRoutingModule
   ],
   declarations: [

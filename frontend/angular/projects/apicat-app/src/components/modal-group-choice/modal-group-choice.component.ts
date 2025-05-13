@@ -13,7 +13,9 @@ import { HttpParams } from '@angular/common/http';
 @Component({
   selector: 'app-modal-group-choice',
   templateUrl: './modal-group-choice.component.html',
-  styleUrls: ['./modal-group-choice.component.scss']
+  styleUrls: ['./modal-group-choice.component.scss'],
+  standalone: false
+
 })
 export class ModalGroupChoiceComponent implements OnInit {
 

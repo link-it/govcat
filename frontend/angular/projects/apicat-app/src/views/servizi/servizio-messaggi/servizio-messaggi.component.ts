@@ -4,18 +4,20 @@ import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { SearchBarFormComponent } from '@linkit/components'
 
 import { Page } from '@app/models/page';
 
 @Component({
   selector: 'app-servizio-messaggi',
   templateUrl: 'servizio-messaggi.component.html',
-  styleUrls: ['servizio-messaggi.component.scss']
+  styleUrls: ['servizio-messaggi.component.scss'],
+  standalone: false
+
 })
 export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioMessaggiComponent';

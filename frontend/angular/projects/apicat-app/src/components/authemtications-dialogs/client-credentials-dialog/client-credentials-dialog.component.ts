@@ -9,18 +9,20 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { ConfigService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import { jwtDecode } from "jwt-decode";
+import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from 'projects/linkit/components/src/lib/interceptors/error.interceptor';
 
-import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from 'projects/tools/src/lib/interceptors/error.interceptor';
 
 @Component({
     selector: 'app-client-credentials-dialog',
     templateUrl: './client-credentials-dialog.component.html',
-    styleUrls: ['./client-credentials-dialog.component.scss']
+    styleUrls: ['./client-credentials-dialog.component.scss'],
+    standalone: false
+
 })
 export class ClientCredentialsDialogComponent implements OnInit {
 

@@ -3,15 +3,17 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { Page } from '@app/models/page';
 
 @Component({
   selector: 'app-client-verifiche',
   templateUrl: 'client-verifiche.component.html',
-  styleUrls: ['client-verifiche.component.scss']
+  styleUrls: ['client-verifiche.component.scss'],
+  standalone: false
+
 })
 export class ClientVerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

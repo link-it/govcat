@@ -1,13 +1,14 @@
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 import { AbstractControl, FormGroup } from '@angular/forms';
+import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
 
-import { AvailbleBSPositions } from 'ngx-bootstrap/positioning';
 
 type InputType = 'text' | 'date' | 'textarea' | 'number' | 'checkbox' | 'password' | 'select';
 
 @Component({
     selector: 'lnk-form-field',
     templateUrl: './form-field.component.html',
+    standalone: false,
     styleUrls: ['./form-field.component.scss']
 })
 export class LnkFormFieldComponent implements OnInit {
@@ -39,7 +40,7 @@ export class LnkFormFieldComponent implements OnInit {
     @Input() showHelp: boolean = true;
     @Input() showHelpOnlyEdit: boolean = true;
     @Input() iconHelp: string = 'bi bi-info-circle';
-    @Input() helpPlacement: AvailbleBSPositions = 'left';
+    @Input() helpPlacement: AvailableBSPositions = 'left';
     @Input() helpContext: string = '';
     @Input() helpParams: any = {};
 

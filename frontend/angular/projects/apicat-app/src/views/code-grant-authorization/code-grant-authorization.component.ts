@@ -4,7 +4,9 @@ import {ActivatedRoute} from "@angular/router";
 @Component({
     selector: 'code-grant-authorization',
     templateUrl: 'code-grant-authorization.component.html',
-    styleUrls: ['code-grant-authorization.component.scss']
+    styleUrls: ['code-grant-authorization.component.scss'],
+    standalone: false
+
 })
 export class CodeGrantAuthorizationComponent implements OnInit {
 
