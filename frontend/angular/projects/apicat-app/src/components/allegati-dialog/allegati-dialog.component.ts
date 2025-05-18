@@ -17,7 +17,6 @@ import { Grant } from '@app/model/grant';
     templateUrl: './allegati-dialog.component.html',
     styleUrls: ['./allegati-dialog.component.scss'],
     standalone: false
-
 })
 export class AllegatiDialogComponent implements OnInit {
 

@@ -18,7 +18,6 @@ import * as _ from 'lodash';
   templateUrl: 'servizio-api-pdnd-informations.component.html',
   styleUrls: ['servizio-api-pdnd-informations.component.scss'],
   standalone: false
-
 })
 export class ServizioApiPdndInformationsComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiPdndInformationsComponent';

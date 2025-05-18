@@ -3,7 +3,7 @@ import {DOCUMENT} from '@angular/common';
 
 @Directive({
     selector: '[appSidebarMinimizer]',
-    standalone:false
+    standalone: false
 
 })
 export class SidebarMinimizeDirective {
@@ -24,7 +24,7 @@ export class SidebarMinimizeDirective {
 
 @Directive({
     selector: '[appMobileSidebarToggler]',
-    standalone:false
+    standalone: false
 
 })
 export class MobileSidebarToggleDirective {
@@ -48,7 +48,7 @@ export class MobileSidebarToggleDirective {
  */
 @Directive({
     selector: '[appSidebarClose]',
-    standalone:false
+    standalone: false
 
 })
 export class SidebarOffCanvasCloseDirective {
@@ -72,7 +72,7 @@ export class SidebarOffCanvasCloseDirective {
 
 @Directive({
     selector: '[appBrandMinimizer]',
-    standalone:false
+    standalone: false
 
 })
 export class BrandMinimizeDirective {
@@ -94,7 +94,7 @@ export class BrandMinimizeDirective {
 
 @Directive({
     selector: '[appHtmlAttr]',
-    standalone:false
+    standalone: false
 
 })
 export class HtmlAttributesDirective implements OnInit {
@@ -140,7 +140,7 @@ export class HtmlAttributesDirective implements OnInit {
 
 @Directive({
     selector: '[appFlyOut]',
-    standalone:false
+    standalone: false
 
 })
 export class FlyOutDirective implements AfterViewInit {

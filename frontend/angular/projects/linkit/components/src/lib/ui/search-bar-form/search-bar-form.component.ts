@@ -105,9 +105,13 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
 
   @HostListener("document:click", ['$event'])
   clickedOut(event: PointerEvent) {
-    const isOutsideClick = !this._elementRef.nativeElement.contains(event.target);
+    const target = event.target as HTMLElement;
 
-    if (this._outsideClickDisable) { return; }
+    const isInsideComponent = this._elementRef.nativeElement.contains(target);
+    const isInDropdownOption = target.closest('.ng-option');
+    const isInDropdownPanel = target.closest('.ng-dropdown-panel');
+    
+    const isOutsideClick = !isInsideComponent && !isInDropdownOption && !isInDropdownPanel;
     
     if (isOutsideClick && this._isOpen && !this._notCloseForm) {
       this._isOpen = false;
@@ -165,7 +169,7 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     }
   }
 
-  _setSearch(values: any) {
+  _setSearch(values: any) {
     setTimeout(() => {
       this._currentValues = values;
       this._tokens = this.__createTokens(values);

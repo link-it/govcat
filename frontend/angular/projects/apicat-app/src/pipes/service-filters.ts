@@ -5,7 +5,6 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'serviceGroupFilter',
   pure: false,
   standalone: false
-
 })
 export class ServiceGroupFilterPipe implements PipeTransform {
   transform(items: any[], _value: string, dictionary: any, stato: string): any {
@@ -28,7 +27,6 @@ export class ServiceGroupFilterPipe implements PipeTransform {
   name: 'serviceFilter',
   pure: false,
   standalone: false
-
 })
 export class ServiceFilterPipe implements PipeTransform {
   transform(items: any[], _value: string): any {
@@ -46,7 +44,6 @@ export class ServiceFilterPipe implements PipeTransform {
   name: 'groupFilter',
   pure: false,
   standalone: false
-
 })
 export class GroupFilterPipe implements PipeTransform {
   transform(items: any[], _value: string, _all: boolean = false): any {
@@ -65,7 +62,6 @@ export class GroupFilterPipe implements PipeTransform {
   name: 'dominiFilterList',
   pure: false,
   standalone: false
-
 })
 export class DominiFilterListPipe implements PipeTransform {
   transform(items: any[], _value: string): any {
@@ -85,7 +81,6 @@ export class DominiFilterListPipe implements PipeTransform {
   name: 'propertyFilter',
   pure: false,
   standalone: false
-
 })
 export class PropertyFilterPipe implements PipeTransform {
   transform(items: any[], _property: string, _value: string): any {
@@ -103,7 +98,6 @@ export class PropertyFilterPipe implements PipeTransform {
   name: 'risorseFilter',
   pure: false,
   standalone: false
-
 })
 export class RisorseFilterPipe implements PipeTransform {
   transform(items: any[], values: any[]): any {
@@ -120,7 +114,6 @@ export class RisorseFilterPipe implements PipeTransform {
   name: 'authFilter',
   pure: false,
   standalone: false
-
 })
 export class AuthFilterPipe implements PipeTransform {
   transform(items: any[], values: any[]): any {

@@ -6,7 +6,6 @@ import { BoxSpinnerComponent } from "./box-spinner/box-spinner.component";
 import { BreadcrumbComponent } from "./breadcrumb/breadcrumb.component";
 import { BreadcrumbService } from "./breadcrumb/breadcrumb.service";
 import { CardComponent } from "./card/card.component";
-import { CollapseItemComponent } from "./collapse-item/collapse-item.component";
 import { CollapseRowComponent } from "./collapse-row/collapse-row.component";
 import { DataTypeComponent } from "./data-type/data-type.component";
 import { DataCollapseComponent } from "./data-view/data-collapse.component";
@@ -24,19 +23,15 @@ import { RepeaterComponent } from "./repeater/repeater.component";
 import { SearchBarFormComponent } from "./search-bar-form/search-bar-form.component";
 import { TokenSegmentComponent } from "./search-bar-form/token-segment/token-segment.component";
 import { SenderComponent } from "./sender/sender.component";
-import { SimpleItemComponent } from "./simple-item/simple-item.component";
-import { SearchGoogleFormComponent } from "./search-google-form/search-google-form.component";
-
 
 export const ui = [
-    CardComponent,
     AddEditValueComponent,
     AllegatoComponent,
     BoxCollapseComponent,
     BoxMessageComponent,
     BoxSpinnerComponent,
     BreadcrumbComponent,
-    CollapseItemComponent,
+    CardComponent,
     CollapseRowComponent,
     DataTypeComponent,
     DataCollapseComponent,
@@ -53,9 +48,7 @@ export const ui = [
     RepeaterComponent,
     SearchBarFormComponent,
     TokenSegmentComponent,
-    SenderComponent,
-    SimpleItemComponent,
-    SearchGoogleFormComponent
+    SenderComponent
 ];
 
 export const uiServices = [
@@ -63,14 +56,13 @@ export const uiServices = [
 ];
 
 export {
-    CardComponent,
     AddEditValueComponent,
     AllegatoComponent,
     BoxCollapseComponent,
     BoxMessageComponent,
     BoxSpinnerComponent,
     BreadcrumbComponent,
-    CollapseItemComponent,
+    CardComponent,
     CollapseRowComponent,
     DataTypeComponent,
     DataCollapseComponent,
@@ -88,8 +80,6 @@ export {
     SearchBarFormComponent,
     TokenSegmentComponent,
     SenderComponent,
-    SimpleItemComponent,
-    SearchGoogleFormComponent,
 
     BreadcrumbService
 }

@@ -3,9 +3,9 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 import { BehaviorSubject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs/operators';
 
-import { faCircleNotch, faImage } from '@fortawesome/free-solid-svg-icons';
+import { faImage } from '@fortawesome/free-solid-svg-icons';
 
 export type ImageParams = {
     path: string;
@@ -16,7 +16,7 @@ export type ImageParams = {
 @Pipe({
     name: 'httpImgSrc',
     pure: false,
-    standalone:false
+    standalone: false
 })
 export class HttpImgSrcPipe implements PipeTransform, OnDestroy {
 

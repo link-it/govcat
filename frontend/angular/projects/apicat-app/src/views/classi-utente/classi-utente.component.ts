@@ -20,7 +20,6 @@ import { Page} from '../../models/page';
   templateUrl: 'classi-utente.component.html',
   styleUrls: ['classi-utente.component.scss'],
   standalone: false
-
 })
 export class ClassiUtenteComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClassiUtenteComponent';

@@ -4,7 +4,6 @@ import {Component, EventEmitter, Input, Output} from "@angular/core";
     selector: "lnk-form-submit",
     templateUrl: "./submit.component.html",
     standalone: false
-
 })
 export class LnkFormSubmitComponent {
     @Input() submitLabel: string = 'Submit';

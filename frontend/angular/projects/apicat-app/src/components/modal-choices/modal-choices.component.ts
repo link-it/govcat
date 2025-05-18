@@ -11,7 +11,6 @@ import * as _ from 'lodash';
   templateUrl: './modal-choices.component.html',
   styleUrls: ['./modal-choices.component.scss'],
   standalone: false
-
 })
 export class ModalChoicesComponent implements OnInit, OnChanges {
 

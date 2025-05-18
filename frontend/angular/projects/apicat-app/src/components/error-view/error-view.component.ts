@@ -7,7 +7,6 @@ import { Tools } from '@linkit/components';
   templateUrl: './error-view.component.html',
   styleUrls: ['./error-view.component.scss'],
   standalone: false
-
 })
 export class ErrorViewComponent implements OnInit {
 

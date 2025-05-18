@@ -20,7 +20,6 @@ declare const saveAs: any;
   templateUrl: 'transazione-details.component.html',
   styleUrls: ['transazione-details.component.scss'],
   standalone: false
-
 })
 export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'TransazioneDetailsComponent';

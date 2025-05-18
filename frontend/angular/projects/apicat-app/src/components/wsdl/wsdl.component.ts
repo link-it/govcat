@@ -9,7 +9,6 @@ import { OpenAPIService } from '@app/services/openAPI.service';
   templateUrl: './wsdl.component.html',
   styleUrls: ['./wsdl.component.scss'],
   standalone: false
-
 })
 export class WsdlComponent implements OnInit {
 

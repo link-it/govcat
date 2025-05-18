@@ -12,7 +12,6 @@ import { EventsManagerService } from '@linkit/components';
   templateUrl: 'home.component.html',
   styleUrls: ['home.component.scss'],
   standalone: false
-
 })
 export class HomeComponent implements OnInit, OnDestroy {
   static readonly Name = 'HomeComponent';

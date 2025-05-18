@@ -25,7 +25,6 @@ import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
     templateUrl: './adesione-form.component.html',
     styleUrls: ['./adesione-form.component.scss'],
     standalone: false
-
 })
 export class AdesioneFormComponent implements OnInit {
 

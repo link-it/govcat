@@ -1,6 +1,6 @@
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
@@ -32,7 +32,6 @@ import * as _ from 'lodash';
   templateUrl: 'servizio-referenti.component.html',
   styleUrls: ['servizio-referenti.component.scss'],
   standalone: false
-
 })
 export class ServizioReferentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioReferentiComponent';
@@ -59,7 +58,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   _editCurrent: any = null;
 
   _hasFilter: boolean = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -219,13 +218,8 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
-      creationDateFrom: new UntypedFormControl(''),
-      creationDateTo: new UntypedFormControl(''),
-      fileName: new UntypedFormControl(''),
-      status: new UntypedFormControl(''),
-      type: new UntypedFormControl(''),
+    this._formGroup = new FormGroup({
+      q: new FormControl('')
     });
   }
 

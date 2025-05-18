@@ -27,7 +27,6 @@ import * as _ from 'lodash';
   templateUrl: 'utente-details.component.html',
   styleUrls: ['utente-details.component.scss'],
   standalone: false
-
 })
 export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtenteDetailsComponent';

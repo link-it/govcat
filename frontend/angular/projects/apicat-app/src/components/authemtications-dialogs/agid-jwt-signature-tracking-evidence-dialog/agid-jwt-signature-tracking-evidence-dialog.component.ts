@@ -20,7 +20,6 @@ import * as rs from 'jsrsasign';
     templateUrl: './agid-jwt-signature-tracking-evidence-dialog.component.html',
     styleUrls: ['./agid-jwt-signature-tracking-evidence-dialog.component.scss'],
     standalone: false
-
 })
 export class AgidJwtSignatureTrackingEvidenceDialogComponent implements OnInit {
 

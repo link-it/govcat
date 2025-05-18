@@ -13,7 +13,6 @@ import { AmbienteEnum } from '../../../model/ambienteEnum';
   templateUrl: './dashboard-group.component.html',
   styleUrls: ['./dashboard-group.component.scss'],
   standalone: false
-
 })
 export class DashboardGroupComponent implements OnInit, OnChanges {
 

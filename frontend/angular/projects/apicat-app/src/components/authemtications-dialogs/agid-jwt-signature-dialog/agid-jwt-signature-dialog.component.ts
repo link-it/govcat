@@ -20,7 +20,6 @@ import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
     templateUrl: './agid-jwt-signature-dialog.component.html',
     styleUrls: ['./agid-jwt-signature-dialog.component.scss'],
     standalone: false
-
 })
 export class AgidJwtSignatureDialogComponent implements OnInit {
 

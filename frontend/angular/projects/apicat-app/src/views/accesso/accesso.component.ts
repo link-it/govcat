@@ -13,7 +13,6 @@ import { ConfigService } from '@linkit/components';
   templateUrl: 'accesso.component.html',
   styleUrls: ['accesso.component.scss'],
   standalone: false
-
 })
 export class AccessoComponent implements OnInit {
 

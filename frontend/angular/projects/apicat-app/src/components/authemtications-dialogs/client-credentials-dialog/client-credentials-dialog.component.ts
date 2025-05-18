@@ -22,7 +22,6 @@ import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from 'projects/linkit/components/sr
     templateUrl: './client-credentials-dialog.component.html',
     styleUrls: ['./client-credentials-dialog.component.scss'],
     standalone: false
-
 })
 export class ClientCredentialsDialogComponent implements OnInit {
 

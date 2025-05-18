@@ -1,11 +1,10 @@
 {
   "name": "@linkit/components",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "peerDependencies": {
     "@angular/common": "^19.2.1",
     "@angular/cdk": "^19.2.7",
     "@angular/core": "^19.2.1",
-    "@angular/material": "^19.2.3",
     "@swimlane/ngx-charts": "^20.5.0",
     "@ng-select/ng-select": "^14.2.2",
     "@types/d3-array": "^3.0.3",

@@ -10,7 +10,7 @@ import { ConfigService } from '@linkit/components';
 import { Tools } from '@linkit/components';
 import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchGoogleFormComponent } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
@@ -30,13 +30,12 @@ declare const saveAs: any;
   templateUrl: 'servizio-allegati.component.html',
   styleUrls: ['servizio-allegati.component.scss'],
   standalone: false
-
 })
 export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioAllegatiComponent';
   readonly model: string = 'servizi';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
   @ViewChild('editTemplate') editTemplate!: any;
 
   id: string | null = null;
@@ -347,15 +346,15 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
   }
 
   _onEdit(event: any, data: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._pinLastSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._pinLastSearch();
     }
     this._editAllegato(data);
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 

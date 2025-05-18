@@ -67,10 +67,8 @@ export class ItemTypeComponent implements OnInit {
             this._value = this._elem.default;
         }
         if (this._elem.tooltip) {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
-            if (!this._tooltip) {
-                this._tooltip = this.translate.instant(this._elem.tooltip);
-            }
+            const _objectValueTooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+            this._tooltip = _objectValueTooltip || this.translate.instant(this._elem.tooltip);
             this._tooltipPlacement = this._elem.tooltipPlacement || this._tooltipPlacement;
         }
         if (this._elem.type === 'date') {
@@ -83,7 +81,6 @@ export class ItemTypeComponent implements OnInit {
             this._value = this.utilsLib.msToTime(this._value);
         }
         if (this._elem.type === 'status') {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
             if (this._config.options) {
                 const _origValue = this._value;
                 const _optionsName = this._elem.options;
@@ -96,25 +93,26 @@ export class ItemTypeComponent implements OnInit {
             }
         }
         if (this._elem.type === 'label') {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
             if (this._config.options) {
                 const _origValue = this._value;
                 const _optionsName = this._elem.options;
-                this._label = (this._config.options[_optionsName].label) ? this._config.options[_optionsName].label : _optionsName;
-                this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : this._config.options[_optionsName].values[_origValue].label;
-                this._background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].background : '#1f1f1f';
-                this._border = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].border : '#1f1f1f';
-                this._color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].color : '#fff';
-                if (!((this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue])) && this._config.options[_optionsName].values['default']) {
-                    this._background = this._config.options[_optionsName].values['default'].background;
-                    this._border = this._config.options[_optionsName].values['default'].border;
-                    this._color = this._config.options[_optionsName].values['default'].color;
+                if (_origValue) {
+                    this._label = (this._config.options[_optionsName].label) ? this._config.options[_optionsName].label : _optionsName;
+                    this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : this._config.options[_optionsName].values[_origValue].label;
+                    this._background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].background : '#1f1f1f';
+                    this._border = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].border : '#1f1f1f';
+                    this._color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].color : '#fff';
+                    if (!((this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue])) && this._config.options[_optionsName].values['default']) {
+                        this._background = this._config.options[_optionsName].values['default'].background;
+                        this._border = this._config.options[_optionsName].values['default'].border;
+                        this._color = this._config.options[_optionsName].values['default'].color;
+                    }
+                    this._class = this._config.options[_optionsName].small ? 'status-label-sm' : '';
                 }
-                this._class = this._config.options[_optionsName].small ? 'status-label-sm' : '';
             }
         }
         if (this._elem.type === 'tag') {
-            // this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
             this._class = 'badge badge-pill';
             this._class += this._elem.class ? ' ' + this._elem.class : '';
             this._showBadged = (this._elem.badged !== undefined) ? this._elem.badged : true;
@@ -124,10 +122,18 @@ export class ItemTypeComponent implements OnInit {
                 if (!this._config.options[_optionsName]) {
                     return;
                 }
-                this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : this._config.options[_optionsName].values[_origValue].label;
-                this._background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].background : '#1f1f1f';
-                this._border = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].border : '#1f1f1f';
-                this._color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].color : '#fff';
+                let _optionValue = this._config.options[_optionsName].values[_origValue];
+                if (!_optionValue) {
+                    _optionValue = this._config.options[_optionsName].values['default'];
+                    if (!_optionValue) {
+                        return;
+                    }
+                    _optionValue.label = this._value;
+                }
+                this._value = this._value ? (_optionValue ? _optionValue.label : this._value) : _optionValue.label;
+                this._background = (_optionValue) ? _optionValue.background : '#1f1f1f';
+                this._border = (_optionValue) ? _optionValue.border : '#1f1f1f';
+                this._color = (_optionValue) ? _optionValue.color : '#fff';
                 this._class += this._config.options[_optionsName].small ? ' gl-badge-sm' : ' gl-badge';
             }
         }
@@ -187,11 +193,8 @@ export class ItemTypeComponent implements OnInit {
 
         if (this._elem.showLabel) {
             const _label = this.translate.instant(this._elem.label);
-            this._value = `${_label}: ${this._value || '-'}`;
+            this._value = `${_label}: ${this._value}`;
         }
-    }
-
-    ngAfterViewInit(): void {
     }
 
     truncateRows(text: string, rows: number = 2, maxchars: number = 160): string {

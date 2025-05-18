@@ -21,7 +21,6 @@ import { Organizzazione } from './organizzazione';
   templateUrl: 'organizzazione-details.component.html',
   styleUrls: ['organizzazione-details.component.scss'],
   standalone: false
-
 })
 export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'OrganizzazioneDetailsComponent';

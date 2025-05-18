@@ -4,8 +4,8 @@ import { ConfigService } from '@linkit/components';
 
 @Component({
   selector: 'app-simple-layout',
-  standalone: false,
   template: '<router-outlet></router-outlet>',
+  standalone: false
 })
 export class SimpleLayoutComponent {
   @HostBinding('class.full-content') get fullContentClass(): boolean {

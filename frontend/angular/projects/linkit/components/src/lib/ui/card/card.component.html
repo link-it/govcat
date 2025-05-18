@@ -16,7 +16,6 @@
     </div>
   </div>
   <div class="card h-100" [class.group]="data.tipo === 'gruppo'" *ngIf="cardBs">
-    <!-- TO DO: ERROR -->
     <div tabindex="0" class="card-image" [class.cursor-pointer]="_enabledImageLink" *ngIf="_showImage && (_image || _showEmptyImage)" (click)="__imageClick($event)"
       setBackgroundImage [imageUrl]="{ path: _image } | httpImgSrc" [position]="'cover'" [ngStyle]="{ 'background-color': _backColor }">
       <span class="logo-text text-nowrap" [ngStyle]="{'color': _textColor}" *ngIf="!_image">{{ _logoText }}</span>
@@ -26,8 +25,6 @@
       <p class="card-text" *ngIf="_secondaryText">{{ _secondaryText }}</p>
       <p *ngIf="_metadata">{{ _metadata }}</p>
       <!-- <div class="btn btn-primary" (click)="__simpleClick($event)">{{ _readMore }}</div> -->
-      
-      <!-- TO DO: ERROR -->
       <ui-data-type class="me-2" *ngIf="data.stato"
         [data]="data"
         [elem]="{ field: 'stato', type: 'label', options: 'status' }"

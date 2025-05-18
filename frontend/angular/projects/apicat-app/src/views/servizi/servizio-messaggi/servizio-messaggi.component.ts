@@ -17,7 +17,6 @@ import { Page } from '@app/models/page';
   templateUrl: 'servizio-messaggi.component.html',
   styleUrls: ['servizio-messaggi.component.scss'],
   standalone: false
-
 })
 export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioMessaggiComponent';

@@ -6,7 +6,6 @@ import { Tools } from '../../services';
 @Component({
     // tslint:disable-next-line:component-selector
     selector: 'ui-box-spinner',
-    standalone: false,
     template: `
     <div class="d-flex flex-column text-center">
       <div class="max-w-100 m-auto">
@@ -43,6 +42,7 @@ import { Tools } from '../../services';
       display: block;
     }
   `],
+  standalone: false
 })
 export class BoxSpinnerComponent {
   @Input() color = 'accent';

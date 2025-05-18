@@ -5,7 +5,6 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
   templateUrl: './selection-dropdown.component.html',
   styleUrls: ['./selection-dropdown.component.scss'],
   standalone: false
-
 })
 export class SelectionDropdownComponent implements OnInit {
 

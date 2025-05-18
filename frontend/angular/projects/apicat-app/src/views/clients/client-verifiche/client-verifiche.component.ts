@@ -13,7 +13,6 @@ import { Page } from '@app/models/page';
   templateUrl: 'client-verifiche.component.html',
   styleUrls: ['client-verifiche.component.scss'],
   standalone: false
-
 })
 export class ClientVerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

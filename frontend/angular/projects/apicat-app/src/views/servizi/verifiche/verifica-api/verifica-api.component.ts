@@ -14,7 +14,6 @@ import { ViewType } from '../verifiche.component';
   styleUrls: ['./verifica-api.component.scss'],
   templateUrl: './verifica-api.component.html',
   standalone: false
-
 })
 export class VerificaApiComponent {
 

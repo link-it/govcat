@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+
+import { AuthConfig, OAuthErrorEvent, OAuthService } from 'angular-oauth2-oidc';
+
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { delay, map } from 'rxjs/operators';
 
 import { Tools } from './tools.service';
 
@@ -12,13 +15,12 @@ export class ConfigService {
 
   private config: any;
 
-  private hubconfig: any;
-
   // Cache
   public CacheConfig: any = {};
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    protected oauthService: OAuthService
   ) { }
 
   load(url: string) {
@@ -26,52 +28,112 @@ export class ConfigService {
       this.http.get(url)
         .subscribe(config => {
           this.config = config;
-        
-          if(this.config.AppConfig.STANDALONE == false){
-            this.loadRemoteConfig(resolve)
-          }else{
+          const _currentTheme = this.config.AppConfig.CurrentThems;
+          const _theme = this.config.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
+          Tools.SetThemeColors(_theme || null);
 
-            const _currentTheme = this.config.AppConfig.CurrentThems;
-            const _theme = this.config.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
-            Tools.SetThemeColors(_theme || null);
-            resolve();
+          // OAUTH2
+          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
+          const cfg: any = {
+            issuer: (_oauthConfig.Issuer || ''),
+            redirectUri: (_oauthConfig.RedirectUri || ''),
+            postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
+            clientId: (_oauthConfig.ClientId || ''),
+            responseType: (_oauthConfig.ResponseType || 'code'),
+            scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
+            requireHttps: false
+          };
+          if (!_oauthConfig.BackdoorOAuth) {
+            const authCodeFlowConfig: AuthConfig = new AuthConfig(cfg);
+            this.oauthService.configure(authCodeFlowConfig);
+            this.oauthService.setupAutomaticSilentRefresh();
+            this.oauthService.loadDiscoveryDocument().then(() => {
+              this.oauthService.tryLogin().then(() => {
+                if (this.oauthService.getAccessToken()) {
+                  this._tokenLoaded();
+                } else {
+                  // console.log('Autenticazione fallita');
+                  Tools.LoginAccess();
+                }
+              }).catch((error: any) => {
+                // console.log('catch Autenticazione fallita');
+                Tools.LoginAccess();
+              });
+            });
+            this.oauthService.events.subscribe(event => {
+              if (!(event instanceof OAuthErrorEvent)) {
+                if (event.type === 'session_terminated') {
+                  this._sessionTerminated();
+                }
+                // if (event.type === 'token_received') {
+                //   this._tokenLoaded(resolve);
+                // }
+              } else {
+                if (event && event.reason) {
+                  // Tools.OnError(event.reason);
+                  console.warn(event.reason);
+                }
+              }
+            });
+          } else {
+            Tools.LoginAccess();
           }
+
+          // if (this.config.AppConfig.ANONYMOUS_ACCESS) {
+          //   this.loadRemoteConfig(resolve);
+          // } else {
+            resolve();
+          // }
+
         });
     });
   }
 
+  _tokenLoaded() {
+    Tools.OpenIDConnectTokenLoaded.next(true);
+  }
+
+  _sessionTerminated() {
+    Tools.USER_LOGGED = null;
+    this.oauthService.initCodeFlow();
+  }
+
   loadRemoteConfig(resolve: any) {
-    const api_url = this.config.AppConfig.GOVAPI.GOVHUB;
-    this.http.get(`${api_url}/assets/config/app-config.json`).subscribe(
-      {
-        next: (response: any) => {        
-          this.hubconfig = response
-          const _currentTheme = this.hubconfig.AppConfig.CurrentThems;
-          const _theme = this.hubconfig.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
-          Tools.SetThemeColors(_theme || null);
-          resolve();
-        },
-        error: (error:any)=>{
-          const _currentTheme = this.config.AppConfig.CurrentThems;
-          const _theme = this.config.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
-          Tools.SetThemeColors(_theme || null);
-          resolve();
-        }
+    const api_url = this.config.AppConfig.GOVAPI.HOST;
+    this.http.get(`${api_url}/configurazione`).subscribe(
+      (response: any) => {
+        Tools.Configurazione = response;
+        this._generateCustomFieldLabel(response);
+
+        if (resolve) { resolve(); }
       }
     );
   }
 
   _generateCustomFieldLabel(config: any) {
     const _customFields: any[] = [];
-    config.servizio.api.proprieta_custom.forEach((pc: any) => {
-      pc.proprieta.forEach((field: any) => {
-        const _label = `${pc.nome_gruppo}.${field.nome}`;
-        _customFields.push({
-          label: _label,
-          value: field.etichetta
+    if (config.servizio && config.servizio.api && config.servizio.api.proprieta_custom) {
+      config.servizio.api.proprieta_custom.forEach((pc: any) => {
+        pc.proprieta.forEach((field: any) => {
+          const _label = `${pc.nome_gruppo}.${field.nome}`;
+          _customFields.push({
+            label: _label,
+            value: field.etichetta
+          });
         });
       });
-    });
+    }
+    if (config.adesione && config.adesione.proprieta_custom) {
+      config.adesione.proprieta_custom.forEach((pc: any) => {
+        pc.proprieta.forEach((field: any) => {
+          const _label = `${pc.nome_gruppo}.${field.nome}`;
+          _customFields.push({
+            label: _label,
+            value: field.etichetta
+          });
+        });
+      });
+    }
     Tools.CustomFieldsLabel = _customFields;
   }
 
@@ -82,11 +144,6 @@ export class ConfigService {
   getAppConfig() {
     return this.config.AppConfig;
   }
-
-  getHubConfig() {
-    return this.hubconfig?.AppConfig || null;
-  }
-
 
   getDominio() {
     const defaultDominio = '<Dominio non configurato>';

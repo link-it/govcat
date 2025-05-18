@@ -29,7 +29,6 @@ export enum ViewType {
   selector: 'app-servizio-verifiche',
   templateUrl: 'verifiche.component.html',
   styleUrls: ['verifiche.component.scss'],
-  standalone: false,
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -70,7 +69,8 @@ export enum ViewType {
         ])
       ])
     ])
-  ]
+  ],
+  standalone: false
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnChanges, OnDestroy {
   static readonly Name = 'VerificheComponent';

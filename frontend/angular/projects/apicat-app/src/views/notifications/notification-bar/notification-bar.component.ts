@@ -12,7 +12,6 @@ import { NotificationState, NotificationType, NotificationEntityType } from '../
   templateUrl: 'notification-bar.component.html',
   styleUrls: ['notification-bar.component.scss'],
   standalone: false
-
 })
 export class NotificationBarComponent implements OnInit, OnChanges {
 

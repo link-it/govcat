@@ -15,7 +15,6 @@ import { HttpParams } from '@angular/common/http';
   templateUrl: './modal-group-choice.component.html',
   styleUrls: ['./modal-group-choice.component.scss'],
   standalone: false
-
 })
 export class ModalGroupChoiceComponent implements OnInit {
 

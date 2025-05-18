@@ -162,7 +162,6 @@ const domainStatistics = [
   templateUrl: 'statistiche.component.html',
   styleUrls: ['statistiche.component.scss'],
   standalone: false
-
 })
 export class StatisticheComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'StatisticheComponent';

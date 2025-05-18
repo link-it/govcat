@@ -23,7 +23,6 @@ import { EventType } from '@linkit/components';
   templateUrl: 'servizio-api.component.html',
   styleUrls: ['servizio-api.component.scss'],
   standalone: false
-
 })
 export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioApiComponent';

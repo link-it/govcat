@@ -2,7 +2,7 @@ import { Directive, ElementRef, OnInit } from '@angular/core';
 
 @Directive({
   selector: '[remove-host]',
-  standalone:false
+  standalone: false
 
 })
 export class RemoveHostDirective implements OnInit {

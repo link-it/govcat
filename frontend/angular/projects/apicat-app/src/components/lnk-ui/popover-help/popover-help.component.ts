@@ -8,10 +8,10 @@ import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
 @Component({
     selector: 'lnk-popover-help',
     templateUrl: './popover-help.component.html',
-    standalone: false,
     styleUrls: [
         './popover-help.component.scss'
-    ]
+    ],
+    standalone: false
 })
 export class PopoverHelpComponent implements OnInit, OnChanges {
 

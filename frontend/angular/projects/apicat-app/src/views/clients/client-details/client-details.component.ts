@@ -35,7 +35,6 @@ declare const saveAs: any;
   templateUrl: 'client-details.component.html',
   styleUrls: ['client-details.component.scss'],
   standalone: false
-
 })
 export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientDetailsComponent';

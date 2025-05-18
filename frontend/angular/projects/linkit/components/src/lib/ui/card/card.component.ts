@@ -15,11 +15,7 @@ export enum CardType {
     standalone: false
 })
 export class CardComponent implements OnInit {
-  @HostListener('click', ['$event']) onClick(event: any) {
-    if (this._type === CardType.Simple) {
-      this.__simpleClick(event);
-    }
-  }
+
   @Input('type') _type: CardType = CardType.Simple;
   @Input('image') _image: string = '';
   @Input('showImage') _showImage: boolean = true;
@@ -46,6 +42,12 @@ export class CardComponent implements OnInit {
 
   @Output() editSelection: EventEmitter<any> = new EventEmitter();
   @Output() simpleClick: EventEmitter<any> = new EventEmitter();
+
+  @HostListener('click', ['$event']) onClick(event: any) {
+    if (this._type === CardType.Simple) {
+      this.__simpleClick(event);
+    }
+  }
 
   CardType = CardType;
 

@@ -26,7 +26,6 @@ import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap 
   templateUrl: 'dominio-referenti.component.html',
   styleUrls: ['dominio-referenti.component.scss'],
   standalone: false
-
 })
 export class DominioReferentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'DominioReferentiComponent';

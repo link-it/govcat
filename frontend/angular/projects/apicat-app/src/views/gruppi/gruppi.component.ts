@@ -49,7 +49,6 @@ interface Immagine {
     templateUrl: 'gruppi.component.html',
     styleUrls: ['gruppi.component.scss'],
     standalone: false
-
 })
 export class GruppiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GruppiComponent';

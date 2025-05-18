@@ -6,7 +6,6 @@ import {ActivatedRoute} from "@angular/router";
     templateUrl: 'code-grant-authorization.component.html',
     styleUrls: ['code-grant-authorization.component.scss'],
     standalone: false
-
 })
 export class CodeGrantAuthorizationComponent implements OnInit {
 

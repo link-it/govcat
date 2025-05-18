@@ -3,7 +3,6 @@
  */
 
 export * from './lib/components.module';
-export * from './lib/material.module';
 
 export * from './lib/charts/sparkline/sparkline.module';
 

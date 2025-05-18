@@ -20,7 +20,6 @@ import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
     templateUrl: './agid-jwt-dialog.component.html',
     styleUrls: ['./agid-jwt-dialog.component.scss'],
     standalone: false
-
 })
 export class AgidJwtDialogComponent implements OnInit {
 

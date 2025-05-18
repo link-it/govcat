@@ -5,7 +5,6 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
   templateUrl: './tassonomia-token.component.html',
   styleUrls: ['./tassonomia-token.component.scss'],
   standalone: false
-
 })
 export class TassonomiaTokenComponent implements OnInit {
 

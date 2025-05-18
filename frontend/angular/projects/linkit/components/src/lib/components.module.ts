@@ -7,9 +7,6 @@ import { ModalModule } from 'ngx-bootstrap/modal';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { TranslateModule } from '@ngx-translate/core';;
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatRippleModule } from '@angular/material/core';
 import { FALLBACK, GravatarConfig, GravatarModule, RATING } from 'ngx-gravatar';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -18,13 +15,11 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { HeadBarComponent } from './head-bar/head-bar.component';
 import { SpinnerComponent } from './spinner/spinner.component';
 import { MultiSnackbarComponent } from './dialogs/multi-snackbar/multi-snackbar.component';
-import { TextBoxHighlighterComponent } from './text-box-highlighter/text-box-highlighter.component';
 
 import { directives } from './directives';
 import { ui, uiServices } from './ui';
 import { pipes } from './pipes';
 import { dialogs } from './dialogs';
-import { MaterialModule } from './material.module';
 import { defineCustomElements } from 'xml-viewer-component/dist/loader';
 
 const gravatarConfig: GravatarConfig = {
@@ -43,11 +38,7 @@ const gravatarConfig: GravatarConfig = {
     RouterModule,
     TooltipModule,
     TranslateModule,
-    MatIconModule,
-    MatCheckboxModule,
-    MatRippleModule,
     GravatarModule.forRoot(gravatarConfig),
-    MaterialModule,
     ModalModule,
     BsDatepickerModule,
     InfiniteScrollDirective,
@@ -58,7 +49,6 @@ const gravatarConfig: GravatarConfig = {
     HeadBarComponent,
     SpinnerComponent,
     MultiSnackbarComponent,
-    TextBoxHighlighterComponent,
 
     ...pipes,
     ...directives,
@@ -69,7 +59,6 @@ const gravatarConfig: GravatarConfig = {
     HeadBarComponent,
     SpinnerComponent,
     MultiSnackbarComponent,
-    TextBoxHighlighterComponent,
 
     ...ui,
     ...pipes,
@@ -78,7 +67,6 @@ const gravatarConfig: GravatarConfig = {
 
     FormsModule,
     ReactiveFormsModule,
-    MaterialModule,
     TooltipModule,
     ModalModule,
     BsDatepickerModule,
@@ -100,6 +88,5 @@ defineCustomElements(window);
 export {
   HeadBarComponent,
   SpinnerComponent,
-  MultiSnackbarComponent,
-  TextBoxHighlighterComponent,
+  MultiSnackbarComponent
 };

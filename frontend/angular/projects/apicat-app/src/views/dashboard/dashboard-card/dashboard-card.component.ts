@@ -10,7 +10,6 @@ import { AmbienteEnum } from '../../../model/ambienteEnum';
   templateUrl: './dashboard-card.component.html',
   styleUrls: ['./dashboard-card.component.scss'],
   standalone: false
-
 })
 export class DashboardCardComponent implements OnInit, OnChanges {
   @ViewChild('childComponentTemplate') childComponentTemplate!: TemplateRef<any>;

@@ -3,7 +3,7 @@ import { NgControl } from '@angular/forms';
 
 @Directive({
   selector: '[disableControl]',
-  standalone:false
+  standalone: false
 
 })
 export class DisableControlDirective {

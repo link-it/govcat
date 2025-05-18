@@ -10,7 +10,7 @@ import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from '@linkit/components'
+import { SearchBarFormComponent } from '@linkit/components'
 
 import { EventType } from '@linkit/components';
 import { Page} from '../../models/page';
@@ -23,13 +23,12 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
   templateUrl: 'domini.component.html',
   styleUrls: ['domini.component.scss'],
   standalone: false
-
 })
 export class DominiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'DominiComponent';
   readonly model: string = 'domini'; // <<==== parametro di routing per la _loadXXXXX
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   Tools = Tools;
 
@@ -138,7 +137,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this._loadDomini();
       }, 100);
@@ -267,7 +266,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   }
 
   onSelectedSearchDropdwon($event: Event){
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
   }
 
   trackBySelectFn(item: any) {
@@ -284,8 +283,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
   _onEdit(event: any, param: any) {
     if (this._useRoute) {
-      if (this.searchGoogleForm) {
-        this.searchGoogleForm._pinLastSearch();
+      if (this.searchBarForm) {
+        this.searchBarForm._pinLastSearch();
       }      
       this.router.navigate([this.model, param.id]);
     } else {
@@ -299,8 +298,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 

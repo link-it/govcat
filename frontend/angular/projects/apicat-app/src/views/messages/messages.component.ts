@@ -19,7 +19,6 @@ import { SearchBarFormComponent } from '@linkit/components';
   templateUrl: 'messages.component.html',
   styleUrls: ['messages.component.scss'],
   standalone: false
-
 })
 export class MessagesComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'MessagesComponent';

@@ -18,7 +18,6 @@ import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
 
 @Component({
     selector: "lnk-form-live-search",
-    standalone: false,
     templateUrl: "./form-live-search.component.html",
     styleUrls: ["./form-live-search.component.scss"],
     providers: [
@@ -28,6 +27,7 @@ import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
             multi: true,
         },
     ],
+    standalone: false
 })
 export class LnkFormLiveSearchComponent implements ControlValueAccessor {
     @Input() id: string = '';

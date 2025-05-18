@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
 
-
 import cssVars from 'css-vars-ponyfill';
 
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import * as moment from 'moment';
+import moment from 'moment/moment';
+
 import { GridFormatters } from '../utils/grid-formatters';
 import { FieldClass } from '../ui/classes';
 // import { MultiSnackbarComponent } from '../dialogs';

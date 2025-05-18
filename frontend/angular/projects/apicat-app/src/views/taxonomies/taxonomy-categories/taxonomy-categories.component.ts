@@ -24,7 +24,6 @@ import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.compon
   templateUrl: 'taxonomy-categories.component.html',
   styleUrls: ['taxonomy-categories.component.scss'],
   standalone: false
-
 })
 export class TaxonomyCategoriesComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'TaxonomyCategoriesComponent';

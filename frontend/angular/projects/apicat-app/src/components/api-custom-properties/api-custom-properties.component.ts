@@ -19,7 +19,6 @@ export enum SpecificoPerEnum {
     templateUrl: './api-custom-properties.component.html',
     styleUrls: ['./api-custom-properties.component.scss'],
     standalone: false
-
 })
 export class ApiCustomPropertiesComponent implements OnInit {
 

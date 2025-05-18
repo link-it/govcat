@@ -34,7 +34,6 @@ import * as moment from 'moment';
     templateUrl: 'servizio-details.component.html',
     styleUrls: ['servizio-details.component.scss'],
     standalone: false
-
 })
 export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioDetailsComponent';

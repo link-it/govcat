@@ -20,7 +20,6 @@ import * as _ from 'lodash';
   templateUrl: 'taxonomy-details.component.html',
   styleUrls: ['taxonomy-details.component.scss'],
   standalone: false
-
 })
 export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
   static readonly Name = 'TaxonomyDetailsComponent';

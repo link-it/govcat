@@ -13,7 +13,7 @@ import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
 
-import { SearchGoogleFormComponent } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
@@ -30,13 +30,12 @@ import { Observable } from 'rxjs/internal/Observable';
   templateUrl: 'notifications.component.html',
   styleUrls: ['notifications.component.scss'],
   standalone: false
-
 })
 export class NotificationsComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'NotificationsComponent';
   readonly model: string = 'notifiche';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
   
   Tools = Tools;
 
@@ -179,7 +178,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this.clearSearch();
       }, 100);
@@ -205,7 +204,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   clearSearch() {
-    this.searchGoogleForm._clearSearch(null);
+    this.searchBarForm._clearSearch(null);
     this._filterData = [];
     this._loadNotifications();
   }
@@ -300,8 +299,8 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   _onEdit(event: any, param: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._pinLastSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._pinLastSearch();
     }
 
     const _notificaId = param.id_notifica;
@@ -349,8 +348,8 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 

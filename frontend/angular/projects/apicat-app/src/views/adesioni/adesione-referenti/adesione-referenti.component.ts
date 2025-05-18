@@ -30,7 +30,6 @@ import * as _ from 'lodash';
   templateUrl: 'adesione-referenti.component.html',
   styleUrls: ['adesione-referenti.component.scss'],
   standalone: false
-
 })
 export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneReferentiComponent';

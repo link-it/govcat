@@ -31,7 +31,6 @@ import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
     templateUrl: './adesione-lista-clients.component.html',
     styleUrls: ['./adesione-lista-clients.component.scss'],
     standalone: false
-
 })
 export class AdesioneListaClientsComponent implements OnInit {
 

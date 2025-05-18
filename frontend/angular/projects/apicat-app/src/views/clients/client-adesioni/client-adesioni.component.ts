@@ -25,7 +25,6 @@ import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap 
   templateUrl: 'client-adesioni.component.html',
   styleUrls: ['client-adesioni.component.scss'],
   standalone: false
-
 })
 export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientAdesioniComponent';

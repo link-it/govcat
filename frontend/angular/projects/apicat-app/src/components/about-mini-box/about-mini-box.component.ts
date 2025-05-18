@@ -9,7 +9,6 @@ import { ConfigService } from '@linkit/components';
   templateUrl: './about-mini-box.component.html',
   styleUrls: ['./about-mini-box.component.scss'],
   standalone: false
-
 })
 export class AboutMiniBoxComponent implements OnInit {
 

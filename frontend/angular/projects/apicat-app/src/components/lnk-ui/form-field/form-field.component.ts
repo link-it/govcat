@@ -8,8 +8,8 @@ type InputType = 'text' | 'date' | 'textarea' | 'number' | 'checkbox' | 'passwor
 @Component({
     selector: 'lnk-form-field',
     templateUrl: './form-field.component.html',
-    standalone: false,
-    styleUrls: ['./form-field.component.scss']
+    styleUrls: ['./form-field.component.scss'],
+    standalone: false
 })
 export class LnkFormFieldComponent implements OnInit {
 

@@ -11,7 +11,7 @@ import { AuthenticationService } from '../../services/authentication.service';
 import { OpenAPIService } from '../../services/openAPI.service';
 import { Tools } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
-import { SearchGoogleFormComponent } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { INavData } from '../../containers/gp-layout/gp-sidebar-nav';
@@ -29,12 +29,11 @@ import * as moment from 'moment';
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
   standalone: false
-
 })
 export class DashboardComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'DashboardComponent';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
   @ViewChild('viewTemplate') viewTemplate!: any;
 
   ModelType = ModelType;

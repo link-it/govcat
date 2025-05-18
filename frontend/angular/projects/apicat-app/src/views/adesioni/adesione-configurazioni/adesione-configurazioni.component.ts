@@ -66,7 +66,6 @@ import * as _ from 'lodash';
     templateUrl: 'adesione-configurazioni.component.html',
     styleUrls: ['adesione-configurazioni.component.scss'],
     standalone: false
-
 })
 export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'AdesioneConfigurazioniComponent';

@@ -43,7 +43,6 @@ export enum AccordionType {
     templateUrl: './adesione-configurazione-wizard.component.html',
     styleUrls: ['./adesione-configurazione-wizard.component.scss'],
     standalone: false
-
 })
 export class AdesioneConfigurazioneWizardComponent implements OnInit {
 

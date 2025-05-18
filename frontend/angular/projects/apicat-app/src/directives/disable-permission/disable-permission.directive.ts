@@ -6,7 +6,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 @Directive({
   selector: '[disablePermission]',
-  standalone:false
+  standalone: false
 
 })
 export class DisablePermissionDirective implements OnInit, OnChanges {

@@ -43,7 +43,6 @@ export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
   templateUrl: 'servizio-api-configuration.component.html',
   styleUrls: ['servizio-api-configuration.component.scss'],
   standalone: false
-
 })
 export class ServizioApiConfigurationComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';

@@ -13,7 +13,6 @@ import { catchError } from 'rxjs/operators';
   styleUrls: ['./verifica-soggetto-token.component.scss'],
   templateUrl: './verifica-soggetto-token.component.html',
   standalone: false
-
 })
 export class VerificaSoggettoTokenComponent {
 

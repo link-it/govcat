@@ -3,8 +3,8 @@ import { Component, Input, OnInit } from '@angular/core';
 @Component({
     selector: 'lnk-form-fieldset',
     templateUrl: './form-fieldset.component.html',
-    standalone: false,
-    styleUrls: ['./form-fieldset.component.scss']
+    styleUrls: ['./form-fieldset.component.scss'],
+    standalone: false
 })
 export class LnkFormFieldsetComponent implements OnInit {
     @Input() title: string = '';

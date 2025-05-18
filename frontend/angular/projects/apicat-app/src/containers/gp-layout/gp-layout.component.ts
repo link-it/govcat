@@ -36,7 +36,6 @@ import * as _ from 'lodash';
     templateUrl: './gp-layout.component.html',
     styleUrls: ['./gp-layout.component.scss'],
     standalone: false
-
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GpLayoutComponent';

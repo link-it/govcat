@@ -49,7 +49,6 @@ type FileType = {
     templateUrl: './custom-properties.component.html',
     styleUrls: ['./custom-properties.component.scss'],
     standalone: false
-
 })
 export class CustomPropertiesComponent implements OnInit, OnChanges {
 

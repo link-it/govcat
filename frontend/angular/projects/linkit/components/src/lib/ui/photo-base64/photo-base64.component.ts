@@ -7,7 +7,7 @@ import * as _ from 'lodash';
   selector: 'app-photo-base64',
   templateUrl: './photo-base64.component.html',
   styleUrls: ['./photo-base64.component.scss'],
-  standalone:false
+  standalone: false
 })
 export class PhotoBase64Component implements OnInit, OnChanges {
 

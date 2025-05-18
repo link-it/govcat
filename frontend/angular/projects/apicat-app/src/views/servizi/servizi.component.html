@@ -157,7 +157,7 @@
     <section class="search-bar container-fluid px-0" [class.container-limited]="_contentLimeted" *ngIf="_hasFilter">
         <div class="row align-items-center">
             <div class="col-12">
-                <ui-search-google-form #searchGoogleForm
+                <ui-search-bar-form #searchBarForm
                     [classBlock]="''"
                     [placeholder]="'APP.PLACEHOLDER.Search' | translate"
                     [showHistory]="showHistory"
@@ -365,14 +365,14 @@
                                 </ng-container>
 
                                 <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
-                                    <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                                    <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
                                     <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
                                 </div>
                                 <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
                             </fieldset>
                         </form>
                     </div>
-                </ui-search-google-form>
+                </ui-search-bar-form>
             </div>
         </div>
     </section>
@@ -398,7 +398,7 @@
                 <div class="col-12" [class.col-lg-10-]="viewBoxed" *ngIf="!_showMasonry">
                     <div class="row" style="padding-right: 8px;">
                         <div *ngFor="let element of groups; trackBy: _trackBy;" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.dalign-items-stretch]="_fillBox">
-                            <!-- <ui-card class="extended" [class.flex-fill]="_fillBox"
+                            <ui-card class="extended" [class.flex-fill]="_fillBox"
                                 [type]="CardType.Extended"
                                 [primaryText]="element.primaryText" 
                                 [secondaryText]="element.secondaryText"
@@ -417,7 +417,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
-                            ></ui-card> -->
+                            ></ui-card>
                         </div>
                     </div>
                 </div>
@@ -428,7 +428,7 @@
                     >
                     <!-- <div class="masonry-item mb-3" ngxMasonryItem [prepend]="false" style="width: 32%;" *ngFor="let element of groups; trackBy: _trackBy;"> -->
                         <div class="masonry-item mb-3" ngxMasonryItem style="width: 32%;" *ngFor="let element of groups; trackBy: _trackBy;">
-                            <!-- <ui-card class="extended" class=""
+                            <ui-card class="extended" class=""
                                 [type]="CardType.Extended"
                                 [primaryText]="element.primaryText" 
                                 [secondaryText]="element.secondaryText"
@@ -447,7 +447,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
-                            ></ui-card> -->
+                            ></ui-card>
                         </div>
                     </ngx-masonry>
                 </div>

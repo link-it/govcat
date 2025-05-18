@@ -40,7 +40,6 @@ import { EventType } from '@linkit/components';
   templateUrl: 'adesione-details.component.html',
   styleUrls: ['adesione-details.component.scss'],
   standalone: false
-
 })
 export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneDetailsComponent';

@@ -41,7 +41,6 @@ import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDef
     templateUrl: 'servizio-view.component.html',
     styleUrls: ['servizio-view.component.scss'],
     standalone: false
-
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServizioViewComponent';

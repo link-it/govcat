@@ -11,7 +11,7 @@ import { UtilsLib } from '../../utils/utils.lib';
   styleUrls: [
     './item-row.component.scss'
   ],
-  standalone:false
+  standalone: false
 })
 export class ItemRowComponent implements OnInit, AfterViewInit {
   @HostBinding('class.notify') get notifyClass(): boolean {

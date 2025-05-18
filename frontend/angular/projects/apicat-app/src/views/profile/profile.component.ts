@@ -26,7 +26,6 @@ interface BodySettingsType {
   templateUrl: 'profile.component.html',
   styleUrls: ['profile.component.scss'],
   standalone: false
-
 })
 export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ProfileComponent';

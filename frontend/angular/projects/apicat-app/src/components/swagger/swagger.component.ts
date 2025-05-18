@@ -14,7 +14,6 @@ import { firstValueFrom } from 'rxjs';
   templateUrl: './swagger.component.html',
   styleUrls: ['./swagger.component.scss'],
   standalone: false
-
 })
 export class SwaggerComponent implements OnInit {
 

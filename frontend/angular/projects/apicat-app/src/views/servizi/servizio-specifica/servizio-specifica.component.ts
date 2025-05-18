@@ -30,7 +30,6 @@ declare const saveAs: any;
   templateUrl: 'servizio-specifica.component.html',
   styleUrls: ['servizio-specifica.component.scss'],
   standalone: false
-
 })
 export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioSpecificaComponent';

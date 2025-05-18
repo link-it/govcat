@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { UtilsLib } from '../../utils/utils.lib';
 
-import * as moment from 'moment';
+import moment from 'moment/moment';
 
 @Component({
   selector: 'ui-data-type',

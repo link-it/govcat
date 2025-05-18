@@ -9,7 +9,6 @@ import { AuthenticationService } from '@app/services/authentication.service';
   templateUrl: './workflow.component.html',
   styleUrls: ['./workflow.component.scss'],
   standalone: false
-
 })
 export class WorkflowComponent implements OnInit {
 

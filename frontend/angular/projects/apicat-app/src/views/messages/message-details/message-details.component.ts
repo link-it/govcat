@@ -17,7 +17,6 @@ import { Message } from './message';
   templateUrl: 'message-details.component.html',
   styleUrls: ['message-details.component.scss'],
   standalone: false
-
 })
 export class MessageDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'MessageDetailsComponent';

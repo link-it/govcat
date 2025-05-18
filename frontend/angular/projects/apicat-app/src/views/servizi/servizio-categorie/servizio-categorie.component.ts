@@ -30,7 +30,6 @@ import * as _ from 'lodash';
   templateUrl: 'servizio-categorie.component.html',
   styleUrls: ['servizio-categorie.component.scss'],
   standalone: false
-
 })
 export class ServizioCategorieComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioCategorieComponent';

@@ -11,7 +11,7 @@ import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page } from '../../models/page';
 
@@ -20,13 +20,12 @@ import { Page } from '../../models/page';
   templateUrl: 'organizzazioni.component.html',
   styleUrls: ['organizzazioni.component.scss'],
   standalone: false
-
 })
 export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'OrganizzazioniComponent';
   readonly model: string = 'organizzazioni';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   config: any;
   organizzazioniConfig: any;
@@ -236,8 +235,8 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 

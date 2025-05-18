@@ -26,7 +26,6 @@ import * as moment from 'moment';
   templateUrl: 'servizio-comunicazioni.component.html',
   styleUrls: ['servizio-comunicazioni.component.scss'],
   standalone: false
-
 })
 export class ServizioComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioComunicazioniComponent';

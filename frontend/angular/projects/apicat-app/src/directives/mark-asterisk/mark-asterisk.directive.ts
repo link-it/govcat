@@ -3,7 +3,7 @@ import { AbstractControl, FormGroup, Validators } from '@angular/forms';
 
 @Directive({
   selector: '[appMarkAsterisk]',
-  standalone:false
+  standalone: false
 
 })
 export class MarkAsteriskDirective implements OnInit {

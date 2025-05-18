@@ -221,8 +221,8 @@ const eventListConfiguration = {
   selector: 'app-pdnd',
   templateUrl: 'pdnd.component.html',
   styleUrls: ['pdnd.component.scss'],
-  standalone: false,
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class PdndComponent {
   model = 'pdnd';

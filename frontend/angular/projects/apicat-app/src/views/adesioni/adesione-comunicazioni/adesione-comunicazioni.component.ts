@@ -23,7 +23,6 @@ import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/servic
   templateUrl: 'adesione-comunicazioni.component.html',
   styleUrls: ['adesione-comunicazioni.component.scss'],
   standalone: false
-
 })
 export class AdesioneComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneComunicazioniComponent';

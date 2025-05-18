@@ -13,7 +13,6 @@ import { UtilService } from '@app/services/utils.service';
   templateUrl: 'categories.component.html',
   styleUrls: ['categories.component.scss'],
   standalone: false
-
 })
 export class CategoriesComponent implements OnInit, OnChanges {
   static readonly Name = 'CategoriesComponent';

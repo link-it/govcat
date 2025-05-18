@@ -27,7 +27,7 @@
   <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
     <div class="row align-items-center">
       <div class="col-12">
-        <ui-search-google-form #searchBarForm
+        <ui-search-bar-form #searchBarForm
           [classBlock]="''"
           [placeholder]="'APP.PLACEHOLDER.Search' | translate"
           [showHistory]="showHistory"
@@ -59,7 +59,7 @@
               </fieldset>
             </form>
           </div>
-        </ui-search-google-form>
+        </ui-search-bar-form>
       </div>
     </div>
   </section>

@@ -10,7 +10,6 @@ import { MenuAction } from '@linkit/components';
   templateUrl: './monitor-dropdown.component.html',
   styleUrls: ['./monitor-dropdown.component.scss'],
   standalone: false
-
 })
 export class MonitorDropdwnComponent implements OnInit, OnChanges {
 

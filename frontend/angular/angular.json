@@ -60,6 +60,7 @@
 							"node_modules/file-saver/dist/FileSaver.min.js",
 							"node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"
 						],
+						"extraWebpackConfig": "projects/apicat-app/webpack.config.js",
 						"commonChunk": false
 					},
 					"configurations": {
@@ -82,7 +83,8 @@
 									"with": "projects/apicat-app/src/environments/environment.prod.ts"
 								}
 							],
-							"outputHashing": "all"
+							"outputHashing": "all",
+							"extraWebpackConfig": "projects/apicat-app/webpack.prod.config.js"
 						},
 						"development": {
 							"buildOptimizer": false,
@@ -99,7 +101,8 @@
 					"builder": "ngx-build-plus:dev-server",
 					"configurations": {
 						"production": {
-							"buildTarget": "apicat-app:build:production"
+							"buildTarget": "apicat-app:build:production",
+							"extraWebpackConfig": "projects/apicat-app/webpack.prod.config.js"
 						},
 						"development": {
 							"buildTarget": "apicat-app:build:development"
@@ -108,13 +111,15 @@
 					"defaultConfiguration": "development",
 					"options": {
 						"port": 6200,
-						"publicHost": "http://localhost:6200"
+						"publicHost": "http://localhost:6200",
+						"extraWebpackConfig": "projects/apicat-app/webpack.config.js"
 					}
 				},
 				"extract-i18n": {
 					"builder": "ngx-build-plus:extract-i18n",
 					"options": {
-						"buildTarget": "apicat-app:build"
+						"buildTarget": "apicat-app:build",
+						"extraWebpackConfig": "projects/apicat-app/webpack.config.js"
 					}
 				},
 				"test": {
@@ -199,6 +204,5 @@
 				}
 			}
 		}
-
 	}
 }

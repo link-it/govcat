@@ -220,7 +220,6 @@ const clientRowConfig = {
   templateUrl: './adesione-view.component.html',
   styleUrls: ['./adesione-view.component.scss'],
   standalone: false
-
 })
 export class AdesioneViewComponent implements OnInit {
 

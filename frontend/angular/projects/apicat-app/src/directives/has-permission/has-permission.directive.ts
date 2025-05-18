@@ -4,7 +4,7 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 @Directive({
   selector: '[appHasPermission]',
-  standalone:false
+  standalone: false
 })
 export class HasPermissionDirective implements OnInit, OnChanges {
 

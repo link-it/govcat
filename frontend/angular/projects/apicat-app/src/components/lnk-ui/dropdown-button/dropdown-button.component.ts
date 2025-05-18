@@ -5,8 +5,8 @@ import { MenuAction } from '@linkit/components';
 @Component({
   selector: 'lnk-dropdown-button',
   templateUrl: './dropdown-button.component.html',
-  standalone: false,
-  styleUrls: ['./dropdown-button.component.scss']
+  styleUrls: ['./dropdown-button.component.scss'],
+  standalone: false
 })
 export class LnkDropdwnButtonComponent implements OnInit {
 

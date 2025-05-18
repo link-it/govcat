@@ -20,7 +20,6 @@ import * as _ from 'lodash';
   templateUrl: 'verifiche.component.html',
   styleUrls: ['verifiche.component.scss'],
   standalone: false
-
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

@@ -3,8 +3,8 @@ import { Component, Input, OnInit } from '@angular/core';
 @Component({
     selector: 'lnk-field-plaintext',
     templateUrl: './field-plaintext.component.html',
-    standalone: false,
-    styleUrls: ['./field-plaintext.component.scss']
+    styleUrls: ['./field-plaintext.component.scss'],
+    standalone: false
 })
 export class LnkFieldPlaintextComponent implements OnInit {
 

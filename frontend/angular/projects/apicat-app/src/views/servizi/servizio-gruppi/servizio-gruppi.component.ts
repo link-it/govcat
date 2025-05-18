@@ -32,7 +32,6 @@ import * as _ from 'lodash';
   templateUrl: 'servizio-gruppi.component.html',
   styleUrls: ['servizio-gruppi.component.scss'],
   standalone: false
-
 })
 export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioGruppiComponent';

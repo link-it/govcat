@@ -23,7 +23,6 @@ import * as _ from 'lodash';
   templateUrl: 'classe-utente-details.component.html',
   styleUrls: ['classe-utente-details.component.scss'],
   standalone: false
-
 })
 export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClasseUtenteDetailsComponent';

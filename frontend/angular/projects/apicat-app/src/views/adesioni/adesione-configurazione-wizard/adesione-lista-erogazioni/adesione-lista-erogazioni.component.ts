@@ -24,7 +24,6 @@ import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
     templateUrl: './adesione-lista-erogazioni.component.html',
     styleUrls: ['./adesione-lista-erogazioni.component.scss'],
     standalone: false
-
 })
 export class AdesioneListaErogazioniComponent implements OnInit {
 

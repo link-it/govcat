@@ -1,13 +1,13 @@
 import { Component, OnInit, Input, HostBinding, Output, EventEmitter } from '@angular/core';
+import { Tools } from '../services/tools.service';
 import { Language } from '../classes/language';
 import { MenuAction } from '../classes/menu-action';
-import { Tools } from '../services';
 
 @Component({
-    selector: 'app-head-bar',
-    templateUrl: './head-bar.component.html',
-    styleUrls: ['./head-bar.component.scss'],
-    standalone: false
+  selector: 'app-head-bar',
+  templateUrl: './head-bar.component.html',
+  styleUrls: ['./head-bar.component.scss'],
+  standalone: false
 })
 export class HeadBarComponent implements OnInit {
   @HostBinding('class.content-block') get headContentClass(): boolean {
@@ -15,9 +15,9 @@ export class HeadBarComponent implements OnInit {
   }
   @Input() title: string = '';
   @Input() logo: string = '';
-  @Input() showSupHeaderBar: boolean = false;
 
   @Input() login: boolean = false;
+  @Input() loginLabel: string = 'Login';
   @Input('username') _username: string = '';
   @Input() loggedIn: boolean = false;
   @Input('menu-action-list') _menuActions: MenuAction[] = [];
@@ -38,11 +38,18 @@ export class HeadBarComponent implements OnInit {
   @Output('on-menu-app-action') _menuAppAction: EventEmitter<any> = new EventEmitter();
 
   _notificationMenu: MenuAction = new MenuAction({
-      title: 'Notifications',
-      icon: 'inbox',
-      subTitle: '',
-      action: 'notifications'
-    });
+    title: 'Notifications',
+    icon: 'inbox',
+    subTitle: '',
+    action: 'notifications'
+  });
+
+  _loginMenu: MenuAction = new MenuAction({
+    title: 'Login',
+    icon: 'login',
+    subTitle: '',
+    action: 'login'
+  });
 
   constructor() { }
 

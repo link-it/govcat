@@ -27,7 +27,6 @@ import { DominioCreateUpdateRequest } from './dominio-create-update';
   templateUrl: 'dominio-details.component.html',
   styleUrls: ['dominio-details.component.scss'],
   standalone: false
-
 })
 export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'DominioDetailsComponent';

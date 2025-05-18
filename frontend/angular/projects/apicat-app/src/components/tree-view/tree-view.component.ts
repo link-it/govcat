@@ -8,7 +8,6 @@ import { ConfigService } from '@linkit/components';
     templateUrl: "./tree-view.component.html",
     styleUrls: ["./tree-view.component.scss"],
     standalone: false
-
 })
 export class TreeViewComponent implements OnChanges {
 

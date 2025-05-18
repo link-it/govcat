@@ -24,7 +24,6 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap,
   templateUrl: 'soggetto-details.component.html',
   styleUrls: ['soggetto-details.component.scss'],
   standalone: false
-
 })
 export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'SoggettoDetailsComponent';
