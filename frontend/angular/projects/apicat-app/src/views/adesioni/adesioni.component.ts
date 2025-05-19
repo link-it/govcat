@@ -213,6 +213,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       this.generalConfig = Tools.Configurazione || null;
       this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
       this._adesioni_multiple = Tools.Configurazione?.servizio.adesioni_multiple || [];
+      this._updateMapper = new Date().getTime().toString();
       this.updateMultiSelectionMapper();
     });
   }
@@ -578,6 +579,11 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   _resetScroll() {
     Tools.ScrollElement('container-scroller', 0);
+  }
+
+  hasConfigurazioneAutomaticaMapper = () => {
+    const configAutomatica = this.generalConfig?.adesione?.configurazione_automatica || null;
+    return configAutomatica && (configAutomatica?.length > 0);
   }
 
   getStatoAutomatico() {
