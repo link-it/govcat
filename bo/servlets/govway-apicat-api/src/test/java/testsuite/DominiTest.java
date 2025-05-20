@@ -1304,7 +1304,7 @@ public class DominiTest {
     
     @Test
     public void testCreateDominioReferenteServizioErrore() {
-    	String q = "dominio_";
+    	String q = "SecondDomain";
     	UtenteCreate utente = CommonUtils.getUtenteCreate();
         utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
         utente.setReferenteTecnico(false);
