@@ -84,7 +84,6 @@ public class ApiEntity {
 	
 	@Column
 	@Lob
-	@Type(type = "org.hibernate.type.ImageType")
 	private byte[] descrizione;
     
     @Column(name="codice_asset")
