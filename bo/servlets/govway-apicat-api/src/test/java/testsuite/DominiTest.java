@@ -1270,66 +1270,74 @@ public class DominiTest {
             controller.listReferentiDominio(createdDominio.getBody().getIdDominio(), null, null, 0, 10, null);
         });
     }
+    
     @Autowired
     UtentiController utentiController;
     
     @Test
     public void testListDominiSpecialCharacterSuccess() {
-        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
-        assertNotNull(response.getBody().getIdOrganizzazione());
-
-        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
-        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
-        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
-        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
-
-        UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
-        utente.setReferenteTecnico(false);
-        utente.setPrincipal("unoqualsiasi");
-        
-        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
-        
-        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
-        
-        DominioCreate dominioCreate = this.getDominioCreate();
-        dominioCreate.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
-        ResponseEntity<Dominio> createdDominio = controller.createDominio(dominioCreate);
-        assertEquals(HttpStatus.OK, createdDominio.getStatusCode());
-
-        ResponseEntity<Void> responseDelete = controller.deleteDominio(createdDominio.getBody().getIdDominio());
-
-        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
-    }
-    
-    @Test
-    public void testCreateDominioReferenteServizioErrore() {
     	String q = "dominio_";
-    	UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
-        utente.setReferenteTecnico(false);
-        utente.setPrincipal("unoqualsiasi");
-        
-        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
-            	
+
         ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+
         assertNotNull(response.getBody().getIdOrganizzazione());
 
         SoggettoCreate soggettoCreate = this.getSoggettoCreate();
         soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+
         ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         DominioCreate dominioCreate1 = this.getDominioCreate();
         dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+        
         ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
+        
         assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
 
         DominioCreate dominioCreate2 = this.getDominioCreate();
         dominioCreate2.setNome("SecondDomain");
         dominioCreate2.setDescrizione("dominio questa e' la descrizione");
         dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+
         ResponseEntity<Dominio> createdDominio2 = controller.createDominio(dominioCreate2);
+
+        assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
+
+        ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, q, 0, 10, null);
+        
+        assertNotNull(responseList.getBody());
+        assertEquals(0, responseList.getBody().getContent().size());
+    }
+    
+    @Test
+    public void testListDominiSpecialCharacterSuccess2() {
+    	String q = "dominio";
+        ResponseEntity<Organizzazione> response = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(response.getBody().getIdOrganizzazione());
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Soggetto> createdSoggetto = soggettiController.createSoggetto(soggettoCreate);
+
+        assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
+
+        DominioCreate dominioCreate1 = this.getDominioCreate();
+        dominioCreate1.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+
+        ResponseEntity<Dominio> createdDominio1 = controller.createDominio(dominioCreate1);
+
+        assertEquals(HttpStatus.OK, createdDominio1.getStatusCode());
+
+        DominioCreate dominioCreate2 = this.getDominioCreate();
+        dominioCreate2.setNome("SecondDomain");
+        dominioCreate2.setDescrizione("dominio questa e' la descrizione");
+        dominioCreate2.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
+
+        ResponseEntity<Dominio> createdDominio2 = controller.createDominio(dominioCreate2);
+
         assertEquals(HttpStatus.OK, createdDominio2.getStatusCode());
 
         ResponseEntity<PagedModelItemDominio> responseList = controller.listDomini(null, null, null, null, null, null, q, 0, 10, null);
