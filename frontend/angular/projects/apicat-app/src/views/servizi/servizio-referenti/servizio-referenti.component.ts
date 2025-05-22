@@ -479,12 +479,12 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   _onChangeTipoReferente(isReferent: boolean) {
-    this.referentiFilter = isReferent ? 'referente_servizio,gestore' : '';
+    this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
   }
 
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore' },
+      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }

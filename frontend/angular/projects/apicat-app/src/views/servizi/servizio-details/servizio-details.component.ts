@@ -941,7 +941,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 debounceTime(300),
                 tap(() => this.referentiLoading = true),
                 switchMap((term: any) => {
-                    return this.getUtenti(term, 'referente_servizio,gestore').pipe(
+                    return this.getUtenti(term, 'referente_servizio,gestore,coordinatore').pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.referentiLoading = false)
                     )

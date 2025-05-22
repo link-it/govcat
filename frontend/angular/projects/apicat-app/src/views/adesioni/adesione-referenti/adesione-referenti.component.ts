@@ -480,7 +480,7 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   _onChangeTipoReferente(isReferent: boolean) {
-    this.referentiFilter = isReferent ? 'referente_servizio,gestore' : '';
+    this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
   }
 
   loadAnagrafiche() {
