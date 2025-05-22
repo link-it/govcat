@@ -1322,6 +1322,8 @@
 				"PDNDProduzione": "Production",
 				"Production": "Production",
 				"Referenti": "Referents",
+				"ReferentiDominio": "Domain referents",
+				"ReferentiServizio": "Service referents",
 				"ServiceComponents": "Components",
 				"ShowApi": "API",
 				"ShowApi_sub": "Show APIs",
