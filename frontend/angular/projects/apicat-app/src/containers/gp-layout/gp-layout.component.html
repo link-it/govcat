@@ -96,7 +96,7 @@
                 <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed" *ngIf="_showVersion || _showAbout">
                     <ul class="sidebar-top-level-items mb-0">
                         <li class="" appFlyOut>
-                            <a class="gl-link cursor-pointer d-flex gap-2" (click)="showInfo()">
+                            <a tabindex="0" class="gl-link cursor-pointer d-flex gap-2" (click)="showInfo()">
                                 <span class="nav-icon-container mr-0" *ngIf="_showAbout"><i class="bi bi-info-circle"></i></span>
                                 <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed && _showVersion">{{ 'v.' | translate }} {{ version }}</span>
                             </a>

@@ -4,7 +4,6 @@ import { ControlValueAccessor, FormGroup, NG_VALUE_ACCESSOR } from "@angular/for
 
 @Component({
     selector: "lnk-form-select",
-    standalone: false,
     templateUrl: "./form-field-select.component.html",
     styleUrls: ["./form-field-select.component.scss"],
     providers: [
@@ -13,7 +12,7 @@ import { ControlValueAccessor, FormGroup, NG_VALUE_ACCESSOR } from "@angular/for
         useExisting: forwardRef(() => LnkFormSelectComponent),
         multi: true,
         },
-    ],
+    ]
 })
 export class LnkFormSelectComponent implements ControlValueAccessor {
     @Input() label?: string;

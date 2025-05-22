@@ -60,6 +60,11 @@
   flex: 0 1 auto;
   cursor: pointer;
 
+  &:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+    outline: none;
+  }
+
   &:hover {
     text-decoration: underline !important;
   }
@@ -81,6 +86,11 @@
   font-weight: 600;
   line-height: 16px;
   color: #303030;
+
+  &:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+    outline: none;
+  }
 
   &:hover {
     text-decoration: underline !important;

@@ -79,7 +79,7 @@
 
                         <div id="accordion-general-info" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
@@ -88,7 +88,7 @@
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="general-info" class="accordion-collapse collapse" data-bs-parent="#accordion-general-info_">
                                 <div class="accordion-body">
@@ -107,7 +107,7 @@
 
                         <div id="accordion-referenti" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
@@ -116,7 +116,7 @@
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="referenti" class="accordion-collapse collapse" data-bs-parent="#accordion-referenti_">
                                 <div class="accordion-body">
@@ -168,7 +168,7 @@
 
                         <div id="accordion-collaudo" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
@@ -177,7 +177,7 @@
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.TestingConfiguration' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="collaudo" class="accordion-collapse collapse" data-bs-parent="#accordion-collaudo_">
                                 <div class="accordion-body">
@@ -250,7 +250,7 @@
 
                         <div id="accordion-produzione" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
@@ -259,7 +259,7 @@
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.ProductionConfiguration' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="produzione" class="accordion-collapse collapse" data-bs-parent="#accordion-produzione_">
                                 <div class="accordion-body">

@@ -65,14 +65,14 @@
                     ></ui-workflow>
                 </div>
                 <div class="position-relative d-inline-block" *ngIf="!_isEdit && !_spin && _editable">
-                    <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
+                    <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.EditService' | translate" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
                 </div>
                 <div role="group" class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
-                    <lnk-button [type]="'button'" [icon]="'bi bi-trash text-danger'" [onlyIcon]="true" (onAction)="_confirmDelection()" [btnTooltip]="'APP.TOOLTIP.DeleteService'"></lnk-button>
+                    <lnk-button [type]="'button'" [icon]="'bi bi-trash text-danger'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate" (onAction)="_confirmDelection()" [btnTooltip]="'APP.TOOLTIP.DeleteService'"></lnk-button>
                 </div>
             </ng-container>
             <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-                <lnk-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></lnk-button>
+                <lnk-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></lnk-button>
             </div>
         </div>
     </div>
@@ -127,7 +127,7 @@
                                                 ></app-photo-base64>
                                             </div>
                                             <div class="mt-2" *ngIf="!_isEdit">
-                                                <img class="img-space" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+                                                <img class="img-space" alt="Logo servizio" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
                                             </div>
                                         </div>
                                     </div>

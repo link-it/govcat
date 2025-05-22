@@ -67,7 +67,7 @@
                     </div>
 
                     <div class="referenti-block mt-5">
-                      <h6 class="text-uppercase text-muted mb-3">{{ 'APP.SERVICES.TITLE.Referenti' | translate }}</h6>
+                      <h5 class="h6 text-uppercase text-muted mb-3">{{ 'APP.SERVICES.TITLE.Referenti' | translate }}</h5>
                       <div class="d-flex flex-column">
                         <ng-container *ngIf="referentiLoading; else referentiTmplLeaders">
                           <span class="spinner-border spinner-border-sm"></span>
@@ -77,7 +77,7 @@
                             <ng-container *ngFor="let referente of referents;let index = index;">
                               <li class="d-flex project__leaders__item mb-3" [class.hide-more]="index >= maxReferenti">
                                 <span title="referente" target="_blank">
-                                  <img class="align-top" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
+                                  <img class="align-top" alt="Avatar referente" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
                                 </span>
                                 <div class="flex-column">
                                   <div class="ml-2 mb-1 d-flex referente">
