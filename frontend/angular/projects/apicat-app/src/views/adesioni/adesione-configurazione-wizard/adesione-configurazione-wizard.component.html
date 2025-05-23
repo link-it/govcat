@@ -120,10 +120,11 @@
                             </h2>
                             <div id="referenti" class="accordion-collapse collapse" data-bs-parent="#accordion-referenti_">
                                 <div class="accordion-body">
-                                    <div class="d-flex justify-content-end mb-2">
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                        <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.Referents' | translate }}</h5>
                                         <button class="btn btn-default btn-md gl-button ms-3" (click)="addReferenteModal($event)" *ngIf="isEdit">{{ 'APP.BUTTON.AddReferent' | translate }}</button>
                                     </div>
-                                    <ui-box-spinner [color]="'primary'" [diameter]="20" [strokeWidth]="1" *ngIf="referentiLoading"></ui-box-spinner>
                                     <div class="row">
                                         <div class="col-12" *ngIf="referents.length == 0 && !referentiLoading">
                                             <div class="d-flex flex-column text-center empty-state-">
@@ -159,7 +160,86 @@
                                                     </button>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
 
+                                    <ui-box-spinner [color]="'primary'" [diameter]="20" [strokeWidth]="1" *ngIf="referentiLoading"></ui-box-spinner>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3 mb-2 pb-2 border-bottom-">
+                                        <button tabindex="0" class="accordion-button collapsed px-0 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#service-referents" aria-expanded="false" aria-controls="service-referents">
+                                            <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.ServiceReferents' | translate }}</h5>
+                                            <span class="badge badge-info badge-pill gp-badge sm">{{ serviceReferents.length }}</span>
+                                        </button>
+                                    </div>
+                                    <div id="service-referents" class="row accordion-collapse collapse">
+                                        <div class="col-12" *ngIf="serviceReferents.length == 0 && !referentiLoading">
+                                            <div class="d-flex flex-column text-center empty-state-">
+                                                <div class="max-w-100 m-auto">
+                                                    <div class="mx-auto my-0 p-3">
+                                                        <h4 class="line-height-36 h4">{{ _message | translate }}</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center- border-bottom" *ngFor="let referent of serviceReferents;">
+                                                <ui-collapse-row class="flex-grow-1"
+                                                    [data]="referent.source"
+                                                    [config]="referentiConfig"
+                                                    [configRow]="'itemRow2'"
+                                                    [enableCollapse]="referent.enableCollapse"
+                                                    [hasLink]="true"
+                                                >
+                                                    <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+                                                        <div class="d-flex flex-row">
+                                                            <ui-data-view class="flex-grow-1"
+                                                                [data]="referent.source"
+                                                                [config]="referentiConfig"
+                                                                [columns]="config.AppConfig?.Layout?.Details?.columns || 6"
+                                                            ></ui-data-view>
+                                                        </div>
+                                                    </div>
+                                                </ui-collapse-row>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3 mb-2 pb-2 border-bottom">
+                                        <button tabindex="0" class="accordion-button collapsed px-0 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#domain-referents" aria-expanded="false" aria-controls="domain-referents">
+                                            <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.DomainReferents' | translate }}</h5>
+                                            <span class="badge badge-info badge-pill gp-badge sm">{{ domainReferents.length }}</span>
+                                        </button>
+                                    </div>
+                                    <div id="domain-referents" class="row accordion-collapse collapse">
+                                        <div class="col-12" *ngIf="domainReferents.length == 0 && !referentiLoading">
+                                            <div class="d-flex flex-column text-center empty-state-">
+                                                <div class="max-w-100 m-auto">
+                                                    <div class="mx-auto my-0 p-3">
+                                                        <h4 class="line-height-36 h4">{{ _message | translate }}</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center- border-bottom" *ngFor="let referent of domainReferents;">
+                                                <ui-collapse-row class="flex-grow-1"
+                                                    [data]="referent.source"
+                                                    [config]="referentiConfig"
+                                                    [configRow]="'itemRow2'"
+                                                    [enableCollapse]="referent.enableCollapse"
+                                                    [hasLink]="true"
+                                                >
+                                                    <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+                                                        <div class="d-flex flex-row">
+                                                            <ui-data-view class="flex-grow-1"
+                                                                [data]="referent.source"
+                                                                [config]="referentiConfig"
+                                                                [columns]="config.AppConfig?.Layout?.Details?.columns || 6"
+                                                            ></ui-data-view>
+                                                        </div>
+                                                    </div>
+                                                </ui-collapse-row>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
