@@ -19,16 +19,7 @@
  */
 package org.govway.catalogo.core.orm.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import org.hibernate.annotations.Type;
 
@@ -50,6 +41,7 @@ public class AuthTypeEntity {
 	@Column(nullable=false)
 	@Lob
 	@Type(type = "org.hibernate.type.ImageType")
+	@Convert(disableConversion = true)
 	private byte[] resources;
 	
 	@Column(nullable=false)

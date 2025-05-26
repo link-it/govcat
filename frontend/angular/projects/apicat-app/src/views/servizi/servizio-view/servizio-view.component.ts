@@ -36,6 +36,43 @@ declare const saveAs: any;
 import * as _ from 'lodash';
 import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDefinition } from '../servizio-api-details/servizio-api-interfaces';
 
+export interface Organization {
+    id_organizzazione: string;
+    nome: string;
+    descrizione: string;
+    codice_ente: string;
+    codice_fiscale_soggetto: string;
+    id_tipo_utente: string;
+    referente: boolean;
+    aderente: boolean;
+    multi_soggetto: boolean;
+}
+
+export interface User {
+    id_utente: string;
+    nome: string;
+    cognome: string;
+    telefono_aziendale: string;
+    email_aziendale: string;
+    username: string;
+    stato: string;
+    ruolo: string;
+    organizzazione?: Organization;
+    classi_utente: string[];
+}
+
+export interface Referent {
+    utente: User;
+    tipo: 'referente' | 'referente_servizio' | 'referente_tecnico' | 'referente_dominio';
+}
+
+export interface ReferentView {
+    id: string;
+    name: string;
+    email: string;
+    types: string[];
+}
+
 @Component({
     selector: 'app-servizio-view',
     templateUrl: 'servizio-view.component.html',
@@ -60,7 +97,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     // dominio: any = null;
     richiedente: any = null;
     anagrafiche: any = null;
-    referenti: any = null;
+    referenti: ReferentView[] = [];
     referentiLoading: boolean = true;
     serviceApi: any[] = [];
     serviceApiDominio: any[] = [];
@@ -274,45 +311,54 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     loadCurrentData() {
-        // this.dominio = null;
-        // this.apiService.getDetails('domini', this.data.dominio).subscribe({
-        //   next: (response: any) => {
-        //     this.dominio = response;
-        //     console.log('dominio', this.dominio);
-        //   },
-        //   error: (error: any) => {
-        //     Tools.OnError(error);
-        //   }
-        // });
-
         this.richiedente = this.data.utente_richiedente;
-        // this.apiService.getDetails('utenti', this.data.utente_richiedente).subscribe({
-        //   next: (response: any) => {
-        //     this.richiedente = response;
-        //   },
-        //   error: (error: any) => {
-        //     Tools.OnError(error);
-        //   }
-        // });
 
+        this.loadReferenti();
+        this._loadServiceApi();
+    }
+
+    loadReferenti() {
         this.referenti = [];
         this.referentiLoading = true;
-        this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
+        forkJoin({
+            referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
+            referentiDominio: this.apiService.getDetails('domini', this.data.dominio.id_dominio, 'referenti')
+        }).subscribe({
             next: (response: any) => {
-                this.referenti = response.content.filter((referent: any) => {
-                    return ((referent.tipo !== 'referente_tecnico') || this.config.showTechnicalReferent);
-                });
+                const referents: Referent[] = response.referenti.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_servizio` }));
+                const domainReferents: Referent[] = response.referentiDominio.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_dominio` }));
+
+                const reduceReferents = (acc: ReferentView[], cur: Referent) => {
+                    const index = acc.findIndex((item: ReferentView) => item.id === cur.utente.id_utente);
+                    if (index === -1) {
+                        acc.push({
+                            id: cur.utente.id_utente,
+                            email: cur.utente.email_aziendale,
+                            name: `${cur.utente.nome} ${cur.utente.cognome}`,
+                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
+                        });
+                    } else {
+                        acc[index].types.push(cur.tipo);
+                    }
+                    return acc;
+                };
+
+                const allReferents = [
+                    ...domainReferents.filter((ref: any) => { return ((ref.tipo === 'referente_dominio') && this.config.showDomainReferent);}),
+                    ...referents.filter((ref: any) => { return ((ref.tipo !== 'referente_tecnico_servizio') || this.config.showTechnicalReferent);})
+                ];
+                this.referenti = allReferents.reduce(reduceReferents, []);
+
                 this.referentiLoading = false;
             },
             error: (error: any) => {
                 Tools.OnError(error);
+                this._spin = false;
                 this.referentiLoading = false;
             }
         });
-
-        this._loadServiceApi();
     }
-    
+
     _loadServiceApi() {
         this.configService.getConfig('api').subscribe(
             (config: any) => {

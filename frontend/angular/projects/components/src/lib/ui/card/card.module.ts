@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardComponent } from './card.component';
-// import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ItemTypeModule } from '../item-type/item-type.module';
 import { DataTypeModule } from '../data-type/data-type.module';
@@ -14,7 +13,6 @@ import { HttpImgSrcPipeModule } from '../../pipes/http-img-src.module';
   ],
   imports: [
     CommonModule,
-    // MatCheckboxModule,
     ItemTypeModule,
     DataTypeModule,
     SetBackgroundImageModule,

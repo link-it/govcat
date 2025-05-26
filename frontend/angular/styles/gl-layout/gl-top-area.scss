@@ -31,7 +31,7 @@
 .gp-tab-nav-item-active {
   font-weight: 600;
   color: #303030;
-  box-shadow: inset 0 -2px 0 0 var(--gp-theme-accent, #6666c4);
+  box-shadow: inset 0 -2px 0 0 var(--gp-theme-accent, #6666c4) !important;
 }
 
 .top-area .nav-controls {

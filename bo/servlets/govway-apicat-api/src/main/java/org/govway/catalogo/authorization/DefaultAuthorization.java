@@ -41,9 +41,8 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 	protected void authorizeRead(EntitaEnum entita) {
 		if(this.configurazione.getAmministrazione() == null) {
 			coreAuthorization.requireAdmin();
-		}
-		
-		switch(entita) {
+		} else {
+			switch(entita) {
 			case CLASSE_UTENTE: 
 				authorizeRead(this.configurazione.getAmministrazione().getGenerale(), this.configurazione.getAmministrazione().getClassiUtente());
 				break;
@@ -67,6 +66,7 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 				break;
 		}
 		coreAuthorization.requireAdmin();
+		}
 	}
 	
 	private void authorize(boolean read,
@@ -74,40 +74,41 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 
 		if(specifico == null) {
 			coreAuthorization.requireAdmin();
+		} else {
+			if(read) {
+				authorizeContains(specifico.getLettura(), this.coreAuthorization.getUtenteSessione().getRuolo());
+			} else {
+				authorizeContains(specifico.getScrittura(), this.coreAuthorization.getUtenteSessione().getRuolo());
+			}
 		}
 		
-		if(read) {
-			authorizeContains(specifico.getLettura(), this.coreAuthorization.getUtenteSessione().getRuolo());
-		} else {
-			authorizeContains(specifico.getScrittura(), this.coreAuthorization.getUtenteSessione().getRuolo());
-		}
 	}
 	
 	private void authorizeContains(List<RuoloUtenteEnum> scrittura, Ruolo ruolo) {
 		//check che scrittura contenga il ruolo, attenzione alla conversione tra tipi
 		if (scrittura == null || ruolo == null) {
 			coreAuthorization.requireAdmin();
+		} else {
+			RuoloUtenteEnum ruoloUtenteEnum;
+			if(ruolo.name() == "AMMINISTRATORE")
+				ruoloUtenteEnum = RuoloUtenteEnum.GESTORE;
+			else
+				ruoloUtenteEnum = RuoloUtenteEnum.valueOf(ruolo.name());
+			if (!scrittura.contains(ruoloUtenteEnum)) {
+				coreAuthorization.requireAdmin();
+			}
 		}
 
-		RuoloUtenteEnum ruoloUtenteEnum;
-		if(ruolo.name() == "AMMINISTRATORE")
-			ruoloUtenteEnum = RuoloUtenteEnum.GESTORE;
-		else
-			ruoloUtenteEnum = RuoloUtenteEnum.valueOf(ruolo.name());
-		if (!scrittura.contains(ruoloUtenteEnum)) {
-			coreAuthorization.requireAdmin();
-		}
-		return;
 	}
 
 	private void authorizeRead(AccessoAmministrazioneItem generale,
 			AccessoAmministrazioneItem specifico) {
-		authorize(true, Optional.ofNullable(generale).orElse(specifico));
+		authorize(true, Optional.ofNullable(specifico).orElse(generale));
 	}
 
 	private void authorizeWrite(AccessoAmministrazioneItem generale,
 			AccessoAmministrazioneItem specifico) {
-		authorize(false, Optional.ofNullable(generale).orElse(specifico));
+		authorize(false, Optional.ofNullable(specifico).orElse(generale));
 	}
 
 	protected boolean authorizeWrite(EntitaEnum entita) {

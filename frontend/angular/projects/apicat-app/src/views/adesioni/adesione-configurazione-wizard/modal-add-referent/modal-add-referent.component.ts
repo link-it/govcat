@@ -83,7 +83,7 @@ export class ModalAddReferentComponent implements OnInit {
 
     onChangeTipoReferente(event: any) {
         this.referentiTipo = event.value;
-        this.referentiFilter = (this.referentiTipo === 'referente') ? 'referente_servizio,gestore' : '';
+        this.referentiFilter = (this.referentiTipo === 'referente') ? 'referente_servizio,gestore,coordinatore' : '';
     }
 
     loadAnagrafiche() {

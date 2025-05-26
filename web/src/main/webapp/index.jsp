@@ -1,5 +1,6 @@
 <!DOCTYPE html><html lang="it"><head>
   <meta charset="utf-8">
+  <meta name="description" content="Catalogo API ModI">
   <title>Catalogo API ModI</title>
   <script src="<%=request.getContextPath()%>/BaseInit.js" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -6,10 +6,10 @@
         <input type="file" (change)="fileChangeEvent($event)" class="fileInputProfile">
         <div class="img-space" [ngStyle]="{'width': boxWidth, 'height': boxHeight}">
           <ng-container *ngIf="isImageSaved; else elseTemplate">
-            <img [src]="cardImageBase64" />
+            <img [src]="cardImageBase64" alt="Immagine" />
           </ng-container>
           <ng-template #elseTemplate>
-            <img [src]="placeHolder" class="img-responsive">
+            <img [src]="placeHolder" alt="Immagine" class="img-responsive">
           </ng-template>
         </div>
         <div class="position-absolute top-0 end-0">
