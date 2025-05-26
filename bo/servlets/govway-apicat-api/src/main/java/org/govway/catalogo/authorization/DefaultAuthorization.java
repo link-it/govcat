@@ -102,12 +102,12 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 
 	private void authorizeRead(AccessoAmministrazioneItem generale,
 			AccessoAmministrazioneItem specifico) {
-		authorize(true, Optional.ofNullable(generale).orElse(specifico));
+		authorize(true, Optional.ofNullable(specifico).orElse(generale));
 	}
 
 	private void authorizeWrite(AccessoAmministrazioneItem generale,
 			AccessoAmministrazioneItem specifico) {
-		authorize(false, Optional.ofNullable(generale).orElse(specifico));
+		authorize(false, Optional.ofNullable(specifico).orElse(generale));
 	}
 
 	protected boolean authorizeWrite(EntitaEnum entita) {
