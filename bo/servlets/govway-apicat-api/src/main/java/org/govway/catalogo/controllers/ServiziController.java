@@ -1707,7 +1707,9 @@ public class ServiziController implements ServiziApi {
 		ServizioSpecification aspec = new ServizioSpecification();
 		aspec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
-		if(!this.coreAuthorization.isAdmin()) {
+		boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
+
+		if(!admin) {
 			if(this.coreAuthorization.isAnounymous()) {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {
