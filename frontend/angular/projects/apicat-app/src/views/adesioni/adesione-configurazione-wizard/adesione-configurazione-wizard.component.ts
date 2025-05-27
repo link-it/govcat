@@ -689,6 +689,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
                 Tools.showMessage(_msg, 'danger', true);
                 this.changingStatus = false;
+                this.isEdit = this.canEditMapper();
             },
         );
     }
