@@ -281,8 +281,8 @@ public class DominiController implements DominiApi {
 				DominioEntity entity = this.service.find(idDominio)
 						.orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
 
-				this.authorization.authorizeReferenteScrittura(entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.authorization.authorizeCreateReferenteDominio();
+				this.logger.debug("Autorizzazione completata con successo");
 
 				ReferenteDominioEntity referenteEntity = referenteAssembler.toEntity(referente, entity);
 

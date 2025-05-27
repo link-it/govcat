@@ -39,4 +39,8 @@ public class DominioAuthorization extends DefaultAuthorization<DominioCreate,Dom
 	public void authorizeDelete(DominioEntity entity) {
 		authorizeWrite(EntitaEnum.DOMINIO);
 	}
+
+	public void authorizeCreateReferenteDominio() {
+		authorizeWrite(EntitaEnum.DOMINIO);
+	}
 }
