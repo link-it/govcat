@@ -14,6 +14,29 @@ import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesn
 import * as moment from 'moment';
 import { FormGroup, Validators } from '@angular/forms';
 
+import { TipiCertificato, TipoCertificatoEnum } from '@app/views/adesioni/adesione-configurazioni/adesione-configurazioni.component';
+
+export type Certificato = {
+    file?: boolean;
+    cn?: boolean;
+    csr?: boolean;
+    csr_modulo?: boolean;
+};
+
+const MappaCertificato: Record<TipoCertificatoEnum, (keyof Certificato)[]> = {
+    [TipoCertificatoEnum.FORNITO]: ['file'],
+    [TipoCertificatoEnum.RICHIESTO_CN]: ['cn'],
+    [TipoCertificatoEnum.RICHIESTO_CSR]: ['csr']
+};
+
+export type AuthConfig = {
+  type: string;
+  certificato?: Certificato;
+  certificato_autenticazione?: Certificato;
+  certificato_firma?: Certificato;
+  [key: string]: any;
+};
+
 @Injectable({
   providedIn: 'root',
 })
@@ -375,4 +398,60 @@ export class UtilService {
       element.scrollTop = start + change;
   }
 
+    // Utilities per filtro certificati
+
+    filtraCertificatiAttivi(certificato: Certificato): Partial<Record<TipoCertificatoEnum, true>> {
+        const risultato: Partial<Record<TipoCertificatoEnum, true>> = {};
+
+        for (const [tipo, chiavi] of Object.entries(MappaCertificato)) {
+            const attivo = chiavi.some(chiave => certificato[chiave]);
+            if (attivo) {
+                risultato[tipo as TipoCertificatoEnum] = true;
+            }
+        }
+
+        return risultato;
+    }
+
+    getTipiCertificatoAttivi(certificato: Certificato): TipoCertificatoEnum[] {
+        return Object.entries(MappaCertificato)
+            .filter(([_, chiavi]) => chiavi.some(k => certificato[k]))
+            .map(([tipo]) => tipo as TipoCertificatoEnum);
+    }
+
+    getTipiCertificatoDettagliati(certificato: Certificato) {
+        const attivi = this.getTipiCertificatoAttivi(certificato);
+        return TipiCertificato.filter(tc => attivi.includes(tc.value));
+    }
+
+    /* Esempio d'uso
+
+        const certificato = {
+            file: true,
+            cn: false,
+            csr: false,
+            csr_modulo: false
+        };
+
+        const attivi = filtraCertificatiAttivi(certificato);
+        console.log(attivi);
+        // Output: { fornito: true }
+
+        const attiviDettagliati = getTipiCertificatoDettagliati(certificato);
+        console.log(attiviDettagliati);
+        // Output: [{ value: 'fornito', label: 'Fornito' }]
+    */
+
+  getCertificatoByAuthType(authConfigs: AuthConfig[], authType: string): Certificato | null {
+    const config = authConfigs.find(conf => conf.type === authType);
+    if (!config) {
+      console.warn(`Tipo di autenticazione "${authType}" non trovato.`);
+      return null;
+    }
+
+    return config.certificato 
+        ?? config.certificato_autenticazione 
+        ?? config.certificato_firma 
+        ?? null;
+  }
 }
