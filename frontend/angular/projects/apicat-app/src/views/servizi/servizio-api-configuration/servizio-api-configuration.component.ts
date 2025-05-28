@@ -604,30 +604,24 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
 
       Object.keys(this._apiProprietaCustomGrouped).forEach((key: any) => {
-        this._apiProprietaCustomGrouped[key].forEach((item: any) => {
+        (this._apiProprietaCustomGrouped[key] || []).forEach((item: any) => {
           const _validators = [];
 
           const _ruoli = this._grant?.ruoli || [];
           const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
 
-          console.group('proprieta_custom');
-          console.log(item);
-          console.log('ruoli', _ruoli);
-          console.log('hasRuolo', _hasRuolo);
-          console.groupEnd();
-
           if (_hasRuolo) {
             let required = false;
   
-            if(item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
+            if (item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
                 required = item.required;
             }
   
-            if(item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
+            if (item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
                 required = item.required;
             }
   
-            if(item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
+            if (item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
                 required = item.required;
             }
   
