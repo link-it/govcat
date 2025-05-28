@@ -220,7 +220,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     ngOnInit() {
         this.eventsManagerService.on('INIT_DATA', (event: any) => {
-            this._initData();
+            this._initData(true);
         });
 
         this.route.params.subscribe(params => {
@@ -442,9 +442,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _prepareBodySaveApi(body: any) {
-        // should check if is new or edit
-        // should check if environment is collaudo or produzione
-
         const configurazioneCollaudo: ApiConfiguration = {
             protocollo: body.protocollo,
             dati_erogazione: {
@@ -749,14 +746,14 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
     }
 
-    _initData() {
+    _initData(isInit: boolean = false) {
         if (this.service && this.servizioApi) {
             const controls: any = this._formGroup.controls;
 
-            this.__changeRuolo({ value: this.servizioApi.ruolo });
+            this.__changeRuolo({ value: this.servizioApi.ruolo }, isInit);
             controls.descrittore.setValue(this.servizioApi.configurazione_collaudo?.specifica || '');
             this._newDescrittore = false;
-            this.__descrittoreChange(this.servizioApi.configurazione_collaudo?.specifica || '');
+            this.__descrittoreChange(this.servizioApi.configurazione_collaudo?.specifica || '', isInit);
             if (this.servizioApi.gruppi_auth_type?.length !== 0) {
                 const _authTypes: ApiAuthTypeGroup[] = this.servizioApi.gruppi_auth_type || [];
                 this._risorseSelected = [];
@@ -820,8 +817,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._error = false;
             this.showHistory = false;
             const controls: any = this._formGroup.controls;
-            // controls.protocollo.clearValidators();
-            // controls.protocollo.disable();
             this._formGroup.updateValueAndValidity();
             this.__disableUrlFields(controls);
         }, 100);
@@ -914,18 +909,16 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.showHistory = !this.showHistory;
     }
 
-    __changeRuolo(event: any) {
+    __changeRuolo(event: any, isInit: boolean = false) {
         const controls = this._formGroup.controls;
         const _ruolo: string = controls.ruolo.value;
-        // if (this.des) {
-        //     this.des.reset();
-        // }
+
         setTimeout(() => {
             this.__resetGAT();
             this.__checkAutenticazione(_ruolo);
 
             if (controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
-                this.__loadRisorse();
+                if (!isInit) { this.__loadRisorse(); }
             } else {
                 this._resetProprietaCustom();
             }
@@ -946,13 +939,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _notModifiableFields = this.authenticationService._getClassesNotModifiable('servizio', 'api', this.service.stato);
         const _mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
 
-        // const _diff = _mandatoryFields.filter( function( el ) {
-        //   return _notModifiableFields.indexOf( el ) < 0;
-        // } );
-
         _mandatoryFields.forEach((field: string) => {
             if (controls[field]) {
-                // controls[field].enable();
                 controls[field].setValidators([Validators.required]);
             }
         });
@@ -1009,7 +997,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.__descrittoreChange(value);
     }
 
-    __descrittoreChange(value: any) {
+    __descrittoreChange(value: any, isInit: boolean = false) {
         this.__resetGAT();
 
         const controls = this._formGroup.controls;
@@ -1018,7 +1006,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         controls.content.patchValue(value ? value.data : null);
         controls.uuid.patchValue(value ? value.uuid : null);
         this._formGroup.updateValueAndValidity();
-        if (value && controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
+        if (value && controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO && !isInit) {
             this.__loadRisorse();
         }
     }
@@ -1030,7 +1018,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _contentType: string = controls.estensione.value ? controls.estensione.value : null;
         const _document: string = controls.content.value;
         const _uuid: string = controls.uuid.value;
-        if (_apiType && _document) {
+        if (_apiType && (_document || _uuid)) {
             const _body: any = {
                 api_type: _apiType,
                 document: {}
