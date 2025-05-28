@@ -5,7 +5,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/servizi/*", "/adesioni/*", "/gruppi/*", "/domini/*", "/soggetti/*", "/organizzazioni/*", "/client/*", "/utenti/*", "/classi-utente/*", "/pdnd/*", "/notifications/*", "/profile/*"})
+@WebFilter(urlPatterns = {"/servizi/*", "/adesioni/*", "/gruppi/*", "/domini/*", "/soggetti/*", "/organizzazioni/*", "/client/*", "/utenti/*", "/classi-utente/*", "/pdnd/*", "/notifications/*", "/profile/*", "/dashboard/*"})
 public class FrontendRoutingFilter implements Filter {
 
     @Override
