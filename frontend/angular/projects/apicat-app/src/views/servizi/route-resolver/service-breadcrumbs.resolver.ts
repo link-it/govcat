@@ -25,8 +25,7 @@ export class ServiceBreadcrumbsResolver implements Resolve<{service: Servizio, b
         const service = new Servizio({ ...response });
         const title = service.nome + ' v. ' + service.versione;
         const breadcrumbs = [
-          { label: '', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
-          { label: 'APP.TITLE.Services', url: '/servizi', type: 'link' },
+          { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
           { label: title, url: `/servizi/${service.id_servizio}/view/` , type: 'link' }
         ];
 
