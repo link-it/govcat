@@ -24,7 +24,7 @@ export class NotificationBarComponent implements OnInit, OnChanges {
 
   _notification: any = null;
 
-  _notificationState = NotificationState
+  NotificationState = NotificationState;
 
   constructor(
     private router: Router,

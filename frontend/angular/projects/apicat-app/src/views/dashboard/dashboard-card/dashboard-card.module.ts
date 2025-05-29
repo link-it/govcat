@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
 import { ComponentsModule } from '@linkit/components';
- 
+
 import { DashboardCardComponent } from './dashboard-card.component';
 
 @NgModule({
@@ -14,7 +14,7 @@ import { DashboardCardComponent } from './dashboard-card.component';
     CommonModule,
     TranslateModule,
     ComponentsModule,
-       ],
+  ],
   exports: [
     DashboardCardComponent
   ]

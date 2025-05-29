@@ -17,7 +17,6 @@ import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
-import * as moment from 'moment';
 import * as _ from 'lodash';
 
 import { NotificationType, NotificationState, NotificationEntityType } from './notifications'

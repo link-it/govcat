@@ -16,7 +16,7 @@ export const pipes = [
     HighlighterPipe,
     MapperPipe,
     PrettyjsonPipe,
-    ThousandSuffixesPipe, 
+    ThousandSuffixesPipe,
     SafeHtmlPipe,
     SafeUrlPipe,
     HttpImgSrcPipe
@@ -33,5 +33,4 @@ export {
     SafeHtmlPipe,
     SafeUrlPipe,
     HttpImgSrcPipe
-
 };

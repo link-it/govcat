@@ -12,7 +12,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 import { NgSelectModule } from '@ng-select/ng-select';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { ModalModule } from 'ngx-bootstrap/modal';
+import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { environment } from '../environments/environment';
 
 import { ComponentsModule, ConfigService, httpInterceptorProviders } from '@linkit/components';
@@ -88,7 +90,9 @@ export function storageFactory() : OAuthStorage {
 
     ComponentsModule,
     NgSelectModule,
+    TooltipModule.forRoot(),
     ModalModule.forRoot(),
+    BsDatepickerModule.forRoot(),
     HasPermissionModule,
     DisablePermissionModule,
     MarkAsteriskModule,

@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
- 
+
 import { MonitorDropdwnComponent } from './monitor-dropdown.component';
 
 @NgModule({
@@ -12,7 +12,7 @@ import { MonitorDropdwnComponent } from './monitor-dropdown.component';
   imports: [
     CommonModule,
     TranslateModule,
-       ],
+  ],
   exports: [
     MonitorDropdwnComponent
   ]

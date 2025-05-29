@@ -398,8 +398,7 @@
                 <div class="col-12" [class.col-lg-10-]="viewBoxed" *ngIf="!_showMasonry">
                     <div class="row" style="padding-right: 8px;">
                         <div *ngFor="let element of groups; trackBy: _trackBy;" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.dalign-items-stretch]="_fillBox">
-                            <ui-card class="extended" [class.flex-fill]="_fillBox"
-                                [type]="CardType.Extended"
+                            <lnk-card class="extended" [class.flex-fill]="_fillBox"
                                 [primaryText]="element.primaryText" 
                                 [secondaryText]="element.secondaryText"
                                 [image]="element.logo"
@@ -417,7 +416,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
-                            ></ui-card>
+                            ></lnk-card>
                         </div>
                     </div>
                 </div>
@@ -428,8 +427,7 @@
                     >
                     <!-- <div class="masonry-item mb-3" ngxMasonryItem [prepend]="false" style="width: 32%;" *ngFor="let element of groups; trackBy: _trackBy;"> -->
                         <div class="masonry-item mb-3" ngxMasonryItem style="width: 32%;" *ngFor="let element of groups; trackBy: _trackBy;">
-                            <ui-card class="extended" class=""
-                                [type]="CardType.Extended"
+                            <lnk-card class="extended" class=""
                                 [primaryText]="element.primaryText" 
                                 [secondaryText]="element.secondaryText"
                                 [image]="element.logo"
@@ -447,7 +445,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
-                            ></ui-card>
+                            ></lnk-card>
                         </div>
                     </ngx-masonry>
                 </div>

@@ -5,7 +5,6 @@ import { PipeTransform, Pipe } from '@angular/core';
   name: 'safeUrl', 
   standalone: false
 })
-
 export class SafeUrlPipe implements PipeTransform {
   constructor(private sanitized: DomSanitizer) { }
   transform(value: string) {

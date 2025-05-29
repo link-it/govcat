@@ -1,11 +1,11 @@
-import { Directive, ElementRef, Input, OnInit, Renderer2 } from '@angular/core';
+import { Directive, ElementRef, Input, OnChanges, OnInit, Renderer2, SimpleChanges } from '@angular/core';
 import { SafeUrl } from '@angular/platform-browser';
 
 @Directive({
     selector: '[setBackgroundImage]',
     standalone: false
 })
-export class SetBackgroundImageDirective implements OnInit {
+export class SetBackgroundImageDirective implements OnInit, OnChanges {
 
   @Input() imageUrl!: string | SafeUrl;
   @Input() position: string = 'contain';
@@ -17,5 +17,12 @@ export class SetBackgroundImageDirective implements OnInit {
     this.renderer.setStyle(this.elementRef.nativeElement, 'background-size', this.position);
     this.renderer.setStyle(this.elementRef.nativeElement, 'background-position', 'center');
     this.renderer.setStyle(this.elementRef.nativeElement, 'background-repeat', 'no-repeat');
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['imageUrl']?.currentValue && !changes['imageUrl']?.firstChange) {
+      this.imageUrl = changes['imageUrl'].currentValue['changingThisBreaksApplicationSecurity'] || changes['imageUrl'].currentValue;
+      this.renderer.setStyle(this.elementRef.nativeElement, 'backgroundImage', `url(${this.imageUrl})`);
+    }
   }
 }

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 
 import { AppComponentsModule } from "@app/components/components.module";
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
@@ -28,7 +28,7 @@ import { MarkdownModule } from 'ngx-markdown';
         CommonModule,
         FormsModule,
         TranslateModule,
-             ComponentsModule,
+        ComponentsModule,
         AppComponentsModule,
         HasPermissionModule,
         DisablePermissionModule,

@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MarkdownModule } from 'ngx-markdown';
 
 import { ComponentsModule } from '@linkit/components';
+import { AppComponentsModule } from "@app/components/components.module";
 import { TassonomiaTokenModule } from '@app/components/token/tassonomia-token.module';
 
 import { ServiziComponent } from './servizi.component';
@@ -20,6 +21,7 @@ import { ServizioViewModule } from './servizio-view/servizio-view.module';
         TranslateModule,
         MarkdownModule,
         ComponentsModule,
+        AppComponentsModule,
         TassonomiaTokenModule,
         ServiziRoutingModule,
         ServizioDetailsModule,

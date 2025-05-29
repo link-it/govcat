@@ -1,23 +1,13 @@
-import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
-
-import { UtilsLib } from '../../utils/utils.lib';
-import { EditColor } from '../classes/definitions';
-
-export enum CardType {
-  Simple = 'Simple',
-  Extended = 'Extended'
-}
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 @Component({
-  selector: 'ui-card',
-  // templateUrl: './card.component.html',
-  template: '',
+  selector: 'lnk-card',
+  templateUrl: './card.component.html',
   styleUrls: ['./card.component.scss'],
   standalone: false
 })
-export class CardComponent implements OnInit {
+export class LnkCardComponent implements OnInit {
 
-  @Input('type') _type: CardType = CardType.Simple;
   @Input('image') _image: string = '';
   @Input('showImage') _showImage: boolean = true;
   @Input('showEmptyImage') _showEmptyImage: boolean = true;
@@ -28,7 +18,7 @@ export class CardComponent implements OnInit {
   @Input('collapsed') _collapsed: boolean = true;
   @Input('checkDisabled') _checkDisabled: boolean = false;
   @Input('editMode') _editMode: boolean = false;
-  @Input('editColor') _editColor!: EditColor;
+  @Input('editColor') _editColor!: string;
   @Input('backColor') _backColor: string = '#f1f1f1';
   @Input('textColor') _textColor: string = '#000000';
   @Input('numberCharLogoText') _numberCharLogoText: number = 2;
@@ -44,18 +34,10 @@ export class CardComponent implements OnInit {
   @Output() editSelection: EventEmitter<any> = new EventEmitter();
   @Output() simpleClick: EventEmitter<any> = new EventEmitter();
 
-  @HostListener('click', ['$event']) onClick(event: any) {
-    if (this._type === CardType.Simple) {
-      this.__simpleClick(event);
-    }
-  }
-
-  CardType = CardType;
-
   _logoText: string = '';
 
   constructor(
-    public utilsLib: UtilsLib
+    // public utilsLib: UtilsLib
   ) { }
 
   ngOnInit() {
@@ -63,11 +45,7 @@ export class CardComponent implements OnInit {
     if (this._image) {
       this._backColor = '#f1f1f1';
     }
-    this._textColor = this.utilsLib.contrast(this._backColor);
-  }
-
-  __change(event: any) {
-    this.editSelection.emit({ selected: event.checked });
+    this._textColor = '#111111'; // this.utilsLib.contrast(this._backColor);
   }
 
   __simpleClick(event: any) {

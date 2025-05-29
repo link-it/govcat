@@ -2,8 +2,8 @@ import { PipeTransform, Pipe, ChangeDetectorRef, OnDestroy } from '@angular/core
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, map, switchMap, take, tap } from 'rxjs/operators';
+import { BehaviorSubject, of, Subscription } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, finalize, map, switchMap, take, tap } from 'rxjs/operators';
 
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 
@@ -22,6 +22,7 @@ export class HttpImgSrcPipe implements PipeTransform, OnDestroy {
 
     private subscription = new Subscription();
     private latestValue!: string | SafeUrl;
+    private latestBlobUrl?: string;
     private transformValue = new BehaviorSubject<string>('');
     private loadingImagePath!: string;
     private errorImagePath!: string;
@@ -38,21 +39,23 @@ export class HttpImgSrcPipe implements PipeTransform, OnDestroy {
                 distinctUntilChanged(),
                 switchMap((imagePath: string) =>
                     this.httpClient.get(imagePath, {observe: 'response', responseType: 'blob'}).pipe(
-                        take(1),
-                        map((response: HttpResponse<Blob>) => (response.body !== null ? URL.createObjectURL(response.body) : '')),
+                        map((response: HttpResponse<Blob>) => URL.createObjectURL(response.body as Blob)),
+                        tap((blobUrl) => {
+                            this.revokeLatestBlob();
+                            this.latestBlobUrl = blobUrl;
+                        }),
                         map((unsafeBlobUrl: string) => this.domSanitizer.bypassSecurityTrustUrl(unsafeBlobUrl)),
-                        filter((blobUrl: SafeUrl) => blobUrl !== this.latestValue),
+                        filter((blobUrl) => blobUrl !== this.latestValue),
+                        catchError(() => of(this.errorImagePath))
                     ),
                 ),
-                // debounceTime(1000),
                 tap((imagePath: string | SafeUrl) => {
-                    if (this.latestValue && typeof this.latestValue === 'string') {
-                        URL.revokeObjectURL(this.latestValue);
-                    }
-
                     this.latestValue = imagePath;
                     this.cdr.markForCheck();
                 }),
+                finalize(() => {
+                    this.revokeLatestBlob();
+                })
             )
             .subscribe();
 
@@ -61,13 +64,18 @@ export class HttpImgSrcPipe implements PipeTransform, OnDestroy {
 
     public ngOnDestroy(): void {
         this.subscription.unsubscribe();
-
-        if (typeof this.latestValue === 'string') {
-            URL.revokeObjectURL(this.latestValue);
-        }
     }
 
     public transform(image: ImageParams): string | SafeUrl {
+        this.setLoadingAndErrorImagePaths(image);
+        if (!image.path) {
+            return this.errorImagePath;
+        }
+        this.transformValue.next(image.path);
+        return this.latestValue || this.loadingImagePath;
+    }
+
+    private setLoadingAndErrorImagePaths(image: ImageParams): void {
         const loaderTranslateX = faImage.icon[0] / 2 - 70;
         const loaderTranslateY = faImage.icon[0] / 2 - 70;
 
@@ -93,12 +101,12 @@ export class HttpImgSrcPipe implements PipeTransform, OnDestroy {
         `;
 
         this.errorImagePath = `data:image/svg+xml;base64,${btoa(svgErrorString)}`;
+    }
 
-        if (!image.path) {
-            return this.errorImagePath;
+    private revokeLatestBlob() {
+        if (this.latestBlobUrl) {
+            URL.revokeObjectURL(this.latestBlobUrl);
+            this.latestBlobUrl = undefined;
         }
-
-        this.transformValue.next(image.path);
-        return this.latestValue || this.loadingImagePath;
     }
 }

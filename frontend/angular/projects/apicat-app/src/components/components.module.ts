@@ -13,6 +13,8 @@ import { MarkdownModule } from 'ngx-markdown';
 
 // import { ErrorViewComponent } from "@app/components/error-view/error-view.component";
 
+import { LnkCardComponent } from "@app/components/lnk-ui/card/card.component";
+
 import { LnkButtonComponent } from "@app/components/lnk-ui/button/button.component";
 import { LnkDropdwnButtonComponent } from '@app/components/lnk-ui/dropdown-button/dropdown-button.component';
 import { LnkIconToggleComponent } from '@app/components/lnk-ui/icon-toggle/icon-toggle.component';
@@ -34,6 +36,8 @@ import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
 @NgModule({
     declarations: [
         // ErrorViewComponent,
+
+        LnkCardComponent,
 
         LnkButtonComponent,
         LnkDropdwnButtonComponent,
@@ -68,6 +72,8 @@ import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
     ],
     exports: [
         // ErrorViewComponent,
+
+        LnkCardComponent,
 
         LnkButtonComponent,
         LnkDropdwnButtonComponent,

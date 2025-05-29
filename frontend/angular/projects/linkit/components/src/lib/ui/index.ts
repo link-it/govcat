@@ -5,7 +5,7 @@ import { BoxMessageComponent } from "./box-message/box-message.component";
 import { BoxSpinnerComponent } from "./box-spinner/box-spinner.component";
 import { BreadcrumbComponent } from "./breadcrumb/breadcrumb.component";
 import { BreadcrumbService } from "./breadcrumb/breadcrumb.service";
-import { CardComponent } from "./card/card.component";
+// import { CardComponent } from "./card/card.component";
 import { CollapseRowComponent } from "./collapse-row/collapse-row.component";
 import { DataTypeComponent } from "./data-type/data-type.component";
 import { DataCollapseComponent } from "./data-view/data-collapse.component";
@@ -31,7 +31,7 @@ export const ui = [
     BoxMessageComponent,
     BoxSpinnerComponent,
     BreadcrumbComponent,
-    CardComponent,
+    // CardComponent,
     CollapseRowComponent,
     DataTypeComponent,
     DataCollapseComponent,
@@ -62,7 +62,7 @@ export {
     BoxMessageComponent,
     BoxSpinnerComponent,
     BreadcrumbComponent,
-    CardComponent,
+    // CardComponent,
     CollapseRowComponent,
     DataTypeComponent,
     DataCollapseComponent,
