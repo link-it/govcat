@@ -56,6 +56,7 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 	private Optional<UtenteEntity> utente = Optional.empty();
 	private Optional<VISIBILITA> visibilita = Optional.empty();
 	private Optional<TipoServizio> tipoComponente = Optional.empty();
+	private Optional<Boolean> utenteAdmin = Optional.empty();
 
 
 	@Override
@@ -138,15 +139,18 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 
 			predLst.add(cb.or(predLstUtente.toArray(new Predicate[] {})));
 				
-			predLst.add(cb.notEqual(root.get(ServizioGruppoEntity_.stato), "archiviato"));
-
 			Predicate visibilitaNonComponente = cb.not(cb.equal(root.get(ServizioGruppoEntity_.visibilita), VISIBILITA.COMPONENTE)); 
 			Predicate visibilitaNull = cb.isNull(root.get(ServizioGruppoEntity_.visibilita)); 
 			
 			predLst.add(cb.or(visibilitaNull, visibilitaNonComponente));
 
 		}
+
+		if(this.utenteAdmin.isPresent() && !this.utenteAdmin.get()) {
+			predLst.add(cb.notEqual(root.get(ServizioGruppoEntity_.stato), "archiviato"));
+		}
 		
+
 		if (visibilita.isPresent()) {
 			predLst.add(getVisibilitaFilter(visibilita.get(), root, cb));
 		}
@@ -220,5 +224,13 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 
 	public void setTipoComponente(Optional<TipoServizio> tipoComponente) {
 		this.tipoComponente = tipoComponente;
+	}
+
+	public Optional<Boolean> getUtenteAdmin() {
+		return utenteAdmin;
+	}
+
+	public void setUtenteAdmin(Optional<Boolean> utenteAdmin) {
+		this.utenteAdmin = utenteAdmin;
 	}
 }

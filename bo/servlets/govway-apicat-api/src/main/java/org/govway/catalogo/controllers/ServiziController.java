@@ -1107,10 +1107,9 @@ public class ServiziController implements ServiziApi {
 				specification.setStati(stato);
 				
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
+				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
 				
-
 				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
-				//boolean anounymous = this.coreAuthorization.isAnounymous();
 
 				Specification<ServizioEntity> specInAttesa = null;
 
@@ -1627,6 +1626,7 @@ public class ServiziController implements ServiziApi {
 				specification.setGruppo(Optional.ofNullable(idGruppoPadre));
 				specification.setGruppoPadreNull(Optional.ofNullable(gruppoPadreNull));
 				specification.setQ(Optional.ofNullable(q));
+				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
 
 				if(tipo != null) {
 					specification.setTipoComponente(Optional.of(this.dettaglioAssembler.toTipo(tipo)));
