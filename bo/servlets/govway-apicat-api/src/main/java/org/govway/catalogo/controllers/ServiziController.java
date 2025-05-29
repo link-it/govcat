@@ -1109,7 +1109,7 @@ public class ServiziController implements ServiziApi {
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
 				
 
-				boolean admin = this.coreAuthorization.isAdmin();
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 				//boolean anounymous = this.coreAuthorization.isAnounymous();
 
 				Specification<ServizioEntity> specInAttesa = null;
@@ -1635,7 +1635,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("POST init Specification");
 
 				this.logger.info("PRE isAdmin");
-				boolean admin = this.coreAuthorization.isAdmin();
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 				this.logger.info("POST isAdmin");
 				this.logger.info("PRE isAnounymous");
 				boolean anounymous = this.coreAuthorization.isAnounymous();
@@ -1707,7 +1707,9 @@ public class ServiziController implements ServiziApi {
 		ServizioSpecification aspec = new ServizioSpecification();
 		aspec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 
-		if(!this.coreAuthorization.isAdmin()) {
+		boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
+
+		if(!admin) {
 			if(this.coreAuthorization.isAnounymous()) {
 				aspec.setUtente(Optional.of(new UtenteEntity()));
 			} else {

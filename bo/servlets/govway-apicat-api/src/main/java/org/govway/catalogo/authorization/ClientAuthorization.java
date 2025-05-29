@@ -5,18 +5,9 @@ import org.govway.catalogo.servlets.model.ClientCreate;
 import org.govway.catalogo.servlets.model.ClientUpdate;
 
 public class ClientAuthorization extends DefaultAuthorization<ClientCreate,ClientUpdate,ClientEntity> {
-	@Override
-	public void authorizeCreate(ClientCreate create) {
-		authorizeWrite(EntitaEnum.CLIENT);
+
+	public ClientAuthorization() {
+		super(EntitaEnum.CLIENT);
 	}
 
-	@Override
-	public void authorizeUpdate(ClientUpdate update, ClientEntity entity) {
-		authorizeWrite(EntitaEnum.CLIENT);
-	}
-
-	@Override
-	public void authorizeDelete(ClientEntity entity) {
-		authorizeWrite(EntitaEnum.CLIENT);
-	}
 }

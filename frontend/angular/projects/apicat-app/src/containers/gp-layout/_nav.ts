@@ -91,14 +91,6 @@ export const navItemsAdministratorMenu: INavData[] = [
         attributes: { disabled: false }
       },
       {
-        label: 'APP.MENU.Clients',
-        path: 'client',
-        url: '/client',
-        icon: 'person',
-        permission: 'CLIENTS',
-        attributes: { disabled: false }
-      },
-      {
         label: 'APP.MENU.Subjects',
         path: 'soggetti',
         url: '/soggetti',
@@ -112,6 +104,14 @@ export const navItemsAdministratorMenu: INavData[] = [
         url: '/organizzazioni',
         icon: 'organizations',
         permission: 'ORGANIZATIONS',
+        attributes: { disabled: false }
+      },
+      {
+        label: 'APP.MENU.Clients',
+        path: 'client',
+        url: '/client',
+        icon: 'person',
+        permission: 'CLIENTS',
         attributes: { disabled: false }
       },
       {

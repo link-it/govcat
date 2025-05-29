@@ -489,6 +489,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     public referents: any[] = [];
+    public serviceReferents: any[] = [];
+    public domainReferents: any[] = [];
     public referentiLoading: boolean = true;
     private modalAddReferentRef!: BsModalRef;
 
@@ -496,9 +498,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this.referentiLoading = true;
         forkJoin({
             referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
+            referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti'),
+            referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti')
         }).subscribe({
             next: (response: any) => {
                 const referents: Referent[] = response.referenti.content.map((item: any) => ({ ...item, tipo: `${item.tipo}` }));
+                const serviceReferents: Referent[] = response.referentiServizio.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_servizio` }));
+                const domainReferents: Referent[] = response.referentiDominio.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_dominio` }));
 
                 const reduceReferents = (acc: ReferentView[], cur: Referent) => {
                     const index = acc.findIndex((item: ReferentView) => item.id === cur.utente.id_utente);
@@ -507,7 +513,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                             id: cur.utente.id_utente,
                             email: cur.utente.email_aziendale,
                             name: `${cur.utente.nome} ${cur.utente.cognome}`,
-                            types: [cur.tipo != 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
+                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
                         });
                     } else {
                         acc[index].types.push(cur.tipo);
@@ -515,25 +521,38 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     return acc;
                 };
 
-                const _itemRow = this.referentiConfig.itemRow;
-                const _options = this.referentiConfig.options;
-                const _list: any = referents.map((referent: any) => {
-                    const metadataText = Tools.simpleItemFormatter(_itemRow.metadata.text, referent, _options || null);
-                    const metadataLabel = Tools.simpleItemFormatter(_itemRow.metadata.label, referent, _options || null);
+                let _list: any = referents.map((referent: any) => {
                     const element = {
                         id: referent.id,
-                        primaryText: Tools.simpleItemFormatter(_itemRow.primaryText, referent, _options || null),
-                        secondaryText: Tools.simpleItemFormatter(_itemRow.secondaryText, referent, _options || null, ' '),
-                        metadata: (metadataText || metadataLabel) ? `${metadataText}<span class="me-2">&nbsp;</span>${metadataLabel}` : '',
-                        secondaryMetadata: Tools.simpleItemFormatter(_itemRow.secondaryMetadata, referent, _options || null, ' '),
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
                     };
                     return element;
                 });
-
                 this.referents = [ ..._list ];
+
+                _list = serviceReferents.map((referent: any) => {
+                    const element = {
+                        id: referent.id,
+                        editMode: false,
+                        enableCollapse: true,
+                        source: { ...referent }
+                    };
+                    return element;
+                });
+                this.serviceReferents = [ ..._list ];
+
+                _list = domainReferents.map((referent: any) => {
+                    const element = {
+                        id: referent.id,
+                        editMode: false,
+                        enableCollapse: true,
+                        source: { ...referent }
+                    };
+                    return element;
+                });
+                this.domainReferents = [ ..._list ];
 
                 this.referentiLoading = false;
             },
@@ -671,6 +690,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
                 Tools.showMessage(_msg, 'danger', true);
                 this.changingStatus = false;
+                this.isEdit = this.canEditMapper();
             },
         );
     }

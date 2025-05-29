@@ -68,6 +68,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class AdesioneAuthorization extends DefaultWorkflowAuthorization<AdesioneCreate,AdesioneUpdate,AdesioneEntity> {
 
+	public AdesioneAuthorization() {
+		super(EntitaEnum.ADESIONE);
+	}
+
 	private Logger logger = LoggerFactory.getLogger(AdesioneAuthorization.class);
 
 	@Autowired

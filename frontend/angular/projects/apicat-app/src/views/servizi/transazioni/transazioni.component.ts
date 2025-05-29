@@ -469,6 +469,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
       _path = `${this.environmentId}/diagnostica/lista-transazioni-id`;
     }
 
+    this._allElements = 0;
     this._spin = true;
     
     this.apiService.postMonitor(`${_path}`, _data).subscribe({

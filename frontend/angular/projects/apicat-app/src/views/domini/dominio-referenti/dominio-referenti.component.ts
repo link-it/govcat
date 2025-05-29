@@ -408,13 +408,9 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
     );
   }
 
-  // _onChangeTipoReferente(isReferent: boolean) {
-  //   this.referentiFilter = isReferent ? 'referente_servizio,gestore' : '';
-  // }
-
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore' },
+      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }

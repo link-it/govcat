@@ -9,6 +9,9 @@ import { ConfigService } from '@linkit/components';
 import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { UtilService } from '@app/services/utils.service';
+import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { EventType } from 'projects/tools/src/lib/classes/events';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
@@ -29,6 +32,8 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
 
 import * as _ from 'lodash';
 declare const saveAs: any;
+
+import { Certificato } from '@app/services/utils.service';
 
 @Component({
   selector: 'app-client-details',
@@ -190,17 +195,20 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     private modalService: BsModalService,
     private configService: ConfigService,
     public tools: Tools,
-    public apiService: OpenAPIService,
-    public authenticationService: AuthenticationService
+    private apiService: OpenAPIService,
+    private authenticationService: AuthenticationService,
+    private utils: UtilService,
+    private eventsManagerService: EventsManagerService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
 
   ngOnInit() {
-    this._tipoCertificatoEnum = fake_tipoCertificatoEnum;
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
-    if (Tools.Configurazione) Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+    if (Tools.Configurazione) {
+      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+    }
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -224,6 +232,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         
         this._spin = false;
       }
+    });
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
+      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this.initTipiCertificato();
     });
   }
 
@@ -505,6 +518,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       this._formGroup.updateValueAndValidity();
 
       this._showMandatoryFields(controls);
+
+      this.initTipiCertificato();
     }
   }
 
@@ -1404,9 +1419,24 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     controls.client_id.updateValueAndValidity();
     controls.username.clearValidators();
     controls.username.updateValueAndValidity();
-}
+  }
+
+  initTipiCertificato() {
+    this._tipoCertificatoEnum = [];
+  
+    const auth_type = this._formGroup.controls.auth_type.value;
+    const authTypes: any = this.authenticationService._getConfigModule('servizio')?.api?.auth_type || [];
+
+    const certificato: Certificato | null = this.utils.getCertificatoByAuthType(authTypes, auth_type);
+    if (certificato) {
+      this._isRichiesto_csr = certificato.csr_modulo || false;
+      this._tipoCertificatoEnum = this.utils.getTipiCertificatoAttivi(certificato);
+    }
+  }
 
   _onChangeAuthType(auth_type: any = null) {
+    this.initTipiCertificato();
+
     if (auth_type == null && this._isNew) {
       auth_type = this._formGroup.controls.auth_type.value;
       this._onChangeAuthType('valore_a_caso_per_resettare_le_variabili')

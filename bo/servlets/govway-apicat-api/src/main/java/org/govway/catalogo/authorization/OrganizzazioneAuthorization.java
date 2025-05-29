@@ -24,18 +24,9 @@ import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 
 public class OrganizzazioneAuthorization extends DefaultAuthorization<OrganizzazioneCreate,OrganizzazioneUpdate,OrganizzazioneEntity> {
-	@Override
-	public void authorizeCreate(OrganizzazioneCreate create) {
-		authorizeWrite(EntitaEnum.ORGANIZZAZIONE);
+
+	public OrganizzazioneAuthorization() {
+		super(EntitaEnum.ORGANIZZAZIONE);
 	}
 
-	@Override
-	public void authorizeUpdate(OrganizzazioneUpdate update, OrganizzazioneEntity entity) {
-		authorizeWrite(EntitaEnum.ORGANIZZAZIONE);
-	}
-
-	@Override
-	public void authorizeDelete(OrganizzazioneEntity entity) {
-		authorizeWrite(EntitaEnum.ORGANIZZAZIONE);
-	}
 }

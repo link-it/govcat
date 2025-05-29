@@ -24,18 +24,8 @@ import org.govway.catalogo.servlets.model.ClasseUtenteCreate;
 import org.govway.catalogo.servlets.model.ClasseUtenteUpdate;
 
 public class ClasseUtenteAuthorization extends DefaultAuthorization<ClasseUtenteCreate,ClasseUtenteUpdate,ClasseUtenteEntity> {
-	@Override
-	public void authorizeCreate(ClasseUtenteCreate create) {
-		authorizeWrite(EntitaEnum.CLASSE_UTENTE);
-	}
 
-	@Override
-	public void authorizeUpdate(ClasseUtenteUpdate update, ClasseUtenteEntity entity) {
-		authorizeWrite(EntitaEnum.CLASSE_UTENTE);
-	}
-
-	@Override
-	public void authorizeDelete(ClasseUtenteEntity entity) {
-		authorizeWrite(EntitaEnum.CLASSE_UTENTE);
+	public ClasseUtenteAuthorization() {
+		super(EntitaEnum.CLASSE_UTENTE);
 	}
 }

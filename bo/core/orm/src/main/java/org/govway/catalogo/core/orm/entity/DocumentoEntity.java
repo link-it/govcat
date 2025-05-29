@@ -21,14 +21,7 @@ package org.govway.catalogo.core.orm.entity;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import org.hibernate.annotations.Type;
 
@@ -55,6 +48,7 @@ public class DocumentoEntity {
 	@Column( nullable = false, name = "rawdata")
 	@Lob
 	@Type(type = "org.hibernate.type.ImageType")
+	@Convert(disableConversion = true)
 	private byte[] rawData;
 	
 	@Column(nullable = true, name = "versione")

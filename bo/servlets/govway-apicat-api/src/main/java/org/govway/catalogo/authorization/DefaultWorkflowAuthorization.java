@@ -45,6 +45,10 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 
 	private Logger logger = LoggerFactory.getLogger(DefaultWorkflowAuthorization.class);
 	
+	public DefaultWorkflowAuthorization(EntitaEnum entita) {
+		super(entita);
+	}
+	
 	@Override
 	public void authorizeCambioStato(ENTITY entity, String statoFinale) {
 		

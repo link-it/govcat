@@ -13,7 +13,7 @@
             <i class="bi bi-pencil"></i>
           </button>
         </div>
-        <ng-template [appHasPermission]="'utenti'" [action]="'delete'">
+        <!-- <ng-template [appHasPermission]="'utenti'" [action]="'delete'">
           <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
             <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
               <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
@@ -37,7 +37,7 @@
               </ul>
             </div>
           </div>
-        </ng-template>
+        </ng-template> -->
         <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
           <button aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
             <i class="bi bi-x-lg"></i>

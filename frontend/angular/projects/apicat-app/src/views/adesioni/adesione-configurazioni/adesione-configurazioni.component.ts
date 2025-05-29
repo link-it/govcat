@@ -46,16 +46,16 @@ export enum StatoConfigurazioneEnum {
     CONFIGINPROGRESS = 'config_in_progress'
 }
 
-export const fake_tipoCertificatoEnum = [
-    { 'nome': 'fornito', 'value': 'fornito'}, 
-    { 'nome': 'richiesto_cn', 'value': 'richiesto_cn'}, 
-    { 'nome': 'richiesto_csr', 'value': 'richiesto_csr'}
-];
+export enum TipoCertificatoEnum {
+    FORNITO = 'fornito',
+    RICHIESTO_CN = 'richiesto_cn',
+    RICHIESTO_CSR = 'richiesto_csr'
+}
 
-export const fake_credenziali = [
-    {'nome': 'Nuove credenziali'}, 
-    {'nome': 'client_modi_p1'}, 
-    {'nome': 'client_modi_p2'}
+export const TipiCertificato = [
+    { 'nome': 'fornito', 'value': TipoCertificatoEnum.FORNITO}, 
+    { 'nome': 'richiesto_cn', 'value': TipoCertificatoEnum.RICHIESTO_CN}, 
+    { 'nome': 'richiesto_csr', 'value': TipoCertificatoEnum.RICHIESTO_CSR}
 ];
 
 declare const saveAs: any;
@@ -161,8 +161,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     _collaudo: boolean = true;
     environmentId: string = ''; // collaudo / produzione
 
-    _fake_credenziali: any[] = [];
-    _fake_tipoCertificatoEnum: any[] = [];
+    _tipiCertificato: any[] = [];
 
     _isFornito: boolean = false; 
     _isRichiesto_cn: boolean = false; 
@@ -276,8 +275,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     ngOnInit() {    
         this._loadGeneralConfig();
         
-        this._fake_credenziali = fake_credenziali;
-        this._fake_tipoCertificatoEnum = fake_tipoCertificatoEnum;
+        this._tipiCertificato = TipiCertificato;
 
         this.route.params.subscribe(params => {
             this._spin = true;
@@ -1370,7 +1368,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     _onChangeTipoReferente(isReferent: boolean) {
-        this.referentiFilter = isReferent ? 'referente_servizio,gestore' : '';
+        this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
     }
 
     _onShowTab(item: any, tab: string = '') {
@@ -1412,7 +1410,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
     loadAnagrafiche() {
         this.anagrafiche['tipo-referente'] = [
-            { nome: 'referente', filter: 'referente_servizio,gestore' },
+            { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
             { nome: 'referente_tecnico', filter: '' }
         ];
     }
