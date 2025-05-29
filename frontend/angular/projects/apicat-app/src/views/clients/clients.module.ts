@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 
 import { ClientsRoutingModule } from './clients-routing.module';
@@ -16,7 +16,7 @@ import { ClientDetailsModule } from './client-details/client-details.module';
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     HasPermissionModule,
     ClientsRoutingModule,
     ClientDetailsModule

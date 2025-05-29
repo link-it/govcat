@@ -10,8 +10,7 @@ import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventsManagerService, EventType } from '@linkit/components';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
