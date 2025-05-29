@@ -89,6 +89,8 @@ public class AbstractService {
 	protected DominioProfiloRepository dominioProfiloRepo;
 	@Autowired
     protected SoggettoProfiloRepository soggettoProfiloRepo;
+	@Autowired
+	protected TokenPolicyRepository tokenPolicyRepo;
 
 	@Autowired
 	protected JpaTransactionManager txManager;

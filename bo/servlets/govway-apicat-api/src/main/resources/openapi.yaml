@@ -8059,6 +8059,38 @@ components:
     ItemTokenPolicy:
       allOf:
         - $ref: "#/components/schemas/TokenPolicyBaseRead"
+        - type: "object"
+          required:
+            - auth_url
+            - alg_options
+            - alg_default
+            - type
+            - audience
+            - expires_in
+            - audience_audit
+            - audience_integrity
+          properties:
+            auth_url:
+              $ref: '#/components/schemas/String255'
+            scope:
+              $ref: '#/components/schemas/String255'
+            alg_options:
+              type: array
+              items:
+                $ref: '#/components/schemas/String255'
+            alg_default:
+              $ref: '#/components/schemas/String255'
+            type:
+              $ref: '#/components/schemas/String255'
+            audience:
+              $ref: '#/components/schemas/String255'
+            expires_in:
+              type: integer
+              format: int32
+            audience_audit:
+              $ref: '#/components/schemas/String255'
+            audience_integrity:
+              $ref: '#/components/schemas/String255'
     TokenPolicyUpdate:
       allOf:
         - $ref: "#/components/schemas/TokenPolicyCreate"

@@ -748,4 +748,16 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 
     @Bean
     public ProfiloAuthorization profiloAuthorization() { return new ProfiloAuthorization(); }
+
+    @Bean
+    public TokenPolicyEngineAssembler tokenPolicyEngineAssembler() { return new TokenPolicyEngineAssembler(); }
+
+    @Bean
+    public TokenPolicyDettaglioAssembler tokenPolicyDettaglioAssembler() { return new TokenPolicyDettaglioAssembler(tokenPolicyEngineAssembler()); }
+
+    @Bean
+    public TokenPolicyItemAssembler tokenPolicyItemAssembler() { return new TokenPolicyItemAssembler(tokenPolicyEngineAssembler()); }
+
+    @Bean
+    public TokenPolicyAuthorization tokenPolicyAuthorization() { return new TokenPolicyAuthorization(); }
 }
