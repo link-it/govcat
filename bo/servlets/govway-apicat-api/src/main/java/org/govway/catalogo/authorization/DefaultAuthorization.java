@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
-import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.servlets.model.AccessoAmministrazioneItem;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
@@ -79,8 +78,12 @@ public abstract class DefaultAuthorization<CREATE,UPDATE,ENTITY> implements IAut
 			case UTENTE: 
 				specifico = this.configurazione.getAmministrazione().getUtenti();
 				break;
-			case ADESIONE: throw new InternalException("Non usare questo metodo per servizi / adesioni");
-			case SERVIZIO: throw new InternalException("Non usare questo metodo per servizi / adesioni");
+			case ADESIONE:
+				this.coreAuthorization.requireAdmin();
+				break;
+			case SERVIZIO:
+				this.coreAuthorization.requireAdmin();
+				break;
 			default:
 				break;
 			}
