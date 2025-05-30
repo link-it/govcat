@@ -13,7 +13,7 @@ import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.servi
 import { EventType } from 'projects/tools/src/lib/classes/events';
 
 import { Grant, RightsEnum } from '@app/model/grant';
-import { TipoClientEnum, SelectedClientEnum, StatoConfigurazioneEnum, fake_tipoCertificatoEnum, fake_credenziali } from '../../adesione-configurazioni/adesione-configurazioni.component';
+import { TipoClientEnum, SelectedClientEnum, StatoConfigurazioneEnum } from '../../adesione-configurazioni/adesione-configurazioni.component';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
 
 import { PeriodEnum, Datispecifici, DatiSpecItem, CommonName, DoubleCert } from '../../adesione-configurazioni/datispecifici';
@@ -25,6 +25,7 @@ import * as _ from 'lodash';
 
 import { CkeckProvider } from '@app/provider/check.provider';
 import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
+import { Certificato } from '@app/services/utils.service';
 
 @Component({
     selector: 'app-adesione-lista-clients',
@@ -71,16 +72,30 @@ export class AdesioneListaClientsComponent implements OnInit {
     ) { }
 
     ngOnInit() {
-        this._fake_credenziali = fake_credenziali;
-        this._fake_tipoCertificatoEnum = fake_tipoCertificatoEnum;
-
-        this.loadAdesioneClients(this.environment);
+        this.initData();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes.dataCheck) {
             this.dataCheck = changes.dataCheck.currentValue;
             this.updateMapper = new Date().getTime().toString();
+        }
+    }
+
+    initData() {
+        this.initTipiCertificato('');
+        this.loadAdesioneClients(this.environment);
+    }
+
+    initTipiCertificato(auth_type: string) {
+        this._tipiCertificato = [];
+
+        const authTypes: any = this.authenticationService._getConfigModule('servizio')?.api?.auth_type || [];
+
+        const certificato: Certificato | null = this.utils.getCertificatoByAuthType(authTypes, auth_type);
+        if (certificato) {
+            this._isRichiesto_csr = certificato.csr_modulo || false;
+            this._tipiCertificato = this.utils.getTipiCertificatoAttivi(certificato).map((c: string) => { return { nome: c, valore: c }; });
         }
     }
 
@@ -290,8 +305,7 @@ export class AdesioneListaClientsComponent implements OnInit {
     _show_nome_proposto: boolean = false;
     _show_client_form: boolean = true;
 
-    _fake_credenziali: any[] = [];
-    _fake_tipoCertificatoEnum: any[] = [];
+    _tipiCertificato: any[] = [];
 
     _isFornito_firma: boolean = false; 
     _isRichiesto_cn_firma: boolean = false; 
@@ -388,6 +402,8 @@ export class AdesioneListaClientsComponent implements OnInit {
 
     _onEditClient(client: any) {
         this._resetError();
+
+        this.initTipiCertificato(client.auth_type);
 
         this.client = client;
 
@@ -1720,5 +1736,4 @@ export class AdesioneListaClientsComponent implements OnInit {
             });
         }
     }
-
 }

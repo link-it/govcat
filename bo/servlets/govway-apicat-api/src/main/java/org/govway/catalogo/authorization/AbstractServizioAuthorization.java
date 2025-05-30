@@ -61,6 +61,10 @@ import org.springframework.data.domain.Pageable;
 
 public abstract class AbstractServizioAuthorization extends DefaultWorkflowAuthorization<ServizioCreate,ServizioUpdate,ServizioEntity> {
 
+	public AbstractServizioAuthorization() {
+		super(EntitaEnum.SERVIZIO);
+	}
+
 	@Autowired
 	protected Configurazione configurazione;
 	
