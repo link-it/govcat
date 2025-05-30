@@ -6,14 +6,14 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Language } from 'projects/components/src/lib/classes/language';
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { LocalStorageService } from 'projects/tools/src/lib/local-storage.service';
-import { BreadcrumbService } from 'projects/components/src/lib/ui/breadcrumb/breadcrumb.service';
+import { Tools } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
+import { Language } from '@linkit/components';
+import { MenuAction } from '@linkit/components';
+import { EventType } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { LocalStorageService } from '@linkit/components';
+import { BreadcrumbService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
@@ -34,7 +34,8 @@ import * as _ from 'lodash';
 @Component({
     selector: 'gp-layout',
     templateUrl: './gp-layout.component.html',
-    styleUrls: ['./gp-layout.component.scss']
+    styleUrls: ['./gp-layout.component.scss'],
+    standalone: false
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GpLayoutComponent';

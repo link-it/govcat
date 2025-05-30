@@ -7,18 +7,18 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { CardType } from 'projects/components/src/lib/ui/card/card.component';
 import { Page} from '../../models/page';
+import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 
 export interface Gruppo {
     id_gruppo: string;
@@ -47,7 +47,8 @@ interface Immagine {
 @Component({
     selector: 'app-gruppi',
     templateUrl: 'gruppi.component.html',
-    styleUrls: ['gruppi.component.scss']
+    styleUrls: ['gruppi.component.scss'],
+    standalone: false
 })
 export class GruppiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GruppiComponent';

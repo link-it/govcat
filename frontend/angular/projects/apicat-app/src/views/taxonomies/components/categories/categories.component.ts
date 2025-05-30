@@ -2,8 +2,8 @@ import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -11,7 +11,8 @@ import { UtilService } from '@app/services/utils.service';
 @Component({
   selector: 'app-categories',
   templateUrl: 'categories.component.html',
-  styleUrls: ['categories.component.scss']
+  styleUrls: ['categories.component.scss'],
+  standalone: false
 })
 export class CategoriesComponent implements OnInit, OnChanges {
   static readonly Name = 'CategoriesComponent';

@@ -4,7 +4,7 @@ import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -23,7 +23,8 @@ import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
 @Component({
     selector: 'app-adesione-form',
     templateUrl: './adesione-form.component.html',
-    styleUrls: ['./adesione-form.component.scss']
+    styleUrls: ['./adesione-form.component.scss'],
+    standalone: false
 })
 export class AdesioneFormComponent implements OnInit {
 

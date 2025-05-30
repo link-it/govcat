@@ -1,4 +1,4 @@
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 import { DialogService } from "./services/dialog.service";
 
 const initialState = {

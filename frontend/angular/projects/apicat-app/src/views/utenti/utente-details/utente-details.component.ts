@@ -5,14 +5,14 @@ import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/fo
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { FieldClass } from 'projects/components/src/lib/classes/definitions';
+import { FieldClass } from '@linkit/components'
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Utente, Ruolo, Stato } from './utente';
 
@@ -25,7 +25,8 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-utente-details',
   templateUrl: 'utente-details.component.html',
-  styleUrls: ['utente-details.component.scss']
+  styleUrls: ['utente-details.component.scss'],
+  standalone: false
 })
 export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtenteDetailsComponent';

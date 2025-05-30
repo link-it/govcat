@@ -216,7 +216,7 @@
   &:active,
   &:focus,
   &:focus:active {
-    // @include gp-focus($inset: true);
+    @include gp-focus($inset: true);
   }
 
   &.dropdown-menu-user-link {

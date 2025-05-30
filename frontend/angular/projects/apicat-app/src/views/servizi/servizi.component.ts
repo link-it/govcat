@@ -7,41 +7,42 @@ import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { LocalStorageService } from 'projects/tools/src/lib/local-storage.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { LocalStorageService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { BreadcrumbService } from 'projects/components/src/lib/ui/breadcrumb/breadcrumb.service';
+import { EventType } from '@linkit/components';
+import { BreadcrumbService } from '@linkit/components'
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components'
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { CardType } from 'projects/components/src/lib/ui/card/card.component';
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
 
 import * as _ from 'lodash';
+import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 declare const saveAs: any;
 
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
-    styleUrls: ['servizi.component.scss']
-    })
+    styleUrls: ['servizi.component.scss'],
+    standalone: false
+})
 export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServiziComponent';
     readonly model: string = 'servizi';
 
-    @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+    @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
     _production: boolean = true; // environment.production;
     
@@ -369,7 +370,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ngOnDestroy() {}
 
     ngAfterViewInit() {
-        if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+        if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
             setTimeout(() => {
                 if (this.localStorageService.getItem('PROFILE')) {
                     this.refresh();
@@ -385,7 +386,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     refresh(hideLoader: boolean = false) {
         this._hideLoader = hideLoader;
         if (this._groupsView) {
-            this.searchGoogleForm._clearSearch(null);
+            this.searchBarForm._clearSearch(null);
             this._filterData = null;
             // this._loadServiziGruppi();
         } else {
@@ -584,8 +585,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onEdit(event: any, param: any) {
-        if (this.searchGoogleForm) {
-            this.searchGoogleForm._pinLastSearch();
+        if (this.searchBarForm) {
+            this.searchBarForm._pinLastSearch();
         }
         if (this.showPresentation) {
             this.router.navigate([this.model, param.idServizio, 'view']);
@@ -595,8 +596,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onEditGroup(event: any, param: any) {
-        if (this.searchGoogleForm) {
-            this.searchGoogleForm._pinLastSearch();
+        if (this.searchBarForm) {
+            this.searchBarForm._pinLastSearch();
         }
         if (param.type === 'servizio') {
             if (this.showPresentation) {
@@ -654,8 +655,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onSubmit(form: any) {
-        if (this.searchGoogleForm) {
-            this.searchGoogleForm._onSearch();
+        if (this.searchBarForm) {
+            this.searchBarForm._onSearch();
         }
     }
 
@@ -939,14 +940,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     onSelectedSearchDropdwon($event: Event){
-        this.searchGoogleForm.setNotCloseForm(true)
+        this.searchBarForm.setNotCloseForm(true)
         $event.stopPropagation();
     }
 
     onChangeSearchDropdwon(event: any){
         this._searchApiSelected = event;
         setTimeout(() => {
-            this.searchGoogleForm.setNotCloseForm(false)
+            this.searchBarForm.setNotCloseForm(false)
         }, 200);
     }
 
@@ -978,7 +979,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     modalChoiceRef!: BsModalRef;
 
     openChoiceGroupModal(event: any) {
-        this.searchGoogleForm.setNotCloseForm(true)
+        this.searchBarForm.setNotCloseForm(true)
         event.stopPropagation();
 
         const initialState = {
@@ -1011,7 +1012,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _listaCategorie: any[] = [];
 
     openChoiceCategoriesModal(event: any) {
-        this.searchGoogleForm.setNotCloseForm(true)
+        this.searchBarForm.setNotCloseForm(true)
         event.stopPropagation();
 
         const initialState = {

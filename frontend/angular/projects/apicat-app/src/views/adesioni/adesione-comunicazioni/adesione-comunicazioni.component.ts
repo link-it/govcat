@@ -4,10 +4,10 @@ import { UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
-import { SenderComponent } from 'projects/components/src/lib/ui/sender/sender.component';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
+import { SenderComponent } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { AuthenticationService } from '@services/authentication.service';
 
@@ -21,7 +21,8 @@ import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/servic
 @Component({
   selector: 'app-adesione-comunicazioni',
   templateUrl: 'adesione-comunicazioni.component.html',
-  styleUrls: ['adesione-comunicazioni.component.scss']
+  styleUrls: ['adesione-comunicazioni.component.scss'],
+  standalone: false
 })
 export class AdesioneComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneComunicazioniComponent';

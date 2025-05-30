@@ -7,8 +7,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig, BsDatepickerContainerComponent, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
 import { TimepickerConfig } from 'ngx-bootstrap/timepicker';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
@@ -160,7 +160,8 @@ const domainStatistics = [
 @Component({
   selector: 'app-statistiche',
   templateUrl: 'statistiche.component.html',
-  styleUrls: ['statistiche.component.scss']
+  styleUrls: ['statistiche.component.scss'],
+  standalone: false
 })
 export class StatisticheComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'StatisticheComponent';

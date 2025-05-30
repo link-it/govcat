@@ -1,12 +1,13 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { Observable } from "rxjs";
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 @Component({
     selector: "[recursive]",
     templateUrl: "./tree-view.component.html",
-    styleUrls: ["./tree-view.component.scss"]
+    styleUrls: ["./tree-view.component.scss"],
+    standalone: false
 })
 export class TreeViewComponent implements OnChanges {
 

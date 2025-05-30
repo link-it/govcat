@@ -27,7 +27,7 @@
   <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
     <div class="row align-items-center">
       <div class="col-12">
-        <ui-search-google-form #searchGoogleForm
+        <ui-search-bar-form #searchBarForm
           [classBlock]="''"
           [placeholder]="'APP.PLACEHOLDER.Search' | translate"
           [showHistory]="showHistory"
@@ -118,14 +118,14 @@
                 </div>
 
                 <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
-                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
                   <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
                 </div>
                 <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
               </fieldset>
             </form>
           </div>
-        </ui-search-google-form>
+        </ui-search-bar-form>
       </div>
     </div>
   </section>

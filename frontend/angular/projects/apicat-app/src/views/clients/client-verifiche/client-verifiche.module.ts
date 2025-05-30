@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 // import { BackWebModule } from '../components/back-web/back-web.module';
 
 import { ClientVerificheComponent } from './client-verifiche.component';
@@ -16,8 +15,7 @@ import { ClientVerificheRoutingModule } from './client-verifiche-routing.module'
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     // BackWebModule,
     ClientVerificheRoutingModule
   ],

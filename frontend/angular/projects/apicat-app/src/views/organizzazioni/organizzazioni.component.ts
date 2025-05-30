@@ -5,26 +5,27 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page } from '../../models/page';
 
 @Component({
   selector: 'app-organizzazioni',
   templateUrl: 'organizzazioni.component.html',
-  styleUrls: ['organizzazioni.component.scss']
+  styleUrls: ['organizzazioni.component.scss'],
+  standalone: false
 })
 export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'OrganizzazioniComponent';
   readonly model: string = 'organizzazioni';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   config: any;
   organizzazioniConfig: any;
@@ -234,8 +235,8 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 

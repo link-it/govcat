@@ -4,11 +4,11 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -16,12 +16,13 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 @Component({
   selector: 'app-servizio-api',
   templateUrl: 'servizio-api.component.html',
-  styleUrls: ['servizio-api.component.scss']
+  styleUrls: ['servizio-api.component.scss'],
+  standalone: false
 })
 export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioApiComponent';

@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 
 import { TreeViewCategoryModule } from '@app/components/tree-view-category/tree-view-category.module';
 
@@ -17,8 +16,7 @@ import { CategoriesModule } from '../../views/taxonomies/components/categories/c
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     TreeViewCategoryModule,
     CategoriesModule
   ],

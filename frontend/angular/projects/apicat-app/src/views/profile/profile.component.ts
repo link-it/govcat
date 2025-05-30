@@ -4,9 +4,9 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -24,7 +24,8 @@ interface BodySettingsType {
 @Component({
   selector: 'app-profile',
   templateUrl: 'profile.component.html',
-  styleUrls: ['profile.component.scss']
+  styleUrls: ['profile.component.scss'],
+  standalone: false
 })
 export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ProfileComponent';

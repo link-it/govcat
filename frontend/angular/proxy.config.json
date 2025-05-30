@@ -1,18 +1,18 @@
 {
-  "/govcat-api/*": {
-    "target": "http://localhost:8080",
+  "/govcat-api/**": {
+    "target": "http://localhost:8888",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
- "/govcat-api.pdnd/*": {
-    "target": "http://localhost:8080",
+  "/govcat-api.pdnd/**": {
+    "target": "http://localhost:8888",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
- "/govcat-api.monitor/*": {
-    "target": "http://localhost:8080",
+  "/govcat-api.monitor/**": {
+    "target": "http://localhost:8888",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true

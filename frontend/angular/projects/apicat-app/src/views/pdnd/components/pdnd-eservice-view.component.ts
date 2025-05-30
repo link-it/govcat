@@ -100,7 +100,8 @@ const attributeListConfiguration = {
 @Component({
   selector: 'pdnd-service-view',
   templateUrl: 'pdnd-eservice-view.component.html',
-  styleUrls: ['pdnd-eservice-view.component.scss']
+  styleUrls: ['pdnd-eservice-view.component.scss'],
+  standalone: false
 })
 export class PdndEServiceViewComponent implements OnChanges {
   public views: PdndView[] = [

@@ -10,7 +10,8 @@ import { NotificationState, NotificationType, NotificationEntityType } from '../
 @Component({
   selector: 'app-notification-bar',
   templateUrl: 'notification-bar.component.html',
-  styleUrls: ['notification-bar.component.scss']
+  styleUrls: ['notification-bar.component.scss'],
+  standalone: false
 })
 export class NotificationBarComponent implements OnInit, OnChanges {
 
@@ -23,7 +24,7 @@ export class NotificationBarComponent implements OnInit, OnChanges {
 
   _notification: any = null;
 
-  _notificationState = NotificationState
+  NotificationState = NotificationState;
 
   constructor(
     private router: Router,

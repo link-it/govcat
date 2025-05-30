@@ -5,9 +5,9 @@ import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } fro
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -18,7 +18,8 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-taxonomy-details',
   templateUrl: 'taxonomy-details.component.html',
-  styleUrls: ['taxonomy-details.component.scss']
+  styleUrls: ['taxonomy-details.component.scss'],
+  standalone: false
 })
 export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
   static readonly Name = 'TaxonomyDetailsComponent';

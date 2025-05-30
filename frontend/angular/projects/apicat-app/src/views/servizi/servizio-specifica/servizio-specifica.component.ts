@@ -6,15 +6,15 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
@@ -28,7 +28,8 @@ declare const saveAs: any;
 @Component({
   selector: 'app-servizio-specifica',
   templateUrl: 'servizio-specifica.component.html',
-  styleUrls: ['servizio-specifica.component.scss']
+  styleUrls: ['servizio-specifica.component.scss'],
+  standalone: false
 })
 export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioSpecificaComponent';

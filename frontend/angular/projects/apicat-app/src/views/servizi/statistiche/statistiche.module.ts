@@ -6,8 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 import { getSetGlobalLocale } from 'ngx-bootstrap/chronos';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 // import { BackWebModule } from '../components/back-web/back-web.module';
 
 import { StatisticheComponent } from './statistiche.component';
@@ -20,8 +19,7 @@ import { TimepickerConfig } from 'ngx-bootstrap/timepicker';
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     // BackWebModule,
     StatisticheRoutingModule,
     MarkAsteriskModule
