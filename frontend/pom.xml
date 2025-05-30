@@ -49,7 +49,7 @@
 						</goals>
 						<phase>generate-resources</phase>
 						<configuration>
-							<arguments>install --force</arguments>
+							<arguments>install</arguments>
 							<workingDirectory>${angular.dir}</workingDirectory>
 						</configuration>
 					</execution>
