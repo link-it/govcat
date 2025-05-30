@@ -4,11 +4,11 @@ import { UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
-import { SenderComponent } from 'projects/components/src/lib/ui/sender/sender.component';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
+import { SenderComponent } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { AuthenticationService } from '@services/authentication.service';
 
@@ -24,7 +24,8 @@ import * as moment from 'moment';
 @Component({
   selector: 'app-servizio-comunicazioni',
   templateUrl: 'servizio-comunicazioni.component.html',
-  styleUrls: ['servizio-comunicazioni.component.scss']
+  styleUrls: ['servizio-comunicazioni.component.scss'],
+  standalone: false
 })
 export class ServizioComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioComunicazioniComponent';

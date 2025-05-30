@@ -1,10 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { EventType } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 

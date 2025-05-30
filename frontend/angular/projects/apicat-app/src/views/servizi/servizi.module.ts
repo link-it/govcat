@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
+import { MarkdownModule } from 'ngx-markdown';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { ComponentsModule } from '@linkit/components';
+import { AppComponentsModule } from "@app/components/components.module";
 import { TassonomiaTokenModule } from '@app/components/token/tassonomia-token.module';
 
 import { ServiziComponent } from './servizi.component';
@@ -18,8 +19,9 @@ import { ServizioViewModule } from './servizio-view/servizio-view.module';
         CommonModule,
         FormsModule,
         TranslateModule,
-        VendorsModule,
+        MarkdownModule,
         ComponentsModule,
+        AppComponentsModule,
         TassonomiaTokenModule,
         ServiziRoutingModule,
         ServizioDetailsModule,

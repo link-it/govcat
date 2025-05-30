@@ -4,12 +4,12 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 import { TranslateService } from '@ngx-translate/core';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { Tools } from '@linkit/components';
 import { forkJoin } from 'rxjs';
 import { ComponentAuthTypeEnum } from '@app/model/componentAuthTypeEnum';
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { MenuAction } from '@linkit/components';
 import { Grant } from '@app/model/grant';
 
 import * as _ from 'lodash';
@@ -218,7 +218,8 @@ const clientRowConfig = {
 @Component({
   selector: 'app-adesione-view',
   templateUrl: './adesione-view.component.html',
-  styleUrls: ['./adesione-view.component.scss']
+  styleUrls: ['./adesione-view.component.scss'],
+  standalone: false
 })
 export class AdesioneViewComponent implements OnInit {
 

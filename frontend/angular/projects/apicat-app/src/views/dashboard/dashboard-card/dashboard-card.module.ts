@@ -2,8 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
+import { ComponentsModule } from '@linkit/components';
 
 import { DashboardCardComponent } from './dashboard-card.component';
 
@@ -15,7 +14,6 @@ import { DashboardCardComponent } from './dashboard-card.component';
     CommonModule,
     TranslateModule,
     ComponentsModule,
-    VendorsModule
   ],
   exports: [
     DashboardCardComponent

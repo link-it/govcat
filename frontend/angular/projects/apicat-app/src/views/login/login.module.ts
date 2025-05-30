@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 
 import { LoginComponent } from './login.component';
 import { LoginRoutingModule } from './login-routing.module';
@@ -15,8 +14,7 @@ import { LoginRoutingModule } from './login-routing.module';
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     LoginRoutingModule
   ],
   declarations: [

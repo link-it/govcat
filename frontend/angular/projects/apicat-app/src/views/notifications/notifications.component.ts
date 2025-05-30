@@ -4,20 +4,19 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { LocalStorageService } from 'projects/tools/src/lib/local-storage.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { LocalStorageService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
-import * as moment from 'moment';
 import * as _ from 'lodash';
 
 import { NotificationType, NotificationState, NotificationEntityType } from './notifications'
@@ -28,13 +27,14 @@ import { Observable } from 'rxjs/internal/Observable';
 @Component({
   selector: 'app-notifications',
   templateUrl: 'notifications.component.html',
-  styleUrls: ['notifications.component.scss']
+  styleUrls: ['notifications.component.scss'],
+  standalone: false
 })
 export class NotificationsComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'NotificationsComponent';
   readonly model: string = 'notifiche';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
   
   Tools = Tools;
 
@@ -177,7 +177,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this.clearSearch();
       }, 100);
@@ -203,7 +203,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   clearSearch() {
-    this.searchGoogleForm._clearSearch(null);
+    this.searchBarForm._clearSearch(null);
     this._filterData = [];
     this._loadNotifications();
   }
@@ -298,8 +298,8 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   _onEdit(event: any, param: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._pinLastSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._pinLastSearch();
     }
 
     const _notificaId = param.id_notifica;
@@ -347,8 +347,8 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 

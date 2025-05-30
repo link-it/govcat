@@ -5,18 +5,18 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components'
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 import { Page} from '../../models/page';
 
 import * as moment from 'moment';
@@ -26,13 +26,14 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
 @Component({
   selector: 'app-clients',
   templateUrl: 'clients.component.html',
-  styleUrls: ['clients.component.scss']
+  styleUrls: ['clients.component.scss'],
+  standalone: false
 })
 export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientsComponent';
   readonly model: string = 'client'; 
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   Tools = Tools;
 
@@ -154,7 +155,7 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this._loadClients();
       }, 100);
@@ -256,8 +257,8 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
 
   _onEdit(event: any, param: any) {
     if (this._useRoute) {
-      if (this.searchGoogleForm) {
-        this.searchGoogleForm._pinLastSearch();
+      if (this.searchBarForm) {
+        this.searchBarForm._pinLastSearch();
       }
       
       this.router.navigate([this.model, param.source.id_client]);
@@ -276,8 +277,8 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 
@@ -370,12 +371,12 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
     if (param == 'organizzazione') { this._searchOrganizzazioneSelected = event; }
     
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
   onSelectedSearchDropdwon($event: any) {
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
     $event.stopPropagation();
   }
 

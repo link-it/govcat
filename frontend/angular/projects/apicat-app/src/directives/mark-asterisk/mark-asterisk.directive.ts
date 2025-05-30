@@ -2,7 +2,9 @@ import { Directive, ElementRef, Input, OnInit } from '@angular/core';
 import { AbstractControl, FormGroup, Validators } from '@angular/forms';
 
 @Directive({
-  selector: '[appMarkAsterisk]'
+  selector: '[appMarkAsterisk]',
+  standalone: false
+
 })
 export class MarkAsteriskDirective implements OnInit {
   @Input() formGroup!: FormGroup;

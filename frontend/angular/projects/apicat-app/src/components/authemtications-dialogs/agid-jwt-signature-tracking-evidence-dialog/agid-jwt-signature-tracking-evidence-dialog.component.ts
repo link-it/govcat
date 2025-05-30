@@ -9,8 +9,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { ConfigService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import * as rs from 'jsrsasign';
@@ -18,7 +18,8 @@ import * as rs from 'jsrsasign';
 @Component({
     selector: 'app-agid-jwt-signature-tracking-evidence-dialog',
     templateUrl: './agid-jwt-signature-tracking-evidence-dialog.component.html',
-    styleUrls: ['./agid-jwt-signature-tracking-evidence-dialog.component.scss']
+    styleUrls: ['./agid-jwt-signature-tracking-evidence-dialog.component.scss'],
+    standalone: false
 })
 export class AgidJwtSignatureTrackingEvidenceDialogComponent implements OnInit {
 

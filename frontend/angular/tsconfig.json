@@ -19,6 +19,9 @@
       ],
       "@services/*": [
         "projects/apicat-app/src/services/*"
+      ],
+      "@linkit/*": [
+        "dist/linkit/*"
       ]
     },
     "outDir": "./dist/out-tsc",

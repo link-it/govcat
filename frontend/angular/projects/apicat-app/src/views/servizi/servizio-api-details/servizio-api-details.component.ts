@@ -5,25 +5,25 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Valida
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { MenuAction } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
 
-import { AllegatoComponent } from 'projects/components/src/lib/ui/allegato/allegato.component';
+import { AllegatoComponent } from '@linkit/components';
 
 import { ServizioApiCreate } from './servizio-api-create';
 
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
 import { Grant } from '@app/model/grant';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 import * as _ from 'lodash';
 import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
@@ -49,7 +49,8 @@ export type GruppiCampi = Record<string, Campo[]>;
 @Component({
     selector: 'app-servizio-api-details',
     templateUrl: 'servizio-api-details.component.html',
-    styleUrls: ['servizio-api-details.component.scss']
+    styleUrls: ['servizio-api-details.component.scss'],
+    standalone: false
 })
 export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServizioApiDetailsComponent';

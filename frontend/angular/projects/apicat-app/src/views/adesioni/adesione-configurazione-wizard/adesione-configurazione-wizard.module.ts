@@ -4,9 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
-import { BreadcrumbModule } from 'projects/components/src/lib/ui/breadcrumb/breadcrumb.module';
+ import { ComponentsModule } from '@linkit/components';
 
 import { AppComponentsModule } from "@app/components/components.module";
 import { ErrorViewModule } from '@app/components/error-view/error-view.module';
@@ -36,9 +34,7 @@ import { ApiCustomPropertiesModule } from '@app/components/api-custom-properties
     CommonModule,
     ReactiveFormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
-    BreadcrumbModule,
+     ComponentsModule,
     AppComponentsModule,
     ErrorViewModule,
     WorkflowModule,

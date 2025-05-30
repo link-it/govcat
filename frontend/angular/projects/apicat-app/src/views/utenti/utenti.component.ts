@@ -5,13 +5,13 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
@@ -22,13 +22,14 @@ import { Ruolo, Stato } from './utente-details/utente';
 @Component({
   selector: 'app-utenti',
   templateUrl: 'utenti.component.html',
-  styleUrls: ['utenti.component.scss']
+  styleUrls: ['utenti.component.scss'],
+  standalone: false
 })
 export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtentiComponent';
   readonly model: string = 'utenti';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   config: any;
   utentiConfig: any;
@@ -148,7 +149,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
         this._initOrganizzazioniSelect([]);
         this._initClassiUtenteSelect([]);
         // this._loadUtenti(this._filterData);
-        this.searchGoogleForm?._onSearch();
+        this.searchBarForm?._onSearch();
       }
     );
   }
@@ -158,7 +159,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this.refresh();
       }, 100);
@@ -256,8 +257,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   _onEdit(event: any, param: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._pinLastSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._pinLastSearch();
     }
     this.router.navigate([this.model, param.id]);
   }
@@ -271,8 +272,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 
@@ -395,12 +396,12 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   onChangeSearchDropdwon(event: any){
     this._searchOrganizzazioneSelected = event;
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
   onSelectedSearchDropdwon($event: Event){
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
     $event.stopPropagation();
   }
 

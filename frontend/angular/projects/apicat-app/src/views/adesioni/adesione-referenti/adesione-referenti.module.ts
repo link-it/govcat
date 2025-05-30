@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 
 import { AdesioneReferentiComponent } from './adesione-referenti.component';
@@ -17,8 +16,7 @@ import { MonitorDropdwnModule } from '@app/views/servizi/components/monitor-drop
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     MarkAsteriskModule,
     AdesioneReferentiRoutingModule,
     MonitorDropdwnModule

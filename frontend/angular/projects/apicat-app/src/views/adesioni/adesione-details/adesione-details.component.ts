@@ -5,14 +5,14 @@ import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/fo
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Adesione } from './adesione';
 import { AdesioneCreate } from './adesioneCreate';
@@ -30,15 +30,16 @@ import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
 import { NgSelectComponent } from '@ng-select/ng-select';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 import { Location } from '@angular/common';
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { MenuAction } from '@linkit/components';
 
 import { Grant } from '@app/model/grant';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 @Component({
   selector: 'app-adesione-details',
   templateUrl: 'adesione-details.component.html',
-  styleUrls: ['adesione-details.component.scss']
+  styleUrls: ['adesione-details.component.scss'],
+  standalone: false
 })
 export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneDetailsComponent';

@@ -6,13 +6,13 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components'
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
@@ -64,7 +64,8 @@ import * as _ from 'lodash';
 @Component({
     selector: 'app-adesione-configurazioni',
     templateUrl: 'adesione-configurazioni.component.html',
-    styleUrls: ['adesione-configurazioni.component.scss']
+    styleUrls: ['adesione-configurazioni.component.scss'],
+    standalone: false
 })
 export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'AdesioneConfigurazioniComponent';

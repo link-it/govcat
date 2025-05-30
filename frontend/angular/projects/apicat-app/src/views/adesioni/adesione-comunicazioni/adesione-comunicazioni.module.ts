@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 
 import { NotificationBarModule } from '../../notifications/notification-bar/notification-bar.module';
 
@@ -17,8 +16,7 @@ import { AdesioneComunicazioniRoutingModule } from './adesione-comunicazioni-rou
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     AdesioneComunicazioniRoutingModule,
     NotificationBarModule
   ],

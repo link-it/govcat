@@ -12,7 +12,8 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'ui-swagger',
   templateUrl: './swagger.component.html',
-  styleUrls: ['./swagger.component.scss']
+  styleUrls: ['./swagger.component.scss'],
+  standalone: false
 })
 export class SwaggerComponent implements OnInit {
 

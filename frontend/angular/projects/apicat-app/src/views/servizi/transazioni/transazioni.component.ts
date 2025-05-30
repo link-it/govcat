@@ -6,24 +6,24 @@ import { HttpHeaders, HttpParams } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 
-import { uuid } from 'projects/tools/src/lib/custom-forms-validators/uuid/validator';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 import { Page } from '@app/models/page';
 
 import * as moment from 'moment';
 import * as _ from 'lodash';
+import { uuid } from 'projects/linkit/validators/src/lib/uuid/validator';
 declare const saveAs: any;
 
 enum TransactionOutcome {
@@ -44,7 +44,8 @@ enum SearchTypeEnum {
 @Component({
   selector: 'app-transazioni',
   templateUrl: 'transazioni.component.html',
-  styleUrls: ['transazioni.component.scss']
+  styleUrls: ['transazioni.component.scss'],
+  standalone: false
 })
 export class TransazioniComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'TransazioniComponent';
@@ -55,7 +56,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
 
   service: any = null;
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   Tools = Tools;
 
@@ -243,9 +244,9 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
 
   ngAfterViewInit() {
     if (!this._isBack) {
-      this.searchGoogleForm._clearPinSearch();
+      this.searchBarForm._clearPinSearch();
     }
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this._loadTransazioni();
       }, 100);
@@ -588,8 +589,8 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   _onEdit(event: any, param: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._pinLastSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._pinLastSearch();
     }
     const _state: any = {
       environment: this.environmentId
@@ -602,8 +603,8 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 
@@ -656,7 +657,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     this._setErrorMessages(false);
 
     setTimeout(() => {
-      this.searchGoogleForm._openSearch();
+      this.searchBarForm._openSearch();
     }, 200);
   }
 
@@ -729,7 +730,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
                   this._formGroup.get('id_api')?.setValue(this._apiSelected.id_api);
                   this._onSubmit(this._formGroup.getRawValue());
                 } else {
-                  this.searchGoogleForm._openSearch();
+                  this.searchBarForm._openSearch();
                 }
               }
               return resp;
@@ -798,7 +799,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   onSelectedSearchDropdwon($event: Event){
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
     $event.stopPropagation();
   }
 
@@ -806,7 +807,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     this._apiSelected = event;
     this._updateControlAdesione();
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
@@ -824,7 +825,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   onChangeAdesioneSearchDropdwon(event: any){
     this._adesioneSelected = event;
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 

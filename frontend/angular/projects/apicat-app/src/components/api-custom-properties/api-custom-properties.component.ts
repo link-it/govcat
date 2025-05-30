@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, OnInit, SimpleChanges } from '@angular/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -17,7 +17,8 @@ export enum SpecificoPerEnum {
 @Component({
     selector: 'app-api-custom-properties',
     templateUrl: './api-custom-properties.component.html',
-    styleUrls: ['./api-custom-properties.component.scss']
+    styleUrls: ['./api-custom-properties.component.scss'],
+    standalone: false
 })
 export class ApiCustomPropertiesComponent implements OnInit {
 

@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { EventType } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { AuthenticationService } from '../../../services/authentication.service';
 import { OpenAPIService } from '../../../services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -11,7 +11,8 @@ import { AmbienteEnum } from '../../../model/ambienteEnum';
 @Component({
   selector: 'app-dashboard-group',
   templateUrl: './dashboard-group.component.html',
-  styleUrls: ['./dashboard-group.component.scss']
+  styleUrls: ['./dashboard-group.component.scss'],
+  standalone: false
 })
 export class DashboardGroupComponent implements OnInit, OnChanges {
 

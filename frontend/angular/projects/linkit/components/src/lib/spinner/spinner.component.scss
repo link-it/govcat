@@ -1,0 +1,33 @@
+:host {
+  position: fixed;
+  display: block;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,.1);
+  z-index: 99999;
+}
+
+.center-spinner {
+  position: absolute;
+  top: calc(50% - 30px);
+  left: calc(50% - 30px);
+}
+
+.rescue-spinner {
+  position: absolute;
+  top: calc(50% - 20px);
+  left: calc(50% - 20px);
+  width: 40px;
+  height: 40px;
+}
+
+.rescue-spinner button {
+  display: none;
+  color: #212121;
+}
+
+.rescue-spinner:hover button {
+  display: block;
+}

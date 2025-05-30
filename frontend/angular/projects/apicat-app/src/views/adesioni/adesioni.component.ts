@@ -6,9 +6,9 @@ import { HttpParams } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -16,9 +16,9 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 import { Page} from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
@@ -35,13 +35,14 @@ export enum StatoConfigurazione {
 @Component({
   selector: 'app-adesioni',
   templateUrl: 'adesioni.component.html',
-  styleUrls: ['adesioni.component.scss']
+  styleUrls: ['adesioni.component.scss'],
+  standalone: false
 })
 export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioniComponent';
   readonly model: string = 'adesioni';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
   @ViewChild('reportTemplate') reportTemplate!: any;
 
   Tools = Tools;
@@ -221,18 +222,18 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         if (!this._param_id_servizio) {
           this.refresh();
         }
       }, 100);
     }
-    if (this.searchGoogleForm && this._param_id_servizio) {
+    if (this.searchBarForm && this._param_id_servizio) {
       const _values = {
         id_servizio: this._param_id_servizio
       };
-      this.searchGoogleForm._setSearch(_values);
+      this.searchBarForm._setSearch(_values);
     }
   }
 
@@ -245,7 +246,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   refresh() {
-    // this.searchGoogleForm._clearSearch(null);
+    // this.searchBarForm._clearSearch(null);
     this._filterData = {};
     this._loadAdesioni();
   }
@@ -459,7 +460,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   onSelectedSearchDropdwon($event: Event){
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
     $event.stopPropagation();
   }
 
@@ -475,13 +476,13 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     }
 
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
   onChangeSearchDropdwon(event: any){
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
@@ -510,8 +511,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   _onEdit(event: any, param: any) {
     if (this._useRoute) {
-      if (this.searchGoogleForm) {
-        this.searchGoogleForm._pinLastSearch();
+      if (this.searchBarForm) {
+        this.searchBarForm._pinLastSearch();
       }
       
       if (this._useEditWizard) {
@@ -535,8 +536,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 

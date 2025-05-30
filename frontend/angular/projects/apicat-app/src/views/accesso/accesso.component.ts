@@ -6,12 +6,13 @@ import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 @Component({
   selector: 'app-accesso',
   templateUrl: 'accesso.component.html',
-  styleUrls: ['accesso.component.scss']
+  styleUrls: ['accesso.component.scss'],
+  standalone: false
 })
 export class AccessoComponent implements OnInit {
 

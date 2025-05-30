@@ -14,7 +14,7 @@ import {
 import {BehaviorSubject, concat, Observable, of, Subject} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, scan, startWith, switchMap, tap} from "rxjs/operators";
 
-import { AvailbleBSPositions } from 'ngx-bootstrap/positioning';
+import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
 
 @Component({
     selector: "lnk-form-live-search",
@@ -26,7 +26,8 @@ import { AvailbleBSPositions } from 'ngx-bootstrap/positioning';
             useExisting: forwardRef(() =>LnkFormLiveSearchComponent),
             multi: true,
         },
-    ]
+    ],
+    standalone: false
 })
 export class LnkFormLiveSearchComponent implements ControlValueAccessor {
     @Input() id: string = '';
@@ -57,7 +58,7 @@ export class LnkFormLiveSearchComponent implements ControlValueAccessor {
     @Input() showHelp: boolean = true;
     @Input() showHelpOnlyEdit: boolean = true;
     @Input() iconHelp: string = 'bi bi-info-circle';
-    @Input() helpPlacement: AvailbleBSPositions = 'left';
+    @Input() helpPlacement: AvailableBSPositions = 'left';
     @Input() helpContext: string = '';
     @Input() helpParams: any = {};
 
