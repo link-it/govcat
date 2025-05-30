@@ -253,7 +253,7 @@ export class AuthenticationService {
     
     if (this.isAuthLogged()) {
       this.oauthService.revokeTokenAndLogout();
-      // this.oauthService.logOut(true);
+      this.oauthService.logOut(true);
     }
 
     // let url = `${this.appConfig.GOVAPI['HOST']}${this.API_LOGOUT}`;
