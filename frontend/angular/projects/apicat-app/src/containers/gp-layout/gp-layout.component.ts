@@ -384,25 +384,27 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.navItems = [...this.navItems, ... navItemsAdministratorMenu];
         } else if (this.authenticationService.isCoordinatore()) {
             const _navItemsAdministratorMenu: INavData[] = [];
-            navItemsAdministratorMenu.forEach((item: INavData) => {
-                if (item.divider) {
-                    _navItemsAdministratorMenu.push(item);
-                } else if (item.title) {
-                    const _children: INavData[] = [];
-                    (item.children || []).forEach((child: INavData) => {
-                        const menu = child.path || '';
-                        if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
-                            _children.push(child);
-                        }
-                    });
-                    _navItemsAdministratorMenu.push({ ...item, children: _children });
-                } else {
-                    const menu = item.path || '';
-                    if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
+            if (this.authenticationService.hasMenuAmministrazione()) {
+                navItemsAdministratorMenu.forEach((item: INavData) => {
+                    if (item.divider) {
                         _navItemsAdministratorMenu.push(item);
+                    } else if (item.title) {
+                        const _children: INavData[] = [];
+                        (item.children || []).forEach((child: INavData) => {
+                            const menu = child.path || '';
+                            if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
+                                _children.push(child);
+                            }
+                        });
+                        _navItemsAdministratorMenu.push({ ...item, children: _children });
+                    } else {
+                        const menu = item.path || '';
+                        if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
+                            _navItemsAdministratorMenu.push(item);
+                        }
                     }
-                }
-            });
+                });
+            }
             this.navItems = [...this.navItems, ... _navItemsAdministratorMenu];
         }
     }

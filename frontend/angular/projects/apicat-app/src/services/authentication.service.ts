@@ -644,4 +644,9 @@ export class AuthenticationService {
 
     return this.permessiService.verificaPermessi(ruoli, menu, permessi);
   }
+
+  hasMenuAmministrazione(): boolean {
+    const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
+    return (Object.keys(permessi).length > 0);
+  }
 }
