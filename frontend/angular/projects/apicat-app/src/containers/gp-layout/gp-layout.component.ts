@@ -204,13 +204,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             // const root = this.router.routerState.snapshot.root;
         });
 
-        this._initLanguages();
-        this._initMenuActions();
-        this._onResize();
+        this.initLanguages();
+        this.initMenuActions();
+        this.onResize();
     }
 
     @HostListener('window:resize')
-    _onResize() {
+    onResize() {
         this.desktop = (window.innerWidth >= 1200);
         this.tablet = (window.innerWidth < 1200 && window.innerWidth >= 768);
         this.mobile = (window.innerWidth < 768);
@@ -298,8 +298,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     loadProfile() {
         this._spin = true;
-        this.apiService.getList('profilo').subscribe(
-            (response: any) => {
+        this.apiService.getList('profilo').subscribe({
+            next: (response: any) => {
                 this.authenticationService.setCurrentSession(response);
                 this._session = this.authenticationService.reloadSession();
                 if (_.isEmpty(this._session.settings) || !this._session.settings.version) {
@@ -307,21 +307,21 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
                 }
                 this._isAnonymous = this.authenticationService.isAnonymous();
 
-                this._initMainMenu();
-                this._initMenuActions();
+                this.setHeaderBar(this._isAnonymous);
+                this.initMainMenu();
+                this.initMenuActions();
 
                 this.localStorageService.setItem('PROFILE', true);
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: this._session });
                 
-                this.setHeaderBar(this._isAnonymous);
                 this._spin = false;
             },
-            (error: any) => {
+            error: (error: any) => {
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: null });
                 console.log('loadProfile error', error);
                 this._spin = false;
             }
-        );
+        });
     }
 
     setHeaderBar(anonymous: boolean = false) {
@@ -335,8 +335,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.username = '';
         } else {
             this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
-            this._showNotificationsMenu = false;
-            this._showNotificationsBar = true;
+            this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
+            this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
             this.notificationsCount$ = this.notificationsService.getNotificationsCount();
             this.loggedIn = (this._session.stato  === 'abilitato');
             this.login = (this._session.stato  === 'abilitato');
@@ -375,7 +375,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         return newItems;
     }
 
-    _initMainMenu() {
+    initMainMenu() {
         this.navItems = this.prepareNavigation();
         if (this.authenticationService.isGestore()) {
             if (this._showNotificationsMenu) {
@@ -407,7 +407,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         }
     }
 
-    _initMenuActions() {
+    initMenuActions() {
         const _user = this.authenticationService.getUserName();
 
         this._menuActions = [
@@ -434,7 +434,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         }
     }
 
-    _initLanguages() {
+    initLanguages() {
         try {
             const _languages = this._config.AppConfig.Languages;
             const _defaultLanguage = this._config.AppConfig.DefaultLanguage;
