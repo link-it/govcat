@@ -1,16 +1,17 @@
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { BsDatepickerModule } from 'ngx-bootstrap/datepicker';
 import { TranslateModule } from '@ngx-translate/core';;
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FALLBACK, GravatarConfig, GravatarModule, RATING } from 'ngx-gravatar';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { NgxMasonryModule } from 'ngx-masonry';
 
 import { HeadBarComponent } from './head-bar/head-bar.component';
 import { SpinnerComponent } from './spinner/spinner.component';
@@ -43,7 +44,8 @@ const gravatarConfig: GravatarConfig = {
     BsDatepickerModule,
     InfiniteScrollDirective,
     NgSelectModule,
-    NgxChartsModule
+    NgxChartsModule,
+    NgxMasonryModule
   ],
   declarations: [
     HeadBarComponent,
@@ -70,11 +72,12 @@ const gravatarConfig: GravatarConfig = {
     TooltipModule,
     ModalModule,
     BsDatepickerModule,
+    TranslateModule,
     GravatarModule,
     InfiniteScrollDirective,
     NgSelectModule,
     NgxChartsModule,
-    TranslateModule
+    NgxMasonryModule
   ],
   providers: [
     ...uiServices,

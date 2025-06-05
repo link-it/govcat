@@ -425,8 +425,7 @@
                         [options]="masonryOptions"
                         [ordered]="true"
                     >
-                    <!-- <div class="masonry-item mb-3" ngxMasonryItem [prepend]="false" style="width: 32%;" *ngFor="let element of groups; trackBy: _trackBy;"> -->
-                        <div class="masonry-item mb-3" ngxMasonryItem style="width: 32%;" *ngFor="let element of groups; trackBy: _trackBy;">
+                        <div class="masonry-item mb-3" ngxMasonryItem *ngFor="let element of groups; trackBy: _trackBy;">
                             <lnk-card class="extended" class=""
                                 [primaryText]="element.primaryText" 
                                 [secondaryText]="element.secondaryText"
