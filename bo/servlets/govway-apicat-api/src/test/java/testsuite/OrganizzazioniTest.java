@@ -648,7 +648,7 @@ public class OrganizzazioniTest {
         	controller.updateOrganizzazione(id, organizzazioneUpdate);
         });
         
-        assertEquals(exception.getMessage(), "Soggetto ["+ nome +"] esiste gia");
+        assertEquals(exception.getMessage(), "Soggetto ["+ nome +"] esiste gia e associato a una Organizzazione diversa [Nome Organizzazione TEST per Soggetto]");
     }
     
     public void testCreateOrganizzazioneReferenteServizioSuccess() {
