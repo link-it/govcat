@@ -2194,7 +2194,7 @@ public class AdesioniTest {
         apiDatiAmbienteUpdate.setDatiErogazione(apiDatiErogazione);
         apiUpdate.setConfigurazioneCollaudo(null);
         //apiUpdate.setConfigurazioneCollaudo(apiDatiAmbienteUpdate);
-    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate);
+    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate, null);
     	return api.getBody();
     }
     
@@ -2715,7 +2715,7 @@ public class AdesioniTest {
         boolean statoPartenza = false;
         for (StatoUpdate statoUpdate : sequenzaStati) {
         	if(statoPartenza) {
-        		serviziController.updateStatoServizio(idServizio, statoUpdate);
+        		serviziController.updateStatoServizio(idServizio, statoUpdate, null);
 	            if (statoUpdate.getStato().equals(nomeStatoArrivo)) {
 	                break;
 	            }

@@ -602,7 +602,7 @@ public class ModificheDatiRispettoStatoServizioTest {
         
     	upServizio.setIdentificativo(identificativo);
         //System.out.println(idServizio);
-    	ResponseEntity<Servizio> servizio = serviziController.updateServizio(idServizio, upServizio);
+    	ResponseEntity<Servizio> servizio = serviziController.updateServizio(idServizio, null, upServizio);
     	return servizio.getBody();
     }
     
@@ -808,7 +808,7 @@ public class ModificheDatiRispettoStatoServizioTest {
         apiDatiAmbienteUpdate.setDatiErogazione(apiDatiErogazione);
         apiUpdate.setConfigurazioneProduzione(apiDatiAmbienteUpdate);
         apiUpdate.setConfigurazioneCollaudo(apiDatiAmbienteUpdate);
-    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate);
+    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate, null);
     	return api.getBody();
     }
     
@@ -1015,7 +1015,7 @@ public class ModificheDatiRispettoStatoServizioTest {
         apiDatiErogazione.setUrl("testurl.com/test");
         apiDatiAmbienteUpdate.setDatiErogazione(apiDatiErogazione);
         apiUpdate.setConfigurazioneCollaudo(apiDatiAmbienteUpdate);
-    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate);
+    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate, null);
     	return api.getBody();
     }
     
@@ -1212,7 +1212,7 @@ public class ModificheDatiRispettoStatoServizioTest {
         apiDatiErogazione.setUrl("testurl.com/test");
         apiDatiAmbienteUpdate.setDatiErogazione(apiDatiErogazione);
         apiUpdate.setConfigurazioneProduzione(apiDatiAmbienteUpdate);
-    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate);
+    	ResponseEntity<API> api = apiController.updateApi(idAPI, apiUpdate, null);
     	return api.getBody();
     }
 }

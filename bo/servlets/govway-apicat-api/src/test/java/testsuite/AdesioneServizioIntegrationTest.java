@@ -243,7 +243,7 @@ public class AdesioneServizioIntegrationTest {
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
 	    
 	    try {
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
 	        List<EntitaComplessaError> errori = e.getErrori();
 	        for (EntitaComplessaError errore : errori) {
@@ -283,13 +283,13 @@ public class AdesioneServizioIntegrationTest {
 	  
 	    statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     }
 
     private void setNuovaAdesione() {
@@ -635,7 +635,7 @@ public class AdesioneServizioIntegrationTest {
         ReferenteCreate referenteDaAggiungere = new ReferenteCreate();
         referenteDaAggiungere.setTipo(TipoReferenteEnum.REFERENTE);
         referenteDaAggiungere.setIdUtente(ID_UTENTE_ADERENTE);
-        serviziController.createReferenteServizio(idServizio, referenteDaAggiungere);
+        serviziController.createReferenteServizio(idServizio, null, referenteDaAggiungere);
 
         ResponseEntity<PagedModelReferente> s = serviziController.listReferentiServizio(idServizio, UTENTE_ADERENTE, TipoReferenteEnum.REFERENTE, 0, 10, null);
         List<Referente> listReferenti = s.getBody().getContent();

@@ -382,7 +382,7 @@ public class GestioneServiziAPITest {
     	identificativo.setTipo(TipoServizio.API);
     	identificativo.setPackage(false);
     	servizioUpdate.setIdentificativo(identificativo);
-    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, servizioUpdate);
+    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, null, servizioUpdate);
     	assertEquals("nuovo nome", responseServizio.getBody().getNome());
     	assertEquals("Ecco la nuova descrizione", responseServizio.getBody().getDescrizione());
     }
@@ -413,7 +413,7 @@ public class GestioneServiziAPITest {
     	identificativo.setTipo(TipoServizio.API);
     	identificativo.setPackage(false);
     	servizioUpdate.setIdentificativo(identificativo);
-    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, servizioUpdate);
+    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, null, servizioUpdate);
     	assertEquals("nuovo nome", responseServizio.getBody().getNome());
     	assertEquals("Ecco la nuova descrizione", responseServizio.getBody().getDescrizione());
     }
@@ -444,7 +444,7 @@ public class GestioneServiziAPITest {
     	identificativo.setTipo(TipoServizio.API);
     	identificativo.setPackage(false);
     	servizioUpdate.setIdentificativo(identificativo);
-    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, servizioUpdate);
+    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, null, servizioUpdate);
     	assertEquals("nuovo nome", responseServizio.getBody().getNome());
     	assertEquals("Ecco la nuova descrizione", responseServizio.getBody().getDescrizione());
     }
@@ -475,7 +475,7 @@ public class GestioneServiziAPITest {
     	identificativo.setTipo(TipoServizio.API);
     	identificativo.setPackage(false);
     	servizioUpdate.setIdentificativo(identificativo);
-    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, servizioUpdate);
+    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, null, servizioUpdate);
     	assertEquals("nuovo nome", responseServizio.getBody().getNome());
     	assertEquals("Ecco la nuova descrizione", responseServizio.getBody().getDescrizione());
     }
@@ -506,7 +506,7 @@ public class GestioneServiziAPITest {
     	identificativo.setTipo(TipoServizio.API);
     	identificativo.setPackage(false);
     	servizioUpdate.setIdentificativo(identificativo);
-    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, servizioUpdate);
+    	ResponseEntity<Servizio> responseServizio = serviziController.updateServizio(idServizio, null, servizioUpdate);
     	assertEquals("nuovo nome", responseServizio.getBody().getNome());
     	assertEquals("Ecco la nuova descrizione", responseServizio.getBody().getDescrizione());
     }
@@ -545,7 +545,7 @@ public class GestioneServiziAPITest {
     	datiSpecificaUpdate.setGruppiAuthType(gruppiAuthType);
 
     	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
-    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate);
+    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate, null);
     	
     	assertEquals(HttpStatus.OK, apiResponse.getStatusCode());
     }
@@ -584,7 +584,7 @@ public class GestioneServiziAPITest {
         
     	datiSpecificaUpdate.setGruppiAuthType(gruppiAuthType);
     	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
-    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate);
+    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate, null);
     	
     	assertEquals(HttpStatus.OK, apiResponse.getStatusCode());
     }
@@ -623,7 +623,7 @@ public class GestioneServiziAPITest {
         
     	datiSpecificaUpdate.setGruppiAuthType(gruppiAuthType);
     	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
-    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate);
+    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate, null);
     	
     	assertEquals(HttpStatus.OK, apiResponse.getStatusCode());
     }
@@ -662,7 +662,7 @@ public class GestioneServiziAPITest {
         
     	datiSpecificaUpdate.setGruppiAuthType(gruppiAuthType);
     	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
-    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate);
+    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate, null);
     	
     	assertEquals(HttpStatus.OK, apiResponse.getStatusCode());
     }
@@ -701,7 +701,7 @@ public class GestioneServiziAPITest {
         
     	datiSpecificaUpdate.setGruppiAuthType(gruppiAuthType);
     	apiUpdate.setDatiSpecifica(datiSpecificaUpdate);
-    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate);
+    	ResponseEntity<API> apiResponse = apiController.updateApi(api.getIdApi(), apiUpdate, null);
     	
     	assertEquals(HttpStatus.OK, apiResponse.getStatusCode());
     }

@@ -310,7 +310,7 @@ public class CommonUtils {
         // Itera sulla sequenza degli stati e applica ciascuno finché non raggiungi lo stato finale
         for (StatoUpdate statoUpdate : sequenzaStati) {
         	try {
-        		serviziController.updateStatoServizio(idServizio, statoUpdate);
+        		serviziController.updateStatoServizio(idServizio, statoUpdate, null);
     	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
     	        List<EntitaComplessaError> errori = e.getErrori();
     	        for (EntitaComplessaError errore : errori) {

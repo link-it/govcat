@@ -1830,6 +1830,8 @@ paths:
       - "Servizi"
       description: "Aggiornamento dei dati identificativi del Servizio"
       operationId: "updateServizio"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         description: "Dati per l'aggiornamento dei dati identificativi del Servizio"
         content:
@@ -2037,7 +2039,10 @@ paths:
       - "Servizi"
       description: "Aggiornamento dello stato del Servizio"
       operationId: "updateStatoServizio"
+      parameters:
+       - $ref: "#/components/parameters/check_only_query_optional"
       requestBody:
+        required: true      
         description: "Dati per l'aggiornamento dei dati identificativi del Servizio"
         content:
           application/json:
@@ -2090,6 +2095,8 @@ paths:
       - "Servizi"
       description: "Aggiunta di un referente del Servizio"
       operationId: "createReferenteServizio"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         description: "Dati per l'aggiunta del referente del Servizio"
         content:
@@ -2126,6 +2133,7 @@ paths:
       operationId: "deleteReferenteServizio"
       parameters:
         - $ref: "#/components/parameters/tipo_referente_query_optional"
+        - $ref: "#/components/parameters/force_query_optional"
       responses:
         "204":
           description: "Referente eliminato con successo"
@@ -2892,6 +2900,8 @@ paths:
       - "API"
       description: "Aggiornamento della API"
       operationId: "updateApi"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: "Dati per l'aggiornamento della API"

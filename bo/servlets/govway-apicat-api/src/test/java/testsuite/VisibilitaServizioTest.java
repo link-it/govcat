@@ -281,16 +281,16 @@ public class VisibilitaServizioTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate);	  
+    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);	  
 	    statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     }
     
     ResponseEntity<Organizzazione> response;

@@ -251,7 +251,7 @@ public class APITest {
     
     private ResponseEntity<API> getAPI() {
     	APICreate apiCreate = CommonUtils.getAPICreate();
-    	
+    	apiCreate.setDescrizione("Descrizione");
         Servizio servizio = this.getServizio();
         
         apiCreate.setIdServizio(servizio.getIdServizio());
@@ -1624,7 +1624,7 @@ public class APITest {
         apiUpdate.setDatiGenerici(datiGenerici);
 
         // Invocazione del metodo updateApi
-        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate);
+        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate, null);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1662,7 +1662,7 @@ public class APITest {
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
         assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.updateApi(idApi, apiUpdate);
+        	apiController.updateApi(idApi, apiUpdate, null);
         });
     }
     
@@ -1695,7 +1695,7 @@ public class APITest {
         this.tearDown();
         
         assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.updateApi(idApi, apiUpdate);
+        	apiController.updateApi(idApi, apiUpdate, null);
         });
     }
 
@@ -1713,7 +1713,7 @@ public class APITest {
 
         // Test per il caso di API non trovata
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.updateApi(idApiNonEsistente, apiUpdate);
+            apiController.updateApi(idApiNonEsistente, apiUpdate, null);
         });
         //System.out.println(exception.getMessage());
         String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
@@ -1746,7 +1746,7 @@ public class APITest {
         apiUpdate.setIdentificativo(identificativo);
 
         ConflictException exception = assertThrows(ConflictException.class, () -> {
-            apiController.updateApi(responseApi1.getBody().getIdApi(), apiUpdate);
+            apiController.updateApi(responseApi1.getBody().getIdApi(), apiUpdate, null);
         });
     }
 
@@ -1786,7 +1786,7 @@ public class APITest {
         /*
          //TODO: controllare, il gruppo risulta inesistente
         // Invocazione del metodo updateApi
-        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate);
+        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate, null);
 		
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1822,7 +1822,7 @@ public class APITest {
 
         // Test per autorizzazione fallita
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            apiController.updateApi(idApi, apiUpdate);
+            apiController.updateApi(idApi, apiUpdate, null);
         });
         
     }

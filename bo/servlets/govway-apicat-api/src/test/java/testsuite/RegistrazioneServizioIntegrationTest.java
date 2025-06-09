@@ -377,7 +377,7 @@ public class RegistrazioneServizioIntegrationTest {
         ReferenteCreate referenteDaAggiungere = new ReferenteCreate();
         referenteDaAggiungere.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         referenteDaAggiungere.setIdUtente(ID_UTENTE_REFERENTE_TECNICO);
-        ResponseEntity<Referente> createdReferente2 = serviziController.createReferenteServizio(idServizio, referenteDaAggiungere);
+        ResponseEntity<Referente> createdReferente2 = serviziController.createReferenteServizio(idServizio, null, referenteDaAggiungere);
         assertEquals(HttpStatus.OK, createdReferente2.getStatusCode());
         assertNotNull(createdReferente2.getBody());
 
@@ -518,7 +518,7 @@ public class RegistrazioneServizioIntegrationTest {
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
 	    
 	    try {
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    	//System.out.println("STATO SERVIZIO: " + servizio.getBody().getStato());
 	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
 	    	// Stampa il messaggio dell'eccezione
@@ -608,7 +608,7 @@ public class RegistrazioneServizioIntegrationTest {
 	    statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato in collaudo");
 	    
-	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    assertEquals("autorizzato_collaudo", response.getBody().getStato());
         
     }
@@ -626,14 +626,14 @@ public class RegistrazioneServizioIntegrationTest {
 	    statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
 	    
-	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    assertEquals("in_configurazione_collaudo", response.getBody().getStato());
 	    
 	    statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
 	    
-	    response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    assertEquals("pubblicato_collaudo", response.getBody().getStato());
     }
 

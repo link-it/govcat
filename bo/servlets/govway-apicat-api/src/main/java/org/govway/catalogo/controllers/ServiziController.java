@@ -32,6 +32,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.AllegatoServizioAssembler;
 import org.govway.catalogo.assembler.CategoriaServizioItemAssembler;
@@ -128,6 +130,7 @@ import org.govway.catalogo.servlets.model.PagedModelItemServizioGruppo;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.ServizioUpdate;
@@ -251,6 +254,9 @@ public class ServiziController implements ServiziApi {
 	@Autowired
 	private TassonomiaService tassonomiaService;   
 
+	@Autowired
+	private EntityManager entityManager;   
+
 	private AbstractServizioAuthorization getServizioAuthorization(ServizioEntity entity) {
 		if(entity.is_package()) {
 			return this.packageAuthorization;
@@ -323,7 +329,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<Referente> createReferenteServizio(UUID idServizio, ReferenteCreate referente) {
+	public ResponseEntity<Referente> createReferenteServizio(UUID idServizio, Boolean force, ReferenteCreate referente) {
 		try {
 			return this.service.runTransaction( () -> {
 
@@ -336,7 +342,12 @@ public class ServiziController implements ServiziApi {
 				checkReferente(referenteEntity);
 				
 				entity.getReferenti().add(referenteEntity);
-				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
+
+				if(!isForce(force, grant.getRuoli())) {
+					this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				}
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				this.service.save(referenteEntity);
@@ -357,6 +368,20 @@ public class ServiziController implements ServiziApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(e);
 		}
+	}
+	
+	private List<Ruolo> listRuoloForce = Arrays.asList(Ruolo.GESTORE);
+	
+	private boolean isForce(Boolean force, List<Ruolo> listRuoli) {
+		
+
+		boolean realForce = force != null && force;
+		if(realForce) {
+			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
+				throw new NotAuthorizedException("L'utente deve avere uno dei ruoli ["+listRuoloForce+"] per eseguire la force");
+			}
+		}
+		return realForce;
 	}
 	
 	private void checkReferenti(ServizioEntity servizioEntity) {
@@ -599,7 +624,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<Void> deleteReferenteServizio(UUID idServizio, UUID idUtente,
-			TipoReferenteEnum tipoReferente) {
+			TipoReferenteEnum tipoReferente, Boolean force) {
 		try {
 			return this.service.runTransaction( () -> {
 	
@@ -626,8 +651,12 @@ public class ServiziController implements ServiziApi {
 					this.service.deleteReferenteServizio(rentity);
 				}
 
-				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
+				if(!isForce(force, grant.getRuoli())) {
+					this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.REFERENTI));
+				}
+				
 				this.dettaglioAssembler.setUltimaModifica(entity);
 				this.service.save(entity);
 
@@ -926,7 +955,7 @@ public class ServiziController implements ServiziApi {
 	}
 
 	@Override
-	public ResponseEntity<Servizio> updateServizio(UUID idServizio,
+	public ResponseEntity<Servizio> updateServizio(UUID idServizio, Boolean force,
 			ServizioUpdate servizioUpdate) {
 		try {
 			return this.service.runTransaction(() -> {
@@ -958,8 +987,12 @@ public class ServiziController implements ServiziApi {
 					this.dettaglioAssembler.toEntity(servizioUpdate.getDatiGenerici(), entity);
 				}
 
-				this.getServizioAuthorization(entity).authorizeModifica(entity, lstClassiDato);
+				Grant grant = this.dettaglioAssembler.toGrant(entity);
 
+				if(!isForce(force, grant.getRuoli())) {
+					this.getServizioAuthorization(entity).authorizeModifica(entity, lstClassiDato);
+				}
+				
 				this.checkReferenti(entity);
 				
 				this.service.save(entity);
@@ -981,8 +1014,12 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
+	private boolean isCheckOnly(Boolean checkOnly) {
+		return checkOnly != null && checkOnly;
+	}
+
 	@Override
-	public ResponseEntity<Servizio> updateStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate) {
+	public ResponseEntity<Servizio> updateStatoServizio(UUID idServizio, StatoUpdate statoServizioUpdate, Boolean checkOnly) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
@@ -1006,12 +1043,19 @@ public class ServiziController implements ServiziApi {
 
 
 				this.logger.debug("Autorizzazione completata con successo");     
-				this.service.save(entity);
 				
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoServizio(entity);
-				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
-
+				if(!isCheckOnly(checkOnly)) {
+					this.service.save(entity);
+					
+					List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheCambioStatoServizio(entity);
+					lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
+				}
 				Servizio model = this.dettaglioAssembler.toModel(entity);
+
+				if(isCheckOnly(checkOnly)) {
+					this.entityManager.detach(entity);
+				}
+
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(model);
 

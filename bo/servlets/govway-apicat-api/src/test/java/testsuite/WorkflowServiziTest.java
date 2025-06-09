@@ -169,14 +169,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("bozza");
 	    statoServizioUpdate.setCommento("bozza");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("bozza", servizioUpdated.getBody().getStato());
     	
@@ -185,14 +185,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
 	    
 	    statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("bozza");
 	    statoServizioUpdate.setCommento("bozza");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("bozza", servizioUpdated.getBody().getStato());
     	
@@ -201,14 +201,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
 	    
 	    statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("bozza");
 	    statoServizioUpdate.setCommento("bozza");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("bozza", servizioUpdated.getBody().getStato());
     	
@@ -217,14 +217,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
 	    
 	    statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("bozza");
 	    statoServizioUpdate.setCommento("bozza");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("bozza", servizioUpdated.getBody().getStato());
 	    
@@ -234,7 +234,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("richiesto_collaudo");
 		    statoServizioUpdaten.setCommento("richiesta di collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -243,7 +243,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("richiesto_collaudo");
 		    statoServizioUpdaten.setCommento("richiesta di collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -252,32 +252,32 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("richiesto_collaudo");
 		    statoServizioUpdaten.setCommento("richiesta di collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 
     	/*
 	    statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 
 		statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);	    
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);	    
 	    statoServizioUpdate.setStato("autorizzato_produzione");
 	    statoServizioUpdate.setCommento("autorizzato in produzione");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 		statoServizioUpdate.setStato("in_configurazione_produzione");
 	    statoServizioUpdate.setCommento("in configurazione in produzione");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 		statoServizioUpdate.setStato("pubblicato_produzione");
 	    statoServizioUpdate.setCommento("pubblicato in produzione");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    */
     }
     
@@ -306,7 +306,7 @@ public class WorkflowServiziTest {
         referente.setTipo(TipoReferenteEnum.REFERENTE);
         referente.setIdUtente(utenteC.getBody().getIdUtente());
     	
-    	serviziController.createReferenteServizio(servizio.getIdServizio(), referente);
+    	serviziController.createReferenteServizio(servizio.getIdServizio(), null, referente);
     	
     	this.getAPI();
     	//System.out.println(servizio.getIdServizio());
@@ -316,7 +316,7 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(servizio.getIdServizio(), statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(servizio.getIdServizio(), statoServizioUpdate, null);
     	
     	assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
     	
@@ -325,7 +325,7 @@ public class WorkflowServiziTest {
     	statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("autorizzato_collaudo");
     	statoServizioUpdate.setCommento("autorizzato collaudo");
-    	servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+    	servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 
     	CommonUtils.getSessionUtente(utenteCoordinatore, securityContext, authentication, utenteService);
 
@@ -333,7 +333,7 @@ public class WorkflowServiziTest {
     		StatoUpdate statoServizioUpdaten = new StatoUpdate();
     		statoServizioUpdaten.setStato("in_configurazione_collaudo");
     		statoServizioUpdaten.setCommento("in configurazione collaudo");
-    		serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+    		serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
     	}, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     }
     
@@ -354,14 +354,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato collaudo");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("autorizzato_collaudo", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
     	
@@ -370,14 +370,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("autorizzato_collaudo", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_collaudo", servizioUpdated.getBody().getStato());
     	
@@ -387,7 +387,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_collaudo");
 		    statoServizioUpdaten.setCommento("autorizzato collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
 	    
@@ -404,7 +404,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_collaudo");
 		    statoServizioUpdaten.setCommento("autorizzato collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         */
         
@@ -416,7 +416,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_collaudo");
 		    statoServizioUpdaten.setCommento("autorizzato collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
@@ -425,7 +425,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_collaudo");
 		    statoServizioUpdaten.setCommento("autorizzato collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -434,7 +434,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_collaudo");
 		    statoServizioUpdaten.setCommento("autorizzato collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -443,7 +443,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_collaudo");
 		    statoServizioUpdaten.setCommento("autorizzato collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     }
     
@@ -464,14 +464,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("in_configurazione_collaudo", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("autorizzato_collaudo", servizioUpdated.getBody().getStato());
     	
@@ -481,7 +481,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_collaudo");
 		    statoServizioUpdaten.setCommento("in configurazione collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
@@ -490,7 +490,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_collaudo");
 		    statoServizioUpdaten.setCommento("in configurazione collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
@@ -499,7 +499,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_collaudo");
 		    statoServizioUpdaten.setCommento("in configurazione collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
@@ -508,7 +508,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_collaudo");
 		    statoServizioUpdaten.setCommento("in configurazione collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -517,7 +517,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_collaudo");
 		    statoServizioUpdaten.setCommento("in configurazione collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -526,7 +526,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_collaudo");
 		    statoServizioUpdaten.setCommento("in configurazione collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     }
     
@@ -547,14 +547,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("in_configurazione_collaudo", servizioUpdated.getBody().getStato());
     	
@@ -564,7 +564,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_collaudo");
 	    	statoServizioUpdaten.setCommento("pubblicato in collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
@@ -573,7 +573,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_collaudo");
 	    	statoServizioUpdaten.setCommento("pubblicato in collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
@@ -582,7 +582,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_collaudo");
 	    	statoServizioUpdaten.setCommento("pubblicato in collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
@@ -591,7 +591,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_collaudo");
 	    	statoServizioUpdaten.setCommento("pubblicato in collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -600,7 +600,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_collaudo");
 	    	statoServizioUpdaten.setCommento("pubblicato in collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -609,7 +609,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_collaudo");
 	    	statoServizioUpdaten.setCommento("pubblicato in collaudo");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     }
     
@@ -630,14 +630,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
     	
@@ -646,14 +646,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
     	
@@ -662,14 +662,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
 	    
@@ -679,7 +679,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("richiesto_produzione");
 	    	statoServizioUpdaten.setCommento("richiesto in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -688,7 +688,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("richiesto_produzione");
 	    	statoServizioUpdaten.setCommento("richiesto in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -697,7 +697,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("richiesto_produzione");
 	    	statoServizioUpdaten.setCommento("richiesto in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");     
         
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_SERVIZIO, securityContext, authentication, utenteService);
@@ -705,14 +705,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
 
@@ -735,14 +735,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("autorizzato_produzione");
 	    statoServizioUpdate.setCommento("autorizzato in produzione");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("autorizzato_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
@@ -751,14 +751,14 @@ public class WorkflowServiziTest {
         statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("autorizzato_produzione");
 	    statoServizioUpdate.setCommento("autorizzato in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("autorizzato_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    
 	    assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
@@ -768,7 +768,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_produzione");
 	    	statoServizioUpdaten.setCommento("autorizzato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
@@ -777,7 +777,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_produzione");
 	    	statoServizioUpdaten.setCommento("autorizzato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
@@ -786,7 +786,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_produzione");
 	    	statoServizioUpdaten.setCommento("autorizzato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -795,7 +795,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_produzione");
 	    	statoServizioUpdaten.setCommento("autorizzato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -804,7 +804,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("autorizzato_produzione");
 	    	statoServizioUpdaten.setCommento("autorizzato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     }
     
@@ -825,14 +825,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("in_configurazione_produzione");
 	    statoServizioUpdate.setCommento("in configurazione in produzione");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("in_configurazione_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("autorizzato_produzione");
 	    statoServizioUpdate.setCommento("autorizzato in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("autorizzato_produzione", servizioUpdated.getBody().getStato());
     	
@@ -842,7 +842,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_produzione");
 	    	statoServizioUpdaten.setCommento("in configurazione in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
@@ -851,7 +851,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_produzione");
 	    	statoServizioUpdaten.setCommento("in configurazione in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
@@ -860,7 +860,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_produzione");
 	    	statoServizioUpdaten.setCommento("in configurazione in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
@@ -869,7 +869,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_produzione");
 	    	statoServizioUpdaten.setCommento("in configurazione in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -878,7 +878,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_produzione");
 	    	statoServizioUpdaten.setCommento("in configurazione in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -887,7 +887,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("in_configurazione_produzione");
 	    	statoServizioUpdaten.setCommento("in configurazione in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");         
     }
     
@@ -908,14 +908,14 @@ public class WorkflowServiziTest {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("pubblicato_produzione");
 	    statoServizioUpdate.setCommento("pubblicato in produzione");
-	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("pubblicato_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("in_configurazione_produzione");
 	    statoServizioUpdate.setCommento("in configurazione in produzione");
-	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     	
     	assertEquals("in_configurazione_produzione", servizioUpdated.getBody().getStato());
     	
@@ -925,7 +925,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_produzione");
 	    	statoServizioUpdaten.setCommento("pubblicato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
@@ -934,7 +934,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_produzione");
 	    	statoServizioUpdaten.setCommento("pubblicato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
     	
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
@@ -943,7 +943,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_produzione");
 	    	statoServizioUpdaten.setCommento("pubblicato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
@@ -952,7 +952,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_produzione");
 	    	statoServizioUpdaten.setCommento("pubblicato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
@@ -961,7 +961,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_produzione");
 	    	statoServizioUpdaten.setCommento("pubblicato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
@@ -970,7 +970,7 @@ public class WorkflowServiziTest {
 	    	StatoUpdate statoServizioUpdaten = new StatoUpdate();
 	    	statoServizioUpdaten.setStato("pubblicato_produzione");
 	    	statoServizioUpdaten.setCommento("pubblicato in produzione");
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");     
 	    
     }
@@ -1021,7 +1021,7 @@ public class WorkflowServiziTest {
 
         // Itera sulla sequenza degli stati e applica ciascuno finché non raggiungi lo stato finale
         for (StatoUpdate statoUpdate : sequenzaStati) {
-            serviziController.updateStatoServizio(idServizio, statoUpdate);
+            serviziController.updateStatoServizio(idServizio, statoUpdate, null);
 
             // Termina il ciclo quando raggiungi lo stato finale desiderato
             if (statoUpdate.getStato().equals(statoFinale)) {
@@ -1050,14 +1050,14 @@ public class WorkflowServiziTest {
         StatoUpdate statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("richiesto_collaudo");
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     }
     
     public void setStato(UUID idServizio, String nomeStato, String commento) {
     	StatoUpdate statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato(nomeStato);
 	    statoServizioUpdate.setCommento(commento);
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     }
 
     public void setIdServizio(UUID id) {

@@ -699,7 +699,7 @@ public class ServiziTest {
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         referenteCreate.setIdUtente(ID_UTENTE_GESTORE);
 
-        ResponseEntity<Referente> responseReferente = serviziController.createReferenteServizio(servizio.getIdServizio(), referenteCreate);
+        ResponseEntity<Referente> responseReferente = serviziController.createReferenteServizio(servizio.getIdServizio(), null, referenteCreate);
         
         assertEquals(HttpStatus.OK, responseReferente.getStatusCode());
         assertNotNull(responseReferente.getBody());
@@ -715,7 +715,7 @@ public class ServiziTest {
         referenteCreate.setIdUtente(UUID.randomUUID());
 
         Exception exception = assertThrows(NotFoundException.class, () -> {
-            serviziController.createReferenteServizio(idServizioNonEsistente, referenteCreate);
+            serviziController.createReferenteServizio(idServizioNonEsistente, null, referenteCreate);
         });
 
         String expectedMessage = "Servizio con id [" + idServizioNonEsistente + "] non trovato";
@@ -733,7 +733,7 @@ public class ServiziTest {
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
         assertThrows(NotAuthorizedException.class, () -> {
-            serviziController.createReferenteServizio(servizio.getIdServizio(), referenteCreate);
+            serviziController.createReferenteServizio(servizio.getIdServizio(), null, referenteCreate);
         });
 
     }
@@ -749,7 +749,7 @@ public class ServiziTest {
         this.tearDown();
 
         assertThrows(NotAuthorizedException.class, () -> {
-            serviziController.createReferenteServizio(servizio.getIdServizio(), referenteCreate);
+            serviziController.createReferenteServizio(servizio.getIdServizio(), null, referenteCreate);
         });
 
     }
@@ -1042,9 +1042,9 @@ public class ServiziTest {
         referenteCreate.setIdUtente(responseUtente2.getBody().getIdUtente());
         referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
         
-        serviziController.createReferenteServizio(idServizio, referenteCreate);
+        serviziController.createReferenteServizio(idServizio, null, referenteCreate);
 
-        ResponseEntity<Void> response = serviziController.deleteReferenteServizio(idServizio, responseUtente2.getBody().getIdUtente(), TipoReferenteEnum.REFERENTE);
+        ResponseEntity<Void> response = serviziController.deleteReferenteServizio(idServizio, responseUtente2.getBody().getIdUtente(), TipoReferenteEnum.REFERENTE, null);
         
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -1054,7 +1054,7 @@ public class ServiziTest {
         UUID idServizioNonEsistente = UUID.randomUUID();
 
         Exception exception = assertThrows(NullPointerException.class, () -> {
-            serviziController.deleteReferenteServizio(idServizioNonEsistente, responseUtente.getBody().getIdUtente(), TipoReferenteEnum.REFERENTE);
+            serviziController.deleteReferenteServizio(idServizioNonEsistente, responseUtente.getBody().getIdUtente(), TipoReferenteEnum.REFERENTE, null);
         });
 
     }
@@ -1334,7 +1334,7 @@ public class ServiziTest {
         datiGenerici.setDescrizioneSintetica("stessa descrizione");
         servizioUpdate.setDatiGenerici(datiGenerici);
 
-        ResponseEntity<Servizio> response = serviziController.updateServizio(idServizio, servizioUpdate);
+        ResponseEntity<Servizio> response = serviziController.updateServizio(idServizio, null, servizioUpdate);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -1366,7 +1366,7 @@ public class ServiziTest {
         servizioUpdate.setDatiGenerici(datiGenerici);
 
         assertThrows(NotFoundException.class, () -> {
-            serviziController.updateServizio(idServizioNonEsistente, servizioUpdate);
+            serviziController.updateServizio(idServizioNonEsistente, null, servizioUpdate);
         });
     }
 
@@ -1406,7 +1406,7 @@ public class ServiziTest {
 	    
 	    // Test per conflitto di identificativo
 	    assertThrows(ConflictException.class, () -> {
-	        serviziController.updateServizio(servizio2.getBody().getIdServizio(), servizioUpdate);
+	        serviziController.updateServizio(servizio2.getBody().getIdServizio(), null, servizioUpdate);
 	    });
 	}
 
@@ -1440,7 +1440,7 @@ public class ServiziTest {
 
         // Test per servizio non trovato
         assertThrows(NotFoundException.class, () -> {
-            serviziController.updateStatoServizio(idServizioNonEsistente, statoServizioUpdate);
+            serviziController.updateStatoServizio(idServizioNonEsistente, statoServizioUpdate, null);
         });
     }
 
@@ -1458,7 +1458,7 @@ public class ServiziTest {
 
         // Test per autorizzazione fallita
         Exception exception = assertThrows(NotAuthorizedException.class, () -> {
-            serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+            serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
         });
 
     }
@@ -1476,7 +1476,7 @@ public class ServiziTest {
 
         // Test per autorizzazione fallita
         Exception exception = assertThrows(NotAuthorizedException.class, () -> {
-            serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+            serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
         });
 
     }
