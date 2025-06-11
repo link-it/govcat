@@ -36,7 +36,7 @@ export class TokenSegmentComponent implements OnInit {
     public utilsLib: UtilsLib
   ) {
     this.config = this.configService.getConfiguration();
-    this.api_url = this.config.AppConfig.PDC_CONSOLE.HOST;
+    this.api_url = this.config.AppConfig.GOVAPI.HOST || '';
   }
 
   ngOnInit(): void {

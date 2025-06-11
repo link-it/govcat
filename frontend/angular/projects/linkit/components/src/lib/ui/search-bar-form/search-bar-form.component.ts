@@ -210,15 +210,6 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
           const _relatedOperator = this.__getOperator(_field.related);
           const _relatedValue = this.__formatValue(_field.related, _data[_field.related]);
 
-          // console.group('multiple', _field.field)
-          //   console.log('field', _field);
-          //   console.log('value', _value);
-          //   console.group('multiple related', _relatedField.field)
-          //     console.log('field related', _relatedField);
-          //     console.log('value related', _relatedValue);
-          //   console.groupEnd();
-          // console.groupEnd();
-
           if (!hide) {
             const _valuesSplit = _value.split(',');
             const _valuesTassonomieList: string[] = [];
@@ -328,14 +319,7 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   _clearToken(event: any, token: any, index: number) {
-    // event.stopPropagation();
     if (token.data.type === 'multiple') {
-      // console.group('clearToken');
-      //   console.log('token', token);
-      //   console.log('token position', token.position);
-      //   console.log('index', index);
-      // console.groupEnd();
-
       const _valuesSplit = token.original.value.split(',');
       const _valuesTassonomieList: string[] = [];
       const _valuesCategorieList: string[] = [];
@@ -407,7 +391,6 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
       this.query = '';
     } else {
       this.query = '';
-      // event.stopPropagation();
       this._tokens = [];
       this._currentValues = {};
       this.formGroup.reset();
