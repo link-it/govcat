@@ -48,7 +48,7 @@ public class OpenapiUtils {
 
 	private static OpenAPI getOpenAPI(byte[] openapi) throws IOException {
 
-		byte[] minimalOpenApi = OpenApiMinifierRaw.extractMinimalOpenApi(openapi);
+		byte[] minimalOpenApi = YamltoJsonUtils.convertYamlToJson(openapi);
 
 		SwaggerParseResult pr = new OpenAPIV3Parser().readContents(new String(minimalOpenApi));
 
@@ -62,38 +62,40 @@ public class OpenapiUtils {
 
 			OpenAPI openapi = getOpenAPI(openapiBytes);
 			
-			for(Entry<String, PathItem> entry: openapi.getPaths().entrySet()) {
+			if(openapi.getPaths()!= null) {
+				for(Entry<String, PathItem> entry: openapi.getPaths().entrySet()) {
 
-				String path = entry.getKey();
+					String path = entry.getKey();
 
-				PathItem pathV = entry.getValue();
+					PathItem pathV = entry.getValue();
 
-				if(pathV.getGet()!=null) {
-					List<String> lst = getContentTypes(pathV.getGet());
-					resources.add(newResourceInfo("GET", path, lst));
-				}
-				if(pathV.getPost()!=null) {
-					List<String> lst = getContentTypes(pathV.getPost());
-					resources.add(newResourceInfo("POST", path, lst));
-				}
-				if(pathV.getPut()!=null) {
-					List<String> lst = getContentTypes(pathV.getPut());
-					resources.add(newResourceInfo("PUT", path, lst));
-				}
-				if(pathV.getHead()!=null) {
-					List<String> lst = getContentTypes(pathV.getHead());
-					resources.add(newResourceInfo("HEAD", path, lst));
-				}
-				if(pathV.getDelete()!=null) {
-					List<String> lst = getContentTypes(pathV.getDelete());
-					resources.add(newResourceInfo("DELETE", path, lst));
-				}
-				if(pathV.getPatch()!=null) {
-					List<String> lst = getContentTypes(pathV.getPatch());
-					resources.add(newResourceInfo("PATCH", path, lst));
+					if(pathV.getGet()!=null) {
+						List<String> lst = getContentTypes(pathV.getGet());
+						resources.add(newResourceInfo("GET", path, lst));
+					}
+					if(pathV.getPost()!=null) {
+						List<String> lst = getContentTypes(pathV.getPost());
+						resources.add(newResourceInfo("POST", path, lst));
+					}
+					if(pathV.getPut()!=null) {
+						List<String> lst = getContentTypes(pathV.getPut());
+						resources.add(newResourceInfo("PUT", path, lst));
+					}
+					if(pathV.getHead()!=null) {
+						List<String> lst = getContentTypes(pathV.getHead());
+						resources.add(newResourceInfo("HEAD", path, lst));
+					}
+					if(pathV.getDelete()!=null) {
+						List<String> lst = getContentTypes(pathV.getDelete());
+						resources.add(newResourceInfo("DELETE", path, lst));
+					}
+					if(pathV.getPatch()!=null) {
+						List<String> lst = getContentTypes(pathV.getPatch());
+						resources.add(newResourceInfo("PATCH", path, lst));
+					}
 				}
 			}
-
+			
 			return resources.stream().collect(Collectors.toList());
 		} catch(RuntimeException e) {
 			throw new Exception("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
