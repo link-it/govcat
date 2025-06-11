@@ -128,7 +128,7 @@ export class AgidJwtDialogComponent implements OnInit {
 
         // Payload del JWT
         const payload = {
-            client_id: values.clientId,
+            // client_id: values.clientId,
             iss: values.clientId,
             sub: values.clientId,
             aud: values.audience,
