@@ -1,6 +1,6 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { NgxMasonryOptions } from 'ngx-masonry';
@@ -76,7 +76,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _editCurrent: any = null;
 
     _hasFilter: boolean = true;
-    _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+    _formGroup: FormGroup = new FormGroup({});
     _filterData: any = null;
     _filterDataEmpty: boolean = true;
 
@@ -103,7 +103,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { field: 'nome', label: 'APP.LABEL.nome', icon: '' }
     ];
 
-    _statiServizioEnum: any = { ...Tools.StatiServizioEnum };
+    _statiServizioEnum: any = {};
 
     _tipiVisibilitaServizio: {value: string, label: string}[] = [
         ...Tools.TipiVisibilitaServizio
@@ -208,7 +208,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     constructor(
         private router: Router,
-        private formBuilder: FormBuilder,
         private modalService: BsModalService,
         private translate: TranslateService,
         private configService: ConfigService,
@@ -344,6 +343,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 if (element === 'archiviato' && !this._isGestore()) { return; }
                 this._workflowStatiFiltered.push({ value: element, label: element });
             });
+
+            this._statiServizioEnum = Object.fromEntries(this._workflowStatiFiltered.map(item => [item.label, `APP.WORKFLOW.STATUS.${item.value}`])) as {
+                [key: string]: string;
+            };
+            const _index = this.searchFields.findIndex((s: any) => s.field === 'stato');
+            if (_index > -1) {
+                this.searchFields[_index].enumValues = { ...this._statiServizioEnum };
+            }
         }
     }
 
@@ -407,24 +414,24 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _initSearchForm() {
-        this._formGroup = new UntypedFormGroup({
-            q: new UntypedFormControl(''),
-            stato: new UntypedFormControl(''),
-            type: new UntypedFormControl(''),
-            referente: new UntypedFormControl(''),
-            id_dominio: new UntypedFormControl(''),
-            id_gruppo: new UntypedFormControl(''),
-            visibilita: new UntypedFormControl(''),
-            categoria: new UntypedFormControl(''),
-            categoriaLabel: new UntypedFormControl(''),
-            tag: new UntypedFormControl(''),
-            in_attesa: new UntypedFormControl(''),
-            miei_servizi: new UntypedFormControl(''),
-            id_api: new UntypedFormControl(''),
-            id_servizio: new UntypedFormControl(''),
-            id_gruppo_padre: new UntypedFormControl(''),
-            id_gruppo_padre_label: new UntypedFormControl(''),
-            // taxonomiesGroup: new UntypedFormGroup({})
+        this._formGroup = new FormGroup({
+            q: new FormControl(''),
+            stato: new FormControl(''),
+            type: new FormControl(''),
+            referente: new FormControl(''),
+            id_dominio: new FormControl(''),
+            id_gruppo: new FormControl(''),
+            visibilita: new FormControl(''),
+            categoria: new FormControl(''),
+            categoriaLabel: new FormControl(''),
+            tag: new FormControl(''),
+            in_attesa: new FormControl(''),
+            miei_servizi: new FormControl(''),
+            id_api: new FormControl(''),
+            id_servizio: new FormControl(''),
+            id_gruppo_padre: new FormControl(''),
+            id_gruppo_padre_label: new FormControl(''),
+            // taxonomiesGroup: new FormGroup({})
         });
     }
 
@@ -932,8 +939,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
         (taxonomies || []).forEach((taxonomy: any) => {
             // const required: boolean = taxonomy.obbligatorio;
-            // _taxonomiesGroup.addControl(taxonomy.nome, new UntypedFormControl('', required?[Validators.required]:null));
-            _taxonomiesGroup.addControl(taxonomy.nome, new UntypedFormControl('', null));
+            // _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', required?[Validators.required]:null));
+            _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', null));
         });
 
         this._formGroup.updateValueAndValidity();
