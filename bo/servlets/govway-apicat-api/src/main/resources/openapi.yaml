@@ -1197,6 +1197,88 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /utenti/{id_utente}/domini:
+    parameters:
+    - $ref: "#/components/parameters/id_utente"
+    get:
+      tags:
+      - "Utenti"
+      description: "Domini a cui è abilitato l'Utente"
+      operationId: "getUtenteDomini"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemDominio"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /utenti/{id_utente}/domini/{id_dominio}:
+    parameters:
+    - $ref: "#/components/parameters/id_utente"
+    - $ref: "#/components/parameters/id_dominio"
+    put:
+      tags:
+      - "Utenti"
+      description: "Aggiunta di un Dominio a quelli abilitati all'Utente"
+      operationId: "addDominioUtente"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Utenti"
+      description: "Rimozione di un Dominio da quelli abilitati all'Utente"
+      operationId: "deleteDominioUtente"
+      responses:
+        "204":
+          description: "Rimozione effettuata con successo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /utenti/{id_utente}/settings/notifiche:
     parameters:
     - $ref: "#/components/parameters/id_utente"
@@ -7896,6 +7978,8 @@ components:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
           type: 'boolean'
+        abilitato_domini_esterni:
+          type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
         classi_utente:
@@ -7937,6 +8021,8 @@ components:
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
+          type: 'boolean'
+        abilitato_domini_esterni:
           type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
@@ -8009,6 +8095,8 @@ components:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
           type: 'boolean'
+        abilitato_domini_esterni:
+          type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
         classi_utente:
@@ -8051,6 +8139,8 @@ components:
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
+          type: 'boolean'
+        abilitato_domini_esterni:
           type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
@@ -8434,6 +8524,8 @@ components:
           type: "boolean"
         dominio:
             $ref: "#/components/schemas/Dominio"
+        fruizione:
+          type: boolean
         soggetto_interno:
           $ref: "#/components/schemas/ItemSoggetto"
         package:
@@ -8470,6 +8562,8 @@ components:
           $ref: "#/components/schemas/TipoServizio"
         id_dominio:
           $ref: "#/components/schemas/IdDominio"
+        fruizione:
+          type: boolean
         id_soggetto_interno:
           $ref: "#/components/schemas/IdSoggetto"
         referenti:
@@ -8549,6 +8643,8 @@ components:
           $ref: "#/components/schemas/String255"
         dominio:
           $ref: "#/components/schemas/Dominio"
+        fruizione:
+          type: boolean
         soggetto_interno:
           $ref: "#/components/schemas/ItemSoggetto"
         path_gruppo:
@@ -8632,6 +8728,8 @@ components:
           $ref: "#/components/schemas/IdDominio"
         skip_collaudo:
           type: "boolean"
+        fruizione:
+          type: boolean
         id_soggetto_interno:
           $ref: "#/components/schemas/IdSoggetto"
         visibilita:
@@ -10164,3 +10262,4 @@ components:
       description: "Header Location inserito in una risposta ad una richiesta POST, terminata con successo 'http 201'.\nL'header indica l'id dell'oggetto creato."
       schema:
         type: "string"
+        
