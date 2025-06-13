@@ -13,17 +13,17 @@
 
       <div class="mr-2" *ngIf="!_isUnread()">
         <span class="d-flex align-items-center flex-justify-center height-full width-full">
-          <button type="submit" aria-label="Done" class="btn btn-default btn-sm gl-button" (click)="markNotification(_notificationState.Archiviata)" *ngIf="_notification.stato !== _notificationState.Archiviata">
+          <button type="submit" aria-label="Done" class="btn btn-default btn-sm gl-button" (click)="markNotification(NotificationState.Archiviata)" *ngIf="_notification.stato !== NotificationState.Archiviata">
             <i class="bi bi-check-lg"></i>
             <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Archive' | translate }}</span>
           </button>
-          <span class="me-2" *ngIf="_notification.stato === _notificationState.Archiviata">{{ 'APP.NOTIFICATIONS.STATUS.Archiviata' | translate }}</span>
+          <span class="me-2" *ngIf="_notification.stato === NotificationState.Archiviata">{{ 'APP.NOTIFICATIONS.STATUS.Archiviata' | translate }}</span>
         </span>
       </div>
 
       <div class="mr-2" *ngIf="!_isUnread()">
         <span class="d-flex align-items-center flex-justify-center height-full width-full">
-          <button type="submit" aria-label="Mark as unread" class="btn btn-default btn-sm gl-button" (click)="markNotification(_notificationState.Nuova)">
+          <button type="submit" aria-label="Mark as unread" class="btn btn-default btn-sm gl-button" (click)="markNotification(NotificationState.Nuova)">
             <span class="text-center d-inline-block" style="width:16px">
               <svg class="octicon octicon-dot-fill  v-align-text-bottom color-fg-inherit" viewBox="0 0 16 16"
                 version="1.1" width="16" height="16" aria-hidden="true">
@@ -37,7 +37,7 @@
 
       <div class="mr-2" *ngIf="_isUnread()">
         <span class="d-flex align-items-center flex-justify-center height-full width-full">
-          <button type="submit" aria-label="Mark as unread" class="btn btn-default btn-sm gl-button" (click)="markNotification(_notificationState.Letta)">
+          <button type="submit" aria-label="Mark as unread" class="btn btn-default btn-sm gl-button" (click)="markNotification(NotificationState.Letta)">
             <span class="text-center d-inline-block" style="width:16px">
               <svg class="octicon octicon-dot  v-align-text-bottom color-fg-inherit" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M4 8a4 4 0 1 1 8 0 4 4 0 0 1-8 0Zm4-2.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"></path></svg>
             </span>

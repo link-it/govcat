@@ -77,19 +77,19 @@ public class ProfiloAssembler extends RepresentationModelAssemblerSupport<Utente
 			fields.add("IdUtente");
 		}
 		if(utente.getNome() == null) {
-			utente.setNome("NOME");
+			utente.setNome("--");
 //			fields.add("Nome");
 		}
 		if(utente.getCognome() == null) {
-			utente.setCognome("COGNOME");
+			utente.setCognome("--");
 //			fields.add("Cognome");
 		}
 		if(utente.getEmailAziendale() == null) {
-			utente.setEmailAziendale("EMAILAZIENDALE");
+			utente.setEmailAziendale("--");
 //			fields.add("EmailAziendale");
 		}
 		if(utente.getTelefonoAziendale() == null) {
-			utente.setTelefonoAziendale("TELEFONOAZIENDALE");
+			utente.setTelefonoAziendale("--");
 //			fields.add("TelefonoAziendale");
 		}
 

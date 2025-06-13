@@ -68,6 +68,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class AdesioneAuthorization extends DefaultWorkflowAuthorization<AdesioneCreate,AdesioneUpdate,AdesioneEntity> {
 
+	public AdesioneAuthorization() {
+		super(EntitaEnum.ADESIONE);
+	}
+
 	private Logger logger = LoggerFactory.getLogger(AdesioneAuthorization.class);
 
 	@Autowired
@@ -455,6 +459,10 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		
 		if(this.coreAuthorization.isAdmin(u)) {
 			lst.add(Ruolo.GESTORE);
+		}
+		
+		if(this.coreAuthorization.isCoordinatore(u)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
 
 		boolean refServizio = entity.getServizio().getReferenti().stream()

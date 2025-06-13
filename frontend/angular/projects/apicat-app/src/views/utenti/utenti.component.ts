@@ -1,33 +1,35 @@
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Page} from '../../models/page';
+import { Ruolo, Stato } from './utente-details/utente';
 
 @Component({
   selector: 'app-utenti',
   templateUrl: 'utenti.component.html',
-  styleUrls: ['utenti.component.scss']
+  styleUrls: ['utenti.component.scss'],
+  standalone: false
 })
 export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtentiComponent';
   readonly model: string = 'utenti';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   config: any;
   utentiConfig: any;
@@ -39,7 +41,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   _isEdit: boolean = false;
 
   _hasFilter: boolean = true;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -63,14 +65,35 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     { field: 'cognome', label: 'APP.LABEL.cognome', icon: '' }
   ];
 
+  yesNoList: any = [
+    { value: true, label: 'APP.BOOLEAN.Yes' },
+    { value: false, label: 'APP.BOOLEAN.No' }
+  ];
+  _enabledEnum: any = {};
+  _tempEnable = this.yesNoList.map((item: any) => {
+    this._enabledEnum =  { ...this._enabledEnum, [item.value]: item.label};
+    return item;
+  });
+  _roleEnum: any = {};
+  _tempRole = Object.values(Ruolo).map((value: any) => {
+    this._roleEnum =  { ...this._roleEnum, [value]: `APP.USERS.ROLES.${value}`};
+    return value;
+  });
+  _statoEnum: any = {};
+  _tempStato = Object.values(Stato).map((value: any) => {
+    this._statoEnum =  { ...this._statoEnum, [value]: `APP.USERS.STATUS.${value}`};
+    return value;
+  });
+
   searchFields: any[] = [
     { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'string', condition: 'like' },
     { field: 'email', label: 'APP.LABEL.email', type: 'string', condition: 'like' },
-    { field: 'ruolo', label: 'APP.LABEL.Role', type: 'string', condition: 'like' },
-    { field: 'stato', label: 'APP.LABEL.Status', type: 'string', condition: 'like' },
-    { field: 'username', label: 'APP.LABEL.Username', type: 'string', condition: 'like' },
+    { field: 'ruolo', label: 'APP.LABEL.Role', type: 'enum', condition: 'equal', enumValues: this._roleEnum },
+    { field: 'stato', label: 'APP.LABEL.Status', type: 'enum', condition: 'equal', enumValues: this._statoEnum },
+    { field: 'principal', label: 'APP.USERS.LABEL.Principal', type: 'string', condition: 'like' },
     { field: 'id_organizzazione', label: 'APP.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' } },
-    { field: 'classe_utente', label: 'APP.LABEL.classi', type: 'array', condition: 'contain', params: { resource: 'classi-utente', field: 'nome' } }
+    { field: 'classe_utente', label: 'APP.LABEL.classi', type: 'array', condition: 'contain', params: { resource: 'classi-utente', field: 'nome' } },
+    { field: 'referente_tecnico', label: 'APP.LABEL.ReferenteTecnico', type: 'enum', condition: 'equal', enumValues: this._enabledEnum }
   ];
   useCondition: boolean = false;
 
@@ -117,8 +140,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   ngOnInit() {
-    this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
-    this._ruoloArr = [ 'nessun_ruolo', 'referente_servizio', 'gestore' ];
+    this._statoArr = Object.values(Stato);
+    this._ruoloArr = Object.values(Ruolo);
 
     this.configService.getConfig(this.model).subscribe(
       (config: any) => {
@@ -126,7 +149,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
         this._initOrganizzazioniSelect([]);
         this._initClassiUtenteSelect([]);
         // this._loadUtenti(this._filterData);
-        this.searchGoogleForm._onSearch();
+        this.searchBarForm?._onSearch();
       }
     );
   }
@@ -136,7 +159,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this.refresh();
       }, 100);
@@ -163,14 +186,15 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      q: new UntypedFormControl(''),
-      email: new UntypedFormControl(''),
-      ruolo: new UntypedFormControl(''),
-      stato: new UntypedFormControl(''),
-      username: new UntypedFormControl(''),
-      id_organizzazione: new UntypedFormControl(''),
-      classe_utente: new UntypedFormControl(''),
+    this._formGroup = new FormGroup({
+      q: new FormControl(''),
+      email: new FormControl(''),
+      ruolo: new FormControl(''),
+      stato: new FormControl(''),
+      principal: new FormControl(''),
+      id_organizzazione: new FormControl(''),
+      classe_utente: new FormControl(''),
+      referente_tecnico: new FormControl('')
     });
   }
 
@@ -233,8 +257,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   _onEdit(event: any, param: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._pinLastSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._pinLastSearch();
     }
     this.router.navigate([this.model, param.id]);
   }
@@ -248,8 +272,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 
@@ -372,12 +396,12 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   onChangeSearchDropdwon(event: any){
     this._searchOrganizzazioneSelected = event;
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
   onSelectedSearchDropdwon($event: Event){
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
     $event.stopPropagation();
   }
 

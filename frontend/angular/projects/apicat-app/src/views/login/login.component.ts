@@ -5,14 +5,15 @@ import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } fro
 import { TranslateService } from '@ngx-translate/core';
 import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 import { AuthenticationService } from '../../services/authentication.service';
-import { Tools } from 'projects/tools/src/public-api';
+import { Tools } from '@linkit/components';
 
 @Component({
   selector: 'app-login',
   templateUrl: 'login.component.html',
-  styleUrls: ['login.component.scss']
+  styleUrls: ['login.component.scss'],
+  standalone: false
 })
 export class LoginComponent implements OnInit {
 

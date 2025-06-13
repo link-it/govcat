@@ -33,6 +33,7 @@ import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.GruppoAuthorization;
 import org.govway.catalogo.controllers.GruppiController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
@@ -43,7 +44,10 @@ import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.GruppoUpdate;
 import org.govway.catalogo.servlets.model.ListItemGruppo;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
+import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,6 +107,9 @@ public class GruppiTest {
 
     @Autowired
     private GruppiController controller;
+    
+    @Autowired
+    private UtentiController utentiController;
 
     @Autowired
     private WebApplicationContext wac;
@@ -147,6 +154,23 @@ public class GruppiTest {
         assertNotNull(createdGruppo.getBody());
         assertEquals(CommonUtils.NOME_GRUPPO, createdGruppo.getBody().getNome());
         assertEquals(CommonUtils.DESCRIZIONE_GRUPPO, createdGruppo.getBody().getDescrizione());
+    }
+    
+    @Test
+    public void testReadGruppoSuccessCoordinatore() {
+        GruppoCreate gruppo = CommonUtils.getGruppoCreate();
+        ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppo);
+        
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        Gruppo gruppox = controller.getGruppo(createdGruppo.getBody().getIdGruppo()).getBody();
+        //System.out.println(gruppox.getNome());
     }
 
     @Test
@@ -193,11 +217,83 @@ public class GruppiTest {
         assertEquals(HttpStatus.OK, createdGruppo.getStatusCode());
 
         UUID idGruppo = createdGruppo.getBody().getIdGruppo();
+        
         ResponseEntity<Void> responseDelete = controller.deleteGruppo(idGruppo);
 
         assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
     }
+    
+    @Test
+    public void testCreateReadDeleteGruppoReferenteServizioSuccess() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, createdGruppo.getStatusCode());
 
+        UUID idGruppo = createdGruppo.getBody().getIdGruppo();
+        ResponseEntity<Gruppo> readGruppo = controller.getGruppo(idGruppo);
+        
+        assertEquals(HttpStatus.OK, readGruppo.getStatusCode());
+        
+        ResponseEntity<Void> responseDelete = controller.deleteGruppo(idGruppo);
+
+        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
+    }
+    
+    @Test
+    public void testCreateGruppoCoordinatoreErrore() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	controller.createGruppo(gruppoCreate);
+        });
+
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+    }
+    
+    /*
+    @Test
+    public void testReadGruppoCoordinatoreError() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+        GruppoCreate gruppoCreate = CommonUtils.getGruppoCreate();
+        ResponseEntity<Gruppo> createdGruppo = controller.createGruppo(gruppoCreate);
+        assertEquals(HttpStatus.OK, createdGruppo.getStatusCode());
+
+        UUID idGruppo = createdGruppo.getBody().getIdGruppo();
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	controller.getGruppo(idGruppo);
+        });
+
+        assertEquals("Utente non abilitato", exception.getMessage());
+    }
+	*/
+    
     @Test
     public void testDeleteGruppoNotFound() {
         UUID idGruppoNonEsistente = UUID.randomUUID();
@@ -370,7 +466,7 @@ public class GruppiTest {
 
     @Test
     public void testUpdateGruppoNotFound() {
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
 
         UUID idGruppoNonEsistente = UUID.randomUUID();

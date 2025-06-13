@@ -18,17 +18,22 @@
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+        <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
-              <span title="Show all referents.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioreferenti.length">{{ _paging.totalElements || 0 }}</span>
+            <a tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.REFERENTI" (click)="setCurrTab(TabType.REFERENTI)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0 ">
+              <span title="Show all referents.">{{ 'APP.SERVICES.TITLE.ReferentiServizio' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioReferenti.length">{{ _paging.totalElements || 0 }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a tabindex="0" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currTab === TabType.DOMINIO" (click)="setCurrTab(TabType.DOMINIO)" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _pagingDomain.totalElements || 0 ">
+              <span title="Show all domain referents.">{{ 'APP.SERVICES.TITLE.ReferentiDominio' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="dominioReferenti.length">{{ _pagingDomain.totalElements || 0 }}</span>
             </a>
           </li>
         </ul>
       </div>
     </div>
     <div class="nav-controls align-self-center d-flex">
-      <div role="group" class="gl-w-full btn-group-">
+      <div class="gl-w-full btn-group-" *ngIf="currTab === TabType.REFERENTI">
         <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canAddMapper)">
           <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddReferent' | translate }}</span>
         </button>
@@ -65,43 +70,76 @@
       </div>
     </div>
   </section>
+
   <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
     infiniteScroll
     [infiniteScrollDistance]="2"
     [infiniteScrollThrottle]="50"
     (scrolled)="__loadMoreData()"
     [scrollWindow]="false">
-    <ui-box-message *ngIf="servizioreferenti.length == 0 && !_spin"
-      [size]="64"
-      [icon]="'report_problem'"
-      [image]="'./assets/images/illustrations/referents.svg'"
-      [message]="_message | translate"
-      [subMessage]="_messageHelp | translate">
-    </ui-box-message>
-    <div class="row">
-      <div class="col-12">
-        <ui-collapse-row class="border-bottom" *ngFor="let referent of servizioreferenti"
-          [data]="referent.source"
-          [config]="referentiConfig"
-          [enableCollapse]="referent.enableCollapse"
-          [hasLink]="true">
-          <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
-            <div class="d-flex flex-row">
-              <ui-form-readonly class="flex-grow-1"
-                [fields]="_generateReferentFields(referent.source)"
-                [columns]="config.AppConfig?.Layout?.Details?.columns || 6">
-              </ui-form-readonly>
-              <div class="position-relative">
-                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteReferente(referent)" *ngIf="(_updateMapper | mapper:_canAddMapper)">
-                  <i class="bi bi-trash text-danger"></i>
-                </button>
+
+    <div class="" [hidden]="currTab !== TabType.REFERENTI">
+      <ui-box-message *ngIf="servizioReferenti.length == 0 && (_spin === 0)"
+        [size]="64"
+        [icon]="'report_problem'"
+        [image]="'./assets/images/illustrations/referents.svg'"
+        [message]="_message | translate"
+        [subMessage]="_messageHelp | translate">
+      </ui-box-message>
+      <div class="row">
+        <div class="col-12">
+          <ui-collapse-row class="border-bottom" *ngFor="let referent of servizioReferenti"
+            [data]="referent.source"
+            [config]="referentiConfig"
+            [enableCollapse]="referent.enableCollapse"
+            [hasLink]="true">
+            <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+              <div class="d-flex flex-row">
+                <ui-form-readonly class="flex-grow-1"
+                  [fields]="_generateReferentFields(referent.source)"
+                  [columns]="config.AppConfig?.Layout?.Details?.columns || 6">
+                </ui-form-readonly>
+                <div class="position-relative">
+                  <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="_deleteReferente(referent)" *ngIf="(_updateMapper | mapper:_canAddMapper)">
+                    <i class="bi bi-trash text-danger"></i>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </ui-collapse-row>
+          </ui-collapse-row>
+        </div>
       </div>
     </div>
-    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+
+    <div class="" [hidden]="currTab !== TabType.DOMINIO">
+      <ui-box-message *ngIf="dominioReferenti.length == 0 && (_spin === 0)"
+        [size]="64"
+        [icon]="'report_problem'"
+        [image]="'./assets/images/illustrations/referents.svg'"
+        [message]="_message | translate"
+        [subMessage]="_messageHelp | translate">
+      </ui-box-message>
+      <div class="row">
+        <div class="col-12">
+          <ui-collapse-row class="border-bottom" *ngFor="let referent of dominioReferenti"
+            [data]="referent.source"
+            [config]="referentiConfig"
+            [enableCollapse]="referent.enableCollapse"
+            [hasLink]="true">
+            <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+              <div class="d-flex flex-row">
+                <ui-form-readonly class="flex-grow-1"
+                  [fields]="_generateReferentFields(referent.source)"
+                  [columns]="config.AppConfig?.Layout?.Details?.columns || 6">
+                </ui-form-readonly>
+              </div>
+            </div>
+          </ui-collapse-row>
+        </div>
+      </div>
+    </div>
+
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin > 0"></ui-box-spinner>
   </section>
 </div>
 

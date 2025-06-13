@@ -18,9 +18,9 @@
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+        <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || servizioApiAllegati.length">
               <span title="Show all attachments.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="servizioApiAllegati.length">{{ _paging.totalElements || servizioApiAllegati.length }}</span>
             </a>
           </li>
@@ -28,7 +28,7 @@
       </div>
     </div>
     <div class="nav-controls align-self-center d-flex">
-      <div role="group" class="gl-w-full btn-group-">
+      <div class="gl-w-full btn-group-">
         <button [attr.aria-label]="(_showAllAttachments ? 'APP.SERVICES.BUTTON.AddAttachment' : 'APP.SERVICES.BUTTON.AddAttachment-' + _tipoAllegato) | translate" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="(_updateMapper | mapper:_canEditMapper)">
           <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ (_showAllAttachments ? 'APP.SERVICES.BUTTON.AddAttachment' : 'APP.SERVICES.BUTTON.AddAttachment-' + _tipoAllegato) | translate }}</span>
         </button>
@@ -38,7 +38,7 @@
   <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
     <div class="row align-items-center">
       <div class="col-12">
-        <ui-search-google-form #searchGoogleForm
+        <ui-search-bar-form #searchBarForm
           [classBlock]="''"
           [placeholder]="'APP.PLACEHOLDER.Search' | translate"
           [showHistory]="showHistory"
@@ -92,13 +92,13 @@
                 </div>
 
                 <div class="d-flex justify-content-end pt-4">
-                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
                   <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
                 </div>
               </fieldset>
             </form>
           </div>
-        </ui-search-google-form>
+        </ui-search-bar-form>
       </div>
     </div>
   </section>

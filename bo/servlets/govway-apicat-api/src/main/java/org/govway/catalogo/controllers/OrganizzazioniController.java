@@ -93,6 +93,11 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				if(this.service.existsByNome(entity)) {
 					throw new ConflictException("Organization ["+organizzazioneCreate.getNome()+"] esiste gia");
 				}
+
+				String customCamelCaseName = this.service.customCamelCase(organizzazioneCreate.getNome(), true);
+				if(this.soggettoService.existsByNome(customCamelCaseName)) {
+					throw new ConflictException("Soggetto ["+customCamelCaseName+"] esiste gia");
+				}
 				
 				this.service.save(entity);
 				Organizzazione model = this.dettaglioAssembler.toModel(entity);
@@ -263,7 +268,13 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				
 				this.logger.debug("Autorizzazione completata con successo");     
 				this.dettaglioAssembler.toEntity(organizzazioneUpdate, entity);
-	
+
+				String customCamelCaseName = this.service.customCamelCase(organizzazioneUpdate.getNome(), true);
+				Optional<SoggettoEntity> soggetto = soggettoService.findByNome(customCamelCaseName);
+				if(soggetto.isPresent() && !soggetto.get().getOrganizzazione().getIdOrganizzazione().equals(idOrganizzazione.toString())) {
+					throw new ConflictException("Soggetto ["+customCamelCaseName+"] esiste gia e associato a una Organizzazione diversa ["+soggetto.get().getOrganizzazione().getNome()+"]");
+				}
+
 				this.service.save(entity);
 				Organizzazione model = this.dettaglioAssembler.toModel(entity);
 	

@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { retry, catchError } from 'rxjs/operators';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 @Injectable({
   providedIn: 'root',

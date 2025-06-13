@@ -1,8 +1,9 @@
 {
 	<#if descrizione??>"descrizione": "${descrizione}",</#if><#if modiDominio??>
-	"modi": {
+	<#if modiDominio??>"modi": {
 		"dominio": "${modiDominio}"
 	},
+	</#if>
 	</#if>"credenziali": {
 		"modalita_accesso": "${modalitaAccesso}",
 		<#if modalitaAccesso="https">"certificato": {

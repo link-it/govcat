@@ -43,6 +43,7 @@ import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.UtentiApi;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -51,6 +52,7 @@ import org.govway.catalogo.servlets.model.ItemUtente;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
 import org.govway.catalogo.servlets.model.Profilo;
+import org.govway.catalogo.servlets.model.ProfiloUpdate;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnumSearch;
 import org.govway.catalogo.servlets.model.StatoProfiloEnum;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
@@ -114,8 +116,8 @@ public class UtentiController implements UtentiApi {
 
 			return this.service.runTransaction( () -> {
 
-				if(this.service.existsByKey(utenteCreate.getUsername())) {
-					throw new ConflictException("Utente ["+utenteCreate.getUsername()+"] esiste gia");
+				if(this.service.existsByPrincipal(utenteCreate.getPrincipal())) {
+					throw new ConflictException("Utente ["+utenteCreate.getPrincipal()+"] esiste gia");
 				}
 				
 				UtenteEntity entity = this.dettaglioAssembler.toEntity(utenteCreate);
@@ -142,7 +144,7 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Void> deleteUtente(String idUtente) {
+	public ResponseEntity<Void> deleteUtente(UUID idUtente) {
 		try {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
@@ -174,14 +176,14 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Utente> getUtente(String idUtente) {
+	public ResponseEntity<Utente> getUtente(UUID idUtente) {
 		try {
 			
 			return this.service.runTransaction( () -> {
 	
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
+				UtenteEntity entity = this.service.find(idUtente)
+						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -206,7 +208,7 @@ public class UtentiController implements UtentiApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemUtente> listUtenti(StatoUtenteEnum stato, UUID idOrganizzazione,
-			List<RuoloUtenteEnumSearch> ruolo, List<UUID> classiUtente, String email, String username, String idUtente, String q, Integer page,
+			List<RuoloUtenteEnumSearch> ruolo, Boolean referenteTecnico, List<UUID> classiUtente, String email, String principal, UUID idUtente, String q, Integer page,
 			Integer size, List<String> sort) {
 		try {
 			
@@ -221,9 +223,10 @@ public class UtentiController implements UtentiApi {
 				UtenteSpecification spec = new UtenteSpecification();
 				spec.setQ(Optional.ofNullable(q));
 				spec.setEmail(Optional.ofNullable(email));
-				spec.setUsername(Optional.ofNullable(username));
-				spec.setIdUtente(Optional.ofNullable(idUtente));
+				spec.setPrincipalLike(Optional.ofNullable(principal));
+				spec.setIdUtente(Optional.ofNullable(idUtente).map(u -> u.toString()));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
+				spec.setReferenteTecnico(Optional.ofNullable(referenteTecnico));
 				
 				if(classiUtente!=null) {
 					List<ClasseUtenteEntity> entities = new ArrayList<>();
@@ -276,18 +279,55 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Utente> updateUtente(String idUtente, UtenteUpdate utenteUpdate) {
+	public ResponseEntity<Utente> updateUtente(UUID idUtente, UtenteUpdate utenteUpdate) {
 		try {
 			return this.service.runTransaction( () -> {
 				
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				this.dettaglioAssembler.toEntity(utenteUpdate, entity);
+	
+				this.service.save(entity);
+				Utente model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(model);
+			});
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Utente> updateProfilo(ProfiloUpdate profiloUpdate) {
+		try {
+			return this.service.runTransaction( () -> {
+				
+				this.logger.info("Invocazione in corso ...");     
+				InfoProfilo current = this.requestUtils.getPrincipal(false);
+
+				if(current == null || current.utente == null) {
+					throw new NotAuthorizedException("Impossibile eseguire l'update profilo, nessun utente in sessione");
+				}
+				
+				UtenteEntity entity = current.utente;
+
+				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.dettaglioAssembler.toEntity(profiloUpdate, entity);
 	
 				this.service.save(entity);
 				Utente model = this.dettaglioAssembler.toModel(entity);
@@ -403,13 +443,13 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Object> getUtenteSettings(String idUtente) {
+	public ResponseEntity<Object> getUtenteSettings(UUID idUtente) {
 		try {
 			
 			return this.service.runTransaction( () -> {
 	
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
 	
 				this.authorization.authorizeGet(entity);
@@ -434,12 +474,12 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<Object> updateUtenteSettings(String idUtente, Object body) {
+	public ResponseEntity<Object> updateUtenteSettings(UUID idUtente, Object body) {
 		try {
 			return this.service.runTransaction( () -> {
 				
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 
 				this.authorization.authorizeUpdate(entity);
@@ -467,13 +507,13 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<ConfigurazioneNotifiche> getUtenteSettingsNotifiche(String idUtente) {
+	public ResponseEntity<ConfigurazioneNotifiche> getUtenteSettingsNotifiche(UUID idUtente) {
 		try {
 			
 			return this.service.runTransaction( () -> {
 	
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
 	
 				this.authorization.authorizeGetNotifiche(entity);
@@ -498,12 +538,12 @@ public class UtentiController implements UtentiApi {
 	}
 
 	@Override
-	public ResponseEntity<ConfigurazioneNotifiche> updateUtenteSettingsNotifiche(String idUtente, ConfigurazioneNotifiche configurazioneNotifiche) {
+	public ResponseEntity<ConfigurazioneNotifiche> updateUtenteSettingsNotifiche(UUID idUtente, ConfigurazioneNotifiche configurazioneNotifiche) {
 		try {
 			return this.service.runTransaction( () -> {
 				
 				this.logger.info("Invocazione in corso ...");     
-				UtenteEntity entity = this.service.find(idUtente.toString())
+				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
 
 				this.authorization.authorizeUpdate(configurazioneNotifiche, entity);

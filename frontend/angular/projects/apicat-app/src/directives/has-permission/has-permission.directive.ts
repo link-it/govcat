@@ -3,7 +3,8 @@ import { OnInit, Directive, Input, ViewContainerRef, TemplateRef, OnChanges } fr
 import { AuthenticationService } from '@app/services/authentication.service';
 
 @Directive({
-  selector: '[appHasPermission]'
+  selector: '[appHasPermission]',
+  standalone: false
 })
 export class HasPermissionDirective implements OnInit, OnChanges {
 

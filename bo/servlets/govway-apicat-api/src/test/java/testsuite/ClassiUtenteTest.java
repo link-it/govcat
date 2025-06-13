@@ -32,6 +32,7 @@ import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.controllers.ClassiUtenteController;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
@@ -41,9 +42,13 @@ import org.govway.catalogo.servlets.model.ClasseUtente;
 import org.govway.catalogo.servlets.model.ClasseUtenteCreate;
 import org.govway.catalogo.servlets.model.ClasseUtenteUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemClasseUtente;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
+import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +66,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
@@ -351,7 +355,7 @@ public class ClassiUtenteTest {
         controller.createClasseUtente(classeUtenteCreate2);
 
         // Recupero della lista di ClassiUtente senza filtri
-        ResponseEntity<PagedModelItemClasseUtente> responseList = controller.listClassiUtente(null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemClasseUtente> responseList = controller.listClassiUtente(null, null, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -365,7 +369,7 @@ public class ClassiUtenteTest {
 
         // Tentativo di recuperare la lista di ClassiUtente senza essere loggato
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            controller.listClassiUtente(null, null, 0, 10, null);
+            controller.listClassiUtente(null, null, null, 0, 10, null);
         });
     }
 
@@ -454,6 +458,57 @@ public class ClassiUtenteTest {
 
         // Asserzioni
         assertEquals("Utente non specificato", exception.getMessage());
+    }
+    
+    @Autowired
+    UtentiController utentiController;
+    
+    @Test
+    public void testCreateDeleteClasseUtenteReferenteServizioSuccess() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+    	// Creazione della ClasseUtente
+        ClasseUtenteCreate classeUtenteCreate = new ClasseUtenteCreate();
+        classeUtenteCreate.setNome("xxxx");
+        classeUtenteCreate.setDescrizione("yyyy");
+        ResponseEntity<ClasseUtente> responseClasseUtente = controller.createClasseUtente(classeUtenteCreate);
+        assertNotNull(responseClasseUtente.getBody());
+
+        // Cancellazione della `ClasseUtente`
+        ResponseEntity<Void> responseDelete = controller.deleteClasseUtente(responseClasseUtente.getBody().getIdClasseUtente());
+
+        // Asserzioni
+        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
+    }
+    
+    @Test
+    public void testCreateClasseUtenteCoordinatoreError() {
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+    	// Creazione della ClasseUtente
+        ClasseUtenteCreate classeUtenteCreate = new ClasseUtenteCreate();
+        classeUtenteCreate.setNome("xxxx");
+        classeUtenteCreate.setDescrizione("yyyy");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	controller.createClasseUtente(classeUtenteCreate);
+    	});
+
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
     }
 }
 

@@ -34,7 +34,7 @@ public class CoreEngineAssembler {
 		InfoProfilo principal = this.requestUtils.getPrincipal();
 //		UtenteEntity u = principal.utente;
 		if(principal.utente == null) {
-			new NotAuthorizedException("Utente ["+principal.idUtente+"] non trovato");
+			throw new NotAuthorizedException("Utente ["+principal.idUtente+"] non trovato");
 		}
 		
 		return principal.utente;

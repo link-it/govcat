@@ -8,9 +8,9 @@ import { catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components'
+import { EventsManagerService } from '@linkit/components'
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -24,8 +24,8 @@ import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authemti
 import { CodeGrantDialogComponent } from '@app/components/authemtications-dialogs/code-grant-dialog/code-grant-dialog.component';
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { MenuAction } from '@linkit/components'
+import { EventType } from '@linkit/components';
 
 import { environment } from '@app/environments/environment';
 
@@ -36,10 +36,48 @@ declare const saveAs: any;
 import * as _ from 'lodash';
 import { ApiConfigurationRead, ApiReadDetails, CustomProperty, CustomPropertyDefinition } from '../servizio-api-details/servizio-api-interfaces';
 
+export interface Organization {
+    id_organizzazione: string;
+    nome: string;
+    descrizione: string;
+    codice_ente: string;
+    codice_fiscale_soggetto: string;
+    id_tipo_utente: string;
+    referente: boolean;
+    aderente: boolean;
+    multi_soggetto: boolean;
+}
+
+export interface User {
+    id_utente: string;
+    nome: string;
+    cognome: string;
+    telefono_aziendale: string;
+    email_aziendale: string;
+    username: string;
+    stato: string;
+    ruolo: string;
+    organizzazione?: Organization;
+    classi_utente: string[];
+}
+
+export interface Referent {
+    utente: User;
+    tipo: 'referente' | 'referente_servizio' | 'referente_tecnico' | 'referente_dominio';
+}
+
+export interface ReferentView {
+    id: string;
+    name: string;
+    email: string;
+    types: string[];
+}
+
 @Component({
     selector: 'app-servizio-view',
     templateUrl: 'servizio-view.component.html',
-    styleUrls: ['servizio-view.component.scss']
+    styleUrls: ['servizio-view.component.scss'],
+    standalone: false
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServizioViewComponent';
@@ -60,7 +98,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     // dominio: any = null;
     richiedente: any = null;
     anagrafiche: any = null;
-    referenti: any = null;
+    referenti: ReferentView[] = [];
     referentiLoading: boolean = true;
     serviceApi: any[] = [];
     serviceApiDominio: any[] = [];
@@ -218,7 +256,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                         this._initBreadcrumb();
                         this.loadCurrentData();
 
-                        if (this.data.adesione_consentita && !this.authenticationService.isAnonymous()) {
+                        if (!this.data.adesione_disabilitata && !this.authenticationService.isAnonymous()) {
                             this._loadJoined(false);
                             this._loadAmmissibili(false);
                         }
@@ -274,45 +312,54 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     loadCurrentData() {
-        // this.dominio = null;
-        // this.apiService.getDetails('domini', this.data.dominio).subscribe({
-        //   next: (response: any) => {
-        //     this.dominio = response;
-        //     console.log('dominio', this.dominio);
-        //   },
-        //   error: (error: any) => {
-        //     Tools.OnError(error);
-        //   }
-        // });
-
         this.richiedente = this.data.utente_richiedente;
-        // this.apiService.getDetails('utenti', this.data.utente_richiedente).subscribe({
-        //   next: (response: any) => {
-        //     this.richiedente = response;
-        //   },
-        //   error: (error: any) => {
-        //     Tools.OnError(error);
-        //   }
-        // });
 
+        this.loadReferenti();
+        this._loadServiceApi();
+    }
+
+    loadReferenti() {
         this.referenti = [];
         this.referentiLoading = true;
-        this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
+        forkJoin({
+            referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
+            referentiDominio: this.apiService.getDetails('domini', this.data.dominio.id_dominio, 'referenti')
+        }).subscribe({
             next: (response: any) => {
-                this.referenti = response.content.filter((referent: any) => {
-                    return ((referent.tipo !== 'referente_tecnico') || this.config.showTechnicalReferent);
-                });
+                const referents: Referent[] = response.referenti.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_servizio` }));
+                const domainReferents: Referent[] = response.referentiDominio.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_dominio` }));
+
+                const reduceReferents = (acc: ReferentView[], cur: Referent) => {
+                    const index = acc.findIndex((item: ReferentView) => item.id === cur.utente.id_utente);
+                    if (index === -1) {
+                        acc.push({
+                            id: cur.utente.id_utente,
+                            email: cur.utente.email_aziendale,
+                            name: `${cur.utente.nome} ${cur.utente.cognome}`,
+                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
+                        });
+                    } else {
+                        acc[index].types.push(cur.tipo);
+                    }
+                    return acc;
+                };
+
+                const allReferents = [
+                    ...domainReferents.filter((ref: any) => { return ((ref.tipo === 'referente_dominio') && this.config.showDomainReferent);}),
+                    ...referents.filter((ref: any) => { return ((ref.tipo !== 'referente_tecnico_servizio') || this.config.showTechnicalReferent);})
+                ];
+                this.referenti = allReferents.reduce(reduceReferents, []);
+
                 this.referentiLoading = false;
             },
             error: (error: any) => {
                 Tools.OnError(error);
+                this._spin = false;
                 this.referentiLoading = false;
             }
         });
-
-        this._loadServiceApi();
     }
-    
+
     _loadServiceApi() {
         this.configService.getConfig('api').subscribe(
             (config: any) => {
@@ -496,7 +543,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _canJoin() {
-        return this.authenticationService.canJoin('servizio', this.data.stato) && this.data.adesione_consentita;
+        return this.authenticationService.canJoin('servizio', this.data.stato) && !this.data.adesione_disabilitata;
     }
 
     _canJoinMapper = (): boolean => {
@@ -648,7 +695,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _canManagement = this.authenticationService.canManagement('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
         const _isPackage = this.data && this.data.package || false;
         const _isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
+        const _canMonitoraggio = this.authenticationService.canMonitoraggio(this._grant?.ruoli);
         return _isPackage ? _isGestore : _canManagement;
+    }
+
+    _canMonitoraggioMapper = (): boolean => {
+        return this.authenticationService.canMonitoraggio(this._grant?.ruoli);
     }
 
     _canManagementComunicazioniMapper = (): boolean => {

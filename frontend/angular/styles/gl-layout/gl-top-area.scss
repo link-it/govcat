@@ -1,5 +1,5 @@
 .top-area {
-  border-bottom: 1px solid #dbdbdb;
+  border-bottom: 1px solid var(--top-area-border-color, #dbdbdb);
   display: flex;
   height: 48px;
 
@@ -12,7 +12,7 @@
 
 .gp-tabs-nav {
   border-style: solid;
-  border-color: #dbdbdb;
+  border-color: var(--top-area-border-color, #dbdbdb);
   border-width: 0;
   border-bottom-width: 1px;
 }
@@ -31,12 +31,18 @@
 .gp-tab-nav-item-active {
   font-weight: 600;
   color: #303030;
-  box-shadow: inset 0 -2px 0 0 var(--gp-theme-accent, #6666c4);
+  box-shadow: inset 0 -2px 0 0 var(--gp-theme-accent, #6666c4) !important;
 }
 
 .top-area .nav-controls {
   display: inline-block;
   text-align: right;
+}
+@media (min-width: 768px) {
+  .top-area .nav-controls {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .gp-tab-content {

@@ -13,6 +13,7 @@
     "showMarkdown": true,
     "showPresentation": true,
     "showTechnicalReferent": false,
+    "showDomainReferent": true,
 
     "swagger" : {
         "allowTryIt": true,
@@ -74,7 +75,7 @@
             "label": "APP.LABEL.Status",
             "small": true,
             "values": {
-                "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#A4ABB6", "border": "#A4ABB6", "color": "#ffffff" },
+                "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#dbdbdb", "border": "#dbdbdb", "color": "#000000" },
                 "richiesto_collaudo": { "label": "APP.WORKFLOW.STATUS.richiesto_collaudo", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
                 "autorizzato_collaudo": { "label": "APP.WORKFLOW.STATUS.autorizzato_collaudo", "background": "#d4d700", "border": "#d4d700", "color": "#1f1f1f" },
                 "in_configurazione_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_collaudo", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" },
@@ -99,6 +100,19 @@
                 "riservato": { "label": "APP.VISIBILITY.riservato", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
                 "riservato_dominio": { "label": "APP.VISIBILITY.riservato_dominio", "background": "#FF3700", "border": "#FF3700", "color": "#ffffff" },
                 "componente": { "label": "APP.VISIBILITY.componente", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" }
+            }
+        },
+
+        "type": {
+            "label": "APP.LABEL.Type",
+            "small": true,
+            "values": {
+                "referente": { "label": "APP.ROLE.referente", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+                "referente_tecnico": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" },
+                "referente_servizio": { "label": "APP.ROLE.referente_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
+                "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
+                "referente_dominio": { "label": "APP.ROLE.referente_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+                "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" }
             }
         }
     },

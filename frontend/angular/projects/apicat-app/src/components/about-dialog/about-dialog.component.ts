@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -12,7 +12,8 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-about-dialog',
   templateUrl: './about-dialog.component.html',
-  styleUrls: ['./about-dialog.component.scss']
+  styleUrls: ['./about-dialog.component.scss'],
+  standalone: false
 })
 export class AboutDialogComponent implements OnInit {
 
@@ -66,16 +67,16 @@ export class AboutDialogComponent implements OnInit {
 
     const reqs: Observable<any>[] = [];
     reqs.push( this.configService.getPage('about', 'about').pipe( catchError((err) => { return of(''); })) );
-    forkJoin(reqs).subscribe(
-      (results: Array<any>) => {
+    forkJoin(reqs).subscribe({
+      next: (results: Array<any>) => {
         this.contentHtml = this._replacePlaceholder(results[0], { appVersion: this.version, appBuild: this.build, ...this.backInfo });
         this._spin = false;
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('_loadPage forkJoin error', error);
         this._spin = false;
       }
-    );
+    });
   }
 
   _replacePlaceholder(text: string, data: any) {

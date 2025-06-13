@@ -11,7 +11,11 @@
   padding-top: 8px;
   padding-bottom: 8px;
   align-items: center;
-  border-bottom: 1px solid #dbdbdb;
+  border-bottom: 1px solid var(--top-area-border-color, #dbdbdb) !important;
+
+  &.container-mobile-nav {
+    display: none;
+  }
 }
 
 .breadcrumbs-links {
@@ -19,13 +23,9 @@
   min-width: 0;
   align-self: center;
   color: #666;
-  // animation: fadeIn 2.5s;
-  // animation: slideIn 2s;
-  // animation: reveal 2s;
 
   .avatar-tile {
     margin-right: 4px;
-    // border: 1px solid #dbdbdb;
     border-radius: 50%;
 
     .mat-icon {
@@ -60,6 +60,11 @@
   flex: 0 1 auto;
   cursor: pointer;
 
+  &:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+    outline: none;
+  }
+
   &:hover {
     text-decoration: underline !important;
   }
@@ -82,6 +87,11 @@
   line-height: 16px;
   color: #303030;
 
+  &:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;
+    outline: none;
+  }
+
   &:hover {
     text-decoration: underline !important;
   }
@@ -94,7 +104,16 @@
 .breadcrumbs-list-angle {
   position: absolute;
   right: 2px;
-  top: 55%;
+  top: 68%;
   color: #868686;
   transform: translateY(-50%);
+}
+
+@media (max-width: 767.98px) {
+  .breadcrumbs-container {
+  
+    &.container-mobile-nav {
+      display: flex;
+    }
+  }
 }

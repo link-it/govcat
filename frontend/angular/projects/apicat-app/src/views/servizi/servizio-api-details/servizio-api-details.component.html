@@ -3,9 +3,6 @@
         <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
         <div class="d-flex flex-grow-1">&nbsp;</div>
         <div class="nav-controls">
-        <!-- <div class="position-relative" *ngIf="service">
-            <app-back-web [service_id]="service.id_servizio"></app-back-web>
-        </div> -->
         <app-monitor-dropdown *ngIf="service && !_isNew"
             [showComunications]="false"
             [showMonitoring]="false"
@@ -64,20 +61,15 @@
                     {{ 'APP.SERVICES.TITLE.Production' | translate }}
                 </button>
             </div>
-            <!-- <div class="position-relative me-2 d-none d-md-inline-block" *ngIf="!_spin && !_isNew && !_showAllAttachments">
-                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button" [routerLink]="['allegati-specifica']">
-                    {{ 'APP.SERVICES.TITLE.Specific' | translate }}
-                </button>
-            </div> -->
             <div class="position-relative" *ngIf="!_isEdit && !_spin && _editable">
-                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditApi' | translate" (click)="_editServizioApi()" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
+                <button aria-label="Modifica" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditApi' | translate" (click)="_editServizioApi()" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
                     <i class="bi bi-pencil"></i>
                 </button>
             </div>
 
             <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin && _showExternalOtherActions">
                 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
-                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+                    <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
@@ -114,7 +106,7 @@
 
             </ng-container>
             <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-                <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+                <button aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
@@ -146,36 +138,26 @@
                             <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
                                 <div class="row">
                                     <div class="col-9">
-                                        <div class="form-group nome">
-                                            <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                                <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                    <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
-                                                </p>
-                                                <ui-input-help field="nome" context="API"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="nome" [value]="servizioApi?.nome || '-'">
-                                            </div>
-                                        </div>
+                                        <lnk-form-field
+                                            name="nome"
+                                            [label]="'APP.LABEL.nome' | translate"
+                                            [formGroup]="_formGroup"
+                                            [value]="servizioApi?.nome"
+                                            [isEdit]="_isEdit"
+                                            [plainText]="true"
+                                            [helpContext]="'API.POPOVER'"
+                                        ></lnk-form-field>
                                     </div>
                                     <div class="col-3">
-                                        <div class="form-group versione">
-                                            <label class="label-bold" for="versione">{{ 'APP.LABEL.versione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione')" type="number" name="versione" id="versione" formControlName="versione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant" min="1">
-                                                <p *ngIf="f['versione'].invalid && (f['versione'].dirty || f['versione'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['versione'].errors && f['versione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                    <span *ngIf="f['versione'].errors && f['versione'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="versione" context="API"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="versione" [value]="servizioApi?.versione || '-'">
-                                            </div>
-                                        </div>
+                                        <lnk-form-field
+                                            name="versione"
+                                            [label]="'APP.LABEL.versione' | translate"
+                                            [formGroup]="_formGroup"
+                                            [value]="servizioApi?.versione"
+                                            [isEdit]="_isEdit"
+                                            [plainText]="true"
+                                            [helpContext]="'API.POPOVER'"
+                                        ></lnk-form-field>
                                     </div>
                                 </div>
                                 <div class="row" *ngIf="_isNew && _info_gateway_visualizzate && _isGestore()">
@@ -208,22 +190,20 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-12">
-                                        <div class="form-group ruolo">
-                                            <label class="label-bold" for="ruolo">{{ 'APP.LABEL.ruolo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'ruolo'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <select class="form-select" id="ruolo" formControlName="ruolo" [class.gl-field-error-outline]="_hasControlError('ruolo')" (change)="__changeRuolo($event)" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                                    <option value="">{{ 'APP.MESSAGE.SelectRole' | translate }}</option>
-                                                    <option *ngFor="let ruolo of _ruoli" [value]="ruolo.value">{{ ruolo.label }}</option>
-                                                </select>  
-                                                <p *ngIf="f['ruolo'].invalid && (f['ruolo'].dirty || f['ruolo'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['ruolo'].errors && f['ruolo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="ruolo" context="API"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="ruolo" [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente">
-                                            </div>
-                                        </div>
+                                        <lnk-form-field
+                                            [type]="'select'"
+                                            name="ruolo"
+                                            [label]="'APP.LABEL.ruolo' | translate"
+                                            [selectOptions]="_ruoli"
+                                            [clearable]="false"
+                                            [placeholder]="'APP.MESSAGE.SelectRole' | translate"
+                                            [formGroup]="_formGroup"
+                                            [value]="(servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO) ? _labelDominio : _labelAderente"
+                                            [isEdit]="_isEdit"
+                                            [plainText]="true"
+                                            [helpContext]="'API.POPOVER'"
+                                            (changeEvent)="__changeRuolo($event)"
+                                        ></lnk-form-field>
                                     </div>
                                 </div>
                                 <div *ngIf="_isNew" class="row">
@@ -255,11 +235,10 @@
                                             <ui-allegato #des class="miw-50"
                                                 [control]="_descrittoreCtrl"
                                                 [label]="'APP.LABEL.specifica' | translate"
-                                                [required]="_specificaObbligatorio || this._hasSpecifica"
+                                                [required]="_specificaObbligatorio || _hasSpecifica"
                                                 (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
                                                 (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                                                 [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
-                                                [maxUpload]="null"
                                                 [maxUpload]="null"
                                             ></ui-allegato>
                                             <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
@@ -324,7 +303,7 @@
                                     <div class="col-12 mb-2" *ngIf="(_customAuth || _customAuthOrig)">
                                         <h4 class="pb-2 border-bottom">{{ 'APP.TITLE.Autenticazioni' | translate }}</h4>
                                     </div>
-                                    <div class="col-12 mb-4" *ngIf="!(_customAuth || _customAuthOrig)">
+                                    <div class="col-12 mb-4" *ngIf="(_customAuth || _customAuthOrig)">
                                         <div class="border-bottom"></div>
                                     </div>
 
@@ -426,12 +405,12 @@
                                                                 </p>
                                                             </div>
                                                             <div class="" *ngIf="!_isEdit">
-                                                            <ng-container *ngIf="cp.tipo !== 'select'">
-                                                                <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
-                                                            </ng-container>
-                                                            <ng-container *ngIf="cp.tipo === 'select'">
-                                                                <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
-                                                            </ng-container>
+                                                                <ng-container *ngIf="cp.tipo !== 'select'">
+                                                                    <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
+                                                                </ng-container>
+                                                                <ng-container *ngIf="cp.tipo === 'select'">
+                                                                    <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
+                                                                </ng-container>
                                                             </div>
                                                         </div>
                                                     </div>

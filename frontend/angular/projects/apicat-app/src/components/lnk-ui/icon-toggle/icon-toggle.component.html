@@ -1,4 +1,4 @@
-<span class="d-flex gap-2">
+<span class="d-flex gap-2" *ngIf="!hide">
     <i *ngIf="!loading"
         class="{{ iconClass }}"
         [tooltip]="tooltip | translate"

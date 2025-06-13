@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { ComponentsModule } from '@linkit/components';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 
 import { CustomPropertiesComponent } from './custom-properties.component';

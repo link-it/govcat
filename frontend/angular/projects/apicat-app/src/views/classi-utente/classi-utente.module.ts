@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
+import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 
 import { ClassiUtenteRoutingModule } from './classi-utente-routing.module';
 import { ClassiUtenteComponent } from './classi-utente.component';
@@ -16,8 +16,8 @@ import { ClasseUtenteDetailsModule } from './classe-utente-details/classe-utente
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
+    HasPermissionModule,
     ClassiUtenteRoutingModule,
     ClasseUtenteDetailsModule
   ],

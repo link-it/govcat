@@ -5,25 +5,26 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page} from '../../models/page';
 
 @Component({
   selector: 'app-taxonomies',
   templateUrl: 'taxonomies.component.html',
-  styleUrls: ['taxonomies.component.scss']
+  styleUrls: ['taxonomies.component.scss'],
+  standalone: false
 })
 export class TaxonomiesComponent implements OnInit, OnDestroy {
   static readonly Name = 'TaxonomiesComponent';
   readonly model: string = 'tassonomie';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   config: any;
   taxonomiesConfig: any;
@@ -93,7 +94,7 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this.refresh();
       }, 100);
@@ -177,8 +178,8 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
   }
 
   _onEdit(event: any, param: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._pinLastSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._pinLastSearch();
     }
     this.router.navigate([this.model, param.id]);
   }
@@ -188,8 +189,8 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 
@@ -227,12 +228,12 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
 
   onChangeSearchDropdwon(event: any){
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
   onSelectedSearchDropdwon($event: Event){
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
     $event.stopPropagation();
   }
 

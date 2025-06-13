@@ -25,4 +25,8 @@ import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 
 public class OrganizzazioneAuthorization extends DefaultAuthorization<OrganizzazioneCreate,OrganizzazioneUpdate,OrganizzazioneEntity> {
 
+	public OrganizzazioneAuthorization() {
+		super(EntitaEnum.ORGANIZZAZIONE);
+	}
+
 }

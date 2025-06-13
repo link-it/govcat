@@ -21,9 +21,6 @@ package org.govway.catalogo.core.business.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,8 +64,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import net.sf.jasperreports.engine.JRException;
 
@@ -136,37 +131,18 @@ public class EServiceBuilder {
     public byte[] getTryOutOpenAPI(ApiEntity api, ApiConfigEntity entity, boolean isCollaudo) throws IOException {
     	ConfigurazioneTryout conf = new ConfigurazioneTryout();
     	conf.setServerUrl(this.getUrlInvocazione(api, isCollaudo));
-		try {
-			return getTryOutOpenAPIYaml(entity.getSpecifica().getRawData(), conf);
-		} catch(IOException e) {
-			return getTryOutOpenAPIJson(entity.getSpecifica().getRawData(), conf);
-		}
+		return getTryOutOpenAPI(entity.getSpecifica().getRawData(), conf);
 	}
 	
     public static byte[] getTryOutOpenAPI(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
-		try {
-			return getTryOutOpenAPIYaml(originalOpenapi, conf);
-		} catch(IOException e) {
-			return getTryOutOpenAPIJson(originalOpenapi, conf);
-		}
+    	byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(originalOpenapi);
+    	return getTryOutOpenAPIFromJson(jsonOpenapi, conf);
 	}
 	
-    public static byte[] getTryOutOpenAPIJson(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
-        return getTryOutOpenAPI(originalOpenapi, conf, null);
-    }
 	
-    public static byte[] getTryOutOpenAPIYaml(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
-        YAMLFactory yamlFactory = new YAMLFactory()
-                .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)  // Disable '---' marker
-                .disable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
-                .disable(YAMLGenerator.Feature.CANONICAL_OUTPUT);
-        
-        return getTryOutOpenAPI(originalOpenapi, conf, yamlFactory);
-	}
-	
-    public static byte[] getTryOutOpenAPI(byte[] originalOpenapi, ConfigurazioneTryout conf, YAMLFactory yamlFactory) throws IOException {
+    public static byte[] getTryOutOpenAPIFromJson(byte[] originalOpenapi, ConfigurazioneTryout conf) throws IOException {
 
-        ObjectMapper reader = yamlFactory != null ? new ObjectMapper(yamlFactory): new ObjectMapper();
+        ObjectMapper reader = new ObjectMapper();
         reader.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         // Step 2: Parse OpenAPI file
@@ -196,16 +172,6 @@ public class EServiceBuilder {
         return writer
                 .writeValueAsBytes(openApiJson);
     }
-
-    public static void main(String[] args) throws IOException {
-    	ConfigurazioneTryout conf = new ConfigurazioneTryout();
-    	conf.setServerUrl("serverurltest");
-    	Path path = Paths.get("/tmp/openapi.yaml");
-		byte[] output = getTryOutOpenAPI(Files.readAllBytes(path), conf);
-		
-		Files.write(path, output);
-	}
-    
 
 	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo) {
 		Map<String, byte[]> map = new HashMap<String, byte[]>();

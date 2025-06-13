@@ -26,28 +26,19 @@ import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 
 public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,UtenteUpdate,UtenteEntity> {
-	
-	@Override
-	public void authorizeUpdate(UtenteUpdate update, UtenteEntity entity) {
-		
-		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
-		
-		if(!this.coreAuthorization.isAdmin(utente)) {
-			if(!utente.getId().equals(entity.getId())) {
-				throw new NotAuthorizedException("Un utente può essere modificato da sé stesso o da un amministratore");
-			}
-		}
+
+	public UtenteAuthorization() {
+		super(EntitaEnum.UTENTE);
 	}
-	
+
 	public void authorizeUpdate(UtenteEntity entity) {
 		
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
-		
-		if(!this.coreAuthorization.isAdmin(utente)) {
-			if(!utente.getId().equals(entity.getId())) {
-				throw new NotAuthorizedException("Un utente può essere modificato da sé stesso o da un amministratore");
-			}
+
+		if(!utente.getId().equals(entity.getId())) {
+			super.authorizeWrite(EntitaEnum.UTENTE);
 		}
+
 	}
 	
 	public void authorizeGetNotifiche(UtenteEntity entity) {
@@ -64,4 +55,5 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 	public void authorizeUpdate(ConfigurazioneNotifiche update, UtenteEntity entity) {
 		this.authorizeGetNotifiche(entity);
 	}
+	
 }

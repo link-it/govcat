@@ -5,20 +5,21 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page} from '../../models/page';
 
 @Component({
   selector: 'app-classi-utente',
   templateUrl: 'classi-utente.component.html',
-  styleUrls: ['classi-utente.component.scss']
+  styleUrls: ['classi-utente.component.scss'],
+  standalone: false
 })
 export class ClassiUtenteComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClassiUtenteComponent';

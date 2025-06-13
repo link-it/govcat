@@ -51,11 +51,18 @@
                 <div class="d-flex justify-content-between mb-5">
                     <div class="">
                         <h4 class="mb-2">{{ title }}</h4>
-                        <ui-data-type
-                            [data]="adesione"
-                            [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                            [config]="config"
-                        ></ui-data-type>
+                        <div class="d-flex gap-2">
+                            <ui-data-type
+                                [data]="adesione"
+                                [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                                [config]="config"
+                            ></ui-data-type>
+                            <ui-data-type *ngIf="adesione.stato_configurazione_automatica"
+                                [data]="adesione"
+                                [elem]="{ field: 'stato_configurazione_automatica', type: 'label', options: 'configuration_status', tooltip: 'messaggio_configurazione' }"
+                                [config]="config"
+                            ></ui-data-type>
+                        </div>
                     </div>
                     <div class="" *ngIf="showSkipCollaudo">
                         <lnk-button
@@ -72,15 +79,16 @@
 
                         <div id="accordion-general-info" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="general-info" class="accordion-collapse collapse" data-bs-parent="#accordion-general-info_">
                                 <div class="accordion-body">
@@ -99,28 +107,30 @@
 
                         <div id="accordion-referenti" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione?.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.ServiceReferents' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="referenti" class="accordion-collapse collapse" data-bs-parent="#accordion-referenti_">
                                 <div class="accordion-body">
-                                    <div class="d-flex justify-content-end mb-2">
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                        <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.Referents' | translate }}</h5>
                                         <button class="btn btn-default btn-md gl-button ms-3" (click)="addReferenteModal($event)" *ngIf="isEdit">{{ 'APP.BUTTON.AddReferent' | translate }}</button>
                                     </div>
-                                    <ui-box-spinner [color]="'primary'" [diameter]="20" [strokeWidth]="1" *ngIf="referentiLoading"></ui-box-spinner>
                                     <div class="row">
                                         <div class="col-12" *ngIf="referents.length == 0 && !referentiLoading">
                                             <div class="d-flex flex-column text-center empty-state-">
                                                 <div class="max-w-100 m-auto">
                                                     <div class="mx-auto my-0 p-3">
-                                                        <h5 class="font-size-h-display line-height-36 h5">{{ _message | translate }}</h5>
+                                                        <h4 class="line-height-36 h4">{{ _message | translate }}</h4>
                                                     </div>
                                                 </div>
                                             </div>
@@ -150,7 +160,86 @@
                                                     </button>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
 
+                                    <ui-box-spinner [color]="'primary'" [diameter]="20" [strokeWidth]="1" *ngIf="referentiLoading"></ui-box-spinner>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3 mb-2 pb-2 border-bottom-">
+                                        <button tabindex="0" class="accordion-button collapsed px-0 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#service-referents" aria-expanded="false" aria-controls="service-referents">
+                                            <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.ServiceReferents' | translate }}</h5>
+                                            <span class="badge badge-info badge-pill gp-badge sm">{{ serviceReferents.length }}</span>
+                                        </button>
+                                    </div>
+                                    <div id="service-referents" class="row accordion-collapse collapse">
+                                        <div class="col-12" *ngIf="serviceReferents.length == 0 && !referentiLoading">
+                                            <div class="d-flex flex-column text-center empty-state-">
+                                                <div class="max-w-100 m-auto">
+                                                    <div class="mx-auto my-0 p-3">
+                                                        <h4 class="line-height-36 h4">{{ _message | translate }}</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center- border-bottom" *ngFor="let referent of serviceReferents;">
+                                                <ui-collapse-row class="flex-grow-1"
+                                                    [data]="referent.source"
+                                                    [config]="referentiConfig"
+                                                    [configRow]="'itemRow2'"
+                                                    [enableCollapse]="referent.enableCollapse"
+                                                    [hasLink]="true"
+                                                >
+                                                    <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+                                                        <div class="d-flex flex-row">
+                                                            <ui-data-view class="flex-grow-1"
+                                                                [data]="referent.source"
+                                                                [config]="referentiConfig"
+                                                                [columns]="config.AppConfig?.Layout?.Details?.columns || 6"
+                                                            ></ui-data-view>
+                                                        </div>
+                                                    </div>
+                                                </ui-collapse-row>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3 mb-2 pb-2 border-bottom">
+                                        <button tabindex="0" class="accordion-button collapsed px-0 bg-white d-flex gap-2" data-bs-toggle="collapse" data-bs-target="#domain-referents" aria-expanded="false" aria-controls="domain-referents">
+                                            <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.DomainReferents' | translate }}</h5>
+                                            <span class="badge badge-info badge-pill gp-badge sm">{{ domainReferents.length }}</span>
+                                        </button>
+                                    </div>
+                                    <div id="domain-referents" class="row accordion-collapse collapse">
+                                        <div class="col-12" *ngIf="domainReferents.length == 0 && !referentiLoading">
+                                            <div class="d-flex flex-column text-center empty-state-">
+                                                <div class="max-w-100 m-auto">
+                                                    <div class="mx-auto my-0 p-3">
+                                                        <h4 class="line-height-36 h4">{{ _message | translate }}</h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="d-flex justify-content-between align-items-center- border-bottom" *ngFor="let referent of domainReferents;">
+                                                <ui-collapse-row class="flex-grow-1"
+                                                    [data]="referent.source"
+                                                    [config]="referentiConfig"
+                                                    [configRow]="'itemRow2'"
+                                                    [enableCollapse]="referent.enableCollapse"
+                                                    [hasLink]="true"
+                                                >
+                                                    <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="referent.enableCollapse">
+                                                        <div class="d-flex flex-row">
+                                                            <ui-data-view class="flex-grow-1"
+                                                                [data]="referent.source"
+                                                                [config]="referentiConfig"
+                                                                [columns]="config.AppConfig?.Layout?.Details?.columns || 6"
+                                                            ></ui-data-view>
+                                                        </div>
+                                                    </div>
+                                                </ui-collapse-row>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -159,15 +248,16 @@
 
                         <div id="accordion-collaudo" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.TestingConfiguration' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="collaudo" class="accordion-collapse collapse" data-bs-parent="#accordion-collaudo_">
                                 <div class="accordion-body">
@@ -206,6 +296,7 @@
                                                         <lnk-icon-toggle
                                                             [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
                                                             [loading]="loadingCheckDati"
+                                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                                         ></lnk-icon-toggle>
                                                         <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
                                                     </div>
@@ -239,15 +330,16 @@
 
                         <div id="accordion-produzione" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
-                                <div class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
+                                <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
                                     <div class="d-flex gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
                                             [loading]="loadingCheckDati"
+                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                         ></lnk-icon-toggle>
                                         <span>{{ 'APP.TITLE.ProductionConfiguration' | translate }}</span>
                                     </div>
-                                </div>
+                                </button>
                             </h2>
                             <div id="produzione" class="accordion-collapse collapse" data-bs-parent="#accordion-produzione_">
                                 <div class="accordion-body">
@@ -286,6 +378,7 @@
                                                         <lnk-icon-toggle
                                                             [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
                                                             [loading]="loadingCheckDati"
+                                                            [hide]="loadingCheckDati | mapper:isStatusPubblicatoCollaudodMapper:adesione.stato"
                                                         ></lnk-icon-toggle>
                                                         <h5 class="gl-mt-0 text-break" [class.text-danger-]="!(loadingCheckDati | mapper:isSottotipoCompletedMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo)">{{ item.label_gruppo }}</h5>
                                                     </div>
@@ -319,11 +412,11 @@
 
                 <div class="d-flex justify-content-end gap-2 mt-5">
                     <div class="d-flex gap-2">
-                        <lnk-button *ngIf="(updateMapper | mapper:canEditMapper) || adesione?.stato === 'bozza'"
+                        <!-- <lnk-button *ngIf="(updateMapper | mapper:canEditMapper) || adesione?.stato === 'bozza'"
                             [label]="isEdit ? 'APP.BUTTON.Cancel' : 'APP.BUTTON.Modify'"
                             [disabled]="changingStatus || loadingCheckDati"
                             (onAction)="toggleEdit()"
-                        ></lnk-button>
+                        ></lnk-button> -->
                         <lnk-button *ngIf="hasNextStateWorkflow()"
                             [label]="'APP.WORKFLOW.MENU.' + getNextStateWorkflowName()"
                             [primary]="true"
@@ -336,11 +429,6 @@
 
             </div>
         </div>
-
-        <!-- <div class="my-3">
-            <pre class="border p-2 text-overflow" style="height: 300px;">{{ dataStructureResults | json }}</pre>
-            <pre class="border p-2 text-overflow" style="height: 300px;">{{ adesione | json }}</pre>
-        </div> -->
 
     </section>
 </div>

@@ -6,14 +6,14 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Language } from 'projects/components/src/lib/classes/language';
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { LocalStorageService } from 'projects/tools/src/lib/local-storage.service';
-import { BreadcrumbService } from 'projects/components/src/lib/ui/breadcrumb/breadcrumb.service';
+import { Tools } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
+import { Language } from '@linkit/components';
+import { MenuAction } from '@linkit/components';
+import { EventType } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { LocalStorageService } from '@linkit/components';
+import { BreadcrumbService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
@@ -34,7 +34,8 @@ import * as _ from 'lodash';
 @Component({
     selector: 'gp-layout',
     templateUrl: './gp-layout.component.html',
-    styleUrls: ['./gp-layout.component.scss']
+    styleUrls: ['./gp-layout.component.scss'],
+    standalone: false
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GpLayoutComponent';
@@ -203,13 +204,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             // const root = this.router.routerState.snapshot.root;
         });
 
-        this._initLanguages();
-        this._initMenuActions();
-        this._onResize();
+        this.initLanguages();
+        this.initMenuActions();
+        this.onResize();
     }
 
     @HostListener('window:resize')
-    _onResize() {
+    onResize() {
         this.desktop = (window.innerWidth >= 1200);
         this.tablet = (window.innerWidth < 1200 && window.innerWidth >= 768);
         this.mobile = (window.innerWidth < 768);
@@ -297,8 +298,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     loadProfile() {
         this._spin = true;
-        this.apiService.getList('profilo').subscribe(
-            (response: any) => {
+        this.apiService.getList('profilo').subscribe({
+            next: (response: any) => {
                 this.authenticationService.setCurrentSession(response);
                 this._session = this.authenticationService.reloadSession();
                 if (_.isEmpty(this._session.settings) || !this._session.settings.version) {
@@ -306,21 +307,21 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
                 }
                 this._isAnonymous = this.authenticationService.isAnonymous();
 
-                this._initMainMenu();
-                this._initMenuActions();
+                this.setHeaderBar(this._isAnonymous);
+                this.initMainMenu();
+                this.initMenuActions();
 
                 this.localStorageService.setItem('PROFILE', true);
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: this._session });
                 
-                this.setHeaderBar(this._isAnonymous);
                 this._spin = false;
             },
-            (error: any) => {
+            error: (error: any) => {
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: null });
                 console.log('loadProfile error', error);
                 this._spin = false;
             }
-        );
+        });
     }
 
     setHeaderBar(anonymous: boolean = false) {
@@ -334,8 +335,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.username = '';
         } else {
             this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
-            this._showNotificationsMenu = false;
-            this._showNotificationsBar = true;
+            this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
+            this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
             this.notificationsCount$ = this.notificationsService.getNotificationsCount();
             this.loggedIn = (this._session.stato  === 'abilitato');
             this.login = (this._session.stato  === 'abilitato');
@@ -374,17 +375,41 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         return newItems;
     }
 
-    _initMainMenu() {
+    initMainMenu() {
         this.navItems = this.prepareNavigation();
         if (this.authenticationService.isGestore()) {
             if (this._showNotificationsMenu) {
                 this.navItems = [...this.navItems, ...navNotificationsMenu ];
             }
             this.navItems = [...this.navItems, ... navItemsAdministratorMenu];
+        } else if (this.authenticationService.isCoordinatore()) {
+            const _navItemsAdministratorMenu: INavData[] = [];
+            if (this.authenticationService.hasMenuAmministrazione()) {
+                navItemsAdministratorMenu.forEach((item: INavData) => {
+                    if (item.divider) {
+                        _navItemsAdministratorMenu.push(item);
+                    } else if (item.title) {
+                        const _children: INavData[] = [];
+                        (item.children || []).forEach((child: INavData) => {
+                            const menu = child.path || '';
+                            if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
+                                _children.push(child);
+                            }
+                        });
+                        _navItemsAdministratorMenu.push({ ...item, children: _children });
+                    } else {
+                        const menu = item.path || '';
+                        if (this.authenticationService.verificacanPermessiMenuAmministrazione(menu).canRead) {
+                            _navItemsAdministratorMenu.push(item);
+                        }
+                    }
+                });
+            }
+            this.navItems = [...this.navItems, ... _navItemsAdministratorMenu];
         }
     }
 
-    _initMenuActions() {
+    initMenuActions() {
         const _user = this.authenticationService.getUserName();
 
         this._menuActions = [
@@ -411,7 +436,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         }
     }
 
-    _initLanguages() {
+    initLanguages() {
         try {
             const _languages = this._config.AppConfig.Languages;
             const _defaultLanguage = this._config.AppConfig.DefaultLanguage;

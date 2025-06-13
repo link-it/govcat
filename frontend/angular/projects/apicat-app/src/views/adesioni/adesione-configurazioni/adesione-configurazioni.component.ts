@@ -6,13 +6,13 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components'
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
@@ -46,16 +46,16 @@ export enum StatoConfigurazioneEnum {
     CONFIGINPROGRESS = 'config_in_progress'
 }
 
-export const fake_tipoCertificatoEnum = [
-    { 'nome': 'fornito', 'value': 'fornito'}, 
-    { 'nome': 'richiesto_cn', 'value': 'richiesto_cn'}, 
-    { 'nome': 'richiesto_csr', 'value': 'richiesto_csr'}
-];
+export enum TipoCertificatoEnum {
+    FORNITO = 'fornito',
+    RICHIESTO_CN = 'richiesto_cn',
+    RICHIESTO_CSR = 'richiesto_csr'
+}
 
-export const fake_credenziali = [
-    {'nome': 'Nuove credenziali'}, 
-    {'nome': 'client_modi_p1'}, 
-    {'nome': 'client_modi_p2'}
+export const TipiCertificato = [
+    { 'nome': 'fornito', 'value': TipoCertificatoEnum.FORNITO}, 
+    { 'nome': 'richiesto_cn', 'value': TipoCertificatoEnum.RICHIESTO_CN}, 
+    { 'nome': 'richiesto_csr', 'value': TipoCertificatoEnum.RICHIESTO_CSR}
 ];
 
 declare const saveAs: any;
@@ -64,7 +64,8 @@ import * as _ from 'lodash';
 @Component({
     selector: 'app-adesione-configurazioni',
     templateUrl: 'adesione-configurazioni.component.html',
-    styleUrls: ['adesione-configurazioni.component.scss']
+    styleUrls: ['adesione-configurazioni.component.scss'],
+    standalone: false
 })
 export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'AdesioneConfigurazioniComponent';
@@ -160,8 +161,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     _collaudo: boolean = true;
     environmentId: string = ''; // collaudo / produzione
 
-    _fake_credenziali: any[] = [];
-    _fake_tipoCertificatoEnum: any[] = [];
+    _tipiCertificato: any[] = [];
 
     _isFornito: boolean = false; 
     _isRichiesto_cn: boolean = false; 
@@ -275,8 +275,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     ngOnInit() {    
         this._loadGeneralConfig();
         
-        this._fake_credenziali = fake_credenziali;
-        this._fake_tipoCertificatoEnum = fake_tipoCertificatoEnum;
+        this._tipiCertificato = TipiCertificato;
 
         this.route.params.subscribe(params => {
             this._spin = true;
@@ -1369,7 +1368,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     _onChangeTipoReferente(isReferent: boolean) {
-        this.referentiFilter = isReferent ? 'referente_servizio,gestore' : '';
+        this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
     }
 
     _onShowTab(item: any, tab: string = '') {
@@ -1411,7 +1410,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
     loadAnagrafiche() {
         this.anagrafiche['tipo-referente'] = [
-            { nome: 'referente', filter: 'referente_servizio,gestore' },
+            { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
             { nome: 'referente_tecnico', filter: '' }
         ];
     }
@@ -2272,8 +2271,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                 if (data[key].hasValidator(Validators.required)) {
                     console.log(index + ') ', key)
                     _nessuno = false
-                    }
-                
+                }
             });
             (_nessuno == true) ? console.log('NESSUN CAMPO OBBLIGATORIO') : null;
             console.groupEnd()

@@ -25,4 +25,8 @@ import org.govway.catalogo.servlets.model.SoggettoUpdate;
 
 public class SoggettoAuthorization extends DefaultAuthorization<SoggettoCreate,SoggettoUpdate,SoggettoEntity> {
 
+	public SoggettoAuthorization() {
+		super(EntitaEnum.SOGGETTO);
+	}
+
 }

@@ -5,13 +5,13 @@ import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
@@ -23,13 +23,14 @@ import * as moment from 'moment';
 @Component({
   selector: 'app-soggetti',
   templateUrl: 'soggetti.component.html',
-  styleUrls: ['soggetti.component.scss']
+  styleUrls: ['soggetti.component.scss'],
+  standalone: false
 })
 export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'SoggettiComponent';
   readonly model: string = 'soggetti';
 
-  @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+  @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
   Tools = Tools;
 
@@ -140,7 +141,7 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
   ngOnDestroy() {}
 
   ngAfterViewInit() {
-    if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
       setTimeout(() => {
         this._loadSoggetti();
       }, 100);
@@ -229,8 +230,8 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
 
   _onEdit(event: any, param: any) {
     if (this._useRoute) {
-      if (this.searchGoogleForm) {
-        this.searchGoogleForm._pinLastSearch();
+      if (this.searchBarForm) {
+        this.searchBarForm._pinLastSearch();
       }
       
       this.router.navigate([this.model, param.source.id_soggetto]);
@@ -245,8 +246,8 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   _onSubmit(form: any) {
-    if (this.searchGoogleForm) {
-      this.searchGoogleForm._onSearch();
+    if (this.searchBarForm) {
+      this.searchBarForm._onSearch();
     }
   }
 
@@ -281,12 +282,12 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
   onChangeSearchDropdwon(event: any){
     this._searchOrganizzazioneSelected = event;
     setTimeout(() => {
-      this.searchGoogleForm.setNotCloseForm(false)
+      this.searchBarForm.setNotCloseForm(false)
     }, 200);
   }
 
   onSelectedSearchDropdwon($event: Event){
-    this.searchGoogleForm.setNotCloseForm(true)
+    this.searchBarForm.setNotCloseForm(true)
     $event.stopPropagation();
   }
 

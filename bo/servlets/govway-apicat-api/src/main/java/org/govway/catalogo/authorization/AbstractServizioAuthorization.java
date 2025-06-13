@@ -61,6 +61,10 @@ import org.springframework.data.domain.Pageable;
 
 public abstract class AbstractServizioAuthorization extends DefaultWorkflowAuthorization<ServizioCreate,ServizioUpdate,ServizioEntity> {
 
+	public AbstractServizioAuthorization() {
+		super(EntitaEnum.SERVIZIO);
+	}
+
 	@Autowired
 	protected Configurazione configurazione;
 	
@@ -342,6 +346,10 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		
 		if(this.coreAuthorization.isAdmin(u)) {
 			lst.add(Ruolo.GESTORE);
+		}
+		
+		if(this.coreAuthorization.isCoordinatore(u)) {
+			lst.add(Ruolo.REFERENTE_SUPERIORE);
 		}
 
 		boolean refDominio = entity.getDominio().getReferenti().stream()

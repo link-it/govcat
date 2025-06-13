@@ -6,15 +6,15 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { FieldClass } from 'projects/components/src/public-api';
+import { FieldClass } from '@linkit/components';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -30,7 +30,8 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-servizio-gruppi',
   templateUrl: 'servizio-gruppi.component.html',
-  styleUrls: ['servizio-gruppi.component.scss']
+  styleUrls: ['servizio-gruppi.component.scss'],
+  standalone: false
 })
 export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioGruppiComponent';
@@ -483,12 +484,12 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
   }
 
   _onChangeTipoReferente(isReferent: boolean) {
-    this.gruppiFilter = isReferent ? 'referente_servizio,gestore' : '';
+    this.gruppiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
   }
 
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore' },
+      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }

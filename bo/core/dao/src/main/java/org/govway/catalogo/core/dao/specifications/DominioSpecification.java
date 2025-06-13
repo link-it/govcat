@@ -67,13 +67,15 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		List<Predicate> predLst = new ArrayList<>();
 		
 		if (q.isPresent()) {
-			List<Predicate> predLstQ = new ArrayList<>();
-			predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.nome)), "%" + q.get().toUpperCase() + "%")); 
-			predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.descrizione)), "%" + q.get().toUpperCase() + "%"));
-			predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.soggettoReferente).get(SoggettoEntity_.nome)), "%" + q.get().toUpperCase() + "%"));
-			predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.soggettoReferente).get(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.nome)), "%" + q.get().toUpperCase() + "%"));
-			
-			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
+		    String escaped = escapeLikePattern(q.get().toUpperCase());
+
+		    List<Predicate> predLstQ = new ArrayList<>();
+		    predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.nome)), "%" + escaped + "%", '\\'));
+		    predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.descrizione)), "%" + escaped + "%", '\\'));
+		    predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.soggettoReferente).get(SoggettoEntity_.nome)), "%" + escaped + "%", '\\'));
+		    predLstQ.add(cb.like(cb.upper(root.get(DominioEntity_.soggettoReferente).get(SoggettoEntity_.organizzazione).get(OrganizzazioneEntity_.nome)), "%" + escaped + "%", '\\'));
+
+		    predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
 		
 		if (nome.isPresent()) {
@@ -109,6 +111,13 @@ public class DominioSpecification implements Specification<DominioEntity> {
 		return predLst;
 	}
 
+	private String escapeLikePattern(String pattern) {
+	    return pattern
+	        .replace("\\", "\\\\")
+	        .replace("_", "\\_")
+	        .replace("%", "\\%");
+	}
+	
 	public Optional<String> getQ() {
 		return q;
 	}

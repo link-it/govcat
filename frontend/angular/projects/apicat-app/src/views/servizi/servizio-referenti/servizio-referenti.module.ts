@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 // import { BackWebModule } from '../components/back-web/back-web.module';
 import { MonitorDropdwnModule } from '../components/monitor-dropdown/monitor-dropdown.module';
@@ -18,8 +17,7 @@ import { ServizioReferentiRoutingModule } from './servizio-referenti-routing.mod
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     MarkAsteriskModule,
     // BackWebModule,
     MonitorDropdwnModule,

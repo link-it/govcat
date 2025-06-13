@@ -1,29 +1,29 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { MenuAction } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
 
-import { AllegatoComponent } from 'projects/components/src/lib/ui/allegato/allegato.component';
+import { AllegatoComponent } from '@linkit/components';
 
 import { ServizioApiCreate } from './servizio-api-create';
 
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
 import { Grant } from '@app/model/grant';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 import * as _ from 'lodash';
 import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
@@ -32,10 +32,25 @@ declare const saveAs: any;
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
 export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
 
+export type Campo = {
+    nome_gruppo: string;
+    classe_dato: string;
+    nome: string;
+    etichetta: string;
+    tipo: string;
+    required: boolean;
+    valori?: any[];
+    regular_expression?: string;
+    ruoli_abilitati?: string[];
+};
+
+export type GruppiCampi = Record<string, Campo[]>;
+
 @Component({
     selector: 'app-servizio-api-details',
     templateUrl: 'servizio-api-details.component.html',
-    styleUrls: ['servizio-api-details.component.scss']
+    styleUrls: ['servizio-api-details.component.scss'],
+    standalone: false
 })
 export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServizioApiDetailsComponent';
@@ -70,8 +85,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     _customAuthOrig = false;
     _customAuthAdded = false;
     
-    _formGroup: UntypedFormGroup = new UntypedFormGroup({});
-    _descrittoreCtrl: UntypedFormControl = new UntypedFormControl('', []);
+    _formGroup: FormGroup = new FormGroup({});
+    _descrittoreCtrl: FormControl = new FormControl('', []);
 
     servizioApiResponse: any = null;
     _servizioApi: ServizioApiCreate = new ServizioApiCreate({});
@@ -142,7 +157,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     _authTypesSelected: any[] = [];
 
     _customProperties: any = [];
-    _customPropertiesFormGroup: UntypedFormGroup = new UntypedFormGroup({});
+    _customPropertiesFormGroup: FormGroup = new FormGroup({});
 
     _showTrigger: boolean = true;
 
@@ -206,7 +221,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     ngOnInit() {
         this.eventsManagerService.on('INIT_DATA', (event: any) => {
-            this._initData();
+            this._initData(true);
         });
 
         this.route.params.subscribe(params => {
@@ -328,41 +343,41 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 switch (key) {
                     case 'nome':
                         value = data[key] ? data[key] : '';
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.required,
                             Validators.maxLength(255)
                         ]);
                         break;
                     case 'ruolo':
                         value = data[key] ? data[key] : '';
-                        _group[key] = new UntypedFormControl(value, [Validators.required]);
+                        _group[key] = new FormControl(value, [Validators.required]);
                         break;
                     case 'protocollo':
                         value = data[key] ? data[key] : '';
-                        _group[key] = new UntypedFormControl(value, this._isNew ? [Validators.required] : []);
+                        _group[key] = new FormControl(value, this._isNew ? [Validators.required] : []);
                         break;
                     case 'descrizione':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.maxLength(255)
                         ]);
                         break;
                     case 'versione':
                         value = data[key] ? data[key] : '';
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.required,
                             Validators.pattern("^[1-9][0-9]*$")
                         ]);
                         break;
                     case 'codice_asset':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value,
+                        _group[key] = new FormControl(value,
                             this._codiceAssetObbligatorio ? [Validators.required, Validators.maxLength(255)] : [Validators.maxLength(255)]
                         );
                         break;
                     default:
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, []);
+                        _group[key] = new FormControl(value, []);
                         break;
                 }
             });
@@ -375,7 +390,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             const _authTypes = this.formBuilder.array([]);
             _group.authTypes = _authTypes;
 
-            this._formGroup = new UntypedFormGroup(_group);
+            this._formGroup = new FormGroup(_group);
 
             if (this.servizioApi?.configurazione_collaudo && this.servizioApi?.configurazione_collaudo?.protocollo) {
                 this._formGroup.get('protocollo')?.setValue(this.servizioApi.configurazione_collaudo.protocollo);
@@ -428,9 +443,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _prepareBodySaveApi(body: any) {
-        // should check if is new or edit
-        // should check if environment is collaudo or produzione
-
         const configurazioneCollaudo: ApiConfiguration = {
             protocollo: body.protocollo,
             dati_erogazione: {
@@ -471,9 +483,15 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     content: body.content,
                     filename: body.filename
                 };
+                if (configurazioneProduzione) {
+                    configurazioneProduzione.specifica = {
+                        content_type: body.estensione ? body.estensione : null,
+                        content: body.content,
+                        filename: body.filename
+                    };
+                }
             };
         }
-
 
         if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {;
             _newBody.gruppi_auth_type = body.authTypes.map((item: any):ApiAuthTypeGroup => {
@@ -548,7 +566,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (body.ruolo === this.EROGATO_SOGGETTO_DOMINIO) {
             _newBody.dati_specifica = {
                 ..._newBody.dati_specifica,
-                gruppi_auth_type: body.authTypes.map((item: any) => {
+                gruppi_auth_type: body.authTypes?.map((item: any) => {
                     const _proprietaCustom: any[] = [];
                     Object.keys(item.customProperties || {}).map((key: string) => {
                         if (item.customProperties[key]) {
@@ -706,7 +724,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._spin++;
             this.apiService.getDetails(this.model, this.id).subscribe({
                 next: (response: any) => {
-                    this.servizioApiResponse = { ...response }; // JSON.parse(JSON.stringify(response));
+                    this.servizioApiResponse = JSON.parse(JSON.stringify(response));
                     this.servizioApi = response; // new ServizioApi({ ...response });
                     this._servizioApi = new ServizioApiCreate({ ...response });
                     this._hasSpecifica = (this.servizioApi?.configurazione_collaudo?.specifica !== undefined);
@@ -729,14 +747,14 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
     }
 
-    _initData() {
+    _initData(isInit: boolean = false) {
         if (this.service && this.servizioApi) {
             const controls: any = this._formGroup.controls;
 
-            this.__changeRuolo({ value: this.servizioApi.ruolo });
+            this.__changeRuolo({ value: this.servizioApi.ruolo }, isInit);
             controls.descrittore.setValue(this.servizioApi.configurazione_collaudo?.specifica || '');
             this._newDescrittore = false;
-            this.__descrittoreChange(this.servizioApi.configurazione_collaudo?.specifica || '');
+            this.__descrittoreChange(this.servizioApi.configurazione_collaudo?.specifica || '', isInit);
             if (this.servizioApi.gruppi_auth_type?.length !== 0) {
                 const _authTypes: ApiAuthTypeGroup[] = this.servizioApi.gruppi_auth_type || [];
                 this._risorseSelected = [];
@@ -745,7 +763,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     (auth.resources || []).forEach((r: string) => this._risorseSelected.push(r));
                     this._authSelected.push(auth.profilo);
                     const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
-                    if (_profile.auth_type.includes('pdnd')) {
+                    if (_profile?.auth_type.includes('pdnd')) {
                         this._isPDND = true;
                     }
                 });
@@ -800,8 +818,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._error = false;
             this.showHistory = false;
             const controls: any = this._formGroup.controls;
-            // controls.protocollo.clearValidators();
-            // controls.protocollo.disable();
             this._formGroup.updateValueAndValidity();
             this.__disableUrlFields(controls);
         }, 100);
@@ -834,7 +850,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         } else {
             this.servizioApi = JSON.parse(JSON.stringify(this.servizioApiResponse));
             this._servizioApi = new ServizioApiCreate({ ...this.servizioApi });
-            this._hasSpecifica = false;
+            this._hasSpecifica = (this.servizioApi?.configurazione_collaudo?.specifica !== undefined);
             this._initForm({ ...this._servizioApi });
             this._initData();
         }
@@ -894,22 +910,19 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.showHistory = !this.showHistory;
     }
 
-    __changeRuolo(event: any) {
+    __changeRuolo(event: any, isInit: boolean = false) {
         const controls = this._formGroup.controls;
         const _ruolo: string = controls.ruolo.value;
-        // if (this.des) {
-        //     this.des.reset();
-        // }
+
         setTimeout(() => {
             this.__resetGAT();
             this.__checkAutenticazione(_ruolo);
-            // this.__descrittoreChange(null);
+
             if (controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
-                this.__loadRisorse();
+                if (!isInit) { this.__loadRisorse(); }
             } else {
                 this._resetProprietaCustom();
             }
-            this._formGroup.updateValueAndValidity();
         }, 100);
     }
 
@@ -927,13 +940,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _notModifiableFields = this.authenticationService._getClassesNotModifiable('servizio', 'api', this.service.stato);
         const _mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
 
-        // const _diff = _mandatoryFields.filter( function( el ) {
-        //   return _notModifiableFields.indexOf( el ) < 0;
-        // } );
-
         _mandatoryFields.forEach((field: string) => {
             if (controls[field]) {
-                // controls[field].enable();
                 controls[field].setValidators([Validators.required]);
             }
         });
@@ -981,9 +989,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     __resetGAT() {
-        // this._gruppiAuthTypesCtrl.setValue([]);
-        // this._gruppiAuthTypesCtrl.setErrors(null);
-        // this._gruppiAuthTypesCtrl.updateValueAndValidity();
         this._risorseSelected = [];
         this._authSelected = [];
     }
@@ -993,7 +998,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.__descrittoreChange(value);
     }
 
-    __descrittoreChange(value: any) {
+    __descrittoreChange(value: any, isInit: boolean = false) {
         this.__resetGAT();
 
         const controls = this._formGroup.controls;
@@ -1002,19 +1007,19 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         controls.content.patchValue(value ? value.data : null);
         controls.uuid.patchValue(value ? value.uuid : null);
         this._formGroup.updateValueAndValidity();
-        if (value && controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
+        if (value && controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO && !isInit) {
             this.__loadRisorse();
         }
     }
 
     __loadRisorse() {
-        this._error = false;
+        this.__resetError();
         const controls = this._formGroup.controls;
         const _apiType: string = controls.protocollo.value;
         const _contentType: string = controls.estensione.value ? controls.estensione.value : null;
         const _document: string = controls.content.value;
         const _uuid: string = controls.uuid.value;
-        if (_apiType) {
+        if (_apiType && (_document || _uuid)) {
             const _body: any = {
                 api_type: _apiType,
                 document: {}
@@ -1154,31 +1159,31 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     // customFormGroup
 
     afg(index: number) {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
         return _authGroupCntrl;
     }
 
     afgc(index: number) {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
         return _authGroupCntrl.controls;
     }
 
     cfg(index: number) {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
-        const _customPropertiesCntrl: UntypedFormGroup = _authGroupCntrl.controls['customProperties'] as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
+        const _customPropertiesCntrl: FormGroup = _authGroupCntrl.controls['customProperties'] as FormGroup;
         return _customPropertiesCntrl;
     }
 
     // customFormGroupControls
     cfgc(index: number): { [key: string]: AbstractControl } {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
-        const _customPropertiesCntrl: UntypedFormGroup = _authGroupCntrl.controls['customProperties'] as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
+        const _customPropertiesCntrl: FormGroup = _authGroupCntrl.controls['customProperties'] as FormGroup;
         return _customPropertiesCntrl.controls;
     }
 
     cfgcName(index: number, name: string) {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
-        const _customPropertiesCntrl: UntypedFormGroup = _authGroupCntrl.controls['customProperties'] as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
+        const _customPropertiesCntrl: FormGroup = _authGroupCntrl.controls['customProperties'] as FormGroup;
         return _customPropertiesCntrl.controls[name];
     }
 
@@ -1192,12 +1197,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _getProfiloProprietaValue(index: number) {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
         return _authGroupCntrl.controls.profilo.value;
     }
 
     _getProfiloAuthType(index: number) {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
         const ac: any = _authGroupCntrl.controls.profilo.value;
         return this._getProfilo(ac)?.auth_type || '';
     }
@@ -1205,7 +1210,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     _getAllProfileValues() {
         const profiles: string[] = [];
         for (let i = 0; i < this.authTypesArray().length; i++) {
-            const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(i) as UntypedFormGroup;
+            const _authGroupCntrl: FormGroup = this.authTypesArray().at(i) as FormGroup;
             profiles.push(_authGroupCntrl.controls.profilo.value);
         }
         return profiles;
@@ -1227,7 +1232,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _removeCustomControls(index: number = -1) {
         if (index >= 0) {
-            const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+            const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
             _authGroupCntrl.removeControl('customProperties');
             this._formGroup.updateValueAndValidity();
         }
@@ -1261,7 +1266,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _removeAuthGroup(index: number = -1) {
         if (index >= 0) {
-            const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+            const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
             const _deletedResources = _authGroupCntrl.controls.resources.value;
             this._risorseSelected = this._risorseSelected.filter((i: string) => !_deletedResources.filter((y: string) => y === i).length);
             this.authTypesArray().removeAt(index);
@@ -1290,7 +1295,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         });
         this.modalChoiceRef.content.onClose.subscribe(
             (result: any) => {
-                const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+                const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
                 const _oldResources = _authGroupCntrl.controls.resources.value;
                 const _newResources = this._risorseSelected.filter((i: string) => !_oldResources.filter((y: string) => y === i).length);
                 _authGroupCntrl.controls.resources.setValue(result);
@@ -1301,7 +1306,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _changeResources(index: number) {
-        const _authGroupCntrl: UntypedFormGroup = this.authTypesArray().at(index) as UntypedFormGroup;
+        const _authGroupCntrl: FormGroup = this.authTypesArray().at(index) as FormGroup;
         const resources: any = _authGroupCntrl.controls.resources.value;
 
         const _risorseFiltered = this._risorseOrig.filter((el: string) => {
@@ -1327,7 +1332,6 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._customAuthAdded = false;
         }
         this._customAuth = false;
-
     }
 
     _onAddCustomAuth() {
@@ -1418,11 +1422,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     // API Proprietà custom
 
     acfg() {
-        return this._formGroup.controls['proprieta_custom'] as UntypedFormGroup;
+        return this._formGroup.controls['proprieta_custom'] as FormGroup;
     }
 
     acfgc(group_name: string) {
-        return (this._formGroup.controls['proprieta_custom'] as UntypedFormGroup).get(group_name) as UntypedFormGroup;
+        return (this._formGroup.controls['proprieta_custom'] as FormGroup).get(group_name) as FormGroup;
     }
 
     _hasControlApiCustomPropertiesError(group_name: string, name: string) {
@@ -1463,85 +1467,93 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
 
         _proprietaCustom.forEach((item: any) => {
-            if(item.profili && !item.profili.some((p: string) => profili.some((pr: Profile) => pr.codice_interno === p))) {
+            if (item.profili && !item.profili.some((p: string) => profili.some((pr: Profile) => pr.codice_interno === p))) {
                 return;
             }
 
-            if(item.auth_type && !item.auth_type.some((auth_type: string) => profili.some((pr: Profile) => pr.auth_type === auth_type))) {
+            if (item.auth_type && !item.auth_type.some((auth_type: string) => profili.some((pr: Profile) => pr.auth_type === auth_type))) {
                 return;
             }
 
             const _gruppo = item.nome_gruppo;
+            const _ruoli_abilitati = item.ruoli_abilitati;
             item.proprieta.forEach((proprieta: any) => {
                 this._apiProprietaCustom.push({
                     nome_gruppo: _gruppo,
                     classe_dato: item.classe_dato,
-                    ...proprieta
+                    ...proprieta,
+                    ruoli_abilitati: _ruoli_abilitati ? [ ..._ruoli_abilitati ] : undefined
                 });
             });
         });
         this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, 'nome_gruppo');
 
+        const filtered = this.filtraCampiPerRuoli(this._apiProprietaCustomGrouped, this._grant?.ruoli || []);
+
+        const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
+        const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
+        const collaudoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'collaudo');
+
         if (this._apiProprietaCustom.length) {
             this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
 
-            const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
-            const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
-            const collaudoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'collaudo');
-
-            Object.keys(this._apiProprietaCustomGrouped).forEach((key: any) => {
-                this._apiProprietaCustomGrouped[key].forEach((item: any) => {
+            Object.keys(filtered).forEach((key: any) => {
+                (filtered[key] || []).forEach((item: any) => {
                     const _validators = [];
 
-                    const _ruoli = this._grant?.ruoli || [];
-                    const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
+                    let required = false;
 
-                    console.group('proprieta_custom');
-                    console.log(item);
-                    console.log('ruoli', _ruoli);
-                    console.log('hasRuolo', _hasRuolo);
-                    console.groupEnd();
-
-                    if (_hasRuolo) {
-                        let required = false;
-
-                        if(item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
-                            required = item.required;
-                        }
-
-                        if(item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
-                            required = item.required;
-                        }
-
-                        if (required) { _validators.push(Validators.required); }
-                        if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
-
-                        this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
-
-                        const _gruppo = this._servizioApi.proprieta_custom?.find((pc: any) => {
-                            return (pc.gruppo === item.nome_gruppo);
-                        });
-                        const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome );
-                        let _val = _value ? _value.valore : null;
-                        if (!this._servizioApi.proprieta_custom?.length && (item.tipo === 'select')) {
-                            const _defaultItem = item.valori.find((item: any) => item.default);
-                            _val =_defaultItem?.nome || null;
-                        }
-
-                        const group = this.proprietaCustom.get(item.nome_gruppo) as FormGroup;
-                        group.addControl(item.nome, new FormControl(_val, [..._validators]));
-                    } else {
-                        // remove item from list
-                        const index = this._apiProprietaCustomGrouped[key]?.indexOf(item) || -1;
-                        if (index !== -1) {
-                            this._apiProprietaCustomGrouped = this._apiProprietaCustomGrouped[key].splice(index, 1);
-                        }
+                    if (item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
+                        required = item.required;
                     }
+
+                    if (item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
+                        required = item.required;
+                    }
+
+                    if (required) { _validators.push(Validators.required); }
+                    if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
+
+                    this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
+
+                    const _gruppo = this._servizioApi.proprieta_custom?.find((pc: any) => {
+                        return (pc.gruppo === item.nome_gruppo);
+                    });
+                    const _value = _gruppo?.proprieta.find((p: any) => p.nome === item.nome );
+                    let _val = _value ? _value.valore : null;
+                    if (!this._servizioApi.proprieta_custom?.length && (item.tipo === 'select')) {
+                        const _defaultItem = item.valori.find((item: any) => item.default);
+                        _val =_defaultItem?.nome || null;
+                    }
+
+                    const group = this.proprietaCustom.get(item.nome_gruppo) as FormGroup;
+                    group.addControl(item.nome, new FormControl(_val, [..._validators]));
                 });
             });
+            this._apiProprietaCustomGrouped = { ...filtered };
         }
 
         this._updateMapper = new Date().getTime().toString();
+    }
+
+    filtraCampiPerRuoli(data: GruppiCampi, ruoliUtente: string[]): GruppiCampi {
+        const risultatoFiltrato: GruppiCampi = {};
+
+        for (const [nomeGruppo, campi] of Object.entries(data)) {
+            const campiFiltrati = campi.filter(campo => {
+                if (!campo.ruoli_abilitati || campo.ruoli_abilitati.length === 0) {
+                    return true; // campo visibile a tutti
+                }
+
+                return campo.ruoli_abilitati.some(ruolo => ruoliUtente.includes(ruolo));
+            });
+
+            if (campiFiltrati.length > 0) {
+                risultatoFiltrato[nomeGruppo] = campiFiltrati;
+            }
+        }
+
+        return risultatoFiltrato;
     }
 
     get proprietaCustom(): FormGroup {

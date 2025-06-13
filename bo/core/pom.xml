@@ -7,9 +7,13 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>api-portale</artifactId>
-		<version>2.0</version>
+		<version>2.2</version>
 		<relativePath>../</relativePath>
 	</parent>
+	
+	<properties>
+		<rel-to-parent>../..</rel-to-parent>
+	</properties>
 <modules>  
 	<module>utils</module>
 	<module>dto</module>

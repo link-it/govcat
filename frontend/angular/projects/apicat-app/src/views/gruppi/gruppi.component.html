@@ -5,10 +5,9 @@
     <div class="top-area">
         <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
             <div class="">
-                <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+                <ul class="nav gp-border-b-0 gp-tabs-nav">
                     <li class="nav-item">
-                        <a role="tab" tabindex="-1" target="_self"
-                        class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+                        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + gruppi.length">
                             <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span>
                             <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="gruppi.length">{{ gruppi.length }}</span>
                         </a>
@@ -20,13 +19,13 @@
             <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary me-4" *ngIf="_spin">
                 <span class="spinner-border spinner-border-sm text-primary"></span>
             </button>
-            <div role="group" class="">
-                <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'create'"> -->
-                <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-                    <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddGroup' | translate }}</span>
-                </button>
-                <!-- </ng-template> -->
-            </div>
+            <ng-template [appHasPermission]="'gruppi'" [action]="'create'">
+                <div class="">
+                    <button aria-label="Add group" type="button" class="btn btn-confirm btn-md gl-button" (click)="_onNew()">
+                        <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddGroup' | translate }}</span>
+                    </button>
+                </div>
+            </ng-template>
         </div>
     </div>
     <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
@@ -75,23 +74,12 @@
             [subMessage]="_messageHelp | translate"
         ></ui-box-message>
 
-        <ng-template [ngIf]="false">
-            <div class="row">
-                <div class="col-12">
-                    <ui-item-row class="border-bottom" *ngFor="let item of gruppi"
-                        [data]="item"
-                        [config]="gruppiConfig"
-                        [hasLink]="true"
-                        (itemClick)="_onEdit($event, item)"
-                    ></ui-item-row>
-                </div>
-            </div>
-        </ng-template>
         <ng-template [ngIf]="true">
             <div class="mt-0">
                 <container
                     recursive
                     [children]="gruppi"
+                    [isEditable]="'gruppi' | mapper:_hasPermissioMapper:'create'"
                     (open)="onOpen($event)"
                     (action)="onAction($event)"
                 ></container>
@@ -114,14 +102,14 @@
             </div>
             <div class="modal-body">
                 <div class="p-3">
-                    <!-- <div class="form-group padre">
-                        <label class="label-bold" for="padre">{{ 'APP.LABEL.Padre' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'padre'"></span></label>
-                        <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('padre')" type="text" name="padre" id="padre" formControlName="padre" readonly>
-                        <p *ngIf="f['padre'].invalid && (f['padre'].dirty || f['padre'].touched)" class="form-text text-danger">
-                            <span *ngIf="f['padre'].errors && f['padre'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        </p>
-                        <ui-input-help field="padre" context="GROUPS"></ui-input-help>
-                    </div> -->
+                    <div class="form-group gruppo_padre">
+                        <label class="label-bold" for="id_gruppo_padre_label">{{ 'APP.LABEL.GruppoPadre' | translate }}</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm cursor-pointer" id="id_gruppo_padre_label" formControlName="id_gruppo_padre_label" readonly (click)="openChoiceGroupModal($event)">
+                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="clearGroup($event)" *ngIf="_editFormGroup.controls['id_gruppo_padre'].value"><i class="bi bi-x-lg"></i></button>
+                            <button class="btn btn-default btn-md gl-button btn-default-tertiary btn-icon" type="button" (click)="openChoiceGroupModal($event)"><i class="bi bi-collection"></i></button>
+                        </div>
+                    </div>
                     <div class="form-group nome">
                         <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'nome'"></span></label>
                         <input autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">

@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 
 import { ClientAdesioniComponent } from './client-adesioni.component';
@@ -16,8 +15,7 @@ import { ClientAdesioniRoutingModule } from './client-adesioni-routing.module';
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
     MarkAsteriskModule,
     ClientAdesioniRoutingModule
   ],

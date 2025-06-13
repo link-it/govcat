@@ -455,7 +455,7 @@
                                             <label class="label-bold" for="tipo_certificato">{{ 'APP.LABEL.AuthenticationCertificate' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'tipo_certificato'"></span>
                                             </label>
                                             <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
-                                                [items]="_fake_tipoCertificatoEnum"
+                                                [items]="_tipiCertificato"
                                                 bindValue="nome"
                                                 bindLabel="nome"
                                                 labelForId="tipo_certificato"
@@ -585,7 +585,7 @@
                                         <div class="form-group col-12 mb-2">
                                             <label class="label-bold" for="tipo_certificato_firma">{{ 'APP.CLIENT.LABEL.SignCertificate' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroupClients" [controlName]="'tipo_certificato_firma'"></span></label>
                                             <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
-                                                [items]="_fake_tipoCertificatoEnum"
+                                                [items]="_tipiCertificato"
                                                 bindValue="nome"
                                                 bindLabel="nome"
                                                 labelForId="tipo_certificato_firma"

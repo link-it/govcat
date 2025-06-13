@@ -1,36 +1,42 @@
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { FieldClass } from 'projects/components/src/public-api';
+import { FieldClass } from '@linkit/components';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
 
 import { concat, Observable, of, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, finalize, switchMap, tap } from 'rxjs/operators';
 
 import * as _ from 'lodash';
+
+export enum TabType {
+  REFERENTI = 'REFERENTI',
+  DOMINIO = 'DOMINIO'
+}
 
 @Component({
   selector: 'app-servizio-referenti',
   templateUrl: 'servizio-referenti.component.html',
-  styleUrls: ['servizio-referenti.component.scss']
+  styleUrls: ['servizio-referenti.component.scss'],
+  standalone: false
 })
 export class ServizioReferentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioReferentiComponent';
@@ -47,9 +53,12 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   referentiConfig: any;
 
   service: any = null;
-  servizioreferenti: any[] = [];
+  servizioReferenti: any[] = [];
   _paging: Page = new Page({});
   _links: any = {};
+  dominioReferenti: any[] = [];
+  _pagingDomain: Page = new Page({});
+  _linksDomain: any = {};
 
   _grant: Grant | null = null;
 
@@ -57,19 +66,19 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   _editCurrent: any = null;
 
   _hasFilter: boolean = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
 
-  _spin: boolean = false;
+  _spin: number = 0;
   desktop: boolean = false;
 
   _useRoute : boolean = false;
   _useDialog : boolean = true;
 
-  _message: string = 'APP.MESSAGE.NoResults';
-  _messageHelp: string = 'APP.MESSAGE.NoResultsHelp';
+  _message: string = 'APP.MESSAGE.NoReferent';
+  _messageHelp: string = 'APP.MESSAGE.NoReferentHelp';
 
   _error: boolean = false;
 
@@ -101,6 +110,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   referenti$!: Observable<any[]>;
   referentiInput$ = new Subject<string>();
   referentiLoading: boolean = false;
+  tipoReferente: string = '';
   referentiFilter: string = '';
 
   anagrafiche: any = {};
@@ -111,6 +121,10 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   _idDominioEsterno: string | null = null;
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
+
+  currTab: string = TabType.REFERENTI;
+
+  TabType = TabType;
 
   constructor(
     private route: ActivatedRoute,
@@ -161,6 +175,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
               this._loadServizioReferenti();
+              this._loadDominioReferenti();
             }
           }
         );
@@ -210,57 +225,58 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
       this._message = 'APP.MESSAGE.ERROR.Default';
       this._messageHelp = 'APP.MESSAGE.ERROR.DefaultHelp';
     } else {
-      this._message = 'APP.MESSAGE.NoResults';
-      this._messageHelp = 'APP.MESSAGE.NoResultsHelp';
+      this._message = 'APP.MESSAGE.NoReferent';
+      this._messageHelp = 'APP.MESSAGE.NoReferentHelp';
     }
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
-      creationDateFrom: new UntypedFormControl(''),
-      creationDateTo: new UntypedFormControl(''),
-      fileName: new UntypedFormControl(''),
-      status: new UntypedFormControl(''),
-      type: new UntypedFormControl(''),
+    this._formGroup = new FormGroup({
+      q: new FormControl('')
     });
   }
 
-  _loadServizio() {
-    if (this.id) {
-      this.service = null;
-      this._spin = true;
-      this.apiService.getDetails('servizi', this.id, 'grant').subscribe({
-        next: (grant: any) => {
-          this._grant = grant;
-          this.apiService.getDetails('servizi', this.id).subscribe({
-            next: (response: any) => {
-              this.service = response;
-              this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
-              this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
-              this._initBreadcrumb();
-              this._updateMapper = new Date().getTime().toString();
-              this._spin = false;
-              this._loadServizioReferenti();
-            },
-            error: (error: any) => {
-              Tools.OnError(error);
-              this._spin = false;
-            }
-          });
-        },
-        error: (error: any) => {
-          Tools.OnError(error);
-        }
-      });
-    }
+  setCurrTab(tab: string) {
+    this.currTab = tab;
+  }
+
+  _loadServizio(): void {
+    if (!this.id) return;
+
+    this.service = null;
+    this._spin++;
+
+    this.apiService.getDetails('servizi', this.id, 'grant').pipe(
+      tap((grant: any) => {
+        this._grant = grant;
+      }),
+      switchMap(() => this.apiService.getDetails('servizi', this.id)),
+      tap((response: any) => {
+        this.service = response;
+        const org = this.service.dominio?.soggetto_referente?.organizzazione;
+        this._isDominioEsterno = org?.esterna || false;
+        this._idDominioEsterno = org?.id_organizzazione || null;
+        this._initBreadcrumb();
+        this._updateMapper = new Date().getTime().toString();
+        this._loadServizioReferenti();
+        this._loadDominioReferenti();
+      }),
+      finalize(() => {
+        this._spin--;
+        console.log('finalize');
+      })
+    ).subscribe({
+      error: (error: any) => {
+        Tools.OnError(error);
+      }
+    });
   }
 
   _loadServizioReferenti(query: any = null, url: string = '') {
     this._setErrorMessages(false);
     if (this.id) {
-      this._spin = true;
-      if (!url) { this.servizioreferenti = []; }  
+      this._spin++;
+      if (!url) { this.servizioReferenti = []; }  
       this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
         next: (response: any) => {
 
@@ -285,17 +301,60 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
               };
               return element;
             });
-            this.servizioreferenti = (url) ? [...this.servizioreferenti, ..._list] : [..._list];
+            this.servizioReferenti = (url) ? [...this.servizioReferenti, ..._list] : [..._list];
             this._preventMultiCall = false;
           }
           Tools.ScrollTo(0);
-          this._spin = false;
+          this._spin--;
         },
         error: (error: any) => {
           this._setErrorMessages(true);
           this._preventMultiCall = false;
-              this._spin = false;
-          // Tools.OnError(error);
+          this._spin--;
+        }
+      });
+    }
+  }
+
+  _loadDominioReferenti(query: any = null, url: string = '') {
+    this._setErrorMessages(false);
+    if (this.service && this.service.dominio.id_dominio) {
+      this._spin++;
+      if (!url) { this.servizioReferenti = []; }  
+      this.apiService.getDetails('domini', this.service.dominio.id_dominio, 'referenti').subscribe({
+        next: (response: any) => {
+
+          response ? this._pagingDomain = new Page(response.page) : null;
+          response ? this._linksDomain = response._links || null : null;
+
+          if (response && response.content) {
+            const _itemRow = this.referentiConfig.itemRow;
+            const _options = this.referentiConfig.options;
+            const _list: any = response.content.map((referent: any) => {
+              const metadataText = Tools.simpleItemFormatter(_itemRow.metadata.text, referent, _options || null);
+              const metadataLabel = Tools.simpleItemFormatter(_itemRow.metadata.label, referent, _options || null);
+              const element = {
+                id: referent.id,
+                primaryText: Tools.simpleItemFormatter(_itemRow.primaryText, referent, _options || null),
+                secondaryText: Tools.simpleItemFormatter(_itemRow.secondaryText, referent, _options || null, ' '),
+                metadata: (metadataText || metadataLabel) ? `${metadataText}<span class="me-2">&nbsp;</span>${metadataLabel}` : '',
+                secondaryMetadata: Tools.simpleItemFormatter(_itemRow.secondaryMetadata, referent, _options || null, ' '),
+                editMode: false,
+                enableCollapse: true,
+                source: { ...referent }
+              };
+              return element;
+            });
+            this.dominioReferenti = (url) ? [...this.dominioReferenti, ..._list] : [..._list];
+            this._preventMultiCall = false;
+          }
+          Tools.ScrollTo(0);
+          this._spin--;
+        },
+        error: (error: any) => {
+          this._setErrorMessages(true);
+          this._preventMultiCall = false;
+          this._spin--;
         }
       });
     }
@@ -309,9 +368,16 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
-      this._preventMultiCall = true;
-      this._loadServizioReferenti(null, this._links.next.href);
+    if (this.currTab === TabType.REFERENTI) {
+      if (this._links && this._links.next && !this._preventMultiCall) {
+        this._preventMultiCall = true;
+        this._loadServizioReferenti(null, this._links.next.href);
+      }
+    } else {
+      if (this._linksDomain && this._linksDomain.next && !this._preventMultiCall) {
+        this._preventMultiCall = true;
+        this._loadDominioReferenti(null, this._linksDomain.next.href);
+      }
     }
   }
 
@@ -467,7 +533,8 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
           let aux: any = this._isDominioEsterno ? null : this._idDominioEsterno;
-          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux).pipe(
+          const referente_tecnico = this.tipoReferente === 'referente_tecnico';
+          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )
@@ -477,17 +544,18 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   _onChangeTipoReferente(isReferent: boolean) {
-    this.referentiFilter = isReferent ? 'referente_servizio,gestore' : '';
+    this.referentiFilter = isReferent ? 'referente_servizio,gestore,coordinatore' : '';
   }
 
   loadAnagrafiche() {
     this.anagrafiche['tipo-referente'] = [
-      { nome: 'referente', filter: 'referente_servizio,gestore' },
+      { nome: 'referente', filter: 'referente_servizio,gestore,coordinatore' },
       { nome: 'referente_tecnico', filter: '' }
     ];
   }
 
   onChangeTipo(event: any) {
+    this.tipoReferente = event.nome;
     this.referentiFilter = event.filter;
     const tipoReferente = this._editFormGroup.controls.tipo.value; 
     (tipoReferente !== '') ? this._editFormGroup.controls.id_utente.enable() : this._editFormGroup.controls.id_utente.disable();

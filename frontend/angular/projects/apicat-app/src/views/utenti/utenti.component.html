@@ -5,9 +5,9 @@
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+        <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()">
+            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item gp-tab-nav-item-active cursor-pointer" (click)="_resetScroll()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _paging.totalElements || 0">
               <span title="Show all issues.">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="utenti.length">{{ _paging.totalElements || 0 }}</span>
             </a>
           </li>
@@ -15,19 +15,19 @@
       </div>
     </div>
     <div class="nav-controls align-self-center d-flex">
-      <div role="group" class="gl-w-full btn-group- position-relative">
-        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'create'"> -->
+      <div class="gl-w-full btn-group- position-relative">
+        <ng-template [appHasPermission]="'utenti'" [action]="'create'">
           <button aria-label="Add payment" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
             <span class="material-icons-outlined">add</span> <span class="ms-2">{{ 'APP.BUTTON.AddUser' | translate }}</span>
           </button>
-        <!-- </ng-template> -->
+        </ng-template>
       </div>
     </div>
   </div>
   <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
     <div class="row align-items-center">
       <div class="col-12">
-        <ui-search-google-form #searchGoogleForm
+        <ui-search-bar-form #searchBarForm
           [classBlock]="''"
           [placeholder]="'APP.PLACEHOLDER.Search' | translate"
           [showHistory]="showHistory"
@@ -99,10 +99,10 @@
 
                 <div class="row mb-1">
                   <div class="col-2">
-                    <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Username' | translate }}</label>
+                    <label class="col-form-label col-form-label-fix">{{ 'APP.USERS.LABEL.Principal' | translate }}</label>
                   </div>
                   <div class="col-10">
-                    <input type="text" class="form-control form-control-sm" id="username" formControlName="username">
+                    <input type="text" class="form-control form-control-sm" id="principal" formControlName="principal">
                   </div>
                 </div>
 
@@ -161,15 +161,31 @@
                   </div>
                 </div>
 
+                <div class="row">
+                  <div class="col-sm-12 col-md-6">
+                    <div class="row mb-1">
+                      <div class="col-sm-4">
+                        <label class="col-form-label col-form-label-fix" for="referente_tecnico">{{ 'APP.LABEL.ReferenteTecnico' | translate }}</label>
+                      </div>
+                      <div class="col-sm-8">
+                        <select class="form-select form-control-sm" id="referente_tecnico" formControlName="referente_tecnico">
+                          <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                          <option *ngFor="let stato of yesNoList" [value]="stato.value">{{ stato.label | translate }}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
-                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchGoogleForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
                   <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
                 </div>
                 <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
               </fieldset>
             </form>
           </div>
-        </ui-search-google-form>
+        </ui-search-bar-form>
       </div>
     </div>
   </section>

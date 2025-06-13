@@ -1,19 +1,20 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { FieldClass } from 'projects/components/src/lib/classes/definitions';
+import { UtilService } from '@app/services/utils.service';
+import { FieldClass } from '@linkit/components'
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
-import { Utente } from './utente';
+import { Utente, Ruolo, Stato } from './utente';
 
 import { concat, from, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -24,7 +25,8 @@ import * as _ from 'lodash';
 @Component({
   selector: 'app-utente-details',
   templateUrl: 'utente-details.component.html',
-  styleUrls: ['utente-details.component.scss']
+  styleUrls: ['utente-details.component.scss'],
+  standalone: false
 })
 export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtenteDetailsComponent';
@@ -54,7 +56,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _isEdit = false;
   _closeEdit = true;
   _isNew = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _utente: Utente = new Utente({});
 
   _authorizations: any[] = [];
@@ -68,7 +70,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _useRoute: boolean = true;
 
-  breadcrumbs: any[] = [];
+  breadcrumbs: any[] = [
+    { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
+    { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },
+    { label: `...`, url: '', type: 'title' }
+  ];
 
   _error: boolean = false;
   _errorMsg: string = '';
@@ -98,20 +104,20 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     private modalService: BsModalService,
     private configService: ConfigService,
     public tools: Tools,
-    public eventsManagerService: EventsManagerService,
-    public apiService: OpenAPIService
+    private eventsManagerService: EventsManagerService,
+    private apiService: OpenAPIService,
+    private utils: UtilService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
 
   ngOnInit() {
-    this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
-    this._ruoloArr = [ 'nessun_ruolo','referente_servizio', 'gestore' ];
+    this._statoArr = Object.values(Stato);
+    this._ruoloArr = Object.values(Ruolo); // [ 'nessun_ruolo','referente_servizio', 'gestore' ];
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
         this.id = params['id'];
-        this._initBreadcrumb();
         this._isDetails = true;
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
@@ -123,7 +129,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._isNew = true;
         this._isEdit = true;
 
-        this._statoArr = [ 'abilitato', 'disabilitato' ];
+        this._statoArr = Object.values(Stato).slice(1);
 
         this._initBreadcrumb();
 
@@ -176,7 +182,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         switch (key) {
           case 'email_aziendale':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.required,
               Validators.email,
               Validators.maxLength(255)
@@ -184,17 +190,17 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             break;
           case 'email':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.email,
               Validators.maxLength(255)
             ]);
             break;
           case 'nome':
           case 'cognome':
-          case 'username':
+          case 'principal':
           case 'telefono_aziendale':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.required,
               Validators.maxLength(255)
             ]);
@@ -202,23 +208,27 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
           case 'stato':
           case 'id_organizzazione':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [Validators.required]);
+            _group[key] = new FormControl(value, [Validators.required]);
             break;
           case 'telefono':
           case 'metadati':
           case 'note':
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, [
+            _group[key] = new FormControl(value, [
               Validators.maxLength(255)
             ]);
             break;
+          case 'referente_tecnico':
+            value = data[key] ? data[key] : false;
+            _group[key] = new FormControl(value, []);
+            break;
           default:
             value = data[key] ? data[key] : null;
-            _group[key] = new UntypedFormControl(value, []);
+            _group[key] = new FormControl(value, []);
             break;
         }
       });
-      this._formGroup = new UntypedFormGroup(_group);
+      this._formGroup = new FormGroup(_group);
 
       if(this._isEdit) {
         this._formGroup.controls.id_organizzazione.patchValue(this._utente.organizzazione?.id_organizzazione)
@@ -226,10 +236,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._formGroup.updateValueAndValidity();
       } 
 
-      if(this._utente.stato == 'non configurato') {
-        this._statoArr = [ 'non_configurato', 'abilitato', 'disabilitato' ];
+      if (this._utente.stato === Stato.NON_CONFIGURATO) {
+        this._statoArr = Object.values(Stato);
       } else {
-        this._statoArr = [ 'abilitato', 'disabilitato' ];
+        this._statoArr = Object.values(Stato).slice(1);
       }
     }
   }
@@ -304,13 +314,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     }
     const _newBody: any = {
       ...body,
-      ruolo: (body.ruolo == 'nessun_ruolo') ? null : body.ruolo,
+      ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
       classi_utente: _classi
     };
     delete _newBody.organizzazione;
-    this._removeNullProperties(_newBody);
 
-    return _newBody;
+    return this.utils._removeEmpty(_newBody);
   }
 
   _onSubmit(form: any, close: boolean = true) {
@@ -367,7 +376,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
           this.utente.ruolo = this._checkRuolo(response);
           this._utente.ruolo = this._checkRuolo(response);
-          // this._utente.ruolo = response?.ruolo || 'nessun_ruolo';
+          // this._utente.ruolo = response?.ruolo || Ruolo.NESSUN_RUOLO;
           
           const aux: any = {
             id_classe_utente: this.utente.classi_utente?.id_classe_utente || null,
@@ -385,6 +394,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             this._initOrganizzazioniSelect([])
           }
           
+          this._initBreadcrumb();
+
           this._spin = false;
           // this.__initInformazioni();
         },
@@ -397,7 +408,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   _initBreadcrumb() {
-    const _title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    const _title = this.utente ? `${this.utente.nome} ${this.utente.cognome}` : this.translate.instant('APP.TITLE.New');
     this.breadcrumbs = [
       { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },
@@ -555,13 +566,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     organizationFormControl.updateValueAndValidity();
   }
 
-  _removeNullProperties(obj: any) {
-    Object.keys(obj).forEach((k: string) => {
-        _.isEmpty(obj[k]) ? delete obj[k] : null;
-      })
-  }
-
-  _checkRuolo(data: any) : string {
-    return data?.ruolo || 'nessun_ruolo';
+  _checkRuolo(data: any) : Ruolo | null {
+    return data?.ruolo || Ruolo.NESSUN_RUOLO;
   }
 }

@@ -20,8 +20,10 @@
 package org.govway.catalogo.monitoraggioutils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
@@ -31,6 +33,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
+import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.AdesioneService;
@@ -39,7 +42,6 @@ import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
-import org.govway.catalogo.monitor.controllers.StatisticheController.ErogazioneFruizioneEnum;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
@@ -116,13 +118,17 @@ public class FiltriUtils {
 //			throw new NotFoundException("API ["+nome+"/"+versione+"/"+soggetto.getNome()+"] non trovata");
 		} else {
 			if(findAll.getSize() == 1) {
-				api = findAll.stream().findAny().get();
+				Optional<ApiEntity> apiEntity = findAll.stream().findAny();
+				if(apiEntity.isPresent())
+					api = apiEntity.get();
 			} else {
 				Optional<ApiEntity> oApi = this.apiService.findByNomeVersioneSoggetto(nome, versione, UUID.fromString(soggetto.getIdSoggetto()));
 				if(oApi.isPresent()) {
 					api = oApi.get();
 				} else {
-					api = findAll.stream().findAny().get();
+					Optional<ApiEntity> apiEntity = findAll.stream().findAny();
+					if(apiEntity.isPresent())
+						api = apiEntity.get();
 				}
 			}
 		}
@@ -149,7 +155,11 @@ public class FiltriUtils {
 					.orElseThrow(() -> new NotFoundException("API ["+idApi+"] non trovata"));
 				
 				if(!api.getServizi().stream()
-					.anyMatch(s -> s.getId().equals(servizio.getId()))) {
+					.anyMatch(s -> {
+						boolean apiInServizio = s.getId().equals(servizio.getId());
+						boolean apiInPackage = s.getPackages().stream().anyMatch(p -> p.get_package().getId().equals(servizio.getId()));
+						return apiInServizio || apiInPackage;	
+					})) {
 					throw new BadRequestException("API ["+api.getNome() + "/" +api.getVersione()+"] non associata al servizio " + servizio.getNome() + "/" + servizio.getVersione());
 				}
 
@@ -162,7 +172,18 @@ public class FiltriUtils {
 			}
 	
 			List<IdApi> apiLst = new ArrayList<>();
-			for(ApiEntity ap: servizio.getApi()) {
+			
+			Set<ApiEntity> apiServizioLst = new HashSet<>();
+			
+			if(servizio.is_package()) {
+				for(PackageServizioEntity c: servizio.getComponenti()) {
+					apiServizioLst.addAll(c.getServizio().getApi());
+				}
+			} else {
+				apiServizioLst = servizio.getApi(); 
+			}
+			
+			for(ApiEntity ap: apiServizioLst) {
 				if(api == null || api.getId().equals(ap.getId())) {
 					ApiConfigEntity conf = ambiente.equals(AmbienteEnum.COLLAUDO) ? ap.getCollaudo(): ap.getProduzione();
 					if(ap.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {

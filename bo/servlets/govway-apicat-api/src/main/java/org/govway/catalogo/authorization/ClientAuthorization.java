@@ -6,4 +6,8 @@ import org.govway.catalogo.servlets.model.ClientUpdate;
 
 public class ClientAuthorization extends DefaultAuthorization<ClientCreate,ClientUpdate,ClientEntity> {
 
+	public ClientAuthorization() {
+		super(EntitaEnum.CLIENT);
+	}
+
 }

@@ -115,6 +115,36 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+    put:
+      tags:
+      - "Utenti"
+      description: "Aggiornamento delle informazioni dell'utente chiamante"
+      operationId: "updateProfilo"
+      requestBody:
+        description: "Dati per l'aggiornamento del Utente chiamante"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfiloUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /notifiche:
     get:
       tags:
@@ -750,6 +780,7 @@ paths:
       description: "Elenco delle Classi Utente"
       operationId: "listClassiUtente"
       parameters:
+      - $ref: "#/components/parameters/tipo_referente_classe_utente_query_optional"
       - $ref: "#/components/parameters/id_classe_utente_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
@@ -972,9 +1003,10 @@ paths:
       - $ref: "#/components/parameters/stato_utente_query_optional"
       - $ref: "#/components/parameters/id_organizzazione_query_optional"
       - $ref: "#/components/parameters/ruoli_query_optional"
+      - $ref: "#/components/parameters/referente_tecnico_query_optional"
       - $ref: "#/components/parameters/classi_utente_query_optional"
       - $ref: "#/components/parameters/email_query_optional"
-      - $ref: "#/components/parameters/username_query_optional"
+      - $ref: "#/components/parameters/principal_query_optional"
       - $ref: "#/components/parameters/id_utente_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
@@ -1798,6 +1830,8 @@ paths:
       - "Servizi"
       description: "Aggiornamento dei dati identificativi del Servizio"
       operationId: "updateServizio"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         description: "Dati per l'aggiornamento dei dati identificativi del Servizio"
         content:
@@ -2005,7 +2039,10 @@ paths:
       - "Servizi"
       description: "Aggiornamento dello stato del Servizio"
       operationId: "updateStatoServizio"
+      parameters:
+       - $ref: "#/components/parameters/check_only_query_optional"
       requestBody:
+        required: true      
         description: "Dati per l'aggiornamento dei dati identificativi del Servizio"
         content:
           application/json:
@@ -2058,6 +2095,8 @@ paths:
       - "Servizi"
       description: "Aggiunta di un referente del Servizio"
       operationId: "createReferenteServizio"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         description: "Dati per l'aggiunta del referente del Servizio"
         content:
@@ -2094,6 +2133,7 @@ paths:
       operationId: "deleteReferenteServizio"
       parameters:
         - $ref: "#/components/parameters/tipo_referente_query_optional"
+        - $ref: "#/components/parameters/force_query_optional"
       responses:
         "204":
           description: "Referente eliminato con successo"
@@ -2860,6 +2900,8 @@ paths:
       - "API"
       description: "Aggiornamento della API"
       operationId: "updateApi"
+      parameters:
+       - $ref: "#/components/parameters/force_query_optional"
       requestBody:
         required: true      
         description: "Dati per l'aggiornamento della API"
@@ -3535,6 +3577,7 @@ paths:
       - $ref: "#/components/parameters/id_client_query_optional"
       - $ref: "#/components/parameters/richiedente_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
+      - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
@@ -3579,6 +3622,57 @@ paths:
             application/json:
                 schema:
                   $ref: "#/components/schemas/Adesione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /adesioni/stato:
+    parameters:
+    - $ref: "#/components/parameters/stato_query_optional"
+    - $ref: "#/components/parameters/id_soggetto_query_optional"
+    - $ref: "#/components/parameters/id_organizzazione_query_optional"
+    - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
+    - $ref: "#/components/parameters/id_dominio_query_optional"
+    - $ref: "#/components/parameters/id_servizio_query_optional"
+    - $ref: "#/components/parameters/id_logico_query_optional"
+    - $ref: "#/components/parameters/id_client_query_optional"
+    - $ref: "#/components/parameters/richiedente_query_optional"
+    - $ref: "#/components/parameters/in_attesa_query_optional"
+    - $ref: "#/components/parameters/ids_adesione_query_optional"
+    - $ref: "#/components/parameters/q_query_optional"
+    - $ref: "#/components/parameters/page_query_optional"
+    - $ref: "#/components/parameters/size_query_optional"
+    - $ref: "#/components/parameters/sort_query_optional"
+    post:
+      tags:
+      - "Adesioni"
+      description: "Aggiunta di uno stato all'iter di lavorazione delle adesioni, bulk operation"
+      operationId: "updateStatoAdesioni"
+      requestBody:
+        required: true      
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatoUpdate"
+      responses:
+        "201":
+          description: "Operazione completata con successo"
+          content: 
+            application/json:
+                schema:
+                  $ref: "#/components/schemas/AdesioniCambioStatoResponse"
         "400":
           $ref: "#/components/responses/400BadRequest"
         "401":
@@ -5225,6 +5319,8 @@ components:
       properties:
         generale:
           $ref: '#/components/schemas/ConfigurazioneGenerale'
+        amministrazione:
+          $ref: '#/components/schemas/ConfigurazioneAmministrazione'
         dashboard:
           $ref: '#/components/schemas/ConfigurazioneDashboard'
         organizzazione:
@@ -5340,6 +5436,10 @@ components:
           $ref: '#/components/schemas/WorkflowProduzioneSenzaCollaudoEnum'
         workflow:
           $ref: '#/components/schemas/ConfigurazioneWorkflow'
+        configurazione_automatica:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneAutomatica'
         stati_scheda_adesione:
           type: array
           items:
@@ -5957,6 +6057,19 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneStato'
+    ConfigurazioneAutomatica:
+      type: "object"
+      required:
+        - stato_iniziale
+        - stato_in_configurazione
+        - stato_finale
+      properties:
+        stato_iniziale:
+          $ref: '#/components/schemas/ConfigurazioneNomeStato'
+        stato_in_configurazione:
+          $ref: '#/components/schemas/ConfigurazioneNomeStato'
+        stato_finale:
+          $ref: '#/components/schemas/ConfigurazioneNomeStato'
     ConfigurazioneWorkflow:
       type: "object"
       required:
@@ -6006,6 +6119,39 @@ components:
         site:
           type: "string"
           format: "URI"
+    AccessoAmministrazioneItem:
+      type: "object"
+      required:
+        - lettura
+        - scrittura
+      properties:
+        lettura:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuoloUtenteEnum'
+        scrittura:
+          type: array
+          items:
+            $ref: '#/components/schemas/RuoloUtenteEnum'
+    ConfigurazioneAmministrazione:
+      type: "object"
+      properties:
+        generale:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        gruppi:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        domini:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        client:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        soggetti:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        organizzazioni:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        utenti:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
+        classi_utente:
+          $ref: '#/components/schemas/AccessoAmministrazioneItem'
     ConfigurazioneDashboard:
       type: "object"
       required:
@@ -7704,23 +7850,25 @@ components:
       enum:
         - referente_servizio
         - gestore
+        - coordinatore
     RuoloUtenteEnumSearch:
       type: "string"
       enum:
         - nessun_ruolo
         - referente_servizio
         - gestore
+        - coordinatore
     UtenteCreate:
       type: "object"
       required:
-        - username
+        - principal
         - nome
         - cognome
         - telefono_aziendale
         - email_aziendale
         - stato
       properties:
-        username:
+        principal:
           $ref: "#/components/schemas/String255"
         nome:
           $ref: "#/components/schemas/String255"
@@ -7742,6 +7890,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
         classi_utente:
@@ -7753,15 +7903,16 @@ components:
     UtenteUpdate:
       type: "object"
       required:
+        - principal
         - nome
         - cognome
         - telefono_aziendale
         - email_aziendale
         - stato
       properties:
-        nome:
+        principal:
           $ref: "#/components/schemas/String255"
-        username:
+        nome:
           $ref: "#/components/schemas/String255"
         cognome:
           $ref: "#/components/schemas/String255"
@@ -7781,6 +7932,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
         classi_utente:
@@ -7789,18 +7942,14 @@ components:
             $ref: "#/components/schemas/IdClasseUtente"
         settings:
           type: object
-    ItemUtente:
+    ProfiloUpdate:
       type: "object"
       required:
-        - id_utente
         - nome
         - cognome
         - telefono_aziendale
         - email_aziendale
-        - stato
       properties:
-        id_utente:
-          $ref: "#/components/schemas/IdUtente"
         nome:
           $ref: "#/components/schemas/String255"
         cognome:
@@ -7813,8 +7962,39 @@ components:
           $ref: "#/components/schemas/String255"
         email_aziendale:
           $ref: "#/components/schemas/Email"
-        username:
+        note:
+          $ref: "#/components/schemas/String255"
+        metadati:
+          $ref: "#/components/schemas/String255"
+        settings:
+          type: object
+    ItemUtente:
+      type: "object"
+      required:
+        - id_utente
+        - principal
+        - nome
+        - cognome
+        - telefono_aziendale
+        - email_aziendale
+        - stato
+      properties:
+        id_utente:
           $ref: "#/components/schemas/IdUtente"
+        principal:
+          $ref: "#/components/schemas/String255"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+        telefono:
+          $ref: "#/components/schemas/String255"
+        email:
+          $ref: "#/components/schemas/Email"
+        telefono_aziendale:
+          $ref: "#/components/schemas/String255"
+        email_aziendale:
+          $ref: "#/components/schemas/Email"
         note:
           $ref: "#/components/schemas/String255"
         metadati:
@@ -7823,6 +8003,8 @@ components:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
         classi_utente:
@@ -7833,6 +8015,7 @@ components:
       type: "object"
       required:
         - id_utente
+        - principal
         - nome
         - cognome
         - telefono_aziendale
@@ -7841,6 +8024,8 @@ components:
       properties:
         id_utente:
           $ref: "#/components/schemas/IdUtente"
+        principal:
+          $ref: "#/components/schemas/String255"
         nome:
           $ref: "#/components/schemas/String255"
         cognome:
@@ -7855,14 +8040,14 @@ components:
           $ref: "#/components/schemas/Email"
         note:
           $ref: "#/components/schemas/String255"
-        username:
-          $ref: "#/components/schemas/IdUtente"
         metadati:
           $ref: "#/components/schemas/String255"
         stato:
           $ref: "#/components/schemas/StatoUtenteEnum"
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
         classi_utente:
@@ -8241,7 +8426,7 @@ components:
           $ref: "#/components/schemas/String255"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         dominio:
             $ref: "#/components/schemas/Dominio"
@@ -8262,6 +8447,8 @@ components:
           $ref: "#/components/schemas/String255"
         url_prefix_produzione:
           $ref: "#/components/schemas/String255"
+        eliminabile:
+          type: "boolean"
     ServizioCreate:
       type: "object"
       required:
@@ -8312,7 +8499,7 @@ components:
           default: false
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         url_invocazione:
           $ref: "#/components/schemas/String255"
@@ -8393,7 +8580,7 @@ components:
           type: "boolean"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         url_invocazione:
           $ref: "#/components/schemas/String255"
@@ -8413,6 +8600,8 @@ components:
           $ref: "#/components/schemas/ItemUtente"
         utente_ultima_modifica:
           $ref: "#/components/schemas/ItemUtente"
+        eliminabile:
+          type: "boolean"
     ServizioUpdate:
       type: "object"
       properties:
@@ -8449,7 +8638,7 @@ components:
             $ref: "#/components/schemas/IdClasseUtente"
         multi_adesione:
           type: "boolean"
-        adesione_consentita:
+        adesione_disabilitata:
           type: "boolean"
         package:
           type: "boolean"
@@ -8798,6 +8987,10 @@ components:
           default: false
         stato:
           $ref: "#/components/schemas/String255"
+        stato_configurazione_automatica:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        messaggio_configurazione:
+          $ref: "#/components/schemas/String4000"
         data_creazione:
           type: "string"
           format: "date-time"
@@ -8806,6 +8999,40 @@ components:
           format: "date-time"
         utente_richiedente:
           $ref: "#/components/schemas/ItemUtente"
+    ErroreCambioStatoResponse:
+      type: object
+      required:
+        - id_adesione
+        - messaggi
+      properties:
+        id_adesione:
+          $ref: "#/components/schemas/String255"
+        messaggi:
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
+    AdesioniCambioStatoResponse:
+      type: object
+      required:
+        - esito
+        - numero_ok
+        - numero_ko
+      properties:
+        esito:
+          type: string
+          enum:
+           - ok
+           - ko
+        numero_ok:
+          type: "integer"
+          format: "int64"
+        numero_ko:
+          type: "integer"
+          format: "int64"
+        errori:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErroreCambioStatoResponse"
     Adesione:
       type: object
       required:
@@ -8831,6 +9058,10 @@ components:
           $ref: "#/components/schemas/String255"
         stato_precedente:
           $ref: "#/components/schemas/String255"
+        stato_configurazione_automatica:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        messaggio_configurazione:
+          $ref: "#/components/schemas/String4000"
         data_creazione:
           type: "string"
           format: "date-time"
@@ -8849,6 +9080,23 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ErogazioneRichiesta"
+    StatoConfigurazioneAutomaticaEnum:
+      type: string
+      enum:
+       - ok
+       - ko
+       - in_coda
+       - retry
+       - fallita
+    StatoConfigurazioneAutomatica:
+      type: object
+      required:
+        - stato
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
+        dettaglio_errore:
+          $ref: "#/components/schemas/AuthTypeEnum"
     ClientRichiesto:
       type: object
       required:
@@ -8982,7 +9230,8 @@ components:
       type: "string"
       format: "uuid"
     IdUtente:
-      $ref: "#/components/schemas/String255"
+      type: "string"
+      format: "uuid"
     IdDominio:
       type: "string"
       format: "uuid"
@@ -9568,6 +9817,13 @@ components:
       required: false
       schema:
         type: "boolean"
+    stato_configurazione_automatica_query_optional:
+      name: "stato_configurazione_automatica"
+      in: "query"
+      description: "Filtro per stato configurazione automatica"
+      required: false
+      schema:
+          $ref: "#/components/schemas/StatoConfigurazioneAutomaticaEnum"
     tag_query_optional:
       name: "tag"
       in: "query"
@@ -9689,6 +9945,15 @@ components:
       required: false
       schema:
         type: "boolean"
+    ids_adesione_query_optional:
+      name: "id"
+      in: "query"
+      description: "lista di identificativi adesione"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/IdAdesione"
     id_organizzazione_query_optional:
       name: "id_organizzazione"
       in: "query"
@@ -9752,13 +10017,20 @@ components:
       required: false
       schema:
         type: string
-    username_query_optional:
-      name: "username"
+    principal_query_optional:
+      name: "principal"
       in: "query"
-      description: "username Utente"
+      description: "principal Utente"
       required: false
       schema:
         type: string
+    referente_tecnico_query_optional:
+      name: "referente_tecnico"
+      in: "query"
+      description: "indica se l'utente cercato deve essere referente tecnico"
+      required: false
+      schema:
+        type: "boolean"
     ruoli_query_optional:
       name: "ruolo"
       in: "query"

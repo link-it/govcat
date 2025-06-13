@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 import { catchError } from 'rxjs/operators';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 import { OAuthModuleConfig, OAuthResourceServerErrorHandler, OAuthStorage } from 'angular-oauth2-oidc';
 

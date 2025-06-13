@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.controllers.AdesioniController;
@@ -67,6 +68,7 @@ import org.govway.catalogo.servlets.model.ItemNotifica;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
+import org.govway.catalogo.servlets.model.OrganizzazioneUpdate;
 import org.govway.catalogo.servlets.model.PagedModelItemMessaggio;
 import org.govway.catalogo.servlets.model.PagedModelItemNotifica;
 import org.govway.catalogo.servlets.model.PagedModelReferente;
@@ -80,9 +82,11 @@ import org.govway.catalogo.servlets.model.ServizioCreate;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
+import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
+import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -122,6 +126,12 @@ public class AdesioneServizioIntegrationTest {
     private static final String UTENTE_REFERENTE_DOMINIO = "referente_dominio";
     private static final String NOME_GRUPPO = "Mari";
     private static final String UTENTE_ADERENTE = "magno";
+    
+    private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+    private static UUID ID_UTENTE_REFERENTE_TECNICO;
+    private static UUID ID_UTENTE_GESTORE;
+    private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+    private static UUID ID_UTENTE_ADERENTE;
     
     @Mock
     private SecurityContext securityContext;
@@ -179,6 +189,18 @@ public class AdesioneServizioIntegrationTest {
     private void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -196,7 +218,7 @@ public class AdesioneServizioIntegrationTest {
     
 
     @Test
-    private void testAdesioneServizioSuccess() {
+    void testAdesioneServizioSuccess() {
         // Step 1
         this.testUtenteAderente();
 
@@ -221,7 +243,7 @@ public class AdesioneServizioIntegrationTest {
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
 	    
 	    try {
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
 	        List<EntitaComplessaError> errori = e.getErrori();
 	        for (EntitaComplessaError errore : errori) {
@@ -261,13 +283,13 @@ public class AdesioneServizioIntegrationTest {
 	  
 	    statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
-	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
     }
 
     private void setNuovaAdesione() {
@@ -280,6 +302,22 @@ public class AdesioneServizioIntegrationTest {
         organizzazione.setCodiceFiscaleSoggetto(NOME_GRUPPO);
 
         response = organizzazioniController.createOrganizzazione(organizzazione);
+        /*
+        OrganizzazioneUpdate organizzazioneUpdate = new OrganizzazioneUpdate();
+        organizzazioneUpdate.setIdSoggettoDefault(ID_UTENTE_REFERENTE_SERVIZIO);
+        organizzazioneUpdate.setNome("NomeOrganizzazione");
+        organizzazioniController.updateOrganizzazione(response.getBody().getIdOrganizzazione(), organizzazioneUpdate);
+        */
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        utenteUpdate.setNome("Cesare");
+        utenteUpdate.setCognome("Rossi");
+        utenteUpdate.setEmailAziendale("qualsiais@mail.com");
+        utenteUpdate.setPrincipal(UTENTE_REFERENTE_SERVIZIO);
+        utenteUpdate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteUpdate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteUpdate.setTelefonoAziendale("0000000000");
+        utentiController.updateUtente(ID_UTENTE_REFERENTE_SERVIZIO, utenteUpdate);
         this.setIdOrganizazione(response.getBody().getIdOrganizzazione());
         assertNotNull(response.getBody().getIdOrganizzazione());
         
@@ -307,20 +345,20 @@ public class AdesioneServizioIntegrationTest {
         servizioCreate.setNome("jonio");
 		servizioCreate.setIdSoggettoInterno(createdSoggetto.getBody().getIdSoggetto());
 		servizioCreate.setIdDominio(createdDominio.getBody().getIdDominio());
-		servizioCreate.setAdesioneConsentita(true);
+		servizioCreate.setAdesioneDisabilitata(false);
 		servizioCreate.setMultiAdesione(false);
 		servizioCreate.setVersione("1");
 		if(immagine.getContent()!=null)
 			servizioCreate.setImmagine(immagine);
 		ReferenteCreate referente = new ReferenteCreate();
 		referente.setTipo(TipoReferenteEnum.REFERENTE);
-		referente.setIdUtente(utenteService.find(UTENTE_GESTORE).get().getIdUtente());
+		referente.setIdUtente(ID_UTENTE_GESTORE);
 		ReferenteCreate referente2 = new ReferenteCreate();
 		referente2.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-		referente2.setIdUtente(utenteService.find(UTENTE_REFERENTE_TECNICO).get().getIdUtente());
+		referente2.setIdUtente(ID_UTENTE_REFERENTE_TECNICO);
 		ReferenteCreate referente3 = new ReferenteCreate();
 		referente3.setTipo(TipoReferenteEnum.REFERENTE);
-		referente3.setIdUtente(utenteService.find(UTENTE_REFERENTE_SERVIZIO).get().getIdUtente());
+		referente3.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
 		//referente.setIdUtente(responseUtente.getBody().getIdUtente());
 		//ReferenteCreate referenteTecnico = this.setReferenteTecnico();
 		List<ReferenteCreate> referenti = new ArrayList<ReferenteCreate>();
@@ -343,9 +381,9 @@ public class AdesioneServizioIntegrationTest {
         apiDatiAmbienteCreate.setProtocollo(ProtocolloEnum.REST);
         
         DocumentoCreate documento = new DocumentoCreate();
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
+        documento.setContentType("application/yaml");
+        documento.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
+        documento.setFilename("openapi.yaml");
         
         apiDatiAmbienteCreate.setSpecifica(documento);
         
@@ -384,8 +422,8 @@ public class AdesioneServizioIntegrationTest {
         apiCreate.setGruppiAuthType(gruppiAuthType);
         
         DocumentoCreate doc = new DocumentoCreate();
-        doc.setFilename("SpecificaAPI.json");
-        doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
+        doc.setFilename("SpecificaAPI.yaml");
+        doc.setContent(Base64.encodeBase64String(CommonUtils.openApiSpec.getBytes()));
 
         //apiCreate.setSpecifica(doc);
         
@@ -409,7 +447,7 @@ public class AdesioneServizioIntegrationTest {
          */
         
         UtenteCreate utente = CommonUtils.getUtenteCreate();
-        utente.setUsername(UTENTE_ADERENTE);
+        utente.setPrincipal(UTENTE_ADERENTE);
         utente.setNome(UTENTE_ADERENTE);
         utente.setRuolo(RuoloUtenteEnum.GESTORE);
         utente.setIdOrganizzazione(idOrganizzazione);
@@ -465,7 +503,7 @@ public class AdesioneServizioIntegrationTest {
         assertEquals(HttpStatus.OK, createdSoggetto.getStatusCode());
 
         UtenteCreate utente2 = CommonUtils.getUtenteCreate();
-        utente2.setUsername(UTENTE_ADERENTE);
+        utente2.setPrincipal(UTENTE_ADERENTE);
         utente2.setNome(UTENTE_ADERENTE);
         utente2.setRuolo(RuoloUtenteEnum.GESTORE);
         utente2.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
@@ -495,14 +533,14 @@ public class AdesioneServizioIntegrationTest {
 			servizioCreate.setImmagine(immagine);
 		ReferenteCreate referente = new ReferenteCreate();
 		referente.setTipo(TipoReferenteEnum.REFERENTE);
-		referente.setIdUtente(utenteService.find(UTENTE_GESTORE).get().getIdUtente());
+		referente.setIdUtente(ID_UTENTE_GESTORE);
 		ReferenteCreate referente2 = new ReferenteCreate();
 		referente2.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-		referente2.setIdUtente(utenteService.find(UTENTE_REFERENTE_TECNICO).get().getIdUtente());
+		referente2.setIdUtente(ID_UTENTE_REFERENTE_TECNICO);
 		ReferenteCreate referente3 = new ReferenteCreate();
 		referente3.setTipo(TipoReferenteEnum.REFERENTE);
-		referente3.setIdUtente(utenteService.find(UTENTE_REFERENTE_SERVIZIO).get().getIdUtente());
-		//referente.setIdUtente(responseUtente.getBody().getIdUtente());
+		referente3.setIdUtente(ID_UTENTE_REFERENTE_SERVIZIO);
+		referente.setIdUtente(responseUtente.getBody().getIdUtente());
 		//ReferenteCreate referenteTecnico = this.setReferenteTecnico();
 		List<ReferenteCreate> referenti = new ArrayList<ReferenteCreate>();
 		referenti.add(referente);
@@ -591,10 +629,13 @@ public class AdesioneServizioIntegrationTest {
         
         soggettiController.createSoggetto(soggetto);
 
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_ADERENTE, securityContext, authentication, utenteService);
+        ID_UTENTE_ADERENTE = UUID.fromString(info.utente.getIdUtente());
+        
         ReferenteCreate referenteDaAggiungere = new ReferenteCreate();
         referenteDaAggiungere.setTipo(TipoReferenteEnum.REFERENTE);
-        referenteDaAggiungere.setIdUtente(UTENTE_ADERENTE);
-        serviziController.createReferenteServizio(idServizio, referenteDaAggiungere);
+        referenteDaAggiungere.setIdUtente(ID_UTENTE_ADERENTE);
+        serviziController.createReferenteServizio(idServizio, null, referenteDaAggiungere);
 
         ResponseEntity<PagedModelReferente> s = serviziController.listReferentiServizio(idServizio, UTENTE_ADERENTE, TipoReferenteEnum.REFERENTE, 0, 10, null);
         List<Referente> listReferenti = s.getBody().getContent();
@@ -631,19 +672,19 @@ public class AdesioneServizioIntegrationTest {
         ResponseEntity<PagedModelReferente> listRef = serviziController.listReferentiServizio(idServizio, null, null, 0, 10, null);
         List<Referente> listReferente = listRef.getBody().getContent();
         Optional<Referente> referenteTrovato = listReferente.stream()
-                .filter(referente -> referente.getUtente().getIdUtente().equals(UTENTE_ADERENTE))
+                .filter(referente -> referente.getUtente().getIdUtente().equals(ID_UTENTE_ADERENTE))
                 .findFirst();
         assertTrue(referenteTrovato.isPresent());
         
         ///////////////////////////////
         
-        //InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        //InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
 		//when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
 		//when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 		
         CommonUtils.getSessionUtente(UTENTE_ADERENTE, securityContext, authentication, utenteService);
         
-        //InfoProfilo infoProfiloReferente2 = new InfoProfilo(UTENTE_ADERENTE, this.utenteService.find(UTENTE_ADERENTE).get(), List.of());
+        //InfoProfilo infoProfiloReferente2 = new InfoProfilo(UTENTE_ADERENTE, this.utenteService.findByPrincipal(UTENTE_ADERENTE).get(), List.of());
         //when(this.authentication.getPrincipal()).thenReturn(infoProfiloReferente2);
         //when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 		

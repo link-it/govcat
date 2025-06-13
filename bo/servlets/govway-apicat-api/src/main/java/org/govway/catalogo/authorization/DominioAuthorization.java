@@ -25,4 +25,7 @@ import org.govway.catalogo.servlets.model.DominioUpdate;
 
 public class DominioAuthorization extends DefaultAuthorization<DominioCreate,DominioUpdate,DominioEntity> {
 
+	public DominioAuthorization() {
+		super(EntitaEnum.DOMINIO);
+	}
 }

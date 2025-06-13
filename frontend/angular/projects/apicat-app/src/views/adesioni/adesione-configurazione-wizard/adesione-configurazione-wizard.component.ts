@@ -4,14 +4,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
 
@@ -22,8 +22,8 @@ import { forkJoin, Observable } from 'rxjs';
 import { Grant, RightsEnum } from '@app/model/grant';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
 import { ReferentView, Referent } from '../adesione-view/adesione-view.component';
-import { FieldClass } from 'projects/components/src/public-api';
-import { MenuAction } from 'projects/components/src/lib/classes/menu-action';
+import { FieldClass } from '@linkit/components';
+import { MenuAction } from '@linkit/components';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
@@ -41,7 +41,8 @@ export enum AccordionType {
 @Component({
     selector: 'app-adesione-configurazione-wizard',
     templateUrl: './adesione-configurazione-wizard.component.html',
-    styleUrls: ['./adesione-configurazione-wizard.component.scss']
+    styleUrls: ['./adesione-configurazione-wizard.component.scss'],
+    standalone: false
 })
 export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
@@ -193,7 +194,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         });
 
         this.eventsManagerService.on(EventType.WIZARD_CHECK_UPDATE, (action: any) => {
-            console.log('EventsManager', EventType.WIZARD_CHECK_UPDATE, action);
             this.loadCheckDati(this.adesione.id_adesione, this.getNextStateWorkflowName());
             this.loadConfigurazioni(AmbienteEnum.Collaudo);
             this.loadConfigurazioni(AmbienteEnum.Produzione);
@@ -201,7 +201,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
             this.generalConfig = Tools.Configurazione || null;
-            console.log('Configurazione Remota', Tools.Configurazione);
             this.updateMapper = new Date().getTime().toString();
         });
     }
@@ -234,7 +233,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             this.apiService.getDetails(this.model, this.id).subscribe({
                 next: (response: any) => {
                     this.adesione = response;
-                    console.log('adesione', this.adesione);
                     this.title = this._geServicetTitle();
 
                     this.isBozza = (this.adesione.stato == 'bozza');
@@ -254,7 +252,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
                     this.spin = false;
 
-                    // this.toggleEdit();
+                    this.isEdit = this.canEditMapper();
                 },
                 error: (error: any) => {
                     Tools.OnError(error);
@@ -267,6 +265,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     getStateWorkflow() {
         const statoAdesione = this.adesione.stato;
         const workflow = Tools.Configurazione?.adesione.workflow || null;
+        if (statoAdesione === Tools.StatoAdesione.ARCHIVIATO.Code) {
+            return {
+                stato_attuale: statoAdesione,
+                stato_successivo: null,
+                stati_ulteriori: []
+            };
+        }
         const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === statoAdesione) : -1;
         const currentState = (index !== -1) ? workflow.cambi_stato[index] : null;
         if (statoAdesione === Tools.StatoAdesione.BOZZA.Code && this.adesione.skip_collaudo) {
@@ -286,7 +291,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     getNextStateWorkflow() {
         const currentState = this.getStateWorkflow();
         if (currentState) {
-            const stato = currentState.stato_successivo.nome;
+            const stato = currentState.stato_successivo?.nome || currentState.nome;
             const workflow = Tools.Configurazione?.adesione.workflow || null;
             const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === stato) : -1;
             return (index !== -1) ? workflow.cambi_stato[index] : null;
@@ -404,7 +409,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             this.loadingCheckDati = true;
             this.apiService.getDetails(this.model, id, `check-dati/${stato}`).subscribe({
                 next: (response: any) => {
-                    console.log('checkDati', response);
                     this.dataStructureResults = response;
                     this.loadingCheckDati = false;
                 },
@@ -416,13 +420,16 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         }
     }
 
+    isStatusPubblicatoCollaudodMapper = (update: boolean, stato: string): boolean => {
+        return stato === 'pubblicato_produzione';
+    }
+
     getStatusCompleteMapper = (update: boolean, className: string): number => {
         if (this.isCompletedMapper(update, className)) {
             const next = this.getNextStateWorkflow();
-            console.log('next', className, next.dati_non_applicabili);
             return next?.dati_non_applicabili?.includes(className) ? 2 : 1;
         } else {
-            return 0;
+            return this._hasCambioStato() ? 0 : 1;
         }
     }
 
@@ -440,12 +447,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(environment) ? 2 : 1;
         } else {
-            return 0;
+            return this._hasCambioStato() ? 0 : 1;
         }
     }
 
     isSottotipoCompletedMapper = (update: boolean, environment: string, tipo: string, identificativo: string): boolean => {
-        return this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo);
+        return this._hasCambioStato() ? this.ckeckProvider.isSottotipoCompleted(this.dataStructureResults, environment, tipo, identificativo) : true;
     }
 
     configurazioni: any = {
@@ -458,7 +465,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     };
 
     loadConfigurazioni(environmentId: string) {
-        const proprietaCustom = this.authenticationService._getConfigModule('adesione').proprieta_custom;
+        const proprietaCustom = this.authenticationService._getConfigModule('adesione').proprieta_custom || [];
         if (this.id) {
             this.apiService.getDetails(this.model, this.id, environmentId + '/configurazioni').subscribe({
                 next: (response: any) => {
@@ -482,6 +489,8 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     public referents: any[] = [];
+    public serviceReferents: any[] = [];
+    public domainReferents: any[] = [];
     public referentiLoading: boolean = true;
     private modalAddReferentRef!: BsModalRef;
 
@@ -489,9 +498,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this.referentiLoading = true;
         forkJoin({
             referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
+            referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti'),
+            referentiServizio: this.apiService.getDetails('servizi', this.adesione?.servizio.id_servizio, 'referenti')
         }).subscribe({
             next: (response: any) => {
                 const referents: Referent[] = response.referenti.content.map((item: any) => ({ ...item, tipo: `${item.tipo}` }));
+                const serviceReferents: Referent[] = response.referentiServizio.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_servizio` }));
+                const domainReferents: Referent[] = response.referentiDominio.content.map((item: any) => ({ ...item, tipo: `${item.tipo}_dominio` }));
 
                 const reduceReferents = (acc: ReferentView[], cur: Referent) => {
                     const index = acc.findIndex((item: ReferentView) => item.id === cur.utente.id_utente);
@@ -500,7 +513,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                             id: cur.utente.id_utente,
                             email: cur.utente.email_aziendale,
                             name: `${cur.utente.nome} ${cur.utente.cognome}`,
-                            types: [cur.tipo != 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
+                            types: [cur.tipo !== 'referente' || !cur.utente.ruolo ? cur.tipo : cur.utente.ruolo]
                         });
                     } else {
                         acc[index].types.push(cur.tipo);
@@ -508,25 +521,38 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     return acc;
                 };
 
-                const _itemRow = this.referentiConfig.itemRow;
-                const _options = this.referentiConfig.options;
-                const _list: any = referents.map((referent: any) => {
-                    const metadataText = Tools.simpleItemFormatter(_itemRow.metadata.text, referent, _options || null);
-                    const metadataLabel = Tools.simpleItemFormatter(_itemRow.metadata.label, referent, _options || null);
+                let _list: any = referents.map((referent: any) => {
                     const element = {
                         id: referent.id,
-                        primaryText: Tools.simpleItemFormatter(_itemRow.primaryText, referent, _options || null),
-                        secondaryText: Tools.simpleItemFormatter(_itemRow.secondaryText, referent, _options || null, ' '),
-                        metadata: (metadataText || metadataLabel) ? `${metadataText}<span class="me-2">&nbsp;</span>${metadataLabel}` : '',
-                        secondaryMetadata: Tools.simpleItemFormatter(_itemRow.secondaryMetadata, referent, _options || null, ' '),
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
                     };
                     return element;
                 });
-
                 this.referents = [ ..._list ];
+
+                _list = serviceReferents.map((referent: any) => {
+                    const element = {
+                        id: referent.id,
+                        editMode: false,
+                        enableCollapse: true,
+                        source: { ...referent }
+                    };
+                    return element;
+                });
+                this.serviceReferents = [ ..._list ];
+
+                _list = domainReferents.map((referent: any) => {
+                    const element = {
+                        id: referent.id,
+                        editMode: false,
+                        enableCollapse: true,
+                        source: { ...referent }
+                    };
+                    return element;
+                });
+                this.domainReferents = [ ..._list ];
 
                 this.referentiLoading = false;
             },
@@ -664,6 +690,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
                 Tools.showMessage(_msg, 'danger', true);
                 this.changingStatus = false;
+                this.isEdit = this.canEditMapper();
             },
         );
     }

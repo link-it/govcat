@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>govcat</artifactId>
-		<version>2.0</version>
+		<version>2.2</version>
 	</parent>
 
 	<artifactId>api-portale</artifactId>
@@ -16,7 +16,6 @@
 
 	<properties>
 		<rel-to-parent>..</rel-to-parent>
-		<warName>govcat-api</warName>
 
 		<api-portale.version>${project.version}</api-portale.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -417,29 +416,6 @@
 	<build>
 		<pluginManagement>
 			<plugins>
-				<plugin>
-					<artifactId>maven-resources-plugin</artifactId>
-					<version>${maven.resources.plugin.version}</version>
-					<inherited>false</inherited>
-					<executions>
-						<execution>
-							<id>copy-plugin</id>
-							<phase>initialize</phase>
-							<goals>
-								<goal>copy-resources</goal>
-							</goals>
-							<configuration>
-								<outputDirectory>
-									${project.build.directory}/plugin</outputDirectory>
-								<resources>
-									<resource>
-										<directory>${plugin.dir}</directory>
-									</resource>
-								</resources>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven.compiler.plugin.version}</version>

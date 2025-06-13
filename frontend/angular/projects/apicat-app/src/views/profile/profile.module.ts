@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
+import { AppComponentsModule } from '@app/components/components.module';
 
 import { CheckboxArrayModule } from '@app/directives/checkbox-array/checkbox-array.module';
 
@@ -17,8 +17,8 @@ import { ProfileComponent } from './profile.component';
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
+    AppComponentsModule,
     CheckboxArrayModule,
     ProfileRoutingModule
   ],

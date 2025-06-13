@@ -7,17 +7,19 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>servlets</artifactId>
-		<version>2.0</version>
+		<version>2.2</version>
 		<relativePath>../</relativePath>
 	</parent>
 
-	<artifactId>govCatConfigurazioneBatch</artifactId>
+	<artifactId>govway-apicat-configurazione-batch</artifactId>
 	<packaging>war</packaging>
 	<name>govCat Configurazione Batch</name>
 	<description>govCat Configurazione Batch</description>
 
 	<properties>
 		<rel-to-parent>../../..</rel-to-parent>
+		<filter-file>${api-filter-file}</filter-file>
+		
 		<reactive-streams.version>1.0.3</reactive-streams.version>
 		<version.maven.war.plugin>3.2.3</version.maven.war.plugin>
 		<commons-configuration2.version>2.11.0</commons-configuration2.version>
@@ -59,6 +61,12 @@
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>configuratore</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
@@ -137,6 +145,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.zaxxer</groupId>
+					<artifactId>HikariCP</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -309,7 +323,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
@@ -317,16 +331,7 @@
 	</dependencies>
 
 	<build>
-		<filters>
-			<filter>${api-filter-file}</filter>
-		</filters>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-		<finalName>${warName_batch_configurazioni}</finalName>
+		<finalName>${batch.warName}</finalName>
 		<plugins>
 
 			<plugin>
@@ -342,10 +347,6 @@
 					<failOnMissingWebXml>false</failOnMissingWebXml>
 					<webappDirectory />
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
 			</plugin>
 
 

@@ -1,0 +1,86 @@
+<div class="header-box ui-item-row">
+  <div #cr class="active-item d-flex flex-grow-1 align-items-center">
+    <div class="collapse-item-header">
+      <div class="d-flex align-items-start">
+        <div class="btn btn-default btn-sm gl-button btn-default-tertiary btn-icon button-collapse flex-shrink-0" *ngIf="enableCollapse">
+          <em class="bi" [class.bi-chevron-down]="!expanded" [class.bi-chevron-up]="expanded" (click)="__toggle($event, cr)"></em>
+        </div>
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <div class="avatar-image" *ngIf="_itemRowConfig?.avatar">
+            <ui-item-type
+              [data]="_data"
+              [elem]="_itemRowConfig?.avatar"
+              [config]="_config">
+            </ui-item-type>
+          </div>
+          <div class="main-info">
+            <div class="main-data">
+              <div class="primary-text- ms-2 text-break fw-bold-600">
+                <span [class.text-hover]="hasLink" [class.cursor-pointer]="hasLink" (click)="__toggle($event, cr)">
+                  <ng-container *ngFor="let elem of _itemRowConfig?.primaryText">
+                    <ui-item-type
+                      [data]="_data"
+                      [elem]="elem"
+                      [config]="_config">
+                    </ui-item-type>
+                  </ng-container>
+                </span>
+              </div>
+            </div>
+            <div class="meta-data ms-2 mt-2" *ngIf="_itemRowConfig?.metadata">
+              <div class="d-inline-block text" *ngIf="_itemRowConfig?.metadata?.text.length > 0">
+                <ng-container *ngFor="let elem of _itemRowConfig?.metadata.text">
+                  <ui-item-type
+                    [data]="_data"
+                    [elem]="elem"
+                    [config]="_config">
+                  </ui-item-type>
+                </ng-container>
+              </div>
+              <div class="d-inline-block labels ms-2" *ngIf="_itemRowConfig?.metadata?.label.length > 0">
+                <ng-container *ngFor="let elem of _itemRowConfig?.metadata.label">
+                  <ui-item-type
+                    [data]="_data"
+                    [elem]="elem"
+                    [config]="_config">
+                  </ui-item-type>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+          <div class="meta-info">
+            <div class="main-data d-block" *ngIf="_itemRowConfig?.secondaryText">
+              <ng-container *ngFor="let elem of _itemRowConfig?.secondaryText">
+                <ui-item-type
+                  [data]="_data"
+                  [elem]="elem"
+                  [config]="_config">
+                </ui-item-type>
+              </ng-container>
+            </div>
+            <div class="meta-data mt-1" *ngIf="_itemRowConfig?.secondaryMetadata">
+              <ng-container *ngFor="let elem of _itemRowConfig?.secondaryMetadata">
+                <ui-item-type
+                  [data]="_data"
+                  [elem]="elem"
+                  [config]="_config">
+                </ui-item-type>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center ms-4">
+          <div class="btn btn-default btn-md gl-button btn-icon button-collapse" [tooltip]="actionTooltip" (click)="__actionClick($event)" *ngIf="hasAction">
+            <em class="bi bi-{{ iconAction }} {{ iconClass }}"></em>
+            <span *ngIf="!iconAction">{{ actionText }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="collapse-item-body" role="region" [class.expanded]="expandedChange|async" [@transition]="expanded"
+    (@transition.done)="__endTransition($event)" (@transition.start)="__startTransition($event)"
+    [attr.aria-labelledby]="'collapse-item-body'">
+  <ng-content select="[collapse-content]"></ng-content>
+</div>

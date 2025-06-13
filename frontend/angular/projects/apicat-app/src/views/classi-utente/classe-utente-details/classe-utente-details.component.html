@@ -6,17 +6,17 @@
     <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.TITLE.EditUserClass' | translate }}</h3>
     <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewUserClass' | translate }}</h3>
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'edit'"> -->
+    <ng-template [appHasPermission]="'classi-utente'" [action]="'edit'">
       <div class="nav-controls">
         <div class="position-relative" *ngIf="!_isEdit && !_spin">
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditUserClass' | translate" (click)="_editClasseUtente()">
+          <button aria-label="Modifica" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.EditUserClass' | translate" (click)="_editClasseUtente()">
             <i class="bi bi-pencil"></i>
           </button>
         </div>
-        <!-- <ng-template [appHasPermission]="'SETTINGS'" [action]="'delete'"> -->
+        <ng-template [appHasPermission]="'classi-utente'" [action]="'delete'">
           <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin">
             <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
-              <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
+              <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
               <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
@@ -37,14 +37,14 @@
               </ul>
             </div>
           </div>
-        <!-- </ng-template> -->
+        </ng-template>
         <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
+          <button aria-label="Annulla" aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
       </div>
-    <!-- </ng-template> -->
+    </ng-template>
   </div>
   <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
     <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>

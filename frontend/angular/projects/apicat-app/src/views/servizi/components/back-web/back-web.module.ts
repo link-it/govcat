@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
 
 import { BackWebComponent } from './back-web.component';
 
@@ -12,8 +12,8 @@ import { BackWebComponent } from './back-web.component';
   ],
   imports: [
     CommonModule,
+    TooltipModule,
     TranslateModule,
-    VendorsModule
   ],
   exports: [
     BackWebComponent

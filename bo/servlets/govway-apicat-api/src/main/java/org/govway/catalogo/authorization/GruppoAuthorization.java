@@ -25,18 +25,8 @@ import org.govway.catalogo.servlets.model.GruppoUpdate;
 
 public class GruppoAuthorization extends DefaultAuthorization<GruppoCreate,GruppoUpdate,GruppoEntity> {
 
-	@Override
-	public void authorizeGet(GruppoEntity entity) {
-		if(!this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
-			this.coreAuthorization.requireLogged();
-		}
-	}
-
-	@Override
-	public void authorizeList() {
-		if(!this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
-			this.coreAuthorization.requireLogged();
-		}
+	public GruppoAuthorization() {
+		super(EntitaEnum.GRUPPO);
 	}
 
 }

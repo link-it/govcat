@@ -672,18 +672,20 @@ public class ExtendedJSON extends JSON {
                
             } 
             reader.endObject();
-            
-            switch(aut.getTipo()) {
-			case ABILITATO: ((APIImplAutorizzazioneAbilitata)aut).setToken((Boolean)values.get("token")); ((APIImplAutorizzazioneAbilitata)aut).setTokenClaims((String)values.get("token_claims"));
-				break;
-			case CUSTOM:
-				break;
-			case DISABILITATO:
-				break;
-			case XACML_POLICY:
-				break;
-			default:
-				break;}
+            if(aut != null) {
+	            switch(aut.getTipo()) {
+					case ABILITATO: ((APIImplAutorizzazioneAbilitata)aut).setToken((Boolean)values.get("token")); ((APIImplAutorizzazioneAbilitata)aut).setTokenClaims((String)values.get("token_claims"));
+						break;
+					case CUSTOM:
+						break;
+					case DISABILITATO:
+						break;
+					case XACML_POLICY:
+						break;
+					default:
+						break;
+				}
+            }
             return aut; 
 
         }

@@ -4,7 +4,7 @@ import { switchMap, tap, share, retry, takeUntil, catchError } from 'rxjs/operat
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 export interface NotificationsCount {
   count: number;

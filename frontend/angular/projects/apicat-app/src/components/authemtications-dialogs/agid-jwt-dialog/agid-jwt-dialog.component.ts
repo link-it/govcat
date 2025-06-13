@@ -9,16 +9,17 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { ConfigService } from '@linkit/components';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import * as rs from 'jsrsasign';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 
 @Component({
     selector: 'app-agid-jwt-dialog',
     templateUrl: './agid-jwt-dialog.component.html',
-    styleUrls: ['./agid-jwt-dialog.component.scss']
+    styleUrls: ['./agid-jwt-dialog.component.scss'],
+    standalone: false
 })
 export class AgidJwtDialogComponent implements OnInit {
 
@@ -127,7 +128,7 @@ export class AgidJwtDialogComponent implements OnInit {
 
         // Payload del JWT
         const payload = {
-            client_id: values.clientId,
+            // client_id: values.clientId,
             iss: values.clientId,
             sub: values.clientId,
             aud: values.audience,

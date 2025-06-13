@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
+import { ErrorViewModule } from '@app/components/error-view/error-view.module';
+import { SelectionDropdownModule } from '@app/components/selection-dropdown/selection-dropdown.module';
 
 import { AdesioniComponent } from './adesioni.component';
 import { AdesioniRoutingModule } from './adesioni-routing.module';
@@ -18,8 +19,9 @@ import { AdesioneConfigurazioneWizardModule } from './adesione-configurazione-wi
     CommonModule,
     FormsModule,
     TranslateModule,
-    VendorsModule,
-    ComponentsModule,
+     ComponentsModule,
+    ErrorViewModule,
+    SelectionDropdownModule,
     AdesioniRoutingModule,
     AdesioneDetailsModule,
     AdesioneViewModule,

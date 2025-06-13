@@ -206,10 +206,10 @@ public class AllarmiClient {
 			throw new BadRequestException("Applicativo non configurato");
 		}
 		
-		c.getAdesioni().stream().filter(a -> this.configurazione.getAdesione().getStatiSchedaAdesione().contains(a.getAdesione().getStato()))
-			.findAny()
-			.orElseThrow(() -> new BadRequestException("Client non associato a nessuna adesione configurata"));
-		
+		if(!c.getAdesioni().stream().filter(a -> this.configurazione.getAdesione().getStatiSchedaAdesione().contains(a.getAdesione().getStato()))
+			.findAny().isPresent()) {
+			throw new BadRequestException("Client non associato a nessuna adesione configurata");
+		}
 		return c.getEstensioni().stream().filter(e -> e.getNome().equals(PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY))
 			.findAny()
 			.orElseThrow(() -> new BadRequestException("ClientId non impostato"))

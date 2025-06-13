@@ -1,47 +1,48 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { LocalStorageService } from 'projects/tools/src/lib/local-storage.service';
-import { UtilsLib } from 'projects/components/src/lib/utils/utils.lib';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { LocalStorageService } from '@linkit/components';
+import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { BreadcrumbService } from 'projects/components/src/lib/ui/breadcrumb/breadcrumb.service';
+import { EventType } from '@linkit/components';
+import { BreadcrumbService } from '@linkit/components'
 
-import { SearchGoogleFormComponent } from 'projects/components/src/lib/ui/search-google-form/search-google-form.component';
+import { SearchBarFormComponent } from '@linkit/components'
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { CardType } from 'projects/components/src/lib/ui/card/card.component';
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
 
 import * as _ from 'lodash';
+import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 declare const saveAs: any;
 
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
-    styleUrls: ['servizi.component.scss']
-    })
+    styleUrls: ['servizi.component.scss'],
+    standalone: false
+})
 export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'ServiziComponent';
     readonly model: string = 'servizi';
 
-    @ViewChild('searchGoogleForm') searchGoogleForm!: SearchGoogleFormComponent;
+    @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
     _production: boolean = true; // environment.production;
     
@@ -75,7 +76,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _editCurrent: any = null;
 
     _hasFilter: boolean = true;
-    _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+    _formGroup: FormGroup = new FormGroup({});
     _filterData: any = null;
     _filterDataEmpty: boolean = true;
 
@@ -102,8 +103,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { field: 'nome', label: 'APP.LABEL.nome', icon: '' }
     ];
 
-
-    _statiServizioEnum: any = { ...Tools.StatiServizioEnum };
+    _statiServizioEnum: any = {};
 
     _tipiVisibilitaServizio: {value: string, label: string}[] = [
         ...Tools.TipiVisibilitaServizio
@@ -199,7 +199,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // containerStyle: null,
     };
 
-    hasMultiSelection: boolean = false;
+    hasMultiSelection: boolean = true;
     elementsSelected: any[] = [];
     _downloading: boolean = true;
     uncheckAllInTheMenu: boolean = true;
@@ -208,7 +208,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     constructor(
         private router: Router,
-        private formBuilder: FormBuilder,
         private modalService: BsModalService,
         private translate: TranslateService,
         private configService: ConfigService,
@@ -344,6 +343,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 if (element === 'archiviato' && !this._isGestore()) { return; }
                 this._workflowStatiFiltered.push({ value: element, label: element });
             });
+
+            this._statiServizioEnum = Object.fromEntries(this._workflowStatiFiltered.map(item => [item.label, `APP.WORKFLOW.STATUS.${item.value}`])) as {
+                [key: string]: string;
+            };
+            const _index = this.searchFields.findIndex((s: any) => s.field === 'stato');
+            if (_index > -1) {
+                this.searchFields[_index].enumValues = { ...this._statiServizioEnum };
+            }
         }
     }
 
@@ -370,7 +377,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ngOnDestroy() {}
 
     ngAfterViewInit() {
-        if (!(this.searchGoogleForm && this.searchGoogleForm._isPinned())) {
+        if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
             setTimeout(() => {
                 if (this.localStorageService.getItem('PROFILE')) {
                     this.refresh();
@@ -386,7 +393,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     refresh(hideLoader: boolean = false) {
         this._hideLoader = hideLoader;
         if (this._groupsView) {
-            this.searchGoogleForm._clearSearch(null);
+            this.searchBarForm._clearSearch(null);
             this._filterData = null;
             // this._loadServiziGruppi();
         } else {
@@ -407,24 +414,24 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _initSearchForm() {
-        this._formGroup = new UntypedFormGroup({
-            q: new UntypedFormControl(''),
-            stato: new UntypedFormControl(''),
-            type: new UntypedFormControl(''),
-            referente: new UntypedFormControl(''),
-            id_dominio: new UntypedFormControl(''),
-            id_gruppo: new UntypedFormControl(''),
-            visibilita: new UntypedFormControl(''),
-            categoria: new UntypedFormControl(''),
-            categoriaLabel: new UntypedFormControl(''),
-            tag: new UntypedFormControl(''),
-            in_attesa: new UntypedFormControl(''),
-            miei_servizi: new UntypedFormControl(''),
-            id_api: new UntypedFormControl(''),
-            id_servizio: new UntypedFormControl(''),
-            id_gruppo_padre: new UntypedFormControl(''),
-            id_gruppo_padre_label: new UntypedFormControl(''),
-            // taxonomiesGroup: new UntypedFormGroup({})
+        this._formGroup = new FormGroup({
+            q: new FormControl(''),
+            stato: new FormControl(''),
+            type: new FormControl(''),
+            referente: new FormControl(''),
+            id_dominio: new FormControl(''),
+            id_gruppo: new FormControl(''),
+            visibilita: new FormControl(''),
+            categoria: new FormControl(''),
+            categoriaLabel: new FormControl(''),
+            tag: new FormControl(''),
+            in_attesa: new FormControl(''),
+            miei_servizi: new FormControl(''),
+            id_api: new FormControl(''),
+            id_servizio: new FormControl(''),
+            id_gruppo_padre: new FormControl(''),
+            id_gruppo_padre_label: new FormControl(''),
+            // taxonomiesGroup: new FormGroup({})
         });
     }
 
@@ -541,7 +548,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             multiplo: service.multi_adesione || false,
                             primaryText: service.label ? service.label : ((service.nome && service.versione) ? `${service.nome} - v.${service.versione}` : service.nome),
                             secondaryText: '', // (service.descrizione || ''),
-                            metadata: _meta.join(', ')
+                            metadata: _meta.join(', '),
+                            selected: false,
                         };
                         return element;
                     });
@@ -584,8 +592,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onEdit(event: any, param: any) {
-        if (this.searchGoogleForm) {
-            this.searchGoogleForm._pinLastSearch();
+        if (this.searchBarForm) {
+            this.searchBarForm._pinLastSearch();
         }
         if (this.showPresentation) {
             this.router.navigate([this.model, param.idServizio, 'view']);
@@ -595,8 +603,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onEditGroup(event: any, param: any) {
-        if (this.searchGoogleForm) {
-            this.searchGoogleForm._pinLastSearch();
+        if (this.searchBarForm) {
+            this.searchBarForm._pinLastSearch();
         }
         if (param.type === 'servizio') {
             if (this.showPresentation) {
@@ -654,8 +662,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onSubmit(form: any) {
-        if (this.searchGoogleForm) {
-            this.searchGoogleForm._onSearch();
+        if (this.searchBarForm) {
+            this.searchBarForm._onSearch();
         }
     }
 
@@ -931,22 +939,22 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
         (taxonomies || []).forEach((taxonomy: any) => {
             // const required: boolean = taxonomy.obbligatorio;
-            // _taxonomiesGroup.addControl(taxonomy.nome, new UntypedFormControl('', required?[Validators.required]:null));
-            _taxonomiesGroup.addControl(taxonomy.nome, new UntypedFormControl('', null));
+            // _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', required?[Validators.required]:null));
+            _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', null));
         });
 
         this._formGroup.updateValueAndValidity();
     }
 
     onSelectedSearchDropdwon($event: Event){
-        this.searchGoogleForm.setNotCloseForm(true)
+        this.searchBarForm.setNotCloseForm(true)
         $event.stopPropagation();
     }
 
     onChangeSearchDropdwon(event: any){
         this._searchApiSelected = event;
         setTimeout(() => {
-            this.searchGoogleForm.setNotCloseForm(false)
+            this.searchBarForm.setNotCloseForm(false)
         }, 200);
     }
 
@@ -978,7 +986,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     modalChoiceRef!: BsModalRef;
 
     openChoiceGroupModal(event: any) {
-        this.searchGoogleForm.setNotCloseForm(true)
+        this.searchBarForm.setNotCloseForm(true)
         event.stopPropagation();
 
         const initialState = {
@@ -1011,7 +1019,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _listaCategorie: any[] = [];
 
     openChoiceCategoriesModal(event: any) {
-        this.searchGoogleForm.setNotCloseForm(true)
+        this.searchBarForm.setNotCloseForm(true)
         event.stopPropagation();
 
         const initialState = {
@@ -1131,8 +1139,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         event.stopPropagation();
         const _index = this.elementsSelected.findIndex((item: any) => item === element.idServizio);
         if (_index === -1) {
+            element.selected = true;
             this.elementsSelected.push(element.idServizio);
         } else {
+            element.selected = false;
             this.elementsSelected.splice(_index, 1);
         }
     }

@@ -1,14 +1,15 @@
 import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
 
 import { AuthenticationService } from '../../../services/authentication.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { EventsManagerService } from '@linkit/components'
 
 import { AmbienteEnum } from '../../../model/ambienteEnum';
 
 @Component({
   selector: 'app-dashboard-card',
   templateUrl: './dashboard-card.component.html',
-  styleUrls: ['./dashboard-card.component.scss']
+  styleUrls: ['./dashboard-card.component.scss'],
+  standalone: false
 })
 export class DashboardCardComponent implements OnInit, OnChanges {
   @ViewChild('childComponentTemplate') childComponentTemplate!: TemplateRef<any>;

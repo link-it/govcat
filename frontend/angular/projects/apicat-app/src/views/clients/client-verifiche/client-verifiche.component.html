@@ -11,14 +11,14 @@
   <div class="top-area" *ngIf="!included">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
       <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
+        <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()">
+            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="'APP.FILTER.Testing' | translate">
               <span>{{ 'APP.FILTER.Testing' | translate }}</span>
             </a>
           </li>
           <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()">
+            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()" [attr.aria-label]="'APP.FILTER.Production' | translate">
               <span>{{ 'APP.FILTER.Production' | translate }}</span>
             </a>
           </li>

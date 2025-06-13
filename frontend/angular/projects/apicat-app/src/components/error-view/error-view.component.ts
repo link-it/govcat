@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { Tools } from '@linkit/components';
 
 @Component({
   selector: 'ui-error-view',
   templateUrl: './error-view.component.html',
-  styleUrls: ['./error-view.component.scss']
+  styleUrls: ['./error-view.component.scss'],
+  standalone: false
 })
 export class ErrorViewComponent implements OnInit {
 

@@ -1,0 +1,107 @@
+<ng-container [ngSwitch]="_elem.type">
+    <ng-container *ngSwitchCase="'text'">
+        <span class="{{ _elem.class || '' }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{ _value | translate }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'html'">
+        <span class="{{ _elem.class || '' }}" [innerHTML]="_value"></span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'markdown'">
+        <span markdown class="text-break {{ _elem.class || '' }}">{{ _value }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'number'">
+        <div class="d-inline-block" *ngIf="!(_elem.hideZero && _value == 0)">
+            <span class="{{ _elem.class || '' }}" [tooltip]="_elem.tooltip || '' | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+                <i class="bi bi-{{ _elem.icon }} {{ _elem.iconClass }}" *ngIf="_elem.icon"></i>
+                {{ utilsLib.formatNumberSuff(_value) || 0 }}
+            </span>
+        </div>
+    </ng-container>
+    <ng-container *ngSwitchCase="'message'">
+        <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ _elem.field }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'date'">
+        <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ _value }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'timeago'">
+        <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ _value }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'mstime'">
+        <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ _value }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'label'">
+        <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" *ngIf="_value">
+            <span class="status-link status-label-link">
+                <span class="status-label-text">{{_label | translate}}</span>
+                <span class="status-label-text-scoped">{{_value | translate}}</span>
+            </span>
+        </span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'simplelabel'">
+        <span class="" [tooltip]="_elem.tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'status'">
+        <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color">
+            <span class="status-link status-label-link">
+                <span class="status-label-text">{{_label | translate}}</span>
+                <span class="status-label-text-scoped">{{_value | translate}}</span>
+            </span>
+        </span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'tag'">
+        <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color" *ngIf="_showBadged" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
+        <span class="" *ngIf="!_showBadged">{{_value | translate}}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'cardinal'">
+        <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">#{{ _value }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'currency'">
+        <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ _elem.class || '' }}">{{ utilsLib.currencyFormatter(_value) }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'progress'">
+        <span class="progress">{{ _value }}</span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'avatar'">
+        <span class="position-relative" [tooltip]="(_value || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+            <img class="align-top" ngxGravatar [email]="_value" [size]="20" fallback="mp" (error)="onAvatarError($event)">
+        </span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'image'">
+        <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center" [class.square]="_elem.square || false" style="width: 20px;height: 20px;padding: 0.15rem !important;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+            <img class="rounded-circle" [class.square]="_elem.square || false" [src]="{ path: _value } | httpImgSrc" style="width: 20px;height: auto;">
+        </span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'avatar-image'">
+        <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center bg-avatar-image" [class.square]="_elem.square || false" style="width: 48px;height: 48px;padding: 0.15rem !important;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+            <!-- <img class="rounded-circle" [class.square]="_elem.square || false" [src]="_value | httpImgSrc" style="width: 46px;height: auto;"> -->
+            <span class="rounded-circle" [class.square]="_elem.square || false" setBackgroundImage [imageUrl]="{ path: _value } | httpImgSrc" [position]="_bkMode" style="width: 42px;height: 42px;" *ngIf="_value"></span>
+            <span class="rounded-circle rounded-circle-no-image" [class.square]="_elem.square || false" [ngStyle]="{'background-color': _backColor}" *ngIf="!_value">
+                <span class="logo-text" [ngStyle]="{'color': _backColorText}">{{ _logoText }}</span>
+            </span>
+        </span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'gravatar-image'">
+        <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center" [class.square]="_elem.square || false" style="width: 48px;height: 48px;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+            <img class="align-top" ngxGravatar [email]="_value" [size]="46" fallback="mp" (error)="onAvatarError($event)">
+        </span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'iconBs'">
+        <span class="bi bi-{{ _elem.icon }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay"></span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'icontext'">
+        <span class="bi bi-{{ _elem.icon }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+            <span class="small">{{ _value }}</span>
+        </span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'icon'">
+        <ng-template #toolTipIconTemplate><div [innerHtml]="_tooltip"></div></ng-template>
+        <span class="bi bi-{{ _value }} {{ _class }}" [tooltip]="_elem.hideTooltip ? '' : toolTipIconTemplate" data-bs-html="true" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay"></span>
+    </ng-container>
+    <ng-container *ngSwitchCase="'tags'">
+        <div class="{{ _class }}">
+        <span class="badge text-dark border fw-light fs-8 me-2" *ngFor="let tag of _value">{{ tag }}</span>
+        </div>
+    </ng-container>
+    <ng-container *ngSwitchCase="'labelI18n'">
+        <span class="{{ _elem.class || '' }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{ _value | translate }} {{ _appendOriginalValue }}</span>
+    </ng-container>
+</ng-container>

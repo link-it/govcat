@@ -24,4 +24,8 @@ import org.govway.catalogo.servlets.model.ClasseUtenteCreate;
 import org.govway.catalogo.servlets.model.ClasseUtenteUpdate;
 
 public class ClasseUtenteAuthorization extends DefaultAuthorization<ClasseUtenteCreate,ClasseUtenteUpdate,ClasseUtenteEntity> {
+
+	public ClasseUtenteAuthorization() {
+		super(EntitaEnum.CLASSE_UTENTE);
+	}
 }

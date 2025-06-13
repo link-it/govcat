@@ -50,9 +50,11 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private List<ClasseUtenteEntity> idClassiUtente = null;
 	private Optional<String> email = Optional.empty();
-	private Optional<String> username = Optional.empty();
+	private Optional<String> principal = Optional.empty();
+	private Optional<String> principalLike = Optional.empty();
 	private List<Ruolo> ruoli = null;
 	private Optional<Boolean> ruoloNull = Optional.empty();
+	private Optional<Boolean> referenteTecnico = Optional.empty();
 
 	@Override
 	public Predicate toPredicate(Root<UtenteEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -69,7 +71,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		
 		if (q.isPresent()) {
 			List<Predicate> predLstQ = new ArrayList<>();
-			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.idUtente)), "%" + q.get().toUpperCase() + "%")); 
+			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), "%" + q.get().toUpperCase() + "%")); 
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + q.get().toUpperCase() + "%")); 
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + q.get().toUpperCase() + "%"));
 			predLstQ.add(cb.like(cb.upper(root.join(UtenteEntity_.organizzazione, JoinType.LEFT).get(OrganizzazioneEntity_.nome)), "%" + q.get().toUpperCase() + "%"));
@@ -112,9 +114,17 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
 		
-		if (username.isPresent()) {
-			String pattern = "%" + username.get().toUpperCase() + "%";
-			predLst.add(cb.like(cb.upper(root.get(UtenteEntity_.idUtente)), pattern)); 
+		if (principalLike.isPresent()) {
+			String pattern = "%" + principalLike.get().toUpperCase() + "%";
+			predLst.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), pattern)); 
+		}
+		
+		if (principal.isPresent()) {
+			predLst.add(cb.equal(root.get(UtenteEntity_.principal), principal.get())); 
+		}
+		
+		if (referenteTecnico.isPresent()) {
+			predLst.add(cb.equal(root.get(UtenteEntity_.referenteTecnico), referenteTecnico.get())); 
 		}
 		
 		if(ruoli != null) {
@@ -214,14 +224,6 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		this.email = email;
 	}
 
-	public Optional<String> getUsername() {
-		return username;
-	}
-
-	public void setUsername(Optional<String> username) {
-		this.username = username;
-	}
-
 	public Optional<Boolean> getRuoloNull() {
 		return ruoloNull;
 	}
@@ -236,6 +238,30 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setIdClassiUtente(List<ClasseUtenteEntity> idClassiUtente) {
 		this.idClassiUtente = idClassiUtente;
+	}
+
+	public Optional<Boolean> getReferenteTecnico() {
+		return referenteTecnico;
+	}
+
+	public void setReferenteTecnico(Optional<Boolean> referenteTecnico) {
+		this.referenteTecnico = referenteTecnico;
+	}
+
+	public Optional<String> getPrincipal() {
+		return principal;
+	}
+
+	public void setPrincipal(Optional<String> principal) {
+		this.principal = principal;
+	}
+
+	public Optional<String> getPrincipalLike() {
+		return principalLike;
+	}
+
+	public void setPrincipalLike(Optional<String> principalLike) {
+		this.principalLike = principalLike;
 	}
 
 }

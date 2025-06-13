@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -78,6 +79,7 @@ import org.govway.catalogo.servlets.model.ProprietaCustom;
 import org.govway.catalogo.servlets.model.ProprietaCustomAdesione;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.Ruolo;
+import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoAdesioneClientUpdateEnum;
 import org.govway.catalogo.servlets.model.TipoConfigurazioneCustomProprieta;
@@ -156,7 +158,19 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(entity.getUtenteUltimaModifica()!=null) {
 			dettaglio.setUtenteUltimoAggiornamento(this.utenteAssembler.toModel(entity.getUtenteUltimaModifica()));
 		}
-		
+
+		dettaglio.setStatoConfigurazioneAutomatica(Optional.ofNullable(entity.getStatoConfigurazione()).map(statoConfigurazione -> {
+			switch(statoConfigurazione) {
+			case FALLITA: return StatoConfigurazioneAutomaticaEnum.FALLITA;
+			case IN_CODA: return StatoConfigurazioneAutomaticaEnum.IN_CODA;
+			case KO: return StatoConfigurazioneAutomaticaEnum.KO;
+			case OK: return StatoConfigurazioneAutomaticaEnum.OK;
+			case RETRY: return StatoConfigurazioneAutomaticaEnum.RETRY;
+			}
+			
+			return null;	
+		}).orElse(null));
+
 		List<ClientRichiesto> client = this.adesioneAuthorization.getClientRichiesti(entity.getServizio());
 		List<ErogazioneRichiesta> erogazioni = this.adesioneAuthorization.getErogazioniRichieste(entity.getServizio());
 		dettaglio.setClientRichiesti(client);
@@ -238,16 +252,10 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		BeanUtils.copyProperties(src, entity);
 		
 		entity.setIdLogico(src.getIdLogico());
-		entity.setServizio(getServizio(src.getIdServizio(), getUtenteSessione()));
+		entity.setServizio(getServizio(src.getIdServizio()));
 
 		setSkipCollaudo(src.isSkipCollaudo(), entity);
 
-		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare l'Adesione. Skip collaudo abilitato sull'Adesione e non sul Servizio ["+entity.getServizio().getNome()+" " + entity.getServizio().getVersione()+"]");
-		}
-		
-
-		
 		SoggettoEntity soggetto = getSoggetto(src.getIdSoggetto());
 		
 		if(!soggetto.getOrganizzazione().equals(entity.getSoggetto().getOrganizzazione())) {
@@ -256,6 +264,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		entity.setSoggetto(soggetto);
 		
+		check(entity);
+
 		setUltimaModifica(entity);
 		return entity;
 	}
@@ -263,10 +273,6 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 	private SoggettoEntity getSoggetto(UUID idSoggetto) {
 		SoggettoEntity soggetto = this.soggettoService.find(idSoggetto).
 				orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato"));
-		
-		if(!soggetto.isAderente()) {
-			throw new BadRequestException("Soggetto ["+soggetto.getNome()+"] non aderente");
-		}
 		return soggetto;
 	}
 	
@@ -320,22 +326,10 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.setStato(configurazione.getAdesione().getWorkflow().getStatoIniziale());
 		}
 
-		entity.setServizio(getServizio(src.getIdServizio(), utenteSessione));
+		entity.setServizio(getServizio(src.getIdServizio()));
+		entity.setSoggetto(getSoggetto(src.getIdSoggetto()));
 
-		if(!this.configurazione.getServizio().getStatiAdesioneConsentita().contains(entity.getServizio().getStato())) {
-			throw new BadRequestException("Adesione non consentita se il servizio si trova in stato: " + entity.getServizio().getStato());
-		}
-
-		if(!entity.getServizio().isAdesioneConsentita()) {
-			throw new BadRequestException("Adesione non consentita per il servizio : " + entity.getServizio().getNome() + " v" + entity.getServizio().getVersione());
-		}
-
-		if(entity.getServizio().isMultiAdesione() && entity.getIdLogico()==null) {
-			throw new BadRequestException("Servizio : " + entity.getServizio().getNome() + " v" + entity.getServizio().getVersione() + " multiadesione e id logico non valorizzato");
-		}
-
-		SoggettoEntity soggetto = getSoggetto(src.getIdSoggetto());
-		entity.setSoggetto(soggetto);
+		check(entity);
 
 		if(src.getReferenti()!=null) {
 			for(ReferenteCreate referente: src.getReferenti()) {
@@ -356,7 +350,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			boolean ref = grant.getRuoli().contains(Ruolo.REFERENTE) || grant.getRuoli().contains(Ruolo.REFERENTE_SUPERIORE);
 
 			if(!admin && !ref) {
-				if(!soggetto.getOrganizzazione().getId().equals(utenteSessione.getOrganizzazione().getId())) {
+				if(!entity.getSoggetto().getOrganizzazione().getId().equals(utenteSessione.getOrganizzazione().getId())) {
 					throw new BadRequestException("Scelta libera organizzazione disabilitata, il soggetto aderente deve essere della organizzazione ["+utenteSessione.getOrganizzazione().getNome()+"]");
 				}
 			}
@@ -366,7 +360,39 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		return entity;
 	}
 
-	private ServizioEntity getServizio(UUID idServizio, UtenteEntity utente) {
+	private void check(AdesioneEntity entity) {
+
+		String servizioK = entity.getServizio().getNome()+"/"+entity.getServizio().getVersione();
+		if(!this.configurazione.getServizio().getStatiAdesioneConsentita().contains(entity.getServizio().getStato())) {
+			throw new BadRequestException("Servizio ["+servizioK+"] non in stato in cui è consentita l'adesione");
+		}
+
+		if(entity.getServizio().isAdesioneDisabilitata()) {
+			throw new BadRequestException("Adesione disabilitata per il servizio : " + servizioK);
+		}
+
+		if(entity.getServizio().getVisibilita() != null && entity.getServizio().getVisibilita().equals(VISIBILITA.COMPONENTE)) {
+			throw new BadRequestException("Impossibile aderire direttamente al Servizio ["+servizioK+"]. Visibilita Componente");
+		}
+
+		if(entity.getServizio().isMultiAdesione() && entity.getIdLogico()==null) {
+			throw new BadRequestException("Servizio : " + servizioK + " multiadesione e id logico non valorizzato");
+		}
+
+		if(entity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione().isEsterna() && !entity.getSoggetto().getId().equals(entity.getServizio().getSoggettoInterno().getId())) {
+			throw new BadRequestException("Impossibile aderire al Servizio [" + servizioK + "] di tipo esterno con il soggetto ["+entity.getSoggetto().getNome()+"]. Aderire con il Soggetto ["+entity.getServizio().getSoggettoInterno().getNome()+"]");
+		}
+		
+		if(!entity.getSoggetto().isAderente()) {
+			throw new BadRequestException("Soggetto ["+entity.getSoggetto().getNome()+"] non aderente");
+		}
+
+		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
+			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare l'Adesione. Skip collaudo abilitato sull'Adesione e non sul Servizio ["+servizioK+"]");
+		}
+	}
+
+	private ServizioEntity getServizio(UUID idServizio) {
 		ServizioSpecification spec = new ServizioSpecification();
 		spec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 		spec.setIdServizi(Arrays.asList(idServizio));
@@ -374,14 +400,6 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		ServizioEntity servizio = this.servizioService.findOne(spec).
 				orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
 
-
-		if(!this.configurazione.getServizio().getStatiAdesioneConsentita().contains(servizio.getStato())) {
-			throw new BadRequestException("Servizio ["+servizio.getNome()+"/"+servizio.getVersione()+"] non in stato in cui è consentita l'adesione");
-		}
-		
-		if(servizio.getVisibilita() != null && servizio.getVisibilita().equals(VISIBILITA.COMPONENTE)) {
-			throw new BadRequestException("Impossibile aderire direttamente al Servizio ["+servizio.getNome()+"/"+servizio.getVersione()+"]. Visibilita Componente");
-		}
 		return servizio;
 	}
 

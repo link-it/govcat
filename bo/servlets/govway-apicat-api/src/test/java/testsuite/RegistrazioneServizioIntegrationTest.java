@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.controllers.AdesioniController;
@@ -133,6 +134,13 @@ public class RegistrazioneServizioIntegrationTest {
     private static final String UTENTE_NON_REGISTRATO = "utente_non_registrato";
     private static final String NOME_GRUPPO = "Mari";
     private static final String UTENTE_ADERENTE = "magno";
+    
+    private static UUID ID_UTENTE_REFERENTE_SERVIZIO;
+    private static UUID ID_UTENTE_REFERENTE_TECNICO;
+    private static UUID ID_UTENTE_GESTORE;
+    private static UUID ID_UTENTE_REFERENTE_DOMINIO;
+    private static UUID ID_UTENTE_NON_REGISTRATO;
+    private static UUID ID_UTENTE_ADERENTE;
 
     @Mock
     private SecurityContext securityContext;
@@ -189,6 +197,18 @@ public class RegistrazioneServizioIntegrationTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);  // Inizializza i mock con JUnit 5
         SecurityContextHolder.setContext(securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_DOMINIO, utenteService);
+        ID_UTENTE_REFERENTE_DOMINIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_SERVIZIO, utenteService);
+        ID_UTENTE_REFERENTE_SERVIZIO = UUID.fromString(info.utente.getIdUtente());
+        
+        info = CommonUtils.getInfoProfilo(UTENTE_REFERENTE_TECNICO, utenteService);
+        ID_UTENTE_REFERENTE_TECNICO = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -310,7 +330,7 @@ public class RegistrazioneServizioIntegrationTest {
     public ReferenteCreate setReferenteTecnico() {
         ReferenteCreate referente = new ReferenteCreate();
         referente.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        referente.setIdUtente(UTENTE_REFERENTE_TECNICO);
+        referente.setIdUtente(ID_UTENTE_REFERENTE_TECNICO);
         return referente;
     }
 
@@ -356,8 +376,8 @@ public class RegistrazioneServizioIntegrationTest {
         // Step 8: Aggiungi Referente per il Servizio
         ReferenteCreate referenteDaAggiungere = new ReferenteCreate();
         referenteDaAggiungere.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
-        referenteDaAggiungere.setIdUtente(UTENTE_REFERENTE_TECNICO);
-        ResponseEntity<Referente> createdReferente2 = serviziController.createReferenteServizio(idServizio, referenteDaAggiungere);
+        referenteDaAggiungere.setIdUtente(ID_UTENTE_REFERENTE_TECNICO);
+        ResponseEntity<Referente> createdReferente2 = serviziController.createReferenteServizio(idServizio, null, referenteDaAggiungere);
         assertEquals(HttpStatus.OK, createdReferente2.getStatusCode());
         assertNotNull(createdReferente2.getBody());
 
@@ -498,7 +518,7 @@ public class RegistrazioneServizioIntegrationTest {
 	    statoServizioUpdate.setCommento("richiesta di collaudo");
 	    
 	    try {
-	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    	//System.out.println("STATO SERVIZIO: " + servizio.getBody().getStato());
 	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
 	    	// Stampa il messaggio dell'eccezione
@@ -588,7 +608,7 @@ public class RegistrazioneServizioIntegrationTest {
 	    statoServizioUpdate.setStato("autorizzato_collaudo");
 	    statoServizioUpdate.setCommento("autorizzato in collaudo");
 	    
-	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    assertEquals("autorizzato_collaudo", response.getBody().getStato());
         
     }
@@ -606,14 +626,14 @@ public class RegistrazioneServizioIntegrationTest {
 	    statoServizioUpdate.setStato("in_configurazione_collaudo");
 	    statoServizioUpdate.setCommento("in configurazione collaudo");
 	    
-	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    ResponseEntity<Servizio> response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    assertEquals("in_configurazione_collaudo", response.getBody().getStato());
 	    
 	    statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
 	    
-	    response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate);
+	    response = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
 	    assertEquals("pubblicato_collaudo", response.getBody().getStato());
     }
 

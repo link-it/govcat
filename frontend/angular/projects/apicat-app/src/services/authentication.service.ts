@@ -1,64 +1,17 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { EventType } from 'projects/tools/src/lib/classes/events';
-import { Tools } from 'projects/tools/src/lib/tools.service';
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
+import { EventType } from '@linkit/components';
+import { Tools } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
+import { PermessiService } from '@services/permessi.service';
 
 import * as _ from 'lodash';
 
 export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
-};
-
-export const PERMISSIONS: any = {
-  // G
-  "gestore": [
-    { name: 'SERVIZI', view: true, edit: true, create: true, delete: true },
-    { name: 'ADESIONI', view: true, edit: true, create: true, delete: true },
-  ],
-  // RTD
-  "referente-tecnico-dominio": [
-    { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },
-    { name: 'ADESIONI', view: true, edit: false, create: false, delete: false },
-  ],
-  // RD
-  "referente-dominio": [
-    { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },
-    { name: 'ADESIONI', view: true, edit: false, create: false, delete: false },
-  ],
-  // RT
-  "referente-tecnico": [
-    { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },
-    { name: 'ADESIONI', view: true, edit: false, create: false, delete: false },
-  ],
-  // RT
-  "referente-superiore": [
-    { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },
-    { name: 'ADESIONI', view: true, edit: false, create: false, delete: false },
-  ],
-  // RT
-  "referente-tecnico-superiore": [
-    { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },
-    { name: 'ADESIONI', view: true, edit: false, create: false, delete: false },
-  ],
-  // RS
-  "referente-servizio": [
-    { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },
-    { name: 'ADESIONI', view: true, edit: false, create: false, delete: false },
-  ],
-  // rS
-  "richiedente-servizio": [
-    { name: 'SERVIZI', view: true, edit: false, create: false, delete: false },
-    { name: 'ADESIONI', view: true, edit: false, create: false, delete: false },
-  ],
-  // P
-  "anonimo": [
-    { name: 'SERVIZI', view: true, edit: true, create: true, delete: true },
-    { name: 'ADESIONI', view: true, edit: true, create: true, delete: true },
-  ],
 };
 
 export const CLASSES: any = {
@@ -257,7 +210,8 @@ export class AuthenticationService {
     private http: HttpClient,
     public configService: ConfigService,
     private eventsManagerService: EventsManagerService,
-    private oauthService: OAuthService
+    private oauthService: OAuthService,
+    private permessiService: PermessiService
   ) {
     this.config = this.configService.getConfiguration();
     this.appConfig = this.configService.getAppConfig();
@@ -428,25 +382,21 @@ export class AuthenticationService {
     }
   }
 
-  getPermissions() {
-    const roles: any[] = this.getRoles();
-    let permissions: any[] = [];
-    roles.forEach((role: any) => {
-      permissions = permissions.concat(PERMISSIONS[role]);
-    });
-    return permissions;
-  }
-
   hasPermission(value: string, grant = 'view') {
-    const uValue = value ? value.toUpperCase() : value;
-    if (this.isAdmin() || uValue === 'PUBLIC') { return true; }
-    const permissions = this.getPermissions();
-    const idx = permissions.findIndex(o => o.name.toUpperCase() === uValue);
-    const permission = (idx > -1) ? permissions[idx] : null;
-    if (permission) {
-      return permission[grant];
+    let hasPermission = false;
+    const { canRead, canWrite } = this.verificacanPermessiMenuAmministrazione(value);
+    switch (grant) {
+      case 'view':
+        hasPermission = canRead;
+        break;
+      case 'create':
+      case 'edit':
+      case 'delete':
+        hasPermission = canWrite;
+        break;
     }
-    return false;
+
+    return this.isGestore() || hasPermission;
   }
 
   // Gestione Grant
@@ -470,6 +420,15 @@ export class AuthenticationService {
       _isGestore = (_user && _user.ruolo === 'gestore');
     }
     return _isGestore;
+  }
+
+  isCoordinatore(grant: string[] = []) {
+    let _isCoordinator = (_.indexOf(grant, 'coordinatore') !== -1);
+    if (!_isCoordinator) {
+      const _user: any = this.getUser();
+      _isCoordinator = (_user && _user.ruolo === 'coordinatore');
+    }
+    return _isCoordinator;
   }
 
   canAdd(module: string, state: string, grant: string[] = []) {
@@ -526,7 +485,7 @@ export class AuthenticationService {
     const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
 
     const _intersection = _.intersection(grant, _grantManagement);
-    return (_intersection.length > 0);
+    return (_intersection.length > 0) || true;
   }
 
   canEditField(module: string, submodule: string, state: string, field: string, grant: string[] = []) {
@@ -675,5 +634,19 @@ export class AuthenticationService {
     }
     const _intersection = _.intersection(grant, _ruoliAbilitati);
     return _monitoraggio.abilitato && !!_intersection.length;
+  }
+
+  // Verifica permessi menu amministrazione
+
+  verificacanPermessiMenuAmministrazione(menu: string): { canRead: boolean; canWrite: boolean } {
+    const ruoli = [ this.getUser().ruolo ];
+    const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
+
+    return this.permessiService.verificaPermessi(ruoli, menu, permessi);
+  }
+
+  hasMenuAmministrazione(): boolean {
+    const permessi = Tools.Configurazione ? (Tools.Configurazione['amministrazione'] || {}) : {};
+    return (Object.keys(permessi).length > 0);
   }
 }

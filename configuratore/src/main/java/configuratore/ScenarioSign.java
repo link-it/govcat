@@ -85,16 +85,14 @@ public class ScenarioSign implements ConfigurazioneScenario {
 			soggetto = apis.get(0).getSoggettoAderente();
 		}
 		
-		Response response;
-		try {
-			response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto);
+		try (Response response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto)) {
+			if (!response.isSuccessful() && (response.code() != 409 || !this.ignoreConflict))
+				throw new ConfigurazioneException();
 		} catch(TemplateException | IOException e) {
 			e.printStackTrace();
 			throw new ConfigurazioneException();
 		}
 		
-		if (!response.isSuccessful() && (response.code() != 409 || !this.ignoreConflict))
-			throw new ConfigurazioneException();
 		return Map.of();
 	}
 
@@ -125,10 +123,10 @@ public class ScenarioSign implements ConfigurazioneScenario {
 				throw new IOException("autorizzazione non impostata in modalita richiedente");
 	
 			// infine associo il servizio applicativo ai richiedenti
-			Response response = configInvoker.postApplicativoToServizio(gruppoServizio, client.getNome(), gruppoServizio.getSoggettoAderente().getNomeGateway());
-			
-			if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-				throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			try (Response response = configInvoker.postApplicativoToServizio(gruppoServizio, client.getNome(), gruppoServizio.getSoggettoAderente().getNomeGateway())) {
+				if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
+					throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			}
 		} catch (IOException | TemplateException e) {
 			throw new ConfigurazioneException();
 		}

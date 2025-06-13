@@ -88,8 +88,7 @@ public class ScenarioTLSModI implements ConfigurazioneScenario {
 		credenziali.setModalitaAccesso("https");
 		credenziali.setTipoCertificato("CER");
 		
-		try {
-			Response response = this.invokers.getConfigInvoker().postCredenzialiSoggetto(soggetto, credenziali);
+		try (Response response = this.invokers.getConfigInvoker().postCredenzialiSoggetto(soggetto, credenziali)) {
 			
 			if (!response.isSuccessful())
 				throw new ConfigurazioneException();
@@ -128,10 +127,10 @@ public class ScenarioTLSModI implements ConfigurazioneScenario {
 				throw new IOException("autorizzazione non impostata in modalita richiedente");
 	
 			// infine associo il servizio applicativo ai richiedenti
-			Response response = configInvoker.postSoggettoAutorizzato(api, api.getSoggettoAderente().getNomeGateway());
-			
-			if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-				throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			try (Response response = configInvoker.postSoggettoAutorizzato(api, api.getSoggettoAderente().getNomeGateway())) {
+				if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
+					throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			}
 		} catch (IOException | TemplateException e) {
 			throw new ConfigurazioneException();
 		}

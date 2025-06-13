@@ -1,13 +1,41 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.govway.catalogo</groupId>
-    <artifactId>govcat</artifactId>
-    <version>2.0</version>
-  </parent>
-  <artifactId>tools</artifactId>
-  <packaging>pom</packaging>
-  <modules>
-  	<module>owasp</module>
-  </modules>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.govway.catalogo</groupId>
+		<artifactId>govcat</artifactId>
+		<version>2.2</version>
+	</parent>
+
+	<artifactId>tools</artifactId>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>owasp</module>
+	</modules>
+
+	<properties>
+		<rel-to-parent>..</rel-to-parent>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven.resources.plugin.version}</version>
+				<inherited>true</inherited>
+				<executions>
+					<execution>
+						<id>apply-filter</id>
+						<phase>none</phase>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

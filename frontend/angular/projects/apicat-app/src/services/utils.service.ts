@@ -9,10 +9,33 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { OpenAPIService } from '@services/openAPI.service';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import * as moment from 'moment';
 import { FormGroup, Validators } from '@angular/forms';
+
+import { TipiCertificato, TipoCertificatoEnum } from '@app/views/adesioni/adesione-configurazioni/adesione-configurazioni.component';
+
+export type Certificato = {
+    file?: boolean;
+    cn?: boolean;
+    csr?: boolean;
+    csr_modulo?: boolean;
+};
+
+const MappaCertificato: Record<TipoCertificatoEnum, (keyof Certificato)[]> = {
+    [TipoCertificatoEnum.FORNITO]: ['file'],
+    [TipoCertificatoEnum.RICHIESTO_CN]: ['cn'],
+    [TipoCertificatoEnum.RICHIESTO_CSR]: ['csr']
+};
+
+export type AuthConfig = {
+  type: string;
+  certificato?: Certificato;
+  certificato_autenticazione?: Certificato;
+  certificato_firma?: Certificato;
+  [key: string]: any;
+};
 
 @Injectable({
   providedIn: 'root',
@@ -31,11 +54,12 @@ export class UtilService {
     private modalService: BsModalService,
   ) { }
 
-  getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', organizzazione: string | null = null): Observable<any> {
+  getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', organizzazione: string | null = null, referenteTecnico: boolean = false): Observable<any> {
     const _options: any = { params: { q: term } };
     if (role) { _options.params.ruolo = role; }
     if (stato) { _options.params.stato = stato; }
     if (organizzazione) { _options.params.id_organizzazione = organizzazione; }
+    if (referenteTecnico) { _options.params.referente_tecnico = true; }
 
     return this.apiService.getList('utenti', _options)
       .pipe(map(resp => {
@@ -83,51 +107,46 @@ export class UtilService {
       // }
     });
 
-    forkJoin(reqs).subscribe(
-      (results: Array<any>) => {
+    forkJoin(reqs).subscribe({
+      next: (results: Array<any>) => {
         tables.forEach((table, index) => {
           const _table = (typeof table === 'string') ? table : table.name;
+          const resultContent = results[index].content || results[index].items || [];
           switch (_table) {
             case 'utenti':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_utente,
                   nome: `${item.nome} ${item.cognome}`
                 })).sort(this._order);
               break;
             case 'domini':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_dominio,
                   nome: `${item.nome}`
                 })).sort(this._order);
               break;
             case 'organizzazioni':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_organizzazione,
                   nome: `${item.nome}`,
                   // descrizione: `${item.descrizione}`
                 })).sort(this._order);
               break;
             case 'classi-utente':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id_classe_utente: item.id_classe_utente,
                   nome: `${item.nome}`
                 })).sort(this._order);
               break;
             case 'gruppi':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_gruppo,
                   nome: item.nome,
                   descrizione: item.descrizione_sintetica
                 })).sort(this._order);
               break;
             case 'tassonomie':
-              this.cacheAnagrafiche[_table] = results[index].content
-                .map((item: any) => ({
+              resultContent.map((item: any) => ({
                   id: item.id_tassonomia,
                   nome: item.nome,
                   descrizione: item.descrizione,
@@ -152,10 +171,10 @@ export class UtilService {
           }
         });
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('getAnagrafiche forkJoin', error);
       }
-    );
+    });
 
     return this.cacheAnagrafiche;
   }
@@ -379,4 +398,60 @@ export class UtilService {
       element.scrollTop = start + change;
   }
 
+    // Utilities per filtro certificati
+
+    filtraCertificatiAttivi(certificato: Certificato): Partial<Record<TipoCertificatoEnum, true>> {
+        const risultato: Partial<Record<TipoCertificatoEnum, true>> = {};
+
+        for (const [tipo, chiavi] of Object.entries(MappaCertificato)) {
+            const attivo = chiavi.some(chiave => certificato[chiave]);
+            if (attivo) {
+                risultato[tipo as TipoCertificatoEnum] = true;
+            }
+        }
+
+        return risultato;
+    }
+
+    getTipiCertificatoAttivi(certificato: Certificato): TipoCertificatoEnum[] {
+        return Object.entries(MappaCertificato)
+            .filter(([_, chiavi]) => chiavi.some(k => certificato[k]))
+            .map(([tipo]) => tipo as TipoCertificatoEnum);
+    }
+
+    getTipiCertificatoDettagliati(certificato: Certificato) {
+        const attivi = this.getTipiCertificatoAttivi(certificato);
+        return TipiCertificato.filter(tc => attivi.includes(tc.value));
+    }
+
+    /* Esempio d'uso
+
+        const certificato = {
+            file: true,
+            cn: false,
+            csr: false,
+            csr_modulo: false
+        };
+
+        const attivi = filtraCertificatiAttivi(certificato);
+        console.log(attivi);
+        // Output: { fornito: true }
+
+        const attiviDettagliati = getTipiCertificatoDettagliati(certificato);
+        console.log(attiviDettagliati);
+        // Output: [{ value: 'fornito', label: 'Fornito' }]
+    */
+
+  getCertificatoByAuthType(authConfigs: AuthConfig[], authType: string): Certificato | null {
+    const config = authConfigs.find(conf => conf.type === authType);
+    if (!config) {
+      console.warn(`Tipo di autenticazione "${authType}" non trovato.`);
+      return null;
+    }
+
+    return config.certificato 
+        ?? config.certificato_autenticazione 
+        ?? config.certificato_firma 
+        ?? null;
+  }
 }

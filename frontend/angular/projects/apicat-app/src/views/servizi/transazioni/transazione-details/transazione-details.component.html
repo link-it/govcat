@@ -11,10 +11,10 @@
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters" *ngIf="!_spin">
       <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav-">
+        <ul class="nav gp-border-b-0 gp-tabs-nav-">
           <ng-container class="nav-item" *ngFor="let tab of tabs">
             <li class="nav-item" *ngIf="tab.enabled">
-              <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === tab.link" (click)="_onTabs(tab.link)">
+              <a tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_currentTab === tab.link" (click)="_onTabs(tab.link)" [attr.aria-label]="tab.label | translate">
                 <span>{{ tab.label | translate }}</span>
               </a>
             </li>

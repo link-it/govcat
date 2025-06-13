@@ -1,0 +1,14 @@
+<p class="form-text text-muted" *ngIf="existsValue">
+    <ng-template #popTemplate>
+        <div markdown ngPreserveWhitespaces>{{ text }}</div>
+    </ng-template>
+    <i class="cursor-pointer {{ iconHelp }}"
+        [popoverTitle]="title"
+        [popover]="popTemplate"
+        [adaptivePosition]="true"
+        [placement]="helpPlacement"
+        triggers="click"
+        [outsideClick]="true"
+        [containerClass]="helpContainerClass"
+    ></i>
+</p>

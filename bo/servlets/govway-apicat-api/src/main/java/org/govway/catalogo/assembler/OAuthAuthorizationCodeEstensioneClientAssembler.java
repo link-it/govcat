@@ -116,19 +116,19 @@ public class OAuthAuthorizationCodeEstensioneClientAssembler extends AbstractEst
 			errori.add("client_id");
 		}
 		
-		if(specDsc.getUrlEsposizione() == null) {
+		if(specDsc.getUrlEsposizione() == null || specDsc.getUrlEsposizione().trim().isEmpty()) {
 			errori.add("url_esposizione");
 		}
 		
-		if(specDsc.getUrlRedirezione() == null) {
+		if(specDsc.getUrlRedirezione() == null || specDsc.getUrlRedirezione().trim().isEmpty()) {
 			errori.add("url_redirezione");
 		}
 		
-		if(specDsc.getNomeApplicazionePortale() == null) {
+		if(specDsc.getNomeApplicazionePortale() == null || specDsc.getNomeApplicazionePortale().trim().isEmpty()) {
 			errori.add("nome_applicazione_portale");
 		}
 		
-		if(specDsc.getHelpDesk() == null) {
+		if(specDsc.getHelpDesk() == null || specDsc.getHelpDesk().trim().isEmpty()) {
 			errori.add("help_desk");
 		}
 		

@@ -4,8 +4,8 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Untype
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -41,7 +41,8 @@ export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
 @Component({
   selector: 'app-servizio-api-configuration',
   templateUrl: 'servizio-api-configuration.component.html',
-  styleUrls: ['servizio-api-configuration.component.scss']
+  styleUrls: ['servizio-api-configuration.component.scss'],
+  standalone: false
 })
 export class ServizioApiConfigurationComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';
@@ -604,30 +605,24 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       this._formGroup.addControl('proprieta_custom', this.formBuilder.group({}));
 
       Object.keys(this._apiProprietaCustomGrouped).forEach((key: any) => {
-        this._apiProprietaCustomGrouped[key].forEach((item: any) => {
+        (this._apiProprietaCustomGrouped[key] || []).forEach((item: any) => {
           const _validators = [];
 
           const _ruoli = this._grant?.ruoli || [];
           const _hasRuolo = item.ruoli_abilitati ? _.intersection(_ruoli, item.ruoli_abilitati).length > 0 : true;
 
-          console.group('proprieta_custom');
-          console.log(item);
-          console.log('ruoli', _ruoli);
-          console.log('hasRuolo', _hasRuolo);
-          console.groupEnd();
-
           if (_hasRuolo) {
             let required = false;
   
-            if(item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
+            if (item.classe_dato === 'generico' && genericoCustomPropertiesAreMandatory) {
                 required = item.required;
             }
   
-            if(item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
+            if (item.classe_dato === 'collaudo' && collaudoCustomPropertiesAreMandatory) {
                 required = item.required;
             }
   
-            if(item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
+            if (item.classe_dato === 'produzione' && produzioneCustomPropertiesAreMandatory) {
                 required = item.required;
             }
   

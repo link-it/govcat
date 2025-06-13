@@ -144,6 +144,7 @@ public class APITest {
     GruppiController gruppiController;
 
     private static final String UTENTE_GESTORE = "gestore";
+    private static UUID ID_UTENTE_GESTORE;
 
     @BeforeEach
     public void setUp() {
@@ -151,8 +152,12 @@ public class APITest {
         // Set up the mock security context and authentication
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 
-        CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
-
+        InfoProfilo info = CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+        
+        //System.out.println("STAMPA ID "+info.utente.getIdUtente());
+        
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
+        
         // Configura `coreAuthorization` per essere utilizzato nei test
         when(coreAuthorization.isAnounymous()).thenReturn(true);
 
@@ -229,7 +234,8 @@ public class APITest {
 
     	ReferenteCreate referente = new ReferenteCreate();
     	referente.setTipo(TipoReferenteEnum.REFERENTE);
-    	referente.setIdUtente(UTENTE_GESTORE);
+    	
+    	referente.setIdUtente(ID_UTENTE_GESTORE);
     	referenti.add(referente);
 
     	servizioCreate.setReferenti(referenti);
@@ -245,7 +251,7 @@ public class APITest {
     
     private ResponseEntity<API> getAPI() {
     	APICreate apiCreate = CommonUtils.getAPICreate();
-    	
+    	apiCreate.setDescrizione("Descrizione");
         Servizio servizio = this.getServizio();
         
         apiCreate.setIdServizio(servizio.getIdServizio());
@@ -534,7 +540,7 @@ public class APITest {
     @Test
     public void testDeleteAPIUsedInAdesioni() {
         soggettoCreate.setAderente(true);
-        servizioCreate.setAdesioneConsentita(true);
+        servizioCreate.setAdesioneDisabilitata(false);
         servizioCreate.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
         servizioCreate.setMultiAdesione(true);
 
@@ -1618,7 +1624,7 @@ public class APITest {
         apiUpdate.setDatiGenerici(datiGenerici);
 
         // Invocazione del metodo updateApi
-        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate);
+        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate, null);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1656,7 +1662,7 @@ public class APITest {
         CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
         assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.updateApi(idApi, apiUpdate);
+        	apiController.updateApi(idApi, apiUpdate, null);
         });
     }
     
@@ -1689,7 +1695,7 @@ public class APITest {
         this.tearDown();
         
         assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.updateApi(idApi, apiUpdate);
+        	apiController.updateApi(idApi, apiUpdate, null);
         });
     }
 
@@ -1707,7 +1713,7 @@ public class APITest {
 
         // Test per il caso di API non trovata
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.updateApi(idApiNonEsistente, apiUpdate);
+            apiController.updateApi(idApiNonEsistente, apiUpdate, null);
         });
         //System.out.println(exception.getMessage());
         String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
@@ -1740,7 +1746,7 @@ public class APITest {
         apiUpdate.setIdentificativo(identificativo);
 
         ConflictException exception = assertThrows(ConflictException.class, () -> {
-            apiController.updateApi(responseApi1.getBody().getIdApi(), apiUpdate);
+            apiController.updateApi(responseApi1.getBody().getIdApi(), apiUpdate, null);
         });
     }
 
@@ -1780,7 +1786,7 @@ public class APITest {
         /*
          //TODO: controllare, il gruppo risulta inesistente
         // Invocazione del metodo updateApi
-        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate);
+        ResponseEntity<API> response = apiController.updateApi(idApi, apiUpdate, null);
 		
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1802,8 +1808,9 @@ public class APITest {
         UUID idApi = responseApi.getBody().getIdApi();
 
         // Configura un InfoProfilo senza il ruolo richiesto
-        InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.find("xxx").get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
+        //InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.findByPrincipal("xxx").get(), List.of());
+        //when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
+        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
 
         // Creazione dell'update API
         ApiUpdate apiUpdate = new ApiUpdate();
@@ -1815,12 +1822,9 @@ public class APITest {
 
         // Test per autorizzazione fallita
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            apiController.updateApi(idApi, apiUpdate);
+            apiController.updateApi(idApi, apiUpdate, null);
         });
         
-        // Ripristino il profilo AMMINISTRATORE per gli altri test
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
     }
 
     @Test

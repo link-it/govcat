@@ -5,7 +5,7 @@ import { ApiCustomPropertiesComponent } from './api-custom-properties.component'
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { ComponentsModule } from '@linkit/components';
 
 import { CustomPropertiesModule } from '../custom-properties/custom-properties.module';
 

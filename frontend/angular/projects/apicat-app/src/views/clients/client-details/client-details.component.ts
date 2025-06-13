@@ -5,12 +5,14 @@ import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFor
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { UtilService } from '@app/services/utils.service';
+import { EventsManagerService, EventType } from '@linkit/components';
 
-import { YesnoDialogBsComponent } from 'projects/components/src/lib/dialogs/yesno-dialog-bs/yesno-dialog-bs.component';
+import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -30,10 +32,13 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
 import * as _ from 'lodash';
 declare const saveAs: any;
 
+import { Certificato } from '@app/services/utils.service';
+
 @Component({
   selector: 'app-client-details',
   templateUrl: 'client-details.component.html',
-  styleUrls: ['client-details.component.scss']
+  styleUrls: ['client-details.component.scss'],
+  standalone: false
 })
 export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientDetailsComponent';
@@ -189,17 +194,20 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     private modalService: BsModalService,
     private configService: ConfigService,
     public tools: Tools,
-    public apiService: OpenAPIService,
-    public authenticationService: AuthenticationService
+    private apiService: OpenAPIService,
+    private authenticationService: AuthenticationService,
+    private utils: UtilService,
+    private eventsManagerService: EventsManagerService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
 
   ngOnInit() {
-    this._tipoCertificatoEnum = fake_tipoCertificatoEnum;
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
-    if (Tools.Configurazione) Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+    if (Tools.Configurazione) {
+      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+    }
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -223,6 +231,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         
         this._spin = false;
       }
+    });
+
+    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
+      Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
+      this.initTipiCertificato();
     });
   }
 
@@ -504,6 +517,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       this._formGroup.updateValueAndValidity();
 
       this._showMandatoryFields(controls);
+
+      this.initTipiCertificato();
     }
   }
 
@@ -528,13 +543,12 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._spin = true;
 
     let _payload:any = this._prepareDataToSend(body);
-    console.log('POST: ', _payload)
 
     const _DVLP_invia: boolean = true;
 
     if (_DVLP_invia) {
-      this.apiService.saveElement(this.model, _payload).subscribe(
-        (response: any) => {
+      this.apiService.saveElement(this.model, _payload).subscribe({
+        next: (response: any) => {
           const _rateLimiting = response.dati_specifici?.rate_limiting || null;
           const _finalita = response.dati_specifici?.finalita || null;
           this.client = { ...response, rate_limiting: _rateLimiting, finalita: _finalita };
@@ -548,12 +562,12 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           this.router.navigate([this.model, this.id], { replaceUrl: true });
           this._spin = false;
         },
-        (error: any) => {
+        error: (error: any) => {
           this._error = true;
           this._errorMsg = Tools.GetErrorMsg(error);
           this._spin = false;
         }
-      );
+      });
     }
   }
 
@@ -563,13 +577,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
     let _payload:any = this._prepareDataToSend(body);
 
-    console.log('PUT: ', _payload);
-
     const _DVLP_invia: boolean = true;
 
     if (_DVLP_invia) {
-      this.apiService.putElement(this.model, id, _payload).subscribe(
-        (response: any) => {
+      this.apiService.putElement(this.model, id, _payload).subscribe({
+        next: (response: any) => {
           this._isEdit = !this._closeEdit;
           const _rateLimiting = response.dati_specifici?.rate_limiting || null;
           const _finalita = response.dati_specifici?.finalita || null;
@@ -580,11 +592,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           // this.id = this.client.id;
           this.save.emit({ id: this.id, payment: response, update: true });
         },
-        (error: any) => {
+        error: (error: any) => {
           this._error = true;
           this._errorMsg = Tools.GetErrorMsg(error);
         }
-      );
+      });
     }
   }
 
@@ -626,8 +638,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     _payload.stato = _body.stato;
     _payload.ambiente = this._formGroup.getRawValue().ambiente;;
     _payload.dati_specifici = _bodyDatispecifici;
-    _payload.indirizzo_ip = _body?.indirizzo_ip;
-    _payload.descrizione = _body?.descrizione;
+    _payload.indirizzo_ip = _body?.indirizzo_ip || null;
+    _payload.descrizione = _body?.descrizione || null;
   
     this._removeNullProperties(_body);
 
@@ -907,16 +919,15 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElement(this.model, this.client.id_client).subscribe(
-            (response) => {
+          this.apiService.deleteElement(this.model, this.client.id_client).subscribe({
+            next: (response) => {
               this.router.navigate([this.model]);
-              // this.save.emit({ id: this.id, client: response, update: false });
             },
-            (error) => {
+            error: (error) => {
               this._error = true;
               this._errorMsg = Tools.GetErrorMsg(error);
             }
-          );
+          });
         }
       }
     );
@@ -1012,24 +1023,20 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._currentTab = tab;
   }
 
-  _dummyAction(event: any, param: any) {
-    console.log(event, param);
-  }
-
   _editClient() {
     this._initSoggettiSelect([this._client.soggetto]);
     this._initOrganizzazioniSelect([this._client.soggetto?.organizzazione]);
 
     const _options: any = { params: { id_client: this.client.id_client } };
-    this.apiService.getList('adesioni', _options).subscribe(
-      (results) => {
+    this.apiService.getList('adesioni', _options).subscribe({
+      next: (results) => {
         this._isClientUsedInSomeAdesioni = (results.content.length > 0)
         this._initForm({ ...this._client });
         this._isEdit = true;
         this._error = false;
       },
-      (err) => {console.log(err)}
-    );
+      error: (err) => {console.log(err)}
+    });
   }
 
   _onClose() {
@@ -1188,8 +1195,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         break;
     }
 
-    // this._descrittoreCtrl.setValue('');
-
     this._formGroup.updateValueAndValidity();
 
     this._showMandatoryFields(controls);
@@ -1246,11 +1251,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._isStato_nuovo = _isNuovo;
     if (_isNuovo) {
       if (this._isNew) { this._onChangeAuthType(null); }
-      // this._onChangeAuthType(controls.auth_type.value);
-      // this._onChangeTipoCertificato(controls.tipo_certificato.value);
-      // this._onChangeTipoCertificatoFirma(controls.tipo_certificato_firma.value);
       controls.username.clearValidators();
-      // controls.client_id.clearValidators();
     } else {
       if (this._isHttpBasic && !this._isStato_nuovo) {
         controls.username.setValidators(Validators.required)
@@ -1369,8 +1370,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
     const _aux: any = {'stato': event};
 
-    this.apiService.putElementRelated(this.model, this.client.id_client, 'stato', _aux).subscribe(
-      (response: any) => {
+    this.apiService.putElementRelated(this.model, this.client.id_client, 'stato', _aux).subscribe({
+      next: (response: any) => {
         this.client = new Client({ ...response });
         this._client = new Client({ ...response });
         this.id = this.client.id;
@@ -1380,7 +1381,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._loadAll();
         this._spin = false;
       },
-      (error: any) => {
+      error: (error: any) => {
         this._error = true;
         this._errorMsg = Tools.GetErrorMsg(error);
         this._errors = error.error.errori || [];
@@ -1390,7 +1391,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         Tools.showMessage(_msg, 'danger', true);
         this._spin = false;
       }
-    );
+    });
   }
 
   closeModal(){
@@ -1417,9 +1418,24 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     controls.client_id.updateValueAndValidity();
     controls.username.clearValidators();
     controls.username.updateValueAndValidity();
-}
+  }
+
+  initTipiCertificato() {
+    this._tipoCertificatoEnum = [];
+  
+    const auth_type = this._formGroup.controls.auth_type.value;
+    const authTypes: any = this.authenticationService._getConfigModule('servizio')?.api?.auth_type || [];
+
+    const certificato: Certificato | null = this.utils.getCertificatoByAuthType(authTypes, auth_type);
+    if (certificato) {
+      this._isRichiesto_csr = certificato.csr_modulo || false;
+      this._tipoCertificatoEnum = this.utils.getTipiCertificatoAttivi(certificato);
+    }
+  }
 
   _onChangeAuthType(auth_type: any = null) {
+    this.initTipiCertificato();
+
     if (auth_type == null && this._isNew) {
       auth_type = this._formGroup.controls.auth_type.value;
       this._onChangeAuthType('valore_a_caso_per_resettare_le_variabili')
@@ -1696,13 +1712,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     const _showMonitoraggio: boolean = monitoraggio.abilitato;
     const _showVerifiche: boolean = monitoraggio.verifiche_abilitate;
 
-    const _authType: string = this.client.dati_specifici.auth_type;
+    const _authType: string = this.client?.dati_specifici.auth_type || '';
 
     return (
       // _isSoggettoMonitoraggio &&
       _showMonitoraggio &&
       _showVerifiche &&
-      this.client.utilizzato_in_adesioni_configurate &&
+      this.client?.utilizzato_in_adesioni_configurate &&
       (_authType.includes('https') || _authType.includes('sign') || _authType.includes('pdnd'))
     );
   }

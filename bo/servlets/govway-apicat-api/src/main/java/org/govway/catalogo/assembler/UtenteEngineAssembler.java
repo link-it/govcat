@@ -60,6 +60,7 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 	public RuoloUtenteEnum toRuolo(Ruolo ruolo) {
 		switch(ruolo) {
 		case AMMINISTRATORE: return RuoloUtenteEnum.GESTORE;
+		case COORDINATORE: return RuoloUtenteEnum.COORDINATORE;
 		case REFERENTE_SERVIZIO: return RuoloUtenteEnum.REFERENTE_SERVIZIO;
 		default:
 			break;
@@ -79,6 +80,8 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 			switch(rr) {
 			case GESTORE: r.add(Ruolo.AMMINISTRATORE);
 				break;
+			case COORDINATORE: r.add(Ruolo.COORDINATORE);
+			break;
 			case REFERENTE_SERVIZIO: r.add(Ruolo.REFERENTE_SERVIZIO);
 				break;
 			default:
@@ -92,6 +95,7 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 	public Ruolo toEntity(RuoloUtenteEnum ruolo) {
 		switch(ruolo) {
 		case GESTORE: return Ruolo.AMMINISTRATORE;
+		case COORDINATORE: return Ruolo.COORDINATORE;
 		case REFERENTE_SERVIZIO: return Ruolo.REFERENTE_SERVIZIO;
 		}
 		

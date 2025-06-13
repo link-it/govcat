@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
 
 import { AppComponentsModule } from "@app/components/components.module";
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
@@ -17,14 +16,14 @@ import { WsdlModule } from '@app/components/wsdl/wsdl.module';
 import { MonitorDropdwnModule } from '../components/monitor-dropdown/monitor-dropdown.module';
 
 import { ServizioViewComponent } from './servizio-view.component';
+import { MarkdownModule } from 'ngx-markdown';
 
 @NgModule({
     imports: [
         CommonModule,
         FormsModule,
         TranslateModule,
-        VendorsModule,
-        ComponentsModule,
+             ComponentsModule,
         AppComponentsModule,
         HasPermissionModule,
         MarkAsteriskModule,
@@ -32,7 +31,8 @@ import { ServizioViewComponent } from './servizio-view.component';
         ScrollModule,
         SwaggerModule,
         WsdlModule,
-        MonitorDropdwnModule
+        MonitorDropdwnModule,
+        MarkdownModule
     ],
     declarations: [
         ServizioViewComponent

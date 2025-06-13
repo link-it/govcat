@@ -1,0 +1,19 @@
+<span class="label-bold uploader"
+  [class.loaded]="loaded" 
+  [style.outlineColor]="dragging ? activeColor : baseColor"
+  (dragenter)="handleDragEnter()"
+  (dragleave)="handleDragLeave()"
+  (drop)="handleDrop($event)">
+  
+  <em class="icon icon-upload" 
+    [style.color]="dragging 
+      ? ((imageSrc.length > 0) ? overlayColor : activeColor)
+      : ((imageSrc.length > 0) ? overlayColor : baseColor)"></em>
+  <img alt="Preview"
+    [src]="imageSrc" 
+    (load)="handleImageLoad()" 
+    [class.loaded]="imageLoaded"/>
+
+</span>
+<input type="file" name="file" accept="image/*" (change)="handleInputChange($event)">
+<button (click)="cancel()">Clear</button>

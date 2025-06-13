@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+import { ComponentsModule } from '@linkit/components';
 
 import { TranslateModule } from '@ngx-translate/core';
 

@@ -1,0 +1,169 @@
+{
+  "useViewRoute": true,
+  "useEditWizard": true,
+
+  "simpleItem": {
+    "primaryText": [
+      { "field": "subject", "type": "text" },
+      { "field": "per", "type": "message" },
+      { "field": "taxcode", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "user.full_name", "type": "text" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "id", "type": "cardinal" },
+        { "field": "organization.legal_name", "type": "text" }
+      ],
+      "label": [
+        { "field": "stato", "type": "label", "options": "status" }
+      ]
+    },
+    "secondaryMetadata": [
+      { "field": "scheduled_expedition_date", "type": "date", "format": "DD-MM-YYYY" }
+    ]
+  },
+
+  "itemRow": {
+    "primaryText": [
+      { "field": "servizio.nome", "type": "text", "emptySpace": true },
+      { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
+      { "field": "servizio.versione", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "stato_configurazione_automatica", "type": "label", "options": "configuration_status", "tooltip": "messaggio_configurazione", "hideEmpty": true },
+      { "field": "stato", "type": "label", "options": "status" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "soggetto.organizzazione.nome", "type": "text", "tooltip": "APP.TOOLTIP.Organization" },
+        { "field": "id_logico", "type": "text", "hideEmpty": true }
+      ],
+      "label": [
+        
+      ]
+    },
+    "secondaryMetadata": [
+    ]
+  },
+
+  "referentRow": {
+    "primaryText": [
+      { "field": "utente.nome", "type": "text", "emptySpace": true },
+      { "field": "utente.cognome", "type": "text" }
+    ],
+    "secondaryText": [
+      { "field": "tipo", "type": "tag", "options": "type" }
+    ],
+    "metadata": {
+      "text": [
+        { "field": "utente.organizzazione.nome", "type": "text" }
+      ],
+      "label": []
+    },
+    "secondaryMetadata": []
+  },
+
+  "details": [
+    { "label": "APP.LABEL.Organization", "field": "soggetto.organizzazione.nome", "type": "text" },
+    { "label": "APP.LABEL.Subject", "field": "soggetto.nome", "type": "text" },
+    { "label": "APP.LABEL.Servizio", "field": "servizio.nome", "type": "text" },
+    { "label": "APP.LABEL.Version", "field": "servizio.versione", "type": "text" },
+    { "label": "APP.LABEL.utente_richiedente", "field": "utente_richiedente.email_aziendale", "type": "text" }
+  ],
+
+  "options": {
+    "status": {
+      "label": "APP.LABEL.Status",
+      "small": true,
+      "values": {
+        "bozza": { "label": "APP.WORKFLOW.STATUS.bozza", "background": "#dbdbdb", "border": "#dbdbdb", "color": "#000000" },
+        "richiesto_collaudo": { "label": "APP.WORKFLOW.STATUS.richiesto_collaudo", "background": "#eeef20", "border": "#eeef20", "color": "#1f1f1f" },
+        "in_configurazione_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_collaudo", "background": "#d4d700", "border": "#d4d700", "color": "#1f1f1f" },
+        "pubblicato_collaudo": { "label": "APP.WORKFLOW.STATUS.pubblicato_collaudo", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
+        "richiesto_produzione": { "label": "APP.WORKFLOW.STATUS.richiesto_produzione", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+        "richiesto_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.richiesto_produzione_senza_collaudo", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+        "in_configurazione_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_produzione", "background": "#38a3a5", "border": "#38a3a5", "color": "#1f1f1f" },
+        "in_configurazione_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_produzione_senza_collaudo", "background": "#38a3a5", "border": "#38a3a5", "color": "#1f1f1f" },
+        "pubblicato_produzione": { "label": "APP.WORKFLOW.STATUS.pubblicato_produzione", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "pubblicato_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.pubblicato_produzione_senza_collaudo", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },
+        "archiviato": { "label": "APP.WORKFLOW.STATUS.archiviato", "background": "#242F40", "border": "#242F40", "color": "#ffffff" },
+
+        "autorizzato_collaudo": { "label": "APP.WORKFLOW.STATUS.autorizzata_collaudo", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "autorizzato_produzione": { "label": "APP.WORKFLOW.STATUS.autorizzato_produzione", "background": "#A8D695", "border": "#D1D100", "color": "#1f1f1f" },
+        "autorizzato_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.autorizzato_produzione_senza_collaudo", "background": "#A8D695", "border": "#D1D100", "color": "#1f1f1f" },
+        "configurata_produzione": { "label": "APP.WORKFLOW.STATUS.configurata_produzione", "background": "#326C1A", "border": "#326C1A", "color": "#ffffff" },
+        "autorizzata_collaudo": { "label": "APP.WORKFLOW.STATUS.autorizzata_collaudo", "background": "#A8D695", "border": "#A8D695", "color": "#1f1f1f" },
+        "inviata_collaudo": { "label": "APP.WORKFLOW.STATUS.inviata_collaudo", "background": "#A8D695", "border": "#A8D695", "color": "#1f1f1f" },
+        "inviata_produzione": { "label": "APP.WORKFLOW.STATUS.inviata_produzione", "background": "#A8D695", "border": "#A8D695", "color": "#1f1f1f" },
+        "chiusa": { "label": "APP.WORKFLOW.STATUS.chiusa", "background": "#A8D695", "border": "#A8D695", "color": "#1f1f1f" },
+        "configurata_collaudo": { "label": "APP.WORKFLOW.STATUS.configurata_collaudo", "background": "#A8D695", "border": "#A8D695", "color": "#1f1f1f" },
+        "profile_not_exists": { "label": "APP.WORKFLOW.STATUS.PROFILE_NOT_EXISTS", "background": "#FF8200", "border": "#FF8200", "color": "#1f1f1f" },
+        "sender_not_allowed": { "label": "APP.WORKFLOW.STATUS.SENDER_NOT_ALLOWED", "background": "#FF8200", "border": "#FF8200", "color": "#1f1f1f" },
+        "forbidden": { "label": "APP.WORKFLOW.STATUS.FORBIDDEN", "background": "#FF8200", "border": "#FF8200", "color": "#1f1f1f" },
+        "rejected": { "label": "APP.WORKFLOW.STATUS.REJECTED", "background": "#FF8200", "border": "#FF8200", "color": "#1f1f1f" },
+        "processing": { "label": "APP.WORKFLOW.STATUS.PROCESSING", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "denied": { "label": "APP.WORKFLOW.STATUS.DENIED", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "bad_request": { "label": "APP.WORKFLOW.STATUS.BAD_REQUEST", "background": "#E82323", "border": "#E82323", "color": "#ffffff" },
+        "in_configurazione_automatica_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_collaudo", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "in_configurazione_manuale_collaudo": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_collaudo", "background": "#D1D100", "border": "#D1D100", "color": "#1f1f1f" },
+        "in_configurazione_automatica_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_automatica_produzione", "background": "#326C1A", "border": "#326C1A", "color": "#ffffff" },
+        "in_configurazione_manuale_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_manuale_produzione", "background": "#326C1A", "border": "#326C1A", "color": "#ffffff" }
+      }
+    },
+    "type": {
+      "label": "APP.LABEL.Type",
+      "small": true,
+      "values": {
+        "referente": { "label": "APP.ROLE.referente", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_tecnico_adesione": { "label": "APP.ROLE.referente_tecnico_adesione", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_tecnico": { "label": "APP.ROLE.referente_tecnico", "background": "#efc96c", "border": "#efc96c", "color": "#1f1f1f" },
+        "referente_servizio": { "label": "APP.ROLE.referente_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
+        "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
+        "referente_adesione": { "label": "APP.ROLE.referente_adesione", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_dominio": { "label": "APP.ROLE.referente_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+        "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" }
+      }
+    },
+    "configuration_status": {
+      "label": "APP.LABEL.StatoConfigurazioneAutomatica",
+      "small": true,
+      "values": {
+        "fallita": { "label": "APP.STATUS.fallita", "background": "#E57373", "border": "#E57373", "color": "#ffffff" },
+        "in_coda": { "label": "APP.STATUS.in_coda", "background": "#FFF176", "border": "#FFF176", "color": "#1f1f1f" },
+        "ko": { "label": "APP.STATUS.ko", "background": "#FFB74D", "border": "#FFB74D", "color": "#1f1f1f" },
+        "ok": { "label": "APP.STATUS.ok", "background": "#81C784", "border": "#81C784", "color": "#1f1f1f" },
+        "retry": { "label": "APP.STATUS.retry", "background": "#64B5F6", "border": "#64B5F6", "color": "#ffffff" }
+      }
+    }
+  },
+
+  "erogazioni_itemRow": {
+    "primaryText": [
+      { "field": "nome", "type": "text", "emptySpace": true }
+    ],
+    "secondaryText": [
+      { "field": "stato", "type": "label", "options": "status" }
+    ],
+    "metadata": {
+      "text": [{ "field": "", "type": "", "tooltip": "" }],
+      "label": [{ "field": "", "type": "", "tooltip": "" }]
+    },
+    "secondaryMetadata": []
+  },
+  
+  "clients_itemRow": {
+    "primaryText": [
+      { "field": "nome", "type": "text", "emptySpace": true }
+    ],
+    "secondaryText": [
+      { "field": "stato", "type": "label", "options": "status" }
+    ],
+    "metadata": {
+      "text": [{ "field": "", "type": "", "tooltip": "" }],
+      "label": [{ "field": "", "type": "", "tooltip": "" }]
+    },
+    "secondaryMetadata": []
+  }
+}

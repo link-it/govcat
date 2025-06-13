@@ -58,6 +58,7 @@ import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.ApiApi;
 import org.govway.catalogo.servlets.model.API;
@@ -70,11 +71,13 @@ import org.govway.catalogo.servlets.model.ApiUpdate;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicy;
+import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.ItemApi;
 import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelAllegato;
 import org.govway.catalogo.servlets.model.PagedModelItemApi;
 import org.govway.catalogo.servlets.model.ProprietaCustom;
+import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
@@ -610,7 +613,7 @@ public class APIController implements ApiApi {
 	}
 
 	@Override
-	public ResponseEntity<API> updateApi(UUID idApi, ApiUpdate apiUpdate) {
+	public ResponseEntity<API> updateApi(UUID idApi, ApiUpdate apiUpdate, Boolean force) {
 		try {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
@@ -676,8 +679,12 @@ public class APIController implements ApiApi {
 					this.dettaglioAssembler.toEntityProduzione(apiUpdate.getConfigurazioneProduzione(), entity);
 				}
 
-				this.servizioAuthorization.authorizeModifica(servizio, lstClassiDato);
+				Grant grant = this.servizioDettaglioAssembler.toGrant(entity.getServizio());
 
+				if(!isForce(force, grant.getRuoli())) {
+					this.servizioAuthorization.authorizeModifica(servizio, lstClassiDato);
+				}
+				
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				this.service.save(entity);
@@ -697,6 +704,21 @@ public class APIController implements ApiApi {
 			throw new InternalException(e);
 		}
 	}
+	
+	private List<Ruolo> listRuoloForce = Arrays.asList(Ruolo.GESTORE);
+	
+	private boolean isForce(Boolean force, List<Ruolo> listRuoli) {
+		
+
+		boolean realForce = force != null && force;
+		if(realForce) {
+			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
+				throw new NotAuthorizedException("L'utente deve avere uno dei ruoli ["+listRuoloForce+"] per eseguire la force");
+			}
+		}
+		return realForce;
+	}
+	
 
 	@Override
 	public ResponseEntity<PagedModelAllegato> listAllegatiApi(UUID idApi, String q, String filename,

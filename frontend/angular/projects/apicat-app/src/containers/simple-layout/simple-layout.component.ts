@@ -1,10 +1,11 @@
 import { Component, HostBinding, HostListener } from '@angular/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
+import { ConfigService } from '@linkit/components';
 
 @Component({
   selector: 'app-simple-layout',
   template: '<router-outlet></router-outlet>',
+  standalone: false
 })
 export class SimpleLayoutComponent {
   @HostBinding('class.full-content') get fullContentClass(): boolean {

@@ -37,6 +37,7 @@ import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.SoggettoAuthorization;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
+import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.core.services.UtenteService;
@@ -46,9 +47,12 @@ import org.govway.catalogo.servlets.model.ItemSoggetto;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
 import org.govway.catalogo.servlets.model.PagedModelItemSoggetto;
+import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.SoggettoUpdate;
+import org.govway.catalogo.servlets.model.Utente;
+import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,6 +111,7 @@ public class SoggettiTest {
     private OrganizzazioniController controller;
 
     private static final String UTENTE_GESTORE = "gestore";
+    private static UUID ID_UTENTE_GESTORE;
     private static final String NOME_SOGGETTO = "NomeSoggettoTEST";
 
     @BeforeEach
@@ -115,7 +120,7 @@ public class SoggettiTest {
 
         // Set up the mock security context and authentication
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
+        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
 
         // Configura `coreAuthorization` per essere utilizzato nei test
@@ -123,6 +128,9 @@ public class SoggettiTest {
 
         // Set the security context in the SecurityContextHolder
         SecurityContextHolder.setContext(this.securityContext);
+        
+        InfoProfilo info = CommonUtils.getInfoProfilo(UTENTE_GESTORE, utenteService);
+        ID_UTENTE_GESTORE = UUID.fromString(info.utente.getIdUtente());
     }
 
     @AfterEach
@@ -565,6 +573,53 @@ public class SoggettiTest {
         assertThrows(NotAuthorizedException.class, () -> {
             soggettiController.updateSoggetto(idSoggetto, soggettoUpdate);
         });
+    }
+    
+    @Autowired
+    UtentiController utentiController;
+    
+    @Test
+    public void testCreateDeleteSoggettoCoordinatoreSuccess() {
+    	ResponseEntity<Organizzazione> response = controller.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+    	
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        Soggetto soggetto = soggettiController.createSoggetto(soggettoCreate).getBody();
+        assertEquals(soggetto.getNome(), NOME_SOGGETTO);
+        
+        ResponseEntity<Void> responseDelete = soggettiController.deleteSoggetto(soggetto.getIdSoggetto());
+        assertEquals(HttpStatus.OK, responseDelete.getStatusCode());
+    }
+    
+    @Test
+    public void testCreateSoggettoReferenteServizioErrore() {
+    	ResponseEntity<Organizzazione> response = controller.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+    	UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("unoqualsiasi");
+        
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+        
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+    	
+        SoggettoCreate soggettoCreate = this.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(response.getBody().getIdOrganizzazione());
+        
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+        	soggettiController.createSoggetto(soggettoCreate);
+    	});
+
+        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
     }
 }
 

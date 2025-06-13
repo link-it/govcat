@@ -33,6 +33,7 @@ export class Servizio {
     id_dominio: string | null = null;
     visibilita: string | null = null;
     multi_adesione: boolean = false;
+    eliminabile: boolean = false;
 
     id_gruppo: string | null = null;
     descrizione: string | null = null;
@@ -57,7 +58,7 @@ export class Servizio {
     gruppo: any = null;
     dominio: any = null;
 
-    adesione_consentita: boolean = true;
+    adesione_disabilitata: boolean = false;
     
     id_organizzazione_interna: number | null = null;
     id_soggetto_interno: number | null = null;

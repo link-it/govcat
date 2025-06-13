@@ -71,6 +71,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<TipoServizio> tipo = Optional.empty();
 	private Optional<UUID> idApi = Optional.empty();
 	private Optional<UtenteEntity> utente = Optional.empty();
+	private Optional<Boolean> utenteAdmin = Optional.empty();
 	private Optional<Boolean> aderibili = Optional.empty();
 	private List<String> stati = null;
 	private List<String> statiAderibili = new ArrayList<>();
@@ -214,7 +215,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 			}
 			
 			predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
-			predLst.add(cb.equal(root.get(ServizioEntity_.adesioneConsentita), true));
+			predLst.add(cb.equal(root.get(ServizioEntity_.adesioneDisabilitata), false));
 		}
 		
 		if(tag != null && !tag.isEmpty()) {
@@ -284,8 +285,6 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 			predLst.add(cb.or(predLstUtente.toArray(new Predicate[] {})));
 
-			predLst.add(cb.notEqual(root.get(ServizioEntity_.stato), "archiviato"));
-			
 			Predicate visibilitaNonComponente = cb.not(cb.equal(root.get(ServizioEntity_.visibilita), VISIBILITA.COMPONENTE)); 
 			Predicate visibilitaNull = cb.isNull(root.get(ServizioEntity_.visibilita)); 
 			
@@ -293,6 +292,9 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 		}
 
+		if(this.utenteAdmin.isPresent() && !this.utenteAdmin.get()) {
+			predLst.add(cb.notEqual(root.get(ServizioEntity_.stato), "archiviato"));
+		}
 		
 		return predLst;
 	}
@@ -471,6 +473,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setTipo(Optional<TipoServizio> tipo) {
 		this.tipo = tipo;
+	}
+
+	public Optional<Boolean> getUtenteAdmin() {
+		return utenteAdmin;
+	}
+
+	public void setUtenteAdmin(Optional<Boolean> utenteAdmin) {
+		this.utenteAdmin = utenteAdmin;
 	}
 
 }

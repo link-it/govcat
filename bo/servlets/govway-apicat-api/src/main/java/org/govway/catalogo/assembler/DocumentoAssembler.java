@@ -77,7 +77,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 	    // Se è stata specificata una versione
 	    if (versioneSpecificata != null) {
 	        Optional<DocumentoEntity> documentoConVersione = storicoEntities.stream()
-	            .filter(doc -> doc.getVersione().equals(versioneSpecificata))
+	            .filter(doc -> doc.getVersione().longValue() == versioneSpecificata)
 	            .findFirst();
 
 	        // Se il documento con la versione specificata è trovato
@@ -120,7 +120,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 		
 		entity.setUuid(UUID.randomUUID().toString());
 		entity.setDataCreazione(new Date());
-		entity.setUtenteCreazione(u.getIdUtente());
+		entity.setUtenteCreazione(u.getPrincipal());
 		entity.setVersione(1);
 
 		if(src.getFilename()!=null) {
@@ -178,7 +178,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 		
 		if(actual == null) {
 			entity.setDataCreazione(new Date());
-			entity.setUtenteCreazione(u.getIdUtente());
+			entity.setUtenteCreazione(u.getPrincipal());
 			entity.setUuid(UUID.randomUUID().toString());
 	        entity.setVersione(1);
 		} else {
@@ -189,7 +189,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 	        entity.setVersione(actual.getVersione() + 1); // Incrementa la versione
 			
 			entity.setDataUltimaModifica(new Date());
-			entity.setUtenteUltimaModifica(u.getIdUtente());
+			entity.setUtenteUltimaModifica(u.getPrincipal());
 		}
 		
 		if(src.getFilename()!=null) {
@@ -197,12 +197,13 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 		} else {
 			entity.setFilename("N_A_");
 		}
-		if(src.getContentType() != null) {
-			entity.setTipo(src.getContentType());
-		} else {
-			String contentType = this.tika.detect(src.getContent());
-			entity.setTipo(contentType);
-		}
+
+		String contentType = (src.getContentType() != null && !src.getContentType().isEmpty()) 
+			    ? src.getContentType() 
+			    : this.tika.detect(src.getContent());
+
+		entity.setTipo(contentType);
+
 		entity.setRawData(Base64.getDecoder().decode(src.getContent()));
 		
 		return entity;

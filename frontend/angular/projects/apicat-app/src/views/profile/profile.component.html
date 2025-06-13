@@ -1,392 +1,557 @@
 <div id="route-section" class="">
-  <div class="alert-wrapper gp-force-block-formatting-context">
-    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
-  </div>
-  <div class="top-area">
-    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
-      <div class="">
-        <ul role="tablist" class="nav gp-border-b-0 gp-tabs-nav">
-          <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isProfile" (click)="_showProfile()">
-              <span>{{ 'APP.PROFILE.TAB.Profile' | translate }}</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a role="tab" tabindex="-1" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isProfile" (click)="_showSettings()">
-              <span>{{ 'APP.PROFILE.TAB.Settings' | translate }}</span>
-            </a>
-          </li>
-        </ul>
-      </div>
+    <div class="alert-wrapper gp-force-block-formatting-context">
+        <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     </div>
-  </div>
-  <section id="cotainer-scronller" class="container-fluid container-scroller container-scroller-no-search px-0">
-    <div class="row">
-      <ui-box-message *ngIf="!profile && !_spin"
-        [size]="64"
-        [icon]="'report_problem'"
-        [image]="'./assets/images/illustrations/profile.svg'"
-        [message]="_message | translate"
-        [subMessage]="_messageHelp | translate">
-      </ui-box-message>
-
-      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
-
-      <div class="row justify-content-center" *ngIf="!_spin && profile">
-        <div class="col-xs-12 col-lg-12 mx-auto">
-          <div class="profile" *ngIf="_isProfile">
-            <div class="container py-5">
-              <div class="row">
-                <div class="col-lg-4">
-                  <div class="card mb-4">
-                    <div class="card-body text-center">
-                      <img ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
-                      <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
-                      <h6 class="my-3" [title]="profile?.id_utente" *ngIf="false">{{ profile?.username }}</h6>
-                      <p class="text-muted mb-1">
-                        <span class="badge badge-secondary text-uppercase">
-                          {{ profile.ruolo }}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <div class="card mb-4 mb-lg-0" *ngIf="false">
-                    <div class="card-body p-0">
-                      <ul class="list-group list-group-flush rounded-3">
-                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                          <i class="bi bi-globe text-warning"></i>
-                          <p class="mb-0">https://link.it</p>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                          <i class="bi bi-github" style="color: #333333;"></i>
-                          <p class="mb-0">linkit</p>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                          <i class="bi bi-twitter" style="color: #55acee;"></i>
-                          <p class="mb-0">linkit</p>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                          <i class="bi bi-instagram" style="color: #ac2bac;"></i>
-                          <p class="mb-0">linkit</p>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                          <i class="bi bi-facebook" style="color: #3b5998;"></i>
-                          <p class="mb-0">linkit</p>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-lg-8">
-                  <div class="card mb-4">
-                    <div class="card-body">
-                      <ul class="list-group list-group-flush">
-                        <li class="list-group-item py-3" *ngIf="profile?.organizzazione">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Organization' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.organizzazione?.nome }}</p>
-                              <p class="text-muted mb-0" *ngIf="profile?.organizzazione?.descrizione !== profile?.organizzazione?.nome">{{ profile?.organizzazione?.descrizione }}</p>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="list-group-item py-3" *ngIf="false">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Username' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.username }}</p>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="list-group-item py-3" *ngIf="profile?.email">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Email' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.email }}</p>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="list-group-item py-3" *ngIf="profile?.email_aziendale">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.EmailAziendale' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.email_aziendale }}</p>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="list-group-item py-3" *ngIf="profile?.telefono">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Telefono' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.telefono }}</p>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="list-group-item py-3" *ngIf="profile?.telefono_aziendale">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.TelefonoAziendale' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.telefono_aziendale }}</p>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="list-group-item py-3" *ngIf="profile?.mobile">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Mobile' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.mobile }}</p>
-                            </div>
-                          </div>
-                        </li>
-                        <li class="list-group-item py-3" *ngIf="profile?.address">
-                          <div class="row">
-                            <div class="col-sm-3">
-                              <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Address' | translate }}</p>
-                            </div>
-                            <div class="col-sm-9">
-                              <p class="text-muted mb-0">{{ profile?.address }}</p>
-                            </div>
-                          </div>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div class="row" *ngIf="false">
-                    <div class="col-md-6">
-                      <div class="card mb-4 mb-md-0">
-                        <div class="card-body">
-                          <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project Status
-                          </p>
-                          <p class="mb-1" style="font-size: .77rem;">Web Design</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
-                          <div class="progress rounded mb-2" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="card mb-4 mb-md-0">
-                        <div class="card-body">
-                          <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project Status
-                          </p>
-                          <p class="mb-1" style="font-size: .77rem;">Web Design</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
-                          <div class="progress rounded" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                          <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
-                          <div class="progress rounded mb-2" style="height: 5px;">
-                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
-                              aria-valuemax="100"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+    <div class="top-area">
+        <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+            <div class="">
+                <ul class="nav gp-border-b-0 gp-tabs-nav" *ngIf="!isEdit">
+                    <li class="nav-item">
+                        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="isProfile" (click)="_showProfile()" [attr.aria-label]="'APP.PROFILE.TAB.Profile' | translate">
+                            <span>{{ 'APP.PROFILE.TAB.Profile' | translate }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!isProfile" (click)="_showSettings()" [attr.aria-label]="'APP.PROFILE.TAB.Settings' | translate">
+                            <span>{{ 'APP.PROFILE.TAB.Settings' | translate }}</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
-          </div>
-          <div class="settings" *ngIf="!_isProfile">
-            <div class="container py-5" *ngIf="settings">
-              <div class="row gl-mt-3 js-preferences-form servizi">
-                <div class="col-lg-4">
-                  <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Services' | translate }}</h4>
-                  <p>{{ 'APP.SETTINGS.TITLE.Services_sub' | translate }}</p>
-                </div>
-                <div class="col-lg-8">
-                  <form class="edit_user" id="profile-preferences-form">
-                    <div class="form-group">
-                      <label class="label-bold" for="user_layout">{{ 'APP.SETTINGS.LABEL.View' | translate }}</label>
-                      <select class="form-select" name="servizi_view" id="servizi_view" [(ngModel)]="settings.servizi.view" (ngModelChange)="_updateSettings($event, 'servizi_view')">
-                        <option selected="selected" value="card">{{ 'APP.SETTINGS.LABEL.Card' | translate }}</option>
-                        <option value="list">{{ 'APP.SETTINGS.LABEL.List' | translate }}</option>
-                      </select>
-                      <div class="form-text text-muted">
-                        <ui-input-help field="servizi_view" context="SETTINGS"></ui-input-help>
-                      </div>
-                    </div>
-
-                    <div class="form-group">
-                      <label class="label-bold">{{ 'APP.SETTINGS.LABEL.OptionsCard' | translate }}</label>
-                      <div class="gl-form-checkbox custom-control custom-checkbox">
-                        <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_image" id="servizi_image"  [(ngModel)]="settings.servizi.showImage" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_image')">
-                        <label class="custom-control-label" for="servizi_image"><span>{{ 'APP.SETTINGS.LABEL.ShowImage' | translate }}</span></label>
-                      </div>
-                      <div class="gl-form-checkbox custom-control custom-checkbox">
-                        <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showEmptyImage" name="servizi_emptyimage" id="servizi_emptyimage" [(ngModel)]="settings.servizi.showEmptyImage" [disabled]="!settings.servizi.showImage || settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_emptyimage')">
-                        <label class="custom-control-label" for="servizi_emptyimage"><span>{{ 'APP.SETTINGS.LABEL.ShowEmptyImage' | translate }}</span></label>
-                      </div>
-                      <div class="gl-form-checkbox custom-control custom-checkbox">
-                        <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_fillBox" id="servizi_fillBox" [(ngModel)]="settings.servizi.fillBox" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_fillBox')">
-                        <label class="custom-control-label" for="servizi_fillBox"><span>{{ 'APP.SETTINGS.LABEL.FillBox' | translate }}</span></label>
-                      </div>
-                      <div class="gl-form-checkbox custom-control custom-checkbox">
-                        <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showMasonry" name="servizi_showmasonry" id="servizi_showmasonry" [(ngModel)]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_showmasonry')">
-                        <label class="custom-control-label" for="servizi_showmasonry"><span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span></label>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <div class="col-sm-12">
-                  <hr>
-                </div>
-              </div>
-              <div class="row gl-mt-3 js-preferences-form notifiche">
-                <div class="col-lg-4">
-                  <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Notifications' | translate }}</h4>
-                  <p>{{ 'APP.SETTINGS.TITLE.Notifications_sub' | translate }}</p>
-                </div>
-                <div class="col-lg-8">
-                  <form novalidate class="issue-form common-note-form gl-show-field-errors gfm-form" [formGroup]="_formSettingsSettings" (submit)="_onSubmit(_formSettingsSettings.value)">
-                    <div class="form-group enable_notifications ms-4 mb-5">
-                      <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="enable_notifications" name="enable_notifications" formControlName="enable_notifications">
-                        <label class="form-check-label ms-3" for="enable_notifications">{{ 'APP.SETTINGS.LABEL.EnableNotifications' | translate }}</label>
-                      </div>
-                    </div>
-                    <!-- emetti_per_tipi  -->
-                    <div class="form-group">
-                      <label class="label-bold" for="emetti_per_tipi">{{ 'APP.SETTINGS.LABEL.EmettiPerTipi' | translate }}</label>
-                    </div>
-                    <div class="px-3 pb-3">
-                      <div class="gl-form-radio custom-control custom-radio form-check-inline">
-                        <input class="custom-control-input" type="radio" name="emetti_per_tipi_for_all" id="emetti_per_tipi_for_all_1" [value]="true" formControlName="emetti_per_tipi_for_all">
-                        <label class="custom-control-label" for="emetti_per_tipi_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
-                      </div>
-                      <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
-                        <input class="custom-control-input" type="radio" name="emetti_per_tipi_for_all" id="emetti_per_tipi_for_all_2" [value]="false" formControlName="emetti_per_tipi_for_all">
-                        <label class="custom-control-label" for="emetti_per_tipi_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
-                      </div> -->
-                    </div>
-                    <div class="form-group mb-4 pb-1">
-                      <label class="label-bold ms-3" for="emetti_per_tipi">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
-                      <div class="ms-3" checkboxArray formControlName="emetti_per_tipi">
-                        <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_tipi">
-                          <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
-                          <label class="custom-control-label" [for]="option.value">
-                            {{ option.label | translate }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-sm-12">
-                      <hr>
-                    </div>
-                        <!-- emetti_per_entita  -->
-                    <div class="form-group">
-                      <label class="label-bold" for="emetti_per_entita">{{ 'APP.SETTINGS.LABEL.EmettiPerEntita' | translate }}</label>
-                    </div>
-                    <div class="px-3 pb-3">
-                      <div class="gl-form-radio custom-control custom-radio form-check-inline">
-                        <input class="custom-control-input" type="radio" name="emetti_per_entita_for_all" id="emetti_per_entita_for_all_1" [value]="true" formControlName="emetti_per_entita_for_all">
-                        <label class="custom-control-label" for="emetti_per_entita_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
-                      </div>
-                      <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
-                        <input class="custom-control-input" type="radio" name="emetti_per_entita_for_all" id="emetti_per_entita_for_all_2" [value]="false" formControlName="emetti_per_entita_for_all">
-                        <label class="custom-control-label" for="emetti_per_entita_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
-                      </div> -->
-                    </div>
-                    <div class="form-group mb-4 pb-1">
-                      <label class="label-bold ms-3" for="emetti_per_entita">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
-                      <div class="ms-3" checkboxArray formControlName="emetti_per_entita">
-                        <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_entita">
-                          <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
-                          <label class="custom-control-label" [for]="option.value">
-                            {{ option.label | translate }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-sm-12">
-                      <hr>
-                    </div>
-                        <!-- emetti_per_ruoli  -->
-                    <div class="form-group">
-                      <label class="label-bold" for="emetti_per_ruoli">{{ 'APP.SETTINGS.LABEL.EmettiPerRuoli' | translate }}</label>
-                    </div>
-                    <div class="px-3 pb-3">
-                      <div class="gl-form-radio custom-control custom-radio form-check-inline">
-                        <input class="custom-control-input" type="radio" name="emetti_per_ruoli_for_all" id="emetti_per_ruoli_for_all_1" [value]="true" formControlName="emetti_per_ruoli_for_all">
-                        <label class="custom-control-label" for="emetti_per_ruoli_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
-                      </div>
-                      <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
-                        <input class="custom-control-input" type="radio" name="emetti_per_ruoli_for_all" id="emetti_per_ruoli_for_all_2" [value]="false" formControlName="emetti_per_ruoli_for_all">
-                        <label class="custom-control-label" for="emetti_per_ruoli_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
-                      </div> -->
-                    </div>
-                    <div class="form-group mb-4 pb-1">
-                      <label class="label-bold ms-3" for="emetti_per_ruoli">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
-                      <div class="ms-3" checkboxArray formControlName="emetti_per_ruoli">
-                        <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_ruoli">
-                          <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
-                          <label class="custom-control-label" [for]="option.value">
-                            {{ option.label | translate }}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <div class="col-sm-12">
-                  <hr>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-  
+        <div class="nav-controls" *ngIf="isProfile">
+            <div class="position-relative me-2 d-flex gap-2" *ngIf="!spin && !error">
+                <lnk-button *ngIf="!isEdit && !spin"
+                    [label]="'APP.BUTTON.Modify'"
+                    [ariaLabel]="'APP.BUTTON.Modify'"
+                    [icon]="'bi bi-pencil'"
+                    [onlyIcon]="true"
+                    [btnTooltip]="'APP.TOOLTIP.Modify'"
+                    [otherClass]="''"
+                    (onAction)="onEdit()"
+                ></lnk-button>
+                <lnk-button *ngIf="isEdit && !spin"
+                    [label]="'APP.BUTTON.Cancel'"
+                    [btnTooltip]="'APP.TOOLTIP.CancelEdit'" 
+                    [ariaLabel]="'APP.TOOLTIP.CancelEdit'"
+                    [icon]="'bi bi-x-lg'"
+                    [onlyIcon]="true"
+                    [tertiary]="true"
+                    (onAction)="onCancelEdit()"
+                ></lnk-button>
+            </div>
+        </div>
     </div>
-  </section>
+
+    <section id="cotainer-scronller" class="container-fluid container-scroller container-scroller-no-search px-0">
+        <div class="row">
+        <ui-box-message *ngIf="!profile && !spin"
+            [size]="64"
+            [icon]="'report_problem'"
+            [image]="'./assets/images/illustrations/profile.svg'"
+            [message]="_message | translate"
+            [subMessage]="_messageHelp | translate">
+        </ui-box-message>
+
+        <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="spin"></ui-box-spinner>
+
+        <div class="row justify-content-center" *ngIf="!spin && profile">
+            <div class="col-xs-12 col-lg-12 mx-auto">
+                <div class="profile" *ngIf="isProfile">
+                    <div class="container py-5" *ngIf="!isEdit">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="card mb-4">
+                                    <div class="card-body text-center">
+                                        <img ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
+                                        <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
+                                        <h6 class="my-3" [title]="profile?.id_utente" *ngIf="false">{{ profile?.principal }}</h6>
+                                        <p class="text-muted mb-1" *ngIf="false">
+                                            <span class="badge badge-secondary text-uppercase">
+                                                {{ profile.ruolo }}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="card mb-4 mb-lg-0" *ngIf="false">
+                                    <div class="card-body p-0">
+                                        <ul class="list-group list-group-flush rounded-3">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                                <i class="bi bi-globe text-warning"></i>
+                                                <p class="mb-0">https://link.it</p>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                                <i class="bi bi-github" style="color: #333333;"></i>
+                                                <p class="mb-0">linkit</p>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                                <i class="bi bi-twitter" style="color: #55acee;"></i>
+                                                <p class="mb-0">linkit</p>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                                <i class="bi bi-instagram" style="color: #ac2bac;"></i>
+                                                <p class="mb-0">linkit</p>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                                                <i class="bi bi-facebook" style="color: #3b5998;"></i>
+                                                <p class="mb-0">linkit</p>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="card mb-4">
+                                    <div class="card-body">
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item py-3" *ngIf="profile?.organizzazione">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Organization' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.organizzazione?.nome }}</p>
+                                                        <p class="text-muted mb-0" *ngIf="profile?.organizzazione?.descrizione !== profile?.organizzazione?.nome">{{ profile?.organizzazione?.descrizione }}</p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="false">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Principal' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.principal }}</p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.email">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Email' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.email }}</p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.email_aziendale">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.EmailAziendale' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.email_aziendale }}</p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.telefono">
+                                            <div class="row">
+                                                <div class="col-sm-3">
+                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Telefono' | translate }}</p>
+                                                </div>
+                                                <div class="col-sm-9">
+                                                <p class="text-muted mb-0">{{ profile?.telefono }}</p>
+                                                </div>
+                                            </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.telefono_aziendale">
+                                            <div class="row">
+                                                <div class="col-sm-3">
+                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.TelefonoAziendale' | translate }}</p>
+                                                </div>
+                                                <div class="col-sm-9">
+                                                <p class="text-muted mb-0">{{ profile?.telefono_aziendale }}</p>
+                                                </div>
+                                            </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.mobile">
+                                            <div class="row">
+                                                <div class="col-sm-3">
+                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Mobile' | translate }}</p>
+                                                </div>
+                                                <div class="col-sm-9">
+                                                <p class="text-muted mb-0">{{ profile?.mobile }}</p>
+                                                </div>
+                                            </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.address">
+                                            <div class="row">
+                                                <div class="col-sm-3">
+                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Address' | translate }}</p>
+                                                </div>
+                                                <div class="col-sm-9">
+                                                <p class="text-muted mb-0">{{ profile?.address }}</p>
+                                                </div>
+                                            </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="row" *ngIf="false">
+                                    <div class="col-md-6">
+                                    <div class="card mb-4 mb-md-0">
+                                        <div class="card-body">
+                                        <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project Status
+                                        </p>
+                                        <p class="mb-1" style="font-size: .77rem;">Web Design</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
+                                        <div class="progress rounded mb-2" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                    <div class="card mb-4 mb-md-0">
+                                        <div class="card-body">
+                                        <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project Status
+                                        </p>
+                                        <p class="mb-1" style="font-size: .77rem;">Web Design</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
+                                        <div class="progress rounded" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
+                                        <div class="progress rounded mb-2" style="height: 5px;">
+                                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
+                                            aria-valuemax="100"></div>
+                                        </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container py-5 settings mt-0" *ngIf="isEdit">
+                        <div class="settings-content">
+                            <form [formGroup]="formGroup" (ngSubmit)="submitProfile(formGroup.value)" class="pb-5">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <lnk-form-field
+                                            name="principal"
+                                            [label]="'APP.USERS.LABEL.Principal' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.principal"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                            [disabled]="true"
+                                        ></lnk-form-field>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <lnk-form-field
+                                            name="nome"
+                                            [label]="'APP.USERS.LABEL.Nome' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.nome"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                        ></lnk-form-field>
+                                    </div>
+                                    <div class="col-6">
+                                        <lnk-form-field
+                                            name="cognome"
+                                            [label]="'APP.USERS.LABEL.Cognome' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.nome"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                        ></lnk-form-field>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <lnk-form-field
+                                            name="telefono"
+                                            [label]="'APP.USERS.LABEL.Phone' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.telefono"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                        ></lnk-form-field>
+                                    </div>
+                                    <div class="col-6">
+                                        <lnk-form-field
+                                            name="email"
+                                            [label]="'APP.USERS.LABEL.Email' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.email"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                        ></lnk-form-field>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <lnk-form-field
+                                            name="telefono_aziendale"
+                                            [label]="'APP.USERS.LABEL.CorporatePhone' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.telefono_aziendale"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                        ></lnk-form-field>
+                                    </div>
+                                    <div class="col-6">
+                                        <lnk-form-field
+                                            name="email_aziendale"
+                                            [label]="'APP.USERS.LABEL.CorporateEmail' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.email_aziendale"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                        ></lnk-form-field>
+                                    </div>
+                                </div>
+                                <!-- <div class="row">
+                                    <div class="col-12">
+                                        <lnk-form-field
+                                            type="textarea"
+                                            name="note"
+                                            [label]="'APP.USERS.LABEL.Note' | translate"
+                                            [isEdit]="isEdit"
+                                            [formGroup]="formGroup"
+                                            [value]="profile?.note"
+                                            [inline]="false"
+                                            [singleColumn]="true"
+                                            [plainText]="true"
+                                            [options]="optionsForm"
+                                            [labelAlignRight]="false"
+                                        ></lnk-form-field>
+                                    </div>
+                                </div> -->
+
+                                <div class="settings-content">
+
+                                    <lnk-form-error [message]="errorMsg" *ngIf="isEdit && error"></lnk-form-error>
+
+                                    <lnk-form-submit *ngIf="isEdit"
+                                        [submitLabel]="'APP.BUTTON.Save'"
+                                        [cancelLabel]="'APP.BUTTON.Cancel'"
+                                        [disabled]="formGroup.invalid || saving"
+                                        (cancel)="onCancelEdit()"
+                                    ></lnk-form-submit>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings" *ngIf="!isProfile">
+                    <div class="container py-5" *ngIf="settings">
+                        <div class="row gl-mt-3 js-preferences-form servizi">
+                            <div class="col-lg-4">
+                                <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Services' | translate }}</h4>
+                                <p>{{ 'APP.SETTINGS.TITLE.Services_sub' | translate }}</p>
+                            </div>
+                            <div class="col-lg-8">
+                                <form class="edit_user" id="profile-preferences-form">
+                                    <div class="form-group">
+                                        <label class="label-bold" for="user_layout">{{ 'APP.SETTINGS.LABEL.View' | translate }}</label>
+                                        <select class="form-select" name="servizi_view" id="servizi_view" [(ngModel)]="settings.servizi.view" (ngModelChange)="_updateSettings($event, 'servizi_view')">
+                                            <option selected="selected" value="card">{{ 'APP.SETTINGS.LABEL.Card' | translate }}</option>
+                                            <option value="list">{{ 'APP.SETTINGS.LABEL.List' | translate }}</option>
+                                        </select>
+                                        <div class="form-text text-muted">
+                                            <ui-input-help field="servizi_view" context="SETTINGS"></ui-input-help>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.OptionsCard' | translate }}</label>
+                                        <div class="gl-form-checkbox custom-control custom-checkbox">
+                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_image" id="servizi_image"  [(ngModel)]="settings.servizi.showImage" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_image')">
+                                            <label class="custom-control-label" for="servizi_image"><span>{{ 'APP.SETTINGS.LABEL.ShowImage' | translate }}</span></label>
+                                        </div>
+                                        <div class="gl-form-checkbox custom-control custom-checkbox">
+                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showEmptyImage" name="servizi_emptyimage" id="servizi_emptyimage" [(ngModel)]="settings.servizi.showEmptyImage" [disabled]="!settings.servizi.showImage || settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_emptyimage')">
+                                            <label class="custom-control-label" for="servizi_emptyimage"><span>{{ 'APP.SETTINGS.LABEL.ShowEmptyImage' | translate }}</span></label>
+                                        </div>
+                                        <div class="gl-form-checkbox custom-control custom-checkbox">
+                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_fillBox" id="servizi_fillBox" [(ngModel)]="settings.servizi.fillBox" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_fillBox')">
+                                            <label class="custom-control-label" for="servizi_fillBox"><span>{{ 'APP.SETTINGS.LABEL.FillBox' | translate }}</span></label>
+                                        </div>
+                                        <div class="gl-form-checkbox custom-control custom-checkbox">
+                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showMasonry" name="servizi_showmasonry" id="servizi_showmasonry" [(ngModel)]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_showmasonry')">
+                                            <label class="custom-control-label" for="servizi_showmasonry"><span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span></label>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-sm-12">
+                                <hr>
+                            </div>
+                        </div>
+                        <div class="row gl-mt-3 js-preferences-form notifiche">
+                            <div class="col-lg-4">
+                                <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Notifications' | translate }}</h4>
+                                <p>{{   'APP.SETTINGS.TITLE.Notifications_sub' | translate }}</p>
+                            </div>
+                            <div class="col-lg-8">
+                                    <form novalidate class="issue-form common-note-form gl-show-field-errors gfm-form" [formGroup]="_formSettingsSettings" (submit)="_onSubmit(_formSettingsSettings.value)">
+                                        <div class="form-group enable_notifications ms-4 mb-5">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="enable_notifications" name="enable_notifications" formControlName="enable_notifications">
+                                                <label class="form-check-label ms-3" for="enable_notifications">{{ 'APP.SETTINGS.LABEL.EnableNotifications' | translate }}</label>
+                                            </div>
+                                        </div>
+                                        <!-- emetti_per_tipi  -->
+                                        <div class="form-group">
+                                            <label class="label-bold" for="emetti_per_tipi">{{ 'APP.SETTINGS.LABEL.EmettiPerTipi' | translate }}</label>
+                                        </div>
+                                        <div class="px-3 pb-3">
+                                            <div class="gl-form-radio custom-control custom-radio form-check-inline">
+                                                <input class="custom-control-input" type="radio" name="emetti_per_tipi_for_all" id="emetti_per_tipi_for_all_1" [value]="true" formControlName="emetti_per_tipi_for_all">
+                                                <label class="custom-control-label" for="emetti_per_tipi_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
+                                            </div>
+                                            <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
+                                                <input class="custom-control-input" type="radio" name="emetti_per_tipi_for_all" id="emetti_per_tipi_for_all_2" [value]="false" formControlName="emetti_per_tipi_for_all">
+                                                <label class="custom-control-label" for="emetti_per_tipi_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
+                                            </div> -->
+                                        </div>
+                                        <div class="form-group mb-4 pb-1">
+                                            <label class="label-bold ms-3" for="emetti_per_tipi">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
+                                            <div class="ms-3" checkboxArray formControlName="emetti_per_tipi">
+                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_tipi">
+                                                    <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
+                                                    <label class="custom-control-label" [for]="option.value">
+                                                        {{ option.label | translate }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <hr>
+                                        </div>
+                                            <!-- emetti_per_entita  -->
+                                        <div class="form-group">
+                                            <label class="label-bold" for="emetti_per_entita">{{ 'APP.SETTINGS.LABEL.EmettiPerEntita' | translate }}</label>
+                                        </div>
+                                        <div class="px-3 pb-3">
+                                            <div class="gl-form-radio custom-control custom-radio form-check-inline">
+                                                <input class="custom-control-input" type="radio" name="emetti_per_entita_for_all" id="emetti_per_entita_for_all_1" [value]="true" formControlName="emetti_per_entita_for_all">
+                                                <label class="custom-control-label" for="emetti_per_entita_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
+                                            </div>
+                                            <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
+                                                <input class="custom-control-input" type="radio" name="emetti_per_entita_for_all" id="emetti_per_entita_for_all_2" [value]="false" formControlName="emetti_per_entita_for_all">
+                                                <label class="custom-control-label" for="emetti_per_entita_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
+                                            </div> -->
+                                        </div>
+                                        <div class="form-group mb-4 pb-1">
+                                            <label class="label-bold ms-3" for="emetti_per_entita">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
+                                            <div class="ms-3" checkboxArray formControlName="emetti_per_entita">
+                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_entita">
+                                                    <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
+                                                    <label class="custom-control-label" [for]="option.value">
+                                                        {{ option.label | translate }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-12">
+                                            <hr>
+                                        </div>
+                                            <!-- emetti_per_ruoli  -->
+                                        <div class="form-group">
+                                            <label class="label-bold" for="emetti_per_ruoli">{{ 'APP.SETTINGS.LABEL.EmettiPerRuoli' | translate }}</label>
+                                        </div>
+                                        <div class="px-3 pb-3">
+                                            <div class="gl-form-radio custom-control custom-radio form-check-inline">
+                                                <input class="custom-control-input" type="radio" name="emetti_per_ruoli_for_all" id="emetti_per_ruoli_for_all_1" [value]="true" formControlName="emetti_per_ruoli_for_all">
+                                                <label class="custom-control-label" for="emetti_per_ruoli_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
+                                            </div>
+                                            <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
+                                                <input class="custom-control-input" type="radio" name="emetti_per_ruoli_for_all" id="emetti_per_ruoli_for_all_2" [value]="false" formControlName="emetti_per_ruoli_for_all">
+                                                <label class="custom-control-label" for="emetti_per_ruoli_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
+                                            </div> -->
+                                        </div>
+                                        <div class="form-group mb-4 pb-1">
+                                            <label class="label-bold ms-3" for="emetti_per_ruoli">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
+                                            <div class="ms-3" checkboxArray formControlName="emetti_per_ruoli">
+                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_ruoli">
+                                                    <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
+                                                    <label class="custom-control-label" [for]="option.value">
+                                                        {{ option.label | translate }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="col-sm-12">
+                                    <hr>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>

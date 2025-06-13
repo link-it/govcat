@@ -282,7 +282,7 @@ public class DominiController implements DominiApi {
 						.orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
 
 				this.authorization.authorizeReferenteScrittura(entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				ReferenteDominioEntity referenteEntity = referenteAssembler.toEntity(referente, entity);
 
@@ -353,7 +353,7 @@ public class DominiController implements DominiApi {
 
 
 	@Override
-	public ResponseEntity<Void> deleteReferenteDominio(UUID idDominio, String idUtente, TipoReferenteEnum tipoReferente) {
+	public ResponseEntity<Void> deleteReferenteDominio(UUID idDominio, UUID idUtente, TipoReferenteEnum tipoReferente) {
 		try {
 			return this.service.runTransaction( () -> {
 	
@@ -397,7 +397,7 @@ public class DominiController implements DominiApi {
 	
 				ReferenteDominioSpecification spec = new ReferenteDominioSpecification();
 				spec.setQ(Optional.ofNullable(q));
-				spec.setIdDominio(Optional.of(idDominio));
+				spec.setIdDominio(Optional.of(idDominio.toString()));
 
 				if(tipoReferente!= null) {
 					spec.setTipoReferente(Optional.of(this.referenteAssembler.toTipoReferente(tipoReferente)));

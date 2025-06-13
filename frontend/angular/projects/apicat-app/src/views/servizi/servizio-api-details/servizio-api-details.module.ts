@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
 
-import { VendorsModule } from 'projects/vendors/src/lib/vendors.module';
-import { ComponentsModule } from 'projects/components/src/lib/components.module';
+ import { ComponentsModule } from '@linkit/components';
+import { AppComponentsModule } from '@app/components/components.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 import { DisablePermissionModule } from '@app/directives/disable-permission/disable-permission.module';
@@ -21,8 +21,8 @@ import { ServizioApiDetailsRoutingModule } from './servizio-api-details-routing.
     imports: [
         CommonModule,
         TranslateModule,
-        VendorsModule,
-        ComponentsModule,
+             ComponentsModule,
+        AppComponentsModule,
         MarkAsteriskModule,
         HasPermissionModule,
         DisablePermissionModule,

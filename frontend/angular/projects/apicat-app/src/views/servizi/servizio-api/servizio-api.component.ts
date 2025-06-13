@@ -1,15 +1,14 @@
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from 'projects/tools/src/lib/config.service';
-import { EventsManagerService } from 'projects/tools/src/lib/eventsmanager.service';
-import { Tools } from 'projects/tools/src/lib/tools.service';
+import { ConfigService } from '@linkit/components';
+import { EventsManagerService } from '@linkit/components';
+import { Tools } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from 'projects/components/src/lib/ui/search-bar-form/search-bar-form.component';
+import { SearchBarFormComponent } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -17,12 +16,13 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
-import { EventType } from 'projects/tools/src/lib/classes/events';
+import { EventType } from '@linkit/components';
 
 @Component({
   selector: 'app-servizio-api',
   templateUrl: 'servizio-api.component.html',
-  styleUrls: ['servizio-api.component.scss']
+  styleUrls: ['servizio-api.component.scss'],
+  standalone: false
 })
 export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioApiComponent';
@@ -56,7 +56,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   _editCurrent: any = null;
 
   _hasFilter: boolean = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -86,7 +86,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   breadcrumbs: any[] = [
     { label: 'APP.TITLE.Services', url: '', type: 'link', iconBs: 'grid-3x3-gap' },
     { label: '...', url: '', type: 'link' },
-    { label: 'APP.SERVICES.TITLE.Allegati', url: '', type: 'link' }
+    { label: 'APP.SERVICES.TITLE.API', url: '', type: 'link' }
   ];
 
   _updateMapper: string = '';
@@ -204,8 +204,8 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      id_api: new UntypedFormControl(''),
+    this._formGroup = new FormGroup({
+      id_api: new FormControl(''),
     });
   }
 
@@ -403,6 +403,10 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
 
   _canAddMapper = (): boolean => {
     return this.authenticationService.canAdd('servizio', this.service?.stato, this._grant?.ruoli);
+  }
+
+  _canEditMapper = (): boolean => {
+    return this.authenticationService.canEdit('servizio', 'servizio', this.service?.stato, this._grant?.ruoli);
   }
 
   onActionMonitor(event: any) {

@@ -49,4 +49,5 @@ Thumbs.db
 
 # Custom - Develop
 /@NOTE
-projects/apicat-app/src/assets/config/adesioni-config.json
+
+/projects/apicat-app/src/environments/environment.prod.ts

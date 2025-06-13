@@ -3,7 +3,8 @@ import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 @Component({
   selector: 'lnk-icon-toggle',
   templateUrl: './icon-toggle.component.html',
-  styleUrls: ['./icon-toggle.component.scss']
+  styleUrls: ['./icon-toggle.component.scss'],
+  standalone: false
 })
 export class LnkIconToggleComponent implements OnInit, OnChanges {
 
@@ -15,6 +16,7 @@ export class LnkIconToggleComponent implements OnInit, OnChanges {
   @Input() tooltipUnchecked: string = 'APP.TOOLTIP.ToBeComplete';
   @Input() tooltipIndeterminate: string = 'APP.TOOLTIP.Indeterminate';
   @Input() loading: boolean = false;
+  @Input() hide: boolean = false;
 
   iconClass: string = '';
   tooltip: string = '';

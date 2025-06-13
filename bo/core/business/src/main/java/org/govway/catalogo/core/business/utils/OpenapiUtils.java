@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.core.business.utils;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -35,54 +37,65 @@ public class OpenapiUtils {
 
 	public static boolean isOpenapi(byte[] openapiBytes) {
 		try {
-			SwaggerParseResult pr = new OpenAPIV3Parser().readContents(new String(openapiBytes));
-			
-			return pr.getOpenAPI()!=null;
+
+			return getOpenAPI(openapiBytes)!=null;
 		} catch(RuntimeException e) {
 			return false;
 		} catch(Throwable e) {
 			return false;
 		}
-
 	}
+
+	private static OpenAPI getOpenAPI(byte[] openapi) throws IOException {
+
+		byte[] minimalOpenApi = YamltoJsonUtils.convertYamlToJson(openapi);
+
+		SwaggerParseResult pr = new OpenAPIV3Parser().readContents(new String(minimalOpenApi));
+
+		return pr.getOpenAPI();
+	}
+
 	public static List<ResourceInfo> getProtocolInfoFromOpenapi(byte[] openapiBytes) throws Exception {
-		
+
 		try {
 			Set<ResourceInfo> resources = new HashSet<>();
-	
-			SwaggerParseResult pr = new OpenAPIV3Parser().readContents(new String(openapiBytes));
-			for(Entry<String, PathItem> entry: pr.getOpenAPI().getPaths().entrySet()) {
-	
-				String path = entry.getKey();
-				
-				PathItem pathV = entry.getValue();
-				
-				if(pathV.getGet()!=null) {
-					List<String> lst = getContentTypes(pathV.getGet());
-					resources.add(newResourceInfo("GET", path, lst));
-				}
-				if(pathV.getPost()!=null) {
-					List<String> lst = getContentTypes(pathV.getPost());
-					resources.add(newResourceInfo("POST", path, lst));
-				}
-				if(pathV.getPut()!=null) {
-					List<String> lst = getContentTypes(pathV.getPut());
-					resources.add(newResourceInfo("PUT", path, lst));
-				}
-				if(pathV.getHead()!=null) {
-					List<String> lst = getContentTypes(pathV.getHead());
-					resources.add(newResourceInfo("HEAD", path, lst));
-				}
-				if(pathV.getDelete()!=null) {
-					List<String> lst = getContentTypes(pathV.getDelete());
-					resources.add(newResourceInfo("DELETE", path, lst));
-				}
-				if(pathV.getPatch()!=null) {
-					List<String> lst = getContentTypes(pathV.getPatch());
-					resources.add(newResourceInfo("PATCH", path, lst));
+
+			OpenAPI openapi = getOpenAPI(openapiBytes);
+			
+			if(openapi.getPaths()!= null) {
+				for(Entry<String, PathItem> entry: openapi.getPaths().entrySet()) {
+
+					String path = entry.getKey();
+
+					PathItem pathV = entry.getValue();
+
+					if(pathV.getGet()!=null) {
+						List<String> lst = getContentTypes(pathV.getGet());
+						resources.add(newResourceInfo("GET", path, lst));
+					}
+					if(pathV.getPost()!=null) {
+						List<String> lst = getContentTypes(pathV.getPost());
+						resources.add(newResourceInfo("POST", path, lst));
+					}
+					if(pathV.getPut()!=null) {
+						List<String> lst = getContentTypes(pathV.getPut());
+						resources.add(newResourceInfo("PUT", path, lst));
+					}
+					if(pathV.getHead()!=null) {
+						List<String> lst = getContentTypes(pathV.getHead());
+						resources.add(newResourceInfo("HEAD", path, lst));
+					}
+					if(pathV.getDelete()!=null) {
+						List<String> lst = getContentTypes(pathV.getDelete());
+						resources.add(newResourceInfo("DELETE", path, lst));
+					}
+					if(pathV.getPatch()!=null) {
+						List<String> lst = getContentTypes(pathV.getPatch());
+						resources.add(newResourceInfo("PATCH", path, lst));
+					}
 				}
 			}
-	
+			
 			return resources.stream().collect(Collectors.toList());
 		} catch(RuntimeException e) {
 			throw new Exception("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
@@ -91,7 +104,7 @@ public class OpenapiUtils {
 		}
 
 	}
-	
+
 	private static List<String> getContentTypes(Operation oper) {
 		return oper.getRequestBody() != null ? oper.getRequestBody().getContent().entrySet().stream().map(c -> {
 			return c.getKey();
@@ -100,11 +113,11 @@ public class OpenapiUtils {
 
 	private static ResourceInfo newResourceInfo(String op, String path, List<String> contentTypes) {
 		ResourceInfo operationInfo = new ResourceInfo();
-		
+
 		operationInfo.setOp(op);
 		operationInfo.setPath(path);
 		operationInfo.setContentTypes(contentTypes);
-		
+
 		return operationInfo;
 	}
 

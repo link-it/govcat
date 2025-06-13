@@ -122,25 +122,30 @@ public class AbstractService {
 
 		TransactionStatus transaction = null;
 		try {
-			TransactionTemplate template = new TransactionTemplate(this.txManager);
-			transaction = this.txManager.getTransaction(template);
-			T ret = supplier.get();
-			this.logger.info("Eseguo il commit...");    
-			
-			this.txManager.commit(transaction);
-			this.logger.info("Commit effettuato");
-			return ret;
+		    TransactionTemplate template = new TransactionTemplate(this.txManager);
+		    transaction = this.txManager.getTransaction(template);
+		    T ret = supplier.get();
+		    this.logger.info("Eseguo il commit...");    
+
+		    this.txManager.commit(transaction);
+		    this.logger.info("Commit effettuato");
+		    return ret;
 
 		} catch (Throwable e) {
-			this.logger.error("Eccezione durante la transazione " + transaction + ". Completed: " + transaction.isCompleted());     
-			if (transaction != null && !transaction.isCompleted()) {
-				this.logger.info("Eseguo il rollback...");     
-				this.txManager.rollback(transaction);
-				this.logger.info("Rollback eseguito");     
-			}
-			// TODO: Catchare le ecezioni relative ai metodi commit,rollback e
-			// getTransaction
-			throw (e);
+		    if (transaction != null) {
+		        this.logger.error("Eccezione durante la transazione " + transaction + ". Completed: " + transaction.isCompleted());
+		        
+		        if (!transaction.isCompleted()) {
+		            this.logger.info("Eseguo il rollback...");     
+		            this.txManager.rollback(transaction);
+		            this.logger.info("Rollback eseguito");     
+		        }
+		    } else {
+		        this.logger.error("Eccezione durante la transazione: transaction è null", e);
+		    }
+		    // TODO: Catchare le ecezioni relative ai metodi commit,rollback e
+		 	// getTransaction
+		    throw e; // Rilancia l'eccezione per non nascondere il problema
 		}
 	}
 
@@ -156,11 +161,15 @@ public class AbstractService {
 			this.txManager.commit(transaction);
 			this.logger.info("Commit effettuato");
 		} catch (Throwable e) {
-			this.logger.error("Eccezione durante la transazione " + transaction + ". Completed: " + transaction.isCompleted());     
-			if (transaction != null && !transaction.isCompleted()) {
-				this.logger.info("Eseguo il rollback...");     
-				this.txManager.rollback(transaction);
-				this.logger.info("Rollback eseguito");     
+			if (transaction != null) {
+				this.logger.error("Eccezione durante la transazione " + transaction + ". Completed: " + transaction.isCompleted());     
+				if (transaction != null && !transaction.isCompleted()) {
+					this.logger.info("Eseguo il rollback...");     
+					this.txManager.rollback(transaction);
+					this.logger.info("Rollback eseguito");     
+				}
+			} else {
+				this.logger.error("Eccezione durante la transazione: transaction è null", e);
 			}
 			// TODO: Catchare le ecezzioni relative ai metodi commit,rollback e
 			// getTransaction
