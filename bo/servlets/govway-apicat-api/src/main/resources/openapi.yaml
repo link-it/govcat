@@ -5557,7 +5557,7 @@ components:
        - api_soggetto_dominio
        - api_soggetto_aderente
       default: adesione
-    ConfigurazioneCustomProprietaVetrina:
+    ConfigurazioneVetrina:
       type: "object"
       required:
         - label
@@ -5582,7 +5582,7 @@ components:
         tipo:
           $ref: "#/components/schemas/TipoConfigurazioneCustomProprieta"
         vetrina:
-          $ref: "#/components/schemas/ConfigurazioneCustomProprietaVetrina"
+          $ref: "#/components/schemas/ConfigurazioneVetrina"
         required:
           type: boolean
       discriminator:
@@ -5825,6 +5825,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneCustomProprietaList"
+        vetrina:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneVetrina"
     ConfigurazioneTipoPolicyEnum:
       type: "string"
       enum:
