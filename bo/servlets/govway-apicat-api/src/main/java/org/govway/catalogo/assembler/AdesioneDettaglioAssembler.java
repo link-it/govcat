@@ -329,6 +329,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setServizio(getServizio(src.getIdServizio()));
 		entity.setSoggetto(getSoggetto(src.getIdSoggetto()));
 
+		setSkipCollaudo(src.isSkipCollaudo(), entity);
+
 		check(entity);
 
 		if(src.getReferenti()!=null) {
