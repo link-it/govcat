@@ -5585,6 +5585,9 @@ components:
           $ref: "#/components/schemas/ConfigurazioneVetrina"
         required:
           type: boolean
+        index:
+          type: number
+          format: int32
       discriminator:
         propertyName: "tipo"
         mapping:
