@@ -12,6 +12,7 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { NgxMasonryModule } from 'ngx-masonry';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { HeadBarComponent } from './head-bar/head-bar.component';
 import { SpinnerComponent } from './spinner/spinner.component';
@@ -45,7 +46,8 @@ const gravatarConfig: GravatarConfig = {
     InfiniteScrollDirective,
     NgSelectModule,
     NgxChartsModule,
-    NgxMasonryModule
+    NgxMasonryModule,
+    MarkdownModule
   ],
   declarations: [
     HeadBarComponent,
