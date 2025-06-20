@@ -9229,6 +9229,9 @@ components:
           $ref: "#/components/schemas/IdServizio"
         id_logico:
           $ref: "#/components/schemas/String255"
+        skip_collaudo:
+          type: "boolean"
+          default: false
         referenti:
           type: "array"
           items:
