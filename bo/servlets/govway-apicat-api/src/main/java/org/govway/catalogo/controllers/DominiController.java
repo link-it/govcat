@@ -306,15 +306,15 @@ public class DominiController implements DominiApi {
 		}
 	}
 	
-	private void checkReferenti(DominioEntity servizioEntity) {
+	private void checkReferenti(DominioEntity dominioEntity) {
 
-		OrganizzazioneEntity organizzazione = servizioEntity.getSoggettoReferente().getOrganizzazione();
+		OrganizzazioneEntity organizzazione = dominioEntity.getSoggettoReferente().getOrganizzazione();
 		if(organizzazione.isEsterna()) {
 			return;
 		}
 		
 		
-		for(ReferenteDominioEntity referenteEntity: servizioEntity.getReferenti()) {
+		for(ReferenteDominioEntity referenteEntity: dominioEntity.getReferenti()) {
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
 			
 			if(!admin) {

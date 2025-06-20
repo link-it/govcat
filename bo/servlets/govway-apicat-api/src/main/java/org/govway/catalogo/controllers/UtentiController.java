@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.RequestUtils;
@@ -46,19 +47,7 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.UtentiApi;
-import org.govway.catalogo.servlets.model.Configurazione;
-import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
-import org.govway.catalogo.servlets.model.ItemUtente;
-import org.govway.catalogo.servlets.model.PageMetadata;
-import org.govway.catalogo.servlets.model.PagedModelItemUtente;
-import org.govway.catalogo.servlets.model.Profilo;
-import org.govway.catalogo.servlets.model.ProfiloUpdate;
-import org.govway.catalogo.servlets.model.RuoloUtenteEnumSearch;
-import org.govway.catalogo.servlets.model.StatoProfiloEnum;
-import org.govway.catalogo.servlets.model.StatoUtenteEnum;
-import org.govway.catalogo.servlets.model.Utente;
-import org.govway.catalogo.servlets.model.UtenteCreate;
-import org.govway.catalogo.servlets.model.UtenteUpdate;
+import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +97,11 @@ public class UtentiController implements UtentiApi {
 	private Logger logger = LoggerFactory.getLogger(UtentiController.class);
 
 	@Override
+	public ResponseEntity<Object> addDominioUtente(UUID idUtente, UUID idDominio, Object body) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public ResponseEntity<Utente> createUtente(UtenteCreate utenteCreate) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
@@ -141,6 +135,11 @@ public class UtentiController implements UtentiApi {
 		}
 
 		
+	}
+
+	@Override
+	public ResponseEntity<Void> deleteDominioUtente(UUID idUtente, UUID idDominio) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -204,6 +203,11 @@ public class UtentiController implements UtentiApi {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(e);
 		}
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemDominio> getUtenteDomini(UUID idUtente) {
+		throw new NotImplementedException();
 	}
 
 	@Override

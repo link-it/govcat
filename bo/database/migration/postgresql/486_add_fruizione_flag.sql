@@ -1,0 +1,2 @@
+ALTER TABLE servizi
+ADD COLUMN fruizione BOOLEAN NOT NULL DEFAULT false;

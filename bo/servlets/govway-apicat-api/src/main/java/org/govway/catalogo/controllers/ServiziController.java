@@ -387,7 +387,7 @@ public class ServiziController implements ServiziApi {
 	private void checkReferenti(ServizioEntity servizioEntity) {
 
 		OrganizzazioneEntity organizzazione = servizioEntity.getDominio().getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(servizioEntity.isFruizione()) {
 			return;
 		}
 		
@@ -420,7 +420,7 @@ public class ServiziController implements ServiziApi {
 		}
 		
 		OrganizzazioneEntity organizzazione = referenteEntity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(referenteEntity.getServizio().isFruizione()) {
 			return;
 		}
 		

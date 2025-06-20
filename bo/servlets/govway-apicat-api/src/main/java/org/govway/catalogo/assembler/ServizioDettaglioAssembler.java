@@ -175,6 +175,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 		dettaglio.setMultiAdesione(entity.isMultiAdesione());
+		dettaglio.setFruizione(entity.isFruizione());
 
 		return dettaglio;
 	}
@@ -242,6 +243,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		entity.setMultiAdesione(src.isMultiAdesione());
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
 
 		setUltimaModifica(entity);
 		return entity;
@@ -251,7 +253,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		DominioEntity newDominio = dominioService.find(idDominio).
 				orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
 		
-		if(newDominio.getSoggettoReferente().getOrganizzazione().isEsterna()) {
+		if(entity.isFruizione()) {
 			if(idSoggetto==null) {
 				throw new RichiestaNonValidaSemanticamenteException("Dominio ["+newDominio.getNome()+"] esterno e soggetto interno non specificato");
 			}
@@ -259,7 +261,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
 					orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato"));
 			
-			if(soggettoInterno.getOrganizzazione().isEsterna()) {
+			if(entity.isFruizione()) {
 				throw new RichiestaNonValidaSemanticamenteException("Il soggetto interno ["+soggettoInterno.getNome()+"] deve appartenere a una organizzazione interna");
 			}
 			
@@ -407,6 +409,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		entity.setMultiAdesione(src.isMultiAdesione() != null ? src.isMultiAdesione(): false);
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
+
+
 
 		entity.setDataCreazione(new Date());
 		entity.setRichiedente(utenteSessione);

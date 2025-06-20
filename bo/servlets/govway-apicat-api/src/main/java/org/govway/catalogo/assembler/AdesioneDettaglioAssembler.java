@@ -381,7 +381,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			throw new BadRequestException("Servizio : " + servizioK + " multiadesione e id logico non valorizzato");
 		}
 
-		if(entity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione().isEsterna() && !entity.getSoggetto().getId().equals(entity.getServizio().getSoggettoInterno().getId())) {
+		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getSoggettoInterno().getId())) {
 			throw new BadRequestException("Impossibile aderire al Servizio [" + servizioK + "] di tipo esterno con il soggetto ["+entity.getSoggetto().getNome()+"]. Aderire con il Soggetto ["+entity.getServizio().getSoggettoInterno().getNome()+"]");
 		}
 		

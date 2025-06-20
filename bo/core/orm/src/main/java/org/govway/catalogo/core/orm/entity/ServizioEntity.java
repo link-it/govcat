@@ -204,6 +204,9 @@ public class ServizioEntity {
 	
     @OneToMany(mappedBy = "servizio")
     @Cascade(CascadeType.PERSIST)
-    private Set<AllegatoServizioEntity> allegati = new HashSet<>(); 
+    private Set<AllegatoServizioEntity> allegati = new HashSet<>();
+
+    @Column(name = "fruizione", nullable = false)
+    private boolean fruizione;
 
 }

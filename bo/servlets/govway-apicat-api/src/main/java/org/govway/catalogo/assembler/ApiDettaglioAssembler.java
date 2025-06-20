@@ -427,7 +427,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				
 				if(p.getTipoDominio()!= null) {
 					
-					ConfigurazioneTipoDominioEnum cd = d.getSoggettoReferente().getOrganizzazione().isEsterna() ? ConfigurazioneTipoDominioEnum.ESTERNO: ConfigurazioneTipoDominioEnum.INTERNO; 
+					ConfigurazioneTipoDominioEnum cd = entity.getServizio().isFruizione() ? ConfigurazioneTipoDominioEnum.ESTERNO: ConfigurazioneTipoDominioEnum.INTERNO;
 					
 					if(!p.getTipoDominio().equals(cd)) {
 							throw new BadRequestException("Profilo ["+p.getEtichetta()+"] non compatibile col dominio " + d.getNome());
