@@ -185,6 +185,23 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-4" *ngIf="(_updateData | mapper:_isGestoreMapper)">
+                                        <div class="form-group fruizione mt-2-">
+                                            <div class="form-group">
+                                                <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'fruizione'" *ngIf="_isEdit"></span></label>
+                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
+                                                    <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione">
+                                                    <label class="custom-control-label" for="fruizione"></label>
+                                                </div>
+                                                <div class="" *ngIf="!_isEdit">
+                                                    <span class="">
+                                                        <i class="bi bi-square" *ngIf="!data.fruizione"></i>
+                                                        <i class="bi bi-check-square" *ngIf="data.fruizione"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="row nome versione">
                                     <div class="col-8">
