@@ -5667,6 +5667,9 @@ components:
           $ref: "#/components/schemas/ConfigurazioneVetrina"
         required:
           type: boolean
+        index:
+          type: number
+          format: int32
       discriminator:
         propertyName: "tipo"
         mapping:
@@ -10265,4 +10268,3 @@ components:
       description: "Header Location inserito in una risposta ad una richiesta POST, terminata con successo 'http 201'.\nL'header indica l'id dell'oggetto creato."
       schema:
         type: "string"
-        
