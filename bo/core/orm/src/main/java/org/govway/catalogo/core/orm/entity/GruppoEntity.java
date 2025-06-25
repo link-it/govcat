@@ -72,7 +72,9 @@ public class GruppoEntity {
 	private GruppoEntity gruppoPadre;
 
     private String descrizione;
-	
+
+    private String alberatura;
+
     @Column(name="descrizione_sintetica")
     private String descrizioneSintetica;
 	
