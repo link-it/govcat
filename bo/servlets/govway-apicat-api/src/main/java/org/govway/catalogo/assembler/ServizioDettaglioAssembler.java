@@ -192,6 +192,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
 		}
 
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
+
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
 		} else {
@@ -243,7 +245,6 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		entity.setMultiAdesione(src.isMultiAdesione());
-		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
 
 		setUltimaModifica(entity);
 		return entity;
@@ -351,6 +352,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		entity.setTipo(engine.toTipo(src.getTipo()));
 
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
+
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
 		}
@@ -409,9 +412,6 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		entity.setMultiAdesione(src.isMultiAdesione() != null ? src.isMultiAdesione(): false);
-		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
-
-
 
 		entity.setDataCreazione(new Date());
 		entity.setRichiedente(utenteSessione);
