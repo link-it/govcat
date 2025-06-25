@@ -262,7 +262,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
 					orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato"));
 			
-			if(entity.isFruizione()) {
+			if(soggettoInterno.getOrganizzazione().isEsterna()) {
 				throw new RichiestaNonValidaSemanticamenteException("Il soggetto interno ["+soggettoInterno.getNome()+"] deve appartenere a una organizzazione interna");
 			}
 			
