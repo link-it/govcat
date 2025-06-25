@@ -43,6 +43,26 @@ public class GruppoEngineAssembler extends CoreEngineAssembler {
 		return documentoAssembler.toModel(entity.getImmagine());
 	}
 
+	public String getAlberatura(GruppoEntity entity) {
+		return getAlberatura(entity, 0);
+	}
+
+	public String getAlberatura(GruppoEntity entity, int index) {
+		String delim = "#";
+		
+		String alberatura = entity.getId() + delim;
+		
+		if(entity.getGruppoPadre() != null) {
+			alberatura += getAlberatura(entity.getGruppoPadre(), index+1);
+		}
+
+		if(index == 0) {
+			alberatura = delim + alberatura;
+		}
+		
+		return alberatura;
+	}
+
 	public DocumentoEntity toImmagine(DocumentoUpdate immagine, DocumentoEntity actual) {
 		return documentoAssembler.toEntity(immagine, actual, this.getUtenteSessione());
 	}

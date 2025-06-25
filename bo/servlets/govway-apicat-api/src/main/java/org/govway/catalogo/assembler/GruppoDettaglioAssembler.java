@@ -117,6 +117,7 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 			entity.setTipo(tipo);
 		}
 
+		entity.setAlberatura(this.engine.getAlberatura(entity));
 		entity.setImmagine(engine.toImmagine(src.getImmagine(), entity.getImmagine()));
 		
 		return entity;
@@ -141,6 +142,7 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		entity.setTipo(engine.toTipo(src.getTipo()));
 
+		entity.setAlberatura(this.engine.getAlberatura(entity));
 		if(src.getImmagine()!=null) {
 			entity.setImmagine(engine.toImmagine(src.getImmagine()));
 		}
