@@ -65,7 +65,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<String> versione = Optional.empty();
 	private Optional<String> idReferente = Optional.empty();
 	private List<UUID> gruppoList = null;
-	private Optional<Long> idGruppo = null;
+	private Optional<Long> idGruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
 	private List<UUID> categorie = null;
 	private Optional<VISIBILITA> visibilita = Optional.empty();
