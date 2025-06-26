@@ -610,6 +610,15 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         return this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
     }
 
+    _getGroupNameByLabel(group: any) {
+        const _srv: any = Tools.Configurazione?.servizio;
+        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        if (!this._isNew){
+            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
+        }
+        return _proprietaCustom.find((item: any) => item.label_gruppo === group)?.nome_gruppo || group;
+    }
+
     _onSubmit(form: any, close: boolean = true) {
         if (this._isEdit && this._formGroup.valid) {
             this._closeEdit = close;
@@ -1449,10 +1458,16 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
         }
-        return _proprietaCustom.find((item: any) => item.nome_gruppo === group)?.label_gruppo;
+        let labelGroup = _proprietaCustom.find((item: any) => item.nome_gruppo === group)?.label_gruppo;
+        if (!labelGroup) {
+            labelGroup = _proprietaCustom.find((item: any) => item.label_gruppo === group)?.label_gruppo;
+        }
+        return labelGroup;
     }
 
     _initProprietaCustom() {
+        const fieldToGroup = 'label_gruppo';
+
         this._resetProprietaCustom();
 
         const profiles = this._getAllProfileValues();
@@ -1475,9 +1490,10 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 return;
             }
 
-            const _gruppo = item.nome_gruppo;
+            // const _gruppo = item.nome_gruppo;
+            const _gruppo = item[fieldToGroup];
             const _ruoli_abilitati = item.ruoli_abilitati;
-            item.proprieta.forEach((proprieta: any) => {
+            item.proprieta.sort((a: any, b: any) => a.index - b.index).forEach((proprieta: any) => {
                 this._apiProprietaCustom.push({
                     nome_gruppo: _gruppo,
                     classe_dato: item.classe_dato,
