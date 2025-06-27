@@ -871,6 +871,7 @@
 			"SOAPFault": "SOAP Fault",
 			"soggetto": "Subject",
 			"soggetto_aderente": "Adherent subject",
+			"soggetto_interno": "Internal subject",
 			"soggetto_nome": "Subject",
 			"SoggettoInterno": "Internal subject",
 			"specifica": "Specify",
