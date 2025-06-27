@@ -190,7 +190,7 @@
                                             <div class="form-group">
                                                 <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'fruizione'" *ngIf="_isEdit"></span></label>
                                                 <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                                                    <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione">
+                                                    <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
                                                     <label class="custom-control-label" for="fruizione"></label>
                                                 </div>
                                                 <div class="" *ngIf="!_isEdit">
