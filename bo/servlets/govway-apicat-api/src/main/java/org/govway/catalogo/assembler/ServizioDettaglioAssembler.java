@@ -256,7 +256,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		if(entity.isFruizione()) {
 			if(idSoggetto==null) {
-				throw new RichiestaNonValidaSemanticamenteException("Dominio ["+newDominio.getNome()+"] esterno e soggetto interno non specificato");
+				throw new RichiestaNonValidaSemanticamenteException("Servizio di tipo fruizione e soggetto interno non specificato");
 			}
 			
 			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
