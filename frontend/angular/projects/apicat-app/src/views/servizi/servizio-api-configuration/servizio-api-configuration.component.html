@@ -282,26 +282,26 @@
                   <div class="col-12">
                     <ng-container *ngFor="let apc of _apiProprietaCustomGrouped | keyvalue">
                       <ng-container *ngIf="_apiProprietaCustomGrouped[apc.key + ''].length">
-                        <h5 class="pb-2 mb-5 border-bottom">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
-                        <ng-container *ngFor="let cp of _apiProprietaCustomGrouped[apc.key + '']">
+                        <h5 class="pb-2 mb-5 border-bottom" [title]="`${apc.key} - ${fieldToGroup}`">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                        <ng-container *ngFor="let cp of _apiProprietaCustomGrouped[apc.key + ''] | mapper:sortByFieldPreservingOthersMapper:'index'">
                           <div formArrayName="proprieta_custom" class="row custom-properties-fields">
-                            <div [formArrayName]="cp.nome_gruppo" class="col-12 form-group">
+                            <div [formArrayName]="cp[fieldToGroup]" class="col-12 form-group">
                               <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} <span appMarkAsterisk
-                                  [formGroup]="acfgc(cp.nome_gruppo)" [controlName]="cp.nome"
+                                  [formGroup]="acfgc(cp[fieldToGroup])" [controlName]="cp.nome"
                                   *ngIf="_markAsteriskUpdated && _isEdit"></span></label>
                               <div class="" *ngIf="_isEdit">
   
                                 <div class="input-group">
                                   <ng-container *ngIf="cp.tipo === 'text'">
                                     <input autocomplete="off" class="form-control"
-                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
+                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
                                       [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome"
                                       disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
                                       [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                   </ng-container>
                                   <ng-container *ngIf="cp.tipo === 'select'">
                                     <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome"
-                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp.nome_gruppo, cp.nome)"
+                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
                                       disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
                                       [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                       <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
@@ -322,19 +322,19 @@
                                   </ng-container> -->
   
                                   <button class="btn btn-default btn-md gl-button" type="button" *ngIf="environmentId === 'produzione'"
-                                    [disabled]="!getCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
-                                    (click)="copyCustomPropertyTestingValue(cp.nome_gruppo, cp.nome)"
+                                    [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
+                                    (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
                                     [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
                                     <span><i class="bi bi-copy"></i></span>
                                   </button>
                                 </div>
-                                <p *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.invalid && (acfgc(cp.nome_gruppo).controls[cp.nome]?.touched)"
+                                <p *ngIf="acfgc(cp[fieldToGroup]).controls[cp.nome]?.invalid && (acfgc(cp[fieldToGroup]).controls[cp.nome]?.touched)"
                                   class="form-text text-danger">
                                   <span
-                                    *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.required"
+                                    *ngIf="acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.required"
                                     class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                   <span
-                                    *ngIf="acfgc(cp.nome_gruppo).controls[cp.nome]?.errors && acfgc(cp.nome_gruppo).controls[cp.nome]?.errors?.pattern"
+                                    *ngIf="acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.pattern"
                                     class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern:
                                     cp.regular_expression } }}</span>
                                 </p>
@@ -342,12 +342,12 @@
                               <div class="" *ngIf="!_isEdit">
                                 <ng-container *ngIf="cp.tipo !== 'select'">
                                   <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
-                                    [name]="cp.nome" [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value || '-'">
+                                    [name]="cp.nome" [value]="acfgc(cp[fieldToGroup]).controls[cp.nome].value || '-'">
                                 </ng-container>
                                 <ng-container *ngIf="cp.tipo === 'select'">
                                   <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
                                     [name]="cp.nome"
-                                    [value]="acfgc(cp.nome_gruppo).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
+                                    [value]="acfgc(cp[fieldToGroup]).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
                                 </ng-container>
                               </div>
                             </div>

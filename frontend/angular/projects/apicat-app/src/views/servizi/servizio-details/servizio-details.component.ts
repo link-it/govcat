@@ -698,7 +698,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._data = new Servizio({ ...response });
                     this.id = this.data.id_servizio;
                     this._isDominioDeprecato = this.data.dominio.deprecato || false;
-                    this._isDominioEsterno = this.data.dominio.soggetto_referente.organizzazione.esterna || false;
+                    this._isDominioEsterno = this.data.fruizione || false;
                     this._initBreadcrumb();
                     this.loadCurrentData();
                     if (this.data.package) {
@@ -1278,11 +1278,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
 
-        this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
-        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
-        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
+        // this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
+        // this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        // this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
+        // this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        // this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
 
         this._enableDisableSkipCollaudo(this.selectedDominio);
     }
@@ -1331,6 +1331,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
         this.enableDisableControlPackage();
         this.enableDisableControlAdesioneConsentita();
+    }
+
+    _onChangeFruizione(event: any) {
+        this._isDominioEsterno = this._formGroup.get('fruizione')?.value || false;
+        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
+        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
     }
 
     showReferenti: boolean = true;
