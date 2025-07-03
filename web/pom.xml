@@ -167,6 +167,13 @@
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>xalan</artifactId>
+			<version>2.7.2</version> <!-- or compatible -->
+		</dependency>
+
 	</dependencies>
 
 	<build>
