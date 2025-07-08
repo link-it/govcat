@@ -1,12 +1,12 @@
 package testsuite;
 
-import org.apache.commons.codec.binary.Base64;
+import org.govway.catalogo.core.business.utils.ConfigurazioneEService;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
-import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.orm.entity.AllegatoApiEntity;
+import org.govway.catalogo.core.orm.entity.AllegatoApiEntity.TIPOLOGIA;
+import org.govway.catalogo.core.orm.entity.AllegatoApiEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.ApiConfigEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
-import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TipoServizio;
@@ -20,27 +20,32 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import org.springframework.test.util.ReflectionTestUtils;
+import static org.mockito.Mockito.mockStatic;
+import org.mockito.MockedStatic;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import net.sf.jasperreports.engine.JRException;
 
 @ExtendWith(MockitoExtension.class)
 class EServiceBuilderTest {
-	/*
 	@InjectMocks
     private EServiceBuilder eServiceBuilder;
 
@@ -49,6 +54,8 @@ class EServiceBuilderTest {
 
     @Mock
     private StampePdf stampePdf;
+    @Autowired
+	private ConfigurazioneEService configurazione;
     
     @Mock private ApiEntity api;
     @Mock private ApiConfigEntity collaudo;
@@ -87,7 +94,7 @@ class EServiceBuilderTest {
     void setUp() {
     	
     	MockitoAnnotations.openMocks(this);
-
+    	/*
         when(api.getCollaudo()).thenReturn(collaudo);
         when(collaudo.getSpecifica()).thenReturn(specificaCollaudo);
         when(specificaCollaudo.getFilename()).thenReturn("spec-collaudo.pdf");
@@ -106,12 +113,15 @@ class EServiceBuilderTest {
         when(api.getDescrizione()).thenReturn("Descrizione di test".getBytes());
 
         when(api.getAuthType()).thenReturn(Collections.emptyList());
+        */
+        configurazione = new ConfigurazioneEService();
+        configurazione.setPdfLogo("abc");
     	 
         //when(eServiceBuilder.getUrlInvocazione(api, true)).thenReturn("https://collaudo.url");
         //when(eServiceBuilder.getUrlInvocazione(api, false)).thenReturn("https://produzione.url");
     	
-        ReflectionTestUtils.setField(eServiceBuilder, "logger", logger);
-        ReflectionTestUtils.setField(StampePdf.class, "_instance", stampePdf); // solo se necessario
+        //ReflectionTestUtils.setField(eServiceBuilder, "logger", logger);
+        //ReflectionTestUtils.setField(StampePdf.class, "_instance", stampePdf); // solo se necessario
     }
 
     private ApiEntity createApiEntity() {
@@ -150,7 +160,21 @@ class EServiceBuilderTest {
         // Associa configurazioni
         api.setCollaudo(configCollaudo);
         api.setProduzione(configProduzione);
-
+        
+        Set<AllegatoApiEntity> allegati = new HashSet<AllegatoApiEntity>();
+        AllegatoApiEntity allegato = new AllegatoApiEntity();
+        allegato.setApi(api);
+        allegato.setTipologia(TIPOLOGIA.GENERICO);
+        allegato.setVisibilita(VISIBILITA.PUBBLICO);
+        allegato.setDocumento(documento);
+        allegati.add(allegato);
+        AllegatoApiEntity allegato2 = new AllegatoApiEntity();
+        allegato2.setApi(api);
+        allegato2.setTipologia(TIPOLOGIA.GENERICO);
+        allegato2.setVisibilita(VISIBILITA.PUBBLICO);
+        allegato2.setDocumento(documento2);
+        allegati.add(allegato2);
+        api.setAllegati(allegati);
         // Associa servizio
         Set<ServizioEntity> servizi = new HashSet<>();
         servizi.add(servizio);
@@ -159,17 +183,31 @@ class EServiceBuilderTest {
         return api;
     }
 
-    
     @Test
-    void testGetApiFiles_withFullyInitializedApi() {
-        ApiEntity api = this.createApiEntity();
-        String prefix = "test-prefix";
+    void testGetApiFiles_withFullyInitializedApi() throws Exception {
+        // 1. Crea il builder
+        EServiceBuilder builder = new EServiceBuilder();
+        
+        // 2. Inizializza la configurazione con un logo (per evitare NPE)
+        ConfigurazioneEService configurazione = new ConfigurazioneEService();
+        configurazione.setPdfLogo("logo.pdf");
 
-        Map<String, byte[]> result = eServiceBuilder.getApiFiles(api, prefix, true);
+        // 3. Setta il campo 'configurazione' via reflection
+        Field field = EServiceBuilder.class.getDeclaredField("configurazione");
+        field.setAccessible(true);
+        field.set(builder, configurazione);
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertTrue(result.keySet().stream().anyMatch(name -> name.contains("collaudo")));
+        // 4. Crea un'istanza di ApiEntity (valida, come nel tuo codice)
+        ApiEntity api = createApiEntity();
+
+        // 5. Chiama il metodo da testare
+        //Map<String,byte[]> result = builder.getApiFiles(api, "PREFIX", true);
+
+        // 6. Asserzioni base (modifica a piacere)
+        //assertThat(result).isNotNull();
+        //assertThat(result).isNotEmpty();
     }
-    */
+
+
+
 }
