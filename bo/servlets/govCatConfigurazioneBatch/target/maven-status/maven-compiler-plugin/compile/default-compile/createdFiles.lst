@@ -1,0 +1,13 @@
+batch/ConfigurazioneItemProcessor$1.class
+batch/ConfigurazioneStepListener.class
+batch/AdesioneDTOConverter$1.class
+batch/SoggettoDTOFactory.class
+batch/ConfigurazioneItemWriter.class
+batch/ProcessingException.class
+batch/ConfigurazioneItemProcessor.class
+batch/ConfigurazioneBatchJobConfig.class
+batch/Application.class
+batch/IntermediateStateService.class
+batch/JobExecutionException.class
+batch/AdesioneDTOConverter.class
+batch/ConfigurazioneItemProcessor$2.class
