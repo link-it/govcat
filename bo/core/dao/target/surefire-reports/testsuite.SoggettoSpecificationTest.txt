@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
-Test set: testsuite.UtenteSpecificationTest
+Test set: testsuite.SoggettoSpecificationTest
 -------------------------------------------------------------------------------
-Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.149 s -- in testsuite.UtenteSpecificationTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.978 s -- in testsuite.SoggettoSpecificationTest

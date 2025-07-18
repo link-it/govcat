@@ -51,6 +51,33 @@
 		    <artifactId>mockito-core</artifactId>
 		    <scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		  <groupId>jakarta.xml.bind</groupId>
+		  <artifactId>jakarta.xml.bind-api</artifactId>
+		  <version>3.0.1</version>
+		  <scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+		  <groupId>jakarta.persistence</groupId>
+		  <artifactId>jakarta.persistence-api</artifactId>
+		  <version>3.1.0</version> 
+		  <scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+		  <groupId>org.hibernate.orm</groupId>
+		  <artifactId>hibernate-jpamodelgen</artifactId>
+		  <version>6.4.4.Final</version> 
+		  <scope>provided</scope>
+		</dependency>
+		
 	</dependencies>
 	
 	<build>
@@ -95,6 +122,27 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven.surefire.version}</version>
 			</plugin>
+			
+			<plugin>
+			  <groupId>org.bsc.maven</groupId>
+			  <artifactId>maven-processor-plugin</artifactId>
+			  <version>3.3.3</version>
+			  <executions>
+			    <execution>
+			      <id>process</id>
+			      <goals>
+			        <goal>process</goal>
+			      </goals>
+			      <phase>generate-sources</phase>
+			    </execution>
+			  </executions>
+			  <configuration>
+			    <processors>
+			      <processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
+			    </processors>
+			  </configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

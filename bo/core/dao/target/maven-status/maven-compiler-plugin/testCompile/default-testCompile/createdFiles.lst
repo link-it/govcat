@@ -1,1 +1,6 @@
+testsuite/TassonomiaSpecificationTest.class
+testsuite/SoggettoSpecificationTest.class
+testsuite/ServizioSpecificationTestable.class
+testsuite/TassonomiaSpecificationTestable.class
+testsuite/UtenteSpecificationTestable.class
 testsuite/UtenteSpecificationTest.class

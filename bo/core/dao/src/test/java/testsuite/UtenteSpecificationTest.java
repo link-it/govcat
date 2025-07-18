@@ -3,24 +3,40 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
-import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity_;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity_;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-public class UtenteSpecificationTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class UtenteSpecificationTest {
 
     private UtenteSpecification specification;
-    
+
     @Mock
     private Root<UtenteEntity> root;
 
@@ -31,7 +47,10 @@ public class UtenteSpecificationTest {
     private CriteriaBuilder cb;
 
     @Mock
-    private Path<String> idUtentePath;
+    private Path<Object> idUtentePath;
+    
+    @Mock
+    private Path<Object> qPath;
 
     @Mock
     private Predicate equalPredicate;
@@ -40,202 +59,118 @@ public class UtenteSpecificationTest {
     private Predicate andPredicate;
 
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        specification = new UtenteSpecification();
-
-        // root.get("idUtente") --> path mockato
-        when(root.get(UtenteEntity_.idUtente)).thenReturn(idUtentePath);
-
-        // cb.equal(path, value) --> predicato mockato
-        when(cb.equal(eq(idUtentePath), eq("user123"))).thenReturn(equalPredicate);
-
-        // cb.and(...) --> predicato combinato mockato
-        when(cb.and(any(Predicate[].class))).thenAnswer(invocation -> {
-            Predicate[] preds = invocation.getArgument(0);
-            return preds.length > 0 ? andPredicate : null;
-        });
+    void setUp() {
+        specification = new UtenteSpecificationTestable();
     }
 
     @Test
     void testToPredicateWithIdUtente() {
-        specification.setIdUtente(Optional.of("user123"));
-
-        Predicate predicate = specification.toPredicate(root, query, cb);
-
-        assertNotNull(predicate, "Predicate non dovrebbe essere null con idUtente settato");
-
-        // verifica chiamate
-        verify(root).get(UtenteEntity_.idUtente);
-        verify(cb).equal(idUtentePath, "user123");
-        verify(cb).and(new Predicate[] { equalPredicate });
-    }
-/*
-    @Mock
-    private Root<UtenteEntity> root;
-
-    @Mock
-    private CriteriaQuery<?> query;
-
-    @Mock
-    private CriteriaBuilder cb;
-
-    @Mock
-    private Path<String> stringPath;
-
-    @Mock
-    private Path<UUID> uuidPath;
-
-    @Mock
-    private Path<UtenteEntity.Stato> statoPath;
-
-    @Mock
-    private Path<Boolean> booleanPath;
-
-    @Mock
-    private Path<UtenteEntity.Ruolo> ruoloPath;
-
-    @Mock
-    private Join<Object, Object> join;
-    
-    @Mock
-    private Path<String> idUtentePath;
-    */
-    /*
-    @Mock private Root<UtenteEntity> root;
-    @Mock private CriteriaQuery<?> query;
-    @Mock private CriteriaBuilder cb;
-    @Mock private Path<String> idUtentePath;
-    @Mock private Predicate mockedPredicate;
-     */
-    /*
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        specification = new UtenteSpecification();
-
-        when((Path<UtenteEntity.Stato>) root.get(UtenteEntity_.stato)).thenReturn(statoPath);
-        when((Path<UtenteEntity.Ruolo>) root.get(UtenteEntity_.ruolo)).thenReturn(ruoloPath);
-        when((Path<Boolean>) root.get(UtenteEntity_.referenteTecnico)).thenReturn(booleanPath);
-        when(root.join(anyString(), any(JoinType.class))).thenReturn(join);
-        when(join.in(anyCollection())).thenReturn(mock(Predicate.class));
-
-        when(root.get(UtenteEntity_.idUtente)).thenReturn(idUtentePath);
-        when(cb.equal(eq(idUtentePath), eq("user123"))).thenReturn(mock(Predicate.class));
+    	when(root.get("idUtente")).thenReturn(idUtentePath);
+        when(cb.equal(idUtentePath, "user123")).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
         
-        when(cb.equal(any(), any())).thenAnswer(invocation -> mock(Predicate.class));
-        when(cb.like(any(), anyString())).thenReturn(mock(Predicate.class));
-        when(cb.upper(any())).thenReturn(stringPath);
-        when(cb.or(any(Predicate[].class))).thenReturn(mock(Predicate.class));
-        when(cb.and(any(Predicate[].class))).thenReturn(mock(Predicate.class));
-        when(cb.disjunction()).thenReturn(mock(Predicate.class));
-        when(cb.isNull(any())).thenReturn(mock(Predicate.class));
-        when(cb.isNotNull(any())).thenReturn(mock(Predicate.class));
-        when(cb.conjunction()).thenReturn(mock(Predicate.class));
-    }
-    */
-    /*
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        specification = new UtenteSpecification();
-
-        when(root.get(UtenteEntity_.idUtente)).thenReturn(idUtentePath);
-
-        when(cb.equal(any(), any())).thenReturn(mock(Predicate.class));
-        when(cb.and(any(Predicate[].class))).thenAnswer(i -> {
-            Predicate[] preds = i.getArgument(0);
-            if (preds.length == 0) return null;
-            return mock(Predicate.class);
-        });
-    }
-	*/
-    /*
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-
-        specification = new UtenteSpecification();
-
-        // quando root.get("idUtente") viene chiamato, ritorna il path mockato
-        when(root.get(UtenteEntity_.idUtente)).thenReturn(idUtentePath);
-
-        // quando cb.equal viene chiamato, ritorna un predicato mockato
-        when(cb.equal(any(), any())).thenReturn(mockedPredicate);
-
-        // cb.and deve restituire qualcosa se riceve almeno un predicato
-        when(cb.and(any(Predicate[].class))).thenAnswer(invocation -> {
-            Predicate[] predicates = invocation.getArgument(0);
-            return predicates.length > 0 ? mockedPredicate : null;
-        });
-    }
-    
-    @Test
-    void testToPredicateWithIdUtente() {
         specification.setIdUtente(Optional.of("user123"));
 
-        Predicate predicate = specification.toPredicate(root, query, cb);
+        Predicate result = specification.toPredicate(root, query, cb);
 
-        when(cb.equal(any(), any())).thenAnswer(invocation -> {
-            Object path = invocation.getArgument(0);
-            Object value = invocation.getArgument(1);
-            System.out.println("cb.equal called with path: " + path + ", value: " + value);
-            return mockedPredicate;
-        });
+        assertNotNull(result);
+        assertEquals(andPredicate, result);
 
-        
-        assertNotNull(predicate, "Predicate should not be null when idUtente is set");
-        verify(root).get(UtenteEntity_.idUtente);
+        verify(root).get("idUtente");
         verify(cb).equal(idUtentePath, "user123");
-    }
-    */
-    /*
-    @Test
-    public void testToPredicateWithIdUtente() {
-        specification.setIdUtente(Optional.of("user123"));
-        Predicate predicate = specification.toPredicate(root, query, cb);
-        //System.out.println(predicate.toString());
-        assertNotNull(predicate);
-    }
-    */
-    /*
-    @Test
-    public void testToPredicateWithQ() {
-        specification.setQ(Optional.of("search"));
-        Predicate predicate = specification.toPredicate(root, query, cb);
-        assertNotNull(predicate);
+        verify(cb).and(equalPredicate);
     }
 
+    
     @Test
     public void testToPredicateWithNome() {
+    	when(root.get("nome")).thenReturn(qPath);
+        when(cb.equal(qPath, "Mario")).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
+    	
         specification.setNome(Optional.of("Mario"));
         Predicate predicate = specification.toPredicate(root, query, cb);
         assertNotNull(predicate);
     }
-
+    
     @Test
     public void testToPredicateWithStato() {
+    	when(root.get("stato")).thenReturn(qPath);
+        when(cb.equal(qPath, UtenteEntity.Stato.ABILITATO)).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
+    	
         specification.setStato(Optional.of(UtenteEntity.Stato.ABILITATO));
         Predicate predicate = specification.toPredicate(root, query, cb);
         assertNotNull(predicate);
     }
-
+    /*
     @Test
     public void testToPredicateWithEmail() {
-        specification.setEmail(Optional.of("email@test.com"));
+        String email = "email@test.com";
+        String pattern = "%" + email.toUpperCase() + "%";
+
+        Path<String> emailPath = mock(Path.class);
+        Path<String> emailAziendalePath = mock(Path.class);
+        Path<String> upperEmailPath = mock(Path.class);
+        Path<String> upperEmailAziendalePath = mock(Path.class);
+
+        Predicate likeEmailPredicate = mock(Predicate.class);
+        Predicate likeEmailAziendalePredicate = mock(Predicate.class);
+        Predicate orPredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        when(root.get("email")).thenReturn((Path) emailPath);
+        when(root.get("emailAziendale")).thenReturn((Path) emailAziendalePath);
+
+        when(cb.upper(emailPath)).thenReturn(upperEmailPath);
+        when(cb.upper(emailAziendalePath)).thenReturn(upperEmailAziendalePath);
+
+        when(cb.like(upperEmailPath, pattern)).thenReturn(likeEmailPredicate);
+        when(cb.like(upperEmailAziendalePath, pattern)).thenReturn(likeEmailAziendalePredicate);
+
+        when(cb.or(argThat(arr -> arr != null && arr.length == 2))).thenReturn(orPredicate);
+        when(cb.and(argThat(arr -> arr != null && arr.length >= 1))).thenReturn(andPredicate);
+
+        specification.setEmail(Optional.of(email));
         Predicate predicate = specification.toPredicate(root, query, cb);
+
         assertNotNull(predicate);
+        assertEquals(andPredicate, predicate);
     }
+	*/
 
     @Test
     public void testToPredicateWithPrincipalLike() {
-        specification.setPrincipalLike(Optional.of("principal"));
+        String principalLike = "principal";
+        String pattern = "%" + principalLike.toUpperCase() + "%";
+
+        Path<String> principalPath = mock(Path.class);
+        Path<String> upperPrincipalPath = mock(Path.class);
+
+        Predicate likePredicate = mock(Predicate.class);
+        Predicate andPredicate = mock(Predicate.class);
+
+        when(root.get("principal")).thenReturn((Path) principalPath);
+
+        when(cb.upper(principalPath)).thenReturn(upperPrincipalPath);
+        when(cb.like(upperPrincipalPath, pattern)).thenReturn(likePredicate);
+
+        when(cb.and(likePredicate)).thenReturn(andPredicate);
+
+        specification.setPrincipalLike(Optional.of(principalLike));
         Predicate predicate = specification.toPredicate(root, query, cb);
+
         assertNotNull(predicate);
+        assertEquals(andPredicate, predicate);
     }
+
 
     @Test
     public void testToPredicateWithPrincipal() {
+    	when(root.get("principal")).thenReturn(qPath);
+        when(cb.equal(qPath, "utente")).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
+    	
         specification.setPrincipal(Optional.of("utente"));
         Predicate predicate = specification.toPredicate(root, query, cb);
         assertNotNull(predicate);
@@ -243,20 +178,41 @@ public class UtenteSpecificationTest {
 
     @Test
     public void testToPredicateWithReferenteTecnico() {
+    	when(root.get("referenteTecnico")).thenReturn(qPath);
+        when(cb.equal(qPath, true)).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
+    	
         specification.setReferenteTecnico(Optional.of(true));
         Predicate predicate = specification.toPredicate(root, query, cb);
         assertNotNull(predicate);
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testToPredicateWithIdOrganizzazione() {
-        specification.setIdOrganizzazione(Optional.of(UUID.randomUUID()));
+        UUID idValue = UUID.randomUUID();
+
+        Path<Object> organizzazionePath = mock(Path.class);
+        Path<Object> idOrganizzazionePath = mock(Path.class);
+
+        when(root.get("organizzazione")).thenReturn((Path) organizzazionePath);
+        when(organizzazionePath.get("idOrganizzazione")).thenReturn((Path) idOrganizzazionePath);
+
+        when(cb.equal(idOrganizzazionePath, idValue.toString())).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
+
+        specification.setIdOrganizzazione(Optional.of(idValue));
         Predicate predicate = specification.toPredicate(root, query, cb);
+
         assertNotNull(predicate);
     }
-
+    /*
     @Test
     public void testToPredicateWithRuoliAndRuoloNullTrue() {
+    	when(root.get("ruoli")).thenReturn(qPath);
+        when(cb.equal(qPath, true)).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
+    	
         specification.setRuoli(Arrays.asList(UtenteEntity.Ruolo.AMMINISTRATORE));
         specification.setRuoloNull(Optional.of(true));
         Predicate predicate = specification.toPredicate(root, query, cb);
@@ -273,30 +229,74 @@ public class UtenteSpecificationTest {
 
     @Test
     public void testToPredicateWithRuoloNullOnly() {
+    	when(root.get("ruoloNull")).thenReturn(qPath);
+        when(cb.equal(qPath, true)).thenReturn(equalPredicate);
+        when(cb.and(equalPredicate)).thenReturn(andPredicate);
+    	
         specification.setRuoloNull(Optional.of(true));
         Predicate predicate = specification.toPredicate(root, query, cb);
         assertNotNull(predicate);
     }
-
+ 	*/
+    @SuppressWarnings("unchecked")
     @Test
     public void testToPredicateWithIdClassiUtente() {
         ClasseUtenteEntity classe = new ClasseUtenteEntity();
+        
+        // Mock del join
+        Join classiJoin = mock(Join.class); // raw type per evitare errori di tipo
+
+        // Cast esplicito nel when
+        when(root.join(eq("classi"), eq(JoinType.LEFT))).thenReturn(classiJoin);
+
+        // Mock del predicato per in(...)
+        Predicate inPredicate = mock(Predicate.class);
+        when(classiJoin.in(Collections.singletonList(classe))).thenReturn(inPredicate);
+
+        when(cb.and(inPredicate)).thenReturn(andPredicate);
+
         specification.setIdClassiUtente(Collections.singletonList(classe));
+
         Predicate predicate = specification.toPredicate(root, query, cb);
+
         assertNotNull(predicate);
     }
-
+    
+    /*
+    @SuppressWarnings("unchecked")
     @Test
     public void testToPredicateWithEmptyClassiUtente() {
+        // Mock del join (anche se in questo caso non dovrebbe essere chiamato)
+        Join<Object, Object> classiJoin = mock(Join.class);
+
+        // root.join dovrebbe non essere chiamato se la lista è vuota,
+        // ma se chiamato, lo mockiamo comunque
+        when(root.join(eq("classi"), eq(JoinType.LEFT))).thenReturn(classiJoin);
+
+        // Mock del disjunction()
+        Predicate disjunctionPredicate = mock(Predicate.class);
+        when(cb.disjunction()).thenReturn(disjunctionPredicate);
+
+        // Mock di cb.and per restituire un predicato non nullo
+        Predicate andPredicate = mock(Predicate.class);
+        when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+
+        // Imposta lista vuota non null
         specification.setIdClassiUtente(Collections.emptyList());
+
+        // Invoca il metodo da testare
         Predicate predicate = specification.toPredicate(root, query, cb);
+
+        // Verifica che il predicato restituito non sia null e sia l'andPredicate
         assertNotNull(predicate);
+        assertEquals(andPredicate, predicate);
     }
+	*/
 
     @Test
     public void testToPredicateWithNoFilter() {
         Predicate predicate = specification.toPredicate(root, query, cb);
         assertNull(predicate); // nessun filtro: deve tornare null
     }
-    */
+    
 }
