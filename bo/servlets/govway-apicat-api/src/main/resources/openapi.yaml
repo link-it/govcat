@@ -1784,6 +1784,7 @@ paths:
       - $ref: "#/components/parameters/versione_query_optional"
       - $ref: "#/components/parameters/id_servizio_query_optional_multi"
       - $ref: "#/components/parameters/q_query_optional"
+      - $ref: "#/components/parameters/solo_servizi_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -9851,6 +9852,13 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/GenericSearchString"
+    solo_servizi_query_optional:
+      name: "solo_servizi"
+      in: "query"
+      description: "parametro che indica se esportare solo i servizi"
+      required: false
+      schema:
+        type: boolean
     nome_query_optional:
       name: "nome"
       in: "query"

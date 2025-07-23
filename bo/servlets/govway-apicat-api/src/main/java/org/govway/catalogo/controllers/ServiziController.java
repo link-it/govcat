@@ -1237,7 +1237,8 @@ public class ServiziController implements ServiziApi {
 			List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi,
 			Boolean adesioneConsentita, String nome,
 			String versione, List<UUID> idServizi,
-			String q) {
+			String q,
+			Boolean soloServizi) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			this.servizioAuthorization.authorizeExport();
@@ -1327,7 +1328,7 @@ public class ServiziController implements ServiziApi {
 						Pageable.unpaged()
 						).toList();
 				
-				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll);
+				byte[] csv = (soloServizi == null || !soloServizi) ? this.servizioBuilder.getCSVEsteso(findAll): this.servizioBuilder.getCSVSoloServizi(findAll);
 
 				Resource resource = new ByteArrayResource(csv);
 				this.logger.info("Invocazione completata con successo");

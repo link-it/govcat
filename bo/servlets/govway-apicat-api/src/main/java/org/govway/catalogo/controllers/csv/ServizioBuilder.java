@@ -374,6 +374,36 @@ public class ServizioBuilder {
 				.collect(Collectors.joining("\n"));
 	}
 
+	public byte[] getCSVSoloServizi(Collection<ServizioEntity> servizi) {
+		//TODO trasformare questo metodo affinché, invece che un CSV con servizi e adesioni, restituisca un CSV con tutte e sole le informazioni mostrate nella pagina "Informazioni generali" inclusi i nomi dei referenti
+		Collection<Servizio> serviziCSV = new ArrayList<Servizio>();
+
+		for(ServizioEntity servizio:servizi) {
+			serviziCSV.addAll(toListEntries(servizio));
+		}
+
+		String csv = "";
+		try {
+			ServizioMapper servizioMapper = new ServizioMapper();
+			csv = servizioMapper.writeValues(serviziCSV);
+			if(csv.isEmpty()) {
+
+				Servizio s = new Servizio();
+				String header = servizioMapper.writeValues(Arrays.asList(s));
+
+				int indexOfNewLine = header.indexOf('\n');
+
+				// Extract the substring from the start of the string to the first newline character
+				return header.substring(0, indexOfNewLine).getBytes();
+			} else {
+				return csv.getBytes();
+			}
+		} catch(IOException e) {
+			logger.error("Errore durante la serializzazione del CSV: " + e.getMessage(), e);
+		}
+		return "".getBytes();
+	}
+
 	public byte[] getCSVEsteso(Collection<ServizioEntity> servizi) {
 
 		Collection<Servizio> serviziCSV = new ArrayList<Servizio>();
