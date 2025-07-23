@@ -58,12 +58,23 @@ public class ScenarioTLSPDND implements ConfigurazioneScenario {
 	}
 	
 	@Override
-	public boolean check(DTOClient client, GruppoServizio api) {
-		if (!(client instanceof HttpsPdndClient))
-			return false;
+	public String getError(DTOClient client, GruppoServizio api) {
+		if (!(client instanceof HttpsPdndClient)) {
+			return "Il client deve essere di tipo HTTPS PDND";
+		}
 		HttpsPdndClient castClient = (HttpsPdndClient) client;
-		return this.scenarioPDND.check(this.extractPdndClient(castClient), api) 
-				&& this.scenarioTLS.check(this.extractPdndClient(castClient), api);
+
+		String errorPDND = this.scenarioPDND.getError(this.extractPdndClient(castClient), api);
+		if(errorPDND != null) {
+			return "Scenario PDND: " + errorPDND;
+		}
+		String errorTLS = this.scenarioTLS.getError(this.extractPdndClient(castClient), api);
+		if(errorTLS != null) {
+			return "Scenario TLS: " +errorTLS;
+		}
+		
+		return null;
+		
 	}
 
 	private HttpsClient extractHttpsClient(HttpsPdndClient client) {

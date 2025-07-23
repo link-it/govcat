@@ -45,7 +45,7 @@ public interface ConfigurazioneScenario {
 	 * @param api: servizio su cui configurare lo scenario 
 	 * @return booleano che avverte se il profilo di autenticazioen combacia con lo scenario
 	 */
-	public boolean check(DTOClient client, GruppoServizio api);
+	public String getError(DTOClient client, GruppoServizio api);
 	
 	/**
 	 * configura un client
