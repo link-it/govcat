@@ -14,6 +14,8 @@ import { ServiziRoutingModule } from './servizi-routing.module';
 import { ServizioDetailsModule } from './servizio-details/servizio-details.module';
 import { ServizioViewModule } from './servizio-view/servizio-view.module';
 
+import { ExportDropdwnModule } from './components/export-dropdown/export-dropdown.module';
+
 @NgModule({
     imports: [
         CommonModule,
@@ -25,7 +27,8 @@ import { ServizioViewModule } from './servizio-view/servizio-view.module';
         TassonomiaTokenModule,
         ServiziRoutingModule,
         ServizioDetailsModule,
-        ServizioViewModule
+        ServizioViewModule,
+        ExportDropdwnModule
     ],
     declarations: [
         ServiziComponent

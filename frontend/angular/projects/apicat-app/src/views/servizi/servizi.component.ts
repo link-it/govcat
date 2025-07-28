@@ -32,6 +32,8 @@ import * as _ from 'lodash';
 import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 declare const saveAs: any;
 
+import { ExportActionEnum } from './components/export-dropdown/export-dropdown.component';
+
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
@@ -72,7 +74,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     
     _showTaxonomies: boolean = false;
 
-    _isEdit: boolean = false;
     _editCurrent: any = null;
 
     _hasFilter: boolean = true;
@@ -205,6 +206,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     uncheckAllInTheMenu: boolean = true;
 
     tipo_servizio: string = TipoServizioEnum.API;
+
+    ExportActionEnum = ExportActionEnum;
 
     constructor(
         private router: Router,
@@ -655,10 +658,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.breadCrumbService.clearBreadcrumbs();
         this.breadcrumbs = [ ...this.breadcrumbs ];
         this.eventsManagerService.broadcast('UPDATE_BREADCRUMBS', []);
-    }
-
-    _onCloseEdit() {
-        this._isEdit = false;
     }
 
     _onSubmit(form: any) {
@@ -1147,11 +1146,32 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
     }
 
-    _onExport(type: string) {
+    onExportAction(event: any) {
+        switch (event.action) {
+            case ExportActionEnum.ADESIONI_SEARCH:
+                this.onExport(ExportActionEnum.SEARCH);
+                break;
+            case ExportActionEnum.ADESIONI_SELECTION:
+                this.onExport(ExportActionEnum.SELECTION);
+                break;
+
+            case ExportActionEnum.SERVIZI_SEARCH:
+                this.onExport(ExportActionEnum.SEARCH, true);
+                break;
+            case ExportActionEnum.SERVIZI_SELECTION:
+                this.onExport(ExportActionEnum.SELECTION, true);
+                break;
+            case ExportActionEnum.DESELECT_ALL:
+                this.deselectAll();
+                break;
+        }
+    }
+
+    onExport(type: string, exportServizi: boolean = false) {
         let aux: any;
         let query = null;
 
-        if (type === 'search') {
+        if (type === ExportActionEnum.SEARCH) {
             query = { ...this._filterData };
             if (query.id_gruppo_padre_label) {
                 delete query.id_gruppo_padre_label;
@@ -1160,6 +1180,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             query = { id_servizio: [...this.elementsSelected ] };
         }
         aux = this.utils._queryToHttpParams(query);
+        aux = aux.set('solo_servizi', exportServizi);
 
         this._downloading = true;
         this.apiService.download(`${this.model}-export`, null, undefined, aux).subscribe({
