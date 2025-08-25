@@ -40,6 +40,7 @@ import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.dao.specifications.AllegatoApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
@@ -502,9 +503,20 @@ public class APIController implements ApiApi {
 								DocumentoEntity documentoEntity = this.documentoService.findDocumentoByUuidAndVersion(entity.getSpecifica().getUuid(), Integer.parseInt(versione))
 										.orElseThrow(() -> new NotFoundException("Documento con UUID ["+entity.getSpecifica().getUuid()+"] e versione ["+versione+"] non trovato"));
 
-								resource = new ByteArrayResource(documentoEntity.getRawData());
+                                try {
+                                    byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(documentoEntity.getRawData());
+                                    resource = new ByteArrayResource(jsonOpenapi);
+                                } catch (IOException e) {
+                                    resource = new ByteArrayResource(documentoEntity.getRawData());
+                                }
+
 							} else {
-								resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+                                try {
+                                    byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(entity.getSpecifica().getRawData());
+                                    resource = new ByteArrayResource(jsonOpenapi);
+                                } catch (IOException e) {
+                                    resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+                                }
 							}
 						}
 						
