@@ -1663,7 +1663,7 @@ public class ServiziTest {
 
         // Invocazione del metodo exportServizi senza filtri
         ResponseEntity<Resource> response = serviziController.exportServizi(
-            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null
+            null, null, null, null, null, null, null, null, false, false, null, null, null, null, null, false
         );
 
         // Verifica del successo
