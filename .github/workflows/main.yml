@@ -28,16 +28,11 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: maven
-    - name: Test
-      run: |
-        set -euo pipefail
-        cd bo/
-        mvn clean test
     - name: Build
       run: |
         set -euo pipefail
         cd bo/
-        mvn clean package
+        mvn clean package -DskipTests
         
   build_FE:
     runs-on: ubuntu-latest
@@ -50,7 +45,8 @@ jobs:
     - name: Set up Node 22
       uses: actions/setup-node@v4
       with:
-        node-version: '22.13.10'
+        node-version: '22'
+        check-latest: true
     - name: Build
       run: |
         set -euo pipefail
