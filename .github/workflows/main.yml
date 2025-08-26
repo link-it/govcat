@@ -31,7 +31,6 @@ jobs:
     - name: Build
       run: |
         set -euo pipefail
-        cd bo/
         mvn clean package -DskipTests
         
   build_FE:
@@ -47,6 +46,8 @@ jobs:
       with:
         node-version: '22'
         check-latest: true
+    - name: Install dependencies
+      run: npm ci
     - name: Build
       run: |
         set -euo pipefail
