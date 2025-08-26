@@ -47,7 +47,10 @@ jobs:
         node-version: '22'
         check-latest: true
     - name: Install dependencies
-      run: npm install
+      run: |
+        set -euo pipefail
+        cd frontend/angular/
+        npm install
     - name: Build
       run: |
         set -euo pipefail
