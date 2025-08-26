@@ -1,0 +1,58 @@
+name: GovCat workflow for both BE and FE
+
+on:
+  push:
+    branches: [ "v2.2.x" ]
+    tags:
+      - '*'  # Trigger per tutti i tag 
+  pull_request:
+    branches: [ "v2.2.x" ]
+
+permissions:
+  contents: write
+  id-token: write
+  actions: write
+
+jobs:
+  build_BE:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Clona tutta la history Git 
+    - name: Set timezone to Europe/Rome
+      run: sudo timedatectl set-timezone Europe/Rome
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+    - name: Test
+      run: |
+        set -euo pipefail
+        cd bo/
+        mvn clean test
+    - name: Build
+      run: |
+        set -euo pipefail
+        cd bo/
+        mvn clean package
+        
+  build_FE:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Clona tutta la history Git 
+    - name: Set timezone to Europe/Rome
+      run: sudo timedatectl set-timezone Europe/Rome
+    - name: Set up Node 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.13.10'
+    - name: Build
+      run: |
+        set -euo pipefail
+        cd frontend/angular/
+        npm build
