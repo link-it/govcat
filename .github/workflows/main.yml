@@ -51,4 +51,4 @@ jobs:
       run: |
         set -euo pipefail
         cd frontend/angular/
-        npm build
+        npm run build
