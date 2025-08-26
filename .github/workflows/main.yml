@@ -51,6 +51,11 @@ jobs:
         set -euo pipefail
         cd frontend/angular/
         npm install
+    - name: Build packages
+      run: |
+        set -euo pipefail
+        cd frontend/angular/
+        npm run build-packages
     - name: Build
       run: |
         set -euo pipefail
