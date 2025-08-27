@@ -115,31 +115,45 @@ public class CommonUtils {
 	public static final ProtocolloEnum PROTOCOLLO_API = ProtocolloEnum.REST;
 
 	public static final String openApiSpec = 
-		    "openapi: 3.0.0\n" +
-		    	    "info:\n" +
-		    	    "  title: API di Test\n" +
-		    	    "  description: Una semplice API di test per dimostrare OpenAPI\n" +
-		    	    "  version: 1.0.0\n" +
-		    	    "servers:\n" +
-		    	    "  - url: http://localhost:8080\n" +
-		    	    "    description: Server locale di sviluppo\n" +
-		    	    "paths:\n" +
-		    	    "  /hello:\n" +
-		    	    "    get:\n" +
-		    	    "      summary: Ottiene un messaggio di saluto\n" +
-		    	    "      description: Ritorna un messaggio di benvenuto\n" +
-		    	    "      operationId: getHello\n" +
-		    	    "      responses:\n" +
-		    	    "        '200':\n" +
-		    	    "          description: Risposta con il saluto\n" +
-		    	    "          content:\n" +
-		    	    "            application/json:\n" +
-		    	    "              schema:\n" +
-		    	    "                type: object\n" +
-		    	    "                properties:\n" +
-		    	    "                  message:\n" +
-		    	    "                    type: string\n" +
-		    	    "                    example: \"Ciao, mondo!\"\n";
+		    "{\n" +
+                    "  \"openapi\" : \"3.0.0\",\n" +
+                    "  \"info\" : {\n" +
+                    "    \"title\" : \"API di Test\",\n" +
+                    "    \"description\" : \"Una semplice API di test per dimostrare OpenAPI\",\n" +
+                    "    \"version\" : \"1.0.0\"\n" +
+                    "  },\n" +
+                    "  \"servers\" : [ {\n" +
+                    "    \"url\" : \"http://localhost:8080\",\n" +
+                    "    \"description\" : \"Server locale di sviluppo\"\n" +
+                    "  } ],\n" +
+                    "  \"paths\" : {\n" +
+                    "    \"/hello\" : {\n" +
+                    "      \"get\" : {\n" +
+                    "        \"summary\" : \"Ottiene un messaggio di saluto\",\n" +
+                    "        \"description\" : \"Ritorna un messaggio di benvenuto\",\n" +
+                    "        \"operationId\" : \"getHello\",\n" +
+                    "        \"responses\" : {\n" +
+                    "          \"200\" : {\n" +
+                    "            \"description\" : \"Risposta con il saluto\",\n" +
+                    "            \"content\" : {\n" +
+                    "              \"application/json\" : {\n" +
+                    "                \"schema\" : {\n" +
+                    "                  \"type\" : \"object\",\n" +
+                    "                  \"properties\" : {\n" +
+                    "                    \"message\" : {\n" +
+                    "                      \"type\" : \"string\",\n" +
+                    "                      \"example\" : \"Ciao, mondo!\"\n" +
+                    "                    }\n" +
+                    "                  }\n" +
+                    "                }\n" +
+                    "              }\n" +
+                    "            }\n" +
+                    "          }\n" +
+                    "        }\n" +
+                    "      }\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}";
 	
 	public static OrganizzazioneCreate getOrganizzazioneCreate(){
 		// Creazione dell'istanza di OrganizzazioneCreate

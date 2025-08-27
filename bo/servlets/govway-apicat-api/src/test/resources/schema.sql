@@ -265,6 +265,7 @@ create sequence seq_utenti start with 1 increment by 1;
         id_gruppo varchar(255) not null,
         nome varchar(255) not null,
         tipo varchar(255) not null,
+        alberatura varchar(1000),
         id_gruppo_padre bigint,
         id_immagine bigint,
         primary key (id)
@@ -372,6 +373,7 @@ create sequence seq_utenti start with 1 increment by 1;
     create table servizi (
        id bigint not null,
         package boolean not null,
+        fruizione boolean not null,
         adesione_consentita boolean,
         adesione_disabilitata boolean,
         data_creazione timestamp,
