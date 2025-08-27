@@ -1,4 +1,4 @@
-name: GovCat workflow for both BE and FE
+name: GovCat workflow
 
 on:
   push:
