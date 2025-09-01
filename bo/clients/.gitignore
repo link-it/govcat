@@ -11,5 +11,6 @@ gradlew.bat
 settings.gradle
 AndroidManifest.xml
 **/src/test/
+/target/
 README.md
 
