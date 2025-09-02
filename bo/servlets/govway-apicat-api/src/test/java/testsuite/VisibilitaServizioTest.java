@@ -63,6 +63,7 @@ import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -81,13 +82,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class VisibilitaServizioTest {
 	private static final String UTENTE_QUALSIASI = "Mr.xx";
 	private static final String UTENTE_RICHIEDENTE_SERVIZIO = "utente_richiedente_servizio";
@@ -156,6 +163,9 @@ public class VisibilitaServizioTest {
     
     @Autowired
     private ClassiUtenteController classiUtenteController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UUID idServizio;
     
@@ -291,6 +301,8 @@ public class VisibilitaServizioTest {
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
 	    serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
+        entityManager.flush();
+        entityManager.clear();
     }
     
     ResponseEntity<Organizzazione> response;
@@ -419,7 +431,8 @@ public class VisibilitaServizioTest {
         dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         
         ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
-        
+        entityManager.flush();
+        entityManager.clear();
         return createdDominio.getBody();
     }
     
@@ -466,7 +479,8 @@ public class VisibilitaServizioTest {
          Servizio servizio = createdServizio.getBody();
 
          this.setIdServizio(servizio.getIdServizio());
-         
+         entityManager.flush();
+         entityManager.clear();
          return servizio;
     }
     
@@ -520,7 +534,8 @@ public class VisibilitaServizioTest {
         apiCreate.setGruppiAuthType(gruppiAuthType);
         
         ResponseEntity<API> response = apiController.createApi(apiCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         return response.getBody();
     }
     

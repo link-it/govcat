@@ -51,6 +51,7 @@ import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -75,6 +76,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -84,7 +86,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class GruppiTest {
 
     @Mock

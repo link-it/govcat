@@ -94,6 +94,7 @@ import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -112,13 +113,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class WorkflowAdesioniTest {
 	private static final String UTENTE_RICHIEDENTE_ADESIONE = "utente_richiedente_adesione";
 	private static final String UTENTE_REFERENTE_ADESIONE = "utente_referente_adesione";
@@ -190,6 +197,9 @@ public class WorkflowAdesioniTest {
     
     @Autowired
 	private Configurazione configurazione;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UUID idServizio;
     private UUID idOrganizzazione;
@@ -369,6 +379,8 @@ public class WorkflowAdesioniTest {
         ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+        entityManager.flush();
+        entityManager.clear();
         return createdDominio.getBody();
     }
     
@@ -415,7 +427,8 @@ public class WorkflowAdesioniTest {
          Servizio servizio = createdServizio.getBody();
 
          this.setIdServizio(servizio.getIdServizio());
-         
+         entityManager.flush();
+         entityManager.clear();
          return servizio;
     }
     
@@ -473,7 +486,8 @@ public class WorkflowAdesioniTest {
         doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
         
         ResponseEntity<API> response = apiController.createApi(apiCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         return response.getBody();
     }
     
@@ -576,7 +590,8 @@ public class WorkflowAdesioniTest {
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
         adesioniController.saveClientCollaudoAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
-        
+        entityManager.flush();
+        entityManager.clear();
         //creo il client per la produzione
         clientCreate = new ClientCreate();
         clientCreate.setIdSoggetto(idSoggetto);
@@ -615,8 +630,9 @@ public class WorkflowAdesioniTest {
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
         adesioniController.saveClientProduzioneAdesione(idAdesione, "MODI_P1", adesioneIdClient, null);
-        
-        
+
+        entityManager.flush();
+        entityManager.clear();
         return adesione.getBody();
     }
     
@@ -672,6 +688,8 @@ public class WorkflowAdesioniTest {
         for (StatoUpdate statoUpdate : sequenzaStati) {
         	if(statoPartenza) {
 	            adesioniController.updateStatoAdesione(idAdesione, statoUpdate, null);
+                entityManager.flush();
+                entityManager.clear();
         		//serviziController.updateStatoServizio(idServizio, statoUpdate);
 	
 	            // Termina il ciclo quando raggiungi lo stato finale desiderato
@@ -683,6 +701,8 @@ public class WorkflowAdesioniTest {
         		statoPartenza = true;
         	}
         }
+        entityManager.flush();
+        entityManager.clear();
     }
     
     public void passaAlloStatoSuccessivo(String nomeStatoPartenza) {
@@ -737,6 +757,8 @@ public class WorkflowAdesioniTest {
         for (StatoUpdate statoUpdate : sequenzaStati) {
         	if(statoPartenza) {
 	            adesioniController.updateStatoAdesione(idAdesione, statoUpdate, null);
+                entityManager.flush();
+                entityManager.clear();
 	            // Termina il ciclo quando raggiungi lo stato successivo
 	            break;
         	}
@@ -744,6 +766,8 @@ public class WorkflowAdesioniTest {
         		statoPartenza = true;
         	}
         }
+        entityManager.flush();
+        entityManager.clear();
     }
     
     public void cambioStatoAdesioneFinoA(String statoFinale) {
@@ -796,6 +820,8 @@ public class WorkflowAdesioniTest {
         	StatoUpdate stato = sequenzaStati.get(i);
         	try {	
         		adesioniController.updateStatoAdesione(idAdesione, stato, null);
+                entityManager.flush();
+                entityManager.clear();
         		//adesioniController.updateStatoAdesione(idAdesione, statoUpdate);
     	    } catch (UpdateEntitaComplessaNonValidaSemanticamenteException e) {
     	        List<EntitaComplessaError> errori = e.getErrori();
@@ -840,6 +866,8 @@ public class WorkflowAdesioniTest {
                 break;
             }
         }
+        entityManager.flush();
+        entityManager.clear();
     }
     
     @Test
@@ -853,7 +881,8 @@ public class WorkflowAdesioniTest {
     	
     	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
     	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	// Creo l'Adesione
     	this.getAdesione();
     	
@@ -1119,7 +1148,8 @@ public class WorkflowAdesioniTest {
     	
     	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
     	CommonUtils.cambioStatoFinoA(STATO_PUBBLICATO_IN_COLLAUDO, serviziController, idServizio);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	// Creo l'Adesione
     	this.getAdesione();
     	
@@ -1144,7 +1174,8 @@ public class WorkflowAdesioniTest {
     	
     	//Referente servizio
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	this.passaAlloStatoSuccessivo(STATO_PUBBLICATO_IN_COLLAUDO);
     	
     	this.tornaAStato(STATO_RICHIESTO_IN_PRODUZIONE, STATO_PUBBLICATO_IN_COLLAUDO);
