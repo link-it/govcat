@@ -495,19 +495,17 @@
       <version>0.8.10</version>
       <executions>
         <execution>
-          <id>report-aggregate</id>
-          <phase>verify</phase>
+          <id>prepare-agent</id>
           <goals>
-            <goal>report-aggregate</goal>
+            <goal>prepare-agent</goal>
           </goals>
         </execution>
       </executions>
       <configuration>
-        <outputDirectory>${project.build.directory}/site/jacoco-aggregate</outputDirectory>
-  <dataFile>${project.build.directory}/jacoco.exec</dataFile>
-  <includes>
-    <include>org/govway/**</include>
-  </includes>
+        <destFile>${project.build.directory}/jacoco.exec</destFile>
+        <includes>
+          <include>org/govway/**</include>
+        </includes>
       </configuration>
     </plugin>
 			</plugins>

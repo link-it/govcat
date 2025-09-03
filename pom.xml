@@ -192,6 +192,7 @@
 		<maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
 		<maven.properties.plugin.version>1.2.1</maven.properties.plugin.version>
 		<maven.surefire.version>3.2.2</maven.surefire.version>
+		<jacoco.plugin.version>0.8.10</jacoco.plugin.version>
 		<debug.level>DEBUG</debug.level>
 
 		<!-- Versioni Plugin Maven -->
@@ -1086,6 +1087,28 @@
 						<goals>
 							<goal>aggregate</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- JaCoCo for project-wide code coverage aggregation -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>report-aggregate</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report-aggregate</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/site/jacoco-aggregate</outputDirectory>
+							<includes>
+								<include>org/govway/**</include>
+							</includes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
