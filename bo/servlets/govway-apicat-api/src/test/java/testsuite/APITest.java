@@ -48,6 +48,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.DownloadSpecificaAPIModeEnum;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
@@ -1265,7 +1266,7 @@ public class APITest {
 
         // Test per l'API non trovata
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.downloadSpecificaAPI(idApiNonEsistente, AmbienteEnum.COLLAUDO, null, false, false);
+            apiController.downloadSpecificaAPI(idApiNonEsistente, AmbienteEnum.COLLAUDO, null, false, null);
         });
         //System.out.println(exception.getMessage());
         String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
@@ -1285,7 +1286,7 @@ public class APITest {
 
         // Test per la specifica non presente
         assertThrows(NullPointerException.class, () -> {
-            apiController.downloadSpecificaAPI(idApi, AmbienteEnum.COLLAUDO, null, false, true);
+            apiController.downloadSpecificaAPI(idApi, AmbienteEnum.COLLAUDO, null, false, DownloadSpecificaAPIModeEnum.TRY_OUT);
         });
     }
 

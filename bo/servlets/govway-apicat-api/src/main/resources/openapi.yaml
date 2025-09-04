@@ -3052,7 +3052,7 @@ paths:
       - $ref: "#/components/parameters/id_ambiente"
       - $ref: "#/components/parameters/versione_query_optional"
       - $ref: "#/components/parameters/includi_doc_allegati_query_optional"
-      - $ref: "#/components/parameters/try_out_query_optional"
+      - $ref: "#/components/parameters/download_specifica_API_mode_optional"
       responses:
         "200":
           description: Specifica
@@ -5183,6 +5183,14 @@ components:
       type: string
       enum: ['inline', 'uuid' ]
       example: 'uuid'
+    DownloadSpecificaAPIModeEnum:
+      type: "string"
+      description: "Modalità download specifica API"
+      example: "visualizzazione"
+      enum:
+        - download
+        - visualizzazione
+        - try_out
     ListaRisorseApiRichiesta:
       type: object
       required:
@@ -9641,13 +9649,13 @@ components:
       required: false
       schema:
         type: boolean
-    try_out_query_optional:
-      name: "try_out"
+    download_specifica_API_mode_optional:
+      name: "mode"
       in: "query"
-      description: "indica se deve essere effettuato il post processing per il try out"
+      description: "Indica la modalità di download della specifica API"
       required: false
       schema:
-        type: boolean
+        $ref: '#/components/schemas/DownloadSpecificaAPIModeEnum'
     id_client_query_optional:
       name: "id_client"
       in: "query"

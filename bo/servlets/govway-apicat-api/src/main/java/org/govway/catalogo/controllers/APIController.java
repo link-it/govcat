@@ -40,6 +40,7 @@ import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.dao.specifications.AllegatoApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
@@ -61,26 +62,7 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.ApiApi;
-import org.govway.catalogo.servlets.model.API;
-import org.govway.catalogo.servlets.model.APICreate;
-import org.govway.catalogo.servlets.model.Allegato;
-import org.govway.catalogo.servlets.model.AllegatoItemCreate;
-import org.govway.catalogo.servlets.model.AllegatoUpdate;
-import org.govway.catalogo.servlets.model.AmbienteEnum;
-import org.govway.catalogo.servlets.model.ApiUpdate;
-import org.govway.catalogo.servlets.model.Configurazione;
-import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
-import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicy;
-import org.govway.catalogo.servlets.model.Grant;
-import org.govway.catalogo.servlets.model.ItemApi;
-import org.govway.catalogo.servlets.model.PageMetadata;
-import org.govway.catalogo.servlets.model.PagedModelAllegato;
-import org.govway.catalogo.servlets.model.PagedModelItemApi;
-import org.govway.catalogo.servlets.model.ProprietaCustom;
-import org.govway.catalogo.servlets.model.Ruolo;
-import org.govway.catalogo.servlets.model.RuoloAPIEnum;
-import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
-import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
+import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -471,7 +453,7 @@ public class APIController implements ApiApi {
 	}
 
 	@Override
-	public ResponseEntity<Resource> downloadSpecificaAPI(UUID idApi, AmbienteEnum ambiente, String versione, Boolean includiDocAllegati, Boolean tryOut) {
+    public ResponseEntity<Resource> downloadSpecificaAPI(UUID idApi, AmbienteEnum ambiente, String versione, Boolean includiDocAllegati, DownloadSpecificaAPIModeEnum mode) {
 		try {
 			return this.service.runTransaction(() -> {
 
@@ -491,7 +473,7 @@ public class APIController implements ApiApi {
 					
 					if(entity.getSpecifica()!=null) {
 						Resource resource;
-						if(tryOut != null && tryOut && (entity.getProtocollo().equals(PROTOCOLLO.OPENAPI_3) || entity.getProtocollo().equals(PROTOCOLLO.SWAGGER_2))) {
+						if(mode != null && mode.equals(DownloadSpecificaAPIModeEnum.TRY_OUT) && (entity.getProtocollo().equals(PROTOCOLLO.OPENAPI_3) || entity.getProtocollo().equals(PROTOCOLLO.SWAGGER_2))) {
 							try {
 								resource = new ByteArrayResource(this.serviceBuilder.getTryOutOpenAPI(entityA, entity, ambiente.equals(AmbienteEnum.COLLAUDO)));
 							} catch (IOException e) {
@@ -501,10 +483,28 @@ public class APIController implements ApiApi {
 							if(versione!=null) {
 								DocumentoEntity documentoEntity = this.documentoService.findDocumentoByUuidAndVersion(entity.getSpecifica().getUuid(), Integer.parseInt(versione))
 										.orElseThrow(() -> new NotFoundException("Documento con UUID ["+entity.getSpecifica().getUuid()+"] e versione ["+versione+"] non trovato"));
-
-								resource = new ByteArrayResource(documentoEntity.getRawData());
+								
+								if(mode == null || mode.equals(DownloadSpecificaAPIModeEnum.DOWNLOAD)) {
+									resource = new ByteArrayResource(documentoEntity.getRawData());
+								} else {
+                                    try {
+                                        byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(documentoEntity.getRawData());
+                                        resource = new ByteArrayResource(jsonOpenapi);
+                                    } catch (IOException e) {
+                                        resource = new ByteArrayResource(documentoEntity.getRawData());
+                                    }
+                                }
 							} else {
-								resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+								if(mode == null || mode.equals(DownloadSpecificaAPIModeEnum.DOWNLOAD)) {
+									resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+								} else {
+                                    try {
+                                        byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(entity.getSpecifica().getRawData());
+                                        resource = new ByteArrayResource(jsonOpenapi);
+                                    } catch (IOException e) {
+                                        resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+                                    }
+                                }
 							}
 						}
 						
