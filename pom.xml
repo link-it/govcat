@@ -174,7 +174,7 @@
 		<tools.dir>${project.basedir}/tools</tools.dir>
 
 		<!-- owasp properties -->
-		<owasp.plugin.version>11.0.0</owasp.plugin.version>
+		<owasp.plugin.version>12.1.0</owasp.plugin.version>
 		<owasp.plugin.autoUpdate>true</owasp.plugin.autoUpdate> <!-- Impostare a
 		false quando ci sono problemi su repository NIST -->
 		<owasp.plugin.failBuildOnCVSS>0</owasp.plugin.failBuildOnCVSS>
