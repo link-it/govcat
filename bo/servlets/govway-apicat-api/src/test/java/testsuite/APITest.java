@@ -1316,6 +1316,72 @@ public class APITest {
         assertEquals(1, response.getBody().getContent().size());
         assertEquals(responseApi.getBody().getNome(), response.getBody().getContent().get(0).getNome());
     }
+
+    @Test
+    void testListAPISuccessWithNomeGatewayQuery() {
+        // Creazione del servizio tramite il metodo di utilità
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+
+        // Creazione di una API per il servizio
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setIdServizio(idServizio);
+
+        APIDatiAmbienteCreate apiDatiAmbienteCreateCollaudo = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreateCollaudo.setProtocollo(ProtocolloEnum.REST);
+        APIDatiErogazione apiDatiErogazioneCollaudo = new APIDatiErogazione();
+        apiDatiErogazioneCollaudo.setNomeGateway("APIGatewayColl");
+        apiDatiErogazioneCollaudo.setVersioneGateway(1);
+        apiDatiErogazioneCollaudo.setUrlPrefix("http://");
+        apiDatiErogazioneCollaudo.setUrl("testurl.com/test");
+        apiDatiAmbienteCreateCollaudo.setDatiErogazione(apiDatiErogazioneCollaudo);
+        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreateCollaudo);
+
+        APIDatiAmbienteCreate apiDatiAmbienteCreateProduzione = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreateProduzione.setProtocollo(ProtocolloEnum.REST);
+        APIDatiErogazione apiDatiErogazioneProduzione = new APIDatiErogazione();
+        apiDatiErogazioneProduzione.setNomeGateway("APIGatewayProd");
+        apiDatiErogazioneProduzione.setVersioneGateway(1);
+        apiDatiErogazioneProduzione.setUrlPrefix("http://");
+        apiDatiErogazioneProduzione.setUrl("testurl.com/test");
+        apiDatiAmbienteCreateProduzione.setDatiErogazione(apiDatiErogazioneProduzione);
+        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreateProduzione);
+
+        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
+        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
+
+        // Parametri per la paginazione e filtraggio
+        Integer page = 0;
+        Integer size = 10;
+        //List<String> sort = Arrays.asList("nome");
+
+        // Invocazione del metodo listAPI
+        ResponseEntity<PagedModelItemApi> response = apiController.listAPI(idServizio, null, null, null, null, "APIGateway", page, size, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(responseApi.getBody().getNome(), response.getBody().getContent().get(0).getNome());
+
+        // Invocazione del metodo listAPI
+        ResponseEntity<PagedModelItemApi> response2 = apiController.listAPI(idServizio, null, null, null, null, "APIGatewayColl", page, size, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertNotNull(response2.getBody());
+        assertEquals(1, response2.getBody().getContent().size());
+        assertEquals(responseApi.getBody().getNome(), response2.getBody().getContent().get(0).getNome());
+
+        // Invocazione del metodo listAPI
+        ResponseEntity<PagedModelItemApi> response3 = apiController.listAPI(idServizio, null, null, null, null, "APIGatewayProd", page, size, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response3.getStatusCode());
+        assertNotNull(response3.getBody());
+        assertEquals(1, response3.getBody().getContent().size());
+        assertEquals(responseApi.getBody().getNome(), response3.getBody().getContent().get(0).getNome());
+    }
     /*
     @Test
     void testListAPINotAuthorized() {
