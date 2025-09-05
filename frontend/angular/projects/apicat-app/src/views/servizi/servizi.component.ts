@@ -885,7 +885,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     getData(model: string, term: any = null, sort: string = 'id', sort_direction: string = 'desc'): Observable<any> {
-        // let _options: any = { params: { limit: 100, sort: sort, sort_direction: 'asc' } };
         let _options: any = { params: { } };
         if (term) {
             if (typeof term === 'string' ) {
@@ -899,10 +898,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         return this.apiService.getList(model, _options)
             .pipe(map(resp => {
                 if (resp.Error) {
-                    throwError(resp.Error);
+                    throwError(() => resp.Error);
                 } else {
                     const _items = (resp.content || resp).map((item: any) => {
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        if (model === 'api') {
+                            if (item.configurazione_collaudo?.dati_erogazione?.nome_gateway || item.configurazione_produzione?.dati_erogazione?.nome_gateway) {
+                                item.descrizione = `${item.configurazione_collaudo?.dati_erogazione?.nome_gateway ?? '-'} | ${item.configurazione_produzione?.dati_erogazione?.nome_gateway ?? '-'}`;
+                            } 
+                        }
                         return item;
                     });
                     return _items;
@@ -938,8 +941,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const _taxonomiesGroup = this._formGroup.get('taxonomiesGroup') as FormGroup;
 
         (taxonomies || []).forEach((taxonomy: any) => {
-            // const required: boolean = taxonomy.obbligatorio;
-            // _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', required?[Validators.required]:null));
             _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', null));
         });
 
