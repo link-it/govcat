@@ -80,7 +80,7 @@
                         <div id="accordion-general-info" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
                                 <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex align-items-center gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
                                             [loading]="loadingCheckDati"
@@ -108,7 +108,7 @@
                         <div id="accordion-referenti" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
                                 <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex align-items-center gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
                                             [loading]="loadingCheckDati"
@@ -249,7 +249,7 @@
                         <div id="accordion-collaudo" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
                                 <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex align-items-center gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
                                             [loading]="loadingCheckDati"
@@ -292,7 +292,7 @@
                                         <div class="settings-content-">
                                             <div class="row mt-1" [class.justify-content-center]="singleColumn">
                                                 <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
-                                                    <div class="d-flex gap-2">
+                                                    <div class="d-flex align-items-center gap-2">
                                                         <lnk-icon-toggle
                                                             [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Collaudo:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
                                                             [loading]="loadingCheckDati"
@@ -331,7 +331,7 @@
                         <div id="accordion-produzione" class="accordion-item mb-3 border">
                             <h2 class="accordion-header">
                                 <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex align-items-center gap-2">
                                         <lnk-icon-toggle
                                             [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
                                             [loading]="loadingCheckDati"
@@ -374,7 +374,7 @@
                                         <div class="settings-content-">
                                             <div class="row mt-1" [class.justify-content-center]="singleColumn">
                                                 <div class="mt-3" [class.col-lg-12]="singleColumn" [class.mb-3]="singleColumn" [class.col-lg-4]="!singleColumn">
-                                                    <div class="d-flex gap-2">
+                                                    <div class="d-flex align-items-center gap-2">
                                                         <lnk-icon-toggle
                                                             [value]="loadingCheckDati | mapper:getStatusSottotipoCompleteMapper:AmbienteEnum.Produzione:ClassiEnum.CONFIGURAZIONE_GRUPPO:item.nome_gruppo"
                                                             [loading]="loadingCheckDati"
