@@ -485,7 +485,7 @@ export class AuthenticationService {
     const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
 
     const _intersection = _.intersection(grant, _grantManagement);
-    return (_intersection.length > 0) || true;
+    return (_intersection.length > 0) && !this.isAnonymous();
   }
 
   canEditField(module: string, submodule: string, state: string, field: string, grant: string[] = []) {

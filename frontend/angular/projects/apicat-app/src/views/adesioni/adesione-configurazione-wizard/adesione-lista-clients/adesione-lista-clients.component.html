@@ -32,10 +32,20 @@
                             ></ui-item-row>
                         </div>
                         <div class="flex-initial" *ngIf="isEdit">
-                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="confirmDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
-                                <i class="bi bi-unlock-fill"></i>
+                            <button aria-expanded="false" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)"
+                                type="button"
+                                class="btn btn-default btn-md gl-button btn-icon mr-2"
+                                [tooltip]="'APP.TOOLTIP.Dissociate' | translate" [delay]="500"
+                                (click)="confirmDissociaClient(item)"
+                            >
+                                <span class="material-icons-outlined">link_off</span>
                             </button>
-                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="onEdit(item)">
+                            <button aria-expanded="false"
+                                type="button"
+                                class="btn btn-default btn-md gl-button btn-icon"
+                                [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                                (click)="onEdit(item)"
+                            >
                                 <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
                                 <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
                             </button>

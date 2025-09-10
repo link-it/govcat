@@ -702,7 +702,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _canManagementComunicazioniMapper = (): boolean => {
-        return this.data &&this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
+        return this.data && this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
     }
 
     _isAmmissibile() {
