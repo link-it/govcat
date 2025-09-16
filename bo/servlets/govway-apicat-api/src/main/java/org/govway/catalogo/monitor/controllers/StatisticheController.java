@@ -36,6 +36,7 @@ import org.govway.catalogo.monitoraggioutils.IStatisticheClient;
 import org.govway.catalogo.monitoraggioutils.IdApi;
 import org.govway.catalogo.monitoraggioutils.PostReportResponse;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneTipiDistribuzione;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
 import org.govway.catalogo.servlets.monitor.model.AndamentoTemporaleQuery;
 import org.govway.catalogo.servlets.monitor.model.DistribuzioneApiQuery;
@@ -125,7 +126,7 @@ public class StatisticheController implements StatisticheApi {
 		DISTRIBUZIONE_TOKEN_ISSUER, DISTRIBUZIONE_IP, DISTRIBUZIONE_PRINCIPAL
 	}
 
-	private void authorize() {
+	private void authorize(ConfigurazioneTipiDistribuzione configurazioneTipiDistribuzione) {
 		if (!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
 			throw new NotFoundException("Monitoraggio non abilitato");
 		}
@@ -134,6 +135,13 @@ public class StatisticheController implements StatisticheApi {
 				&& !this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate()) {
 			throw new NotFoundException("Statistiche non abilitate");
 		}
+
+        if(this.configurazione.getServizio().getMonitoraggio().getStatistiche() != null &&
+            this.configurazione.getServizio().getMonitoraggio().getStatistiche().getTipiDistribuzione() != null &&
+            !this.configurazione.getServizio().getMonitoraggio().getStatistiche().getTipiDistribuzione().isEmpty() &&
+                !this.configurazione.getServizio().getMonitoraggio().getStatistiche().getTipiDistribuzione().contains(configurazioneTipiDistribuzione)) {
+            throw new NotFoundException("Tipo di distribuzione non abilitato");
+        }
 
 		// TODO check ruoli
 	}
@@ -608,7 +616,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -635,7 +643,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, andamentoTemporaleQuery,
@@ -663,7 +671,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -690,7 +698,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApiQuery,
@@ -718,7 +726,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -745,7 +753,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApplicativoQuery,
@@ -773,7 +781,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -800,7 +808,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneErroriQuery,
@@ -829,7 +837,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -856,7 +864,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneEsitiQuery,
@@ -884,7 +892,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -911,7 +919,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIPQuery,
@@ -939,7 +947,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -966,7 +974,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneOperazioneQuery,
@@ -994,7 +1002,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1021,7 +1029,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneSoggettoRemotoQuery,
@@ -1049,7 +1057,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_CLIENT_ID);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1076,7 +1084,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_CLIENT_ID);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneClientIdQuery,
@@ -1104,7 +1112,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_ISSUER);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1131,7 +1139,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_ISSUER);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIssuerQuery,
@@ -1160,7 +1168,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1187,7 +1195,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, andamentoTemporaleQuery,
@@ -1215,7 +1223,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1242,7 +1250,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApiQuery,
@@ -1270,7 +1278,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1297,7 +1305,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApplicativoQuery,
@@ -1325,7 +1333,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1352,7 +1360,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneErroriQuery,
@@ -1381,7 +1389,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1408,7 +1416,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneEsitiQuery,
@@ -1436,7 +1444,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1463,7 +1471,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIPQuery,
@@ -1491,7 +1499,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1518,7 +1526,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneOperazioneQuery,
@@ -1546,7 +1554,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_PRINCIPAL);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1573,7 +1581,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_PRINCIPAL);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzionePrincipalQuery,
@@ -1601,7 +1609,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1628,7 +1636,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneSoggettoRemotoQuery,

@@ -5477,6 +5477,13 @@ components:
           type: string
         tipo_soggetto_govway:
           type: string
+    ConfigurazioneStatisticheMonitoraggio:
+      type: "object"
+      properties:
+        tipi_distribuzione:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneTipiDistribuzione'
     ConfigurazioneMonitoraggio:
       type: "object"
       required:
@@ -5505,6 +5512,8 @@ components:
             $ref: '#/components/schemas/ConfigurazioneSoggettoMonitoraggio'
         soggetto_pdnd:
             $ref: '#/components/schemas/ConfigurazioneSoggettoMonitoraggio'
+        statistiche:
+          $ref: '#/components/schemas/ConfigurazioneStatisticheMonitoraggio'
     ConfigurazioneAdesione:
       type: "object"
       required:
@@ -6339,6 +6348,20 @@ components:
           type: "boolean"
         aggiornamento_idm_abilitato:
           type: "boolean"
+    ConfigurazioneTipiDistribuzione:
+      type: "string"
+      enum:
+        - andamento_temporale
+        - distribuzione_esiti
+        - distribuzione_errori
+        - distribuzione_soggetto_remoto
+        - distribuzione_api
+        - distribuzione_operazione
+        - distribuzione_applicativo
+        - distribuzione_token_client_id
+        - distribuzione_token_issuer
+        - distribuzione_ip
+        - distribuzione_principal
     StatoProfiloEnum:
       type: "string"
       enum:
