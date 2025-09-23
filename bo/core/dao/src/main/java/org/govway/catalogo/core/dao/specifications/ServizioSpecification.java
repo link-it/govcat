@@ -172,7 +172,13 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		}
 		
 		if(idGruppo.isPresent()) {
-			predLst.add(cb.like(root.join(ServizioEntity_.gruppi, JoinType.LEFT).get(GruppoEntity_.alberatura), "%#"+idGruppo.get()+"#%"));
+			ArrayList<Predicate> preds2 = new ArrayList<>();
+			
+			preds2.add(cb.like(root.join(ServizioEntity_.gruppi, JoinType.LEFT).get(GruppoEntity_.alberatura), "%#"+idGruppo.get()+"#%"));
+			preds2.add(cb.equal(root.join(ServizioEntity_.gruppi, JoinType.LEFT).get(GruppoEntity_.id), idGruppo.get()));
+			
+			predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
+			
 		}
 
 		if(categorie != null) {
