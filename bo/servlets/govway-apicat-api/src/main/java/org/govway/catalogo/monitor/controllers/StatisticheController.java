@@ -127,19 +127,19 @@ public class StatisticheController implements StatisticheApi {
 	}
 
 	private void authorize(ConfigurazioneTipiDistribuzione configurazioneTipiDistribuzione) {
-		if (!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
+		if (!this.configurazione.getMonitoraggio().isAbilitato()) {
 			throw new NotFoundException("Monitoraggio non abilitato");
 		}
 
-		if (this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate() != null
-				&& !this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate()) {
+		if (this.configurazione.getMonitoraggio().isStatisticheAbilitate() != null
+				&& !this.configurazione.getMonitoraggio().isStatisticheAbilitate()) {
 			throw new NotFoundException("Statistiche non abilitate");
 		}
 
-        if(this.configurazione.getServizio().getMonitoraggio().getStatistiche() != null &&
-            this.configurazione.getServizio().getMonitoraggio().getStatistiche().getTipiDistribuzione() != null &&
-            !this.configurazione.getServizio().getMonitoraggio().getStatistiche().getTipiDistribuzione().isEmpty() &&
-                !this.configurazione.getServizio().getMonitoraggio().getStatistiche().getTipiDistribuzione().contains(configurazioneTipiDistribuzione)) {
+        if(this.configurazione.getMonitoraggio().getStatistiche() != null &&
+            this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione() != null &&
+            !this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione().isEmpty() &&
+                !this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione().contains(configurazioneTipiDistribuzione)) {
             throw new NotFoundException("Tipo di distribuzione non abilitato");
         }
 

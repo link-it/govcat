@@ -206,11 +206,11 @@ public class TransazioniController implements TransazioniApi {
 	}
 
 	private void authorize() {
-		if(!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
+		if(!this.configurazione.getMonitoraggio().isAbilitato()) {
 			throw new NotFoundException("Monitoraggio non abilitato");
 		}
 		
-		if(this.configurazione.getServizio().getMonitoraggio().isTransazioniAbilitate() != null && !this.configurazione.getServizio().getMonitoraggio().isTransazioniAbilitate()) {
+		if(this.configurazione.getMonitoraggio().isTransazioniAbilitate() != null && !this.configurazione.getMonitoraggio().isTransazioniAbilitate()) {
 			throw new NotFoundException("Transazioni non abilitate");
 		}
 		

@@ -180,11 +180,11 @@ public class VerificaController implements VerificaApi {
 	protected String idAllarmeFruizioniPdndBackendProduzione;
 
 	private void authorize() {
-		if(!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
+		if(!this.configurazione.getMonitoraggio().isAbilitato()) {
 			throw new NotFoundException("Monitoraggio non abilitato");
 		}
 		
-		if(this.configurazione.getServizio().getMonitoraggio().isVerificheAbilitate()!= null && !this.configurazione.getServizio().getMonitoraggio().isVerificheAbilitate()) {
+		if(this.configurazione.getMonitoraggio().isVerificheAbilitate()!= null && !this.configurazione.getMonitoraggio().isVerificheAbilitate()) {
 			throw new NotFoundException("Verifiche non abilitate");
 		}
 		

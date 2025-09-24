@@ -5406,6 +5406,7 @@ components:
         - utente
         - servizio
         - adesione
+        - monitoraggio
       properties:
         generale:
           $ref: '#/components/schemas/ConfigurazioneGenerale'
@@ -6077,7 +6078,6 @@ components:
         - api
         - workflow
         - stati_adesione_consentita
-        - monitoraggio
         - visibilita_allegati_consentite
       properties:
         api_multiple:
@@ -6098,8 +6098,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConfigurazioneNomeStato'
-        monitoraggio:
-          $ref: '#/components/schemas/ConfigurazioneMonitoraggio'
         visibilita_allegati_consentite:
           type: array
           items:
