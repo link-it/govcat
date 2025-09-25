@@ -1064,6 +1064,7 @@
 				"NoDeleteGruppi": "Non è possibile eliminare il gruppo.",
 				"NoDeleteReferent": "Non è possibile eliminare il referente.",
 				"NoMessageError": "Non ci sono messaggi di errore.",
+				"Timeout": "Timeout durante il download. Riprova più tardi.",
 				"TimeoutError": "Si è verificato un timeout",
 				"TokenExpired": "Token scaduto.",
 				"Unauthorized": "Non autorizzato",
