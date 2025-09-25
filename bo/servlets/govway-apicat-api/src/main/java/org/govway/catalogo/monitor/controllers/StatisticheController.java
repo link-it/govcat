@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import org.govway.catalogo.MonitorV1Controller;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ProfiloEnum;
@@ -127,12 +128,12 @@ public class StatisticheController implements StatisticheApi {
 
 	private void authorize() {
 		if (!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
-			throw new NotFoundException("Monitoraggio non abilitato");
+			throw new NotFoundException(ErrorCode.MON_001);
 		}
 
 		if (this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate() != null
 				&& !this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate()) {
-			throw new NotFoundException("Statistiche non abilitate");
+			throw new NotFoundException(ErrorCode.MON_007);
 		}
 
 		// TODO check ruoli
@@ -625,7 +626,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -650,7 +651,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -680,7 +681,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -705,7 +706,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -735,7 +736,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -760,7 +761,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -790,7 +791,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -815,7 +816,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -846,7 +847,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -871,7 +872,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -901,7 +902,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -926,7 +927,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -956,7 +957,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -981,7 +982,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1011,7 +1012,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1036,7 +1037,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1066,7 +1067,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1091,7 +1092,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1121,7 +1122,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1146,7 +1147,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1177,7 +1178,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1202,7 +1203,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1232,7 +1233,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1257,7 +1258,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1287,7 +1288,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1312,7 +1313,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1342,7 +1343,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1367,7 +1368,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1398,7 +1399,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1423,7 +1424,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1453,7 +1454,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1478,7 +1479,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1508,7 +1509,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1533,7 +1534,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1563,7 +1564,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1588,7 +1589,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1618,7 +1619,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -1643,7 +1644,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 

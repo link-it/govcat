@@ -32,6 +32,7 @@ import org.govway.catalogo.core.business.utils.SwaggerUtils;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.ToolsApi;
 import org.govway.catalogo.servlets.model.DocumentoApiInline;
@@ -66,7 +67,7 @@ public class ToolsController implements ToolsApi {
 			} else {
 				String uuid = ((DocumentoApiRef)listaRisorseApiRichiesta.getDocument()).getUuid();
 				body = service.find(uuid)
-						.orElseThrow(() -> new NotFoundException("Documento ["+uuid+"] non trovato"))
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001))
 						.getRawData();
 			}
 			List<String> lst = null;
@@ -83,7 +84,7 @@ public class ToolsController implements ToolsApi {
 			return ResponseEntity.ok(lst);
 		} catch(Exception e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
-			throw new BadRequestException("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
+			throw new BadRequestException(ErrorCode.DOC_004);
 		}
 	}
 	
@@ -92,22 +93,22 @@ public class ToolsController implements ToolsApi {
 	    	if(OpenapiUtils.isOpenapi(restBytes)) {
 		    	List<String> collect = OpenapiUtils.getProtocolInfoFromOpenapi(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
 				if(collect.isEmpty()) {
-					throw new BadRequestException("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
+					throw new BadRequestException(ErrorCode.DOC_004);
 				}
 		    	return collect;
 	    	} else if(SwaggerUtils.isSwagger(restBytes)) {
 		    	List<String> collect = SwaggerUtils.getProtocolInfoFromSwagger(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
 				if(collect.isEmpty()) {
-					throw new BadRequestException("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
+					throw new BadRequestException(ErrorCode.DOC_004);
 				}
 				return collect;
 	    	} else {
-				throw new BadRequestException("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
+				throw new BadRequestException(ErrorCode.DOC_004);
 	    	}
 	    	
 	    } catch(Exception e) {
 	    	this.logger.error("Errore durante la lettura delle operazioni dal descrittore REST: " + e.getMessage(), e);
-	    	throw new BadRequestException(e);
+	    	throw new BadRequestException(ErrorCode.DOC_004);
 	    }
 	}
 	
@@ -116,7 +117,7 @@ public class ToolsController implements ToolsApi {
 	    	return WsdlUtils.getOperationFromWsdl(wsdlBytes);
 	    } catch(Exception e) {
 	    	this.logger.error("Errore durante la lettura delle operazioni dal WSDL: " + e.getMessage(), e);
-	    	throw new BadRequestException(e);
+	    	throw new BadRequestException(ErrorCode.DOC_004);
 	    }
 	}
 
@@ -132,12 +133,12 @@ public class ToolsController implements ToolsApi {
 			} else {
 				String uuid = ((DocumentoApiRef)listaRisorseApiRichiesta.getDocument()).getUuid();
 				body = service.find(uuid)
-						.orElseThrow(() -> new NotFoundException("Documento ["+uuid+"] non trovato"))
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001))
 						.getRawData();
 			}
 			List<ServizioWsdl> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
-			case REST: throw new BadRequestException("APIType REST non gestito");
+			case REST: throw new BadRequestException(ErrorCode.SYS_003);
 			case SOAP: lst = WsdlUtils.getInfoFromWsdl(body).stream()
 					.map(serv -> {
 						ServizioWsdl servizioW = new ServizioWsdl();
@@ -169,7 +170,7 @@ public class ToolsController implements ToolsApi {
 			return ResponseEntity.ok(lst);
 		} catch(Exception e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
-			throw new BadRequestException("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito");
+			throw new BadRequestException(ErrorCode.DOC_004);
 		}
 	}
 

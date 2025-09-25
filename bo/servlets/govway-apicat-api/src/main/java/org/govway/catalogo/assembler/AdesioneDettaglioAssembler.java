@@ -54,6 +54,7 @@ import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Adesione;
@@ -188,7 +189,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			.stream()
 			.filter(p -> p.getCodiceInterno().equals(profilo))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException("Profilo ["+profilo+"] non trovato"));
+			.orElseThrow(() -> new BadRequestException(ErrorCode.GEN_002));
 
 		ambiente = collaudo ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
 
@@ -198,14 +199,14 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			ambienteBody = specSrc.getAmbiente().equals(org.govway.catalogo.servlets.model.AmbienteEnum.COLLAUDO) ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
 
 			client = this.clientService.findByNomeSoggettoAmbiente(specSrc.getNome(), specSrc.getIdSoggetto(), ambiente)
-			.orElseThrow(() -> new BadRequestException("Client ["+specSrc.getNome()+"] del soggetto ["+specSrc.getIdSoggetto()+"] non trovato in ambiente ["+specSrc.getAmbiente()+"]"));
+			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_001));
 
 			nomeProposto = null;
 			this.clientDettaglioAssembler.checkClientProfilo(pr, client);
 		} else if(src.getTipoClient().equals(TipoAdesioneClientUpdateEnum.PROPOSTO)) {
 
 			if(this.configurazione.getAdesione().isVisualizzaElencoClientEsistenti()!= null && this.configurazione.getAdesione().isVisualizzaElencoClientEsistenti()) {
-				throw new BadRequestException("Client PROPOSTO non previsto");
+				throw new BadRequestException(ErrorCode.CLT_003);
 			}
 			AdesioneClientProposto specSrc = (AdesioneClientProposto) src;
 			ambienteBody = specSrc.getAmbiente().equals(org.govway.catalogo.servlets.model.AmbienteEnum.COLLAUDO) ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
@@ -217,7 +218,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			nomeProposto = null;
 			
 			if(this.clientService.existsByNomeSoggettoAmbiente(client)) {
-				throw new ConflictException("Client ["+client.getNome()+"/"+entity.getSoggetto().getNome()+"/"+client.getAmbiente()+"] esiste gia");
+				throw new ConflictException(ErrorCode.CLT_002);
 			}
 			
 			this.clientDettaglioAssembler.checkClientProfilo(pr, client);
@@ -225,7 +226,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		if(!ambiente.equals(ambienteBody)) {
-			throw new BadRequestException("L'ambiente specificato nella URL ["+ambiente+"] e nel body ["+ambienteBody+"] devono coincidere");
+			throw new BadRequestException(ErrorCode.VAL_001);
 		}
 
 		ClientAdesioneEntity adC = entity.getClient().stream().filter(ac -> ac.getProfilo().equals(profilo) && ac.getAmbiente().equals(ambiente)).findAny()
@@ -259,7 +260,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		SoggettoEntity soggetto = getSoggetto(src.getIdSoggetto());
 		
 		if(!soggetto.getOrganizzazione().equals(entity.getSoggetto().getOrganizzazione())) {
-			throw new BadRequestException("Soggetto ["+soggetto.getNome()+"] non afferisce all'organizzazione " + entity.getSoggetto().getOrganizzazione().getNome());
+			throw new BadRequestException(ErrorCode.ORG_005);
 		}
 		
 		entity.setSoggetto(soggetto);
@@ -272,7 +273,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	private SoggettoEntity getSoggetto(UUID idSoggetto) {
 		SoggettoEntity soggetto = this.soggettoService.find(idSoggetto).
-				orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato"));
+				orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
 		return soggetto;
 	}
 	
@@ -287,7 +288,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new BadRequestException("Impossibile impostare skip collaudo sull'Adesione, in quanto il Servizio ["+entity.getServizio().getNome()+" " +entity.getServizio().getVersione()+"] non lo consente");
+			throw new BadRequestException(ErrorCode.ADE_004);
 		}
 	}
 
@@ -353,7 +354,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 			if(!admin && !ref) {
 				if(!entity.getSoggetto().getOrganizzazione().getId().equals(utenteSessione.getOrganizzazione().getId())) {
-					throw new BadRequestException("Scelta libera organizzazione disabilitata, il soggetto aderente deve essere della organizzazione ["+utenteSessione.getOrganizzazione().getNome()+"]");
+					throw new BadRequestException(ErrorCode.AUTH_005);
 				}
 			}
 		}
@@ -366,31 +367,31 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		String servizioK = entity.getServizio().getNome()+"/"+entity.getServizio().getVersione();
 		if(!this.configurazione.getServizio().getStatiAdesioneConsentita().contains(entity.getServizio().getStato())) {
-			throw new BadRequestException("Servizio ["+servizioK+"] non in stato in cui è consentita l'adesione");
+			throw new BadRequestException(ErrorCode.ADE_003);
 		}
 
 		if(entity.getServizio().isAdesioneDisabilitata()) {
-			throw new BadRequestException("Adesione disabilitata per il servizio : " + servizioK);
+			throw new BadRequestException(ErrorCode.ADE_004);
 		}
 
 		if(entity.getServizio().getVisibilita() != null && entity.getServizio().getVisibilita().equals(VISIBILITA.COMPONENTE)) {
-			throw new BadRequestException("Impossibile aderire direttamente al Servizio ["+servizioK+"]. Visibilita Componente");
+			throw new BadRequestException(ErrorCode.ADE_004);
 		}
 
 		if(entity.getServizio().isMultiAdesione() && entity.getIdLogico()==null) {
-			throw new BadRequestException("Servizio : " + servizioK + " multiadesione e id logico non valorizzato");
+			throw new BadRequestException(ErrorCode.VAL_001);
 		}
 
 		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getSoggettoInterno().getId())) {
-			throw new BadRequestException("Impossibile aderire al Servizio [" + servizioK + "] di tipo esterno con il soggetto ["+entity.getSoggetto().getNome()+"]. Aderire con il Soggetto ["+entity.getServizio().getSoggettoInterno().getNome()+"]");
+			throw new BadRequestException(ErrorCode.ADE_004);
 		}
 		
 		if(!entity.getSoggetto().isAderente()) {
-			throw new BadRequestException("Soggetto ["+entity.getSoggetto().getNome()+"] non aderente");
+			throw new BadRequestException(ErrorCode.ORG_005);
 		}
 
 		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare l'Adesione. Skip collaudo abilitato sull'Adesione e non sul Servizio ["+servizioK+"]");
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
 		}
 	}
 
@@ -400,7 +401,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		spec.setIdServizi(Arrays.asList(idServizio));
 		
 		ServizioEntity servizio = this.servizioService.findOne(spec).
-				orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
+				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002));
 
 		return servizio;
 	}
@@ -420,7 +421,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			ErogazioneEntity erog = new ErogazioneEntity();
 			
 			erog.setAmbiente(ambiente);
-			erog.setApi(this.apiService.find(idErogazione).orElseThrow(() -> new NotFoundException("Api ["+idErogazione.toString()+"] non trovata")));
+			erog.setApi(this.apiService.find(idErogazione).orElseThrow(() -> new NotFoundException(ErrorCode.API_003)));
 			erog.setStato(StatoEnum.CONFIGURATO);
 			
 			entity.getErogazioni().add(erog);
@@ -474,11 +475,11 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		List<ClientRichiesto> cr = this.adesioneAuthorization.getClientRichiesti(entity.getServizio());
 		
 		ApiEntity api = idApi != null ? this.apiService.find(idApi)
-				.orElseThrow(() -> new NotFoundException("Api [" + idApi + "] non trovata")) : null;
+				.orElseThrow(() -> new NotFoundException(ErrorCode.API_003)) : null;
 
 		ConfigurazioneCustomAdesioneProprietaList g = configurazione.getAdesione().getProprietaCustom().stream()
 				.filter(c -> c.getNomeGruppo().equals(apc.getGruppo()) && this.adesioneAuthorization.applies(c, cr))
-				.findAny().orElseThrow(() -> new BadRequestException("Gruppo [" + apc.getGruppo() + "] non trovato"));
+				.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GRP_001));
 
 		AmbienteEnum ambiente = g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO)
 				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO) ? AmbienteEnum.COLLAUDO
@@ -505,8 +506,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		for (AuthTypeApiResourceProprietaCustom p : apc.getProprieta()) {
 			ConfigurazioneCustomProprieta pr = g.getProprieta().stream().filter(c -> c.getNome().equals(p.getNome()))
-					.findAny().orElseThrow(() -> new BadRequestException(
-							"Proprieta [" + p.getNome() + "] non trovata per il gruppo [" + g.getNomeGruppo() + "]"));
+					.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GEN_002));
 
 			EstensioneAdesioneEntity e = oldProprietaCustom.stream().filter(est -> {
 				boolean nomeGruppoAmbiente = est.getGruppo().equals(apc.getGruppo())
@@ -544,11 +544,9 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 							.filter(est -> est.getGruppo().equals(g.getNomeGruppo())
 									&& est.getNome().equals(p.getNome()) && est.getAmbiente().equals(ambiente)
 									&& est.getDocumento() != null && est.getDocumento().getUuid().equals(p.getUuid()))
-							.map(ee -> ee.getDocumento()).findAny().orElseThrow(() -> new BadRequestException(
-									"Documento con uuid [" + p.getUuid() + "] non trovato")));
+							.map(ee -> ee.getDocumento()).findAny().orElseThrow(() -> new BadRequestException(ErrorCode.DOC_001)));
 				} else {
-					throw new BadRequestException(
-							"Specificare il content o lo uuid per la property [" + p.getNome() + "]");
+					throw new BadRequestException(ErrorCode.VAL_001);
 				}
 			} else {
 				e.setValore(p.getValore());
@@ -569,16 +567,16 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	private void checkApiNull(String gruppo, ApiEntity api) {
 		if(api != null) {
-			throw new BadRequestException("Gruppo ["+gruppo+"] richiede API nulla ma API non è nulla");
+			throw new BadRequestException(ErrorCode.VAL_002);
 		}
 	}
 
 	private void checkApiNotNull(String gruppo, ApiEntity api, RUOLO ruolo) {
 		if(api == null) {
-			throw new BadRequestException("Gruppo ["+gruppo+"] richiede API non nulla ma API è nulla");
+			throw new BadRequestException(ErrorCode.VAL_002);
 		} else {
 			if(ruolo!= null && !ruolo.equals(api.getRuolo())) {
-				throw new BadRequestException("Gruppo ["+gruppo+"] richiede API di ruolo ["+ruolo+"] ma la API ["+api.getNome()+" v"+api.getVersione()+"] ha ruolo ["+api.getRuolo()+"]");
+				throw new BadRequestException(ErrorCode.VAL_002);
 			} 
 		}
 	}

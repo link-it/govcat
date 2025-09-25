@@ -37,6 +37,7 @@ import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.OrganizzazioniApi;
 import org.govway.catalogo.servlets.model.ItemOrganizzazione;
@@ -91,12 +92,12 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				OrganizzazioneEntity entity = this.dettaglioAssembler.toEntity(organizzazioneCreate);
 
 				if(this.service.existsByNome(entity)) {
-					throw new ConflictException("Organization ["+organizzazioneCreate.getNome()+"] esiste gia");
+					throw new ConflictException(ErrorCode.ORG_002);
 				}
 
 				String customCamelCaseName = this.service.customCamelCase(organizzazioneCreate.getNome(), true);
 				if(this.soggettoService.existsByNome(customCamelCaseName)) {
-					throw new ConflictException("Soggetto ["+customCamelCaseName+"] esiste gia");
+					throw new ConflictException(ErrorCode.ORG_006);
 				}
 				
 				this.service.save(entity);
@@ -114,7 +115,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 		
@@ -126,14 +127,14 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				OrganizzazioneEntity entity = this.service.find(idOrganizzazione)
-						.orElseThrow(() -> new NotFoundException("Organization ["+idOrganizzazione+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001));
 	
 				this.authorization.authorizeDelete(entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(entity.getUtenti().size() > 0) {
-					throw new BadRequestException("Impossibile eliminare l'organizzazione ["+entity.getNome()+"]. Presenti ["+entity.getUtenti().size()+"] utenti associati");
+					throw new BadRequestException(ErrorCode.ORG_001);
 				}
 
 				SoggettoEntity sd = null;
@@ -141,7 +142,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 					sd = entity.getSoggettoDefault();
 
 					if(!sd.getDomini().isEmpty()) {
-						throw new BadRequestException("Impossibile eliminare il soggetto ["+sd.getNome()+"] in quanto associato a ["+sd.getDomini().size()+"] domini");
+						throw new BadRequestException(ErrorCode.ORG_005);
 					}
 
 					entity.setAderente(false); //altrimenti no nla fa aggiornare senza il soggetto defult
@@ -154,7 +155,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				int size = sd == null ? 0: 1;
 				
 				if(entity.getSoggetti().size() > size) {
-					throw new BadRequestException("Impossibile eliminare l'organizzazione ["+entity.getNome()+"]. Presenti ["+entity.getSoggetti().size()+"] soggetti associati");
+					throw new BadRequestException(ErrorCode.ORG_001);
 				}
 
 				this.service.delete(entity);
@@ -169,7 +170,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -179,7 +180,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				OrganizzazioneEntity entity = this.service.find(idOrganizzazione)
-						.orElseThrow(() -> new NotFoundException("Organization ["+idOrganizzazione+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001));
 	
 				this.authorization.authorizeGet(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -197,7 +198,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -249,7 +250,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -262,7 +263,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				OrganizzazioneEntity entity = this.service.find(idOrganizzazione)
-						.orElseThrow(() -> new NotFoundException("Organization ["+idOrganizzazione+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001));
 	
 				this.authorization.authorizeUpdate(organizzazioneUpdate, entity);
 				
@@ -272,7 +273,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				String customCamelCaseName = this.service.customCamelCase(organizzazioneUpdate.getNome(), true);
 				Optional<SoggettoEntity> soggetto = soggettoService.findByNome(customCamelCaseName);
 				if(soggetto.isPresent() && !soggetto.get().getOrganizzazione().getIdOrganizzazione().equals(idOrganizzazione.toString())) {
-					throw new ConflictException("Soggetto ["+customCamelCaseName+"] esiste gia e associato a una Organizzazione diversa ["+soggetto.get().getOrganizzazione().getNome()+"]");
+					throw new ConflictException(ErrorCode.ORG_006);
 				}
 
 				this.service.save(entity);
@@ -290,7 +291,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 }

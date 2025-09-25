@@ -33,6 +33,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity_;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity_;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeIndirizzoIp;
 import org.govway.catalogo.servlets.model.AuthTypeIndirizzoIpCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -49,13 +50,13 @@ public class IndirizzoIpEstensioneClientAssembler extends AbstractEstensioneClie
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		
 		if(!(src instanceof AuthTypeIndirizzoIpCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeIndirizzoIpCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeIndirizzoIpCreate specSrc = (AuthTypeIndirizzoIpCreate) src;
 		
 		if(!(configurazione instanceof ConfigurazioneAuthTypeIndirizzoIp)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeIndirizzoIp.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 
 		EstensioneClientEntity eIP = new EstensioneClientEntity();
@@ -110,7 +111,7 @@ public class IndirizzoIpEstensioneClientAssembler extends AbstractEstensioneClie
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 		
 		if(!(dsc instanceof AuthTypeIndirizzoIp)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeIndirizzoIp.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeIndirizzoIp specDsc = (AuthTypeIndirizzoIp) dsc;

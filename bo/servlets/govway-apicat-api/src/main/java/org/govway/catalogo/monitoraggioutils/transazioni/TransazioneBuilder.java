@@ -33,6 +33,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.PROTOCOLLO;
 import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.DetailTransazione;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ItemTransazione;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TransazioneExtInformazioniApi;
@@ -190,7 +191,7 @@ public class TransazioneBuilder {
 					return apis.get(0);
 				}
 			} else {
-				throw new BadRequestException("Api ["+nome+"/"+versione+"] erogata da ["+erogatore+"] non trovata");
+				throw new BadRequestException(ErrorCode.API_003);
 			}
 		});
 	}

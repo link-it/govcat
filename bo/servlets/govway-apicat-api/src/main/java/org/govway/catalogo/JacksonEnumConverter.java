@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.GenericConverter;
@@ -58,7 +59,7 @@ public class JacksonEnumConverter implements GenericConverter {
         try {
             return mapper.readValue("\"" + source + "\"", targetType.getType());
         } catch (IOException e) {
-            throw new BadRequestException("Impossibile tradurre ["+source.toString()+"] sul tipo ["+targetType.getName()+"]");
+            throw new BadRequestException(ErrorCode.VAL_002);
         }
     }
 }

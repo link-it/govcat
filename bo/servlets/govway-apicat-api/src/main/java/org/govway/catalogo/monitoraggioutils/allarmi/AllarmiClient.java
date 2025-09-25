@@ -40,6 +40,7 @@ import org.govway.catalogo.core.services.ClientService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ClientApiException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.govway.catalogo.pdnd.controllers.PDNDClient;
@@ -185,11 +186,11 @@ public class AllarmiClient {
 						return esito;
 					} else {
 						logger.error("Errore durante la ricerca del client ["+clientId+"] sulla PDND: " + e.getMessage(), e);
-						throw new InternalException("Errore durante la ricerca del client ["+clientId+"] sulla PDND: " + e.getMessage());
+						throw new InternalException(ErrorCode.SYS_001, e);
 					}
 				} catch (RuntimeException e) {
 					logger.error("Errore durante la ricerca del client ["+clientId+"] sulla PDND: " + e.getMessage(), e);
-					throw new InternalException("Errore durante la ricerca del client ["+clientId+"] sulla PDND: " + e.getMessage());
+					throw new InternalException(ErrorCode.SYS_001, e);
 				}
 			}
 	
@@ -199,20 +200,20 @@ public class AllarmiClient {
 
 	private String getClientId(ClientEntity c) {
 		if(!isApplicativoPdnd(c)) {
-			throw new BadRequestException("Applicativo non di tipo PDND: " + c.getAuthType());
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		if(!c.getStato().equals(StatoEnum.CONFIGURATO)) {
-			throw new BadRequestException("Applicativo non configurato");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		if(!c.getAdesioni().stream().filter(a -> this.configurazione.getAdesione().getStatiSchedaAdesione().contains(a.getAdesione().getStato()))
 			.findAny().isPresent()) {
-			throw new BadRequestException("Client non associato a nessuna adesione configurata");
+			throw new BadRequestException(ErrorCode.CLT_001);
 		}
 		return c.getEstensioni().stream().filter(e -> e.getNome().equals(PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException("ClientId non impostato"))
+			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_003))
 			.getValore();
 	}
 
@@ -273,7 +274,7 @@ public class AllarmiClient {
 	}
 
 	private ClientEntity getClient(String organization, String nomeApplicativo, ConfigurazioneConnessione connessione) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(organization).orElseThrow(() -> new BadRequestException("Soggetto ["+organization+"] non trovato"));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(organization).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005));
 		
 		AmbienteEnum ambiente = null;
 		switch(connessione.getAmbiente()) {
@@ -286,7 +287,7 @@ public class AllarmiClient {
 		
 		}
 		return this.clientService.findByNomeSoggettoAmbiente(nomeApplicativo, UUID.fromString(soggetto.getIdSoggetto()), ambiente)
-				.orElseThrow(() -> new BadRequestException("Client ["+nomeApplicativo+"/"+organization+"/"+connessione.getAmbiente()+"] non trovato"));
+				.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_001));
 	}
 
 	private Optional<ServizioEntity> getOptionalServizio(String nome, Integer versione, String erogatore) {
@@ -496,13 +497,13 @@ public class AllarmiClient {
 	}
 	
 	private String getTipo(String nomeSoggetto) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException("Soggetto ["+nomeSoggetto+"] non trovato"));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005));
 		if (soggetto.getTipoGateway()==null) return this.configurazione.getSoggetto().getProfiloGatewayDefault().toString();
 		else return soggetto.getTipoGateway();
 	}
 
 	private String getNomeSoggetto(String nomeSoggetto) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException("Soggetto ["+nomeSoggetto+"] non trovato"));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005));
 		if (soggetto.getNomeGateway()==null) return soggetto.getNome();
 		else return soggetto.getNomeGateway();
 	}

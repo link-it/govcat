@@ -26,6 +26,7 @@ import java.util.Set;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypePdnd;
 import org.govway.catalogo.servlets.model.AuthTypePdndCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -40,13 +41,13 @@ public class PdndEstensioneClientAssembler extends AbstractEstensioneClientAssem
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypePdndCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypePdndCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypePdndCreate specSrc = (AuthTypePdndCreate) src;
 		
 		if(!(configurazione instanceof ConfigurazioneAuthTypePdnd)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypePdnd.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		Set<EstensioneClientEntity> hashSet = super.getEstensioni(specSrc, configurazione);
@@ -74,7 +75,7 @@ public class PdndEstensioneClientAssembler extends AbstractEstensioneClientAssem
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 		
 		if(!(dsc instanceof AuthTypePdnd)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypePdnd.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypePdnd specDsc = (AuthTypePdnd) dsc;

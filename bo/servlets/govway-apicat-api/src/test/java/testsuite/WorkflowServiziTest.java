@@ -1032,7 +1032,7 @@ public class WorkflowServiziTest {
     
 	private InfoProfilo getInfoProfilo(String idUtente) {
 		return this.utenteService.runTransaction(() -> {
-			UtenteEntity utente = this.utenteService.findByPrincipal(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
+			UtenteEntity utente = this.utenteService.findByPrincipal(idUtente).orElseThrow(() -> new RuntimeException("Utente "+idUtente+" non trovato"));
 			
 			if(utente.getOrganizzazione()!=null) {
 				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
@@ -1164,7 +1164,7 @@ public class WorkflowServiziTest {
 				break;
 			case RISERVATO: valueDominio = VisibilitaDominioEnum.RISERVATO;
 				break;
-			case COMPONENTE: throw new InternalException("Impossibile impostare la visibilita componente per un dominio");
+			case COMPONENTE: throw new RuntimeException("Impossibile impostare la visibilita componente per un dominio");
 			default:
 				break;}
 

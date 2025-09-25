@@ -21,6 +21,7 @@ package org.govway.catalogo.authorization;
 
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
@@ -47,7 +48,7 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 		
 		if(!this.coreAuthorization.isAdmin(utente)) {
 			if(!utente.getId().equals(entity.getId())) {
-				throw new NotAuthorizedException("Un utente può essere modificato da sé stesso o da un amministratore");
+				throw new NotAuthorizedException(ErrorCode.AUTH_004);
 			}
 		}
 	}

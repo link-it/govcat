@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.gest.clients.govwaymonitor.PatchedApiClient;
@@ -88,7 +89,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			return response;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(e.getMessage());
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -484,7 +485,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			throw e;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(e.getMessage());
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -682,7 +683,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			throw e;
 		} catch (Exception e) {
 			this.logger.error("Errore durante la serializzazione delle transazioni: " + e.getMessage(), e);
-			throw new InternalException("Errore durante la serializzazione delle transazioni: " + e.getMessage());
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 		
 	}
@@ -697,7 +698,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			if(apis.size() > 0) {
 				return;
 			} else {
-				throw new NotAuthorizedException("Transazione ["+transazione.getIdTraccia()+"] non associata a api del servizio selezionato");
+				throw new NotAuthorizedException(ErrorCode.AUTH_006);
 			}
 
 			

@@ -29,6 +29,7 @@ import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.GruppoUpdate;
@@ -98,11 +99,11 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		if(src.getPadre()!= null) {
 			if(src.getPadre().toString().equals(entity.getIdGruppo())) {
-				throw new NotFoundException("Gruppo padre ["+src.getPadre().toString()+"] non può essere lo stesso del gruppo da aggiornare");
+				throw new NotFoundException(ErrorCode.GRP_001);
 			}
 			
 			entity.setGruppoPadre(this.gruppoService.find(src.getPadre())
-					.orElseThrow(() -> new NotFoundException("Gruppo padre ["+src.getPadre().toString()+"] non trovato"))
+					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001))
 					);
 		} else {
 			entity.setGruppoPadre(null);
@@ -112,7 +113,7 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		if(!tipo.equals(entity.getTipo())) {
 			if(!entity.getServizi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException("Impossibile cambiare il Tipo per il Gruppo["+entity.getNome()+"]. "+entity.getServizi().size()+" Servizi associati");
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
 			}
 			entity.setTipo(tipo);
 		}
@@ -132,11 +133,11 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		if(src.getPadre()!= null) {
 			if(src.getPadre().toString().equals(entity.getIdGruppo())) {
-				throw new NotFoundException("Gruppo padre ["+src.getPadre().toString()+"] non può essere lo stesso del gruppo da aggiornare");
+				throw new NotFoundException(ErrorCode.GRP_001);
 			}
 			
 			entity.setGruppoPadre(this.gruppoService.find(src.getPadre())
-					.orElseThrow(() -> new NotFoundException("Gruppo padre ["+src.getPadre().toString()+"] non trovato"))
+					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001))
 					);
 		}
 		

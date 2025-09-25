@@ -11,6 +11,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
+import org.govway.catalogo.exception.ErrorCode;
 
 public class CertificateUtils {
 	
@@ -18,7 +19,7 @@ public class CertificateUtils {
 		try {
 			getSubject(documento);
 		} catch(Exception e) {
-			throw new RichiestaNonValidaSemanticamenteException("Certificato non valido, subject non trovato: " + e.getMessage());
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.SYS_001, e);
 		}
 	}		
 	

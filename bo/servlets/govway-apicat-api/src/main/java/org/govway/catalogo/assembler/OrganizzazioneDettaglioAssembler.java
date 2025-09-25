@@ -28,6 +28,7 @@ import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.Organizzazione;
@@ -122,7 +123,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException("Impossibile rendere l'Organizzazione ["+entity.getNome()+"] non aderente, in quanto associata ad almeno una adesione");
+					throw new BadRequestException(ErrorCode.ORG_001);
 				}
 				
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -136,7 +137,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isReferente() != null) {
 			if(!src.isReferente() && entity.isReferente()) {
 				if(isVincolaReferente(entity)) {
-					throw new BadRequestException("Impossibile rendere l'Organizzazione ["+entity.getNome()+"] non referente, in quanto associata ad almeno un dominio");
+					throw new BadRequestException(ErrorCode.ORG_001);
 				}
 
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -151,7 +152,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 			
 			if(src.isEsterna().booleanValue() != entity.isEsterna()) {
 				if(!isCambioConsentito(entity)) {
-					throw new BadRequestException("Impossibile cambiare il flag esterna per l'Organizzazione ["+entity.getNome()+"]");
+					throw new BadRequestException(ErrorCode.ORG_001);
 				}
 			}
 			
@@ -159,24 +160,24 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		}
 
 		if(src.getIdSoggettoDefault()!=null) {
-			entity.setSoggettoDefault(this.soggettoService.find(src.getIdSoggettoDefault()).orElseThrow(() -> new NotFoundException("Soggetto con id ["+src.getIdSoggettoDefault()+"] non trovato")));
+			entity.setSoggettoDefault(this.soggettoService.find(src.getIdSoggettoDefault()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005)));
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {
-				throw new BadRequestException("CodiceFiscaleSoggetto obbligatorio");
+				throw new BadRequestException(ErrorCode.VAL_001);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceEnteAbilitato()) {
 			if(entity.getCodiceEnte()==null) {
-				throw new BadRequestException("CodiceEnte obbligatorio");
+				throw new BadRequestException(ErrorCode.VAL_001);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getIdTipoUtente()==null) {
-				throw new BadRequestException("IdTipoUtente obbligatorio");
+				throw new BadRequestException(ErrorCode.VAL_001);
 			}
 		}
 
@@ -194,19 +195,19 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {
-				throw new BadRequestException("CodiceFiscaleEnte obbligatorio");
+				throw new BadRequestException(ErrorCode.VAL_001);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceEnteAbilitato()) {
 			if(entity.getCodiceEnte()==null) {
-				throw new BadRequestException("CodiceEnte obbligatorio");
+				throw new BadRequestException(ErrorCode.VAL_001);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getIdTipoUtente()==null) {
-				throw new BadRequestException("IdTipoUtente obbligatorio");
+				throw new BadRequestException(ErrorCode.VAL_001);
 			}
 		}
 

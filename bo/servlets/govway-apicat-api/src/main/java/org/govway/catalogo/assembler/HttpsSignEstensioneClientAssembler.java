@@ -25,6 +25,7 @@ import java.util.Set;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsSign;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsSignCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -40,13 +41,13 @@ public class HttpsSignEstensioneClientAssembler extends AbstractEstensioneClient
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypeHttpsSignCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeHttpsSignCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeHttpsSignCreate specSrc = (AuthTypeHttpsSignCreate) src;
 		
 		if(!(configurazione instanceof ConfigurazioneAuthTypeHttpsSign)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeHttpsSign.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		ConfigurazioneAuthTypeHttpsSign conf = (ConfigurazioneAuthTypeHttpsSign) configurazione;
@@ -79,7 +80,7 @@ public class HttpsSignEstensioneClientAssembler extends AbstractEstensioneClient
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 		
 		if(!(dsc instanceof AuthTypeHttpsSign)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeHttpsSign.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeHttpsSign specDsc = (AuthTypeHttpsSign) dsc;

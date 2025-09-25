@@ -40,6 +40,7 @@ import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.NotificheApi;
@@ -124,7 +125,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -168,7 +169,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -177,17 +178,17 @@ public class NotificheController implements NotificheApi {
 
 		UtenteEntity mittente = null;
 		if(idMittente != null) {
-			mittente = this.utenteService.find(idMittente).orElseThrow(() -> new NotFoundException("Utente ["+idMittente+"] non trovato"));			
+			mittente = this.utenteService.find(idMittente).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));			
 		}
 		
 		ServizioEntity servizio = null;
 		if(idServizio != null) {
-			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
+			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
 		}
 		
 		AdesioneEntity adesione = null;
 		if(idAdesione != null) {
-			adesione  = this.adesioneService.findByIdAdesione(idAdesione.toString()).orElseThrow(() -> new NotFoundException("Adesione["+idAdesione+"] non trovato"));
+			adesione  = this.adesioneService.findByIdAdesione(idAdesione.toString()).orElseThrow(() -> new NotFoundException(ErrorCode.ADE_001));
 		}
 		
 		NotificaSpecification specification = new NotificaSpecification();
@@ -212,11 +213,11 @@ public class NotificheController implements NotificheApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				NotificaEntity entity = this.service.find(idNotifica)
-						.orElseThrow(() -> new NotFoundException("Notifica ["+idNotifica+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_001));
 
 				if(!this.coreAuthorization.isAdmin()) {
 					if(!this.coreAuthorization.getUtenteSessione().getId().equals(entity.getDestinatario().getId())) {
-						throw new NotAuthorizedException("La notifica può essere aggiornata dall'utente destinatario della stessa");
+						throw new NotAuthorizedException(ErrorCode.AUTH_003);
 					}
 				}
 				
@@ -240,7 +241,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -253,7 +254,7 @@ public class NotificheController implements NotificheApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				NotificaEntity entity = this.service.find(idNotifica)
-						.orElseThrow(() -> new NotFoundException("Notifica["+idNotifica+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_001));
 
 				Notifica model = this.dettaglioAssembler.toModel(entity);
 
@@ -269,7 +270,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 

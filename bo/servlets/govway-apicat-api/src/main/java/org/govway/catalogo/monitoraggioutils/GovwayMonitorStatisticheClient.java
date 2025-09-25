@@ -40,6 +40,7 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.ApiService;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.gest.clients.govwaymonitor.PatchedApiClient;
@@ -147,11 +148,11 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 				response.setResource(src);
 				return response;
 			} else {
-				throw new NotFoundException("Ricerca non implementata");
+				throw new NotFoundException(ErrorCode.GEN_005);
 			}
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(e.getMessage());
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -756,7 +757,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			return response;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(e.getMessage());
+			throw new InternalException(ErrorCode.SYS_001, e);
 		}
 	}
 
@@ -898,7 +899,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 						}
 					}
 				} catch (ApiException e) {
-					throw new InternalException("Errore durante la findAllEventi: " + e.getMessage());
+					throw new InternalException(ErrorCode.INT_001, e);
 				}
 			}
 			return map.values();
@@ -923,7 +924,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 
 				}
 			} catch (ApiException e) {
-				throw new InternalException("Errore durante la findAllEventi: " + e.getMessage());
+				throw new InternalException(ErrorCode.INT_001, e);
 			}
 		}
 		EsitoVerificaEventi eve = new EsitoVerificaEventi();
@@ -954,7 +955,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		} else if(split.length == 4) {
 			versione = split[3];
 		} else {
-			throw new InternalException("Formato dell'origine ["+item.getOrigine()+"] non riconosciuto");
+			throw new InternalException(ErrorCode.VAL_002);
 		}
 
 		if(versione.contains("(") && versione.contains(")")) {
@@ -1020,7 +1021,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			nomeApi = split[2];
 			versione = split[3];
 		} else {
-			throw new InternalException("Formato dell'origine ["+origine+"] non riconosciuto");
+			throw new InternalException(ErrorCode.VAL_002);
 		}
 
 		if(tipo.contains("RateLimiting")) {
@@ -1071,7 +1072,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			String erogatore = request.getSoggetto();		
 	
 			ApiEntity api = this.catalogoCache.getApiEntity(erogatore, request.getName(), request.getVersion())
-					.orElseThrow(() -> new NotFoundException("Api ["+request.getName()+"/"+request.getVersion()+"/"+erogatore+"] non trovata"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_003));
 			
 			if(request.getProvider() != null) {
 				
@@ -1082,7 +1083,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 				long count = this.catalogoCache.countAdesioni(servizio.getIdServizio(), soggProvider.getIdSoggetto());
 				
 				if(count <= 0) {
-					throw new NotFoundException("Adesione del soggetto ["+request.getProvider()+"] al servizio ["+servizio.getNome()+"/"+servizio.getVersione() + "] non trovata");
+					throw new NotFoundException(ErrorCode.ADE_001);
 				}
 	
 				origine = erogatore+"/"+request.getProvider()+"/"+request.getName()+"/v"+request.getVersion();

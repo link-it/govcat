@@ -29,6 +29,7 @@ import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.core.orm.entity.TipoServizio;
 import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
@@ -74,7 +75,7 @@ public class ServizioEngineAssembler extends CoreEngineAssembler {
 		if(visibilita == null) return null;
 		
 		if(!consentiComponente && visibilita.equals(VisibilitaServizioEnum.COMPONENTE)) {
-			throw new BadRequestException("Impossibile specificare visibilità Componente");
+			throw new BadRequestException(ErrorCode.VAL_001);
 		}
 		
 		switch(visibilita) {

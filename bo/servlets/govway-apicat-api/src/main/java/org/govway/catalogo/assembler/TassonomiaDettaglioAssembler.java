@@ -25,6 +25,7 @@ import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
 import org.govway.catalogo.core.orm.entity.TassonomiaEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Tassonomia;
 import org.govway.catalogo.servlets.model.TassonomiaCreate;
 import org.govway.catalogo.servlets.model.TassonomiaUpdate;
@@ -81,14 +82,14 @@ public class TassonomiaDettaglioAssembler extends RepresentationModelAssemblerSu
 	private void check(TassonomiaEntity entity) {
 		if(entity.isVisibile()) {
 			if(entity.getCategorie().isEmpty()) {
-				throw new BadRequestException("Impossibile abilitare la Tassonomia ["+entity.getNome()+"]. Nessuna Categoria associata");
+				throw new BadRequestException(ErrorCode.TAX_003);
 			}
 		} else {
 
 			if(entity.getCategorie() != null) {
 				for(CategoriaEntity c: entity.getCategorie()) {
-					if(!c.getServizi().isEmpty()) {	
-						throw new BadRequestException("Impossibile disabilitare la Tassonomia ["+entity.getNome()+"]. Categoria ["+c.getNome()+"] associata a "+c.getServizi().size()+" servizi");
+					if(!c.getServizi().isEmpty()) {
+						throw new BadRequestException(ErrorCode.TAX_003);
 					}
 				}
 			}

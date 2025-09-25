@@ -30,6 +30,7 @@ import org.govway.catalogo.controllers.APIController;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeApiResource;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
@@ -89,7 +90,7 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 					//.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
 			if (configurazioneProfilo.isEmpty()) {
 			    String errorMessage = String.format("Profilo [%s] non trovato", authType.getProfilo());
-			    throw new BadRequestException(errorMessage);
+			    throw new BadRequestException(ErrorCode.VAL_002);
 			}
 
 			g.setProfilo(authType.getProfilo());

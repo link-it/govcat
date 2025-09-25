@@ -34,6 +34,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.Idm;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
@@ -100,7 +101,7 @@ public class RequestUtils {
 	    	
 	    	if(checkStato) {
 		    	if(p.utente == null || !p.utente.getStato().equals(Stato.ABILITATO)) {
-		    		throw new NotAuthorizedException("Utente non abilitato");
+		    		throw new NotAuthorizedException(ErrorCode.AUTH_004);
 		    	}
 	    	}
 

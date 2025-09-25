@@ -20,7 +20,7 @@
 package org.govway.catalogo.assembler;
 
 import org.govway.catalogo.controllers.ServiziController;
-import org.govway.catalogo.core.exceptions.NotFoundException;
+import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
@@ -28,6 +28,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -87,15 +88,15 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 		
 		TIPO_REFERENTE tipoReferente = toTipoReferente(src.getTipo());
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
-				.orElseThrow(() -> new NotFoundException("Utente ["+src.getIdUtente()+"] non trovato"));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO)) {
-			throw new BadRequestException("L'utente ["+utente.getNome()+" "+utente.getCognome()+"] non risulta abilitato");
+			throw new BadRequestException(ErrorCode.AUTH_004);
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getRuolo() == null) {
-				throw new BadRequestException("L'utente ["+utente.getNome()+" "+utente.getCognome()+"] non risulta referente servizio o gestore");
+				throw new BadRequestException(ErrorCode.AUTH_005);
 			}
 
 		}
@@ -107,7 +108,7 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 		boolean exists = servizio.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
 		
 		if(exists) {
-			throw new BadRequestException("Utente ["+utente.getNome()+" "+utente.getCognome()+"] gia referente di tipo ["+entity.getTipo()+"] per il servizio ["+entity.getServizio().getNome()+"/"+entity.getServizio().getVersione()+"]");
+			throw new BadRequestException(ErrorCode.GEN_003);
 		}
 		
 		this.servizioDettaglioAssembler.setUltimaModifica(servizio);

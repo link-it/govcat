@@ -41,6 +41,7 @@ import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneProfilo;
@@ -70,12 +71,12 @@ public class FiltriUtils {
 	public String getProfilo(UUID idServizio, UUID idApi) {
 		return this.servizioService.runTransaction(() -> {
 			ServizioEntity servizio = this.servizioService.find(idServizio)
-					.orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002));
 	
 			ApiEntity api = null;
 			if(idApi != null) {
 				api = this.apiService.find(idApi)
-					.orElseThrow(() -> new NotFoundException("API ["+idApi+"] non trovata"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_003));
 			}
 	
 			String ridefinito = null;
@@ -138,7 +139,7 @@ public class FiltriUtils {
 	public String getSoggettoNome(String nome) {
 
 		SoggettoEntity soggetto = this.soggettoService.findByNome(nome)
-				.orElseThrow(() -> new NotFoundException("Soggetto ["+nome+"] non trovato"));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
 		return soggetto.getNomeGateway() != null ? soggetto.getNomeGateway(): soggetto.getNome();
 	}
 
@@ -146,13 +147,13 @@ public class FiltriUtils {
 		
 		return this.servizioService.runTransaction(() -> {
 			ServizioEntity servizio = this.servizioService.find(idServizio)
-					.orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002));
 	
 			ApiEntity api = null;
 			if(idApi != null) {
 				
 				api = this.apiService.find(idApi)
-					.orElseThrow(() -> new NotFoundException("API ["+idApi+"] non trovata"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_003));
 				
 				if(!api.getServizi().stream()
 					.anyMatch(s -> {
@@ -160,7 +161,7 @@ public class FiltriUtils {
 						boolean apiInPackage = s.getPackages().stream().anyMatch(p -> p.get_package().getId().equals(servizio.getId()));
 						return apiInServizio || apiInPackage;	
 					})) {
-					throw new BadRequestException("API ["+api.getNome() + "/" +api.getVersione()+"] non associata al servizio " + servizio.getNome() + "/" + servizio.getVersione());
+					throw new BadRequestException(ErrorCode.VAL_011);
 				}
 
 			}
@@ -168,7 +169,7 @@ public class FiltriUtils {
 			AdesioneEntity adesione = null;
 			if(idAdesione != null) {
 				adesione = this.adesioneService.findByIdAdesione(idAdesione.toString())
-					.orElseThrow(() -> new NotFoundException("Adesione ["+idAdesione+"] non trovata"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ADE_001));
 			}
 	
 			List<IdApi> apiLst = new ArrayList<>();
@@ -223,7 +224,7 @@ public class FiltriUtils {
 									}
 								} else {
 									if(idAdesione != null && ades.getIdAdesione().equals(idAdesione.toString())) {
-										throw new BadRequestException("L'adesione specificata si trova nello stato " + ades.getStato());
+										throw new BadRequestException(ErrorCode.ADE_003);
 									}
 								}
 							}
@@ -233,7 +234,7 @@ public class FiltriUtils {
 			}
 			
 			if(apiLst.isEmpty()) {
-				throw new BadRequestException("Nessuna API trovata");
+				throw new BadRequestException(ErrorCode.API_003);
 			}
 			
 			return apiLst;

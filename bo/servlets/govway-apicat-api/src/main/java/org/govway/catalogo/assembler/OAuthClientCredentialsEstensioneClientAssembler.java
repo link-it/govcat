@@ -26,6 +26,7 @@ import java.util.Set;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeOAuthClientCredentials;
 import org.govway.catalogo.servlets.model.AuthTypeOAuthClientCredentialsCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -41,13 +42,13 @@ public class OAuthClientCredentialsEstensioneClientAssembler extends AbstractEst
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		
 		if(!(src instanceof AuthTypeOAuthClientCredentialsCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeOAuthClientCredentialsCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeOAuthClientCredentialsCreate specSrc = (AuthTypeOAuthClientCredentialsCreate) src;
 		
 		if(!(configurazione instanceof ConfigurazioneAuthTypeOAuthClientCredentials)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeOAuthClientCredentials.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		Set<EstensioneClientEntity> hashSet = super.getEstensioni(specSrc, configurazione);
@@ -80,7 +81,7 @@ public class OAuthClientCredentialsEstensioneClientAssembler extends AbstractEst
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 		
 		if(!(dsc instanceof AuthTypeOAuthClientCredentials)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeOAuthClientCredentials.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeOAuthClientCredentials specDsc = (AuthTypeOAuthClientCredentials) dsc;

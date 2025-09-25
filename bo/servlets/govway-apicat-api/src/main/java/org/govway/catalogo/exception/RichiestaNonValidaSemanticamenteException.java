@@ -19,15 +19,77 @@
  */
 package org.govway.catalogo.exception;
 
+import java.util.Map;
+
 public class RichiestaNonValidaSemanticamenteException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	public RichiestaNonValidaSemanticamenteException(String message) {
-		super(message);
+	private ErrorCode errorCode;
+	private Map<String, String> parameters;
+
+	/**
+	 * Costruttore con ErrorCode
+	 * @param errorCode il codice di errore
+	 */
+	public RichiestaNonValidaSemanticamenteException(ErrorCode errorCode) {
+		this(errorCode, null, null);
 	}
-	
-	public RichiestaNonValidaSemanticamenteException(Throwable t) {
-		super(t);
+
+	/**
+	 * Costruttore con ErrorCode e parametri
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 */
+	public RichiestaNonValidaSemanticamenteException(ErrorCode errorCode, Map<String, String> parameters) {
+		this(errorCode, parameters, null);
+	}
+
+	/**
+	 * Costruttore con ErrorCode e causa
+	 * @param errorCode il codice di errore
+	 * @param cause la causa dell'eccezione
+	 */
+	public RichiestaNonValidaSemanticamenteException(ErrorCode errorCode, Throwable cause) {
+		this(errorCode, null, cause);
+	}
+
+	/**
+	 * Costruttore completo con ErrorCode, parametri e causa
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 * @param cause la causa dell'eccezione
+	 */
+	public RichiestaNonValidaSemanticamenteException(ErrorCode errorCode, Map<String, String> parameters, Throwable cause) {
+		super(ErrorMessageResolver.resolveMessage(errorCode, parameters), cause);
+		this.errorCode = errorCode;
+		this.parameters = parameters;
+	}
+
+	/**
+	 * Restituisce il codice di errore
+	 * @return il codice di errore
+	 */
+	public ErrorCode getErrorCode() {
+		return errorCode;
+	}
+
+	/**
+	 * Restituisce i parametri utilizzati per il messaggio
+	 * @return la mappa dei parametri
+	 */
+	public Map<String, String> getParameters() {
+		return parameters;
+	}
+
+	/**
+	 * Restituisce il messaggio formattato con il codice errore
+	 * @return messaggio nel formato "[CODICE] messaggio"
+	 */
+	public String getFormattedMessage() {
+		if (errorCode != null) {
+			return ErrorMessageResolver.buildErrorMessage(errorCode, parameters);
+		}
+		return getMessage();
 	}
 }

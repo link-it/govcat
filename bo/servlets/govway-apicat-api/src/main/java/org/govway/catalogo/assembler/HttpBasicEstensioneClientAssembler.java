@@ -33,6 +33,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity_;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity_;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeHttpBasic;
 import org.govway.catalogo.servlets.model.AuthTypeHttpBasicCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -50,13 +51,13 @@ public class HttpBasicEstensioneClientAssembler extends AbstractEstensioneClient
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		
 		if(!(src instanceof AuthTypeHttpBasicCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeHttpBasicCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeHttpBasicCreate specSrc = (AuthTypeHttpBasicCreate) src;
 
 		if(!(configurazione instanceof ConfigurazioneAuthTypeHttpBasic)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeHttpBasic.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 //		ConfigurazioneAuthTypeHttpBasic conf = (ConfigurazioneAuthTypeHttpBasic) configurazione;
@@ -134,7 +135,7 @@ public class HttpBasicEstensioneClientAssembler extends AbstractEstensioneClient
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 		
 		if(!(dsc instanceof AuthTypeHttpBasic)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeHttpBasic.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeHttpBasic specDsc = (AuthTypeHttpBasic) dsc;

@@ -28,6 +28,7 @@ import java.util.Set;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeOAuthAuthorizationCode;
 import org.govway.catalogo.servlets.model.AuthTypeOAuthAuthorizationCodeCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -47,13 +48,13 @@ public class OAuthAuthorizationCodeEstensioneClientAssembler extends AbstractEst
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		
 		if(!(src instanceof AuthTypeOAuthAuthorizationCodeCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeOAuthAuthorizationCodeCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeOAuthAuthorizationCodeCreate specSrc = (AuthTypeOAuthAuthorizationCodeCreate) src;
 
 		if(!(configurazione instanceof ConfigurazioneAuthTypeOAuthAuthorizationCode)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeOAuthAuthorizationCode.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 
 		EstensioneClientEntity eHelpDesk = new EstensioneClientEntity();
@@ -105,7 +106,7 @@ public class OAuthAuthorizationCodeEstensioneClientAssembler extends AbstractEst
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 		
 		if(!(dsc instanceof AuthTypeOAuthAuthorizationCode)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeOAuthAuthorizationCode.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_003);
 		}
 		
 		AuthTypeOAuthAuthorizationCode specDsc = (AuthTypeOAuthAuthorizationCode) dsc;

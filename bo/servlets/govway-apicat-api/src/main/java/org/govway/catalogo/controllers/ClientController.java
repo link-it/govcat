@@ -40,6 +40,7 @@ import org.govway.catalogo.core.services.ClientService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.api.ClientApi;
@@ -106,7 +107,7 @@ public class ClientController implements ClientApi {
 				ClientEntity entity = this.dettaglioAssembler.toEntity(clientCreate);
 
 				if(this.service.existsByNomeSoggettoAmbiente(entity)) {
-					throw new ConflictException("Client ["+clientCreate.getNome()+"/"+entity.getSoggetto().getNome()+"/"+clientCreate.getAmbiente()+"] esiste gia");
+					throw new ConflictException(ErrorCode.CLT_002);
 				}
 				
 				this.service.save(entity);
@@ -124,7 +125,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 		
@@ -137,12 +138,12 @@ public class ClientController implements ClientApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
 				this.authorization.authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getAdesioni().isEmpty()) {
-					throw new RichiestaNonValidaSemanticamenteException("Impossibile eliminare il client ["+entity.getNome()+"/"+entity.getSoggetto().getNome()+"/"+entity.getAmbiente()+"] in quanto risulta associato a ["+entity.getAdesioni().size()+"] adesioni");
+					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
 				}
 				this.service.delete(entity);
 				this.logger.info("Invocazione completata con successo");
@@ -156,7 +157,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -168,7 +169,7 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -187,7 +188,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -246,7 +247,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -259,7 +260,7 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
 				this.authorization.authorizeUpdate(clientUpdate, entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -270,11 +271,11 @@ public class ClientController implements ClientApi {
 				
 				if(nomeCambiato || soggettoCambiato || ambienteCambiato) {
 					if(this.service.existsByNomeSoggettoAmbiente(clientUpdate.getNome(), clientUpdate.getIdSoggetto().toString(), this.clientEngineAssembler.toAmbiente(clientUpdate.getAmbiente()))) {
-						throw new ConflictException("Client ["+clientUpdate.getNome()+"/"+entity.getSoggetto().getNome()+"/"+clientUpdate.getAmbiente()+"] esiste gia");
+						throw new ConflictException(ErrorCode.CLT_002);
 					}
 
 					if(entity.getStato().equals(StatoEnum.CONFIGURATO)) {
-						throw new BadRequestException("Client ["+entity.getNome()+"/"+entity.getSoggetto().getNome()+"/"+entity.getAmbiente()+"] in stato configurato. Impossibile cambiare nome, soggetto o ambiente");
+						throw new BadRequestException(ErrorCode.CLT_003);
 					}
 
 					
@@ -284,7 +285,7 @@ public class ClientController implements ClientApi {
 						long cnt = adesioneService.count(spec);
 						
 						if(cnt > 0) {
-							throw new BadRequestException("Client ["+entity.getNome()+"/"+entity.getSoggetto().getNome()+"/"+entity.getAmbiente()+"] utilizzato in ["+cnt+"] adesioni. Impossibile cambiare soggetto o ambiente");
+							throw new BadRequestException(ErrorCode.CLT_003);
 						}
 
 					}
@@ -307,7 +308,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -320,14 +321,14 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 				
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
 				this.authorization.authorizeGet(entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				EstensioneClientEntity allegato = entity.getEstensioni().stream().filter(e -> e.getDocumento()!= null && e.getDocumento().getUuid().equals(idAllegato.toString()))
 						.findAny()
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 				Resource resource = new ByteArrayResource(allegato.getDocumento().getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -341,7 +342,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -353,7 +354,7 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 				
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException("Client ["+idClient+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
 				this.authorization.authorizeUpdate(null, entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -374,7 +375,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 

@@ -31,6 +31,7 @@ import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.DominioUpdate;
@@ -81,11 +82,11 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		BeanUtils.copyProperties(src, entity);
 
 		entity.setDeprecato(src.isDeprecato());
-		
-		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException("Soggetto ["+src.getIdSoggettoReferente()+"] non trovato"));
+
+		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
 
 		if(!soggetto.isReferente()) {
-			throw new BadRequestException("Soggetto ["+soggetto.getNome()+"] non referente");
+			throw new BadRequestException(ErrorCode.VAL_001);
 		}
 		
 		entity.setSoggettoReferente(soggetto);
@@ -93,14 +94,14 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException("Impossibile disabilitare skip collaudo nel Dominio ["+entity.getNome()+"], in quanto associato ad almeno un servizio con skip collaudo abilitato");
+					throw new BadRequestException(ErrorCode.GEN_001);
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
 		}
 		
 		if(entity.isSkipCollaudo() && !entity.getSoggettoReferente().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare il Dominio["+entity.getNome()+"]. Skip collaudo abilitato sul Dominio e non sul Soggetto Referente ["+entity.getSoggettoReferente().getNome()+"]");
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
 		}
 
 		entity.setVisibilita(this.engine.toVisibilita(src.getVisibilita()));
@@ -108,7 +109,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException("ClasseUtente ["+classe+"] non trovata")));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009)));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -124,7 +125,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getSoggettoReferente().isSkipCollaudo()) {
-			throw new BadRequestException("Impossibile impostare skip collaudo sul Dominio ["+entity.getNome()+"], in quanto il Soggetto Referente ["+entity.getSoggettoReferente().getNome()+"] non lo consente");
+			throw new BadRequestException(ErrorCode.GEN_001);
 		}
 	}
 	
@@ -137,10 +138,10 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		
 		entity.setDeprecato(src.isDeprecato());
 		entity.setIdDominio(UUID.randomUUID().toString());
-		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException("Soggetto ["+src.getIdSoggettoReferente()+"] non trovato"));
+		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
 
 		if(!soggetto.isReferente()) {
-			throw new BadRequestException("Soggetto ["+soggetto.getNome()+"] non referente");
+			throw new BadRequestException(ErrorCode.VAL_001);
 		}
 		
 		entity.setSoggettoReferente(soggetto);
@@ -152,7 +153,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException("ClasseUtente ["+classe+"] non trovata")));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009)));
 			}
 		} else {
 			entity.getClassi().clear();

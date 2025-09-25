@@ -35,6 +35,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.slf4j.Logger;
@@ -182,10 +183,10 @@ public abstract class AbstractAllarmeClient {
 					if (entity != null) {
 						return IOUtils.readLines(entity.getContent(), Charset.defaultCharset());
 					} else {
-						throw new InternalException("Response entity null");
+						throw new InternalException(ErrorCode.INT_003);
 					}
 				} else {
-					throw new InternalException("La chiamata all'allarme "+idAllarme+" ha avuto un return code imprevisto: " + response.getStatusLine().getStatusCode());
+					throw new InternalException(ErrorCode.INT_003);
 				}
 	
 			} finally {
@@ -194,7 +195,7 @@ public abstract class AbstractAllarmeClient {
 			}
 		} catch(Exception e) {
 			this.logger.error(e.getMessage(), e);
-			throw new InternalException("Errore durante la chiamata alle API di Monitoraggio: " + e.getMessage());
+			throw new InternalException(ErrorCode.INT_001, e);
 		}
 	}
 }

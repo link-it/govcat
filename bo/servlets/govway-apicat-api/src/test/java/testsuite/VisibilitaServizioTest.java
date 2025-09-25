@@ -410,7 +410,7 @@ public class VisibilitaServizioTest {
 				break;
 			case RISERVATO: valueDominio = VisibilitaDominioEnum.RISERVATO;
 				break;
-			case COMPONENTE: throw new InternalException("Impossibile impostare la visibilita componente per un dominio");
+			case COMPONENTE: throw new RuntimeException("Impossibile impostare la visibilita componente per un dominio");
 			default:
 				break;}
         	

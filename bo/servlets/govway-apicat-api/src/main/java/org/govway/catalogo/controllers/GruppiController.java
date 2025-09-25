@@ -32,6 +32,7 @@ import org.govway.catalogo.core.orm.entity.GruppoEntity;
 import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.GruppiApi;
 import org.govway.catalogo.servlets.model.Gruppo;
@@ -88,7 +89,7 @@ public class GruppiController implements GruppiApi {
 				GruppoEntity entity = this.dettaglioAssembler.toEntity(gruppoCreate);
 
 				if(this.service.existsByNome(entity)) {
-					throw new ConflictException("Gruppo ["+gruppoCreate.getNome()+"] esiste gia");
+					throw new ConflictException(ErrorCode.GRP_002);
 				}
 				
 				this.service.save(entity);
@@ -107,7 +108,7 @@ public class GruppiController implements GruppiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 		
@@ -120,7 +121,7 @@ public class GruppiController implements GruppiApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				GruppoEntity gruppo = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException("Gruppo ["+idGruppo+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
 	
 				this.authorization.authorizeDelete(gruppo);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -137,7 +138,7 @@ public class GruppiController implements GruppiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -149,7 +150,7 @@ public class GruppiController implements GruppiApi {
 				this.logger.info("Invocazione in corso ...");
 				
 				GruppoEntity entity = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException("Gruppo ["+idGruppo+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -168,7 +169,7 @@ public class GruppiController implements GruppiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -212,7 +213,7 @@ public class GruppiController implements GruppiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -224,7 +225,7 @@ public class GruppiController implements GruppiApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				GruppoEntity entity = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException("Gruppo ["+idGruppo+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
 				
 				this.authorization.authorizeUpdate(gruppoUpdate, entity);
 				
@@ -248,7 +249,7 @@ public class GruppiController implements GruppiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -264,12 +265,12 @@ public class GruppiController implements GruppiApi {
 				logger.info("PRE service.find(idGruppo)");
 				
 				GruppoEntity entity = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException("Gruppo ["+idGruppo+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
 
 				logger.info("POST service.find(idGruppo)");
 				
 				if(entity.getImmagine() == null) {
-					throw new NotFoundException("Imagine per il gruppo ["+idGruppo+"] non trovata");
+					throw new NotFoundException(ErrorCode.SRV_004);
 				}
 				
 				logger.info("PRE Resource resource = new ByteArrayResource(entity.getImmagine().getRawData())");
@@ -293,7 +294,7 @@ public class GruppiController implements GruppiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 

@@ -92,6 +92,7 @@ import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
@@ -290,7 +291,7 @@ public class ServiziController implements ServiziApi {
 
 				for(AllegatoItemCreate allegato: allegatoCreate) {
 					if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegato.getVisibilita())) {
-						throw new BadRequestException("Visibilita ["+allegato.getVisibilita()+"] non consentita");
+						throw new BadRequestException(ErrorCode.SRV_001);
 					}
 					
 					AllegatoServizioEntity allEntity = this.allegatoAssembler.toEntity(allegato, entity);
@@ -298,13 +299,13 @@ public class ServiziController implements ServiziApi {
 					String keyString = "Nome: " + allEntity.getDocumento().getFilename()+ " di tipo: " + allegato.getTipologia();
 					
 					if(keys.contains(key)) {
-						throw new BadRequestException("Allegato ["+keyString+"] duplicato");
+						throw new BadRequestException(ErrorCode.API_002);
 					}
 					
 					keys.add(key);
 					
 					if(entity.getAllegati().stream().anyMatch(a-> key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-						throw new BadRequestException("Allegato ["+keyString+"] duplicato");
+						throw new BadRequestException(ErrorCode.API_002);
 					}
 
 					this.service.save(allEntity);
@@ -324,7 +325,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -366,7 +367,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 	
@@ -378,7 +379,7 @@ public class ServiziController implements ServiziApi {
 		boolean realForce = force != null && force;
 		if(realForce) {
 			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
-				throw new NotAuthorizedException("L'utente deve avere uno dei ruoli ["+listRuoloForce+"] per eseguire la force");
+				throw new NotAuthorizedException(ErrorCode.AUTH_004);
 			}
 		}
 		return realForce;
@@ -398,9 +399,9 @@ public class ServiziController implements ServiziApi {
 			if(!admin) {
 				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getNome()+" "+referenteEntity.getReferente().getCognome()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
+						throw new NotAuthorizedException(ErrorCode.AUTH_005);
 					} else {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getNome()+" "+referenteEntity.getReferente().getCognome()+"] non associato ad alcuna organizzazione");
+						throw new NotAuthorizedException(ErrorCode.AUTH_006);
 					}
 				}
 				
@@ -414,7 +415,7 @@ public class ServiziController implements ServiziApi {
 		if(referenteEntity.getServizio().is_package()) {
 			for(PackageServizioEntity componente: referenteEntity.getServizio().getComponenti()) {
 				if(!componente.getServizio().getReferenti().stream().filter(r -> r.getReferente().equals(referenteEntity.getReferente())).findAny().isPresent()) {
-					throw new NotAuthorizedException("Impossibile aggiungere l'utente ["+referenteEntity.getReferente().getNome()+" "+referenteEntity.getReferente().getCognome()+"] come referente del package ["+referenteEntity.getServizio().getNome()+" v"+referenteEntity.getServizio().getVersione()+"]. L'utente non è referente del servizio componente ["+componente.getServizio().getNome()+" v"+componente.getServizio().getVersione()+"]");					
+					throw new NotAuthorizedException(ErrorCode.AUTH_007);					
 				}
 			}
 		}
@@ -430,9 +431,9 @@ public class ServiziController implements ServiziApi {
 		
 		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-				throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
+			throw new NotAuthorizedException(ErrorCode.AUTH_002);
 			} else {
-				throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] non associato ad alcuna organizzazione");
+			throw new NotAuthorizedException(ErrorCode.AUTH_003);
 			}
 		}
 		
@@ -452,7 +453,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 				
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -474,7 +475,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -486,7 +487,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				ServizioEntity entity = this.service.find(idServizio)
-						.orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
 
 
 				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -513,7 +514,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -531,7 +532,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-					throw new ConflictException("Servizio ["+servizioCreate.getNome()+" v"+servizioCreate.getVersione()+"] esiste gia");
+					throw new ConflictException(ErrorCode.SRV_002);
 				}
 
 				this.service.save(entity);
@@ -552,7 +553,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -565,7 +566,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
@@ -583,7 +584,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -599,9 +600,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -618,7 +619,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -642,8 +643,7 @@ public class ServiziController implements ServiziApi {
 						// si controlla che l'utente non sia referente di nessun package di cui il servizio è componente
 						for(PackageServizioEntity s: rentity.getServizio().getPackages()) {
 							if(!s.getServizio().getReferenti().stream().filter(r -> r.getReferente().equals(rentity.getReferente())).findAny().isPresent()) {
-								throw new NotAuthorizedException("Impossibile rimuovere l'utente ["+rentity.getReferente().getNome()+" "+rentity.getReferente().getCognome()+"] da referente del servizio ["+entity.getNome()+" v"+entity.getVersione()+"]. "
-										+ "L'utente è referente del servizio package ["+s.getServizio().getNome()+" v"+s.getServizio().getVersione()+"]");					
+								throw new NotAuthorizedException(ErrorCode.AUTH_008);					
 							}
 						}
 					}
@@ -670,7 +670,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -687,9 +687,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 				Resource resource = new ByteArrayResource(allegato.getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -703,7 +703,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -718,7 +718,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 
 				Resource resource = new ByteArrayResource(entity.getDocumento().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -733,7 +733,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -762,7 +762,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -827,7 +827,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -872,7 +872,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -919,7 +919,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 	
@@ -950,7 +950,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -971,7 +971,7 @@ public class ServiziController implements ServiziApi {
 					
 					if(nomeCambiato || versioneCambiata) {
 						if(this.service.existsByNomeVersioneNonArchiviato(servizioUpdate.getIdentificativo().getNome(), servizioUpdate.getIdentificativo().getVersione(), configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-							throw new ConflictException("Servizio ["+servizioUpdate.getIdentificativo().getNome()+"/"+servizioUpdate.getIdentificativo().getVersione()+"] esiste gia");
+							throw new ConflictException(ErrorCode.SRV_002);
 						}
 						
 					}
@@ -1010,7 +1010,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1030,7 +1030,7 @@ public class ServiziController implements ServiziApi {
 				boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
 				if(wasArchiviato && !isArchiviato) {
 					if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-						throw new ConflictException("Servizio ["+entity.getNome()+"/"+entity.getVersione()+"] esiste gia");
+						throw new ConflictException(ErrorCode.SRV_002);
 					}
 				}
 
@@ -1067,7 +1067,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1087,7 +1087,7 @@ public class ServiziController implements ServiziApi {
 					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
-					throw new InternalException(e);
+					throw new InternalException(ErrorCode.SYS_001);
 				}
 				this.logger.info("Invocazione completata con successo");
 
@@ -1101,7 +1101,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1182,7 +1182,7 @@ public class ServiziController implements ServiziApi {
 					if(!anounymous) {
 						realSpecification = specification.and(specInAttesa);
 					} else {
-						throw new BadRequestException("Utente non registrato, impossibile recuperare servizi in attesa");
+						throw new BadRequestException(ErrorCode.SRV_003);  // "Utente non registrato, impossibile recuperare servizi in attesa");
 					}
 				} else if(mieiServizi!= null && mieiServizi) {
 					if(!anounymous) {
@@ -1194,7 +1194,7 @@ public class ServiziController implements ServiziApi {
 						}
 
 					} else {
-						throw new BadRequestException("Utente non registrato, impossibile recuperare i miei servizi");
+						throw new BadRequestException(ErrorCode.SRV_003);
 					}
 				} else {
 					realSpecification = specification;
@@ -1225,7 +1225,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -1304,7 +1304,7 @@ public class ServiziController implements ServiziApi {
 					if(!anounymous) {
 						realSpecification = specification.and(specInAttesa);
 					} else {
-						throw new BadRequestException("Utente non registrato, impossibile recuperare servizi in attesa");
+						throw new BadRequestException(ErrorCode.SRV_003);  // "Utente non registrato, impossibile recuperare servizi in attesa");
 					}
 				} else if(mieiServizi!= null && mieiServizi) {
 					if(!anounymous) {
@@ -1316,7 +1316,7 @@ public class ServiziController implements ServiziApi {
 						}
 
 					} else {
-						throw new BadRequestException("Utente non registrato, impossibile recuperare i miei servizi");
+						throw new BadRequestException(ErrorCode.SRV_003);
 					}
 				} else {
 					realSpecification = specification;
@@ -1341,7 +1341,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1395,7 +1395,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(entity.getImmagine() == null) {
-					throw new NotFoundException("Imagine per il servizio ["+idServizio+"] non trovata");
+					throw new NotFoundException(ErrorCode.DOC_002);
 				}
 				Resource resource = new ByteArrayResource(entity.getImmagine().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -1412,7 +1412,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1425,7 +1425,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1441,7 +1441,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1455,14 +1455,14 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 
 				this.getServizioAuthorization(entity.getServizio()).authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegatoUpdate.getVisibilita())) {
-					throw new BadRequestException("Visibilita ["+allegatoUpdate.getVisibilita()+"] non consentita");
+					throw new BadRequestException(ErrorCode.SRV_001);
 				}
 				
 				String key = allegatoUpdate.getFilename()+ "_" + this.allegatoAssembler.toTipologia(allegatoUpdate.getTipologia());
@@ -1470,7 +1470,7 @@ public class ServiziController implements ServiziApi {
 
 				
 				if(entity.getServizio().getAllegati().stream().anyMatch(a-> !idAllegato.toString().equals(a.getDocumento().getUuid()) && key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-					throw new BadRequestException("Allegato ["+keyString+"] duplicato");
+					throw new BadRequestException(ErrorCode.API_002);
 				}
 
 				this.allegatoAssembler.toEntity(allegatoUpdate,entity);
@@ -1490,7 +1490,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1507,7 +1507,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per il servizio ["+idServizio+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1528,7 +1528,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1594,7 +1594,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1611,7 +1611,7 @@ public class ServiziController implements ServiziApi {
 				if (service.isEliminabile(entity)) {
 				    service.delete(entity);
 				} else {
-				    throw new BadRequestException("Il servizio non è eliminabile");
+				    throw new BadRequestException(ErrorCode.SRV_005);
 				}
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.noContent().build();
@@ -1624,7 +1624,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1713,7 +1713,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -1737,7 +1737,7 @@ public class ServiziController implements ServiziApi {
 
 		aspec.setIdServizi(List.of(idServizio));
 
-		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException("Servizio con id ["+idServizio+"] non trovato"));
+		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
 
 	}
 	
@@ -1929,7 +1929,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -1944,17 +1944,17 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				GruppoEntity gentity = this.gruppoService.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException("Gruppo ["+idGruppo+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
 
 				boolean added = entity.getGruppi().add(gentity);
 				if(!added) {
-					throw new ConflictException("Gruppo ["+gentity.getNome()+"] gia associato al servizio ["+entity.getNome()+"/"+entity.getVersione()+"]");
+					throw new ConflictException(ErrorCode.GRP_002);
 				}
 				
 //				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 				
 				if(!entity.getTipo().equals(gentity.getTipo())) {
-					throw new RichiestaNonValidaSemanticamenteException("Impossibile associare il Gruppo ["+gentity.getNome()+"] di Tipo ["+gentity.getTipo()+"] al Servizio ["+entity.getNome()+"/"+entity.getVersione()+"] di Tipo ["+entity.getTipo()+"]. I due tipi devono coincidere");
+					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_002);
 				}
 				
 				this.service.save(entity);
@@ -1972,7 +1972,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -1986,7 +1986,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				GruppoEntity gentity = this.gruppoService.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
 
 				entity.getGruppi().remove(gentity);
 //				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -2004,7 +2004,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -2036,7 +2036,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -2079,7 +2079,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -2097,15 +2097,15 @@ public class ServiziController implements ServiziApi {
 				
 				for(UUID id: categorieCreate.getCategorie()) {
 					CategoriaEntity centity = this.tassonomiaService.findCategoria(id)
-							.orElseThrow(() -> new NotFoundException("Categoria ["+id+"] non trovata"));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_001));
 
 					if(!centity.getFigli().isEmpty()) {
-						throw new ConflictException("Impossibile associare la Categoria ["+centity.getNome()+"] al servizio ["+entity.getNome()+"/"+entity.getVersione()+"]. categoria non foglia");
+						throw new ConflictException(ErrorCode.TAX_004);
 					}
 					
 					boolean added = entity.getCategorie().add(centity);
 					if(!added) {
-						throw new ConflictException("Categoria ["+centity.getNome()+"] gia associato al servizio ["+entity.getNome()+"/"+entity.getVersione()+"]");
+						throw new ConflictException(ErrorCode.TAX_004);
 					}
 					
 					cLst.add(centity);					
@@ -2135,7 +2135,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -2149,7 +2149,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CategoriaEntity centity = this.tassonomiaService.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException("Categoria ["+idCategoria+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_001));
 
 				entity.getCategorie().remove(centity);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.SPECIFICA));
@@ -2167,7 +2167,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -2215,7 +2215,7 @@ public class ServiziController implements ServiziApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -2236,7 +2236,7 @@ public class ServiziController implements ServiziApi {
 					specification.setIdServizi(List.of(idPackage));
 					
 					ServizioEntity _package = this.service.findOne(specification)
-							.orElseThrow(() -> new NotFoundException("Package ["+idPackage+"] non trovato"));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
 
 					ServizioEntity componente = this.findOne(idComponente);
 
@@ -2262,7 +2262,7 @@ public class ServiziController implements ServiziApi {
 				}
 				catch(Throwable e) {
 					this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-					throw new InternalException(e);
+					throw new InternalException(ErrorCode.SYS_001);
 				}
 
 	}
@@ -2283,7 +2283,7 @@ public class ServiziController implements ServiziApi {
 					specification.setIdComponente(Optional.of(idComponente));
 					
 					PackageServizioEntity componente = this.service.findOnePackageServizio(specification)
-							.orElseThrow(() -> new NotFoundException("Servizio ["+idComponente+"] non associato al Package ["+idPackage+"]"));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_003));
 
 					this.packageAuthorization.authorizeDelete(componente.get_package());
 					
@@ -2299,7 +2299,7 @@ public class ServiziController implements ServiziApi {
 				}
 				catch(Throwable e) {
 					this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-					throw new InternalException(e);
+					throw new InternalException(ErrorCode.SYS_001);
 				}
 
 	}
@@ -2349,7 +2349,7 @@ public class ServiziController implements ServiziApi {
 				}
 				catch(Throwable e) {
 					this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-					throw new InternalException(e);
+					throw new InternalException(ErrorCode.SYS_001);
 				}
 
 	}

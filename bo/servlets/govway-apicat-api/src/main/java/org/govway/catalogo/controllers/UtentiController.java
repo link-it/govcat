@@ -44,6 +44,7 @@ import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.UtentiApi;
@@ -111,7 +112,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 
 				if(this.service.existsByPrincipal(utenteCreate.getPrincipal())) {
-					throw new ConflictException("Utente ["+utenteCreate.getPrincipal()+"] esiste gia");
+					throw new ConflictException(ErrorCode.ORG_008);
 				}
 				
 				UtenteEntity entity = this.dettaglioAssembler.toEntity(utenteCreate);
@@ -131,7 +132,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 		
@@ -148,7 +149,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity utente = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 	
 				this.authorization.authorizeDelete(utente);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -156,7 +157,7 @@ public class UtentiController implements UtentiApi {
 				String check = this.service.checkReferente(utente);
 				
 				if(check != null) {
-					throw new BadRequestException(check);
+					throw new BadRequestException(ErrorCode.SRV_009);
 				}
 				this.service.delete(utente);
 				this.logger.info("Invocazione completata con successo");
@@ -170,7 +171,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -182,7 +183,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -201,7 +202,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -237,7 +238,7 @@ public class UtentiController implements UtentiApi {
 					
 					for(UUID classeUtente: classiUtente) {
 						entities.add(this.classeUtenteService.findByIdClasseUtente(classeUtente)
-								.orElseThrow(() -> new NotFoundException("Classe Utente ["+classeUtente+"] non trovata")));
+								.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009)));
 					}
 					spec.setIdClassiUtente(entities);
 				}
@@ -277,7 +278,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 
 	}
@@ -289,7 +290,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -311,7 +312,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -324,7 +325,7 @@ public class UtentiController implements UtentiApi {
 				InfoProfilo current = this.requestUtils.getPrincipal(false);
 
 				if(current == null || current.utente == null) {
-					throw new NotAuthorizedException("Impossibile eseguire l'update profilo, nessun utente in sessione");
+					throw new NotAuthorizedException(ErrorCode.AUTH_004);
 				}
 				
 				UtenteEntity entity = current.utente;
@@ -348,7 +349,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -442,7 +443,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -454,7 +455,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -473,7 +474,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -484,7 +485,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 
 				this.authorization.authorizeUpdate(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -506,7 +507,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -518,7 +519,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 	
 				this.authorization.authorizeGetNotifiche(entity);
 				
@@ -537,7 +538,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 
@@ -548,7 +549,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 
 				this.authorization.authorizeUpdate(configurazioneNotifiche, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -570,7 +571,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_001);
 		}
 	}
 }
