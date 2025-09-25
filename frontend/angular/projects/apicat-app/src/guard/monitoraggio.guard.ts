@@ -10,9 +10,9 @@ export class MonitoraggioGuard implements CanActivate {
   appConfig: any = null;
 
   constructor(
-    private router: Router,
-    private authenticationService: AuthenticationService,
-    private configService: ConfigService
+    private readonly router: Router,
+    private readonly authenticationService: AuthenticationService,
+    private readonly configService: ConfigService
   ) {
     this.appConfig = this.configService.getAppConfig();
   }

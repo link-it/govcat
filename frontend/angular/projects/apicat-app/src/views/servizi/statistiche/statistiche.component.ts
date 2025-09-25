@@ -4,21 +4,16 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
-import { BsDatepickerConfig, BsDatepickerContainerComponent, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
-import { TimepickerConfig } from 'ngx-bootstrap/timepicker';
+import { BsDatepickerConfig, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import * as moment from 'moment';
 
-import { BarVertical2DComponent, BarVerticalComponent, LegendPosition, LineChartComponent, PieChartComponent } from '@swimlane/ngx-charts';
-import { ScaleType } from '@swimlane/ngx-charts';
-import { colorSets } from '@swimlane/ngx-charts';
+import { BarVertical2DComponent, BarVerticalComponent, LegendPosition, LineChartComponent, PieChartComponent, ScaleType, colorSets } from '@swimlane/ngx-charts';
 import * as htmlToImage from 'html-to-image';
-import { set } from 'lodash';
 
 enum ReportTypeInformationEnum {
   NumberOfTransactions = 'numero_transazioni',
@@ -193,7 +188,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   _error: boolean = false;
   _errorMsg: string = '';
 
-  breadcrumbs: any[] = [];
+  breadcrumbs: any[] = [
+    { label: 'APP.TITLE.Services', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
+    { label: '...', url: '', type: 'title' }
+  ];
 
   single: {name: string, value: number}[] = [];
   multi: {name: string, series: {name: string, value: number}[]}[] = [];

@@ -112,7 +112,8 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
   _errorMsg: string = '';
 
   breadcrumbs: any[] = [
-    { label: 'APP.TITLE.Checks', url: '', type: 'title', iconBs: 'check2-square' }
+    { label: 'APP.TITLE.Services', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
+    { label: '...', url: '', type: 'title' }
   ];
 
   api_url: string = '';
