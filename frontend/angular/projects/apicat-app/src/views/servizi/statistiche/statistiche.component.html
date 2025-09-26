@@ -30,8 +30,12 @@
       </div>
       <div class="btn-group- ms-2">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary- dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
-            <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
+            <div class="d-flex flex-row gap-2">
+              <i class="bi bi-download"></i>
+              <span class="">{{ 'APP.MENU.Export' | translate }}</span>
+              <i class="bi bi-chevron-down ms-2"></i>
+            </div>
           </button>
           <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
             <div class="gl-new-dropdown-inner">
@@ -54,7 +58,11 @@
       <div class="btn-group- ms-1">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
           <button [disabled]="!colorSchemeChangeEnabled" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="themes">
-            <i class="bi bi-palette"></i> <span class="ms-2">{{ 'Color Scheme' }}</span>
+            <div class="d-flex flex-row gap-2">
+              <i class="bi bi-palette"></i>
+              <span class="">{{ 'Color Scheme' }}</span>
+              <i class="bi bi-chevron-down ms-2"></i>
+            </div>
           </button>
           <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
             <div class="gl-new-dropdown-inner">

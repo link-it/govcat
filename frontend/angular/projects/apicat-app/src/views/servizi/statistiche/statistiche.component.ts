@@ -285,8 +285,9 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   tipoGrafico: ReportType|TimeTrendReportType = ReportType.Bar; // bar - line - pie - table
 
-  exportList: DownloadType[] = [
-    { label: 'CVS', icon: 'filetype-csv', action: 'export-cvs', acceptHeader: 'text/csv' },
+  exportList: DownloadType[] = [];
+  exportListDefault: DownloadType[] = [
+    { label: 'CVS', icon: 'filetype-csv', action: 'export-csv', acceptHeader: 'text/csv' },
     { label: 'XLS', icon: 'filetype-xls', action: 'export-xls', acceptHeader: 'application/vnd.ms-excel' },
     { label: 'PDF', icon: 'filetype-pdf', action: 'export-pdf', acceptHeader: 'application/pdf' },
     { label: 'PNG', icon: 'filetype-png', action: 'export-png', acceptHeader: 'image/png' },
@@ -347,6 +348,12 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     });
 
     this.config = this.configService.getConfiguration();
+
+    const allowedExportTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.formati_report || [];
+    const filteredExportList = allowedExportTypes.length
+        ? this.exportListDefault.filter(el => allowedExportTypes.includes(el.action.split('export-')[1]))
+        : this.exportListDefault;
+    this.exportList = [ ...filteredExportList ];
 
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
@@ -985,21 +992,24 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   
       this._spin = true;
       this._setErrorMessages(false);
-      this.apiService.downloadMonitor(url, httpParams, headers).subscribe((result: HttpResponse<Blob>) => {
-        this._spin = false;
-        const blob = new Blob([result.body as BlobPart], { type: downloadType.acceptHeader });
+      this.apiService.downloadMonitor(url, httpParams, headers).subscribe({
+        next: (result: HttpResponse<Blob>) => {
+          this._spin = false;
+          const blob = new Blob([result.body as BlobPart], { type: downloadType.acceptHeader });
 
-        const anchor = document.createElement('a');
+          const anchor = document.createElement('a');
 
-        anchor.download = fileName;
-        anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
-        anchor.dataset.downloadurl = [downloadType.acceptHeader, anchor.download, anchor.href].join(':');
-        anchor.click();
-        
-      }, error => {
-        this._spin = false;
-        this._setErrorMessages(true);
-        this._errorMsg = error.error?.message || error.message;
+          anchor.download = fileName;
+          anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+          anchor.dataset.downloadurl = [downloadType.acceptHeader, anchor.download, anchor.href].join(':');
+          anchor.click();
+          
+        },
+        error: (error: any) => {
+          this._spin = false;
+          this._setErrorMessages(true);
+          this._errorMsg = error.error?.message || error.message;
+        }
       });
     }
   }
