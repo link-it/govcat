@@ -60,6 +60,7 @@ enum TimeTrendReportType {
 interface DistributionType {
   trendReport: boolean;
   value: string;
+  code: string;
   label: string;
   tableFirstColumnLabel: string;
 }
@@ -132,7 +133,7 @@ interface DownloadType {
   acceptHeader: string;
 }
 
-enum StatisticsUrl {
+enum StatisticCode {
   AndamentoTemporale = 'andamento_temporale',
   DistribuzioneEsiti = 'distribuzione_esiti',
   DistribuzioneErrori = 'distribuzione_errori',
@@ -143,7 +144,21 @@ enum StatisticsUrl {
   DistribuzioneTokenClientId = 'distribuzione_token_client_id',
   DistribuzioneIssuer = 'distribuzione_token_issuer',
   DistribuzionePrincipal = 'distribuzione_principal',
-  DistribuzioneApi = 'distribuzione_api', // NUOVA
+  DistribuzioneApi = 'distribuzione_api', // NOT IMPLEMENTED
+}
+
+enum StatisticsUrl {
+  AndamentoTemporale = 'andamento-temporale',
+  DistribuzioneEsiti = 'distribuzione-esiti',
+  DistribuzioneErrori = 'distribuzione-errori',
+  DistribuzioneSoggettoRemoto = 'distribuzione-soggetto-remoto',
+  DistribuzioneOperazione = 'distribuzione-operazione',
+  DistribuzioneApplicativo = 'distribuzione-applicativo',
+  DistribuzioneIp = 'distribuzione-ip',
+  DistribuzioneTokenClientId = 'distribuzione-token-clientid',
+  DistribuzioneIssuer = 'distribuzione-token-issuer',
+  DistribuzionePrincipal = 'distribuzione-principal',
+  DistribuzioneApi = 'distribuzione-api', // NOT IMPLEMENTED
 }
 
 const domainStatistics = [
@@ -554,7 +569,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
     const allowedTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.tipi_distribuzione || [];
     const filteredDistributionTypes = allowedTypes.length
-        ? _distributionTypes.filter(dt => allowedTypes.includes(dt.value))
+        ? _distributionTypes.filter(dt => allowedTypes.includes(dt.code))
         : _distributionTypes;
     this.distributionTypes = [ ...filteredDistributionTypes ];
 
@@ -635,22 +650,22 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   public distributionTypes: DistributionType[] = [];
 
   public distributionTypesDefault: DistributionType[] = [
-    { trendReport: true, value: StatisticsUrl.AndamentoTemporale, label: 'Andamento Temporale', tableFirstColumnLabel: 'Data'},
-    { trendReport: true, value: StatisticsUrl.DistribuzioneEsiti, label: 'Distribuzione per Esiti', tableFirstColumnLabel: 'Data' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneErrori, label: 'Distribuzione per Errori', tableFirstColumnLabel: 'Esito' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneSoggettoRemoto, label: 'Distribuzione per Soggetto Remoto', tableFirstColumnLabel: 'Soggetto' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneOperazione, label: 'Distribuzione per Operazione', tableFirstColumnLabel: 'Azione' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneApplicativo, label: 'Distribuzione per Applicativo', tableFirstColumnLabel: 'Applicativo' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneIp, label: 'Distribuzione per Indirizzo IP',  tableFirstColumnLabel: 'Indirizzo IP' },
+    { trendReport: true, value: StatisticsUrl.AndamentoTemporale, code: StatisticCode.AndamentoTemporale, label: 'Andamento Temporale', tableFirstColumnLabel: 'Data'},
+    { trendReport: true, value: StatisticsUrl.DistribuzioneEsiti, code: StatisticCode.DistribuzioneEsiti, label: 'Distribuzione per Esiti', tableFirstColumnLabel: 'Data' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneErrori, code: StatisticCode.DistribuzioneErrori, label: 'Distribuzione per Errori', tableFirstColumnLabel: 'Esito' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneSoggettoRemoto, code: StatisticCode.DistribuzioneSoggettoRemoto, label: 'Distribuzione per Soggetto Remoto', tableFirstColumnLabel: 'Soggetto' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneOperazione, code: StatisticCode.DistribuzioneOperazione, label: 'Distribuzione per Operazione', tableFirstColumnLabel: 'Azione' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneApplicativo, code: StatisticCode.DistribuzioneApplicativo, label: 'Distribuzione per Applicativo', tableFirstColumnLabel: 'Applicativo' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneIp, code: StatisticCode.DistribuzioneIp, label: 'Distribuzione per Indirizzo IP',  tableFirstColumnLabel: 'Indirizzo IP' },
   ];
 
   public distributionTypesSubjectDomain: DistributionType[] = [
-    { trendReport: false, value: StatisticsUrl.DistribuzioneTokenClientId, label: 'Distribuzione per Token ClientId', tableFirstColumnLabel: 'ClientId' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneIssuer, label: 'Distribuzione per Token Issuer', tableFirstColumnLabel: 'Issuer' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneTokenClientId, code: StatisticCode.DistribuzioneTokenClientId, label: 'Distribuzione per Token ClientId', tableFirstColumnLabel: 'ClientId' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneIssuer, code: StatisticCode.DistribuzioneIssuer, label: 'Distribuzione per Token Issuer', tableFirstColumnLabel: 'Issuer' },
   ];
 
   public distributionTypesAdherentSubject: DistributionType[] = [
-    { trendReport: false, value: StatisticsUrl.DistribuzionePrincipal, label: 'Distribuzione per Principal', tableFirstColumnLabel: 'Principal' },
+    { trendReport: false, value: StatisticsUrl.DistribuzionePrincipal, code: StatisticCode.DistribuzionePrincipal, label: 'Distribuzione per Principal', tableFirstColumnLabel: 'Principal' },
   ];
 
   public reportTypeInformations = [
@@ -832,7 +847,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         }
 
         switch (distibutionType.value) {
-          case 'andamento-temporale': {
+          case StatisticsUrl.AndamentoTemporale: {
             const values = result.valori as TimeProgressionItem[];
             this.single = values.map((v) => ({name: v.data, value: v.valore}));
 
@@ -849,7 +864,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
             });
             break;
           }
-          case 'distribuzione-esiti': {
+          case StatisticsUrl.DistribuzioneEsiti: {
             const outcomeValues = result.valori as DistributionOutcomeItem[];
             this.single = outcomeValues.map((v) => ({name: v.data, value: v.valore_ok}));
             
@@ -871,45 +886,45 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
             ];
             break;
           }
-          case 'distribuzione-errori': {
+          case StatisticsUrl.DistribuzioneErrori: {
             const errorValues = result.valori as DistributionErrorItem[];
             this.single = errorValues.map((v) => ({name: v.esito.toString(), value: v.valore}));
             break;
           }
-          case 'distribuzione-soggetto-remoto': {
+          case StatisticsUrl.DistribuzioneSoggettoRemoto: {
             const remoteSubjectValues = result.valori as DistributionRemoteSubjectItem[];
             this.single = remoteSubjectValues.map((v) => ({name: v.nome, value: v.valore}));
             break;
           }
-          case 'distribuzione-operazione': {
+          case StatisticsUrl.DistribuzioneOperazione: {
             //checkout grouping below
             const operationValues = result.valori as DistributionOperationItem[];
             this.single = operationValues.map((v) => ({name: v.operazione, value: v.valore}));
             break;
           }
-          case 'distribuzione-applicativo': {
+          case StatisticsUrl.DistribuzioneApplicativo: {
             // does not work
             const applicationValues = result.valori as DistributionApplicationItem[];
             this.single = applicationValues.map((v) => ({name: v.nome, value: v.valore}));
             break;
           }
-          case 'distribuzione-token-clientid': {
+          case StatisticsUrl.DistribuzioneTokenClientId: {
             // possibly multi
             const tokenClientIdValues = result.valori as DistributionTokenClientIdItem[];
             this.single = tokenClientIdValues.map((v) => ({name: v.client_id, value: v.valore}));
             break;
           }
-          case 'distribuzione-token-issuer': {
+          case StatisticsUrl.DistribuzioneIssuer: {
             const tokenIssuerValues = result.valori as DistributionTokenIssuerItem[];
             this.single = tokenIssuerValues.map((v) => ({name: v.issuer, value: v.valore}));
             break;
           }
-          case 'distribuzione-principal': {
+          case StatisticsUrl.DistribuzionePrincipal: {
             const principalValues = result.valori as DistributionPrincipalItem[];
             this.single = principalValues.map((v) => ({name: v.indirizzo, value: v.valore}));
             break;
           }
-          case 'distribuzione-ip': {
+          case StatisticsUrl.DistribuzioneIp: {
             const ipValues = result.valori as DistributionIpItem[];
             this.single = ipValues.map((v) => ({name: v.indirizzo, value: v.valore}));
             break;
