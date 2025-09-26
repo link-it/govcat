@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import org.govway.catalogo.exception.ClientApiException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.Problem;
-import org.govway.catalogo.servlets.model.UpdateEntitaComplessaProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -43,7 +42,7 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 	protected ResponseEntity<Object> toEntity(Exception ex, HttpStatus status) {
 		
 		if(ex instanceof UpdateEntitaComplessaNonValidaSemanticamenteException) {
-			UpdateEntitaComplessaProblem problem = new UpdateEntitaComplessaProblem();
+			Problem problem = new Problem();
 			problem.setStatus(status.value());
 			problem.setTitle(status.getReasonPhrase());
 			try {problem.setType(new URI("https://tools.ietf.org/html/rfc7231#section-6.5.1"));} catch (URISyntaxException e) {}
