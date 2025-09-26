@@ -2,11 +2,7 @@
   <div class="container-fluid top-area px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <div class="nav-controls">
-      <!-- <div class="position-relative" *ngIf="service">
-        <app-back-web [service_id]="service.id_servizio"></app-back-web>
-      </div> -->
-    </div>
+    <div class="nav-controls"></div>
   </div>
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
@@ -37,7 +33,7 @@
           <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary- dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
             <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
           </button>
-          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+          <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
             <div class="gl-new-dropdown-inner">
               <div class="gl-new-dropdown-contents">
                 <li class="gl-new-dropdown-item" *ngFor="let item of exportList">
@@ -60,10 +56,10 @@
           <button [disabled]="!colorSchemeChangeEnabled" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="themes">
             <i class="bi bi-palette"></i> <span class="ms-2">{{ 'Color Scheme' }}</span>
           </button>
-          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
+          <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
             <div class="gl-new-dropdown-inner">
               <div class="gl-new-dropdown-contents">
-                <li role="presentation" class="gl-new-dropdown-item" *ngFor="let item of colorSets">
+                <li class="gl-new-dropdown-item" *ngFor="let item of colorSets">
                   <button role="menuitem" type="button" class="dropdown-item" (click)="setColorScheme(item.name)">
                     <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                       <i class="bi bi-check2" *ngIf="selectedColorScheme == item.name"></i>
@@ -183,7 +179,7 @@
                       <div class="row">
                         <div class="col-12">
                           <div class="form-group">
-                            <label class="label-bold">{{ 'APP.LABEL.ReportType' | translate }}</label>
+                            <span class="label label-bold">{{ 'APP.LABEL.ReportType' | translate }}</span>
                             <div class="text-center">
                               <div class="btn-group w-100" aria-label="Chart type">
                                 <button *ngIf="_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('line')" [class.btn-confirm]="tipoGrafico === 'line'"><i class="bi bi-graph-up"></i></button>
@@ -472,8 +468,7 @@
                         [maxYAxisTickLength]="chartOptions.maxYAxisTickLength"
                         (select)="onSelect($event)"
                         (activate)="onSelect($event)"
-                        (deactivate)="onSelect($event)"
-                        (window:resize)="onResize($event)">
+                        (deactivate)="onSelect($event)">
                       </ngx-charts-bar-vertical>
                     </div>
                   </div>
