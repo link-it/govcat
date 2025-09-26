@@ -5485,6 +5485,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConfigurazioneTipiDistribuzione'
+        formati_report:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneFormatiReport'
     ConfigurazioneMonitoraggio:
       type: "object"
       required:
@@ -6360,6 +6364,12 @@ components:
         - distribuzione_token_issuer
         - distribuzione_ip
         - distribuzione_principal
+    ConfigurazioneFormatiReport:
+      type: "string"
+      enum:
+        - csv
+        - pdf
+        - xls
     StatoProfiloEnum:
       type: "string"
       enum:

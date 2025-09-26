@@ -36,6 +36,7 @@ import org.govway.catalogo.monitoraggioutils.IStatisticheClient;
 import org.govway.catalogo.monitoraggioutils.IdApi;
 import org.govway.catalogo.monitoraggioutils.PostReportResponse;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneFormatiReport;
 import org.govway.catalogo.servlets.model.ConfigurazioneTipiDistribuzione;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
 import org.govway.catalogo.servlets.monitor.model.AndamentoTemporaleQuery;
@@ -141,6 +142,22 @@ public class StatisticheController implements StatisticheApi {
             !this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione().isEmpty() &&
                 !this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione().contains(configurazioneTipiDistribuzione)) {
             throw new NotFoundException("Tipo di distribuzione non abilitato");
+        }
+
+        ConfigurazioneFormatiReport formatoReportRichiesto = ConfigurazioneFormatiReport.CSV;
+        String acceptValue = this.request.getHeader("Accept");
+        if(acceptValue == null || acceptValue.contains("csv")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.CSV;
+        } else if(acceptValue.contains("pdf")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.PDF;
+        } else if(acceptValue.contains("vnd.ms-excel")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.XLS;
+        }
+        if(this.configurazione.getMonitoraggio().getStatistiche() != null &&
+                this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport() != null &&
+                !this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport().isEmpty() &&
+                !this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport().contains(formatoReportRichiesto)) {
+            throw new NotFoundException("Tipo di formato report non abilitato");
         }
 
 		// TODO check ruoli
