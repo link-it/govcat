@@ -287,7 +287,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   exportList: DownloadType[] = [];
   exportListDefault: DownloadType[] = [
-    { label: 'CVS', icon: 'filetype-csv', action: 'export-csv', acceptHeader: 'text/csv' },
+    { label: 'CSV', icon: 'filetype-csv', action: 'export-csv', acceptHeader: 'text/csv' },
     { label: 'XLS', icon: 'filetype-xls', action: 'export-xls', acceptHeader: 'application/vnd.ms-excel' },
     { label: 'PDF', icon: 'filetype-pdf', action: 'export-pdf', acceptHeader: 'application/pdf' },
     { label: 'PNG', icon: 'filetype-png', action: 'export-png', acceptHeader: 'image/png' },
