@@ -1064,6 +1064,7 @@
 				"NoDeleteGruppi": "The group cannot be deleted.",
 				"NoDeleteReferent": "The referent cannot be deleted.",
 				"NoMessageError": "There are no error messages.",
+				"Timeout": "Download timeout. Please try again later.",
 				"TimeoutError": "Timeout has occurred",
 				"TokenExpired": "Token expired.",
 				"Unauthorized": "Unauthorized",

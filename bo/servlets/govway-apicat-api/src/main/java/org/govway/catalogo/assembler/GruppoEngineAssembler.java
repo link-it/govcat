@@ -50,7 +50,7 @@ public class GruppoEngineAssembler extends CoreEngineAssembler {
 	public String getAlberatura(GruppoEntity entity, int index) {
 		String delim = "#";
 		
-		String alberatura = entity.getId() + delim;
+		String alberatura = (entity.getId() != null ? entity.getId() : "") + delim;
 		
 		if(entity.getGruppoPadre() != null) {
 			alberatura += getAlberatura(entity.getGruppoPadre(), index+1);

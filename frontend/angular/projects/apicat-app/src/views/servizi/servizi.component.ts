@@ -23,13 +23,13 @@ import { ModalCategoryChoiceComponent } from '@app/components/modal-category-cho
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, timeout } from 'rxjs/operators';
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
+import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 
 import * as _ from 'lodash';
-import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 declare const saveAs: any;
 
 @Component({
@@ -1163,16 +1163,24 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         aux = this.utils._queryToHttpParams(query);
 
         this._downloading = true;
-        this.apiService.download(`${this.model}-export`, null, undefined, aux).subscribe({
-            next: (response: any) => {
-                let filename: string = Tools.GetFilenameFromHeader(response);
-                saveAs(response.body, filename);
-                this._downloading = false;
-            },
-            error: (error: any) => {
-                this._downloading = false;
-                Tools.showMessage(Tools.GetErrorMsg(error), 'danger', true);
-            }
-        });
+        this.apiService.download(`${this.model}-export`, null, undefined, aux)
+            .pipe(
+                timeout(150000) // timeout di 150 secondi
+            )
+            .subscribe({
+                next: (response: any) => {
+                    let filename: string = Tools.GetFilenameFromHeader(response);
+                    saveAs(response.body, filename);
+                    this._downloading = false;
+                },
+                error: (error: any) => {
+                    this._downloading = false;
+                    if (error.name === 'TimeoutError') {
+                        Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+                    } else {
+                        Tools.showMessage(Tools.GetErrorMsg(error), 'danger', true);
+                    }
+                }
+            });
     }
 }
