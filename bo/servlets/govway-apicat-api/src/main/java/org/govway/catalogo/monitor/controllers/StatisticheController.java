@@ -152,6 +152,8 @@ public class StatisticheController implements StatisticheApi {
             formatoReportRichiesto = ConfigurazioneFormatiReport.PDF;
         } else if(acceptValue.contains("vnd.ms-excel")) {
             formatoReportRichiesto = ConfigurazioneFormatiReport.XLS;
+        } else if(acceptValue.contains("png")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.PNG;
         }
         if(this.configurazione.getMonitoraggio().getStatistiche() != null &&
                 this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport() != null &&
