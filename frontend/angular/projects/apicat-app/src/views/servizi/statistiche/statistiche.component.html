@@ -149,7 +149,8 @@
                                 {{ item.soggetto.nome }}
                               </ng-template>
                               <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                <div class="fw-bold">{{ item.soggetto.nome }}</div>
+                                <div class="fw-bold">{{ item.servizio.nome }} v.{{ item.servizio.versione }}</div>
+                                <div>{{ item.soggetto.nome }} <span *ngIf="item.id_logico"> - {{ item.id_logico }}</span></div>
                               </ng-template>
                             </ng-select>
                             <p *ngIf="_formGroup.get('adesione')?.dirty || _formGroup.get('adesione')?.touched" class="form-text text-danger">
@@ -296,7 +297,8 @@
                                 {{ item.soggetto.nome }}
                               </ng-template>
                               <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                <div class="fw-bold">{{ item.soggetto.nome }}</div>
+                                <div class="fw-bold">{{ item.servizio.nome }} v.{{ item.servizio.versione }}</div>
+                                <div>{{ item.soggetto.nome }} <span *ngIf="item.id_logico"> - {{ item.id_logico }}</span></div>
                               </ng-template>
                             </ng-select>
                             <p *ngIf="_formGroup.get('adesione')?.dirty || _formGroup.get('adesione')?.touched" class="form-text text-danger">
