@@ -904,14 +904,6 @@
       "in_configurazione_produzione",
       "pubblicato_produzione"
     ],
-    "monitoraggio": {
-      "abilitato": true,
-      "ruoli_abilitati": [
-        "gestore",
-        "referente_superiore",
-        "referente"
-      ]
-    },
     "visibilita_allegati_consentite": [
       "gestore",
       "servizio",
@@ -1525,11 +1517,15 @@
 
   },
   "monitoraggio": {
-    "abilitato": true,
+   "abilitato": true,
     "transazioni_abilitate": true,
     "statistiche_abilitate": true,
     "verifiche_abilitate": true,
-    "ruoli_abilitati": [],
+      "ruoli_abilitati": [
+        "gestore",
+        "referente_superiore",
+        "referente"
+      ],
     "profilo_govway_default": "ModI",
     "soggetto_modi": {
       "nome": "Ente",
