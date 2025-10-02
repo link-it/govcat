@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 
-import { combineLatest, forkJoin, Observable, of, throwError } from 'rxjs';
+import { forkJoin, Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -511,5 +511,41 @@ export class UtilService {
     }
 
     return result;
+  }
+
+  public GetErrorMsg(error: any) {
+    let _msg = 'Warning: status ' + error.status;
+    const _msgA: string[] = [];
+    try {
+      if (error.error?.detail) {
+        const code = error.error.detail;
+        const params = error.error.errori?.params || {};
+        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
+      } else if (error.error?.title || error.error?.detail) {
+        if (error.error.title) {
+          _msgA.push(error.error.title);
+        }
+        if (error.error.detail) {
+          _msgA.push(error.error.detail);
+        }
+        _msg = _msgA.join(' - ');
+      } else {
+        if (error.status !== 0 && error.statusText) {
+          _msg = error.status + ': ' + error.statusText;
+          if (error.status === 404) {
+            _msg += error.url ? ` ${error.url.split('?')[0]}` : '';
+          }
+        } else {
+          _msg = error.message;
+        }
+      }
+      if (error.name && !error.error) {
+        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${error.name}`);
+      }
+    } catch (e) {
+      _msg = 'Si è verificato un problema non previsto.';
+    }
+
+    return _msg;
   }
 }
