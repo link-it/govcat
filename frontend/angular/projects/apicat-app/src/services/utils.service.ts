@@ -519,7 +519,10 @@ export class UtilService {
     try {
       if (error.error?.detail) {
         const code = error.error.detail;
-        const params = error.error.errori?.params || {};
+        let params = {};
+        if (error.error.errori?.length > 0) {
+          params = error.error.errori[0].params || {};
+        }
         _msg = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
       } else if (error.error?.title || error.error?.detail) {
         if (error.error.title) {
