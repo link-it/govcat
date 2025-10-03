@@ -48,15 +48,15 @@ public class IndirizzoIpEstensioneClientAssembler extends AbstractEstensioneClie
 
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
-		
+
 		if(!(src instanceof AuthTypeIndirizzoIpCreate)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeIndirizzoIpCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeIndirizzoIpCreate specSrc = (AuthTypeIndirizzoIpCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypeIndirizzoIp)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", ConfigurazioneAuthTypeIndirizzoIp.class.getSimpleName()));
 		}
 
 		EstensioneClientEntity eIP = new EstensioneClientEntity();
@@ -109,9 +109,9 @@ public class IndirizzoIpEstensioneClientAssembler extends AbstractEstensioneClie
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeIndirizzoIp)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeIndirizzoIp.class.getSimpleName()));
 		}
 		
 		AuthTypeIndirizzoIp specDsc = (AuthTypeIndirizzoIp) dsc;

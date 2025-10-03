@@ -21,6 +21,7 @@ package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -107,7 +108,7 @@ public class ClientController implements ClientApi {
 				ClientEntity entity = this.dettaglioAssembler.toEntity(clientCreate);
 
 				if(this.service.existsByNomeSoggettoAmbiente(entity)) {
-					throw new ConflictException(ErrorCode.CLT_002);
+					throw new ConflictException(ErrorCode.CLT_002, Map.of("nome", clientCreate.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", clientCreate.getAmbiente().toString()));
 				}
 				
 				this.service.save(entity);
@@ -143,7 +144,7 @@ public class ClientController implements ClientApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getAdesioni().isEmpty()) {
-					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(entity.getAdesioni().size())));
 				}
 				this.service.delete(entity);
 				this.logger.info("Invocazione completata con successo");
@@ -271,11 +272,11 @@ public class ClientController implements ClientApi {
 				
 				if(nomeCambiato || soggettoCambiato || ambienteCambiato) {
 					if(this.service.existsByNomeSoggettoAmbiente(clientUpdate.getNome(), clientUpdate.getIdSoggetto().toString(), this.clientEngineAssembler.toAmbiente(clientUpdate.getAmbiente()))) {
-						throw new ConflictException(ErrorCode.CLT_002);
+						throw new ConflictException(ErrorCode.CLT_002, Map.of("nome", clientUpdate.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", clientUpdate.getAmbiente().toString()));
 					}
 
 					if(entity.getStato().equals(StatoEnum.CONFIGURATO)) {
-						throw new BadRequestException(ErrorCode.CLT_003);
+						throw new BadRequestException(ErrorCode.CLT_003, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString()));
 					}
 
 					
@@ -285,7 +286,7 @@ public class ClientController implements ClientApi {
 						long cnt = adesioneService.count(spec);
 						
 						if(cnt > 0) {
-							throw new BadRequestException(ErrorCode.CLT_003);
+							throw new BadRequestException(ErrorCode.CLT_003, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(cnt)));
 						}
 
 					}

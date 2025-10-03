@@ -19,6 +19,8 @@
  */
 package org.govway.catalogo.controllers;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -89,7 +91,7 @@ public class GruppiController implements GruppiApi {
 				GruppoEntity entity = this.dettaglioAssembler.toEntity(gruppoCreate);
 
 				if(this.service.existsByNome(entity)) {
-					throw new ConflictException(ErrorCode.GRP_002);
+					throw new ConflictException(ErrorCode.GRP_002, Map.of("nome", gruppoCreate.getNome()));
 				}
 				
 				this.service.save(entity);
@@ -121,7 +123,7 @@ public class GruppiController implements GruppiApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				GruppoEntity gruppo = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001, Map.of("idGruppo", idGruppo.toString())));
 	
 				this.authorization.authorizeDelete(gruppo);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -150,7 +152,7 @@ public class GruppiController implements GruppiApi {
 				this.logger.info("Invocazione in corso ...");
 				
 				GruppoEntity entity = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001, Map.of("idGruppo", idGruppo.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -225,7 +227,7 @@ public class GruppiController implements GruppiApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				GruppoEntity entity = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001, Map.of("idGruppo", idGruppo.toString())));
 				
 				this.authorization.authorizeUpdate(gruppoUpdate, entity);
 				
@@ -265,12 +267,12 @@ public class GruppiController implements GruppiApi {
 				logger.info("PRE service.find(idGruppo)");
 				
 				GruppoEntity entity = this.service.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001, Map.of("idGruppo", idGruppo.toString())));
 
 				logger.info("POST service.find(idGruppo)");
 				
 				if(entity.getImmagine() == null) {
-					throw new NotFoundException(ErrorCode.SRV_004);
+					throw new NotFoundException(ErrorCode.SRV_004, Map.of("idGruppo", idGruppo.toString()));
 				}
 				
 				logger.info("PRE Resource resource = new ByteArrayResource(entity.getImmagine().getRawData())");

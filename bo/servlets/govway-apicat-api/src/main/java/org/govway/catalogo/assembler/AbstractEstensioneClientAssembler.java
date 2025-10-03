@@ -170,14 +170,14 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 
 	protected Set<EstensioneClientEntity> getEstensioniCertificato(CertificatoClientCreate certificato,
 			String nomeCertificato, ConfigurazioneCertificato configurazione) {
-		
+
 		switch(certificato.getTipoCertificato()) {
 		case FORNITO: return getEstensioniCertificatoFornito(((CertificatoClientFornitoCreate)certificato), nomeCertificato, configurazione);
 		case RICHIESTO_CN: return getEstensioniCertificatoRichiestoCN(((CertificatoClientRichiestoCnCreate)certificato), nomeCertificato, configurazione);
 		case RICHIESTO_CSR: return getEstensioniCertificatoRichiestoCSR(((CertificatoClientRichiestoCsrCreate)certificato), nomeCertificato, configurazione);
 		}
-		
-		throw new InternalException(ErrorCode.SYS_001);
+
+		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("tipoCertificato", certificato.getTipoCertificato().toString()));
 	}
 	
 	private String CERTIFICATO_CSR_PROPERTY = "CERTIFICATO";
@@ -296,9 +296,9 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 			certificato.setCertificato(documentoAssembler.toModel(getDocumentoProperty(estensioni, getNomeProperty(nomeCertificato, CERTIFICATO_PROPERTY))));
 
 			return certificato;
-		} 
-		
-		throw new InternalException(ErrorCode.SYS_001);
+		}
+
+		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("nomeCertificato", nomeCertificato));
 	}
 
 }

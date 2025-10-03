@@ -35,7 +35,7 @@ public class CoreEngineAssembler {
 		InfoProfilo principal = this.requestUtils.getPrincipal();
 //		UtenteEntity u = principal.utente;
 		if(principal.utente == null) {
-			throw new NotAuthorizedException(ErrorCode.ORG_007);
+			throw new NotAuthorizedException(ErrorCode.ORG_007, java.util.Map.of("idUtente", principal.idUtente.toString()));
 		}
 		
 		return principal.utente;

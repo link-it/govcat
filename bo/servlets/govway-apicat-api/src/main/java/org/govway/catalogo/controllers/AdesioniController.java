@@ -206,7 +206,7 @@ public class AdesioniController implements AdesioniApi {
 				
 				if(this.service.existsBySoggettoServizioNonArchiviato(entity, configurazione.getAdesione().getWorkflow().getStatoArchiviato())) {
 					if(!entity.getServizio().isMultiAdesione()) {
-						throw new ConflictException(ErrorCode.ADE_002);
+						throw new ConflictException(ErrorCode.ADE_002, java.util.Map.of("soggetto", entity.getSoggetto().getNome(), "servizio", entity.getServizio().getNome(), "versione", entity.getServizio().getVersione().toString()));
 					}
 				}
 				
@@ -254,7 +254,7 @@ public class AdesioniController implements AdesioniApi {
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 		
 		if(utente == null) {
-			throw new NotFoundException(ErrorCode.ADE_001);
+			throw new NotFoundException(ErrorCode.ADE_001, java.util.Map.of("idAdesione", idAdesione.toString()));
 		}
 		AdesioneSpecification aspec = new AdesioneSpecification();
 		
@@ -553,7 +553,7 @@ public class AdesioniController implements AdesioniApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 				
 				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
-					throw new BadRequestException(ErrorCode.ADE_003);
+					throw new BadRequestException(ErrorCode.ADE_003, java.util.Map.of("stato", entity.getStato().toString()));
 				}
 				Resource resource;
 				try {
@@ -1288,7 +1288,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 				
 				if(allegato == null) {
-					throw new NotFoundException(ErrorCode.DOC_001);
+					throw new NotFoundException(ErrorCode.DOC_001, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -1329,11 +1329,11 @@ public class AdesioniController implements AdesioniApi {
 						}
 					}
 				}
-				
+
 				if(allegato == null) {
-					throw new NotFoundException(ErrorCode.DOC_001);
+					throw new NotFoundException(ErrorCode.DOC_001, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Resource resource = new ByteArrayResource(allegato.getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -1374,9 +1374,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.CLT_001);
+					throw new BadRequestException(ErrorCode.CLT_001, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1415,9 +1415,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.CLT_001);
+					throw new BadRequestException(ErrorCode.CLT_001, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1456,9 +1456,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.API_003);
+					throw new BadRequestException(ErrorCode.API_003, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1497,9 +1497,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.API_003);
+					throw new BadRequestException(ErrorCode.API_003, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1686,7 +1686,7 @@ public class AdesioniController implements AdesioniApi {
 		boolean realForce = force != null && force;
 		if(realForce) {
 			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
-				throw new NotAuthorizedException(ErrorCode.AUTH_001);
+				throw new NotAuthorizedException(ErrorCode.AUTH_001, java.util.Map.of("ruoli", listRuoloForce.toString()));
 			}
 		}
 		return realForce;
@@ -1891,9 +1891,9 @@ public class AdesioniController implements AdesioniApi {
 				List<EstensioneAdesioneEntity> lst = entity.getEstensioni().stream()
 						.filter(c -> c.getDocumento()!= null && c.getDocumento().getUuid().equals(idAllegato.toString()))
 						.collect(Collectors.toList());
-				
+
 				if(lst.size() != 1) {
-					throw new NotFoundException(ErrorCode.DOC_001);
+					throw new NotFoundException(ErrorCode.DOC_001, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				DocumentoEntity allegato = lst.get(0).getDocumento();

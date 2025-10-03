@@ -21,6 +21,7 @@ package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -92,12 +93,12 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				OrganizzazioneEntity entity = this.dettaglioAssembler.toEntity(organizzazioneCreate);
 
 				if(this.service.existsByNome(entity)) {
-					throw new ConflictException(ErrorCode.ORG_002);
+					throw new ConflictException(ErrorCode.ORG_002, Map.of("nome", organizzazioneCreate.getNome()));
 				}
 
 				String customCamelCaseName = this.service.customCamelCase(organizzazioneCreate.getNome(), true);
 				if(this.soggettoService.existsByNome(customCamelCaseName)) {
-					throw new ConflictException(ErrorCode.ORG_006);
+					throw new ConflictException(ErrorCode.ORG_006, Map.of("nome", customCamelCaseName));
 				}
 				
 				this.service.save(entity);
@@ -127,14 +128,14 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				OrganizzazioneEntity entity = this.service.find(idOrganizzazione)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001, Map.of("idOrganizzazione", idOrganizzazione.toString())));
 	
 				this.authorization.authorizeDelete(entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(entity.getUtenti().size() > 0) {
-					throw new BadRequestException(ErrorCode.ORG_001);
+					throw new BadRequestException(ErrorCode.ORG_001, Map.of("nome", entity.getNome()));
 				}
 
 				SoggettoEntity sd = null;
@@ -142,7 +143,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 					sd = entity.getSoggettoDefault();
 
 					if(!sd.getDomini().isEmpty()) {
-						throw new BadRequestException(ErrorCode.ORG_005);
+						throw new BadRequestException(ErrorCode.ORG_005, Map.of("nome", sd.getNome(), "numDomini", String.valueOf(sd.getDomini().size())));
 					}
 
 					entity.setAderente(false); //altrimenti no nla fa aggiornare senza il soggetto defult
@@ -155,7 +156,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				int size = sd == null ? 0: 1;
 				
 				if(entity.getSoggetti().size() > size) {
-					throw new BadRequestException(ErrorCode.ORG_001);
+					throw new BadRequestException(ErrorCode.ORG_001, Map.of("nome", entity.getNome()));
 				}
 
 				this.service.delete(entity);
@@ -180,7 +181,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				OrganizzazioneEntity entity = this.service.find(idOrganizzazione)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001, Map.of("idOrganizzazione", idOrganizzazione.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -263,7 +264,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				OrganizzazioneEntity entity = this.service.find(idOrganizzazione)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001, Map.of("idOrganizzazione", idOrganizzazione.toString())));
 	
 				this.authorization.authorizeUpdate(organizzazioneUpdate, entity);
 				
@@ -273,7 +274,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				String customCamelCaseName = this.service.customCamelCase(organizzazioneUpdate.getNome(), true);
 				Optional<SoggettoEntity> soggetto = soggettoService.findByNome(customCamelCaseName);
 				if(soggetto.isPresent() && !soggetto.get().getOrganizzazione().getIdOrganizzazione().equals(idOrganizzazione.toString())) {
-					throw new ConflictException(ErrorCode.ORG_006);
+					throw new ConflictException(ErrorCode.ORG_006, Map.of("nome", customCamelCaseName, "orgNome", soggetto.get().getOrganizzazione().getNome()));
 				}
 
 				this.service.save(entity);

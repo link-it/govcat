@@ -41,13 +41,13 @@ public class HttpsPdndEstensioneClientAssembler extends AbstractEstensioneClient
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypeHttpsPdndCreate)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeHttpsPdndCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeHttpsPdndCreate specSrc = (AuthTypeHttpsPdndCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypeHttpsPdnd)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", ConfigurazioneAuthTypeHttpsPdnd.class.getSimpleName()));
 		}
 		
 		ConfigurazioneAuthTypeHttpsPdnd conf = (ConfigurazioneAuthTypeHttpsPdnd) configurazione;
@@ -80,9 +80,9 @@ public class HttpsPdndEstensioneClientAssembler extends AbstractEstensioneClient
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeHttpsPdnd)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeHttpsPdnd.class.getSimpleName()));
 		}
 		
 		AuthTypeHttpsPdnd specDsc = (AuthTypeHttpsPdnd) dsc;

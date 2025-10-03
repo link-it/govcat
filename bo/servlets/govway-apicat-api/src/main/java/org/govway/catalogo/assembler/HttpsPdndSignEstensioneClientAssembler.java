@@ -42,13 +42,13 @@ public class HttpsPdndSignEstensioneClientAssembler extends AbstractEstensioneCl
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypeHttpsPdndSignCreate)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeHttpsPdndSignCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeHttpsPdndSignCreate specSrc = (AuthTypeHttpsPdndSignCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypeHttpsPdndSign)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", ConfigurazioneAuthTypeHttpsPdndSign.class.getSimpleName()));
 		}
 		
 		ConfigurazioneAuthTypeHttpsPdndSign conf = (ConfigurazioneAuthTypeHttpsPdndSign) configurazione;
@@ -84,9 +84,9 @@ public class HttpsPdndSignEstensioneClientAssembler extends AbstractEstensioneCl
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeHttpsPdndSign)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeHttpsPdndSign.class.getSimpleName()));
 		}
 		
 		AuthTypeHttpsPdndSign specDsc = (AuthTypeHttpsPdndSign) dsc;

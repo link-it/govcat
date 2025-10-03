@@ -91,7 +91,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 				ClasseUtenteEntity entity = this.dettaglioAssembler.toEntity(classeUtenteCreate);
 
 				if(this.service.exists(entity)) {
-					throw new ConflictException(ErrorCode.ORG_009);
+					throw new ConflictException(ErrorCode.ORG_009, java.util.Map.of("nome", classeUtenteCreate.getNome()));
 				}
 
 				this.service.save(entity);

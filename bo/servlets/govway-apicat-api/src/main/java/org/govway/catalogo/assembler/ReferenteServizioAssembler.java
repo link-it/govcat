@@ -91,24 +91,24 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO)) {
-			throw new BadRequestException(ErrorCode.AUTH_004);
+			throw new BadRequestException(ErrorCode.AUTH_004, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.AUTH_005);
+				throw new BadRequestException(ErrorCode.AUTH_005, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 			}
 
 		}
 		entity.setReferente(utente);
 		entity.setTipo(tipoReferente);
-		
+
 		entity.setServizio(servizio);
 
 		boolean exists = servizio.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
-		
+
 		if(exists) {
-			throw new BadRequestException(ErrorCode.GEN_003);
+			throw new BadRequestException(ErrorCode.GEN_003, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione().toString()));
 		}
 		
 		this.servizioDettaglioAssembler.setUltimaModifica(servizio);

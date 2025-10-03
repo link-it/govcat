@@ -41,13 +41,13 @@ public class PdndEstensioneClientAssembler extends AbstractEstensioneClientAssem
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypePdndCreate)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypePdndCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypePdndCreate specSrc = (AuthTypePdndCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypePdnd)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", ConfigurazioneAuthTypePdnd.class.getSimpleName()));
 		}
 		
 		Set<EstensioneClientEntity> hashSet = super.getEstensioni(specSrc, configurazione);
@@ -73,9 +73,9 @@ public class PdndEstensioneClientAssembler extends AbstractEstensioneClientAssem
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypePdnd)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypePdnd.class.getSimpleName()));
 		}
 		
 		AuthTypePdnd specDsc = (AuthTypePdnd) dsc;

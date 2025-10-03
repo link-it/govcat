@@ -91,23 +91,23 @@ public class ReferenteAdesioneAssembler extends RepresentationModelAssemblerSupp
 				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO)) {
-			throw new BadRequestException(ErrorCode.ORG_008);
+			throw new BadRequestException(ErrorCode.ORG_008, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getOrganizzazione() == null || !utente.getOrganizzazione().getId().equals(adesione.getSoggetto().getOrganizzazione().getId())) {
-				throw new BadRequestException(ErrorCode.ORG_008);
+				throw new BadRequestException(ErrorCode.ORG_008, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "nomeOrganizzazione", adesione.getSoggetto().getOrganizzazione().getNome()));
 			}
 		}
 
 		entity.setTipo(tipoReferente);
 		entity.setAdesione(adesione);
 		entity.setReferente(utente);
-		
+
 		boolean exists = adesione.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
-		
+
 		if(exists) {
-			throw new BadRequestException(ErrorCode.ADE_002);
+			throw new BadRequestException(ErrorCode.ADE_002, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString()));
 		}
 		
 		this.adesioneDettaglioAssembler.setUltimaModifica(adesione);

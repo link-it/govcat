@@ -24,21 +24,19 @@ import java.util.Map;
 
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 
-public class UpdateEntitaComplessaNonValidaSemanticamenteException extends RuntimeException {
+public class UpdateEntitaComplessaNonValidaSemanticamenteException extends AbstractGovCatException {
 
 	private static final long serialVersionUID = 1L;
 
 	private List<EntitaComplessaError> errori;
-	private ErrorCode errorCode;
-	private Map<String, String> parameters;
 
 	public UpdateEntitaComplessaNonValidaSemanticamenteException(String message, List<EntitaComplessaError> errori) {
-		super(message);
+		super(message, null);
 		this.setErrori(errori);
 	}
 
 	public UpdateEntitaComplessaNonValidaSemanticamenteException(Throwable t, List<EntitaComplessaError> errori) {
-		super(t);
+		super(t != null ? t.getMessage() : null, t);
 		this.setErrori(errori);
 	}
 
@@ -69,9 +67,7 @@ public class UpdateEntitaComplessaNonValidaSemanticamenteException extends Runti
 	 * @param cause la causa dell'eccezione
 	 */
 	public UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode errorCode, Map<String, String> parameters, List<EntitaComplessaError> errori, Throwable cause) {
-		super(ErrorMessageResolver.resolveMessage(errorCode, parameters), cause);
-		this.errorCode = errorCode;
-		this.parameters = parameters;
+		super(errorCode, parameters, cause);
 		this.errori = errori;
 	}
 
@@ -81,32 +77,5 @@ public class UpdateEntitaComplessaNonValidaSemanticamenteException extends Runti
 
 	public void setErrori(List<EntitaComplessaError> errori) {
 		this.errori = errori;
-	}
-
-	/**
-	 * Restituisce il codice di errore
-	 * @return il codice di errore
-	 */
-	public ErrorCode getErrorCode() {
-		return errorCode;
-	}
-
-	/**
-	 * Restituisce i parametri utilizzati per il messaggio
-	 * @return la mappa dei parametri
-	 */
-	public Map<String, String> getParameters() {
-		return parameters;
-	}
-
-	/**
-	 * Restituisce il messaggio formattato con il codice errore
-	 * @return messaggio nel formato "[CODICE] messaggio"
-	 */
-	public String getFormattedMessage() {
-		if (errorCode != null) {
-			return ErrorMessageResolver.buildErrorMessage(errorCode, parameters);
-		}
-		return getMessage();
 	}
 }

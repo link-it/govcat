@@ -196,7 +196,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public void checkClientProfilo(ConfigurazioneProfilo cp, ClientEntity c) {
 		AuthTypeEnum authTypeClient = clientEngineAssembler.getAuthType(c.getAuthType());
 		if(!authTypeClient.equals(cp.getAuthType())) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("profilo", cp.getEtichetta(), "authTypeRichiesto", cp.getAuthType().toString(), "authTypeTrovato", authTypeClient.toString()));
 		}
 	}
 

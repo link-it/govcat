@@ -40,13 +40,13 @@ public class SignEstensioneClientAssembler extends AbstractEstensioneClientAssem
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypeSignCreate)) {
-			throw new BadRequestException(ErrorCode.VAL_002);
+			throw new BadRequestException(ErrorCode.VAL_002, java.util.Map.of("expectedType", AuthTypeSignCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeSignCreate specSrc = (AuthTypeSignCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypeSign)) {
-			throw new BadRequestException(ErrorCode.VAL_002);
+			throw new BadRequestException(ErrorCode.VAL_002, java.util.Map.of("expectedType", ConfigurazioneAuthTypeSign.class.getSimpleName()));
 		}
 		
 		ConfigurazioneAuthTypeSign conf = (ConfigurazioneAuthTypeSign) configurazione;
@@ -74,9 +74,9 @@ public class SignEstensioneClientAssembler extends AbstractEstensioneClientAssem
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeSign)) {
-			throw new BadRequestException(ErrorCode.VAL_002);
+			throw new BadRequestException(ErrorCode.VAL_002, java.util.Map.of("expectedType", AuthTypeSign.class.getSimpleName()));
 		}
 		
 		AuthTypeSign specDsc = (AuthTypeSign) dsc;

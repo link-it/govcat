@@ -22,6 +22,7 @@ package org.govway.catalogo.monitoraggioutils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -71,12 +72,12 @@ public class FiltriUtils {
 	public String getProfilo(UUID idServizio, UUID idApi) {
 		return this.servizioService.runTransaction(() -> {
 			ServizioEntity servizio = this.servizioService.find(idServizio)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002));
-	
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002, Map.of("idServizio", idServizio.toString())));
+
 			ApiEntity api = null;
 			if(idApi != null) {
 				api = this.apiService.find(idApi)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.API_003));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_003, Map.of("idApi", idApi.toString())));
 			}
 	
 			String ridefinito = null;
@@ -139,7 +140,7 @@ public class FiltriUtils {
 	public String getSoggettoNome(String nome) {
 
 		SoggettoEntity soggetto = this.soggettoService.findByNome(nome)
-				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005, Map.of("nomeSoggetto", nome)));
 		return soggetto.getNomeGateway() != null ? soggetto.getNomeGateway(): soggetto.getNome();
 	}
 
@@ -147,29 +148,29 @@ public class FiltriUtils {
 		
 		return this.servizioService.runTransaction(() -> {
 			ServizioEntity servizio = this.servizioService.find(idServizio)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002));
-	
+					.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002, Map.of("idServizio", idServizio.toString())));
+
 			ApiEntity api = null;
 			if(idApi != null) {
-				
+
 				api = this.apiService.find(idApi)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.API_003));
-				
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_003, Map.of("idApi", idApi.toString())));
+
 				if(!api.getServizi().stream()
 					.anyMatch(s -> {
 						boolean apiInServizio = s.getId().equals(servizio.getId());
 						boolean apiInPackage = s.getPackages().stream().anyMatch(p -> p.get_package().getId().equals(servizio.getId()));
-						return apiInServizio || apiInPackage;	
+						return apiInServizio || apiInPackage;
 					})) {
-					throw new BadRequestException(ErrorCode.VAL_011);
+					throw new BadRequestException(ErrorCode.VAL_011, Map.of("nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
 				}
 
 			}
-	
+
 			AdesioneEntity adesione = null;
 			if(idAdesione != null) {
 				adesione = this.adesioneService.findByIdAdesione(idAdesione.toString())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ADE_001));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ADE_001, Map.of("idAdesione", idAdesione.toString())));
 			}
 	
 			List<IdApi> apiLst = new ArrayList<>();
@@ -224,7 +225,7 @@ public class FiltriUtils {
 									}
 								} else {
 									if(idAdesione != null && ades.getIdAdesione().equals(idAdesione.toString())) {
-										throw new BadRequestException(ErrorCode.ADE_003);
+										throw new BadRequestException(ErrorCode.ADE_003, Map.of("idAdesione", idAdesione.toString(), "stato", ades.getStato().toString()));
 									}
 								}
 							}
@@ -232,9 +233,9 @@ public class FiltriUtils {
 					}
 				}
 			}
-			
+
 			if(apiLst.isEmpty()) {
-				throw new BadRequestException(ErrorCode.API_003);
+				throw new BadRequestException(ErrorCode.API_003, Map.of("idServizio", idServizio.toString()));
 			}
 			
 			return apiLst;

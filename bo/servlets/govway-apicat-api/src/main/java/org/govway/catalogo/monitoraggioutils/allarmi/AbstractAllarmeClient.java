@@ -22,6 +22,7 @@ package org.govway.catalogo.monitoraggioutils.allarmi;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -183,10 +184,10 @@ public abstract class AbstractAllarmeClient {
 					if (entity != null) {
 						return IOUtils.readLines(entity.getContent(), Charset.defaultCharset());
 					} else {
-						throw new InternalException(ErrorCode.INT_003);
+						throw new InternalException(ErrorCode.INT_003, Map.of("idAllarme", idAllarme));
 					}
 				} else {
-					throw new InternalException(ErrorCode.INT_003);
+					throw new InternalException(ErrorCode.INT_003, Map.of("idAllarme", idAllarme, "statusCode", String.valueOf(response.getStatusLine().getStatusCode())));
 				}
 	
 			} finally {
@@ -195,7 +196,7 @@ public abstract class AbstractAllarmeClient {
 			}
 		} catch(Exception e) {
 			this.logger.error(e.getMessage(), e);
-			throw new InternalException(ErrorCode.INT_001, e);
+			throw new InternalException(ErrorCode.INT_001, Map.of("idAllarme", idAllarme), e);
 		}
 	}
 }

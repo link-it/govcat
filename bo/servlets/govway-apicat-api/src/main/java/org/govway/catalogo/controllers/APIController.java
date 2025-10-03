@@ -144,20 +144,20 @@ public class APIController implements ApiApi {
 				List<Allegato> allegatoLst = new ArrayList<>();
 				for(AllegatoItemCreate allegato: allegatoCreate) {
 					if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegato.getVisibilita())) {
-						throw new BadRequestException(ErrorCode.API_001);
+						throw new BadRequestException(ErrorCode.API_001, java.util.Map.of("visibilita", allegato.getVisibilita().toString()));
 					}
 					AllegatoApiEntity allEntity = this.allegatoAssembler.toEntity(allegato, entity);
 					String key = allEntity.getDocumento().getFilename()+ "_" + allEntity.getTipologia();
 					String keyString = "Nome: " + allEntity.getDocumento().getFilename()+ " di tipo: " + allegato.getTipologia();
 
 					if(keys.contains(key)) {
-						throw new BadRequestException(ErrorCode.API_002);
+						throw new BadRequestException(ErrorCode.API_002, java.util.Map.of("allegato", keyString));
 					}
 
 					keys.add(key);
 
 					if(entity.getAllegati().stream().anyMatch(a-> key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-						throw new BadRequestException(ErrorCode.API_002);
+						throw new BadRequestException(ErrorCode.API_002, java.util.Map.of("allegato", keyString));
 					}
 
 					this.service.save(allEntity);
@@ -205,12 +205,12 @@ public class APIController implements ApiApi {
 	
 	private ApiEntity findApi(UUID idApi) {
 		ApiEntity entity = this.service.find(idApi)
-				.orElseThrow(() -> new NotFoundException(ErrorCode.API_001));
-		
+				.orElseThrow(() -> new NotFoundException(ErrorCode.API_001, java.util.Map.of("idApi", idApi.toString())));
+
 		Optional<ServizioEntity> oS = this.findOne(UUID.fromString(entity.getServizio().getIdServizio()));
-		
+
 		if(!oS.isPresent()) {
-			throw new NotFoundException(ErrorCode.API_001);
+			throw new NotFoundException(ErrorCode.API_001, java.util.Map.of("idApi", idApi.toString()));
 		}
 		
 		return entity;
@@ -228,7 +228,7 @@ public class APIController implements ApiApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(this.service.existsByNomeVersioneSoggetto(apiCreate.getNome(), apiCreate.getVersione(), UUID.fromString(servizio.getDominio().getSoggettoReferente().getIdSoggetto()))) {
-					throw new ConflictException(ErrorCode.API_002);
+					throw new ConflictException(ErrorCode.API_002, java.util.Map.of("nome", apiCreate.getNome(), "versione", apiCreate.getVersione().toString(), "soggetto", servizio.getDominio().getSoggettoReferente().getNome()));
 				}
 
 				this.service.save(entity);
@@ -260,7 +260,7 @@ public class APIController implements ApiApi {
 				ApiEntity entity = findApi(idApi);
 
 				if(!entity.getErogazioni().isEmpty()) {
-					throw new BadRequestException(ErrorCode.API_003);
+					throw new BadRequestException(ErrorCode.API_003, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString(), "count", String.valueOf(entity.getErogazioni().size())));
 				}
 
 				this.service.delete(entity);
@@ -359,7 +359,7 @@ public class APIController implements ApiApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegatoUpdate.getVisibilita())) {
-					throw new BadRequestException(ErrorCode.API_001);
+					throw new BadRequestException(ErrorCode.API_001, java.util.Map.of("visibilita", allegatoUpdate.getVisibilita().toString()));
 				}
 				//this.allegatoAssembler.toEntity(allegatoUpdate,entity);
 
@@ -367,9 +367,9 @@ public class APIController implements ApiApi {
 				String keyString = "Nome: " + allegatoUpdate.getFilename()+ " di tipo: " + allegatoUpdate.getTipologia();
 
 				//System.out.println(" NUMERO DI ELEMENTI: " + entity.getApi().getAllegati().size() + " - " + idAllegato + " - " + entity.getApi().getAllegati().iterator().next().getDocumento().getUuid());
-				
+
 				if(entity.getApi().getAllegati().stream().anyMatch(a-> !idAllegato.toString().equals(a.getDocumento().getUuid()) && key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-					throw new BadRequestException(ErrorCode.API_002);
+					throw new BadRequestException(ErrorCode.API_002, java.util.Map.of("allegato", keyString));
 				}
 
 				this.allegatoAssembler.toEntity(allegatoUpdate,entity);
@@ -632,7 +632,7 @@ public class APIController implements ApiApi {
 
 					if(nomeCambiato || versioneCambiata) {
 						if(this.service.existsByNomeVersioneSoggetto(apiUpdate.getIdentificativo().getNome(), apiUpdate.getIdentificativo().getVersione(), UUID.fromString(servizio.getDominio().getSoggettoReferente().getIdSoggetto()))) {
-							throw new ConflictException(ErrorCode.API_002);
+							throw new ConflictException(ErrorCode.API_002, java.util.Map.of("nome", apiUpdate.getIdentificativo().getNome(), "versione", apiUpdate.getIdentificativo().getVersione().toString(), "soggetto", servizio.getDominio().getSoggettoReferente().getNome()));
 						}
 
 					}
@@ -714,7 +714,7 @@ public class APIController implements ApiApi {
 		boolean realForce = force != null && force;
 		if(realForce) {
 			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
-				throw new NotAuthorizedException(ErrorCode.AUTH_002);
+				throw new NotAuthorizedException(ErrorCode.AUTH_002, java.util.Map.of("ruoli", listRuoloForce.toString()));
 			}
 		}
 		return realForce;

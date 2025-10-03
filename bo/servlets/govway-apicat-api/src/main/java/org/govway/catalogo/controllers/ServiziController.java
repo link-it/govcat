@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -453,7 +454,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idMessaggio", idMessaggio.toString())));
 				
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -487,7 +488,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				ServizioEntity entity = this.service.find(idServizio)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001, Map.of("idServizio", idServizio.toString())));
 
 
 				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -566,7 +567,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idAllegato", idAllegato.toString())));
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
@@ -600,9 +601,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idAllegato", idAllegato.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idAllegato", idAllegato.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -687,9 +688,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idAllegato", idAllegato.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idAllegato", idAllegato.toString())));
 				Resource resource = new ByteArrayResource(allegato.getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -718,7 +719,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idAllegato", idAllegato.toString())));
 
 				Resource resource = new ByteArrayResource(entity.getDocumento().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -1395,7 +1396,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(entity.getImmagine() == null) {
-					throw new NotFoundException(ErrorCode.DOC_002);
+					throw new NotFoundException(ErrorCode.DOC_002, Map.of("idServizio", idServizio.toString()));
 				}
 				Resource resource = new ByteArrayResource(entity.getImmagine().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -1425,7 +1426,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idMessaggio", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1455,7 +1456,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idAllegato", idAllegato.toString())));
 
 				this.getServizioAuthorization(entity.getServizio()).authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
@@ -1507,7 +1508,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001, Map.of("idMessaggio", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1737,7 +1738,7 @@ public class ServiziController implements ServiziApi {
 
 		aspec.setIdServizi(List.of(idServizio));
 
-		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
+		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001, Map.of("idServizio", idServizio.toString())));
 
 	}
 	
@@ -1944,7 +1945,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				GruppoEntity gentity = this.gruppoService.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001, Map.of("idGruppo", idGruppo.toString())));
 
 				boolean added = entity.getGruppi().add(gentity);
 				if(!added) {
@@ -1986,7 +1987,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				GruppoEntity gentity = this.gruppoService.find(idGruppo)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001, Map.of("idGruppo", idGruppo.toString())));
 
 				entity.getGruppi().remove(gentity);
 //				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -2097,7 +2098,7 @@ public class ServiziController implements ServiziApi {
 				
 				for(UUID id: categorieCreate.getCategorie()) {
 					CategoriaEntity centity = this.tassonomiaService.findCategoria(id)
-							.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_001));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_001, Map.of("idCategoria", id.toString())));
 
 					if(!centity.getFigli().isEmpty()) {
 						throw new ConflictException(ErrorCode.TAX_004);
@@ -2149,7 +2150,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CategoriaEntity centity = this.tassonomiaService.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_001, Map.of("idCategoria", idCategoria.toString())));
 
 				entity.getCategorie().remove(centity);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.SPECIFICA));
@@ -2236,7 +2237,7 @@ public class ServiziController implements ServiziApi {
 					specification.setIdServizi(List.of(idPackage));
 					
 					ServizioEntity _package = this.service.findOne(specification)
-							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_001, Map.of("idPackage", idPackage.toString())));
 
 					ServizioEntity componente = this.findOne(idComponente);
 

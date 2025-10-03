@@ -21,12 +21,9 @@ package org.govway.catalogo.exception;
 
 import java.util.Map;
 
-public class ConflictException extends RuntimeException {
+public class ConflictException extends AbstractGovCatException {
 
 	private static final long serialVersionUID = 1L;
-
-	private ErrorCode errorCode;
-	private Map<String, String> parameters;
 
 	/**
 	 * Costruttore con ErrorCode
@@ -61,35 +58,6 @@ public class ConflictException extends RuntimeException {
 	 * @param cause la causa dell'eccezione
 	 */
 	public ConflictException(ErrorCode errorCode, Map<String, String> parameters, Throwable cause) {
-		super(ErrorMessageResolver.resolveMessage(errorCode, parameters), cause);
-		this.errorCode = errorCode;
-		this.parameters = parameters;
-	}
-
-	/**
-	 * Restituisce il codice di errore
-	 * @return il codice di errore
-	 */
-	public ErrorCode getErrorCode() {
-		return errorCode;
-	}
-
-	/**
-	 * Restituisce i parametri utilizzati per il messaggio
-	 * @return la mappa dei parametri
-	 */
-	public Map<String, String> getParameters() {
-		return parameters;
-	}
-
-	/**
-	 * Restituisce il messaggio formattato con il codice errore
-	 * @return messaggio nel formato "[CODICE] messaggio"
-	 */
-	public String getFormattedMessage() {
-		if (errorCode != null) {
-			return ErrorMessageResolver.buildErrorMessage(errorCode, parameters);
-		}
-		return getMessage();
+		super(errorCode, parameters, cause);
 	}
 }

@@ -22,6 +22,7 @@ package org.govway.catalogo.controllers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -112,7 +113,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 
 				if(this.service.existsByPrincipal(utenteCreate.getPrincipal())) {
-					throw new ConflictException(ErrorCode.ORG_008);
+					throw new ConflictException(ErrorCode.ORG_008, Map.of("principal", utenteCreate.getPrincipal()));
 				}
 				
 				UtenteEntity entity = this.dettaglioAssembler.toEntity(utenteCreate);
@@ -149,7 +150,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity utente = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeDelete(utente);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -183,7 +184,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -290,7 +291,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -455,7 +456,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -485,7 +486,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -519,7 +520,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGetNotifiche(entity);
 				
@@ -549,7 +550,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(configurazioneNotifiche, entity);
 				this.logger.debug("Autorizzazione completata con successo");     

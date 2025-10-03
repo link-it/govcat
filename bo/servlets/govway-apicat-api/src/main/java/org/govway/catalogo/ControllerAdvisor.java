@@ -20,9 +20,13 @@
 package org.govway.catalogo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
+import org.govway.catalogo.exception.AbstractGovCatException;
 import org.govway.catalogo.exception.ClientApiException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
+import org.govway.catalogo.servlets.model.Campo;
+import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Problem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,27 +44,28 @@ public class ControllerAdvisor extends AbstractControllerAdvisor {
 	private Logger logger = LoggerFactory.getLogger(ControllerAdvisor.class);
 
 	protected ResponseEntity<Object> toEntity(Exception ex, HttpStatus status) {
-		
+
+		Problem problem = new Problem();
+		problem.setStatus(status.value());
+		problem.setTitle(status.getReasonPhrase());
+		try {problem.setType(new URI("https://tools.ietf.org/html/rfc7231#section-6.5.1"));} catch (URISyntaxException e) {}
+		problem.setDetail(ex.getMessage());
+
+
 		if(ex instanceof UpdateEntitaComplessaNonValidaSemanticamenteException) {
-			Problem problem = new Problem();
-			problem.setStatus(status.value());
-			problem.setTitle(status.getReasonPhrase());
-			try {problem.setType(new URI("https://tools.ietf.org/html/rfc7231#section-6.5.1"));} catch (URISyntaxException e) {}
-			problem.setDetail(ex.getMessage());
-
 			problem.setErrori(((UpdateEntitaComplessaNonValidaSemanticamenteException)ex).getErrori());
-			return new ResponseEntity<>(problem, status);
-
-		} else {
-			Problem problem = new Problem();
-			problem.setStatus(status.value());
-			problem.setTitle(status.getReasonPhrase());
-			try {problem.setType(new URI("https://tools.ietf.org/html/rfc7231#section-6.5.1"));} catch (URISyntaxException e) {}
-			problem.setDetail(ex.getMessage());
-
-			return new ResponseEntity<>(problem, status);
+		} else if(ex instanceof AbstractGovCatException) {
+			problem.setErrori(getErrori((AbstractGovCatException)ex));
 		}
-		
+
+		return new ResponseEntity<>(problem, status);
+
+	}
+
+	private List<EntitaComplessaError> getErrori(AbstractGovCatException ex) {
+		EntitaComplessaError e = new EntitaComplessaError();
+		e.setParams(ex.getParameters());
+		return List.of(e);
 	}
 
 	@Override

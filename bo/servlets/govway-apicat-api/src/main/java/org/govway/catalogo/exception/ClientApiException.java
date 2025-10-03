@@ -22,20 +22,18 @@ package org.govway.catalogo.exception;
 import java.util.Map;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException;
 
-public class ClientApiException extends RuntimeException {
+public class ClientApiException extends AbstractGovCatException {
 
 	private static final long serialVersionUID = 1L;
 	private ApiException e;
-	private ErrorCode errorCode;
-	private Map<String, String> parameters;
 
 	public ClientApiException(ApiException e) {
-		super(e.getMessage());
+		super(e.getMessage(), null);
 		this.e = e;
 	}
 
 	public ClientApiException(Throwable t) {
-		super(t);
+		super(t != null ? t.getMessage() : null, t);
 	}
 
 	/**
@@ -72,9 +70,7 @@ public class ClientApiException extends RuntimeException {
 	 * @param cause la causa dell'eccezione
 	 */
 	public ClientApiException(ErrorCode errorCode, Map<String, String> parameters, ApiException e, Throwable cause) {
-		super(ErrorMessageResolver.resolveMessage(errorCode, parameters), cause);
-		this.errorCode = errorCode;
-		this.parameters = parameters;
+		super(errorCode, parameters, cause);
 		this.e = e;
 	}
 
@@ -84,32 +80,5 @@ public class ClientApiException extends RuntimeException {
 
 	public void setE(ApiException e) {
 		this.e = e;
-	}
-
-	/**
-	 * Restituisce il codice di errore
-	 * @return il codice di errore
-	 */
-	public ErrorCode getErrorCode() {
-		return errorCode;
-	}
-
-	/**
-	 * Restituisce i parametri utilizzati per il messaggio
-	 * @return la mappa dei parametri
-	 */
-	public Map<String, String> getParameters() {
-		return parameters;
-	}
-
-	/**
-	 * Restituisce il messaggio formattato con il codice errore
-	 * @return messaggio nel formato "[CODICE] messaggio"
-	 */
-	public String getFormattedMessage() {
-		if (errorCode != null) {
-			return ErrorMessageResolver.buildErrorMessage(errorCode, parameters);
-		}
-		return getMessage();
 	}
 }

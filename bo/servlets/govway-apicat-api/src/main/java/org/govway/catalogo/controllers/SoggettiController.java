@@ -21,6 +21,7 @@ package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -87,7 +88,7 @@ public class SoggettiController implements SoggettiApi {
 				SoggettoEntity entity = this.dettaglioAssembler.toEntity(soggettoCreate);
 
 				if(this.service.existsByNome(entity)) {
-					throw new ConflictException(ErrorCode.ORG_006);
+					throw new ConflictException(ErrorCode.ORG_006, Map.of("nome", soggettoCreate.getNome()));
 				}
 				
 				this.service.save(entity);
@@ -118,16 +119,16 @@ public class SoggettiController implements SoggettiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				SoggettoEntity entity = this.service.find(idSoggetto)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005, Map.of("idSoggetto", idSoggetto.toString())));
 				this.authorization.authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getDomini().isEmpty()) {
-					throw new BadRequestException(ErrorCode.ORG_005);
+					throw new BadRequestException(ErrorCode.ORG_005, Map.of("nome", entity.getNome()));
 				}
 				
 				if(entity.getOrganizzazione().getSoggettoDefault() != null && entity.getOrganizzazione().getSoggettoDefault().getId().equals(entity.getId())) {
-					throw new BadRequestException(ErrorCode.ORG_005);
+					throw new BadRequestException(ErrorCode.ORG_005, Map.of("nome", entity.getNome()));
 				}
 				
 				this.service.delete(entity);
@@ -152,7 +153,7 @@ public class SoggettiController implements SoggettiApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				SoggettoEntity entity = this.service.find(idSoggetto)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005, Map.of("idSoggetto", idSoggetto.toString())));
 				this.authorization.authorizeGet(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 	
@@ -228,13 +229,13 @@ public class SoggettiController implements SoggettiApi {
 				this.logger.info("Invocazione in corso ...");   
 				
 				SoggettoEntity entity = this.service.find(idSoggetto)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005, Map.of("idSoggetto", idSoggetto.toString())));
 
 				this.authorization.authorizeUpdate(soggettoUpdate, entity);
 
 				if(!soggettoUpdate.getNome().equals(entity.getNome())) {
 					if(this.service.existsByNome(soggettoUpdate.getNome())) {
-						throw new ConflictException(ErrorCode.ORG_006);
+						throw new ConflictException(ErrorCode.ORG_006, Map.of("nome", soggettoUpdate.getNome()));
 					}
 				}
 				

@@ -186,11 +186,11 @@ public class AllarmiClient {
 						return esito;
 					} else {
 						logger.error("Errore durante la ricerca del client ["+clientId+"] sulla PDND: " + e.getMessage(), e);
-						throw new InternalException(ErrorCode.SYS_001, e);
+						throw new InternalException(ErrorCode.SYS_001, Map.of("clientId", clientId), e);
 					}
 				} catch (RuntimeException e) {
 					logger.error("Errore durante la ricerca del client ["+clientId+"] sulla PDND: " + e.getMessage(), e);
-					throw new InternalException(ErrorCode.SYS_001, e);
+					throw new InternalException(ErrorCode.SYS_001, Map.of("clientId", clientId), e);
 				}
 			}
 	
@@ -200,20 +200,20 @@ public class AllarmiClient {
 
 	private String getClientId(ClientEntity c) {
 		if(!isApplicativoPdnd(c)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, Map.of("authType", c.getAuthType().toString()));
 		}
-		
+
 		if(!c.getStato().equals(StatoEnum.CONFIGURATO)) {
-			throw new BadRequestException(ErrorCode.CLT_003);
+			throw new BadRequestException(ErrorCode.CLT_003, Map.of("stato", c.getStato().toString()));
 		}
-		
+
 		if(!c.getAdesioni().stream().filter(a -> this.configurazione.getAdesione().getStatiSchedaAdesione().contains(a.getAdesione().getStato()))
 			.findAny().isPresent()) {
-			throw new BadRequestException(ErrorCode.CLT_001);
+			throw new BadRequestException(ErrorCode.CLT_001, Map.of("nomeClient", c.getNome()));
 		}
 		return c.getEstensioni().stream().filter(e -> e.getNome().equals(PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_003))
+			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_003, Map.of("property", PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY)))
 			.getValore();
 	}
 
@@ -274,8 +274,8 @@ public class AllarmiClient {
 	}
 
 	private ClientEntity getClient(String organization, String nomeApplicativo, ConfigurazioneConnessione connessione) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(organization).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005));
-		
+		SoggettoEntity soggetto = this.soggettoService.findByNome(organization).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005, Map.of("nomeSoggetto", organization)));
+
 		AmbienteEnum ambiente = null;
 		switch(connessione.getAmbiente()) {
 		case COLLAUDO: ambiente = AmbienteEnum.COLLAUDO;
@@ -284,10 +284,10 @@ public class AllarmiClient {
 			break;
 		default:
 			break;
-		
+
 		}
 		return this.clientService.findByNomeSoggettoAmbiente(nomeApplicativo, UUID.fromString(soggetto.getIdSoggetto()), ambiente)
-				.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_001));
+				.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_001, Map.of("nomeClient", nomeApplicativo, "nomeSoggetto", organization, "ambiente", connessione.getAmbiente().toString())));
 	}
 
 	private Optional<ServizioEntity> getOptionalServizio(String nome, Integer versione, String erogatore) {
@@ -497,13 +497,13 @@ public class AllarmiClient {
 	}
 	
 	private String getTipo(String nomeSoggetto) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005, Map.of("nomeSoggetto", nomeSoggetto)));
 		if (soggetto.getTipoGateway()==null) return this.configurazione.getSoggetto().getProfiloGatewayDefault().toString();
 		else return soggetto.getTipoGateway();
 	}
 
 	private String getNomeSoggetto(String nomeSoggetto) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.ORG_005, Map.of("nomeSoggetto", nomeSoggetto)));
 		if (soggetto.getNomeGateway()==null) return soggetto.getNome();
 		else return soggetto.getNomeGateway();
 	}

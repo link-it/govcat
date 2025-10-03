@@ -24,6 +24,7 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -191,7 +192,7 @@ public class TransazioneBuilder {
 					return apis.get(0);
 				}
 			} else {
-				throw new BadRequestException(ErrorCode.API_003);
+				throw new BadRequestException(ErrorCode.API_003, Map.of("nomeApi", nome, "versione", String.valueOf(versione), "erogatore", erogatore));
 			}
 		});
 	}

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.constraints.Pattern;
@@ -182,11 +183,11 @@ public class VerificaController implements VerificaApi {
 
 	private void authorize() {
 		if(!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
-			throw new NotFoundException(ErrorCode.MON_001);
+			throw new NotFoundException(ErrorCode.MON_001, Map.of());
 		}
-		
+
 		if(this.configurazione.getServizio().getMonitoraggio().isVerificheAbilitate()!= null && !this.configurazione.getServizio().getMonitoraggio().isVerificheAbilitate()) {
-			throw new NotFoundException(ErrorCode.MON_007);
+			throw new NotFoundException(ErrorCode.MON_007, Map.of("tipo", "verifiche"));
 		}
 		
 		this.requestUtils.getPrincipal();
@@ -214,7 +215,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 */
@@ -459,7 +460,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -491,7 +492,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -514,7 +515,7 @@ public class VerificaController implements VerificaApi {
 			}
 			catch(Throwable e) {
 				this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-				throw new InternalException(ErrorCode.SYS_001, e);
+				throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 			}
 		// TODO
 	}
@@ -539,7 +540,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -563,7 +564,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 	@Override
@@ -587,7 +588,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -612,7 +613,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -637,7 +638,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -662,7 +663,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -687,7 +688,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -712,7 +713,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -738,7 +739,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -764,7 +765,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -790,7 +791,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -817,7 +818,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -843,7 +844,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -870,7 +871,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -897,7 +898,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -925,7 +926,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -954,7 +955,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -981,7 +982,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1009,7 +1010,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1036,7 +1037,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1064,7 +1065,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1091,7 +1092,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1115,7 +1116,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1139,7 +1140,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1166,7 +1167,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1193,7 +1194,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1219,7 +1220,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1242,7 +1243,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 	@Override
@@ -1264,7 +1265,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
@@ -1287,7 +1288,7 @@ public class VerificaController implements VerificaApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, e);
+			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
 		}
 	}
 
