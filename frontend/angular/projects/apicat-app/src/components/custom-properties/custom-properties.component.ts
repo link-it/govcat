@@ -255,8 +255,10 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
             if (this.api) {
                 _apiGrouped.api = this.api.id_api;
             }
+            // Use nome_gruppo from the first item in the group instead of the grouping key
+            const firstItem = this._proprietaCustomGrouped[k][0];
             const _customGrouped: any = {
-                gruppo: k,
+                gruppo: firstItem.nome_gruppo,
                 proprieta: []
             };
             this._proprietaCustomGrouped[k].forEach((item: any) => {
