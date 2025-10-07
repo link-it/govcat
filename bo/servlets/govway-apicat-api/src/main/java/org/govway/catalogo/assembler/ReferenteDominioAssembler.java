@@ -19,9 +19,11 @@
  */
 package org.govway.catalogo.assembler;
 
+import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.controllers.DominiController;
 import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
@@ -41,7 +43,16 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 	private UtenteService utenteService;
 
 	@Autowired
-	private UtenteItemAssembler utenteItemAssembler;
+	private UtenteFullAssembler utenteFullAssembler;
+
+	@Autowired
+	private UtenteRestrictedAssembler utenteRestrictedAssembler;
+
+	@Autowired
+	private UtentePublicAssembler utentePublicAssembler;
+
+	@Autowired
+	private CoreAuthorization coreAuth;
 
 	public ReferenteDominioAssembler() {
 		super(DominiController.class, Referente.class);
@@ -49,14 +60,35 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 
 	@Override
 	public Referente toModel(ReferenteDominioEntity entity) {
-		
+
 		Referente dettaglio = instantiateModel(entity);
 
 		BeanUtils.copyProperties(entity, dettaglio);
 
 		dettaglio.setTipo(toTipoReferente(entity.getTipo()));
-		dettaglio.setUtente(utenteItemAssembler.toModel(entity.getReferente()));
+
+		// Determina quale DTO usare in base all'utente corrente
+		UtenteEntity viewer = coreAuth.getUtenteSessione();
+		UtenteEntity referente = entity.getReferente();
+
+		if (viewer != null && (coreAuth.isAdmin(viewer) || viewer.equals(referente))) {
+			// Admin o stesso utente: tutti i dati
+			dettaglio.setUtente(utenteFullAssembler.toModel(referente));
+		} else if (viewer != null && isSameOrganization(viewer, referente)) {
+			// Stessa organizzazione: dati aziendali
+			dettaglio.setUtente(utenteRestrictedAssembler.toModel(referente));
+		} else {
+			// Utente esterno o anonimo: solo dati pubblici
+			dettaglio.setUtente(utentePublicAssembler.toModel(referente));
+		}
+
 		return dettaglio;
+	}
+
+	private boolean isSameOrganization(UtenteEntity viewer, UtenteEntity referente) {
+		OrganizzazioneEntity viewerOrg = viewer.getOrganizzazione();
+		OrganizzazioneEntity referenteOrg = referente.getOrganizzazione();
+		return viewerOrg != null && referenteOrg != null && viewerOrg.equals(referenteOrg);
 	}
 	
 	public TipoReferenteEnum toTipoReferente(TIPO_REFERENTE tipo) {

@@ -6227,6 +6227,9 @@ components:
         site:
           type: "string"
           format: "URI"
+        abilita_api_scrittura:
+          type: boolean
+          description: "Indica se le API di scrittura sono abilitate (true quando api.mode=full)"
     AccessoAmministrazioneItem:
       type: "object"
       required:
@@ -8101,6 +8104,45 @@ components:
           $ref: "#/components/schemas/String255"
         settings:
           type: object
+    ItemUtentePublic:
+      type: "object"
+      required:
+        - id_utente
+        - nome
+        - cognome
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+    ItemUtenteRestricted:
+      type: "object"
+      required:
+        - id_utente
+        - nome
+        - cognome
+        - telefono_aziendale
+        - email_aziendale
+        - stato
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+        telefono_aziendale:
+          $ref: "#/components/schemas/String255"
+        email_aziendale:
+          $ref: "#/components/schemas/Email"
+        stato:
+          $ref: "#/components/schemas/StatoUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
+        organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
     ItemUtente:
       type: "object"
       required:
@@ -8450,6 +8492,7 @@ components:
         - tipo
       properties:
         utente:
+          description: "User details - returns ItemUtentePublic, ItemUtenteRestricted, or ItemUtente depending on authorization context"
           $ref: "#/components/schemas/ItemUtente"
         tipo:
           $ref: "#/components/schemas/TipoReferenteEnum"
