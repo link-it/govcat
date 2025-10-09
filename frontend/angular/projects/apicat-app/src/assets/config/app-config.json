@@ -86,6 +86,10 @@
       "newLayout": false
     },
 
+    "Services": {
+      "showReferents": true
+    },
+
     "Layout": {
       "Login": {
         "title": "Catalogo API ModI",

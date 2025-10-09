@@ -84,7 +84,7 @@
                     </div>
                   </div>
 
-                  <div class="referenti-block mt-5">
+                  <div class="referenti-block mt-5" *ngIf="_showReferents">
                     <h5 class="h6 text-uppercase text-muted mb-3">{{ 'APP.SERVICES.TITLE.Referenti' | translate }}</h5>
                     <div class="d-flex flex-column">
                       <ng-container *ngIf="referentiLoading; else referentiTmplLeaders">

@@ -141,6 +141,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     api_url: string = '';
 
     _maxReferenti: number = 3;
+    _showReferents: boolean = true;
 
     _grant: Grant | null = null;
     _ammissibili: string[] = [];
@@ -195,6 +196,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
+        this._showReferents = this.appConfig?.AppConfig?.Services?.showReferents !== false;
         const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
         this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
@@ -317,6 +319,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     loadReferenti() {
+        // Skip loading referents if not configured to show them
+        if (!this._showReferents) {
+            this.referentiLoading = false;
+            return;
+        }
+
         this.referenti = [];
         this.referentiLoading = true;
         forkJoin({
@@ -577,13 +585,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _srv: any = Tools.Configurazione.servizio;
         this.tokenPolicy = _srv.api?.token_policies?.find((item: any) => item.tipo_policy === this.tipoTokenPolicy);
         this.showJwtGenerator = this.allowTryIt && this._environmentId !== 'produzione';
-        // console.group('Show APi');
-        // console.log('profili', profili);
-        // console.log('profilo', apiProfilo, profilo);
-        // console.log('codiceTokenPolicy', this.codiceTokenPolicy);
-        // console.log('tipoTokenPolicy', this.tipoTokenPolicy);
-        // console.log('showJwtGenerator', this.showJwtGenerator);
-        // console.groupEnd();
         this._openApiInfo();
     }
 
@@ -691,7 +692,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _canManagementMapper = (): boolean => {
         const _canManagement = this.authenticationService.canManagement('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
-        const _isPackage = this.data && this.data.package || false;
+        const _isPackage = this.data?.package || false;
         const _isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
         const _canMonitoraggio = this.authenticationService.canMonitoraggio(this._grant?.ruoli);
         return _isPackage ? _isGestore : _canManagement;
