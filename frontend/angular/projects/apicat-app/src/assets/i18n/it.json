@@ -1477,6 +1477,9 @@
 			"Description": "Descrizione",
 			"Status": "Stato"
 		},
+		"PRIVACY_POLICY": {
+			"Link": "Informativa Privacy"
+		},
 		"TAXONOMIES": {
 			"TITLE": {
 				"Categories": "Categorie",

@@ -164,7 +164,8 @@
       "showBuild": false,
       "showAbout": true,
       "showAboutMiniBox": false,
-      "showNewsArea": false
+      "showNewsArea": false,
+      "privacyPolicyUrl": "https://www.link.it/informativa-privacy-policy/"
     },
 
     "CurrentThems": "linkit-blue",

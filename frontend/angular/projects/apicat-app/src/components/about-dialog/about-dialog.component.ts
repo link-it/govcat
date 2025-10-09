@@ -35,6 +35,7 @@ export class AboutDialogComponent implements OnInit {
   desktop: boolean = false;
 
   contentHtml: string = '';
+  privacyPolicyUrl: string = '';
 
   constructor(
     private translate: TranslateService,
@@ -48,6 +49,9 @@ export class AboutDialogComponent implements OnInit {
         this.config = config;
       }
     );
+
+    // Load privacy policy URL from configuration
+    this.privacyPolicyUrl = this.appConfig?.AppConfig?.Layout?.privacyPolicyUrl || '';
   }
 
   ngOnInit() {
