@@ -159,6 +159,7 @@
       "showNotificationsBar": true,
       "enablePollingNotifications": true,
       "showTaxonomies": true,
+      "showCommunicationsMenu": true,
 
       "showVersion": false,
       "showBuild": false,
