@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -42,17 +43,28 @@ public class ReadOnlyModeInterceptor implements HandlerInterceptor {
     private static final Logger log = LoggerFactory.getLogger(ReadOnlyModeInterceptor.class);
 
     private static final String MODE_READONLY = "readonly";
-    private static final String MODE_FULL = "full";
+//    private static final String MODE_FULL = "full";
 
     @Value("${api.mode:full}")
     private String apiMode;
 
+    @Autowired
+    RequestUtils requestUtils;
+    
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
 
+    	
+    	InfoProfilo infoProfilo = this.requestUtils.getPrincipal();
+    	
+    	String idUtente = (infoProfilo != null && infoProfilo.utente != null) ? infoProfilo.utente.getIdUtente() : "anonimo";
+    	
         String method = request.getMethod();
 
+
+        log.info("Operazione {} {} invocata dall'utente {}", method, request.getRequestURI(), idUtente);
+        
         // Se siamo in modalità readonly, blocca tutte le operazioni tranne GET
         if (MODE_READONLY.equalsIgnoreCase(apiMode)) {
             if (!method.equalsIgnoreCase("GET") && !method.equalsIgnoreCase("HEAD") && !method.equalsIgnoreCase("OPTIONS")) {
