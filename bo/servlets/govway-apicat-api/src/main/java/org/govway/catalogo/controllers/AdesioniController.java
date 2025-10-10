@@ -1162,8 +1162,8 @@ public class AdesioniController implements AdesioniApi {
 				String statoFinale = statoUpdate.getStato();
 				
 				this.authorization.authorizeCambioStato(entity, statoUpdate.getStato());
-				this.dettaglioAssembler.toEntity(statoUpdate, entity);
 				this.authorization.authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+                this.dettaglioAssembler.toEntity(statoUpdate, entity);
 
 
 				if(!isCheckOnly(checkOnly)) {

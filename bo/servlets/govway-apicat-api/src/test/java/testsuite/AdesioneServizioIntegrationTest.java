@@ -90,6 +90,7 @@ import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -109,7 +110,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
@@ -117,7 +121,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class AdesioneServizioIntegrationTest {
 
     private static final String UTENTE_REFERENTE_SERVIZIO = "cesare";
@@ -180,6 +186,9 @@ public class AdesioneServizioIntegrationTest {
     
     @Autowired
     private OrganizzazioneService organizzazioneService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UUID idServizio;
     
@@ -458,7 +467,8 @@ public class AdesioneServizioIntegrationTest {
         List<ReferenteCreate> listaReferenti = new ArrayList<ReferenteCreate>();
         ReferenteCreate newReferente = new ReferenteCreate();
         newReferente.setIdUtente(responseUtente.getBody().getIdUtente());
-        
+        entityManager.flush();
+        entityManager.clear();
         //ResponseEntity<PagedModelReferente> s = serviziController.listReferentiServizio(idServizio, UTENTE_ADERENTE, TipoReferenteEnum.REFERENTE, 0, 10, null);
         //List<Referente> listReferenti = s.getBody().getContent();
         //assertEquals(UTENTE_ADERENTE, listReferenti.get(0).getUtente().getNome());
@@ -476,6 +486,8 @@ public class AdesioneServizioIntegrationTest {
         nuovaAdesione.setReferenti(listaReferenti);
         ResponseEntity<Adesione> adesione = adesioniController.createAdesione(nuovaAdesione);
         setIdAdesione(adesione.getBody().getIdAdesione());
+        entityManager.flush();
+        entityManager.clear();
     }
     
     UUID idAdesione;

@@ -84,6 +84,7 @@
 		<apache.xmlgraphics-commons.version>2.10</apache.xmlgraphics-commons.version>
 		<groovy.version>2.4.21</groovy.version>
 		<barbecue.version>1.5-beta1</barbecue.version>
+		 <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
 	<dependencyManagement>
@@ -477,6 +478,30 @@
 						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
+								<plugin>
+      <groupId>org.sonarsource.scanner.maven</groupId>
+      <artifactId>sonar-maven-plugin</artifactId>
+      <version>3.7.0.1746</version> 
+    </plugin>
+				<plugin>
+      <groupId>org.jacoco</groupId>
+      <artifactId>jacoco-maven-plugin</artifactId>
+      <version>0.8.10</version>
+      <executions>
+        <execution>
+          <id>prepare-agent</id>
+          <goals>
+            <goal>prepare-agent</goal>
+          </goals>
+        </execution>
+      </executions>
+      <configuration>
+        <destFile>${project.build.directory}/jacoco.exec</destFile>
+        <includes>
+          <include>org/govway/**</include>
+        </includes>
+      </configuration>
+    </plugin>
 			</plugins>
 		</pluginManagement>
 	</build>

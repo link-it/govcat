@@ -104,6 +104,7 @@ import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.domain.Pageable;
 
 import org.hibernate.Hibernate;
@@ -135,12 +136,17 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class ServiziTest {
 
 	@Mock
@@ -196,6 +202,9 @@ public class ServiziTest {
 	
 	@Autowired
 	private DominiController dominiController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 	
 	private static final String UTENTE_GESTORE = "gestore";
 	
@@ -2199,7 +2208,8 @@ public class ServiziTest {
 	        ref.setIdUtente(ID_UTENTE_GESTORE);
 	        ref.setTipo(TipoReferenteEnum.REFERENTE);
 	        dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-
+            entityManager.flush();
+            entityManager.clear();
 	        return createdDominio.getBody();
 	    }
 	    UUID idServizio;
@@ -2231,7 +2241,8 @@ public class ServiziTest {
 	         Servizio servizio = createdServizio.getBody();
 
 	         idServizio = servizio.getIdServizio();
-	         
+             entityManager.flush();
+             entityManager.clear();
 	         return servizio;
 	    }
 	    
@@ -2297,7 +2308,8 @@ public class ServiziTest {
 	        //apiCreate.setSpecifica(doc);
 	        
 	        ResponseEntity<API> response = apiController.createApi(apiCreate);
-	        
+            entityManager.flush();
+            entityManager.clear();
 	        return response.getBody();
 	    }
 	    
@@ -2358,6 +2370,8 @@ public class ServiziTest {
 		    servizio = this.getServizio(CommonUtils.NOME_SERVIZIO+n,false);
 		    serviziController.addGruppoServizio(servizio.getIdServizio(), createdGruppo.getBody().getIdGruppo());
 	    }
+        entityManager.flush();
+        entityManager.clear();
 	    return idGruppoPadre;
 	}
 	
@@ -3337,7 +3351,8 @@ public class ServiziTest {
         messaggio.setOggetto("Oggetto Test");
         
         serviziController.createMessaggioServizio(servizio.getIdServizio(), messaggio);
-        
+        entityManager.flush();
+        entityManager.clear();
 	    UUID idServizio = servizio.getIdServizio();
 	    Integer page = 0;
 	    Integer size = 10;

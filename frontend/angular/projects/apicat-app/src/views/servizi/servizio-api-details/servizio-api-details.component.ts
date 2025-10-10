@@ -443,6 +443,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _prepareBodySaveApi(body: any) {
+        console.log('_prepareBodySaveApi', body);
         const configurazioneCollaudo: ApiConfiguration = {
             protocollo: body.protocollo,
             dati_erogazione: {
@@ -506,15 +507,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
             _newBody.proprieta_custom = [];
             Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
+                // Use nome_gruppo from the first item in the group instead of the grouping key
+                const firstItem = this._apiProprietaCustomGrouped[k][0];
                 const _customGrouped: ApiCustomProperty = {
-                    gruppo: k,
+                    gruppo: firstItem.nome_gruppo,
                     proprieta: []
                 };
                 this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[k][kk.nome]) {
+                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
                         _customGrouped.proprieta.push({
                             nome: kk.nome,
-                            valore: body.proprieta_custom[k][kk.nome]
+                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
                         });
                     }
                 });
@@ -591,15 +594,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             const proprieta_custom: ApiCustomProperty[] = [];
             _newBody.dati_custom = {proprieta_custom: proprieta_custom};
             Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
+                // Use nome_gruppo from the first item in the group instead of the grouping key
+                const firstItem = this._apiProprietaCustomGrouped[k][0];
                 const _customGrouped: any = {
-                    gruppo: k,
+                    gruppo: firstItem.nome_gruppo,
                     proprieta: []
                 };
                 this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[k][kk.nome]) {
+                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
                         _customGrouped.proprieta.push({
                             nome: kk.nome,
-                            valore: body.proprieta_custom[k][kk.nome]
+                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
                         });
                     }
                 });
@@ -1490,19 +1495,18 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 return;
             }
 
-            // const _gruppo = item.nome_gruppo;
-            const _gruppo = item[fieldToGroup];
             const _ruoli_abilitati = item.ruoli_abilitati;
             item.proprieta.sort((a: any, b: any) => a.index - b.index).forEach((proprieta: any) => {
                 this._apiProprietaCustom.push({
-                    nome_gruppo: _gruppo,
+                    nome_gruppo: item.nome_gruppo,
+                    label_gruppo: item.label_gruppo,
                     classe_dato: item.classe_dato,
                     ...proprieta,
                     ruoli_abilitati: _ruoli_abilitati ? [ ..._ruoli_abilitati ] : undefined
                 });
             });
         });
-        this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, 'nome_gruppo');
+        this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, fieldToGroup);
 
         const filtered = this.filtraCampiPerRuoli(this._apiProprietaCustomGrouped, this._grant?.ruoli || []);
 

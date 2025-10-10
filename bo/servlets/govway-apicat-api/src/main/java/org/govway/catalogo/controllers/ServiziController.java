@@ -1038,8 +1038,9 @@ public class ServiziController implements ServiziApi {
 				String statoFinale = statoServizioUpdate.getStato();
 
 				this.getServizioAuthorization(entity).authorizeCambioStato(entity, statoServizioUpdate.getStato());
-				this.dettaglioAssembler.toEntity(statoServizioUpdate, entity);
 				this.getServizioAuthorization(entity).authorizeUtenteCambioStato(entity, statoIniziale, statoFinale);
+                this.dettaglioAssembler.toEntity(statoServizioUpdate, entity);
+
 
 
 				this.logger.debug("Autorizzazione completata con successo");     

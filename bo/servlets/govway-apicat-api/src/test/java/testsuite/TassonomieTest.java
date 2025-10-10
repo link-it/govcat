@@ -50,6 +50,7 @@ import org.govway.catalogo.servlets.model.TassonomiaUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -68,13 +69,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class TassonomieTest {
 
     @Mock
@@ -100,6 +107,9 @@ public class TassonomieTest {
 
     @Autowired
     private TassonomieController tassonomieController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String UTENTE_GESTORE = "gestore";
 
@@ -623,13 +633,15 @@ public class TassonomieTest {
     void testDeleteTassonomia_ErrorePerAssociataCategoria() {
     	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
         ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
-
+        entityManager.flush();
+        entityManager.clear();
         UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
         CategoriaCreate categoriaCreate = new CategoriaCreate();
         categoriaCreate.setNome("categoria");
         categoriaCreate.setDescrizione("categoria descrizione");
         controller.createTassonomiaCategoria(idTassonomia, categoriaCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         BadRequestException ex = assertThrows(BadRequestException.class, () -> {
             controller.deleteTassonomia(idTassonomia);
         });

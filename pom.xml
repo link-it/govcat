@@ -174,7 +174,7 @@
 		<tools.dir>${project.basedir}/tools</tools.dir>
 
 		<!-- owasp properties -->
-		<owasp.plugin.version>11.0.0</owasp.plugin.version>
+		<owasp.plugin.version>12.1.0</owasp.plugin.version>
 		<owasp.plugin.autoUpdate>true</owasp.plugin.autoUpdate> <!-- Impostare a
 		false quando ci sono problemi su repository NIST -->
 		<owasp.plugin.failBuildOnCVSS>0</owasp.plugin.failBuildOnCVSS>
@@ -192,6 +192,7 @@
 		<maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
 		<maven.properties.plugin.version>1.2.1</maven.properties.plugin.version>
 		<maven.surefire.version>3.2.5</maven.surefire.version>
+		<jacoco.plugin.version>0.8.10</jacoco.plugin.version>
 		<debug.level>DEBUG</debug.level>
 
 		<!-- Versioni Plugin Maven -->
@@ -1097,6 +1098,28 @@
 						<goals>
 							<goal>aggregate</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- JaCoCo for project-wide code coverage aggregation -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>report-aggregate</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report-aggregate</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/site/jacoco-aggregate</outputDirectory>
+							<includes>
+								<include>org/govway/**</include>
+							</includes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
