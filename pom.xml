@@ -236,8 +236,8 @@
 		<swagger.model.version>1.6.4</swagger.model.version>
 		<swagger.parser.version>1.0.56</swagger.parser.version>
 
-		<!-- snakeyaml -->
-		<snakeyaml.version>1.33</snakeyaml.version>
+	<!-- snakeyaml -->
+	<snakeyaml.version>2.2</snakeyaml.version>
 
 		<!-- springfox -->
 		<springfox.swagger1.version>3.0.0</springfox.swagger1.version>
