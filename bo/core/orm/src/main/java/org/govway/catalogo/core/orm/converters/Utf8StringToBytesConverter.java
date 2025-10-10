@@ -1,7 +1,7 @@
 package org.govway.catalogo.core.orm.converters;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import java.nio.charset.StandardCharsets;
 
 @Converter(autoApply = true)

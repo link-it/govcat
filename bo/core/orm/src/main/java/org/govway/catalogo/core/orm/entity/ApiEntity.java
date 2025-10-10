@@ -24,7 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import org.govway.catalogo.core.orm.converters.Utf8StringToBytesConverter;
 import org.hibernate.annotations.Cascade;

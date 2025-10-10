@@ -19,12 +19,13 @@
  */
 package org.govway.catalogo.core.orm.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -40,7 +41,7 @@ public class AuthTypeEntity {
 
 	@Column(nullable=false)
 	@Lob
-	@Type(type = "org.hibernate.type.ImageType")
+    @JdbcTypeCode(SqlTypes.LONGVARBINARY)
 	@Convert(disableConversion = true)
 	private byte[] resources;
 	

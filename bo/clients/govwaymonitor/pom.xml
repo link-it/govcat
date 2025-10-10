@@ -10,7 +10,7 @@
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>clients</artifactId>
 		<version>2.2</version>
-		<relativePath>../</relativePath>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<properties>
@@ -20,10 +20,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-annotations</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.swagger</groupId>
 			<artifactId>swagger-annotations</artifactId>
 		</dependency>
 		<dependency>
@@ -47,23 +43,29 @@
 			<artifactId>jsr305</artifactId>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/javax.validation/validation-api -->
+		<!-- https://mvnrepository.com/artifact/jakarta.validation/validation-api -->
 		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+		<!-- https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
 		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
-		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-		</dependency>
+		<!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+
+        <!-- GlassFish JAXB Runtime Implementation -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+        </dependency>
 
 		<!-- https://mvnrepository.com/artifact/joda-time/joda-time -->
 		<dependency>
@@ -110,6 +112,7 @@
 								<modelPackage>org.govway.catalogo.gest.clients.govwaymonitor.model</modelPackage>
 								<useAnnotatedBasePath>true</useAnnotatedBasePath>
 								<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
+                                <useJakartaEe>true</useJakartaEe>
 							</configOptions>
 							<output>${project.basedir}</output>
 							<generateApiTests>false</generateApiTests>
@@ -136,6 +139,7 @@
 								<modelPackage>org.govway.catalogo.gest.clients.govwayconfig.model</modelPackage>
 								<useAnnotatedBasePath>true</useAnnotatedBasePath>
 								<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
+                                <useJakartaEe>true</useJakartaEe>
 							</configOptions>
 							<output>${project.basedir}</output>
 							<generateApiTests>false</generateApiTests>

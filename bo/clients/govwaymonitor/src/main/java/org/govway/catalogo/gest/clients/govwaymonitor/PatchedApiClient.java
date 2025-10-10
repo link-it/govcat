@@ -54,7 +54,7 @@ public class PatchedApiClient extends ApiClient {
                 .registerTypeAdapter(Date.class, new DateTypeAdapter())
                 .registerTypeAdapter(java.sql.Date.class, new JSON.SqlDateTypeAdapter())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeTypeAdapter())
-                .registerTypeAdapter(LocalDate.class, this.getJSON().new LocalDateTypeAdapter())
+                .registerTypeAdapter(LocalDate.class, new org.govway.catalogo.gest.clients.govwaymonitor.impl.JSON.LocalDateTypeAdapter())
                 .create();
 
         this.getJSON()

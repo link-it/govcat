@@ -42,6 +42,7 @@ import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroTemporale;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ListaTransazioni;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ProfiloEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaIntervalloTemporale;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaIntervalloTemporaleAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoFiltroMittenteEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TransazioneExtInformazioniApi;
 import org.govway.catalogo.monitoraggioutils.transazioni.GetTransazioneRequest;
@@ -606,7 +607,8 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 				
 				t.setIdentificazione(TipoFiltroMittenteEnum.EROGAZIONE_SOGGETTO);
 				t.setSoggetto(idApi.getSoggetto());
-				body.setMittente(t);
+				// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+				body.setMittente(new RicercaIntervalloTemporaleAllOfMittente(t));
 			}
 		} else {
 			body.setTipo(FiltroRicercaRuoloTransazioneEnum.FRUIZIONE);

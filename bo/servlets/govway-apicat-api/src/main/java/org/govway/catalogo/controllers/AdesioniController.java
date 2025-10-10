@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.assembler.AdesioneDettaglioAssembler;

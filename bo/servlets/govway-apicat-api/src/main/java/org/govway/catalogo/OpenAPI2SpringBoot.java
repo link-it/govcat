@@ -29,7 +29,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.apache.tika.Tika;

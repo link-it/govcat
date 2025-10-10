@@ -50,25 +50,34 @@ import org.govway.catalogo.gest.clients.govwaymonitor.model.Evento;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroApiSoggetti;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroEsito;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroRicercaRuoloTransazioneEnum;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroMittenteErogazioneSoggettoImpl;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroTemporale;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FormatoReportEnum;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.MittenteType;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.NumeroTransazioni;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OccupazioneBanda;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OneOfTipoInformazioneReportMultiLineNumeroTransazioniTipoInformazioneReportMultiLineOccupazioneBandaTipoInformazioneReportMultiLineTempoMedioRisposta;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OneOfTipoInformazioneReportNumeroTransazioniTipoInformazioneReportOccupazioneBandaTipoInformazioneReportTempoMedioRisposta;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OpzioniGenerazioneReport;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.OpzioniGenerazioneReportAllOfTipoInformazione;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OpzioniGenerazioneReportMultiLine;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.OpzioniGenerazioneReportMultiLineAllOfTipoInformazione;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaAndamentoTemporale;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaAndamentoTemporaleAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneApi;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneApiAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneApplicativo;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneApplicativoRegistrato;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneAzione;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneAzioneAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneErrori;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneErroriAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneEsiti;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneEsitiAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneSoggettoRemoto;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneSoggettoRemotoAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneTokenInfo;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TempoMedioRisposta;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoFiltroMittenteEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoReportEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TokenClaimEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.UnitaTempoReportEnum;
@@ -161,7 +170,12 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		FiltroApiSoggetti filtroapiSoggetti = getFiltroApiSoggetti(request);
 		reportRequest.setApi(filtroapiSoggetti);
 		reportRequest.setAzione(request.getOperazione());
-		reportRequest.setMittente(getMittente(request));
+		
+		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		if (mittente != null) {
+			reportRequest.setMittente(new RicercaStatisticaAndamentoTemporaleAllOfMittente(mittente));
+		}
 		
 		reportRequest.setEsito(getEsito(request.getEsito(), request.getListaCodici()));
 
@@ -182,7 +196,12 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		FiltroApiSoggetti filtroapiSoggetti = getFiltroApiSoggetti(request);
 		reportRequest.setApi(filtroapiSoggetti);
 		reportRequest.setAzione(request.getOperazione());
-		reportRequest.setMittente(getMittente(request));
+		
+		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		if (mittente != null) {
+			reportRequest.setMittente(new RicercaStatisticaDistribuzioneEsitiAllOfMittente(mittente));
+		}
 
 		FiltroTemporale interv = new FiltroTemporale();
 
@@ -205,7 +224,12 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		reportRequest.setApi(filtroapiSoggetti);
 		reportRequest.setEsito(getEsito(request.getEsito(), request.getListaCodici()));
 		reportRequest.setAzione(request.getOperazione());
-		reportRequest.setMittente(getMittente(request));
+		
+		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		if (mittente != null) {
+			reportRequest.setMittente(new RicercaStatisticaDistribuzioneErroriAllOfMittente(mittente));
+		}
 
 		FiltroTemporale interv = getFiltroTemporale(request);
 
@@ -222,7 +246,12 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		RicercaStatisticaDistribuzioneApi reportRequest = new RicercaStatisticaDistribuzioneApi();
 
 		reportRequest.setEsito(getEsito(request.getEsito(), request.getListaCodici()));
-		reportRequest.setMittente(getMittente(request));
+		
+		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		if (mittente != null) {
+			reportRequest.setMittente(new RicercaStatisticaDistribuzioneApiAllOfMittente(mittente));
+		}
 
 		FiltroTemporale interv = new FiltroTemporale();
 
@@ -300,7 +329,12 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 
 		FiltroApiSoggetti filtroapiSoggetti = getFiltroApiSoggetti(request);
 		reportRequest.setApi(filtroapiSoggetti);
-		reportRequest.setMittente(getMittente(request));
+		
+		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		if (mittente != null) {
+			reportRequest.setMittente(new RicercaStatisticaDistribuzioneAzioneAllOfMittente(mittente));
+		}
 
 		reportRequest.setEsito(getEsito(request.getEsito(), request.getListaCodici()));
 
@@ -366,7 +400,12 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 
 		FiltroApiSoggetti filtroapiSoggetti = getFiltroApiSoggetti(request);
 		reportRequest.setApi(filtroapiSoggetti);
-		reportRequest.setMittente(getMittente(request));
+		
+		// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+		FiltroMittenteErogazioneSoggettoImpl mittente = getMittenteImpl(request);
+		if (mittente != null) {
+			reportRequest.setMittente(new RicercaStatisticaDistribuzioneSoggettoRemotoAllOfMittente(mittente));
+		}
 
 		reportRequest.setAzione(request.getOperazione());
 
@@ -384,10 +423,11 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 	}
 
 
-	private MittenteType getMittente(GetReportRequest request) {
+	private FiltroMittenteErogazioneSoggettoImpl getMittenteImpl(GetReportRequest request) {
 		
 		if(request.getSoggettoErogatore()!= null && !request.getSoggettoErogatore().equals(request.getSoggettoReferente()) && request.getErogazioneFruizioneEnum().equals(ErogazioneFruizioneEnum.EROGAZIONE)) {
-			MittenteType m = new MittenteType();
+			FiltroMittenteErogazioneSoggettoImpl m = new FiltroMittenteErogazioneSoggettoImpl();
+			m.setIdentificazione(TipoFiltroMittenteEnum.EROGAZIONE_SOGGETTO);
 			m.setSoggetto(request.getSoggettoErogatore());
 			return m;
 		}
@@ -485,7 +525,10 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		break;
 		}
 
-		ml.setTipoInformazione(tipoInfo);
+		// Wrap the tipoInfo into the appropriate wrapper class
+		if (tipoInfo != null) {
+			ml.setTipoInformazione(new OpzioniGenerazioneReportMultiLineAllOfTipoInformazione(tipoInfo));
+		}
 
 		return ml;
 	}
@@ -539,7 +582,10 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		break;
 		}
 
-		ml.setTipoInformazione(tipoInfo);
+		// Wrap the tipoInfo into the appropriate wrapper class
+		if (tipoInfo != null) {
+			ml.setTipoInformazione(new OpzioniGenerazioneReportAllOfTipoInformazione(tipoInfo));
+		}
 
 		return ml;
 	}

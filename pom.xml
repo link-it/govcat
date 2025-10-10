@@ -163,7 +163,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- verisone ambienti -->
-		<java.version>11</java.version>
+		<java.version>21</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -182,7 +182,7 @@
 		<owasp>verify</owasp> <!-- owasp phase, use 'none' for disable -->
 
 		<!-- Versioni Plugin Maven -->
-		<maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
+		<maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
 		<maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
 		<maven.dependency.plugin.version>2.2</maven.dependency.plugin.version>
 		<maven.install.plugin.version>2.5.2</maven.install.plugin.version>
@@ -191,7 +191,7 @@
 		<maven.clean.plugin.version>3.1.0</maven.clean.plugin.version>
 		<maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
 		<maven.properties.plugin.version>1.2.1</maven.properties.plugin.version>
-		<maven.surefire.version>3.2.2</maven.surefire.version>
+		<maven.surefire.version>3.2.5</maven.surefire.version>
 		<debug.level>DEBUG</debug.level>
 
 		<!-- Versioni Plugin Maven -->
@@ -200,27 +200,27 @@
 		<commons.logging.version>1.3.4</commons.logging.version>
 
 		<!-- Versioni spring -->
-		<spring.boot.version>2.7.18</spring.boot.version>
-		<spring.framework.version>5.3.39</spring.framework.version>
-		<spring.security.version>5.8.16</spring.security.version>
+		<spring.boot.version>3.3.0</spring.boot.version>
+		<spring.framework.version>6.1.0</spring.framework.version>
+		<spring.security.version>6.3.0</spring.security.version>
 
 		<!-- Spring Data JPA -->
-		<spring-data.version>2.7.18</spring-data.version>
+		<spring-data.version>3.3.0</spring-data.version>
 
-		<spring.batch.version>4.3.10</spring.batch.version>
+		<spring.batch.version>5.1.0</spring.batch.version>
 		<!-- Spring Data Rest -->
-		<spring-data-rest.version>3.7.18</spring-data-rest.version>
+		<spring-data-rest.version>4.3.0</spring-data-rest.version>
 
 		<!-- Spring-doc -->
-		<springdoc.version>1.6.4</springdoc.version>
+		<springdoc.version>1.8.0</springdoc.version>
 
 		<!-- JPA -->
-		<hibernate.version>5.5.9.Final</hibernate.version>
+		<hibernate.version>6.4.0.Final</hibernate.version>
 		<hibernate.jpamodelgen.version>${hibernate.version}</hibernate.jpamodelgen.version>
-		<hibernate.validator.version>6.0.23.Final</hibernate.validator.version>
+		<hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
 
 		<!-- Gson -->
-		<gson.version>2.8.9</gson.version>
+		<gson.version>2.10.1</gson.version>
 		<gson-fire.version>1.8.3</gson-fire.version>
 
 		<!-- com.squareup.okhttp -->
@@ -228,7 +228,7 @@
 		<com.squareup.okhttp3.version>4.12.0</com.squareup.okhttp3.version>
 
 		<!-- Swagger-codegen -->
-		<openapi.tool.codegen.version>5.0.1</openapi.tool.codegen.version>
+		<openapi.tool.codegen.version>7.8.0</openapi.tool.codegen.version>
 
 		<!-- swagger -->
 		<swagger.parser.v3.version>2.0.24</swagger.parser.v3.version>
@@ -245,15 +245,31 @@
 		<json-path.version>2.9.0</json-path.version>
 
 		<!-- proxy -->
-		<jetty-proxy.version>9.4.56.v20240826</jetty-proxy.version>
+		<jetty-proxy.version>11.0.24</jetty-proxy.version>
 
 		<dynamicreports-core.version>6.12.0</dynamicreports-core.version>
 
 		<!-- Jackson -->
-		<jackson.version>2.18.2</jackson.version>
+		<jackson.version>2.17.0</jackson.version>
 
 		<!-- jackson-databind-nullable -->
 		<jackson.databind.nullable.version>0.2.1</jackson.databind.nullable.version>
+
+		<!-- Additional dependencies -->
+		<antlr.version>4.9.2</antlr.version>
+		<httpclient.version>4.5.14</httpclient.version>
+		<servlet-api.version>4.0.1</servlet-api.version>
+
+		<!-- Jakarta EE versions -->
+		<jakarta.servlet.version>6.0.0</jakarta.servlet.version>
+		<jakarta.validation.version>3.0.2</jakarta.validation.version>
+		<jakarta.annotation.version>2.1.1</jakarta.annotation.version>
+		<jakarta.xml.bind.version>4.0.0</jakarta.xml.bind.version>
+		<jakarta.persistence.version>3.1.0</jakarta.persistence.version>
+		<jakarta.el.version>5.0.1</jakarta.el.version>
+		<jakarta.cache.version>3.0.0</jakarta.cache.version>
+		<jakarta.mail.version>2.1.0</jakarta.mail.version>
+		<jakarta.jaxws.version>4.0.0</jakarta.jaxws.version>
 
 	</properties>
 
@@ -552,9 +568,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-core</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -564,9 +580,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-web</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -576,9 +592,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-context</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -588,9 +604,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-expression</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -600,9 +616,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-context-support</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -612,9 +628,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-webmvc</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<!-- Spring Security -->
@@ -788,8 +804,8 @@
 			<!-- Spring doc -->
 			<dependency>
 				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-ui</artifactId>
-				<version>${springdoc.version}</version>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				<version>2.5.0</version>
 
 				<exclusions>
 					<exclusion>
@@ -819,12 +835,6 @@
 						<artifactId>antlr</artifactId>
 					</exclusion>
 				</exclusions>
-			</dependency>
-
-			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-entitymanager</artifactId>
-				<version>${hibernate.version}</version>
 			</dependency>
 
 			<dependency>
@@ -912,18 +922,6 @@
 			</dependency>
 
 			<dependency>
-				<groupId>io.swagger</groupId>
-				<artifactId>swagger-models</artifactId>
-				<version>${swagger.model.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.swagger</groupId>
-				<artifactId>swagger-parser</artifactId>
-				<version>${swagger.parser.version}</version>
-			</dependency>
-
-			<dependency>
 				<groupId>org.yaml</groupId>
 				<artifactId>snakeyaml</artifactId>
 				<version>${snakeyaml.version}</version>
@@ -933,12 +931,6 @@
 				<groupId>org.openapitools</groupId>
 				<artifactId>jackson-databind-nullable</artifactId>
 				<version>${jackson.databind.nullable.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.springfox</groupId>
-				<artifactId>springfox-swagger1</artifactId>
-				<version>${springfox.swagger1.version}</version>
 			</dependency>
 
 			<dependency>
@@ -1048,6 +1040,25 @@
 					</exclusion>
 				</exclusions>
 
+			</dependency>
+
+			<!-- Additional dependencies -->
+			<dependency>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr4-runtime</artifactId>
+				<version>${antlr.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpclient.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>jakarta.servlet</groupId>
+				<artifactId>jakarta.servlet-api</artifactId>
+				<version>${jakarta.servlet.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

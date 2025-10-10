@@ -28,30 +28,30 @@
 		<exec.maven.plugin.versione>1.6.0</exec.maven.plugin.versione>
 		<glassfish.version>1.1.4</glassfish.version>
 		<govregistry.version>0.1.0-SNAPSHOT</govregistry.version>
-		<java.version>11</java.version>
-		<javax.annotation.version>1.3.2</javax.annotation.version>
+		<java.version>21</java.version>
+		<jakarta.annotation.version>2.1.1</jakarta.annotation.version>
 		<jsonpatch.version>1.13</jsonpatch.version>
 		<jsr305.version>3.0.2</jsr305.version>
 		<maven.install.plugin.version>2.5.2</maven.install.plugin.version>
 		<maven-processor.version>4.5</maven-processor.version>
-		<openapi.tool.codegen.version>6.0.0</openapi.tool.codegen.version>
+		<openapi.tool.codegen.version>7.10.0</openapi.tool.codegen.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<springdoc.version>1.6.4</springdoc.version>
-		<swagger-annotations.version>1.6.2</swagger-annotations.version>
-		<swagger.version>2.1.2</swagger.version>
+		<springdoc.version>1.8.0</springdoc.version>
+		<swagger-annotations.version>2.1.2</swagger-annotations.version>
+		<swagger.version>2.2.38</swagger.version>
 		<version.hibernate-jpamodelgen>6.0.0.Alpha2</version.hibernate-jpamodelgen>
 		<wagon-ssh-external.version>1.0-beta-6</wagon-ssh-external.version>
 		<version.mssql.jdbc>7.2.1.jre8</version.mssql.jdbc>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.test.skip>false</maven.test.skip>
 		<junit-jupiter.version>5.5.2</junit-jupiter.version>
 		<siuss-api-beans.version>[1.1.0,2.0.0)</siuss-api-beans.version>
 		<version.mssql.jdbc>7.2.1.jre8</version.mssql.jdbc>
 
-		<spring.boot.plugin.version>2.2.5.RELEASE</spring.boot.plugin.version>
+		<spring.boot.plugin.version>3.3.0</spring.boot.plugin.version>
 
 	</properties>
 
@@ -91,8 +91,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -116,13 +116,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>antlr</groupId>
-			<artifactId>antlr</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
 		</dependency>
 
 
@@ -165,7 +160,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-expression</artifactId>
 		</dependency>
 
@@ -197,22 +192,22 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
@@ -223,16 +218,12 @@
 
 
 		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
+			<groupId>jakarta.annotation</groupId>
+			<artifactId>jakarta.annotation-api</artifactId>
 		</dependency>
 
 
 		<!-- Dipendenze codice generato da OpenAPITools -->
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-annotations</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.openapitools</groupId>
 			<artifactId>jackson-databind-nullable</artifactId>

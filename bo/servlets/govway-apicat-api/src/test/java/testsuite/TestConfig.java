@@ -19,15 +19,15 @@
  */
 package testsuite;
 
+import org.springframework.context.annotation.Bean;
+
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
-import org.springframework.context.annotation.Bean;
 
 public class TestConfig {
 
     @Bean
-    public InitialContext initialctx() throws NamingException {
+    public javax.naming.InitialContext initialctx() throws javax.naming.NamingException {
 		return new InitialContext();
     }
 

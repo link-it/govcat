@@ -19,7 +19,7 @@
  */
 package org.govway.catalogo.gest.clients.govwaymonitor.model;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 /**
 * AnyOfProblemId

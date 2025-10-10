@@ -19,8 +19,8 @@
  */
 package org.govway.catalogo.reverse_proxy;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 
 import org.govway.catalogo.reverse_proxy.config.WebConsoleConfig;
 import org.govway.catalogo.reverse_proxy.costanti.Costanti;

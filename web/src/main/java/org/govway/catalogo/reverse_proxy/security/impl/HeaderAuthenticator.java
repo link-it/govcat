@@ -22,7 +22,7 @@ package org.govway.catalogo.reverse_proxy.security.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.govway.catalogo.reverse_proxy.config.WebConsoleConfig;
 import org.govway.catalogo.reverse_proxy.costanti.Costanti;

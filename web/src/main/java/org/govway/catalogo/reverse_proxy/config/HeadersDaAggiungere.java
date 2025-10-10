@@ -22,7 +22,7 @@ package org.govway.catalogo.reverse_proxy.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.govway.catalogo.reverse_proxy.beans.Pair;
 import org.slf4j.Logger;

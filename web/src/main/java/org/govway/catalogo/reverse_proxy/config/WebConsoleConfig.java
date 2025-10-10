@@ -22,7 +22,7 @@ package org.govway.catalogo.reverse_proxy.config;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import org.govway.catalogo.reverse_proxy.security.AuthorizationInfo;
 import org.govway.catalogo.reverse_proxy.whitelist.Whitelist;

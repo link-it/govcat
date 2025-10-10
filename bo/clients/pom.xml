@@ -10,7 +10,7 @@
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>api-portale</artifactId>
 		<version>2.2</version>
-		<relativePath>../</relativePath>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<properties>

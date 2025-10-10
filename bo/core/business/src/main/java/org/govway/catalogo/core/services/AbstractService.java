@@ -21,7 +21,7 @@ package org.govway.catalogo.core.services;
 
 import java.util.function.Supplier;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.govway.catalogo.core.dao.repositories.AdesioneRepository;
 import org.govway.catalogo.core.dao.repositories.AllegatoApiRepository;

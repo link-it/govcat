@@ -91,25 +91,29 @@ public class Whitelist {
 	}
 	
 	public List<String> getListaPerHttpMethod(HttpMethod httpMethod){
-		switch (httpMethod) {
-		case DELETE:
-			return this.delete;
-		case GET:
-			return this.get;
-		case HEAD:
-			return this.head;
-		case OPTIONS:
-			return this.options;
-		case PATCH:
-			return this.patch;
-		case POST:
-			return this.post;
-		case PUT:
-			return this.put;
-		case TRACE:
-			return this.trace;
-		default:
-			return Collections.emptyList();
-		}
+        if (httpMethod == null) {
+            return Collections.emptyList();
+        }
+
+        switch (httpMethod.name()) {
+            case "DELETE":
+                return this.delete;
+            case "GET":
+                return this.get;
+            case "HEAD":
+                return this.head;
+            case "OPTIONS":
+                return this.options;
+            case "PATCH":
+                return this.patch;
+            case "POST":
+                return this.post;
+            case "PUT":
+                return this.put;
+            case "TRACE":
+                return this.trace;
+            default:
+                return Collections.emptyList();
+        }
 	}
 }

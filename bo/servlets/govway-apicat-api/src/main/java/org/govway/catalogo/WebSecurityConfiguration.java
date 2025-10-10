@@ -1,43 +1,29 @@
-/*
- * GovCat - GovWay API Catalogue
- * https://github.com/link-it/govcat
- *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 3, as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- */
 package org.govway.catalogo;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
-import org.springframework.security.core.context.SecurityContextHolder;
-import javax.annotation.PostConstruct;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+@EnableMethodSecurity // only if you use @PreAuthorize, etc. (safe to keep)
+public class WebSecurityConfiguration {
 
     @Value("${headerAuthentication}")
     String headerAuthentication;
@@ -45,66 +31,61 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${spring.mvc.servlet.path}")
     String path;
 
-@PostConstruct
-public void setup() {
-    // Use thread-local storage for the security context, avoiding the session
-    SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
-}
+    @PostConstruct
+    public void setup() {
+        // Use thread-local storage for the security context, avoiding the session
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
+    }
 
+    @Autowired
+    public RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
+    @Autowired
+    public AutenticazioneUtenzeRegistrateService customUserDetailsService;
 
-		
-		RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-		filter.setPrincipalRequestHeader(this.headerAuthentication);
-		filter.setExceptionIfHeaderMissing(false);
-		filter.setAuthenticationManager(this.authenticationManager());
+    @Autowired
+    @Lazy
+    private UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsByNameServiceWrapper;
 
-		http
-		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-        .addFilterBefore(filter, filter.getClass())
-		.headers()
-		.contentTypeOptions().disable()
-		.xssProtection().disable()
-		.frameOptions().disable()
-		.and()
-//		.sessionManagement()
-//		.
-        .csrf()
-        .disable()
-		.exceptionHandling()
-		.authenticationEntryPoint(restAuthenticationEntryPoint)
-        .and()
-        .authorizeRequests()
-        .antMatchers(this.path+"/api/v1/profilo").permitAll()
-        .antMatchers(this.path+"/**").fullyAuthenticated()
-//        .antMatchers("/*").denyAll();
-                ;
-                
-	}
+    @Bean
+    public UserDetailsByNameServiceWrapper<?> getUserDetailsByNameServiceWrapper(
+            AutenticazioneUtenzeRegistrateService customUserDetailsService) {
+        return new UserDetailsByNameServiceWrapper<>(customUserDetailsService);
+    }
 
-	@Autowired
-	@Lazy
-	private UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsByNameServiceWrapper;
-	
-	@Bean
-	public UserDetailsByNameServiceWrapper<?> getUserDetailsByNameServiceWrapper(AutenticazioneUtenzeRegistrateService customUserDetailsService) {
-		return new UserDetailsByNameServiceWrapper<>(customUserDetailsService);
-	}
+    @Bean
+    public AuthenticationManager authenticationManager(
+            UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsWrapper) {
 
-	@Autowired
-	public RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+        PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
+        provider.setPreAuthenticatedUserDetailsService(userDetailsWrapper);
+        return new ProviderManager(provider);
+    }
 
-	@Autowired
-	public AutenticazioneUtenzeRegistrateService customUserDetailsService;
-	
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider p = new org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider();
-		p.setPreAuthenticatedUserDetailsService(userDetailsByNameServiceWrapper);
-		auth
-		.authenticationProvider(p);
-	}
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   AuthenticationManager authenticationManager) throws Exception {
 
+        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
+        filter.setPrincipalRequestHeader(this.headerAuthentication);
+        filter.setExceptionIfHeaderMissing(false);
+        filter.setAuthenticationManager(authenticationManager);
+
+        http
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(filter, AbstractPreAuthenticatedProcessingFilter.class)
+                .headers(h -> h
+                        .contentTypeOptions(c -> c.disable())
+                        .xssProtection(x -> x.disable())
+                        .frameOptions(f -> f.disable())
+                )
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(this.path + "/api/v1/profilo").permitAll()
+                        .requestMatchers(this.path + "/**").authenticated()
+                );
+
+        return http.build();
+    }
 }

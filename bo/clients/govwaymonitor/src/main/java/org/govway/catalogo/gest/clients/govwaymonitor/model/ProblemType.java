@@ -19,21 +19,21 @@
  */
 package org.govway.catalogo.gest.clients.govwaymonitor.model;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 public class ProblemType implements AnyOfProblemId {
   
@@ -82,5 +82,35 @@ public class ProblemType implements AnyOfProblemId {
       return "null";
     }
     return o.toString().replace("\n", "\n    ");
+  }
+
+  // Custom Type Adapter Factory for Gson serialization
+  public static class CustomTypeAdapterFactory implements com.google.gson.TypeAdapterFactory {
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> com.google.gson.TypeAdapter<T> create(com.google.gson.Gson gson, com.google.gson.reflect.TypeToken<T> type) {
+      if (!ProblemType.class.isAssignableFrom(type.getRawType())) {
+        return null;
+      }
+      return (com.google.gson.TypeAdapter<T>) new ProblemTypeAdapter(gson);
+    }
+  }
+
+  public static class ProblemTypeAdapter extends com.google.gson.TypeAdapter<ProblemType> {
+    private final com.google.gson.Gson gson;
+
+    public ProblemTypeAdapter(com.google.gson.Gson gson) {
+      this.gson = gson;
+    }
+
+    @Override
+    public void write(com.google.gson.stream.JsonWriter out, ProblemType value) throws java.io.IOException {
+      gson.toJson(value, ProblemType.class, out);
+    }
+
+    @Override
+    public ProblemType read(com.google.gson.stream.JsonReader in) throws java.io.IOException {
+      return gson.fromJson(in, ProblemType.class);
+    }
   }
 }

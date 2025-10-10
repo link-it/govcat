@@ -7776,7 +7776,7 @@ components:
         stato:
           type: string
         tipo:
-          $ref: "#/components/schemas/TipoNotificaEnum"
+          type: string
     ComunicazioneTipoNotifica:
       type: "object"
       properties:
@@ -7785,7 +7785,7 @@ components:
         testo:
           type: string
         tipo:
-          $ref: "#/components/schemas/TipoNotificaEnum"
+          type: string
     EntitaNotifica:
       allOf:
         - type: object

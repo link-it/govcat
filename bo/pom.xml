@@ -24,8 +24,8 @@
 		<karate.version>0.9.4</karate.version>
 		<logback.version>1.2.13</logback.version>
 
-		<!-- javax.mail -->
-		<javax.mail.version>1.6.2</javax.mail.version>
+		<!-- jakarta.mail -->
+		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 
 		<!-- Commons -->
 		<commons.lang2.version>2.6</commons.lang2.version>
@@ -53,26 +53,26 @@
 
 
 		<!-- Swagger-annotations -->
-		<swagger.version>2.1.2</swagger.version>
-		<swagger-annotations.version>1.6.2</swagger-annotations.version>
+		<swagger.version>2.2.38</swagger.version>
+		<swagger-annotations.version>2.1.2</swagger-annotations.version>
 
 		<com.google.code.findbugs.jsr305.version>3.0.2</com.google.code.findbugs.jsr305.version>
 
 		<!-- Jsonschema2pojo-codegen -->
 		<jsonschema2pojo.codegen.version>1.0.0-alpha4</jsonschema2pojo.codegen.version>
 
-		<!-- Javax -->
-		<javax.jaxws-api.version>2.3.1</javax.jaxws-api.version>
-		<javax.servlet.version>4.0.1</javax.servlet.version>
-		<javax.cache.version>1.1.1</javax.cache.version>
-		<javax.annotation.version>1.3.2</javax.annotation.version>
-		<javax.validation.version>2.0.1.Final</javax.validation.version>
-		<javax.el.version>3.0.0</javax.el.version>
-		<javax.persistence.version>2.2</javax.persistence.version>
+		<!-- Jakarta EE -->
+		<jakarta.jaxws-api.version>4.0.0</jakarta.jaxws-api.version>
+		<jakarta.servlet.version>6.0.0</jakarta.servlet.version>
+		<jakarta.cache.version>3.0.0</jakarta.cache.version>
+		<jakarta.annotation.version>2.1.1</jakarta.annotation.version>
+		<jakarta.validation.version>3.0.2</jakarta.validation.version>
+		<jakarta.el.version>5.0.1</jakarta.el.version>
+		<jakarta.persistence.version>3.1.0</jakarta.persistence.version>
 
-		<!-- Jaxb -->
-		<javax.xml.jaxb.api.version>2.4.0-b180830.0359</javax.xml.jaxb.api.version>
-		<org.glassfish.jaxb.runtime.version>2.3.2</org.glassfish.jaxb.runtime.version>
+		<!-- JAXB -->
+		<jakarta.xml.bind.version>4.0.0</jakarta.xml.bind.version>
+		<org.glassfish.jaxb.runtime.version>4.0.0</org.glassfish.jaxb.runtime.version>
 
 		<!-- XMLSec -->
 		<xml-security.version>1.3.0</xml-security.version>
@@ -240,48 +240,48 @@
 				<version>${commons.text.version}</version>
 			</dependency>
 
-			<!-- Javax -->
+			<!-- Jakarta -->
 			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>javax.servlet-api</artifactId>
-				<version>${javax.servlet.version}</version>
+				<groupId>jakarta.servlet</groupId>
+				<artifactId>jakarta.servlet-api</artifactId>
+				<version>${jakarta.servlet.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax.cache</groupId>
-				<artifactId>cache-api</artifactId>
-				<version>${javax.cache.version}</version>
+				<groupId>jakarta.cache</groupId>
+				<artifactId>jakarta.cache-api</artifactId>
+				<version>${jakarta.cache.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax.xml.ws</groupId>
-				<artifactId>jaxws-api</artifactId>
-				<version>${javax.jaxws-api.version}</version>
+				<groupId>jakarta.xml.ws</groupId>
+				<artifactId>jakarta.xml.ws-api</artifactId>
+				<version>${jakarta.jaxws-api.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax.el</groupId>
-				<artifactId>javax.el-api</artifactId>
-				<version>${javax.el.version}</version>
+				<groupId>jakarta.el</groupId>
+				<artifactId>jakarta.el-api</artifactId>
+				<version>${jakarta.el.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax.persistence</groupId>
-				<artifactId>javax.persistence-api</artifactId>
-				<version>${javax.persistence.version}</version>
+				<groupId>jakarta.persistence</groupId>
+				<artifactId>jakarta.persistence-api</artifactId>
+				<version>${jakarta.persistence.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax</groupId>
-				<artifactId>javaee-api</artifactId>
-				<version>7.0</version>
+				<groupId>jakarta.platform</groupId>
+				<artifactId>jakarta.jakartaee-api</artifactId>
+				<version>10.0.0</version>
 			</dependency>
 
 
 			<dependency>
 				<groupId>org.glassfish</groupId>
-				<artifactId>javax.el</artifactId>
-				<version>${javax.el.version}</version>
+				<artifactId>jakarta.el</artifactId>
+				<version>${jakarta.el.version}</version>
 			</dependency>
 
 
@@ -309,8 +309,8 @@
 
 			<dependency>
 				<groupId>com.sun.mail</groupId>
-				<artifactId>javax.mail</artifactId>
-				<version>${javax.mail.version}</version>
+				<artifactId>jakarta.mail</artifactId>
+				<version>${jakarta.mail.version}</version>
 			</dependency>
 
 			<!-- Swagger-codegen -->
@@ -332,17 +332,11 @@
 				<artifactId>swagger-jaxrs2</artifactId>
 				<version>${swagger.version}</version>
 				<exclusions>
-					<exclusion>
-						<groupId>javax.ws.rs</groupId>
-						<artifactId>jsr311-api</artifactId>
-					</exclusion>
+						<exclusion>
+							<groupId>jakarta.ws.rs</groupId>
+							<artifactId>jakarta.ws.rs-api</artifactId>
+						</exclusion>
 				</exclusions>
-			</dependency>
-
-			<dependency>
-				<groupId>io.swagger</groupId>
-				<artifactId>swagger-annotations</artifactId>
-				<version>${swagger-annotations.version}</version>
 			</dependency>
 
 
@@ -373,21 +367,21 @@
 			</dependency>
 
 			<dependency>
-				<groupId>javax.annotation</groupId>
-				<artifactId>javax.annotation-api</artifactId>
-				<version>${javax.annotation.version}</version>
+				<groupId>jakarta.annotation</groupId>
+				<artifactId>jakarta.annotation-api</artifactId>
+				<version>${jakarta.annotation.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax.validation</groupId>
-				<artifactId>validation-api</artifactId>
-				<version>${javax.validation.version}</version>
+				<groupId>jakarta.validation</groupId>
+				<artifactId>jakarta.validation-api</artifactId>
+				<version>${jakarta.validation.version}</version>
 			</dependency>
 
 			<dependency>
-				<groupId>javax.xml.bind</groupId>
-				<artifactId>jaxb-api</artifactId>
-				<version>${javax.xml.jaxb.api.version}</version>
+				<groupId>jakarta.xml.bind</groupId>
+				<artifactId>jakarta.xml.bind-api</artifactId>
+				<version>4.0.0</version>
 			</dependency>
 
 			<dependency>
