@@ -73,18 +73,21 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 	}
 	
 	@Override
-	public boolean check(DTOClient client, GruppoServizio api) {
+	public String getError(DTOClient client, GruppoServizio api) {
 		
-		if (!(client instanceof HttpsClient))
-			return false;
+		if (!(client instanceof HttpsClient)) {
+			return "Il client deve essere di tipo HTTPS";
+		}
 		
-		if (!api.getProfilo().equals("ModI") && !api.getProfilo().equals("APIGateway"))
-			return false;
+		if (!api.isModI() && !api.getProfilo().equals("APIGateway")) {
+			return "L'API deve essere di tipo APIGateway o ModI";
+		}
 		
-		if (api.getProfilo().equals("ModI") && !api.isFruizione())
-			return false;
+		if (api.isModI() && !api.isFruizione()) {
+			return "L'API ModI può essere solo una fruizione";
+		}
 		
-		return true;
+		return null;
 	}
 
 	@Override
@@ -109,21 +112,21 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 			return Map.of();
 		}
 		
+		
+		
 		try (Response res = this.invokers.getConfigInvoker().createSoggetto(soggetto)){
-			if (res.isSuccessful() && (res.code() != 409 || !this.ignoreConflict))
-				throw new IOException("ottenuto codice di errore HTTP: " + res.code());
+			this.invokers.getConfigInvoker().checkResponse(res, this.ignoreConflict);
 		} catch(TemplateException | IOException e) {
 			this.logger.error("errore nell'aggiunta del soggetto {}@{}", soggetto.getNomeGateway(), soggetto.getTipoGateway(), e);
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		
 		
 		try(Response res = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto)) {
-			if (!res.isSuccessful() && (res.code() != 409 || !this.ignoreConflict))
-				throw new ConfigurazioneException();
+			this.invokers.getConfigInvoker().checkResponse(res, this.ignoreConflict);
 		} catch(TemplateException | IOException e) {
 			this.logger.error("errore nell'aggiunta del servizio applicativo {}", sa.getNomeApplicativo(), e);
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		return Map.of();
 	}
@@ -157,11 +160,10 @@ public class ScenarioTLS implements ConfigurazioneScenario{
 	
 			// infine associo il servizio applicativo ai richiedenti
 			try (Response response = configInvoker.postApplicativoToServizio(api, client.getNome(), null)) {
-				if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-					throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+				this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 			}
 		} catch (IOException | TemplateException e) {
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		return Map.of();
 	}

@@ -81,10 +81,22 @@
                                                 ></ui-item-row>
                                             </div>
                                             <div id="flex-initial">
-                                                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="_showDialogDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
-                                                    <i class="bi bi-unlock-fill"></i>
+                                                <button *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)"
+                                                    aria-expanded="false"
+                                                    type="button"
+                                                    class="btn btn-default btn-md gl-button btn-icon mr-2"
+                                                    [tooltip]="'APP.TOOLTIP.Dissociate' | translate" [delay]="500"
+                                                    (click)="_showDialogDissociaClient(item)"
+                                                >
+                                                    <span class="material-icons-outlined">link_off</span>
                                                 </button>
-                                                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditClient(item)">
+                                                <button 
+                                                    aria-expanded="false"
+                                                    type="button"
+                                                    class="btn btn-default btn-md gl-button btn-icon"
+                                                    [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                                                    (click)="_onEditClient(item)"
+                                                >
                                                     <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
                                                     <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
                                                 </button>
@@ -112,10 +124,6 @@
                                         <h5 class="">{{ 'APP.ADESIONI.TITLE.ConfigurationAPI' | translate }}</h5>
                                     </div>
 
-                                    <!-- <div *ngIf="adesioneConfigErogazioni.length == 0 && !_spin">
-                                        <h6>{{ 'APP.ADESIONI.TITLE.NotRequested' | translate }}</h6>
-                                    </div> -->
-
                                     <div *ngFor="let erogaz of adesioneConfigErogazioni;let first = first">
                                         <div id="flex-container" class="container-fluid border-bottom ps-0" [class.border-top]="first">
                                             <div id="flex-auto">
@@ -126,7 +134,13 @@
                                                 ></ui-item-row>
                                             </div>
                                             <div id="flex-initial">
-                                                <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditAdesioneErogaz(erogaz)">
+                                                <button
+                                                    aria-expanded="false"
+                                                    type="button"
+                                                    class="btn btn-default btn-md gl-button btn-icon"
+                                                    [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                                                    (click)="_onEditAdesioneErogaz(erogaz)"
+                                                >
                                                     <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
                                                     <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
                                                 </button>
@@ -228,10 +242,22 @@
                             ></ui-item-row>
                         </div>
                         <div id="flex-initial">
-                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" ng-reflect-tooltip="Modifica" (click)="_showDialogDissociaClient(item)" *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)">
-                                <i class="bi bi-unlock-fill"></i>
+                            <button *ngIf="(item.source.stato == 'configurato') && (item | mapper:_isModifiableMapper)"
+                                aria-expanded="false"
+                                type="button"
+                                class="btn btn-default btn-md gl-button btn-icon mr-2"
+                                [tooltip]="'APP.TOOLTIP.Modify' | translate" [delay]="500"
+                                (click)="_showDialogDissociaClient(item)"
+                            >
+                                <span class="material-icons-outlined">link_off</span>
                             </button>
-                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditClient(item)">
+                            <button
+                                aria-expanded="false"
+                                type="button"
+                                class="btn btn-default btn-md gl-button btn-icon"
+                                [tooltip]="((item | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                                (click)="_onEditClient(item)"
+                            >
                                 <i *ngIf="(item | mapper:_isModifiableMapper)" class="bi bi-pencil"></i>
                                 <i *ngIf="!(item | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
                             </button>
@@ -258,7 +284,13 @@
                             ></ui-item-row>
                         </div>
                         <div id="flex-initial">
-                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="_onEditAdesioneErogaz(erogaz)">
+                            <button
+                                aria-expanded="false"
+                                type="button"
+                                class="btn btn-default btn-md gl-button btn-icon"
+                                [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                                (click)="_onEditAdesioneErogaz(erogaz)"
+                            >
                                 <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
                                 <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
                             </button>

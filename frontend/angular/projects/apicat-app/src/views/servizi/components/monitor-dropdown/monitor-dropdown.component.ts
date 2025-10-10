@@ -29,6 +29,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
   _showTransazioni: boolean = true;
   _showStatistiche: boolean = true;
   _showVerifiche: boolean = true;
+  _hasRole: boolean = false;
 
   constructor(
     private router: Router,
@@ -41,6 +42,8 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
     this._showStatistiche = monitoraggio?.statistiche_abilitate || false;
     this._showVerifiche = monitoraggio?.verifiche_abilitate || false;
     this._showMonitoraggio = monitoraggio?.abilitato && (this._showStatistiche || this._showTransazioni || this._showVerifiche);
+    const _ruoli = monitoraggio?.ruoli_abilitati;
+    this._hasRole = _ruoli.length > 0 ? this.authenticationService.hasRole(_ruoli) : false;
 
     this.initMenu();
   }
@@ -71,7 +74,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
       new MenuAction({
         type: 'label',
         title: 'APP.MENU.Monitoring',
-        enabled: this.showMonitoring && this._showMonitoraggio
+        enabled: this.showMonitoring && this._showMonitoraggio && this._hasRole
       }),
       new MenuAction({
         type: 'menu',
@@ -79,7 +82,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'arrow-left-right',
         subTitle: '',
         action: 'transazioni',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showTransazioni
+        enabled: this.showMonitoring && this._showMonitoraggio && this._showTransazioni && this._hasRole
       }),
       new MenuAction({
         type: 'menu',
@@ -87,7 +90,7 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'graph-up',
         subTitle: '',
         action: 'statistiche',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showStatistiche
+        enabled: this.showMonitoring && this._showMonitoraggio && this._showStatistiche && this._hasRole
       }),
       new MenuAction({
         type: 'menu',
@@ -95,11 +98,11 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'shield-check',
         subTitle: '',
         action: 'verifiche',
-        enabled: this.showMonitoring && this._showMonitoraggio && this._showVerifiche
+        enabled: this.showMonitoring && this._showMonitoraggio && this._showVerifiche && this._hasRole
       }),
       new MenuAction({
         type: 'divider',
-        enabled: this.showMonitoring && this._showMonitoraggio
+        enabled: this.showMonitoring && this._showMonitoraggio && this._hasRole
       }),
       new MenuAction({
         type: 'menu',

@@ -283,8 +283,9 @@ public class ConfigurazioneExecutor implements IConfigurazioneExecutor {
 			for (GruppoServizio singleAPI : clientApi.getValue()) {
 				
 				try {
-					if(!configurazioneScenario.check(client, singleAPI))
-						throw new ConfigurazioneException();
+					String error = configurazioneScenario.getError(client, singleAPI);
+					if(error != null)
+						throw new ConfigurazioneException(error);
 					secrets = configurazioneScenario.configureAPI(client, singleAPI);
 					
 					if (secrets != null) {

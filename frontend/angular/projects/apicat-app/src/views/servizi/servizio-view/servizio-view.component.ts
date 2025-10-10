@@ -1,4 +1,4 @@
-import { AfterContentChecked, Component, ElementRef, HostListener, Inject, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 
@@ -8,9 +8,7 @@ import { catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components'
-import { EventsManagerService } from '@linkit/components'
+import { ConfigService, EventsManagerService, MenuAction, EventType, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -23,9 +21,6 @@ import { AgidJwtSignatureDialogComponent } from '@app/components/authemtications
 import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
 import { CodeGrantDialogComponent } from '@app/components/authemtications-dialogs/code-grant-dialog/code-grant-dialog.component';
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
-
-import { MenuAction } from '@linkit/components'
-import { EventType } from '@linkit/components';
 
 import { environment } from '@app/environments/environment';
 
@@ -73,13 +68,19 @@ export interface ReferentView {
     types: string[];
 }
 
+export enum ApiMode {
+    TRY_OUT = 'try_out',
+    VISUALIZZAZIONE = 'visualizzazione',
+    DOWNLOAD = 'download'
+}
+
 @Component({
     selector: 'app-servizio-view',
     templateUrl: 'servizio-view.component.html',
     styleUrls: ['servizio-view.component.scss'],
     standalone: false
 })
-export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioViewComponent';
     readonly model: string = 'servizi';
 
@@ -222,9 +223,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
             this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
         });
-    }
-
-    ngOnDestroy() {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -512,7 +510,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _getApiUrlMapper = (api: any): string => {
-        const tryItOut = this. allowTryIt ? '?try_out=true' : '';
+        const tryItOut = this.allowTryIt ? `?mode=${ApiMode.TRY_OUT}` : `?mode=${ApiMode.VISUALIZZAZIONE}`;
         return api ? `${this.api_url}/api/${api.id_api}/specifica/${this._environmentId}/download${tryItOut}` : '';
     }
 
@@ -704,7 +702,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _canManagementComunicazioniMapper = (): boolean => {
-        return this.data &&this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
+        return this.data && this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
     }
 
     _isAmmissibile() {

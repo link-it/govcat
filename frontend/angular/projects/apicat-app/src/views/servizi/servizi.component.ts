@@ -23,13 +23,13 @@ import { ModalCategoryChoiceComponent } from '@app/components/modal-category-cho
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, timeout } from 'rxjs/operators';
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
+import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 
 import * as _ from 'lodash';
-import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
 declare const saveAs: any;
 
 @Component({
@@ -885,7 +885,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     getData(model: string, term: any = null, sort: string = 'id', sort_direction: string = 'desc'): Observable<any> {
-        // let _options: any = { params: { limit: 100, sort: sort, sort_direction: 'asc' } };
         let _options: any = { params: { } };
         if (term) {
             if (typeof term === 'string' ) {
@@ -899,10 +898,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         return this.apiService.getList(model, _options)
             .pipe(map(resp => {
                 if (resp.Error) {
-                    throwError(resp.Error);
+                    throwError(() => resp.Error);
                 } else {
                     const _items = (resp.content || resp).map((item: any) => {
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        if (model === 'api') {
+                            if (item.configurazione_collaudo?.dati_erogazione?.nome_gateway || item.configurazione_produzione?.dati_erogazione?.nome_gateway) {
+                                item.descrizione = `${item.configurazione_collaudo?.dati_erogazione?.nome_gateway ?? '-'} | ${item.configurazione_produzione?.dati_erogazione?.nome_gateway ?? '-'}`;
+                            } 
+                        }
                         return item;
                     });
                     return _items;
@@ -938,8 +941,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const _taxonomiesGroup = this._formGroup.get('taxonomiesGroup') as FormGroup;
 
         (taxonomies || []).forEach((taxonomy: any) => {
-            // const required: boolean = taxonomy.obbligatorio;
-            // _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', required?[Validators.required]:null));
             _taxonomiesGroup.addControl(taxonomy.nome, new FormControl('', null));
         });
 
@@ -1162,16 +1163,24 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         aux = this.utils._queryToHttpParams(query);
 
         this._downloading = true;
-        this.apiService.download(`${this.model}-export`, null, undefined, aux).subscribe({
-            next: (response: any) => {
-                let filename: string = Tools.GetFilenameFromHeader(response);
-                saveAs(response.body, filename);
-                this._downloading = false;
-            },
-            error: (error: any) => {
-                this._downloading = false;
-                Tools.showMessage(Tools.GetErrorMsg(error), 'danger', true);
-            }
-        });
+        this.apiService.download(`${this.model}-export`, null, undefined, aux)
+            .pipe(
+                timeout(150000) // timeout di 150 secondi
+            )
+            .subscribe({
+                next: (response: any) => {
+                    let filename: string = Tools.GetFilenameFromHeader(response);
+                    saveAs(response.body, filename);
+                    this._downloading = false;
+                },
+                error: (error: any) => {
+                    this._downloading = false;
+                    if (error.name === 'TimeoutError') {
+                        Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+                    } else {
+                        Tools.showMessage(Tools.GetErrorMsg(error), 'danger', true);
+                    }
+                }
+            });
     }
 }

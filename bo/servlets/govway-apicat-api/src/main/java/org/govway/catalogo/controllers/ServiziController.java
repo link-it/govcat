@@ -387,7 +387,7 @@ public class ServiziController implements ServiziApi {
 	private void checkReferenti(ServizioEntity servizioEntity) {
 
 		OrganizzazioneEntity organizzazione = servizioEntity.getDominio().getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(servizioEntity.isFruizione()) {
 			return;
 		}
 		
@@ -420,7 +420,7 @@ public class ServiziController implements ServiziApi {
 		}
 		
 		OrganizzazioneEntity organizzazione = referenteEntity.getServizio().getDominio().getSoggettoReferente().getOrganizzazione();
-		if(organizzazione.isEsterna()) {
+		if(referenteEntity.getServizio().isFruizione()) {
 			return;
 		}
 		
@@ -1127,8 +1127,7 @@ public class ServiziController implements ServiziApi {
 				specification.setNome(Optional.ofNullable(nome));
 				specification.setVersione(Optional.ofNullable(versione));
 
-
-				specification.setGruppoList(getGruppi(idGruppo));
+				specification.setIdGruppo(Optional.ofNullable(idGruppo).map( id -> {return this.gruppoService.find(id).get().getId();}));
 				
 				if(categoria !=null) {
 					List<UUID> categoriaLst = new ArrayList<>();
@@ -1232,31 +1231,6 @@ public class ServiziController implements ServiziApi {
 
 	}
 	
-	private List<UUID> getGruppi(UUID idGruppo) {
-		if(idGruppo != null) {
-			List<UUID> lst = new ArrayList<>();
-			Optional<GruppoEntity> oGruppo = this.gruppoService.find(idGruppo);
-			if(oGruppo.isPresent()) {
-				addGruppi(oGruppo.get(), lst);
-			} else {
-				lst.add(idGruppo);
-			}
-			
-			return lst;
-		} else {
-			return null;
-		}
-	}
-
-	private void addGruppi(GruppoEntity gruppoEntity, List<UUID> lst) {
-		lst.add(UUID.fromString(gruppoEntity.getIdGruppo()));
-		
-		for(GruppoEntity figlio: gruppoEntity.getFigli()) {
-			addGruppi(figlio, lst);
-		}
-		
-	}
-
 	@Override
 	public ResponseEntity<Resource> exportServizi(
 			String referente, UUID idDominio,
@@ -1273,7 +1247,7 @@ public class ServiziController implements ServiziApi {
 
 				ServizioSpecification specification = new ServizioSpecification();
 				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
-				specification.setGruppoList(getGruppi(idGruppo));
+				specification.setIdGruppo(Optional.ofNullable(idGruppo).map( id -> {return this.gruppoService.find(id).get().getId();}));
 				specification.setDominio(Optional.ofNullable(idDominio));
 				specification.setIdApi(Optional.ofNullable(idApi));
 				specification.setIdServizi(idServizi);

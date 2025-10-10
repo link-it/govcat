@@ -567,7 +567,7 @@ public class RegistrazioneServizioIntegrationTest {
         notifiche.getBody().getContent();
         
         //scaricare il descrittore dal dettaglio della API
-        ResponseEntity<Resource> specificaAPI = apiController.downloadSpecificaAPI(idAPI, AmbienteEnum.COLLAUDO, null, false, false);
+        ResponseEntity<Resource> specificaAPI = apiController.downloadSpecificaAPI(idAPI, AmbienteEnum.COLLAUDO, null, false, null);
         
         try {
         //assertEquals("SpecificaAPI.json", specificaAPI.getBody().getFilename());

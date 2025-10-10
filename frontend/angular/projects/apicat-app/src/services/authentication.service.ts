@@ -299,7 +299,7 @@ export class AuthenticationService {
     return session?.settings || null;
   }
 
-  async saveSettings(settings: any) {
+  saveSettings(settings: any) {
     const utente = this.getUser();
     if (utente) {
       let session = this.getCurrentSession();
@@ -333,7 +333,7 @@ export class AuthenticationService {
       
       let url = `${this.appConfig.GOVAPI['HOST']}${this.API_UTENTI}/${utente.id_utente}/settings`;
 
-      await this.http.put(url, _settings, httpOptions).subscribe({
+      this.http.put(url, _settings, httpOptions).subscribe({
         next: (response: any) => {
           session = this.getCurrentSession();
           session.settings = response;
@@ -358,18 +358,18 @@ export class AuthenticationService {
 
   isAnonymous() {
     const session = this.getCurrentSession();
-    return session?.utente ? false : true;
+    return !session?.utente;
   }
 
-  getRoles() {
-    const session = this.getCurrentSession();
-    return session?.roles ?? [];
+  getRole() {
+    const user = this.getUser();
+    return user?.ruolo ?? null;
   }
 
-  hasRole(role: string) {
-    const roles = this.getRoles();
-    if (roles.findIndex((x: any) => x.name === role) > -1) {
-      return true;
+  hasRole(roles: string[]) {
+    const role = this.getRole();
+    if (role) {
+      return roles.findIndex((x: any) => x === role) > -1;
     }
     return false;
   }
@@ -485,7 +485,7 @@ export class AuthenticationService {
     const _grantManagement: string[] = ['gestore', 'referente', 'referente_tecnico', 'referente_superiore', 'referente_tecnico_superiore', 'richiedente'];
 
     const _intersection = _.intersection(grant, _grantManagement);
-    return (_intersection.length > 0) || true;
+    return (_intersection.length > 0) && !this.isAnonymous();
   }
 
   canEditField(module: string, submodule: string, state: string, field: string, grant: string[] = []) {
@@ -624,7 +624,7 @@ export class AuthenticationService {
 
   canMonitoraggio(grant: string[] = []) {
     const _grant = [ ...grant ];
-    const _monitoraggio = this._getConfigModule('servizio').monitoraggio;
+    const _monitoraggio = this._getConfigModule('monitoraggio');
     const _ruoliAbilitati = _monitoraggio.ruoli_abilitati;
     if ((_.indexOf(grant, 'referente_tecnico') !== -1) && (_.indexOf(grant, 'referente') === -1)) {
       _grant.push('referente');

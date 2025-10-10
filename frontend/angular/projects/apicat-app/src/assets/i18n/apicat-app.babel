@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<babeledit_project be_version="5.4.1" version="1.3">
+<babeledit_project be_version="5.5.0" version="1.3">
 	<!--
 
     BabelEdit project file
@@ -2747,6 +2747,21 @@
 									</concept_node>
 									<concept_node>
 										<name>DeselectAll</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>Dissociate</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -9296,6 +9311,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>fruizione</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>FullName</name>
 										<description/>
 										<comment/>
@@ -11647,6 +11677,21 @@
 									</concept_node>
 									<concept_node>
 										<name>soggetto_aderente</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>soggetto_interno</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -14150,6 +14195,21 @@
 											</concept_node>
 											<concept_node>
 												<name>NoMessageError</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>Timeout</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -21301,6 +21361,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>Dissociate</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>Download</name>
 										<description/>
 										<comment/>
@@ -22732,6 +22807,21 @@
 									</concept_node>
 									<concept_node>
 										<name>ServiceList</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>Show</name>
 										<description/>
 										<comment/>
 										<translations>

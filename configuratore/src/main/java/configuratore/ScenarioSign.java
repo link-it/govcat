@@ -29,6 +29,8 @@ import org.govway.catalogo.core.configurazione.ConfigurazioneException;
 import org.govway.catalogo.core.dto.DTOClient;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.govway.catalogo.core.dto.SignClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import config.ControlloAccessiAutenticazione;
 import config.ControlloAccessiAutorizzazione;
@@ -54,6 +56,8 @@ public class ScenarioSign implements ConfigurazioneScenario {
 
 	private Invokers invokers;
 	
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
 	private boolean ignoreConflict;
 	
 	public ScenarioSign(Invokers invokers, Properties properties) {
@@ -64,8 +68,12 @@ public class ScenarioSign implements ConfigurazioneScenario {
 	}
 	
 	@Override
-	public boolean check(DTOClient client, GruppoServizio api) {
-		return !api.isFruizione() && api.getProfilo().equals("ModI");
+	public String getError(DTOClient client, GruppoServizio api) {
+		boolean check = !api.isFruizione() && api.isModI();
+		if(!check) {
+			return "L'API non può essere una fruizione di tipo ModI";
+		}
+		return null;
 	}
 
 	@Override
@@ -73,12 +81,13 @@ public class ScenarioSign implements ConfigurazioneScenario {
 			throws ConfigurazioneException {
 		SignClient client = (SignClient) rawClient;
 		
+		
 		ServizioApplicativo sa = new ServizioApplicativo()
 				.setModalitaAccesso("https")
 				.setNomeApplicativo(client.getNome())
 				.setCertificato(client.getCertificato())
 				.setDescrizione(client.getDescrizione())
-				.setModiDominio("esterno");
+				.setModiDominio("interno");
 		
 		DTOSoggetto soggetto = null;
 		if (!apis.isEmpty()) {
@@ -86,11 +95,9 @@ public class ScenarioSign implements ConfigurazioneScenario {
 		}
 		
 		try (Response response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto)) {
-			if (!response.isSuccessful() && (response.code() != 409 || !this.ignoreConflict))
-				throw new ConfigurazioneException();
+			this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 		} catch(TemplateException | IOException e) {
-			e.printStackTrace();
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		
 		return Map.of();
@@ -124,11 +131,10 @@ public class ScenarioSign implements ConfigurazioneScenario {
 	
 			// infine associo il servizio applicativo ai richiedenti
 			try (Response response = configInvoker.postApplicativoToServizio(gruppoServizio, client.getNome(), gruppoServizio.getSoggettoAderente().getNomeGateway())) {
-				if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-					throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+				this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 			}
 		} catch (IOException | TemplateException e) {
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage(), e);
 		}
 		return Map.of();
 	}

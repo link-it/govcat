@@ -65,6 +65,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<String> versione = Optional.empty();
 	private Optional<String> idReferente = Optional.empty();
 	private List<UUID> gruppoList = null;
+	private Optional<Long> idGruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
 	private List<UUID> categorie = null;
 	private Optional<VISIBILITA> visibilita = Optional.empty();
@@ -168,6 +169,16 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 			} else {
 				predLst.add(cb.disjunction());
 			}
+		}
+		
+		if(idGruppo.isPresent()) {
+			ArrayList<Predicate> preds2 = new ArrayList<>();
+			
+			preds2.add(cb.like(root.join(ServizioEntity_.gruppi, JoinType.LEFT).get(GruppoEntity_.alberatura), "%#"+idGruppo.get()+"#%"));
+			preds2.add(cb.equal(root.join(ServizioEntity_.gruppi, JoinType.LEFT).get(GruppoEntity_.id), idGruppo.get()));
+			
+			predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
+			
 		}
 
 		if(categorie != null) {
@@ -481,6 +492,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setUtenteAdmin(Optional<Boolean> utenteAdmin) {
 		this.utenteAdmin = utenteAdmin;
+	}
+
+	public Optional<Long> getIdGruppo() {
+		return idGruppo;
+	}
+
+	public void setIdGruppo(Optional<Long> idGruppo) {
+		this.idGruppo = idGruppo;
 	}
 
 }

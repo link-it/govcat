@@ -3,11 +3,6 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls" *ngIf="!_spin">
-      <!-- <div class="position-relative me-2">
-        <button type="button" class="btn btn-default btn-md gl-button" (click)="gotoManagement()" *ngIf="(_updateData | mapper:_canManagementMapper)">
-          <span *ngIf="_isPresentationView">{{ 'APP.SERVICES.TITLE.Management' | translate }}</span>
-        </button>
-      </div> -->
       <app-monitor-dropdown *ngIf="_updateData | mapper:_canManagementComunicazioniMapper"
         [showComunications]="_updateData | mapper:_canManagementComunicazioniMapper"
         [showMonitoring]="(_updateData | mapper:_canManagementMapper) && (_updateData | mapper:_canJoinMapper) && (_updateData | mapper:_canMonitoraggioMapper)"
@@ -17,17 +12,6 @@
       </app-monitor-dropdown>
     </div>
   </div>
-  <!-- <div class="top-area container-fluid limit-container-width px-0" [class.container-limited-]="!_isPresentationView">
-    <h3 class="page-title" *ngIf="true" >{{ data?.nome }}</h3>
-    <div class="d-flex flex-grow-1">&nbsp;</div>
-    <div class="nav-controls">
-      <div class="position-relative me-2" *ngIf="!_spin">
-        <button type="button" class="btn btn-default btn-md gl-button" (click)="gotoManagement()">
-          <span *ngIf="_isPresentationView">{{ 'APP.SERVICES.TITLE.Management' | translate }}</span>
-        </button>
-      </div>
-    </div>
-  </div> -->
   <section #myScroll class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4" [class.container-limited-]="!_isPresentationView" (scroll)="onScroll($event)">
 
     <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
@@ -75,10 +59,6 @@
                   <div class="descrizione-block mt-3">
                     <p>{{ data.descrizione_sintetica }}</p>
                   </div>
-
-                  <!-- <div class="tags-block" *ngIf="data.tags?.length">
-                    <span class="badge badge-pill gl-badge badge-outline mb-2 me-1" *ngFor="let tag of data.tags">{{ tag }}</span>
-                  </div> -->
 
                   <div class="download-block row mt-4" *ngIf="_updateData | mapper:_canDownloadDescriptorMapper">
                     <div class="col-12">
@@ -161,8 +141,10 @@
                   <div class="">
                     <div class="" *ngIf="data.descrizione">
                       <h6 class="text-uppercase text-muted mb-5">{{ 'APP.TITLE.DocumentazioneTecnica' | translate }}</h6>
-                      <markdown ngPreserveWhitespaces [data]="data.descrizione">
-                      </markdown>
+                      <markdown ngPreserveWhitespaces
+                        [data]="data.descrizione"
+                        class="markdown"
+                      ></markdown>
                     </div>
 
                     <div class="" *ngIf="!(serviceApi.length || serviceApiDominio.length || serviceApiAderente.length) && !serviceApiLoading">
@@ -226,56 +208,53 @@
 </div>
 
 <ng-template #openApiInfoTemplate>
-  <!-- <div class="modal-content"> -->
-    <div class="modal-header align-items-center sticky-top bg-white pb-2" style="z-index: 101;">
-      <h5 class="modal-title pull-left">{{ _currentApi?.nome || ' - ' }}</h5>
-      <div class="d-flex gap-2">
-        <lnk-dropdown-button *ngIf="debug && showJwtGenerator"
-          [title]="'APP.AUTHENTICATION.BUTTON.GenerateToken'"
-          [icon]="'bi bi-gear'" [items]="authenticationsList"
-          [menuEnd]="true"
-          (action)="_onGenerateToken($event)"
-        ></lnk-dropdown-button>
-        <lnk-button [label]="'APP.AUTHENTICATION.BUTTON.NEGOTIATION.' + tipoTokenPolicy" [icon]="'bi bi-gear'" [otherClass]="'me-2'" (onAction)="_onGenerateToken(tipoTokenPolicy)" *ngIf="showJwtGenerator && tipoTokenPolicy"></lnk-button>
-        <lnk-button [label]="'APP.BUTTON.Download'" [icon]="'bi bi-download'" [otherClass]="'me-3'" (onAction)="_onActionApi(_currentApi)" *ngIf="_currentApiConfiguration?.specifica"></lnk-button>
-        <lnk-button [label]="''" [icon]="'bi bi-x-lg'" [tertiary]="true" [otherClass]="'pull-right p-0'" [ariaLabel]="'Close'" (onAction)="closeModal()"></lnk-button>
-      </div>
+  <div class="modal-header align-items-center sticky-top bg-white pb-2" style="z-index: 101;">
+    <h5 class="modal-title pull-left">{{ _currentApi?.nome || ' - ' }}</h5>
+    <div class="d-flex gap-2">
+      <lnk-dropdown-button *ngIf="debug && showJwtGenerator"
+        [title]="'APP.AUTHENTICATION.BUTTON.GenerateToken'"
+        [icon]="'bi bi-gear'" [items]="authenticationsList"
+        [menuEnd]="true"
+        (action)="_onGenerateToken($event)"
+      ></lnk-dropdown-button>
+      <lnk-button [label]="'APP.AUTHENTICATION.BUTTON.NEGOTIATION.' + tipoTokenPolicy" [icon]="'bi bi-gear'" [otherClass]="'me-2'" (onAction)="_onGenerateToken(tipoTokenPolicy)" *ngIf="showJwtGenerator && tipoTokenPolicy"></lnk-button>
+      <lnk-button [label]="'APP.BUTTON.Download'" [icon]="'bi bi-download'" [otherClass]="'me-3'" (onAction)="_onActionApi(_currentApi)" *ngIf="_currentApiConfiguration?.specifica"></lnk-button>
+      <lnk-button [label]="''" [icon]="'bi bi-x-lg'" [tertiary]="true" [otherClass]="'pull-right p-0'" [ariaLabel]="'Close'" (onAction)="closeModal()"></lnk-button>
     </div>
-    <div class="border-bottom sticky-top bg-lightest d-flex gap-2 justify-content-between align-items-center px-3" style="top: 57px;height: 57px;" *ngIf="resultGenerazioneJwt">
-      <div class="d-flex gap-2 align-items-center">
-        <span>{{ 'APP.AUTHENTICATION.TITLE.AutheticationResults' | translate }}</span>
-      </div>
-      <div class="d-flex gap-2 justify-content-end align-items-center">
-        <div class="" *ngIf="_showMessageClipboard">{{ 'APP.MESSAGE.CopiedToClipboard' | translate }}</div>
-        <lnk-button [label]="'APP.AUTHENTICATION.BUTTON.Copy-' + item.label" [icon]="'bi bi-clipboard'" (onAction)="onResultCopyClipboard(item)" *ngFor="let item of resultGenerazioneJwtList"></lnk-button>
-      </div>
+  </div>
+  <div class="border-bottom sticky-top bg-lightest d-flex gap-2 justify-content-between align-items-center px-3" style="top: 57px;height: 57px;" *ngIf="resultGenerazioneJwt">
+    <div class="d-flex gap-2 align-items-center">
+      <span>{{ 'APP.AUTHENTICATION.TITLE.AutheticationResults' | translate }}</span>
     </div>
-    <div class="modal-body" [class.modal-body-disabled]="generateJwtOpened">
-      <div class="p-3">
-        <div class="view-template" style="min-height: 150px;">
-          <p *ngIf="!_currentApiConfiguration?.protocollo"  class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
-          <!-- <pre>{{ _currentApi | json }}</pre> -->
-          <div class="" *ngIf="_currentApiConfiguration?.protocollo === 'rest'">
-            <ng-container *ngIf="_currentApiConfiguration?.specifica else noSpecification">
-              <ui-swagger
-                [url]="_currentApi | mapper:_getApiUrlMapper"
-                [standaloneLayout]="false"
-                [allowTryIt]="allowTryIt && _environmentId !== 'produzione'"
-                [showAuthorizeBtn]="showAuthorizeBtn">
-              </ui-swagger>
-            </ng-container>
-            <ng-template #noSpecification>
-              <p class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
-            </ng-template>
-          </div>
-          <div class="" *ngIf="_currentApiConfiguration?.protocollo === 'soap'">
-            <ui-wsdl
-              [api]="_currentApi"
-              [environment]="_environmentId"
-            ></ui-wsdl>
-          </div>
+    <div class="d-flex gap-2 justify-content-end align-items-center">
+      <div class="" *ngIf="_showMessageClipboard">{{ 'APP.MESSAGE.CopiedToClipboard' | translate }}</div>
+      <lnk-button [label]="'APP.AUTHENTICATION.BUTTON.Copy-' + item.label" [icon]="'bi bi-clipboard'" (onAction)="onResultCopyClipboard(item)" *ngFor="let item of resultGenerazioneJwtList"></lnk-button>
+    </div>
+  </div>
+  <div class="modal-body" [class.modal-body-disabled]="generateJwtOpened">
+    <div class="p-3">
+      <div class="view-template" style="min-height: 150px;">
+        <p *ngIf="!_currentApiConfiguration?.protocollo"  class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
+        <div class="" *ngIf="_currentApiConfiguration?.protocollo === 'rest'">
+          <ng-container *ngIf="_currentApiConfiguration?.specifica else noSpecification">
+            <ui-swagger
+              [url]="_currentApi | mapper:_getApiUrlMapper"
+              [standaloneLayout]="false"
+              [allowTryIt]="allowTryIt && _environmentId !== 'produzione'"
+              [showAuthorizeBtn]="showAuthorizeBtn">
+            </ui-swagger>
+          </ng-container>
+          <ng-template #noSpecification>
+            <p class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
+          </ng-template>
+        </div>
+        <div class="" *ngIf="_currentApiConfiguration?.protocollo === 'soap'">
+          <ui-wsdl
+            [api]="_currentApi"
+            [environment]="_environmentId"
+          ></ui-wsdl>
         </div>
       </div>
     </div>
-  <!-- </div> -->
+  </div>
 </ng-template>

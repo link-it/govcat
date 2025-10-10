@@ -1,6 +1,6 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -60,7 +60,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _isEdit = false;
     _closeEdit = true;
     _isNew = false;
-    _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+    _formGroup: FormGroup = new FormGroup({});
     _data: Servizio = new Servizio({});
     _dataCreate: ServizioCreate = new ServizioCreate({});
 
@@ -487,18 +487,18 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 switch (key) {
                     // case 'id_servizio':
                     //   value = data[key] ? data[key] : null;
-                    //   _group[key] = new UntypedFormControl(value, [Validators.required]);
+                    //   _group[key] = new FormControl(value, [Validators.required]);
                     //   break;
                     // case 'utente_richiedente':
                     // case 'utente_ultima_modifica':
                     case 'referente':
                     // case 'referente_tecnico':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [Validators.required]);
+                        _group[key] = new FormControl(value, [Validators.required]);
                         break;
                     case 'versione':
                         value = data[key] ? data[key] : '';
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.required,
                             Validators.pattern("^[1-9][0-9]*$")
                         ]);
@@ -506,73 +506,77 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     case 'nome':
                     case 'descrizione_sintetica':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             // Validators.required,
                             Validators.maxLength(255)
                         ]);
                         break;
                     case 'descrizione':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             // Validators.required,
                             Validators.maxLength(4000)
                         ]);
                         break;
                     case 'note':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.maxLength(1000)
                         ]);
                         break;
                     case 'termini_ricerca':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.maxLength(255)
                         ]);
                         break;
                     case 'multi_adesione':
                         value = data[key] ? data[key] : false;
-                        _group[key] = new UntypedFormControl({ value: value, disabled: true }, [Validators.required]);
+                        _group[key] = new FormControl({ value: value, disabled: true }, [Validators.required]);
                         break;
                     case 'id_dominio':
                     // case 'dominio':
                         value = data['dominio'] ? data['dominio'].id_dominio : this.generalConfig?.dominio?.dominio_default;
-                        _group[key] = new UntypedFormControl(value, [Validators.required]);
+                        _group[key] = new FormControl(value, [Validators.required]);
                         break;
                     // case 'id_gruppo':
                     // // case 'gruppo':
                     //   value = data['gruppo'] ? data['gruppo'].id_gruppo : null;
-                    //   _group[key] = new UntypedFormControl(value, []);
+                    //   _group[key] = new FormControl(value, []);
                     //   break;
                     case 'classi':
                         value = (data[key] ? data[key] : []);
-                        _group[key] = new UntypedFormControl(value, []);
+                        _group[key] = new FormControl(value, []);
                         break;
                     case 'data_creazione':
                     case 'data_ultima_modifica':
                         const _now = moment().format('DD-MM-YYYY hh:mm:ss');
                         value = data[key] ? moment(data[key]).format('DD-MM-YYYY HH:mm:ss') : _now;
-                        _group[key] = new UntypedFormControl({ value: value, disabled: true }, []);
+                        _group[key] = new FormControl({ value: value, disabled: true }, []);
                         break;
                     // case 'package':
                     //   value = data[key] ? data[key] : false;
-                    //   _group[key] = new UntypedFormControl({ value: value, disabled: this.hasApi || this.hasComponenti }, []);
+                    //   _group[key] = new FormControl({ value: value, disabled: this.hasApi || this.hasComponenti }, []);
                     //   break;
                     case 'skip_collaudo':
                         value = data[key] ? data[key] : false;
-                        _group[key] = new UntypedFormControl(value, []);
+                        _group[key] = new FormControl(value, []);
                         break;
                     case 'adesione_disabilitata':
                         boolValue = data[key] ? data[key] : false;
-                        _group[key] = new UntypedFormControl(boolValue, []);
+                        _group[key] = new FormControl(boolValue, []);
+                        break;
+                    case 'fruizione':
+                        boolValue = data[key] ? data[key] : false;
+                        _group[key] = new FormControl(boolValue, []);
                         break;
                     default:
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, []);
+                        _group[key] = new FormControl(value, []);
                         break;
                 }
             });
-            this._formGroup = new UntypedFormGroup(_group);
+            this._formGroup = new FormGroup(_group);
 
             const controls: any = this._formGroup.controls;
             if (this._isVisibilita('riservato')) {
@@ -652,6 +656,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
             skièp_collaudo: body.skièp_collaudo || false,
+            fruizione: body.fruizione || false,
         };
 
             if (!body.package) {
@@ -693,7 +698,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._data = new Servizio({ ...response });
                     this.id = this.data.id_servizio;
                     this._isDominioDeprecato = this.data.dominio.deprecato || false;
-                    this._isDominioEsterno = this.data.dominio.soggetto_referente.organizzazione.esterna || false;
+                    this._isDominioEsterno = this.data.fruizione || false;
                     this._initBreadcrumb();
                     this.loadCurrentData();
                     if (this.data.package) {
@@ -741,7 +746,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 adesione_disabilitata: body.adesione_disabilitata || false,
                 id_soggetto_interno: body.id_soggetto_interno || null,
                 package: body.package || false,
-                skip_collaudo: body.skip_collaudo || false
+                skip_collaudo: body.skip_collaudo || false,
+                fruizione: body.fruizione || false
             },
             dati_generici: {
                 // gruppo: body.id_gruppo,
@@ -1272,11 +1278,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
 
-        this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
-        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
-        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
+        // this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
+        // this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        // this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
+        // this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        // this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
 
         this._enableDisableSkipCollaudo(this.selectedDominio);
     }
@@ -1325,6 +1331,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
         this.enableDisableControlPackage();
         this.enableDisableControlAdesioneConsentita();
+    }
+
+    _onChangeFruizione(event: any) {
+        this._isDominioEsterno = this._formGroup.get('fruizione')?.value || false;
+        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
+        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
     }
 
     showReferenti: boolean = true;

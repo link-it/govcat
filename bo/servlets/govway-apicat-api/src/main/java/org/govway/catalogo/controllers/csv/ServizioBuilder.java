@@ -92,22 +92,22 @@ public class ServizioBuilder {
 		List<Servizio> serviziCSV = new ArrayList<>();
 
 		
-		this.logger.info("Servizio: " + servizioEntity.getNome() + " v" + servizioEntity.getVersione());
+		this.logger.debug("Servizio: " + servizioEntity.getNome() + " v" + servizioEntity.getVersione());
 
 		for(AdesioneEntity adesione: servizioEntity.getAdesioni()) {
 
-			this.logger.info("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato());
+			this.logger.debug("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato());
 			if(this.configurazione.getAdesione().getStatiSchedaAdesione().contains(adesione.getStato())) {
 
-				this.logger.info("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato() +" OK");
+				this.logger.debug("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato() +" OK");
 				Set<ApiEntity> apiLst = servizioEntity.getApi();
-				this.logger.info("Adesione: " + adesione.getIdLogico() + " api size: " + apiLst.size());
+				this.logger.debug("Adesione: " + adesione.getIdLogico() + " api size: " + apiLst.size());
 				
 				boolean hasCollaudo = hasCollaudo(adesione.getStato());
 				boolean hasProduzione = hasProduzione(adesione.getStato());
 				for(ApiEntity api: apiLst) {
 
-					this.logger.info("Adesione: " + adesione.getIdLogico() + " api: " + api.getNome());
+					this.logger.debug("Adesione: " + adesione.getIdLogico() + " api: " + api.getNome());
 					Servizio s = new Servizio();
 					s.setAzioneRisorsa(api.getAuthType().stream().map(at -> new String(at.getResources()).replaceAll(",", "\n")).collect(Collectors.joining("\n")));
 
@@ -184,7 +184,7 @@ public class ServizioBuilder {
 					serviziCSV.add(s);
 				}
 			} else {
-				this.logger.info("Adesione: " + adesione.getIdLogico() + " in stato: " + adesione.getStato()+" non consentito per l'export. Stati consentiti ["+this.configurazione.getAdesione().getStatiSchedaAdesione()+"]");
+				this.logger.debug("Adesione: " + adesione.getIdLogico() + " in stato: " + adesione.getStato()+" non consentito per l'export. Stati consentiti ["+this.configurazione.getAdesione().getStatiSchedaAdesione()+"]");
 				
 			}
 		}

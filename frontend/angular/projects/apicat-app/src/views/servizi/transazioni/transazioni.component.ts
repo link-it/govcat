@@ -138,7 +138,8 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   currentSearchType: string | null = SearchTypeEnum.Generic;
 
   breadcrumbs: any[] = [
-    { label: 'APP.TITLE.Services', url: '', type: 'title', iconBs: 'grid-3x3-gap' }
+    { label: 'APP.TITLE.Services', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
+    { label: '...', url: '', type: 'title' }
   ];
 
   viewBoxed: boolean = false;

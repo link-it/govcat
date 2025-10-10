@@ -443,6 +443,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _prepareBodySaveApi(body: any) {
+        console.log('_prepareBodySaveApi', body);
         const configurazioneCollaudo: ApiConfiguration = {
             protocollo: body.protocollo,
             dati_erogazione: {
@@ -506,15 +507,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
             _newBody.proprieta_custom = [];
             Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
+                // Use nome_gruppo from the first item in the group instead of the grouping key
+                const firstItem = this._apiProprietaCustomGrouped[k][0];
                 const _customGrouped: ApiCustomProperty = {
-                    gruppo: k,
+                    gruppo: firstItem.nome_gruppo,
                     proprieta: []
                 };
                 this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[k][kk.nome]) {
+                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
                         _customGrouped.proprieta.push({
                             nome: kk.nome,
-                            valore: body.proprieta_custom[k][kk.nome]
+                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
                         });
                     }
                 });
@@ -591,15 +594,17 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             const proprieta_custom: ApiCustomProperty[] = [];
             _newBody.dati_custom = {proprieta_custom: proprieta_custom};
             Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
+                // Use nome_gruppo from the first item in the group instead of the grouping key
+                const firstItem = this._apiProprietaCustomGrouped[k][0];
                 const _customGrouped: any = {
-                    gruppo: k,
+                    gruppo: firstItem.nome_gruppo,
                     proprieta: []
                 };
                 this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[k][kk.nome]) {
+                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
                         _customGrouped.proprieta.push({
                             nome: kk.nome,
-                            valore: body.proprieta_custom[k][kk.nome]
+                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
                         });
                     }
                 });
@@ -608,6 +613,15 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
 
         return this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
+    }
+
+    _getGroupNameByLabel(group: any) {
+        const _srv: any = Tools.Configurazione?.servizio;
+        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        if (!this._isNew){
+            _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
+        }
+        return _proprietaCustom.find((item: any) => item.label_gruppo === group)?.nome_gruppo || group;
     }
 
     _onSubmit(form: any, close: boolean = true) {
@@ -1449,10 +1463,16 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
         }
-        return _proprietaCustom.find((item: any) => item.nome_gruppo === group)?.label_gruppo;
+        let labelGroup = _proprietaCustom.find((item: any) => item.nome_gruppo === group)?.label_gruppo;
+        if (!labelGroup) {
+            labelGroup = _proprietaCustom.find((item: any) => item.label_gruppo === group)?.label_gruppo;
+        }
+        return labelGroup;
     }
 
     _initProprietaCustom() {
+        const fieldToGroup = 'label_gruppo';
+
         this._resetProprietaCustom();
 
         const profiles = this._getAllProfileValues();
@@ -1475,18 +1495,18 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 return;
             }
 
-            const _gruppo = item.nome_gruppo;
             const _ruoli_abilitati = item.ruoli_abilitati;
-            item.proprieta.forEach((proprieta: any) => {
+            item.proprieta.sort((a: any, b: any) => a.index - b.index).forEach((proprieta: any) => {
                 this._apiProprietaCustom.push({
-                    nome_gruppo: _gruppo,
+                    nome_gruppo: item.nome_gruppo,
+                    label_gruppo: item.label_gruppo,
                     classe_dato: item.classe_dato,
                     ...proprieta,
                     ruoli_abilitati: _ruoli_abilitati ? [ ..._ruoli_abilitati ] : undefined
                 });
             });
         });
-        this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, 'nome_gruppo');
+        this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, fieldToGroup);
 
         const filtered = this.filtraCampiPerRuoli(this._apiProprietaCustomGrouped, this._grant?.ruoli || []);
 

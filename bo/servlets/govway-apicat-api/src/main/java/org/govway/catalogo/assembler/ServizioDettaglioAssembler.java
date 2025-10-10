@@ -175,6 +175,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 		dettaglio.setMultiAdesione(entity.isMultiAdesione());
+		dettaglio.setFruizione(entity.isFruizione());
 
 		return dettaglio;
 	}
@@ -190,6 +191,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
 		}
+
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
 
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
@@ -251,9 +254,9 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		DominioEntity newDominio = dominioService.find(idDominio).
 				orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
 		
-		if(newDominio.getSoggettoReferente().getOrganizzazione().isEsterna()) {
+		if(entity.isFruizione()) {
 			if(idSoggetto==null) {
-				throw new RichiestaNonValidaSemanticamenteException("Dominio ["+newDominio.getNome()+"] esterno e soggetto interno non specificato");
+				throw new RichiestaNonValidaSemanticamenteException("Servizio di tipo fruizione e soggetto interno non specificato");
 			}
 			
 			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
@@ -348,6 +351,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		UtenteEntity utenteSessione = engine.getUtenteSessione();
 
 		entity.setTipo(engine.toTipo(src.getTipo()));
+
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
 
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);

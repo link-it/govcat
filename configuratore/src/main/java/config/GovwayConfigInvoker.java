@@ -108,7 +108,13 @@ public class GovwayConfigInvoker {
 		template.process(dataModel, writer);
 		
 		byte[] content = stream.toByteArray();
+		logger.info("Body: " + new String(content));
 		return RequestBody.create(content, type);
+	}
+	
+	public void checkResponse(Response res, boolean ignoreConflict) throws IOException, TemplateException {
+		if (res.code() > 299 && (res.code() != 409 || !ignoreConflict))
+			throw new IOException("ottenuto codice di errore HTTP: " + res.code() + ". Body: " + res.body().string());
 	}
 	
 	public Response createSoggetto(DTOSoggetto soggetto) throws IOException, TemplateException {
@@ -143,7 +149,8 @@ public class GovwayConfigInvoker {
 			soggetto = api.getSoggettoErogatore();
 		}
 		
-		url.addQueryParameter(QUERY_SOGGETTO, soggetto.getNomeGateway())
+		url
+		.addQueryParameter(QUERY_SOGGETTO, soggetto.getNomeGateway())
 			.addQueryParameter(QUERY_PROFILO, soggetto.getTipoGateway());
 		
 		url.addPathSegment(api.getNomeServizio())
@@ -255,6 +262,7 @@ public class GovwayConfigInvoker {
 	public Response postServizioApplicativo(ServizioApplicativo sa, DTOSoggetto soggetto) throws IOException, TemplateException {			
 		HttpUrl url = this.baseUrl.newBuilder()
 				.addPathSegment("applicativi")
+				.addQueryParameter(QUERY_SOGGETTO, soggetto.getNomeGateway())
 				.addQueryParameter(QUERY_PROFILO, soggetto.getTipoGateway())
 				.build();
 		
@@ -276,21 +284,32 @@ public class GovwayConfigInvoker {
 				.addPathSegment("applicativi")
 				.build();
 				
+		logger.info("url:" + url);
 		Map<String, String> root = new HashMap<>();
 		root.put("nome_applicativo", saName);
 		if (soggetto != null)
 			root.put("soggetto", soggetto);
+
+		root.entrySet().forEach(e -> {
+			logger.info(e.getKey() + "-> " + e.getValue());
+		});
+		
+		RequestBody templateToRequestBody = templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_EROGAZIONE_APPLICATIVI), root);
 		
 		Request request = new Request.Builder()
 		        .url(url)
 		        .addHeader(HEADER_AUTHORIZATION, this.credentials)
-		        .post(templateToRequestBody(JSON, this.template.getTemplate(PATH_TEMPLATE_EROGAZIONE_APPLICATIVI), root))
+		        .post(templateToRequestBody)
 		        .build();
 				
 		return this.client.newCall(request).execute();
 	}
 	
 	public Response postApplicativoToServizioToken(GruppoServizio singleAPI, String saName) throws TemplateException, IOException {
+		return this.postApplicativoToServizioToken(singleAPI, saName, null);
+	}
+	
+	public Response postApplicativoToServizioToken(GruppoServizio singleAPI, String saName, String soggetto) throws TemplateException, IOException {
 		// infine assicio il servizio applicativo ai richiedenti
 		HttpUrl url = this.baseUrl.newBuilder()
 				.addPathSegment("erogazioni")
@@ -305,10 +324,19 @@ public class GovwayConfigInvoker {
 				.addQueryParameter(QUERY_PROFILO, singleAPI.getSoggettoErogatore().getTipoGateway())
 				.addQueryParameter(QUERY_GRUPPO, singleAPI.getGruppo())
 				.build();
-					
+
+		logger.info("url:" + url);
+
 		Map<String, String> root = new HashMap<>();
 		root.put("nome_applicativo", saName);
+		if(soggetto != null) {
+			root.put("soggetto", soggetto);
+		}
 			
+		root.entrySet().forEach(e -> {
+			logger.info(e.getKey() + "-> " + e.getValue());
+		});
+
 		Request request = new Request.Builder()
 		        .url(url)
 		        .addHeader(HEADER_AUTHORIZATION, this.credentials)
@@ -336,7 +364,7 @@ public class GovwayConfigInvoker {
 				.addPathSegment(singleAPI.getNomeApi())
 				.addPathSegment(singleAPI.getVersioneApi().toString())
 				.addPathSegments("risorse")
-				.addQueryParameter(QUERY_SOGGETTO, singleAPI.getSoggettoErogatore().getNomeGateway())
+//				.addQueryParameter(QUERY_SOGGETTO, singleAPI.getSoggettoErogatore().getNomeGateway())
 				.addQueryParameter(QUERY_PROFILO, singleAPI.getSoggettoErogatore().getTipoGateway())
 				.addQueryParameter("limit", limit.toString())
 				.addQueryParameter("offset", offset.toString())
@@ -380,7 +408,7 @@ public class GovwayConfigInvoker {
  			String nome = risorseNomi.get(risorsa);
 			
 			if (nome == null) {
-				throw new IOException("risorsa non presente");
+				throw new IOException("risorsa ["+risorsa+"] non presente");
 			} else {
 				nomi.add(nome);
 			}

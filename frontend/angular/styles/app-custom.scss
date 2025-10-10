@@ -1004,3 +1004,18 @@ input[type=checkbox], input[type=radio] {
       }
   }
 }
+
+// Markdown
+
+.markdown {
+  b, strong {
+      font-weight: 700;
+  }
+
+  a {
+    color: #1f75cb !important;
+    &:hover {
+      text-decoration: underline !important;
+    }
+  }
+}

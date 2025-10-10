@@ -23,7 +23,6 @@
 
                 <div *ngFor="let erogaz of adesioneErogazioni;let first = first">
                     <div class="flex-container container-fluid border-bottom ps-0" [class.border-top]="first">
-                        <!-- <pre>{{ erogaz | json }}</pre> -->
                         <div class="flex-auto">
                             <ui-item-row 
                                 [data]="erogaz"
@@ -33,7 +32,13 @@
                             ></ui-item-row>
                         </div>
                         <div class="flex-initial" *ngIf="isEdit">
-                            <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" ng-reflect-tooltip="Modifica" (click)="onEdit(erogaz)">
+                            <button
+                                aria-expanded="false"
+                                type="button"
+                                class="btn btn-default btn-md gl-button btn-icon"
+                                [tooltip]="((erogaz | mapper:_isModifiableMapper) ? 'APP.TOOLTIP.Modify' : 'APP.TOOLTIP.Show') | translate" [delay]="500"
+                                (click)="onEdit(erogaz)"
+                            >
                                 <i *ngIf="erogaz | mapper:_isModifiableMapper" class="bi bi-pencil"></i>
                                 <i *ngIf="!(erogaz | mapper:_isModifiableMapper)" class="bi bi-eye"></i>
                             </button>

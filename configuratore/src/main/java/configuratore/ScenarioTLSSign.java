@@ -57,8 +57,18 @@ public class ScenarioTLSSign implements ConfigurazioneScenario {
 	}
 	
 	@Override
-	public boolean check(DTOClient client, GruppoServizio api) {
-		return this.scenarioSign.check(client, api) && this.scenarioTLS.check(client, api);
+	public String getError(DTOClient client, GruppoServizio api) {
+		
+		String errorSign = this.scenarioSign.getError(client, api);
+		if(errorSign != null) {
+			return  "Scenario Sign: " + errorSign;
+		}
+		String errorTLS = this.scenarioTLS.getError(client, api);
+		if(errorTLS != null) {
+			return "Scenario TLS: " + errorTLS;
+		}
+		
+		return null;
 	}
 
 	private HttpsClient extractHttpsClient(HttpsSignClient client) {
@@ -87,8 +97,8 @@ public class ScenarioTLSSign implements ConfigurazioneScenario {
 		HttpsSignClient httpsSignClient = (HttpsSignClient) rawClient;
 		
 		Map<String, String> rv = new HashMap<>();
-		rv.putAll(this.scenarioSign.configureClient(this.extractSignClient(httpsSignClient), gruppiServizio));
 		rv.putAll(this.scenarioTLS.configureClient(this.extractHttpsClient(httpsSignClient), gruppiServizio));
+		rv.putAll(this.scenarioSign.configureClient(this.extractSignClient(httpsSignClient), gruppiServizio));
 		return rv;
 	}
 
