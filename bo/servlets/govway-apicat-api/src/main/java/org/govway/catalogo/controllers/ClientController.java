@@ -108,7 +108,7 @@ public class ClientController implements ClientApi {
 				ClientEntity entity = this.dettaglioAssembler.toEntity(clientCreate);
 
 				if(this.service.existsByNomeSoggettoAmbiente(entity)) {
-					throw new ConflictException(ErrorCode.CLT_002, Map.of("nome", clientCreate.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", clientCreate.getAmbiente().toString()));
+					throw new ConflictException(ErrorCode.CLT_409, Map.of("nome", clientCreate.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", clientCreate.getAmbiente().toString()));
 				}
 				
 				this.service.save(entity);
@@ -126,7 +126,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 		
@@ -139,12 +139,12 @@ public class ClientController implements ClientApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
 				this.authorization.authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getAdesioni().isEmpty()) {
-					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(entity.getAdesioni().size())));
+					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(entity.getAdesioni().size())));
 				}
 				this.service.delete(entity);
 				this.logger.info("Invocazione completata con successo");
@@ -158,7 +158,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -170,7 +170,7 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -189,7 +189,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -248,7 +248,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -261,7 +261,7 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
 				this.authorization.authorizeUpdate(clientUpdate, entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -272,11 +272,11 @@ public class ClientController implements ClientApi {
 				
 				if(nomeCambiato || soggettoCambiato || ambienteCambiato) {
 					if(this.service.existsByNomeSoggettoAmbiente(clientUpdate.getNome(), clientUpdate.getIdSoggetto().toString(), this.clientEngineAssembler.toAmbiente(clientUpdate.getAmbiente()))) {
-						throw new ConflictException(ErrorCode.CLT_002, Map.of("nome", clientUpdate.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", clientUpdate.getAmbiente().toString()));
+						throw new ConflictException(ErrorCode.CLT_409, Map.of("nome", clientUpdate.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", clientUpdate.getAmbiente().toString()));
 					}
 
 					if(entity.getStato().equals(StatoEnum.CONFIGURATO)) {
-						throw new BadRequestException(ErrorCode.CLT_003, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString()));
+						throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString()));
 					}
 
 					
@@ -286,7 +286,7 @@ public class ClientController implements ClientApi {
 						long cnt = adesioneService.count(spec);
 						
 						if(cnt > 0) {
-							throw new BadRequestException(ErrorCode.CLT_003, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(cnt)));
+							throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(cnt)));
 						}
 
 					}
@@ -309,7 +309,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -322,14 +322,14 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 				
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
 				this.authorization.authorizeGet(entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				EstensioneClientEntity allegato = entity.getEstensioni().stream().filter(e -> e.getDocumento()!= null && e.getDocumento().getUuid().equals(idAllegato.toString()))
 						.findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 				Resource resource = new ByteArrayResource(allegato.getDocumento().getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -343,7 +343,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -355,7 +355,7 @@ public class ClientController implements ClientApi {
 				this.logger.info("Invocazione in corso ...");     
 				
 				ClientEntity entity = this.service.find(idClient)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_001));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLT_404));
 				this.authorization.authorizeUpdate(null, entity);
 				
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -376,7 +376,7 @@ public class ClientController implements ClientApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

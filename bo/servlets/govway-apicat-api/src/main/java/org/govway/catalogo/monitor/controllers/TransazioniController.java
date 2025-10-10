@@ -102,7 +102,7 @@ public class TransazioniController implements TransazioniApi {
 		this.soggettoService.runTransaction(() -> {
 
 			if(transazione.getApi()!=null) {
-				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
+				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
 
 				ItemSoggetto itemSoggetto = new ItemSoggetto();
 
@@ -137,7 +137,7 @@ public class TransazioniController implements TransazioniApi {
 		this.soggettoService.runTransaction(() -> {
 
 			if(transazione.getApi()!=null) {
-				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
+				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
 
 				ItemSoggetto itemSoggetto = new ItemSoggetto();
 
@@ -209,11 +209,11 @@ public class TransazioniController implements TransazioniApi {
 
 	private void authorize() {
 		if(!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
-			throw new NotFoundException(ErrorCode.MON_001, Map.of());
+			throw new NotFoundException(ErrorCode.MON_404, Map.of());
 		}
 
 		if(this.configurazione.getServizio().getMonitoraggio().isTransazioniAbilitate() != null && !this.configurazione.getServizio().getMonitoraggio().isTransazioniAbilitate()) {
-			throw new NotFoundException(ErrorCode.MON_007, Map.of("tipo", "transazioni"));
+			throw new NotFoundException(ErrorCode.MON_404_STATS, Map.of("tipo", "transazioni"));
 		}
 		
 		//TODO check ruoli
@@ -298,7 +298,7 @@ public class TransazioniController implements TransazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -324,7 +324,7 @@ public class TransazioniController implements TransazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -350,7 +350,7 @@ public class TransazioniController implements TransazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -380,7 +380,7 @@ public class TransazioniController implements TransazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -408,7 +408,7 @@ public class TransazioniController implements TransazioniApi {
 	}
 	catch(Throwable e) {
 		this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-		throw new InternalException(ErrorCode.SYS_001, Map.of());
+		throw new InternalException(ErrorCode.SYS_500, Map.of());
 	}
 	}
 
@@ -438,7 +438,7 @@ public class TransazioniController implements TransazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -466,7 +466,7 @@ public class TransazioniController implements TransazioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 }

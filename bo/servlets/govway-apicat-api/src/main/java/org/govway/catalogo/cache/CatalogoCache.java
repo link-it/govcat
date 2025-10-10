@@ -59,7 +59,7 @@ public class CatalogoCache {
 	
 	public SoggettoEntity getSoggetto(String nome) {
 		return this.findSoggetto(nome)
-				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
 	}
 
 	public long countAdesioni(String idServizio, String idSoggetto) {

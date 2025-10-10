@@ -90,7 +90,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			return response;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -486,7 +486,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			throw e;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -684,7 +684,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			throw e;
 		} catch (Exception e) {
 			this.logger.error("Errore durante la serializzazione delle transazioni: " + e.getMessage(), e);
-			throw new InternalException(ErrorCode.SYS_001, Map.of(), e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 		
 	}
@@ -699,7 +699,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			if(apis.size() > 0) {
 				return;
 			} else {
-				throw new NotAuthorizedException(ErrorCode.AUTH_006, Map.of("idTraccia", transazione.getIdTraccia().toString()));
+				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("idTraccia", transazione.getIdTraccia().toString()));
 			}
 
 			

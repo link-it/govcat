@@ -83,15 +83,15 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 		
 		TIPO_REFERENTE tipoReferente = toTipoReferente(src.getTipo());
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
-				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO)) {
-			throw new BadRequestException(ErrorCode.ORG_008, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+			throw new BadRequestException(ErrorCode.UT_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.ORG_008, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+				throw new BadRequestException(ErrorCode.UT_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 			}
 
 		}
@@ -103,7 +103,7 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 		boolean exists = dominio.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
 
 		if(exists) {
-			throw new BadRequestException(ErrorCode.ORG_002, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeDominio", entity.getDominio().getNome()));
+			throw new BadRequestException(ErrorCode.ORG_409, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeDominio", entity.getDominio().getNome()));
 		}
 
 		return entity;

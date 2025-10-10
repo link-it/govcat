@@ -72,7 +72,7 @@ public class ConfigurazioneController implements ConfigurazioneApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -95,7 +95,7 @@ public class ConfigurazioneController implements ConfigurazioneApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -120,7 +120,7 @@ public class ConfigurazioneController implements ConfigurazioneApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

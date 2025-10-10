@@ -51,13 +51,13 @@ public class HttpBasicEstensioneClientAssembler extends AbstractEstensioneClient
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 
 		if(!(src instanceof AuthTypeHttpBasicCreate)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeHttpBasicCreate.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeHttpBasicCreate.class.getSimpleName()));
 		}
 
 		AuthTypeHttpBasicCreate specSrc = (AuthTypeHttpBasicCreate) src;
 
 		if(!(configurazione instanceof ConfigurazioneAuthTypeHttpBasic)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", ConfigurazioneAuthTypeHttpBasic.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", ConfigurazioneAuthTypeHttpBasic.class.getSimpleName()));
 		}
 		
 //		ConfigurazioneAuthTypeHttpBasic conf = (ConfigurazioneAuthTypeHttpBasic) configurazione;
@@ -135,7 +135,7 @@ public class HttpBasicEstensioneClientAssembler extends AbstractEstensioneClient
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 
 		if(!(dsc instanceof AuthTypeHttpBasic)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeHttpBasic.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeHttpBasic.class.getSimpleName()));
 		}
 		
 		AuthTypeHttpBasic specDsc = (AuthTypeHttpBasic) dsc;

@@ -141,7 +141,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					//.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
 			if (configurazioneProfilo.isEmpty()) {
 			    String errorMessage = String.format("Profilo [%s] non trovato", authType.getProfilo());
-			    throw new BadRequestException(ErrorCode.VAL_002);
+			    throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
 			}
 
 			g.setProfilo(authType.getProfilo());
@@ -267,7 +267,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		entity.setIdApi(UUID.randomUUID().toString());
 
 		entity.getServizi().add(servizioService.find(src.getIdServizio()).
-				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002)));
+				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404)));
 
 		entity.setRuolo(this.apiEngineAssembler.toRuolo(src.getRuolo()));
 
@@ -303,14 +303,14 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					return PROTOCOLLO.SWAGGER_2;
 				} else {
 					this.logger.error("Swagger / OpenAPI fornito non corretto");
-					throw new BadRequestException(ErrorCode.DOC_002);
+					throw new BadRequestException(ErrorCode.DOC_400_FORMAT);
 				}
 			case SOAP:
 				try {
 					return WsdlUtils.getProtocolloApi(spec.getRawData());
 				} catch (Exception e) {
 					this.logger.error("WSDL fornito non corretto: " + e.getMessage(), e);
-					throw new BadRequestException(ErrorCode.DOC_002);
+					throw new BadRequestException(ErrorCode.DOC_400_FORMAT);
 				}
 			}
 
@@ -321,7 +321,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 			}
 		}
 
-		throw new BadRequestException(ErrorCode.SYS_001);
+		throw new BadRequestException(ErrorCode.SYS_500);
 	}
 
 	private ApiConfigEntity getApiConfig(APIDatiAmbienteCreate src, ApiEntity api) {
@@ -353,7 +353,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 	private void checkSpecifica(DocumentoCreate specifica) {
 		if(this.configurazione.getServizio().getApi().isSpecificaObbligatorio()) {
 			if(specifica == null || specifica.getContent() == null) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 	}
@@ -366,7 +366,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				.stream()
 				.filter(c -> c.getNomeGruppo().equals(apc.getGruppo()))
 				.findAny()
-				.orElseThrow(() -> new BadRequestException(ErrorCode.GRP_001));
+				.orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404));
 
 				for(AuthTypeApiResourceProprietaCustom p: apc.getProprieta()) {
 					Optional<ConfigurazioneCustomProprieta> configurazioneCustomProprieta = g.getProprieta()
@@ -377,7 +377,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					
 					if (configurazioneCustomProprieta.isEmpty()) {
 					    String errorMessage = String.format("Proprietà [%s] non trovata per il gruppo [%s]", p.getNome(), g.getNomeGruppo());
-					    throw new BadRequestException(ErrorCode.VAL_002);
+					    throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
 					}
 					
 					EstensioneApiEntity e = new EstensioneApiEntity();
@@ -407,9 +407,9 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					.stream()
 					.filter(tp -> tp.getCodicePolicy().equals(nomeTokenPolicy))
 					.findAny()
-					.orElseThrow(() -> new InternalException(ErrorCode.SYS_001));
+					.orElseThrow(() -> new InternalException(ErrorCode.SYS_500));
 		} else {
-			throw new BadRequestException(ErrorCode.SYS_001);
+			throw new BadRequestException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -422,7 +422,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 						.stream()
 						.filter(pr -> pr.getCodiceInterno().equals(gruppo.getProfilo()))
 						.findAny()
-						.orElseThrow(() -> new BadRequestException(ErrorCode.VAL_002));
+						.orElseThrow(() -> new BadRequestException(ErrorCode.VAL_400_FORMAT));
 
 				DominioEntity d = entity.getServizio().getDominio();
 				
@@ -431,19 +431,19 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					ConfigurazioneTipoDominioEnum cd = entity.getServizio().isFruizione() ? ConfigurazioneTipoDominioEnum.ESTERNO: ConfigurazioneTipoDominioEnum.INTERNO;
 					
 					if(!p.getTipoDominio().equals(cd)) {
-							throw new BadRequestException(ErrorCode.VAL_011);
+							throw new BadRequestException(ErrorCode.VAL_422);
 					}
 				}
 					
 				if(p.getDomini()!= null) {
 					if(!p.getDomini().stream().anyMatch(dNome -> dNome.equals(d.getNome()))) {
-						throw new BadRequestException(ErrorCode.VAL_011);
+						throw new BadRequestException(ErrorCode.VAL_422);
 					}
 				}
 					
 				if(p.getSoggetti()!= null) {
 					if(!p.getSoggetti().stream().anyMatch(dNome -> dNome.equals(d.getSoggettoReferente().getNome()))) {
-						throw new BadRequestException(ErrorCode.VAL_011);
+						throw new BadRequestException(ErrorCode.VAL_422);
 					}
 				}
 					
@@ -458,7 +458,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					break;}
 
 				if(p.getCompatibilita() != null && !p.getCompatibilita().equals(comp)) {
-					throw new BadRequestException(ErrorCode.VAL_011);
+					throw new BadRequestException(ErrorCode.VAL_422);
 				}
 
 				AuthTypeEntity authType = new AuthTypeEntity();
@@ -470,7 +470,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				authTypeSet.add(authType);
 			}
 		} else {
-			throw new BadRequestException(ErrorCode.VAL_001);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 		return authTypeSet;
 	}
@@ -515,7 +515,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		ConfigurazioneCustomProprietaList g = this.configurazione.getServizio().getApi().getProprietaCustom()
 			.stream().filter(pc -> pc.getNomeGruppo().equals(gruppo))
 			.findAny()
-			.orElseThrow(() -> new InternalException(ErrorCode.SYS_001));
+			.orElseThrow(() -> new InternalException(ErrorCode.SYS_500));
 		return g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO) ||g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO);
 	}
 
@@ -574,7 +574,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 						.stream()
 						.filter(pr -> pr.getCodiceInterno().equals(authType.getProfilo()))
 						.findAny()
-						.orElseThrow(() -> new InternalException(ErrorCode.SYS_001));
+						.orElseThrow(() -> new InternalException(ErrorCode.SYS_500));
 				
 				if(p.getCodiceTokenPolicy()!= null) {
 					return getTokenPolicy(entity.getServizio().getTipo(), p.getCodiceTokenPolicy());

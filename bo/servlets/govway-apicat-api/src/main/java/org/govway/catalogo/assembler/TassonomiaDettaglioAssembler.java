@@ -82,14 +82,14 @@ public class TassonomiaDettaglioAssembler extends RepresentationModelAssemblerSu
 	private void check(TassonomiaEntity entity) {
 		if(entity.isVisibile()) {
 			if(entity.getCategorie().isEmpty()) {
-				throw new BadRequestException(ErrorCode.TAX_003);
+				throw new BadRequestException(ErrorCode.CAT_404);
 			}
 		} else {
 
 			if(entity.getCategorie() != null) {
 				for(CategoriaEntity c: entity.getCategorie()) {
 					if(!c.getServizi().isEmpty()) {
-						throw new BadRequestException(ErrorCode.TAX_003);
+						throw new BadRequestException(ErrorCode.CAT_404);
 					}
 				}
 			}

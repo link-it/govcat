@@ -56,10 +56,10 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		ConfigurazioneWorkflow workflow = getWorkflow(entity);
 		String statoIniziale = getStato(entity);
 		if(!workflow.getStati().contains(statoFinale)) {
-			throw new NotAuthorizedException(ErrorCode.AUTH_005);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 		if(!workflow.getStati().contains(statoIniziale)) {
-			throw new NotAuthorizedException(ErrorCode.AUTH_005);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 		
 
@@ -70,7 +70,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			// dallo stato archiviato si può tornare solo allo stato precedente
 			String statoPrecedente = getStatoPrecedente(entity);
 			if(!statoFinale.equals(statoPrecedente)) {
-				throw new NotAuthorizedException(ErrorCode.WFL_001);
+				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
 			}
 		} else {
 
@@ -78,7 +78,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 					.filter(cs -> cs.getStatoAttuale().equals(statoIniziale)).collect(Collectors.toList());
 
 			if(lstStatoPartenza.isEmpty()) {
-				throw new NotAuthorizedException(ErrorCode.AUTH_005);
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			}
 
 			List<ConfigurazioneStato> lstStatiArrivo = new ArrayList<>();
@@ -92,7 +92,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			}
 			
 			if(lstStatiArrivo.isEmpty()) {
-				throw new NotAuthorizedException(ErrorCode.WFL_001);
+				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
 			}
 
 
@@ -171,7 +171,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			}
 		}
 		
-		throw new NotAuthorizedException(ErrorCode.AUTH_005);
+		throw new NotAuthorizedException(ErrorCode.AUT_403);
 
 		
 	}
@@ -243,7 +243,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 				.filter(cs -> cs.getStatoAttuale().equals(statoPartenza)).collect(Collectors.toList());
 
 		if(lstStatoPartenza.size() != 1) {
-			throw new InternalException(ErrorCode.SYS_004);
+			throw new InternalException(ErrorCode.SYS_500_CONFIG);
 		}
 		
 		ConfigurazioneCambioStato statoSuccessivo = lstStatoPartenza.get(0);
@@ -266,7 +266,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		}
 
 		if(!lst.isEmpty()) {
-			throw new NotAuthorizedException(ErrorCode.WFL_001);
+			throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
 		}
 	}
 

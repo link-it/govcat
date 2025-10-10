@@ -90,7 +90,7 @@ public class ApiItemAssembler extends RepresentationModelAssemblerSupport<ApiEnt
 					//.orElseThrow(() -> new BadRequestException("Profilo ["+authType.getProfilo()+"] non trovato"));
 			if (configurazioneProfilo.isEmpty()) {
 			    String errorMessage = String.format("Profilo [%s] non trovato", authType.getProfilo());
-			    throw new BadRequestException(ErrorCode.VAL_002);
+			    throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
 			}
 
 			g.setProfilo(authType.getProfilo());

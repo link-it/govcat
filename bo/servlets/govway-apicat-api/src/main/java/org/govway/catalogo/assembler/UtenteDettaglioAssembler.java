@@ -109,7 +109,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001)));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		} else {
 			entity.setOrganizzazione(null);
 		}
@@ -137,7 +137,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		if(src.getClassiUtente()!=null) {
 			for(UUID idcu: src.getClassiUtente()) {
-				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009));
+				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 				cu.getUtentiAssociati().add(entity);
 				entity.getClassi().add(cu);
 			}
@@ -161,7 +161,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001)));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		}
 		
 		if(src.isReferenteTecnico()!=null) {
@@ -180,7 +180,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		if(src.getClassiUtente()!=null) {
 			for(UUID idcu: src.getClassiUtente()) {
-				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009));
+				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 				cu.getUtentiAssociati().add(entity);
 				entity.getClassi().add(cu);
 			}
@@ -230,7 +230,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 				return null;
 			}
 		} else {
-			throw new BadRequestException(ErrorCode.VAL_002);
+			throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
 		}
 
 	}

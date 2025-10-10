@@ -31,7 +31,7 @@ public class DominioEngineAssembler {
 		case PRIVATO: return VisibilitaDominioEnum.PRIVATO;
 		case PUBBLICO: return VisibilitaDominioEnum.PUBBLICO;
 		case RISERVATO: return VisibilitaDominioEnum.RISERVATO;
-		case COMPONENTE: throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("visibilita", VISIBILITA.COMPONENTE.toString()));
+		case COMPONENTE: throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("visibilita", VISIBILITA.COMPONENTE.toString()));
 		}
 		
 		return null;

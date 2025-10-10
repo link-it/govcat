@@ -192,7 +192,7 @@ public class TransazioneBuilder {
 					return apis.get(0);
 				}
 			} else {
-				throw new BadRequestException(ErrorCode.API_003, Map.of("nomeApi", nome, "versione", String.valueOf(versione), "erogatore", erogatore));
+				throw new BadRequestException(ErrorCode.API_404, Map.of("nomeApi", nome, "versione", String.valueOf(versione), "erogatore", erogatore));
 			}
 		});
 	}

@@ -189,7 +189,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			.stream()
 			.filter(p -> p.getCodiceInterno().equals(profilo))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException(ErrorCode.GEN_002));
+			.orElseThrow(() -> new BadRequestException(ErrorCode.GEN_404));
 
 		ambiente = collaudo ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
 
@@ -199,14 +199,14 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			ambienteBody = specSrc.getAmbiente().equals(org.govway.catalogo.servlets.model.AmbienteEnum.COLLAUDO) ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
 
 			client = this.clientService.findByNomeSoggettoAmbiente(specSrc.getNome(), specSrc.getIdSoggetto(), ambiente)
-			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_001));
+			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_404));
 
 			nomeProposto = null;
 			this.clientDettaglioAssembler.checkClientProfilo(pr, client);
 		} else if(src.getTipoClient().equals(TipoAdesioneClientUpdateEnum.PROPOSTO)) {
 
 			if(this.configurazione.getAdesione().isVisualizzaElencoClientEsistenti()!= null && this.configurazione.getAdesione().isVisualizzaElencoClientEsistenti()) {
-				throw new BadRequestException(ErrorCode.CLT_003);
+				throw new BadRequestException(ErrorCode.CLT_400_CONFIG);
 			}
 			AdesioneClientProposto specSrc = (AdesioneClientProposto) src;
 			ambienteBody = specSrc.getAmbiente().equals(org.govway.catalogo.servlets.model.AmbienteEnum.COLLAUDO) ? AmbienteEnum.COLLAUDO : AmbienteEnum.PRODUZIONE;
@@ -218,7 +218,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			nomeProposto = null;
 
 			if(this.clientService.existsByNomeSoggettoAmbiente(client)) {
-				throw new ConflictException(ErrorCode.CLT_002, java.util.Map.of("nomeClient", client.getNome(), "nomeSoggetto", entity.getSoggetto().getNome(), "ambiente", client.getAmbiente().toString()));
+				throw new ConflictException(ErrorCode.CLT_409, java.util.Map.of("nome", client.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", client.getAmbiente().toString()));
 			}
 			
 			this.clientDettaglioAssembler.checkClientProfilo(pr, client);
@@ -226,7 +226,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		}
 
 		if(!ambiente.equals(ambienteBody)) {
-			throw new BadRequestException(ErrorCode.VAL_001, java.util.Map.of("ambienteUrl", ambiente.toString(), "ambienteBody", ambienteBody.toString()));
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED, java.util.Map.of("ambienteUrl", ambiente.toString(), "ambienteBody", ambienteBody.toString()));
 		}
 
 		ClientAdesioneEntity adC = entity.getClient().stream().filter(ac -> ac.getProfilo().equals(profilo) && ac.getAmbiente().equals(ambiente)).findAny()
@@ -260,7 +260,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		SoggettoEntity soggetto = getSoggetto(src.getIdSoggetto());
 
 		if(!soggetto.getOrganizzazione().equals(entity.getSoggetto().getOrganizzazione())) {
-			throw new BadRequestException(ErrorCode.ORG_005, java.util.Map.of("nomeSoggetto", soggetto.getNome(), "nomeOrganizzazione", entity.getSoggetto().getOrganizzazione().getNome()));
+			throw new BadRequestException(ErrorCode.SOG_404, java.util.Map.of("nomeSoggetto", soggetto.getNome(), "nomeOrganizzazione", entity.getSoggetto().getOrganizzazione().getNome()));
 		}
 		
 		entity.setSoggetto(soggetto);
@@ -273,7 +273,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	private SoggettoEntity getSoggetto(UUID idSoggetto) {
 		SoggettoEntity soggetto = this.soggettoService.find(idSoggetto).
-				orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
+				orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
 		return soggetto;
 	}
 	
@@ -288,7 +288,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.ADE_004, java.util.Map.of("nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione()));
+			throw new BadRequestException(ErrorCode.ADE_409_STATE, java.util.Map.of("nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione()));
 		}
 	}
 
@@ -354,7 +354,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 			if(!admin && !ref) {
 				if(!entity.getSoggetto().getOrganizzazione().getId().equals(utenteSessione.getOrganizzazione().getId())) {
-					throw new BadRequestException(ErrorCode.AUTH_005, java.util.Map.of("nomeOrganizzazione", utenteSessione.getOrganizzazione().getNome()));
+					throw new BadRequestException(ErrorCode.AUT_403, java.util.Map.of("nomeOrganizzazione", utenteSessione.getOrganizzazione().getNome()));
 				}
 			}
 		}
@@ -367,31 +367,31 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		String servizioK = entity.getServizio().getNome()+"/"+entity.getServizio().getVersione();
 		if(!this.configurazione.getServizio().getStatiAdesioneConsentita().contains(entity.getServizio().getStato())) {
-			throw new BadRequestException(ErrorCode.ADE_003, java.util.Map.of("servizio", servizioK));
+			throw new BadRequestException(ErrorCode.ADE_400_STATE, java.util.Map.of("servizio", servizioK));
 		}
 
 		if(entity.getServizio().isAdesioneDisabilitata()) {
-			throw new BadRequestException(ErrorCode.ADE_004, java.util.Map.of("servizio", servizioK));
+			throw new BadRequestException(ErrorCode.ADE_409_STATE, java.util.Map.of("servizio", servizioK));
 		}
 
 		if(entity.getServizio().getVisibilita() != null && entity.getServizio().getVisibilita().equals(VISIBILITA.COMPONENTE)) {
-			throw new BadRequestException(ErrorCode.ADE_004, java.util.Map.of("servizio", servizioK));
+			throw new BadRequestException(ErrorCode.ADE_409_STATE, java.util.Map.of("servizio", servizioK));
 		}
 
 		if(entity.getServizio().isMultiAdesione() && entity.getIdLogico()==null) {
-			throw new BadRequestException(ErrorCode.VAL_001);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 
 		if(entity.getServizio().isFruizione() && !entity.getSoggetto().getId().equals(entity.getServizio().getSoggettoInterno().getId())) {
-			throw new BadRequestException(ErrorCode.ADE_004, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getSoggettoInterno().getNome()));
+			throw new BadRequestException(ErrorCode.ADE_409_STATE, java.util.Map.of("servizio", servizioK, "soggetto", entity.getSoggetto().getNome(), "soggettoInterno", entity.getServizio().getSoggettoInterno().getNome()));
 		}
 
 		if(!entity.getSoggetto().isAderente()) {
-			throw new BadRequestException(ErrorCode.ORG_005, java.util.Map.of("nomeSoggetto", entity.getSoggetto().getNome()));
+			throw new BadRequestException(ErrorCode.SOG_404, java.util.Map.of("nomeSoggetto", entity.getSoggetto().getNome()));
 		}
 
 		if(entity.isSkipCollaudo() && !entity.getServizio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011, java.util.Map.of("servizio", servizioK));
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, java.util.Map.of("servizio", servizioK));
 		}
 	}
 
@@ -401,7 +401,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		spec.setIdServizi(Arrays.asList(idServizio));
 		
 		ServizioEntity servizio = this.servizioService.findOne(spec).
-				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_002));
+				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404));
 
 		return servizio;
 	}
@@ -421,7 +421,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			ErogazioneEntity erog = new ErogazioneEntity();
 			
 			erog.setAmbiente(ambiente);
-			erog.setApi(this.apiService.find(idErogazione).orElseThrow(() -> new NotFoundException(ErrorCode.API_003)));
+			erog.setApi(this.apiService.find(idErogazione).orElseThrow(() -> new NotFoundException(ErrorCode.API_404)));
 			erog.setStato(StatoEnum.CONFIGURATO);
 			
 			entity.getErogazioni().add(erog);
@@ -475,11 +475,11 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		List<ClientRichiesto> cr = this.adesioneAuthorization.getClientRichiesti(entity.getServizio());
 		
 		ApiEntity api = idApi != null ? this.apiService.find(idApi)
-				.orElseThrow(() -> new NotFoundException(ErrorCode.API_003)) : null;
+				.orElseThrow(() -> new NotFoundException(ErrorCode.API_404)) : null;
 
 		ConfigurazioneCustomAdesioneProprietaList g = configurazione.getAdesione().getProprietaCustom().stream()
 				.filter(c -> c.getNomeGruppo().equals(apc.getGruppo()) && this.adesioneAuthorization.applies(c, cr))
-				.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GRP_001));
+				.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404));
 
 		AmbienteEnum ambiente = g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO)
 				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO) ? AmbienteEnum.COLLAUDO
@@ -506,7 +506,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		for (AuthTypeApiResourceProprietaCustom p : apc.getProprieta()) {
 			ConfigurazioneCustomProprieta pr = g.getProprieta().stream().filter(c -> c.getNome().equals(p.getNome()))
-					.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GEN_002));
+					.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GEN_404));
 
 			EstensioneAdesioneEntity e = oldProprietaCustom.stream().filter(est -> {
 				boolean nomeGruppoAmbiente = est.getGruppo().equals(apc.getGruppo())
@@ -544,9 +544,9 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 							.filter(est -> est.getGruppo().equals(g.getNomeGruppo())
 									&& est.getNome().equals(p.getNome()) && est.getAmbiente().equals(ambiente)
 									&& est.getDocumento() != null && est.getDocumento().getUuid().equals(p.getUuid()))
-							.map(ee -> ee.getDocumento()).findAny().orElseThrow(() -> new BadRequestException(ErrorCode.DOC_001)));
+							.map(ee -> ee.getDocumento()).findAny().orElseThrow(() -> new BadRequestException(ErrorCode.DOC_404)));
 				} else {
-					throw new BadRequestException(ErrorCode.VAL_001);
+					throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 				}
 			} else {
 				e.setValore(p.getValore());
@@ -567,16 +567,16 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	private void checkApiNull(String gruppo, ApiEntity api) {
 		if(api != null) {
-			throw new BadRequestException(ErrorCode.VAL_002, java.util.Map.of("gruppo", gruppo));
+			throw new BadRequestException(ErrorCode.VAL_400_FORMAT, java.util.Map.of("gruppo", gruppo));
 		}
 	}
 
 	private void checkApiNotNull(String gruppo, ApiEntity api, RUOLO ruolo) {
 		if(api == null) {
-			throw new BadRequestException(ErrorCode.VAL_002, java.util.Map.of("gruppo", gruppo));
+			throw new BadRequestException(ErrorCode.VAL_400_FORMAT, java.util.Map.of("gruppo", gruppo));
 		} else {
 			if(ruolo!= null && !ruolo.equals(api.getRuolo())) {
-				throw new BadRequestException(ErrorCode.VAL_002, java.util.Map.of("gruppo", gruppo, "ruoloRichiesto", ruolo.toString(), "nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "ruoloApi", api.getRuolo().toString()));
+				throw new BadRequestException(ErrorCode.VAL_400_FORMAT, java.util.Map.of("gruppo", gruppo, "ruoloRichiesto", ruolo.toString(), "nomeApi", api.getNome(), "versioneApi", String.valueOf(api.getVersione()), "ruoloApi", api.getRuolo().toString()));
 			}
 		}
 	}

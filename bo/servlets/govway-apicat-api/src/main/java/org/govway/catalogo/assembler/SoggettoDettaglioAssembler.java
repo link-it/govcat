@@ -94,7 +94,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_001);
+					throw new BadRequestException(ErrorCode.ORG_404);
 				}
 			}
 			entity.setSkipCollaudo(src.isSkipCollaudo());
@@ -104,7 +104,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_002);
+					throw new BadRequestException(ErrorCode.ORG_409);
 				}
 			}
 		}
@@ -114,14 +114,14 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isReferente() != null) {
 			if(!src.isReferente() && entity.isReferente()) {
 				if(isVincolaReferente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_003);
+					throw new BadRequestException(ErrorCode.DOM_404);
 				}
 			}
 		}
 		
 		entity.setReferente(src.isReferente());
 
-		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001)));
+		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		return entity;
 	}
 	
@@ -138,7 +138,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setAderente(src.isAderente());
 		entity.setReferente(src.isReferente());
 		entity.setIdSoggetto(UUID.randomUUID().toString());
-		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_001)));
+		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		return entity;
 	}
 

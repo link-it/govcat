@@ -91,7 +91,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 				ClasseUtenteEntity entity = this.dettaglioAssembler.toEntity(classeUtenteCreate);
 
 				if(this.service.exists(entity)) {
-					throw new ConflictException(ErrorCode.ORG_009, java.util.Map.of("nome", classeUtenteCreate.getNome()));
+					throw new ConflictException(ErrorCode.CLS_404, java.util.Map.of("nome", classeUtenteCreate.getNome()));
 				}
 
 				this.service.save(entity);
@@ -109,7 +109,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 
@@ -120,7 +120,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 
 			this.authorization.authorizeDelete(entity);
 			this.logger.debug("Autorizzazione completata con successo");     
@@ -137,7 +137,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -146,7 +146,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 
 			this.authorization.authorizeGet(entity);
 			this.logger.debug("Autorizzazione completata con successo");     
@@ -164,7 +164,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -205,7 +205,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -217,7 +217,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 
 				this.authorization.authorizeUpdate(classeUtenteUpdate,entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -239,7 +239,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -253,7 +253,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//			return this.service.runTransaction( () -> {
 		//
 		//				ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-		//						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009));
+		//						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 		//	
 		//				ReferenteClasseUtente referenteEntity = referenteAssembler.toEntity(referenteClasseUtente, entity);
 		//				this.service.save(referenteEntity);
@@ -270,7 +270,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//		}
 		//		catch(Throwable e) {
 		//			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-		//			throw new InternalException(ErrorCode.SYS_001);
+		//			throw new InternalException(ErrorCode.SYS_500);
 		//		}
 		return null;
 	}
@@ -294,7 +294,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//		}
 		//		catch(Throwable e) {
 		//			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-		//			throw new InternalException(ErrorCode.SYS_001);
+		//			throw new InternalException(ErrorCode.SYS_500);
 		//		}
 		return null;
 	}
@@ -342,7 +342,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//		}
 		//		catch(Throwable e) {
 		//			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-		//			throw new InternalException(ErrorCode.SYS_001);
+		//			throw new InternalException(ErrorCode.SYS_500);
 		//		}
 		return null;
 	}

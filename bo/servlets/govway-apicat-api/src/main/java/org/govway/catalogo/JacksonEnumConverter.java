@@ -59,7 +59,7 @@ public class JacksonEnumConverter implements GenericConverter {
         try {
             return mapper.readValue("\"" + source + "\"", targetType.getType());
         } catch (IOException e) {
-            throw new BadRequestException(ErrorCode.VAL_002, java.util.Map.of("source", source.toString(), "tipo", targetType.getName()));
+            throw new BadRequestException(ErrorCode.VAL_400_FORMAT, java.util.Map.of("source", source.toString(), "tipo", targetType.getName()));
         }
     }
 }

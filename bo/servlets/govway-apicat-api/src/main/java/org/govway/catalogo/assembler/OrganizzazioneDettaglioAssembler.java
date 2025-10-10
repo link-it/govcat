@@ -123,7 +123,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_001);
+					throw new BadRequestException(ErrorCode.ORG_404);
 				}
 				
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -137,7 +137,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isReferente() != null) {
 			if(!src.isReferente() && entity.isReferente()) {
 				if(isVincolaReferente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_001);
+					throw new BadRequestException(ErrorCode.ORG_404);
 				}
 
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -152,7 +152,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 			
 			if(src.isEsterna().booleanValue() != entity.isEsterna()) {
 				if(!isCambioConsentito(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_001);
+					throw new BadRequestException(ErrorCode.ORG_404);
 				}
 			}
 			
@@ -160,24 +160,24 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		}
 
 		if(src.getIdSoggettoDefault()!=null) {
-			entity.setSoggettoDefault(this.soggettoService.find(src.getIdSoggettoDefault()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005)));
+			entity.setSoggettoDefault(this.soggettoService.find(src.getIdSoggettoDefault()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceEnteAbilitato()) {
 			if(entity.getCodiceEnte()==null) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getIdTipoUtente()==null) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 
@@ -195,19 +195,19 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getCodiceFiscaleSoggetto()==null) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceEnteAbilitato()) {
 			if(entity.getCodiceEnte()==null) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
 			if(entity.getIdTipoUtente()==null) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 

@@ -105,7 +105,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		}
 		
 		if(src.getIdSoggetto()!=null) {
-			entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005)));
+			entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
 		}
 		
 		Set<EstensioneClientEntity> estensioni = clientEngineAssembler.getEstensioni(src, entity.getEstensioni());
@@ -144,7 +144,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 							return c;
 						}).collect(Collectors.toList()));
 				erroreLst.add(e);
-				throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_012, erroreLst);
+				throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_422_COMPLEX, erroreLst);
 			}
 		}
 	}
@@ -154,7 +154,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		ClientEntity entity = new ClientEntity();
 		BeanUtils.copyProperties(src, entity);
 		entity.setIdClient(UUID.randomUUID().toString());
-		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005)));
+		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
 		
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
@@ -181,7 +181,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		ClientEntity entity = new ClientEntity();
 		BeanUtils.copyProperties(src, entity);
 		entity.setIdClient(UUID.randomUUID().toString());
-		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005)));
+		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
 		entity.setStato(StatoEnum.NUOVO);
@@ -196,7 +196,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public void checkClientProfilo(ConfigurazioneProfilo cp, ClientEntity c) {
 		AuthTypeEnum authTypeClient = clientEngineAssembler.getAuthType(c.getAuthType());
 		if(!authTypeClient.equals(cp.getAuthType())) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("profilo", cp.getEtichetta(), "authTypeRichiesto", cp.getAuthType().toString(), "authTypeTrovato", authTypeClient.toString()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("profilo", cp.getEtichetta(), "authTypeRichiesto", cp.getAuthType().toString(), "authTypeTrovato", authTypeClient.toString()));
 		}
 	}
 

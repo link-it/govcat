@@ -177,7 +177,7 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 			AuthTypeEnum atE = this.configurazione.getServizio().getApi().getProfili().stream()
 			.filter(p -> p.getCodiceInterno().equals(at.getProfilo()))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException(ErrorCode.VAL_002)).getAuthType();
+			.orElseThrow(() -> new BadRequestException(ErrorCode.VAL_400_FORMAT)).getAuthType();
 			atLst.add(atE);
 			profili.add(at.getProfilo());
 		}

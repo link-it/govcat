@@ -101,7 +101,7 @@ public class RequestUtils {
 	    	
 	    	if(checkStato) {
 		    	if(p.utente == null || !p.utente.getStato().equals(Stato.ABILITATO)) {
-		    		throw new NotAuthorizedException(ErrorCode.AUTH_004);
+		    		throw new NotAuthorizedException(ErrorCode.AUT_403);
 		    	}
 	    	}
 

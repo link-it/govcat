@@ -1064,20 +1064,166 @@
 				"NoDeleteGruppi": "Non è possibile eliminare il gruppo.",
 				"NoDeleteReferent": "Non è possibile eliminare il referente.",
 				"NoMessageError": "Non ci sono messaggi di errore.",
-				"ORG_001": "Organizzazione [{{idOrganizzazione}}] non trovata",
-				"ORG_002": "Organizzazione [{{nome}}] già esistente",
-				"ORG_003": "Dominio [{{idDominio}}] non trovato",
-				"ORG_004": "Dominio [{{nome}}] già esistente",
-				"ORG_005": "Soggetto [{{idSoggetto}}] non trovato",
-				"ORG_006": "Soggetto [{{nome}}] già esistente",
-				"ORG_007": "Utente [{{idUtente}}] non trovato",
-				"ORG_008": "Utente [{{principal}}] già esistente",
-				"ORG_009": "Classe utente [{{idClasse}}] non trovata",
 				"Timeout": "Timeout durante il download. Riprova più tardi.",
 				"TimeoutError": "Si è verificato un timeout",
 				"TokenExpired": "Token scaduto.",
 				"Unauthorized": "Non autorizzato",
-				"Unprocessable Entity": "Entità non elaborabile"
+				"Unprocessable Entity": "Entità non elaborabile",
+				"API": {
+					"404": "API [{{idApi}}] non trovata",
+					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia",
+					"400": {
+						"VISIBILITY": "Visibilita [{{visibilita}}] non consentita",
+						"DUPLICATE": "Allegato [{{allegato}}] duplicato",
+						"DELETE": "Impossibile eliminare l'API [{{nome}}/{{versione}}] perché è utilizzata in [{{numeroAdesioni}}] adesioni",
+						"SPEC": "Specifica non presente"
+					},
+					"404_ATTACHMENT": "Allegato [{{idAllegato}}] non trovato per l'API [{{idApi}}]"
+				},
+				"SRV": {
+					"404": "Servizio [{{idServizio}}] non trovato",
+					"409": "Servizio [{{nome}} v{{versione}}] esiste gia",
+					"400": {
+						"NOT_REGISTERED": "Utente non registrato, impossibile recuperare servizi in attesa",
+						"NOT_DELETABLE": "Il servizio non è eliminabile",
+						"CATEGORY_NOT_LEAF": "Impossibile associare la Categoria [{{categoria}}] al servizio [{{nome}}/{{versione}}]. categoria non foglia"
+					},
+					"409_GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
+					"409_CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
+					"403": {
+						"REMOVE_REFERENT": "Impossibile rimuovere l'utente [{{nomeUtente}} {{cognomeUtente}}] da referente del servizio [{{nome}} v{{versione}}]. {{motivo}}",
+						"ADD_REFERENT": "Impossibile aggiungere l'utente [{{nomeUtente}} {{cognomeUtente}}] come referente del package [{{nomePackage}} v{{versionePackage}}]. L'utente non è referente del servizio componente [{{nomeComponente}} v{{versioneComponente}}]"
+					},
+					"404_IMAGE": "Immagine per il servizio [{{idServizio}}] non trovata"
+				},
+				"ORG": {
+					"404": "Organizzazione [{{idOrganizzazione}}] non trovata",
+					"409": "Organizzazione [{{nome}}] già esistente"
+				},
+				"DOM": {
+					"404": "Dominio [{{idDominio}}] non trovato",
+					"409": "Dominio [{{nome}}] già esistente"
+				},
+				"SOG": {
+					"404": "Soggetto [{{idSoggetto}}] non trovato",
+					"409": "Soggetto [{{nome}}] già esistente"
+				},
+				"UT": {
+					"404": "Utente [{{idUtente}}] non trovato",
+					"409": "Utente [{{principal}}] già esistente"
+				},
+				"CLS": {
+					"404": "Classe utente [{{idClasse}}] non trovata",
+					"409": "Classe utente [{{nome}}] già esistente"
+				},
+				"CLT": {
+					"404": "Client [{{idClient}}] non trovato",
+					"409": "Client [{{nome}}] già esistente per soggetto [{{soggetto}}] e ambiente [{{ambiente}}]",
+					"400": {
+						"CONFIG": "Configurazione client non valida: {{dettagli}}",
+						"EXTENSION": "Estensione client [{{tipo}}] non supportata"
+					}
+				},
+				"ADE": {
+					"404": "Adesione [{{idAdesione}}] non trovata",
+					"409": "Adesione [{{nome}}] già esistente",
+					"400_STATE": "Stato adesione [{{stato}}] non valido per questa operazione",
+					"409_STATE": "Impossibile modificare adesione in stato [{{stato}}]",
+					"403_REFERENT": "Referente adesione [{{referente}}] non autorizzato"
+				},
+				"TAX": {
+					"404": "Tassonomia [{{idTassonomia}}] non trovata",
+					"409": "Tassonomia [{{nome}}] già esistente"
+				},
+				"CAT": {
+					"404": "Categoria [{{idCategoria}}] non trovata",
+					"409": "Categoria [{{nome}}] già esistente per tassonomia [{{tassonomia}}]"
+				},
+				"GRP": {
+					"404": "Gruppo [{{idGruppo}}] non trovato",
+					"409": "Gruppo [{{nome}}] già esistente",
+					"400_IN_USE": "Impossibile eliminare gruppo [{{nome}}] utilizzato in {{numeroUtilizzi}} servizi"
+				},
+				"DOC": {
+					"404": "Documento [{{idDocumento}}] non trovato",
+					"404_VERSION": "Documento con UUID [{{uuid}}] e versione [{{versione}}] non trovato",
+					"400": {
+						"FORMAT": "Formato documento [{{formato}}] non supportato",
+						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]"
+					},
+					"500": "Impossibile elaborare il documento: {{errore}}"
+				},
+				"NTF": {
+					"404": "Notifica [{{idNotifica}}] non trovata",
+					"500": "Impossibile inviare notifica: {{errore}}",
+					"400_RECIPIENT": "Destinatario notifica [{{destinatario}}] non valido"
+				},
+				"MON": {
+					"404": "Dati di monitoraggio non disponibili per il servizio [{{servizio}}]",
+					"400_INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido",
+					"404_METRIC": "Metrica [{{metrica}}] non trovata",
+					"404_ALARM": "Allarme [{{idAllarme}}] non trovato",
+					"400_ALARM_CONFIG": "Configurazione allarme non valida: {{dettagli}}",
+					"404_STATS": "Statistiche non disponibili per il periodo [{{periodo}}]"
+				},
+				"TRX": {
+					"404": "Transazione [{{idTransazione}}] non trovata"
+				},
+				"AUT": {
+					"401": "Autenticazione richiesta",
+					"403": "Accesso non autorizzato",
+					"403_ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force",
+					"403_ORG_MISMATCH": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] associato all'organizzazione [{{userOrgNome}}]",
+					"403_ORG_MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione",
+					"403_RESOURCE": "Accesso negato alla risorsa [{{risorsa}}]",
+					"401_TOKEN": "Token di autenticazione non valido",
+					"401_SESSION": "Sessione scaduta"
+				},
+				"VAL": {
+					"400": {
+						"REQUIRED": "Campo obbligatorio [{{campo}}] mancante",
+						"FORMAT": "Formato campo [{{campo}}] non valido: {{formato}}",
+						"RANGE": "Valore [{{valore}}] fuori dal range consentito [{{min}} - {{max}}]",
+						"LENGTH": "Lunghezza campo [{{campo}}] non valida: attesa {{lunghezzaAttesa}}, trovata {{lunghezzaTrovata}}",
+						"PATTERN": "Pattern [{{pattern}}] non rispettato per il campo [{{campo}}]",
+						"DATE": "Data [{{data}}] non valida",
+						"URL": "URL [{{url}}] non valido",
+						"EMAIL": "Email [{{email}}] non valida",
+						"CF": "Codice fiscale [{{codiceFiscale}}] non valido",
+						"PIVA": "Partita IVA [{{partitaIva}}] non valida"
+					},
+					"422": "Richiesta non valida semanticamente: {{dettagli}}",
+					"422_COMPLEX": "Update entità complessa non valida semanticamente: {{dettagli}}"
+				},
+				"WFL": {
+					"400_TRANSITION": "Transizione di stato da [{{statoAttuale}}] a [{{statoDesiderato}}] non consentita",
+					"404": "Workflow [{{idWorkflow}}] non trovato",
+					"403_ACTION": "Azione workflow [{{azione}}] non autorizzata per l'utente [{{utente}}]",
+					"400_STATE": "Stato workflow [{{stato}}] non valido"
+				},
+				"INT": {
+					"500_COMMUNICATION": "Errore di comunicazione con servizio esterno [{{servizio}}]: {{errore}}",
+					"504": "Timeout nella chiamata al servizio [{{servizio}}]",
+					"502": "Risposta non valida dal servizio [{{servizio}}]: {{dettagli}}",
+					"503": "Servizio [{{servizio}}] temporaneamente non disponibile",
+					"500_PDND": "Errore PDND: {{dettagli}}",
+					"500_GOVWAY": "Errore GovWay: {{dettagli}}"
+				},
+				"SYS": {
+					"500": "Errore interno del sistema: {{dettagli}}",
+					"503": "Risorsa [{{risorsa}}] temporaneamente non disponibile",
+					"501": "Operazione [{{operazione}}] non supportata",
+					"500_CONFIG": "Configurazione sistema non valida: {{dettagli}}",
+					"500_DB": "Errore di accesso al database: {{dettagli}}",
+					"500_IO": "Errore di I/O: {{dettagli}}"
+				},
+				"GEN": {
+					"400": "Operazione [{{operazione}}] non consentita",
+					"404": "Risorsa [{{risorsa}}] non trovata",
+					"409": "Risorsa [{{risorsa}}] già esistente",
+					"409_STATE": "Conflitto con stato attuale: {{dettagli}}",
+					"400_REQUEST": "Richiesta non valida: {{dettagli}}"
+				}
 			},
 			"EsportingFile": "Sto esportando il documento…",
 			"Files_Results": {

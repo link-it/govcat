@@ -19,7 +19,7 @@ public class CertificateUtils {
 		try {
 			getSubject(documento);
 		} catch(Exception e) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.SYS_001, e);
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.SYS_500, e);
 		}
 	}		
 	

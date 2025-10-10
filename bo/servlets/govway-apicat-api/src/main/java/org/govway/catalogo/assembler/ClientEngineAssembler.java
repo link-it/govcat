@@ -156,7 +156,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		String duplicati = assembler.checkDuplicati(estensioni);
 
 		if(duplicati != null) {
-			throw new ConflictException(ErrorCode.CLT_002, java.util.Map.of("duplicati", duplicati));
+			throw new ConflictException(ErrorCode.CLT_409, java.util.Map.of("duplicati", duplicati));
 		}
 		
 		return estensioni;
@@ -185,7 +185,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND:return signPdndEstensioneClientAssembler;
 		}
 
-		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("authType", authType.toString()));
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 
 	private ConfigurazioneAuthType getConfigurazione(AuthTypeEnum authType) {
@@ -194,7 +194,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 			.stream()
 			.filter(at -> at.getType().equals(authType))
 			.findAny()
-			.orElseThrow(() -> {return new InternalException(ErrorCode.SYS_001, java.util.Map.of("authType", authType.toString()));});
+			.orElseThrow(() -> {return new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));});
 
 	}
 
@@ -215,7 +215,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND:return signPdndEstensioneClientAssembler;
 		}
 
-		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("authType", authType.toString()));
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 
 	public AuthType getAuthType(AuthTypeEnum authType) {
@@ -234,7 +234,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND: return AuthType.SIGN_PDND;
 		}
 
-		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("authType", authType.toString()));
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 
 	public AuthTypeEnum getAuthType(AuthType authType) {
@@ -253,6 +253,6 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND:return AuthTypeEnum.SIGN_PDND;
 		}
 
-		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("authType", authType.toString()));
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 }

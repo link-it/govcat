@@ -44,9 +44,9 @@ public class CoreAuthorization {
 		InfoProfilo utente = this.requestUtils.getPrincipal(!consentiUtenteAnonimo);
 		if(!consentiUtenteAnonimo) {
 			if(utente == null)
-				throw new NotAuthorizedException(ErrorCode.AUTH_004);
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			if(utente.utente == null)
-				throw new NotAuthorizedException(ErrorCode.AUTH_004);
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			return utente.utente;
 		} else {
 			if(utente != null) {
@@ -75,19 +75,19 @@ public class CoreAuthorization {
 	
 	public void requireAdmin() {
 		if(!isAdmin()) {
-			throw new NotAuthorizedException(ErrorCode.AUTH_005);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 
 	public void requireLogged() {
 		if(isAnounymous()) {
-			throw new NotAuthorizedException(ErrorCode.AUTH_004);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 
 	public void requireReferenteTecnico() {
 		if(!isAdmin() && !isReferenteServizio() && !isReferenteTecnico()) {
-			throw new NotAuthorizedException(ErrorCode.AUTH_005);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 

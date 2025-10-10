@@ -184,10 +184,10 @@ public abstract class AbstractAllarmeClient {
 					if (entity != null) {
 						return IOUtils.readLines(entity.getContent(), Charset.defaultCharset());
 					} else {
-						throw new InternalException(ErrorCode.INT_003, Map.of("idAllarme", idAllarme));
+						throw new InternalException(ErrorCode.INT_502, Map.of("idAllarme", idAllarme));
 					}
 				} else {
-					throw new InternalException(ErrorCode.INT_003, Map.of("idAllarme", idAllarme, "statusCode", String.valueOf(response.getStatusLine().getStatusCode())));
+					throw new InternalException(ErrorCode.INT_502, Map.of("idAllarme", idAllarme, "statusCode", String.valueOf(response.getStatusLine().getStatusCode())));
 				}
 	
 			} finally {
@@ -196,7 +196,7 @@ public abstract class AbstractAllarmeClient {
 			}
 		} catch(Exception e) {
 			this.logger.error(e.getMessage(), e);
-			throw new InternalException(ErrorCode.INT_001, Map.of("idAllarme", idAllarme), e);
+			throw new InternalException(ErrorCode.INT_500_COMMUNICATION, Map.of("idAllarme", idAllarme), e);
 		}
 	}
 }

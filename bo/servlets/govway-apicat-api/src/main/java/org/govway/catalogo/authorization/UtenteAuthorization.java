@@ -48,7 +48,7 @@ public class UtenteAuthorization extends DefaultAuthorization<UtenteCreate,Utent
 		
 		if(!this.coreAuthorization.isAdmin(utente)) {
 			if(!utente.getId().equals(entity.getId())) {
-				throw new NotAuthorizedException(ErrorCode.AUTH_004);
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			}
 		}
 	}

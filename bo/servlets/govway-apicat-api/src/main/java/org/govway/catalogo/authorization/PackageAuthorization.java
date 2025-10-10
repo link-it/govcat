@@ -89,7 +89,7 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 		}
 		
 		if(erroreLst!=null && !erroreLst.isEmpty()) {
-			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_001, erroreLst);
+			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_400_REQUIRED, erroreLst);
 		}
 		
 	}
@@ -158,7 +158,7 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 		this.coreAuthorization.requireAdmin();
 		super.authorizeModifica(entity, classiDato);
 		if(!entity.getApi().isEmpty()) {
-			throw new NotAuthorizedException(ErrorCode.AUTH_001);
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ROLE);
 		}
 	}
 

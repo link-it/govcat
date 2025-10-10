@@ -113,7 +113,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 
 				if(this.service.existsByPrincipal(utenteCreate.getPrincipal())) {
-					throw new ConflictException(ErrorCode.ORG_008, Map.of("principal", utenteCreate.getPrincipal()));
+					throw new ConflictException(ErrorCode.UT_409, Map.of("principal", utenteCreate.getPrincipal()));
 				}
 				
 				UtenteEntity entity = this.dettaglioAssembler.toEntity(utenteCreate);
@@ -133,7 +133,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 		
@@ -150,7 +150,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity utente = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeDelete(utente);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -158,7 +158,7 @@ public class UtentiController implements UtentiApi {
 				String check = this.service.checkReferente(utente);
 				
 				if(check != null) {
-					throw new BadRequestException(ErrorCode.SRV_009);
+					throw new BadRequestException(ErrorCode.SRV_403_REMOVE_REFERENT);
 				}
 				this.service.delete(utente);
 				this.logger.info("Invocazione completata con successo");
@@ -172,7 +172,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -184,7 +184,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -203,7 +203,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -239,7 +239,7 @@ public class UtentiController implements UtentiApi {
 					
 					for(UUID classeUtente: classiUtente) {
 						entities.add(this.classeUtenteService.findByIdClasseUtente(classeUtente)
-								.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009)));
+								.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
 					}
 					spec.setIdClassiUtente(entities);
 				}
@@ -279,7 +279,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -291,7 +291,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -313,7 +313,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -326,7 +326,7 @@ public class UtentiController implements UtentiApi {
 				InfoProfilo current = this.requestUtils.getPrincipal(false);
 
 				if(current == null || current.utente == null) {
-					throw new NotAuthorizedException(ErrorCode.AUTH_004);
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
 				}
 				
 				UtenteEntity entity = current.utente;
@@ -350,7 +350,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -444,7 +444,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -456,7 +456,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -475,7 +475,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -486,7 +486,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -508,7 +508,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -520,7 +520,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGetNotifiche(entity);
 				
@@ -539,7 +539,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -550,7 +550,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007, Map.of("idUtente", idUtente.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(configurazioneNotifiche, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -572,7 +572,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.SYS_001);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 }

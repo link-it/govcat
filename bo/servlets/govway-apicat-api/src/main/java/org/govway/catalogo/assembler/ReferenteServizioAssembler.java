@@ -88,15 +88,15 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 		
 		TIPO_REFERENTE tipoReferente = toTipoReferente(src.getTipo());
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
-				.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_007));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO)) {
-			throw new BadRequestException(ErrorCode.AUTH_004, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+			throw new BadRequestException(ErrorCode.AUT_403, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.AUTH_005, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+				throw new BadRequestException(ErrorCode.AUT_403, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 			}
 
 		}
@@ -108,7 +108,7 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 		boolean exists = servizio.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
 
 		if(exists) {
-			throw new BadRequestException(ErrorCode.GEN_003, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione().toString()));
+			throw new BadRequestException(ErrorCode.GEN_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeServizio", entity.getServizio().getNome(), "versioneServizio", entity.getServizio().getVersione().toString()));
 		}
 		
 		this.servizioDettaglioAssembler.setUltimaModifica(servizio);

@@ -187,7 +187,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.GEN_001);
+					throw new BadRequestException(ErrorCode.GEN_400);
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
@@ -208,10 +208,10 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		if(!tipo.equals(entity.getTipo())) {
 			if(!entity.getGruppi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			if(!entity.getApi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			
 			entity.setTipo(tipo);
@@ -222,7 +222,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -253,18 +253,18 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	private void saveDominioServizio(UUID idDominio, UUID idSoggetto, ServizioEntity entity) {
 		DominioEntity newDominio = dominioService.find(idDominio).
-				orElseThrow(() -> new NotFoundException(ErrorCode.ORG_003));
+				orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404));
 		
 		if(entity.isFruizione()) {
 			if(idSoggetto==null) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			
 			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
-					orElseThrow(() -> new NotFoundException(ErrorCode.ORG_005));
+					orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
 			
 			if(soggettoInterno.getOrganizzazione().isEsterna()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			
 			entity.setSoggettoInterno(soggettoInterno);
@@ -278,11 +278,11 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setDominio(newDominio);
 		
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 		}
 		
 		if(entity.getDominio().isDeprecato() && !this.coreAuthorization.isAdmin()) {
-			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 		}
 		
 	}
@@ -311,7 +311,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.GEN_001);
+			throw new BadRequestException(ErrorCode.GEN_400);
 		}
 	}
 
@@ -377,7 +377,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_009)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -389,7 +389,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			}
 		} else {
 			if(!src.isPackage()) {
-				throw new BadRequestException(ErrorCode.VAL_001);
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 		

@@ -129,7 +129,7 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		}
 		
 		if(erroreLst!=null && !erroreLst.isEmpty()) {
-			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_012, erroreLst);
+			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_422_COMPLEX, erroreLst);
 		}
 		
 	}
@@ -560,7 +560,7 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			AuthTypeEnum atE = this.configurazione.getServizio().getApi().getProfili().stream()
 			.filter(p -> p.getCodiceInterno().equals(prof))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException(ErrorCode.GEN_002)).getAuthType();
+			.orElseThrow(() -> new BadRequestException(ErrorCode.GEN_404)).getAuthType();
 			c.setAuthType(atE);
 			client.add(c);
 		}

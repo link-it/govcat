@@ -94,7 +94,7 @@ public class DocumentoAllegatoAssembler extends RepresentationModelAssemblerSupp
 		} else {
 			String uuid = ((DocumentoUpdateId)documento).getUuid().toString();
 			return this.service.find(uuid)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_001));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 		}
 	}
 

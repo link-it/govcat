@@ -42,13 +42,13 @@ public class OAuthClientCredentialsEstensioneClientAssembler extends AbstractEst
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 
 		if(!(src instanceof AuthTypeOAuthClientCredentialsCreate)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeOAuthClientCredentialsCreate.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeOAuthClientCredentialsCreate.class.getSimpleName()));
 		}
 
 		AuthTypeOAuthClientCredentialsCreate specSrc = (AuthTypeOAuthClientCredentialsCreate) src;
 
 		if(!(configurazione instanceof ConfigurazioneAuthTypeOAuthClientCredentials)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", ConfigurazioneAuthTypeOAuthClientCredentials.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", ConfigurazioneAuthTypeOAuthClientCredentials.class.getSimpleName()));
 		}
 		
 		Set<EstensioneClientEntity> hashSet = super.getEstensioni(specSrc, configurazione);
@@ -81,7 +81,7 @@ public class OAuthClientCredentialsEstensioneClientAssembler extends AbstractEst
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 
 		if(!(dsc instanceof AuthTypeOAuthClientCredentials)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeOAuthClientCredentials.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeOAuthClientCredentials.class.getSimpleName()));
 		}
 		
 		AuthTypeOAuthClientCredentials specDsc = (AuthTypeOAuthClientCredentials) dsc;

@@ -48,13 +48,13 @@ public class OAuthAuthorizationCodeEstensioneClientAssembler extends AbstractEst
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 
 		if(!(src instanceof AuthTypeOAuthAuthorizationCodeCreate)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeOAuthAuthorizationCodeCreate.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeOAuthAuthorizationCodeCreate.class.getSimpleName()));
 		}
 
 		AuthTypeOAuthAuthorizationCodeCreate specSrc = (AuthTypeOAuthAuthorizationCodeCreate) src;
 
 		if(!(configurazione instanceof ConfigurazioneAuthTypeOAuthAuthorizationCode)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", ConfigurazioneAuthTypeOAuthAuthorizationCode.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", ConfigurazioneAuthTypeOAuthAuthorizationCode.class.getSimpleName()));
 		}
 
 		EstensioneClientEntity eHelpDesk = new EstensioneClientEntity();
@@ -106,7 +106,7 @@ public class OAuthAuthorizationCodeEstensioneClientAssembler extends AbstractEst
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
 
 		if(!(dsc instanceof AuthTypeOAuthAuthorizationCode)) {
-			throw new BadRequestException(ErrorCode.CLT_003, java.util.Map.of("expectedType", AuthTypeOAuthAuthorizationCode.class.getSimpleName()));
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeOAuthAuthorizationCode.class.getSimpleName()));
 		}
 		
 		AuthTypeOAuthAuthorizationCode specDsc = (AuthTypeOAuthAuthorizationCode) dsc;

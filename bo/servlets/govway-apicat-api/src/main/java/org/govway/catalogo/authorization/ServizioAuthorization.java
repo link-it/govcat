@@ -90,7 +90,7 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 		}
 		
 		if(erroreLst!=null && !erroreLst.isEmpty()) {
-			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_012, erroreLst);
+			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_422_COMPLEX, erroreLst);
 		}
 		
 	}
@@ -139,7 +139,7 @@ public class ServizioAuthorization extends AbstractServizioAuthorization {
 		this.authorizeAnything();
 		super.authorizeModifica(entity, classiDato);
 		if(!entity.getComponenti().isEmpty()) {
-			throw new NotAuthorizedException(ErrorCode.AUTH_005);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 

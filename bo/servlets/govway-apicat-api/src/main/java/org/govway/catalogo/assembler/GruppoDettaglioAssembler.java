@@ -99,11 +99,11 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		if(src.getPadre()!= null) {
 			if(src.getPadre().toString().equals(entity.getIdGruppo())) {
-				throw new NotFoundException(ErrorCode.GRP_001);
+				throw new NotFoundException(ErrorCode.GRP_404);
 			}
 			
 			entity.setGruppoPadre(this.gruppoService.find(src.getPadre())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001))
+					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_404))
 					);
 		} else {
 			entity.setGruppoPadre(null);
@@ -113,7 +113,7 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		if(!tipo.equals(entity.getTipo())) {
 			if(!entity.getServizi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_011);
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			entity.setTipo(tipo);
 		}
@@ -133,11 +133,11 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		if(src.getPadre()!= null) {
 			if(src.getPadre().toString().equals(entity.getIdGruppo())) {
-				throw new NotFoundException(ErrorCode.GRP_001);
+				throw new NotFoundException(ErrorCode.GRP_404);
 			}
 			
 			entity.setGruppoPadre(this.gruppoService.find(src.getPadre())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_001))
+					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_404))
 					);
 		}
 		

@@ -104,7 +104,7 @@ public class PDNDClient {
 			throw e;
 		} catch(ApiException e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(ErrorCode.INT_005, e);
+			throw new InternalException(ErrorCode.INT_500_PDND, e);
 		}
 
 	}

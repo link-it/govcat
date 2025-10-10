@@ -75,7 +75,7 @@ public class ServizioEngineAssembler extends CoreEngineAssembler {
 		if(visibilita == null) return null;
 		
 		if(!consentiComponente && visibilita.equals(VisibilitaServizioEnum.COMPONENTE)) {
-			throw new BadRequestException(ErrorCode.VAL_001);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 		
 		switch(visibilita) {

@@ -153,13 +153,13 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 
 	protected DocumentoEntity getDocumentoProperty(Set<EstensioneClientEntity> estensioni, String propertyName) {
 		return estensioni.stream().filter(e -> e.getNome().equals(propertyName))
-		.findAny().orElseThrow(() -> new InternalException(ErrorCode.SYS_001))
+		.findAny().orElseThrow(() -> new InternalException(ErrorCode.SYS_500))
 		.getDocumento();
 	}
 
 	protected String getTextProperty(Set<EstensioneClientEntity> estensioni, String propertyName) {
 		return estensioni.stream().filter(e -> e.getNome().equals(propertyName))
-		.findAny().orElseThrow(() -> new InternalException(ErrorCode.SYS_001))
+		.findAny().orElseThrow(() -> new InternalException(ErrorCode.SYS_500))
 		.getValore();
 	}
 
@@ -177,7 +177,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 		case RICHIESTO_CSR: return getEstensioniCertificatoRichiestoCSR(((CertificatoClientRichiestoCsrCreate)certificato), nomeCertificato, configurazione);
 		}
 
-		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("tipoCertificato", certificato.getTipoCertificato().toString()));
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("tipoCertificato", certificato.getTipoCertificato().toString()));
 	}
 	
 	private String CERTIFICATO_CSR_PROPERTY = "CERTIFICATO";
@@ -192,7 +192,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 
 	protected Set<EstensioneClientEntity> getEstensioniCertificatoRichiestoCSR(CertificatoClientRichiestoCsrCreate certificato, String nomeCertificato, ConfigurazioneCertificato configurazione) {
 		if(!configurazione.isCsr()) {
-			throw new BadRequestException(ErrorCode.VAL_001);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 
 		Set<EstensioneClientEntity> lst = new HashSet<>();
@@ -227,7 +227,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 	
 	protected Set<EstensioneClientEntity> getEstensioniCertificatoRichiestoCN(CertificatoClientRichiestoCnCreate certificato, String nomeCertificato, ConfigurazioneCertificato configurazione) {
 		if(!configurazione.isCn()) {
-			throw new BadRequestException(ErrorCode.VAL_001);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 
 		Set<EstensioneClientEntity> lst = new HashSet<>();
@@ -253,7 +253,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 	protected Set<EstensioneClientEntity> getEstensioniCertificatoFornito(CertificatoClientFornitoCreate certificato, String nomeCertificato, ConfigurazioneCertificato configurazione) {
 		
 		if(!configurazione.isFile()) {
-			throw new BadRequestException(ErrorCode.VAL_001);
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 		Set<EstensioneClientEntity> lst = new HashSet<>();
 		
@@ -298,7 +298,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 			return certificato;
 		}
 
-		throw new InternalException(ErrorCode.SYS_001, java.util.Map.of("nomeCertificato", nomeCertificato));
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("nomeCertificato", nomeCertificato));
 	}
 
 }
