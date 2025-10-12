@@ -23,6 +23,7 @@ import jakarta.servlet.annotation.WebServlet;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ProcessorUtils;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
@@ -45,12 +46,16 @@ public class ProxyServletMonitor extends org.eclipse.jetty.proxy.ProxyServlet.Tr
 	        if (value != null)
 	            selectors = Integer.parseInt(value);
 
-            HttpClient client = new HttpClient(new HttpClientTransportOverHTTP(selectors));
-
-            // TLS config (Jetty 11):
-            SslContextFactory.Client ssl = client.getSslContextFactory();
+            // TLS config (Jetty 11): create SSL context factory and configure via ClientConnector
+            SslContextFactory.Client ssl = new SslContextFactory.Client();
             ssl.setTrustAll(true);
             ssl.setEndpointIdentificationAlgorithm(null);
+
+            ClientConnector clientConnector = new ClientConnector();
+            clientConnector.setSslContextFactory(ssl);
+            clientConnector.setSelectors(selectors);
+
+            HttpClient client = new HttpClient(new HttpClientTransportOverHTTP(clientConnector));
 
             return client;
 	    }
