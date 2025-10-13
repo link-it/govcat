@@ -1,3 +1,12 @@
+// Fix z-index hierarchy: modals should be above sidebar
+.modal {
+  z-index: 1650 !important;
+}
+
+.modal-backdrop {
+  z-index: 1640 !important;
+}
+
 .modal-open {
   .modal {
     overflow-x: hidden;
@@ -235,5 +244,23 @@
     height: 60px;
     padding: 10px;
     // background-color: #fff;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .modal-dialog {
+    margin: 0;
+
+    .modal-body {
+      padding: 0;
+    }
+
+    &.modal-with-65 {
+      max-width: 100%;
+    }
+
+    &.modal-lg-custom {
+      height: 100%;
+    }
   }
 }

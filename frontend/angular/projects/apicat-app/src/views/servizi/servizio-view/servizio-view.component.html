@@ -32,7 +32,7 @@
 
             <div class="row">
               <div class="col-12 col-md-4" [ngClass]="{'border-end': desktop, 'border-bottom border-2 mb-5': !desktop}" style="min-height: 400px;">
-                <div class="sticky-top">
+                <div class="sticky-md-top">
                   <span *ngIf="data.immagine">
                     <img class="border-" [alt]="data?.nome" [src]="{ path: (data | mapper:_getLogoMapper) } | httpImgSrc" style="max-width: 100%;">
                   </span>
@@ -232,7 +232,7 @@
     </div>
   </div>
   <div class="modal-body" [class.modal-body-disabled]="generateJwtOpened">
-    <div class="p-3">
+    <div class="p-md-3">
       <div class="view-template" style="min-height: 150px;">
         <p *ngIf="!_currentApiConfiguration?.protocollo"  class="p-5 text-center">{{ 'APP.MESSAGE.NoSpecification' | translate }}</p>
         <div class="" *ngIf="_currentApiConfiguration?.protocollo === 'rest'">

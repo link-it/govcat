@@ -1,7 +1,7 @@
 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
   <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
     <i class="bi bi-{{ icon }}" *ngIf="icon"></i>
-    <span [class.ms-2]="icon" *ngIf="title">{{ title | translate }}</span>
+    <span class="d-none d-md-block" [class.ms-2]="icon" *ngIf="title">{{ title | translate }}</span>
     <i class="bi bi-chevron-down ms-2"></i>
   </button>
   <ul role="menu" tabindex="-1" class="dropdown-menu" [class.dropdown-menu-end]="menuEnd">

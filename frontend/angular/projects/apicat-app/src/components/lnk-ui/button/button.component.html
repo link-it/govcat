@@ -17,7 +17,7 @@
       </ng-container>
       <ng-container *ngIf="!onlySpinner">
         <i class="{{ icon }}" *ngIf="icon"></i>
-        <span class="" [class.ms-1]="icon" *ngIf="label && !onlyIcon">{{ label | translate }}</span>
+        <span class="d-none d-md-block" [class.ms-1]="icon" *ngIf="label && !onlyIcon">{{ label | translate }}</span>
       </ng-container>
       <ng-container *ngIf="badgeCount">
         <span class="gl-badge badge badge-pill count ms-2 py-0 {{ badgeColor }}">{{ badgeCount }}</span>

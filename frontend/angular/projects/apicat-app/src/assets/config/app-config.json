@@ -159,9 +159,9 @@
           "#ffff00"
         ]
       },
-      "showNotificationsMenu": false,
+      "showNotificationsMenu": true,
       "showNotificationsBar": true,
-      "enablePollingNotifications": true,
+      "enablePollingNotifications": false,
       "showTaxonomies": true,
       "showCommunicationsMenu": true,
 
