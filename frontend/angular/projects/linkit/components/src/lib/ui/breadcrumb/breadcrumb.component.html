@@ -1,6 +1,6 @@
 <nav class="breadcrumbs container-fluid {{ classContainer }} px-0" *ngIf="breadcrumbs.length > 0">
   <div class="breadcrumbs-container" [class.container-mobile-nav]="optional">
-    <button name="button" type="button" class="toggle-mobile-nav" (click)="_onOpenSidebar()">
+    <button name="button" type="button" class="toggle-mobile-nav" (click)="_onOpenSidebar()" *ngIf="!hideToggleMobile">
       <span class="sr-only">Open sidebar</span>
       <span class="material-icons-outlined">view_sidebar</span>
     </button>

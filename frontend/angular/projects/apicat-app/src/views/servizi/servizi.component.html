@@ -1,6 +1,6 @@
 <div id="route-section" class="">
     <div class="breadcrumbs-area container-fluid px-0" [class.container-limited]="_contentLimeted">
-        <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="_groupsView" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+        <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="_groupsView" [hideToggleMobile]="_updateMapper | mapper:_isAnonymousMapper" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     </div>
     <div class="top-area container-fluid px-0" [class.container-limited]="_contentLimeted">
         <div class="tabs gl-tabs d-flex p-0 m-0 flex-grow-1 mobile-separator">
@@ -120,7 +120,13 @@
                     </div>
                 </div>
             </div>
-            <div class="btn-group-">
+            <div class="btn-group me-2" *ngIf="_groupsView && desktop">
+                <button type="button" aria-label="Cambio modalità visualizzazione gruppi" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroupsViewMode()" [tooltip]="'Cambia modalità visualizzazione'" [container]="'body'" [delay]="500">
+                    <i class="bi bi-grid-3x3" *ngIf="_groupsViewMode === 'list'"></i>
+                    <i class="bi bi-list-ul" *ngIf="_groupsViewMode === 'card'"></i>
+                </button>
+            </div>
+            <div class="btn-group-" *ngIf="!_groupsView || !_filterDataEmpty">
                 <button type="button" aria-label="Cambio di vista Gruppi/Lista" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroups()">
                     <i class="bi bi-list-task" *ngIf="_groupsView"></i>
                     <i class="bi bi-grid" *ngIf="!_groupsView && !_showMasonry"></i>
@@ -376,7 +382,7 @@
             </div>
         </div>
     </section>
-    <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-limited]="_contentLimeted" [class.container-scroller-no-search]="!_hasFilter" [class.pt-0]="_groupsView && groupsBreadcrumbs.length > 1" [ngStyle]="{ 'margin-top': fullScroll ? 'auto' : 'auto' }"
+    <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-limited]="_contentLimeted" [class.container-scroller-no-search]="!_hasFilter" [class.pt-0-]="_groupsView && groupsBreadcrumbs.length > 1" [ngStyle]="{ 'margin-top': fullScroll ? 'auto' : 'auto' }"
         infiniteScroll
         [infiniteScrollDistance]="2"
         [infiniteScrollThrottle]="50"
@@ -394,12 +400,13 @@
         ></ui-box-message>
 
         <ng-container *ngIf="_groupsView">
-            <div class="row justify-content-center">
+            <!-- Card/Grid View Mode -->
+            <div class="row justify-content-center" *ngIf="_groupsViewMode === 'card'">
                 <div class="col-12" [class.col-lg-10-]="viewBoxed" *ngIf="!_showMasonry">
                     <div class="row" style="padding-right: 8px;">
-                        <div *ngFor="let element of groups; trackBy: _trackBy;" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.dalign-items-stretch]="_fillBox">
+                        <div *ngFor="let element of groups; trackBy: _trackBy;" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.align-items-stretch]="_fillBox" [class.pr-2]="!desktop">
                             <lnk-card class="extended" [class.flex-fill]="_fillBox"
-                                [primaryText]="element.primaryText" 
+                                [primaryText]="element.primaryText"
                                 [secondaryText]="element.secondaryText"
                                 [image]="element.logo"
                                 [showImage]="_showImage"
@@ -447,6 +454,31 @@
                             ></lnk-card>
                         </div>
                     </ngx-masonry>
+                </div>
+            </div>
+
+            <!-- List View Mode -->
+            <div class="row" *ngIf="_groupsViewMode === 'list'">
+                <div class="col-12">
+                    <app-servizi-group-list-card
+                        *ngFor="let element of groups; trackBy: _trackBy;"
+                        [data]="element.source"
+                        [config]="serviziConfig"
+                        [isAnonymous]="_updateMapper | mapper:_isAnonymousMapper"
+                        [image]="element.logo"
+                        [showImage]="_showImage"
+                        [showEmptyImage]="_showEmptyImage"
+                        [primaryText]="element.primaryText"
+                        [secondaryText]="element.secondaryText"
+                        [metadata]="element.metadata"
+                        [backColor]="element.nome | mapper:_getHashColorMapper"
+                        [numberCharLogoText]="numberCharLogoText"
+                        [enabledImageLink]="enabledImageLink"
+                        [showGroupIcon]="showGroupIcon"
+                        [showGroupLabel]="showGroupLabel"
+                        [groupLabel]="'APP.LABEL.Group' | translate"
+                        (simpleClick)="_onEditGroup($event, element)">
+                    </app-servizi-group-list-card>
                 </div>
             </div>
         </ng-container>

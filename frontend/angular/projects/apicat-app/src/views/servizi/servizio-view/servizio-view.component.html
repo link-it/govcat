@@ -1,6 +1,6 @@
 <div id="route-section" class="">
   <div class="top-area container-fluid limit-container-width px-0">
-    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [hideToggleMobile]="_updateData | mapper:isAnonymousMapper" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls" *ngIf="!_spin">
       <app-monitor-dropdown *ngIf="_updateData | mapper:_canManagementComunicazioniMapper"
@@ -28,10 +28,10 @@
         </div>
 
         <div id="main">
-          <div class="container-fluid">
+          <div class="" [class.container-fluid]="desktop">
 
             <div class="row">
-              <div class="col-4 border-end" style="min-height: 400px;">
+              <div class="col-12 col-md-4" [ngClass]="{'border-end': desktop, 'border-bottom border-2 mb-5': !desktop}" style="min-height: 400px;">
                 <div class="sticky-top">
                   <span *ngIf="data.immagine">
                     <img class="border-" [alt]="data?.nome" [src]="{ path: (data | mapper:_getLogoMapper) } | httpImgSrc" style="max-width: 100%;">
@@ -118,11 +118,11 @@
 
                 </div>
               </div>
-              <div class="col-8">
+              <div class="col-12 col-md-8">
 
-                <div class="row justify-content-end">
-                  <div class="col-4">
-                    <div role="group" class="gl-w-full btn-group btn-group-toggle">
+                <div class="" [class.container-fluid]="desktop">
+                  <div class="d-flex justify-content-end mb-5">
+                    <div role="group" class="gl-w-full btn-group btn-group-toggle" [ngClass]="{'w-50': desktop, 'w-75': !desktop}">
                       <button aria-label="Collaudo" type="button" class="btn btn-sm gl-button btn-secondary" [class.btn-confirm]="_environmentId === 'collaudo'" (click)="_environmentId = 'collaudo'; _loadApis()">
                         <span class="text-nowrap">
                           {{ 'APP.BUTTON.Testing' | translate }}
@@ -137,7 +137,7 @@
                   </div>
                 </div>
 
-                <div class="container-fluid">
+                <div class="" [class.container-fluid]="desktop">
                   <div class="">
                     <div class="" *ngIf="data.descrizione">
                       <h6 class="text-uppercase text-muted mb-5">{{ 'APP.TITLE.DocumentazioneTecnica' | translate }}</h6>

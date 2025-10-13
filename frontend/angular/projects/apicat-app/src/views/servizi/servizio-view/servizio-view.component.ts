@@ -376,6 +376,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         );
     }
 
+    isAnonymousMapper = (): boolean => {
+        return this.authenticationService.isAnonymous();
+    }
+
     _getProfiloLabelMapper(cod: string) {
         const _profilo = this._profili.find((item: any) => item.codice_interno === cod);
         return _profilo ? _profilo.etichetta : cod;

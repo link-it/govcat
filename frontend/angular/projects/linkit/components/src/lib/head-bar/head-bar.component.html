@@ -4,139 +4,141 @@
       <img [src]="'assets/images/' + logo" alt="Logo" class="header-logo" *ngIf="logo">
       <p class="my-0 flex-grow-1 align-self-center" [class.ms-4]="logo" [class.h4-]="!logo" *ngIf="title">{{ title }}</p>
     </div>
-    <div class="align-self-center d-flex justify-content-end">
-      <div class="d-flex justify-content-end align-items-center ms-auto text-truncate headbar-user">
-        <div class="ml-auto" *ngIf="_showNotifications">
-          <button class="btn color-inherit text-uppercase fw-light" (click)="_onMenuAction(_notificationMenu)">
-            <i class="bi bi-{{ _iconbsNotifications }}" *ngIf="_iconbsNotifications"></i>
-            <span class="material-icons-outlined" *ngIf="_iconNotifications && !_iconbsNotifications">{{ _iconNotifications }}</span>
-            <span class="gl-badge badge badge-pill badge-info sm gl-ml-n2" *ngIf="_notificationsCounter > 0">{{ _notificationsCounter }}</span>
-          </button>
-        </div>
-        <div class="ml-auto" *ngIf="_menuAppActions.length > 0">
-          <button class="btn color-inherit text-uppercase fw-light" data-bs-toggle="dropdown">
-            <i class="bi bi-grid-3x3-gap"></i>
-          </button>
-          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end ui-popover-content-" aria-labelledby="menu-apps">
-            <div class="ui-menu other-menu app-switcher-menu position-relative" tabindex="0">
-              <div class="ui-menu-scroll-container position-relative" role="menu">
-                <div class="ui-menu-item app-switcher-wide-item app-switcher-list-item" role="menuitem" tabindex="-1" (click)="_onMenuAppAction(_menuShellActions)">
-                  <div class="other-menu-item" role="presentation">
-                    <span class="material-icons-outlined">{{ _menuShellActions.icon }}</span>
-                    <i class="bi bi-{{ _menuShellActions.icon }} symbol-icon"></i>
-                    <div class="label" role="presentation">{{ _menuShellActions.title }}</div>
+    <ng-cntainer *ngIf="!anonymous">
+      <div class="align-self-center d-flex justify-content-end">
+        <div class="d-flex justify-content-end align-items-center ms-auto text-truncate headbar-user">
+          <div class="ml-auto" *ngIf="_showNotifications">
+            <button class="btn color-inherit text-uppercase fw-light" (click)="_onMenuAction(_notificationMenu)">
+              <i class="bi bi-{{ _iconbsNotifications }}" *ngIf="_iconbsNotifications"></i>
+              <span class="material-icons-outlined" *ngIf="_iconNotifications && !_iconbsNotifications">{{ _iconNotifications }}</span>
+              <span class="gl-badge badge badge-pill badge-info sm gl-ml-n2" *ngIf="_notificationsCounter > 0">{{ _notificationsCounter }}</span>
+            </button>
+          </div>
+          <div class="ml-auto" *ngIf="_menuAppActions.length > 0">
+            <button class="btn color-inherit text-uppercase fw-light" data-bs-toggle="dropdown">
+              <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end ui-popover-content-" aria-labelledby="menu-apps">
+              <div class="ui-menu other-menu app-switcher-menu position-relative" tabindex="0">
+                <div class="ui-menu-scroll-container position-relative" role="menu">
+                  <div class="ui-menu-item app-switcher-wide-item app-switcher-list-item" role="menuitem" tabindex="-1" (click)="_onMenuAppAction(_menuShellActions)">
+                    <div class="other-menu-item" role="presentation">
+                      <span class="material-icons-outlined">{{ _menuShellActions.icon }}</span>
+                      <i class="bi bi-{{ _menuShellActions.icon }} symbol-icon"></i>
+                      <div class="label" role="presentation">{{ _menuShellActions.title }}</div>
+                    </div>
                   </div>
+                  <div class="ui-menu-item app-switcher-wide-item app-switcher-heading" role="menuitem" aria-disabled="true" tabindex="-1">App</div>
+                  <div class="ui-menu-item app-switcher-grid-cell" [ngClass]="{'menu-disabled': !menu.enabled}" role="menuitem" aria-label="Altre azioni" tabindex="-1" *ngFor="let menu of _menuAppActions" (click)="_onMenuAppAction(menu)">
+                    <div class="app-icon">
+                      <ng-container [ngSwitch]="menu.type">
+                        <ng-container *ngSwitchCase="'image'">
+                          <img [src]="menu.image">
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'bootstrap'">
+                          <div class="d-flex justify-content-center app-icon-image"
+                            [ngStyle]="{'background-color': menu.bgColor, 'color': menu.color}">
+                            <i class="bi bi-{{ menu.icon || 'app' }} symbol-icon align-self-center" *ngIf="menu.icon"></i>
+                          </div>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'material'">
+                          <div class="d-flex justify-content-center app-icon-image"
+                            [ngStyle]="{'background-color': menu.bgColor, 'color': menu.color}">
+                            <span class="material-icons-outlined" *ngIf="menu.micon">{{ menu.micon }}</span>
+                          </div>
+                        </ng-container>
+                        <ng-container *ngSwitchCase="'svg'">
+                          <div class="d-flex justify-content-center app-icon-image"
+                            [ngStyle]="{'background-color': menu.bgColor, 'color': menu.color}">
+                            <img [src]="menu.iconUrl" *ngIf="menu.iconUrl">
+                          </div>
+                        </ng-container>
+                      </ng-container>
+                    </div>
+                    <div class="app-switcher-app-name" role="presentation">{{ menu.title }}</div>
+                  </div>
+                  <!-- <div class="ui-menu-item app-switcher-wide-item app-switcher-heading" role="menuitem" aria-disabled="true" tabindex="-1">Altro</div>
+                  <div class="ui-menu-item app-switcher-wide-item app-switcher-list-item" [ngClass]="{'menu-disabled': !menu.enabled}" role="menuitem" tabindex="-1" *ngFor="let menu of _menuAppActions" (click)="_onMenuAppAction(menu)">
+                    <div class="other-menu-item" role="presentation">
+                      <i class="bi bi-{{ menu.icon || 'app' }} symbol-icon"></i>
+                      <div class="label" role="presentation">{{ menu.title }}</div>
+                    </div>
+                  </div> -->
                 </div>
-                <div class="ui-menu-item app-switcher-wide-item app-switcher-heading" role="menuitem" aria-disabled="true" tabindex="-1">App</div>
-                <div class="ui-menu-item app-switcher-grid-cell" [ngClass]="{'menu-disabled': !menu.enabled}" role="menuitem" aria-label="Altre azioni" tabindex="-1" *ngFor="let menu of _menuAppActions" (click)="_onMenuAppAction(menu)">
-                  <div class="app-icon">
-                    <ng-container [ngSwitch]="menu.type">
-                      <ng-container *ngSwitchCase="'image'">
-                        <img [src]="menu.image">
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'bootstrap'">
-                        <div class="d-flex justify-content-center app-icon-image"
-                          [ngStyle]="{'background-color': menu.bgColor, 'color': menu.color}">
-                          <i class="bi bi-{{ menu.icon || 'app' }} symbol-icon align-self-center" *ngIf="menu.icon"></i>
-                        </div>
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'material'">
-                        <div class="d-flex justify-content-center app-icon-image"
-                          [ngStyle]="{'background-color': menu.bgColor, 'color': menu.color}">
-                          <span class="material-icons-outlined" *ngIf="menu.micon">{{ menu.micon }}</span>
-                        </div>
-                      </ng-container>
-                      <ng-container *ngSwitchCase="'svg'">
-                        <div class="d-flex justify-content-center app-icon-image"
-                          [ngStyle]="{'background-color': menu.bgColor, 'color': menu.color}">
-                          <img [src]="menu.iconUrl" *ngIf="menu.iconUrl">
-                        </div>
-                      </ng-container>
-                    </ng-container>
-                  </div>
-                  <div class="app-switcher-app-name" role="presentation">{{ menu.title }}</div>
-                </div>
-                <!-- <div class="ui-menu-item app-switcher-wide-item app-switcher-heading" role="menuitem" aria-disabled="true" tabindex="-1">Altro</div>
-                <div class="ui-menu-item app-switcher-wide-item app-switcher-list-item" [ngClass]="{'menu-disabled': !menu.enabled}" role="menuitem" tabindex="-1" *ngFor="let menu of _menuAppActions" (click)="_onMenuAppAction(menu)">
-                  <div class="other-menu-item" role="presentation">
-                    <i class="bi bi-{{ menu.icon || 'app' }} symbol-icon"></i>
-                    <div class="label" role="presentation">{{ menu.title }}</div>
-                  </div>
-                </div> -->
               </div>
-            </div>
-          </ul>
-        </div>
+            </ul>
+          </div>
 
-        <div class="ml-auto" *ngIf="loggedIn">
-          <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
-            <!-- <img width="23" height="23" class="header-user-avatar" [alt]="_username" src="./assets/images/avatar.png"> -->
-            <img #avatar class="" [alt]="_username" ngxGravatar [email]="_username" [size]="23" fallback="mp" (error)="onAvatarError($event)">
-            <!-- <img class="bg-white rounded-circle border border-white" src="./assets/images/_avatar.png" width="23" (error)="onAvatarError($event)"> -->
-            <!-- <div class="d-inline ms-2 align-middle">{{ _username }}</div> -->
-            <span class="material-icons-outlined align-middle mx-1">expand_more</span>
-          </button>
-          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="menu-action">
-            <div class="gl-new-dropdown-inner">
-              <div class="gl-new-dropdown-contents">
-                <ng-container *ngFor="let menu of _menuActions; let index = index;">
-                  <ng-container [ngSwitch]="menu.action">
-                    <li class="divider" *ngIf="index > 0"></li>
-                    <ng-container *ngSwitchCase="'profile'">
-                      <li class="gl-new-dropdown-item">
-                        <button role="menuitem" type="button" class="dropdown-item" (click)="_onMenuAction(menu)">
-                          <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="menu.icon">
-                            <i class="bi bi-{{ menu.icon }}"></i>
-                          </div>
-                          <div class="gl-new-dropdown-item-text-wrapper">
-                            <div class="gl-font-weight-bold">{{ menu.title }}</div>
-                            <p class="gl-new-dropdown-item-text-primary m-0">{{ menu.subTitle }}</p>
-                          </div>
-                        </button>
-                      </li>
-                    </ng-container>
-                    <ng-container *ngSwitchDefault>
-                      <li class="gl-new-dropdown-item">
-                        <button role="menuitem" type="button" class="dropdown-item" (click)="_onMenuAction(menu)">
-                          <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="menu.icon">
-                            <i class="bi bi-{{ menu.icon }}"></i>
-                          </div>
-                          <div class="gl-new-dropdown-item-text-wrapper">
-                            <p class="gl-new-dropdown-item-text-primary">{{ menu.title }}</p>
-                          </div>
-                        </button>
+          <div class="ml-auto" *ngIf="loggedIn">
+            <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
+              <!-- <img width="23" height="23" class="header-user-avatar" [alt]="_username" src="./assets/images/avatar.png"> -->
+              <img #avatar class="" [alt]="_username" ngxGravatar [email]="_username" [size]="23" fallback="mp" (error)="onAvatarError($event)">
+              <!-- <img class="bg-white rounded-circle border border-white" src="./assets/images/_avatar.png" width="23" (error)="onAvatarError($event)"> -->
+              <!-- <div class="d-inline ms-2 align-middle">{{ _username }}</div> -->
+              <span class="material-icons-outlined align-middle mx-1">expand_more</span>
+            </button>
+            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="menu-action">
+              <div class="gl-new-dropdown-inner">
+                <div class="gl-new-dropdown-contents">
+                  <ng-container *ngFor="let menu of _menuActions; let index = index;">
+                    <ng-container [ngSwitch]="menu.action">
+                      <li class="divider" *ngIf="index > 0"></li>
+                      <ng-container *ngSwitchCase="'profile'">
+                        <li class="gl-new-dropdown-item">
+                          <button role="menuitem" type="button" class="dropdown-item" (click)="_onMenuAction(menu)">
+                            <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="menu.icon">
+                              <i class="bi bi-{{ menu.icon }}"></i>
+                            </div>
+                            <div class="gl-new-dropdown-item-text-wrapper">
+                              <div class="gl-font-weight-bold">{{ menu.title }}</div>
+                              <p class="gl-new-dropdown-item-text-primary m-0">{{ menu.subTitle }}</p>
+                            </div>
+                          </button>
                         </li>
+                      </ng-container>
+                      <ng-container *ngSwitchDefault>
+                        <li class="gl-new-dropdown-item">
+                          <button role="menuitem" type="button" class="dropdown-item" (click)="_onMenuAction(menu)">
+                            <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="menu.icon">
+                              <i class="bi bi-{{ menu.icon }}"></i>
+                            </div>
+                            <div class="gl-new-dropdown-item-text-wrapper">
+                              <p class="gl-new-dropdown-item-text-primary">{{ menu.title }}</p>
+                            </div>
+                          </button>
+                          </li>
+                      </ng-container>
                     </ng-container>
                   </ng-container>
-                </ng-container>
-              </div>
-            </div>
-          </ul>
-        </div>
-        <div class="ml-auto" *ngIf="!loggedIn && login">
-          <button class="btn btn-sm color-inherit fw-light" (click)="_onMenuAction(_loginMenu)">
-            <i class="bi bi-box-arrow-in-right me-2"></i>
-            <span class="">{{ loginLabel }}</span>
-          </button>
-        </div>
-
-        <div class="ml-auto" *ngIf="_showLanguageMenu && _translations && _translations.length > 1">
-          <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
-            <span class="material-icons-outlined" class="align-middle">language</span>
-            <div class="d-inline ms-2 align-middle">{{ _currentLanguage }}</div>
-            <span class="material-icons-outlined align-middle mx-1">expand_more</span>
-          </button>
-          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="language">
-            <li role="presentation" class="gl-new-dropdown-item gl-search-box-by-click-history-item" *ngFor="let lang of _translations">
-              <button role="menuitem" type="button" class="dropdown-item" [disabled]="_currentLanguage === lang.alpha3Code" (click)="_changeLanguage(lang)">
-                <div class="gl-new-dropdown-item-text-wrapper">
-                  <p class="gl-new-dropdown-item-text-primary m-0">{{ lang.language }}</p>
                 </div>
-              </button>
-            </li>
-          </ul>
+              </div>
+            </ul>
+          </div>
+          <div class="ml-auto" *ngIf="!loggedIn && login">
+            <button class="btn btn-sm color-inherit fw-light" (click)="_onMenuAction(_loginMenu)">
+              <i class="bi bi-box-arrow-in-right me-2"></i>
+              <span class="">{{ loginLabel }}</span>
+            </button>
+          </div>
+
+          <div class="ml-auto" *ngIf="_showLanguageMenu && _translations && _translations.length > 1">
+            <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
+              <span class="material-icons-outlined" class="align-middle">language</span>
+              <div class="d-inline ms-2 align-middle">{{ _currentLanguage }}</div>
+              <span class="material-icons-outlined align-middle mx-1">expand_more</span>
+            </button>
+            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="language">
+              <li role="presentation" class="gl-new-dropdown-item gl-search-box-by-click-history-item" *ngFor="let lang of _translations">
+                <button role="menuitem" type="button" class="dropdown-item" [disabled]="_currentLanguage === lang.alpha3Code" (click)="_changeLanguage(lang)">
+                  <div class="gl-new-dropdown-item-text-wrapper">
+                    <p class="gl-new-dropdown-item-text-primary m-0">{{ lang.language }}</p>
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
+    </ng-cntainer>
   </div>
 </div>

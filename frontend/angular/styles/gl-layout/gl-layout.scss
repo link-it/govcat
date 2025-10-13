@@ -114,11 +114,14 @@
   border-bottom: 1px solid var(--top-area-border-color, #dbdbdb);
   display: flex;
   align-items: center !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .top-area .nav-controls {
   display: inline-block;
   text-align: right;
+  padding: 8px;
 }
 
 .close-nav-button,

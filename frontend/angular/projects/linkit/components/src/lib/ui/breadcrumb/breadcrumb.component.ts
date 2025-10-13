@@ -17,6 +17,7 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
   @Input() useGroups: boolean = false;
   @Input() classContainer: string = '';
   @Input() optional: boolean = false;
+  @Input() hideToggleMobile: boolean = false;
 
   @Output() onClick: EventEmitter<any> = new EventEmitter();
 

@@ -64,7 +64,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _pageGroups: Page = new Page({});
     _linksGroups: any = {};
     _manualSelected: boolean = false;
-    
+
+    // Group view display modes: 'card' (grid), 'list' (horizontal)
+    _groupsViewMode: string = 'card';
+
     _showImage: boolean = false;
     _showEmptyImage: boolean = false;
     _fillBox: boolean = false;
@@ -298,6 +301,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     @HostListener('window:resize') _onResize() {
         this.desktop = (window.innerWidth >= 992);
+        // Force card view on mobile
+        if (!this.desktop && this._groupsViewMode === 'list') {
+            this._groupsViewMode = 'card';
+        }
     }
 
     ngOnInit() {
@@ -388,6 +395,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     ngAfterContentChecked(): void {
         this.desktop = (window.innerWidth >= 992);
+        // Ensure card view on mobile
+        if (!this.desktop && this._groupsViewMode === 'list') {
+            this._groupsViewMode = 'card';
+        }
     }
 
     refresh(hideLoader: boolean = false) {
@@ -762,6 +773,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _toggleCols() {
         this._col = this._col === 4 ? 6 : 4;
+    }
+
+    _toggleGroupsViewMode() {
+        this._groupsViewMode = this._groupsViewMode === 'card' ? 'list' : 'card';
     }
 
     _onMyServices() {

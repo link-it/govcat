@@ -268,18 +268,18 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     constructor(
         public route: ActivatedRoute,
-        private router: Router,
-        private translate: TranslateService,
-        private modalService: BsModalService,
-        private configService: ConfigService,
-        private eventsManagerService: EventsManagerService,
+        private readonly router: Router,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
+        private readonly eventsManagerService: EventsManagerService,
         public tools: Tools,
-        private apiService: OpenAPIService,
-        private utils: UtilService,
-        private authenticationService: AuthenticationService
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService,
+        private readonly authenticationService: AuthenticationService
     ) {
         this.route.data.subscribe((data) => {
-        if (!data.componentBreadcrumbs) return;
+            if (!data.componentBreadcrumbs) return;
             this._componentBreadcrumbs = data.componentBreadcrumbs;
             this._initBreadcrumb();
         });
@@ -289,7 +289,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const servizio = this.authenticationService._getConfigModule('servizio');
         this.hasServiziApi = servizio?.api?.abilitato || false;
         this.hasGenerico = servizio?.generico?.abilitato || false;
-        this._tipiServizio.map((ts: any) => {
+        this._tipiServizio.forEach((ts: any) => {
             ts.enabled = (ts.value === 'API' && this.hasServiziApi) || (ts.value === 'Generico' && this.hasGenerico);
         });
 
@@ -413,10 +413,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             if (item.route === 'categorie') {
                 const _taxonomiesRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
                 const _showTaxonomies = _taxonomiesRemoteConfig?.tassonomie_abilitate || false;
-                // if (_showTaxonomies && this.anagrafiche) {
-                //   console.log(this.anagrafiche);
-                //   return this.anagrafiche['tassonomie']?.length > 0 || false;
-                // }
                 return _showTaxonomies;
             }
             if (item.route === 'api') {
