@@ -778,6 +778,32 @@ $tagColorHover: #dbdbdb;
     padding-top: 0rem !important;
     padding-bottom: 1rem !important;
   }
+  .wrapper {
+    section {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+  }
+
+  .model-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .model-box-control,
+  .models-control,
+  .opblock-summary-control {
+    overflow: hidden; 
+  }
+
+  .model-box {
+    .model {
+      .model-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
 }
 
 // chips-list

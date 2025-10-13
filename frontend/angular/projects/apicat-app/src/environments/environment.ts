@@ -7,7 +7,7 @@ import { LogLevel } from "../models/log.interface";
 export const environment = {
   production: false,
   version: '2.3.0.dev',
-  build: '251013.1732',
+  build: '251013.2231',
 
   logLevel: LogLevel.debug,
 

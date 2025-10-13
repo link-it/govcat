@@ -1,0 +1,149 @@
+<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" (click)="__itemClick($event)">
+  <!-- Header: Avatar + Primary Text + Action -->
+  <div class="mobile-header">
+    <div class="mobile-avatar" *ngIf="_itemRowConfig?.avatar">
+      <ui-item-type
+        [data]="_data"
+        [elem]="_itemRowConfig?.avatar"
+        [config]="_config">
+      </ui-item-type>
+    </div>
+
+    <div class="mobile-primary flex-grow-1">
+      <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
+        <ng-container *ngFor="let elem of _itemRowConfig?.primaryText">
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        </ng-container>
+      </div>
+
+      <!-- Metadata labels directly under primary text -->
+      <div class="mobile-labels" *ngIf="_itemRowConfig?.metadata?.label.length > 0">
+        <ng-container *ngFor="let elem of _itemRowConfig?.metadata.label">
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        </ng-container>
+      </div>
+    </div>
+
+    <div class="mobile-action" *ngIf="hasAction">
+      <button class="btn btn-default btn-sm gl-button btn-icon" [tooltip]="actionTooltip" (click)="__actionlick($event)">
+        <i class="bi bi-{{ iconAction }}" *ngIf="iconAction"></i>
+        <span *ngIf="!iconAction">{{ actionText }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metadata text -->
+  <div class="mobile-metadata" *ngIf="_itemRowConfig?.metadata?.text.length > 0">
+    <ng-container *ngFor="let elem of _itemRowConfig?.metadata.text">
+      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+        [data]="_data"
+        [elem]="elem"
+        [config]="_config">
+      </ui-item-type>
+    </ng-container>
+  </div>
+
+  <!-- Secondary Text -->
+  <div class="mobile-secondary" *ngIf="_itemRowConfig?.secondaryText?.length > 0">
+    <ng-container *ngFor="let elem of _itemRowConfig?.secondaryText">
+      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+        [data]="_data"
+        [elem]="elem"
+        [config]="_config">
+      </ui-item-type>
+    </ng-container>
+  </div>
+
+  <!-- Secondary Metadata -->
+  <div class="mobile-secondary-meta" *ngIf="_itemRowConfig?.secondaryMetadata?.length > 0">
+    <ng-container *ngFor="let elem of _itemRowConfig?.secondaryMetadata">
+      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+        [data]="_data"
+        [elem]="elem"
+        [config]="_config">
+      </ui-item-type>
+    </ng-container>
+  </div>
+
+  <!-- Box Status -->
+  <div class="mobile-box-status" *ngIf="_itemRowConfig?.boxStatus1 || _itemRowConfig?.boxStatus2">
+    <ng-template #tooltipBox1Template><div [innerHtml]="_tooltipBox1"></div></ng-template>
+    <div class="box-status"
+        [style.background-color]="_getBackground(_itemRowConfig?.boxStatus1)"
+        [style.color]="_getColor(_itemRowConfig?.boxStatus1)"
+        *ngIf="_itemRowConfig?.boxStatus1"
+        [tooltip]="tooltipBox1Template"
+        [placement]="_tooltipPlacementBox1"
+        [delay]="_tooltipDelay"
+        container="body">
+      <div class="box-primary">
+        <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus1?.primaryText">
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        </ng-container>
+      </div>
+      <div class="box-meta">
+        <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus1?.metadata">
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        </ng-container>
+      </div>
+    </div>
+
+    <ng-template #tooltipBox2Template><div [innerHtml]="_tooltipBox2"></div></ng-template>
+    <div class="box-status"
+        [style.background-color]="_getBackground(_itemRowConfig?.boxStatus2)"
+        [style.color]="_getColor(_itemRowConfig?.boxStatus2)"
+        *ngIf="_itemRowConfig?.boxStatus2"
+        [tooltip]="tooltipBox2Template"
+        [placement]="_tooltipPlacementBox2"
+        [delay]="_tooltipDelay"
+        container="body">
+      <div class="box-primary">
+        <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus2?.primaryText">
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        </ng-container>
+      </div>
+      <div class="box-meta">
+        <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus2?.metadata">
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="mobile-footer" *ngIf="_itemRowConfig?.footer">
+    <ng-container *ngFor="let elem of _itemRowConfig?.footer">
+      <div class="footer-item" *ngIf="_showEmpty(elem)">
+        <ui-item-type
+          [data]="_data"
+          [elem]="elem"
+          [config]="_config">
+        </ui-item-type>
+      </div>
+    </ng-container>
+  </div>
+</div>

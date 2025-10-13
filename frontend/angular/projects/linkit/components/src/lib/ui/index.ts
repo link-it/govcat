@@ -15,6 +15,7 @@ import { FileUploaderComponent } from "./file-uploader/file-uploader.component";
 import { FormReadonlyComponent } from "./form-readonly/form-readonly.component";
 import { InputHelpComponent } from "./input-help/input-help.component";
 import { ItemRowComponent } from "./item-row/item-row.component";
+import { ItemRowMobileComponent } from "./item-row-mobile/item-row-mobile.component";
 import { ItemTypeComponent } from "./item-type/item-type.component";
 import { PhotoBase64Component } from "./photo-base64/photo-base64.component";
 import { PlaceholderLoadingComponent } from "./placeholder-loading/placeholder-loading.component";
@@ -41,6 +42,7 @@ export const ui = [
     FormReadonlyComponent,
     InputHelpComponent,
     ItemRowComponent,
+    ItemRowMobileComponent,
     ItemTypeComponent,
     PhotoBase64Component,
     PlaceholderLoadingComponent,
@@ -72,6 +74,7 @@ export {
     FormReadonlyComponent,
     InputHelpComponent,
     ItemRowComponent,
+    ItemRowMobileComponent,
     ItemTypeComponent,
     PhotoBase64Component,
     PlaceholderLoadingComponent,

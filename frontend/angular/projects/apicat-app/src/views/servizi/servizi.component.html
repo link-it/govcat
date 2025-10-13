@@ -491,7 +491,7 @@
                             <div class="px-2 border-bottom">
                                 <div class="d-flex flex-column flex-md-row align-md-items-center">
                                     <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection">
-                                        <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100">
+                                        <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100" [class.mt-2]="!desktop">
                                             <label class="ps-2 py-2 mb-0 clearfix" *ngIf="hasMultiSelection">
                                                 <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [value]="element.id" autocomplete="off" [checked]="element.selected" (click)="_onSelect($event, element)">
                                             </label>

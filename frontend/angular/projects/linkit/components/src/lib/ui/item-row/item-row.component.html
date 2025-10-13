@@ -1,4 +1,26 @@
-<div #ir class="d-flex flex-column" [class.cursor-pointer]="rowClick && hasLink" (click)="__itemClickRow($event, ir)">
+<!-- Mobile version -->
+<ui-item-row-mobile *ngIf="!desktop"
+  [data]="_data"
+  [config]="_config"
+  [configRow]="configRow"
+  [actionDisabled]="actionDisabled"
+  [notify]="notify"
+  [hoverFeedback]="hoverFeedback"
+  [hasLink]="hasLink"
+  [hasAction]="hasAction"
+  [iconAction]="iconAction"
+  [actionText]="actionText"
+  [actionTooltip]="actionTooltip"
+  [rowClick]="rowClick"
+  [hostBackground]="hostBackground"
+  [primaryClass]="primaryClass"
+  [isAnonymous]="isAnonymous"
+  (itemClick)="itemClick.emit($event)"
+  (actionClick)="actionClick.emit($event)">
+</ui-item-row-mobile>
+
+<!-- Desktop version -->
+<div #ir class="d-flex flex-column" *ngIf="desktop" [class.cursor-pointer]="rowClick && hasLink" (click)="__itemClickRow($event, ir)">
   <div class="active-item d-flex flex-grow-1 align-items-center">
     <div class="d-flex align-items-center w-100" [class.flex-wrap]="_itemRowConfig?.wrap">
       <div class="avatar-image" *ngIf="_itemRowConfig?.avatar">
