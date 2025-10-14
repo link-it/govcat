@@ -5,6 +5,7 @@
   li > a.gl-link {
     color: #303030;
     font-size: var(--sidebar-link-font-size, '1rem');
+    height: var(--sidebar-link-height, '32px');
   }
 
   .context-header a {
