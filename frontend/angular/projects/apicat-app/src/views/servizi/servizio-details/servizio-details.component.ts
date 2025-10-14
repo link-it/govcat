@@ -266,6 +266,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+    hideVersions: boolean = false;
+
     constructor(
         public route: ActivatedRoute,
         private readonly router: Router,
@@ -297,6 +299,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
         this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
+        this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
 
         this.loadAnagrafiche();
     }

@@ -120,20 +120,20 @@
                     </div>
                 </div>
             </div>
-            <div class="btn-group me-2" *ngIf="_groupsView && desktop">
+            <div class="btn-group" *ngIf="_groupsView && desktop">
                 <button type="button" aria-label="Cambio modalità visualizzazione gruppi" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroupsViewMode()" [tooltip]="'Cambia modalità visualizzazione'" [container]="'body'" [delay]="500">
                     <i class="bi bi-grid-3x3" *ngIf="_groupsViewMode === 'list'"></i>
                     <i class="bi bi-list-ul" *ngIf="_groupsViewMode === 'card'"></i>
                 </button>
             </div>
-            <div class="btn-group-" *ngIf="!_groupsView || !_filterDataEmpty">
+            <div class="btn-group" *ngIf="!_groupsView || !_filterDataEmpty">
                 <button type="button" aria-label="Cambio di vista Gruppi/Lista" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroups()">
                     <i class="bi bi-list-task" *ngIf="_groupsView"></i>
                     <i class="bi bi-grid" *ngIf="!_groupsView && !_showMasonry"></i>
                     <i class="bi bi-columns-gap" *ngIf="!_groupsView && _showMasonry"></i>
                 </button>
             </div>
-            <div class="btn-group- ms-1" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
+            <div class="btn-group" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
                 <div class="btn-group- d-inline-block" *ngIf="!_isEdit">
                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
                         <button aria-label="Altre azioni" aria-label="Altre azioni" aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">

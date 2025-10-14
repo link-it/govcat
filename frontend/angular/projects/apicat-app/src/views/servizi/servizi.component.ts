@@ -182,6 +182,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _updateMapper: string = '';
 
+    hideVersions: boolean = false;
+
     _useNewSearchUI : boolean = false;
 
     numberCharLogoText: number = 2;
@@ -326,6 +328,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._showEmptyImage = this.serviziConfig.showEmptyImage || false;
                 this._fillBox = this.serviziConfig.fillBox || true;
                 this._showMasonry = this.serviziConfig.showMasonry || false;
+
+                const appConfig = this.configService.getConfiguration();
+                this.hideVersions = appConfig?.AppConfig?.Services?.hideVersions || false;
 
                 if (!this.authenticationService.isGestore()) {
                     this.hasMultiSelection = false;
@@ -485,7 +490,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             nome: sg.nome,
                             editMode: false,
                             source: { ...sg, visibilita: _visibilita },
-                            primaryText: sg.label ? sg.label : ((sg.nome && sg.versione) ? `${sg.nome} - v.${sg.versione}` : sg.nome),
+                            primaryText: sg.label ? sg.label : (this.hideVersions ? sg.nome : ((sg.nome && sg.versione) ? `${sg.nome} - v.${sg.versione}` : sg.nome)),
                             secondaryText: '', // (sg.descrizione || ''),
                             metadata: _meta.join(', '),
                             logo: sg.immagine ? `${this.api_url}/${_model}/${sg.id}/immagine`: ''
@@ -552,12 +557,12 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             source: { ...service, visibilita: _visibilita, logo: service.immagine ? `${this.api_url}/servizi/${service.id_servizio}/immagine`: '' },
                             idServizio: service.id_servizio,
                             nome: service.nome,
-                            versione: service.versione || '',  
+                            versione: service.versione || '',
                             logo: service.immagine ? `${this.api_url}/servizi/${service.id_servizio}/immagine`: '',
                             descrizione: service.descrizione || '',
                             stato: service.stato || '',
                             multiplo: service.multi_adesione || false,
-                            primaryText: service.label ? service.label : ((service.nome && service.versione) ? `${service.nome} - v.${service.versione}` : service.nome),
+                            primaryText: service.label ? service.label : (this.hideVersions ? service.nome : ((service.nome && service.versione) ? `${service.nome} - v.${service.versione}` : service.nome)),
                             secondaryText: '', // (service.descrizione || ''),
                             metadata: _meta.join(', '),
                             selected: false,

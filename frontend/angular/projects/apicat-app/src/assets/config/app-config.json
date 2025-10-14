@@ -87,7 +87,8 @@
     },
 
     "Services": {
-      "showReferents": true
+      "showReferents": true,
+      "hideVersions": true
     },
 
     "Layout": {

@@ -95,6 +95,8 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
 
   _profili: any = null;
 
+  hideVersions: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -113,6 +115,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     });
 
     this.config = this.configService.getConfiguration();
+    this.hideVersions = this.config?.AppConfig?.Services?.hideVersions || false;
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
@@ -169,11 +172,11 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     const _versione: string = this.service ? this.service.versione : null;
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
 
-    let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    let title = this.hideVersions ? _nome : ((_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New'));
     let baseUrl = `/servizi`;
 
     if (this._componentBreadcrumbs) {
-      title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+      title = this.hideVersions ? _nome : ((_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...');
       baseUrl = `/servizi/${this._componentBreadcrumbs.service.id_servizio}/componenti`;
     }
 

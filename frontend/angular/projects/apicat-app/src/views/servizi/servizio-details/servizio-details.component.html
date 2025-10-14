@@ -200,7 +200,7 @@
                                     </div>
                                 </div>
                                 <div class="row nome versione">
-                                    <div class="col-8">
+                                    <div [class.col-8]="!hideVersions || _isEdit" [class.col-12]="hideVersions && !_isEdit">
                                         <lnk-form-field
                                             name="nome"
                                             [label]="'APP.LABEL.nome' | translate"
@@ -211,7 +211,7 @@
                                             [helpContext]="'SERVICE.POPOVER'"
                                         ></lnk-form-field>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-4" *ngIf="!hideVersions || _isEdit">
                                         <lnk-form-field
                                             type="number"
                                             name="versione"
