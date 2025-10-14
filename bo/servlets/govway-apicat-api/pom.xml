@@ -215,10 +215,6 @@
 					<artifactId>spring-boot-starter-logging</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>com.zaxxer</groupId>
 					<artifactId>HikariCP</artifactId>
 				</exclusion>
@@ -356,6 +352,31 @@
             <artifactId>jakarta.jakartaee-api</artifactId>
         </dependency>
 
+		<!-- JAXB API and implementation for Java 11+ -->
+		<!-- Jakarta namespace for new code -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+		</dependency>
+
+		<!-- javax.xml.bind for compatibility with Jackson JAXB module -->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-catalina</artifactId>
@@ -386,7 +407,7 @@
 				<artifactId>maven-war-plugin</artifactId>
 				<configuration>
 					<packagingExcludes>
-						WEB-INF/lib/jboss-logging-*.jar,WEB-INF/lib/commons-logging-*.jar</packagingExcludes>
+						WEB-INF/lib/commons-logging-*.jar</packagingExcludes>
 					<attachClasses>true</attachClasses>
 					<classesClassifier>classes</classesClassifier>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
@@ -602,4 +623,60 @@
 </plugin>
 		</plugins>
 	</build>
+    <!-- ====================== PROFILE: Exclude jboss-logging ====================== -->
+    <profiles>
+        <profile>
+            <id>exclude-jboss-logging</id>
+            <!-- activate either via -Pexclude-jboss-logging or -Dexclude.jboss.logging=true -->
+            <activation>
+                <property>
+                    <name>exclude.jboss.logging</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <!-- Add the jboss-logging exclusion to the JPA starter -->
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-data-jpa</artifactId>
+                        <!-- repeat the two always-on exclusions + add jboss-logging -->
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-logging</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>com.zaxxer</groupId>
+                                <artifactId>HikariCP</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>org.jboss.logging</groupId>
+                                <artifactId>jboss-logging</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+
+            <!-- Also exclude the JBoss jar from the WAR -->
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <!-- Keep commons-logging excluded ALWAYS; add jboss-logging here -->
+                            <packagingExcludes>
+                                WEB-INF/lib/commons-logging-*.jar,WEB-INF/lib/jboss-logging-*.jar
+                            </packagingExcludes>
+                            <attachClasses>true</attachClasses>
+                            <classesClassifier>classes</classesClassifier>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

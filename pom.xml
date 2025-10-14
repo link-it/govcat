@@ -202,7 +202,7 @@
 
 		<!-- Versioni spring -->
 		<spring.boot.version>3.3.0</spring.boot.version>
-		<spring.framework.version>6.1.0</spring.framework.version>
+		<spring.framework.version>6.1.10</spring.framework.version>
 		<spring.security.version>6.3.0</spring.security.version>
 
 		<!-- Spring Data JPA -->
@@ -232,7 +232,7 @@
 		<openapi.tool.codegen.version>7.8.0</openapi.tool.codegen.version>
 
 		<!-- swagger -->
-		<swagger.parser.v3.version>2.0.24</swagger.parser.v3.version>
+		<swagger.parser.v3.version>2.1.22</swagger.parser.v3.version>
 		<swagger.model.version>1.6.4</swagger.model.version>
 		<swagger.parser.version>1.0.56</swagger.parser.version>
 
@@ -257,7 +257,7 @@
 		<jackson.databind.nullable.version>0.2.1</jackson.databind.nullable.version>
 
 		<!-- Additional dependencies -->
-		<antlr.version>4.9.2</antlr.version>
+		<antlr.version>4.13.0</antlr.version>
 		<httpclient.version>4.5.14</httpclient.version>
 		<servlet-api.version>4.0.1</servlet-api.version>
 
@@ -1060,6 +1060,19 @@
 				<groupId>jakarta.servlet</groupId>
 				<artifactId>jakarta.servlet-api</artifactId>
 				<version>${jakarta.servlet.version}</version>
+			</dependency>
+
+			<!-- JAXB API and implementation for Java 11+ -->
+			<dependency>
+				<groupId>jakarta.xml.bind</groupId>
+				<artifactId>jakarta.xml.bind-api</artifactId>
+				<version>${jakarta.xml.bind.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.glassfish.jaxb</groupId>
+				<artifactId>jaxb-runtime</artifactId>
+				<version>${jakarta.xml.bind.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
