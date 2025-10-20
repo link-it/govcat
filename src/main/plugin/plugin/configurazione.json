@@ -1,4 +1,23 @@
 {
+  "generale": {
+    "site": "https://esempio.it",
+    "whitelist_vetrina": [
+      "GET /configurazione",
+      "GET /profilo",
+      "GET /servizi",
+      "GET /servizi/**",
+      "GET /servizi_gruppi",
+      "GET /domini",
+      "GET /domini/*/referenti",
+      "GET /adesioni",
+      "GET /api",
+      "GET /tassonomie",
+      "GET /gruppi",
+      "GET /gruppi/**",
+      "GET /organizzazioni",
+      "POST /adesioni"
+    ]
+  },
   "dashboard": {
     "abilitato": false,
     "periodi": {

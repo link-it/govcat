@@ -6227,9 +6227,14 @@ components:
         site:
           type: "string"
           format: "URI"
-        abilita_api_scrittura:
+        istanza_vetrina:
           type: boolean
-          description: "Indica se le API di scrittura sono abilitate (true quando api.mode=full)"
+          description: "Indica se l'istanza è in modalità vetrina/read-only (true quando api.mode=vetrina)"
+        whitelist_vetrina:
+          type: array
+          items:
+            type: string
+          description: "Operazioni consentite quando istanza_vetrina=true nel formato 'METHOD PATH' (es. 'GET /servizi', 'POST /adesioni'). Supporta wildcards nei path: * (singolo segmento), ** (tutti i sotto-path)"
     AccessoAmministrazioneItem:
       type: "object"
       required:
