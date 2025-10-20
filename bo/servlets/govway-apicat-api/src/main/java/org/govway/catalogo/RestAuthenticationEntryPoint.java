@@ -41,7 +41,7 @@ public final class RestAuthenticationEntryPoint implements AuthenticationEntryPo
     @Override
     public void commence(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException authException) throws IOException {
     	if(authException != null) {
-    		
+
     			Problem problem = new Problem();
     			problem.setStatus(HttpStatus.FORBIDDEN.value());
     			problem.setTitle(HttpStatus.FORBIDDEN.getReasonPhrase());
@@ -53,9 +53,9 @@ public final class RestAuthenticationEntryPoint implements AuthenticationEntryPo
 
     			response.setStatus(HttpStatus.FORBIDDEN.value());
     			response.setContentType("application/json+problem");
-    			
+
     			om.writeValue(response.getOutputStream(), problem);
-    			
+
     	}
     }
 

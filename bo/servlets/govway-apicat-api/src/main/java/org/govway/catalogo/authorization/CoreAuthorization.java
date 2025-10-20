@@ -36,16 +36,19 @@ public class CoreAuthorization {
 	protected Configurazione configurazione;
 	
 	public UtenteEntity getUtenteSessione() {
-		return getUtenteSessione(this.configurazione.getUtente().isConsentiAccessoAnonimo());
+		boolean consentiAnonimo = this.configurazione.getUtente().isConsentiAccessoAnonimo();
+		return getUtenteSessione(consentiAnonimo);
 	}
 
 	private UtenteEntity getUtenteSessione(boolean consentiUtenteAnonimo) {
 		InfoProfilo utente = this.requestUtils.getPrincipal(!consentiUtenteAnonimo);
 		if(!consentiUtenteAnonimo) {
-			if(utente == null)
+			if(utente == null) {
 				throw new NotAuthorizedException("Utente non specificato");
-			if(utente.utente == null)
+			}
+			if(utente.utente == null) {
 				throw new NotAuthorizedException("Utente non specificato");
+			}
 			return utente.utente;
 		} else {
 			if(utente != null) {

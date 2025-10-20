@@ -89,7 +89,7 @@ public class RequestUtils {
 
 	public InfoProfilo getPrincipal(boolean checkStato) {
 	    Authentication a = SecurityContextHolder.getContext().getAuthentication();
-	    
+
 	    // Verifica se l'oggetto Authentication è null o non è istanziato correttamente
 	    if (a == null || a.getPrincipal() == null || !(a.getPrincipal() instanceof InfoProfilo)) {
 	    	return null;
@@ -97,13 +97,15 @@ public class RequestUtils {
 
 	    if(a.getPrincipal() instanceof InfoProfilo) {
 	    	InfoProfilo p = (InfoProfilo) a.getPrincipal();
-	    	
+
 	    	if(checkStato) {
-		    	if(p.utente == null || !p.utente.getStato().equals(Stato.ABILITATO)) {
+	    		if(p.utente == null) {
+	    			throw new NotAuthorizedException("Utente non abilitato");
+	    		}
+		    	if(!p.utente.getStato().equals(Stato.ABILITATO)) {
 		    		throw new NotAuthorizedException("Utente non abilitato");
 		    	}
 	    	}
-
 	    	if(configurazione.getUtente().isAggiornamentoIdmAbilitato() && p.utente != null  && p.utente.getStato().equals(Stato.ABILITATO)) {
 //		    	updateContact(p.utente); //TODO
 	    	}

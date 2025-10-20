@@ -59,7 +59,12 @@ public class WebSecurityConfiguration {
 
         PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
         provider.setPreAuthenticatedUserDetailsService(userDetailsWrapper);
-        return new ProviderManager(provider);
+        provider.setThrowExceptionWhenTokenRejected(false);
+
+        ProviderManager pm = new ProviderManager(provider);
+        pm.setEraseCredentialsAfterAuthentication(false);
+
+        return pm;
     }
 
     @Bean
@@ -82,8 +87,8 @@ public class WebSecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(this.path + "/api/v1/profilo").permitAll()
-                        .requestMatchers(this.path + "/**").authenticated()
+                        .requestMatchers("/api/v1/profilo").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
