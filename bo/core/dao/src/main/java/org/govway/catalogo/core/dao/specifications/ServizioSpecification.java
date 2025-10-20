@@ -258,18 +258,18 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		}
 		
 		if(this.utente.isPresent()) {
-			
+
 			UtenteEntity utente = this.utente.get();
-			
+
 			List<Predicate> predListMieiServizi = new ArrayList<>();
 			if(utente.getId() != null) {
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente), utente)); 
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente), utente));
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT), utente));
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT), utente));
-				predListMieiServizi.add(cb.equal(root.get(ServizioEntity_.richiedente), utente));
-				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT)));
-				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente)));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.get(ServizioEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT).get(UtenteEntity_.id)));
+				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente).get(UtenteEntity_.id)));
 			}
 			
 

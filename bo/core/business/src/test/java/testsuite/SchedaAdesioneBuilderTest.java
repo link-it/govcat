@@ -23,7 +23,9 @@ import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.stampe.StampePdf;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -48,13 +50,19 @@ import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 @ExtendWith(MockitoExtension.class)
 public class SchedaAdesioneBuilderTest {
-	
+
     @Mock ConfigurazioneEService configurazione;
     @Mock EServiceBuilder serviceBuilder;
     @InjectMocks SchedaAdesioneBuilder builder;
 
     AdesioneEntity adesione;
     ServizioEntity servizio;
+
+    @BeforeAll
+    static void initStampePdf() {
+        // Initialize StampePdf singleton before running tests
+        StampePdf.init();
+    }
 
     @BeforeEach
     void setupBase() throws Exception {

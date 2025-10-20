@@ -434,13 +434,13 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 					}
 				}
 					
-				if(p.getDomini()!= null) {
+				if(p.getDomini()!= null && !p.getDomini().isEmpty()) {
 					if(!p.getDomini().stream().anyMatch(dNome -> dNome.equals(d.getNome()))) {
 						throw new BadRequestException("Profilo ["+p.getEtichetta()+"] non compatibile col dominio " + d.getNome());
 					}
 				}
 					
-				if(p.getSoggetti()!= null) {
+				if(p.getSoggetti()!= null && !p.getSoggetti().isEmpty()) {
 					if(!p.getSoggetti().stream().anyMatch(dNome -> dNome.equals(d.getSoggettoReferente().getNome()))) {
 						throw new BadRequestException("Profilo ["+p.getEtichetta()+"] non compatibile col soggetto " + d.getSoggettoReferente().getNome());
 					}

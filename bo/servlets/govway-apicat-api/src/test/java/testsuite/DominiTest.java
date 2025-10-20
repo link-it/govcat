@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import jakarta.validation.ConstraintViolationException;
@@ -128,6 +129,7 @@ public class DominiTest {
 
     @BeforeEach
     public void setUp() {
+        Locale.setDefault(Locale.ENGLISH);
         MockitoAnnotations.initMocks(this);
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 

@@ -167,8 +167,8 @@ public class StampePdf {
 		JAXBElement<T> jaxbElement = new JAXBElement<T>(new QName("", root), clazz, null, input);
 
 		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-		jaxbMarshaller.setProperty("com.sun.xml.bind.xmlDeclaration", Boolean.FALSE);
-		jaxbMarshaller.setProperty("jaxb.formatted.output", Boolean.TRUE);
+		jaxbMarshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
+		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		jaxbMarshaller.marshal(jaxbElement, baos);
 		return baos.toByteArray();
 		}

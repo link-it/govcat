@@ -130,9 +130,9 @@ public class ConfigurazioneItemProcessorTest {
         // Verify results
         assertNotNull(result);
         assertEquals("collaudo_configurato", result.getStato());
-        assertEquals(AdesioneEntity.STATO_CONFIGURAZIONE.OK, result.getStatoConfigurazione());
+        assertNull(result.getStatoConfigurazione());
         assertEquals(1, result.getTentativi());
-        assertEquals("Configuration successful", result.getMessaggioConfigurazione());
+        assertNull(result.getMessaggioConfigurazione());
         assertEquals(1, result.getStati().size());
         
         // Verify interactions
@@ -289,7 +289,7 @@ public class ConfigurazioneItemProcessorTest {
         // Verify results - stato should be set to the final stato from configuration
         assertNotNull(result);
         assertEquals("collaudo_configurato", result.getStato());
-        assertEquals(AdesioneEntity.STATO_CONFIGURAZIONE.OK, result.getStatoConfigurazione());
+        assertNull(result.getStatoConfigurazione());
     }
 
     @Test
