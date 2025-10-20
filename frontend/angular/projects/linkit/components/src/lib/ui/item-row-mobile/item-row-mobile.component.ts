@@ -4,6 +4,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 
 import { UtilsLib } from '../../utils/utils.lib';
+import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'ui-item-row-mobile',
@@ -50,7 +51,8 @@ export class ItemRowMobileComponent implements OnInit, AfterViewInit {
     private element: ElementRef,
     private sanitized: DomSanitizer,
     private translate: TranslateService,
-    private utilsLib: UtilsLib
+    private utilsLib: UtilsLib,
+    private configService: ConfigService
   ) { }
 
   ngOnInit() {
@@ -91,6 +93,32 @@ export class ItemRowMobileComponent implements OnInit, AfterViewInit {
 
   _hideAnonymous(field: any) {
     return this.isAnonymous ? field.hideAnonymous || false : false;
+  }
+
+  _checkConfigDependency(field: any): boolean {
+    if (!field.configDependency) {
+      return true;
+    }
+
+    const appConfig = this.configService.getAppConfig();
+    if (!appConfig) {
+      return true;
+    }
+
+    // Supporta percorsi annidati come "Services.hideVersions"
+    const pathParts = field.configDependency.split('.');
+    let configValue = appConfig;
+
+    for (const part of pathParts) {
+      if (configValue && configValue[part] !== undefined) {
+        configValue = configValue[part];
+      } else {
+        return true; // Se il percorso non esiste, mostra l'elemento
+      }
+    }
+
+    // Se il valore è true, nascondi l'elemento (inverti la logica)
+    return !configValue;
   }
 
   _getBackground(boxOptions: any) {

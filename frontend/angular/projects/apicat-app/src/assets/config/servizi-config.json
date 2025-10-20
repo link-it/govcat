@@ -24,8 +24,8 @@
         "avatar": { "field": "logo", "type": "avatar-image", "mode": "cover", "alt": "nome" },
         "primaryText": [
             { "field": "nome", "type": "text", "emptySpace": true },
-            { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
-            { "field": "versione", "type": "text", "options": "status", "badged": true }
+            { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true, "configDependency": "Services.hideVersions" },
+            { "field": "versione", "type": "text", "options": "status", "badged": true, "configDependency": "Services.hideVersions" }
         ],
         "secondaryText": [
             { "field": "stato", "type": "label", "options": "status" }
@@ -124,8 +124,8 @@
                 { "field": "nome", "type": "text" }
             ],
             "secondaryText": [
-                { "field": "Vers.", "type": "message", "emptySpace": true },
-                { "field": "versione", "type": "text" }
+                { "field": "Vers.", "type": "message", "emptySpace": true, "configDependency": "Services.hideVersions" },
+                { "field": "versione", "type": "text", "configDependency": "Services.hideVersions" }
             ],
             "metadata": {
                 "text": [

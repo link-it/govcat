@@ -12,7 +12,7 @@
     <div class="mobile-primary flex-grow-1">
       <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
         <ng-container *ngFor="let elem of _itemRowConfig?.primaryText">
-          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
             [data]="_data"
             [elem]="elem"
             [config]="_config">
@@ -23,7 +23,7 @@
       <!-- Metadata labels directly under primary text -->
       <div class="mobile-labels" *ngIf="_itemRowConfig?.metadata?.label.length > 0">
         <ng-container *ngFor="let elem of _itemRowConfig?.metadata.label">
-          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
             [data]="_data"
             [elem]="elem"
             [config]="_config">
@@ -43,7 +43,7 @@
   <!-- Metadata text -->
   <div class="mobile-metadata" *ngIf="_itemRowConfig?.metadata?.text.length > 0">
     <ng-container *ngFor="let elem of _itemRowConfig?.metadata.text">
-      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
         [data]="_data"
         [elem]="elem"
         [config]="_config">
@@ -54,7 +54,7 @@
   <!-- Secondary Text -->
   <div class="mobile-secondary" *ngIf="_itemRowConfig?.secondaryText?.length > 0">
     <ng-container *ngFor="let elem of _itemRowConfig?.secondaryText">
-      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
         [data]="_data"
         [elem]="elem"
         [config]="_config">
@@ -65,7 +65,7 @@
   <!-- Secondary Metadata -->
   <div class="mobile-secondary-meta" *ngIf="_itemRowConfig?.secondaryMetadata?.length > 0">
     <ng-container *ngFor="let elem of _itemRowConfig?.secondaryMetadata">
-      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+      <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
         [data]="_data"
         [elem]="elem"
         [config]="_config">
@@ -86,7 +86,7 @@
         container="body">
       <div class="box-primary">
         <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus1?.primaryText">
-          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
             [data]="_data"
             [elem]="elem"
             [config]="_config">
@@ -95,7 +95,7 @@
       </div>
       <div class="box-meta">
         <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus1?.metadata">
-          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
             [data]="_data"
             [elem]="elem"
             [config]="_config">
@@ -115,7 +115,7 @@
         container="body">
       <div class="box-primary">
         <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus2?.primaryText">
-          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
             [data]="_data"
             [elem]="elem"
             [config]="_config">
@@ -124,7 +124,7 @@
       </div>
       <div class="box-meta">
         <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus2?.metadata">
-          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+          <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
             [data]="_data"
             [elem]="elem"
             [config]="_config">
@@ -137,7 +137,7 @@
   <!-- Footer -->
   <div class="mobile-footer" *ngIf="_itemRowConfig?.footer">
     <ng-container *ngFor="let elem of _itemRowConfig?.footer">
-      <div class="footer-item" *ngIf="_showEmpty(elem)">
+      <div class="footer-item" *ngIf="_showEmpty(elem) && _checkConfigDependency(elem)">
         <ui-item-type
           [data]="_data"
           [elem]="elem"
