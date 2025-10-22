@@ -181,6 +181,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     showHistory: boolean = false;
 
+    hideVersions: boolean = false;
+
     constructor(
         private route: ActivatedRoute,
         private router: Router,
@@ -202,6 +204,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         });
 
         this.appConfig = this.configService.getConfiguration();
+        this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
         const _state = this.router.getCurrentNavigation()?.extras.state;
         this.service = _state?.service || null;
         this._grant = _state?.grant;

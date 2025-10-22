@@ -594,6 +594,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     showInfo() {
         if (this._showAbout) {
+            // Close sidebar on mobile when opening About dialog
+            if (this.mobile) {
+                this._sideBarCollapsed = true;
+                this._sideBarOpened = false;
+                this._openSideBar = false;
+            }
+
             const initialState = {
                 version: this.version,
                 build: this.build,
@@ -602,7 +609,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
             this.modalInfoRef = this.modalService.show(AboutDialogComponent, {
                 ignoreBackdropClick: false,
-                class: 'modal-lg',
+                class: 'modal-lg modal-fullscreen-sm-down',
                 initialState: initialState
             });
             this.modalInfoRef.content.onClose.subscribe(

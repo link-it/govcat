@@ -7,15 +7,15 @@
             { "field": "nome", "type": "text", "emptySpace": true }
         ],
         "secondaryText": [
-            { "field": "vers.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
-            { "field": "versione", "type": "text" }
+            { "field": "vers.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true, "configDependency": "Services.hideVersions" },
+            { "field": "versione", "type": "text", "configDependency": "Services.hideVersions" }
         ],
         "metadata": {
             "text": [
                 { "field": "descrizione", "type": "text" }
             ],
             "label": []
-        },  
+        },
         "secondaryMetadata": [
             { "field": "tipo_profilo", "type": "tag", "options": "tipo_profilo", "badged": true, "emptySpace": true },
             { "field": "protocollo", "type": "tag", "options": "protocollo", "badged": true, "emptySpace": true },
@@ -27,8 +27,8 @@
         "wrap": true,
         "primaryText": [
             { "field": "nome", "type": "text", "emptySpace": true },
-            { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
-            { "field": "versione", "type": "text" }
+            { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true, "configDependency": "Services.hideVersions" },
+            { "field": "versione", "type": "text", "configDependency": "Services.hideVersions" }
         ],
         "secondaryText": [
             { "field": "tipo_profilo", "type": "tag", "options": "tipo_profilo", "badged": true, "emptySpace": true },
@@ -38,7 +38,7 @@
         "metadata": {
             "text": [],
             "label": []
-        },  
+        },
         "secondaryMetadata": [],
         "footer": [
             { "field": "descrizione", "type": "text", "hideEmpty": true }

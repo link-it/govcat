@@ -198,9 +198,20 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     const _data: any = values || this._currentValues;
     const _tokens: TokenInterface[] = [];
     Object.keys(_data).forEach(key => {
+      // Salta chiavi vuote o non valide
+      if (!key || key.trim() === '') {
+        return;
+      }
       const isDisabled = this.formGroup.get(key)?.disabled;
       if (_data[key] && _data[key] !== '' && key !== 'q' && !isDisabled) {
         const _field = this.__getField(key);
+
+        // Se il campo non è valido, salta questo elemento
+        if (!_field) {
+          console.warn(`Invalid field for key: ${key}`);
+          return;
+        }
+
         const _operator = this.__getOperator(key);
         const _value = this.__formatValue(key, _data[key]);
         const hide = _field.options?.hide || false;
@@ -251,6 +262,12 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   __getField(key: string) {
+    // Validazione della chiave
+    if (!key || key.trim() === '') {
+      console.warn('__getField called with empty key');
+      return null;
+    }
+
     let _field = this.searchFields.find((item) => item.field === key);
     if (!_field) {
       _field = {
@@ -266,6 +283,12 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
 
   __getOperator(key: string) {
     const _field = this.__getField(key);
+
+    // Se il campo non è valido, restituisci un operatore di default
+    if (!_field) {
+      return '⊂';
+    }
+
     let _operator = '⊂';
     switch (_field.condition) {
       case 'like':
@@ -293,7 +316,19 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   __formatValue(key: string, value: any) {
+    // Validazione parametro key
+    if (!key || key.trim() === '') {
+      throw new Error('Parameter "key" is required and cannot be empty');
+    }
+
     const _field = this.__getField(key);
+
+    // Validazione del campo
+    if (!_field) {
+      console.warn(`Field not found for key: ${key}`);
+      return value;
+    }
+
     let _value = value;
     if (_field.callBack) {
       _value = _field.callBack(_value);
@@ -368,7 +403,10 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   _restoreSearch(data: any) {
     const _valuesPatch: any = {};
     Object.keys(data).forEach(key => {
-      _valuesPatch[key] = data[key];
+      // Salta chiavi vuote o non valide
+      if (key && key.trim() !== '') {
+        _valuesPatch[key] = data[key];
+      }
     });
     this.formGroup.patchValue(_valuesPatch);
     this._onSearch(true, false);
@@ -486,11 +524,30 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   __restoreLastSearch() {
-    const _pinned: any = localStorage.getItem(`History_Pin_${this.historyStore}`);
-    if (_pinned && _pinned !== 'null') {
-      this._restoreSearch(Tools.DecodeDataOptions(_pinned));
-    }
-    if (!this.autoPin) {
+    try {
+      const _pinned: any = localStorage.getItem(`History_Pin_${this.historyStore}`);
+      if (_pinned && _pinned !== 'null') {
+        const decodedData = Tools.DecodeDataOptions(_pinned);
+
+        // Valida e pulisce i dati decodificati
+        const cleanedData: any = {};
+        Object.keys(decodedData).forEach(key => {
+          if (key && key.trim() !== '') {
+            cleanedData[key] = decodedData[key];
+          }
+        });
+
+        // Ripristina solo se ci sono dati validi
+        if (Object.keys(cleanedData).length > 0) {
+          this._restoreSearch(cleanedData);
+        }
+      }
+      if (!this.autoPin) {
+        localStorage.removeItem(`History_Pin_${this.historyStore}`);
+      }
+    } catch (error) {
+      console.error('Error restoring last search:', error);
+      // Pulisci il localStorage corrotto
       localStorage.removeItem(`History_Pin_${this.historyStore}`);
     }
   }

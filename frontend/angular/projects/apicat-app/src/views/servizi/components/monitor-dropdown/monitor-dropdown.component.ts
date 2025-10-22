@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { MenuAction } from '@linkit/components';
+import { ConfigService, MenuAction } from '@linkit/components';
 
 @Component({
   selector: 'app-monitor-dropdown',
@@ -30,11 +30,18 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
   _showStatistiche: boolean = true;
   _showVerifiche: boolean = true;
   _hasRole: boolean = false;
+  _showCommunicationsMenuConfig: boolean = true;
+
+  appConfig: any;
 
   constructor(
     private router: Router,
-    private authenticationService: AuthenticationService
-  ) {}
+    private authenticationService: AuthenticationService,
+    private configService: ConfigService
+  ) {
+    this.appConfig = this.configService.getConfiguration();
+    this._showCommunicationsMenuConfig = this.appConfig?.AppConfig?.Layout?.showCommunicationsMenu !== false;
+  }
 
   ngOnInit() {
     const monitoraggio = this.authenticationService._getConfigModule('monitoraggio');
@@ -65,11 +72,11 @@ export class MonitorDropdwnComponent implements OnInit, OnChanges {
         icon: 'chat-left',
         subTitle: '',
         action: 'comunicazioni',
-        enabled: this.showComunications
+        enabled: this.showComunications && this._showCommunicationsMenuConfig
       }),
       new MenuAction({
         type: 'divider',
-        enabled: this.showComunications && (this.showMonitoring || this.showManagement || this.showManagement || this.returnWeb)
+        enabled: this.showComunications && this._showCommunicationsMenuConfig && (this.showMonitoring || this.showManagement || this.showManagement || this.returnWeb)
       }),
       new MenuAction({
         type: 'label',

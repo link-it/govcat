@@ -21,18 +21,18 @@
                     <ng-container *ngFor="let link of _otherLinks">
                         <ng-container [ngSwitch]="link.type">
                             <ng-container *ngSwitchCase="'dropdown'">
-                                <div role="group" class="btn-group- me-2 d-inline-block" *ngIf="link.show">
+                                <div class="btn-group- me-2 d-inline-block" *ngIf="link.show">
                                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="other_actions">
                                         <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                                             <span>{{ link.title | translate }}</span> <i class="bi bi-chevron-down ms-1"></i>
                                         </button>
-                                        <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                                        <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
                                             <div class="gl-new-dropdown-inner">
                                                 <div class="gl-new-dropdown-contents" *ngFor="let menu of link.submenu">
-                                                    <li role="presentation" class="gl-new-dropdown-item" *ngIf="menu.show">
+                                                    <li class="gl-new-dropdown-item" *ngIf="menu.show">
                                                         <button role="menuitem" type="button" class="dropdown-item" [routerLink]="[menu.route]" [relativeTo]="route">
                                                             <div class="gl-new-dropdown-item-text-wrapper">
-                                                            <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
+                                                                <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
                                                             </div>
                                                         </button>
                                                     </li>
@@ -50,7 +50,7 @@
                         </ng-container>
                     </ng-container>
                 </ng-container>
-                <div role="group" class="btn-group me-2 d-inline-block" *ngIf="!_spin && data">
+                <div class="btn-group me-2 d-inline-block" *ngIf="!_spin && data">
                     <lnk-button [type]="'button'" [spinner]="true" [onlySpinner]="true" *ngIf="_changingStatus"></lnk-button>
                     <ui-workflow *ngIf="!_changingStatus && generalConfig"
                         [data]="data"
@@ -64,11 +64,11 @@
                 <div class="position-relative d-inline-block" *ngIf="!_isEdit && !_spin && _editable">
                     <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.EditService' | translate" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
                 </div>
-                <div role="group" class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
+                <div class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
                     <lnk-button [type]="'button'" [icon]="'bi bi-trash text-danger'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate" (onAction)="_confirmDelection()" [btnTooltip]="'APP.TOOLTIP.DeleteService'"></lnk-button>
                 </div>
             </ng-container>
-            <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+            <div class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
                 <lnk-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></lnk-button>
             </div>
         </div>
@@ -200,7 +200,7 @@
                                     </div>
                                 </div>
                                 <div class="row nome versione">
-                                    <div class="col-8">
+                                    <div [class.col-8]="!hideVersions || _isEdit" [class.col-12]="hideVersions && !_isEdit">
                                         <lnk-form-field
                                             name="nome"
                                             [label]="'APP.LABEL.nome' | translate"
@@ -211,7 +211,7 @@
                                             [helpContext]="'SERVICE.POPOVER'"
                                         ></lnk-form-field>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-4" *ngIf="!hideVersions || _isEdit">
                                         <lnk-form-field
                                             type="number"
                                             name="versione"

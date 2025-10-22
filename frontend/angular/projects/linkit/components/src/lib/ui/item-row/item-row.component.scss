@@ -187,6 +187,7 @@ p {
 
 .item-row-link {
     color: inherit;
+    font-size: var(--font-size-link-row, inherit);
 
     &:focus {
         box-shadow: 0 0 0 1px #fff, 0 0 0 3px #428fdc;

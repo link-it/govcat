@@ -112,7 +112,7 @@ export class ConfigService {
 
   _generateCustomFieldLabel(config: any) {
     const _customFields: any[] = [];
-    if (config.servizio && config.servizio.api && config.servizio.api.proprieta_custom) {
+    if (config.servizio?.api?.proprieta_custom) {
       config.servizio.api.proprieta_custom.forEach((pc: any) => {
         pc.proprieta.forEach((field: any) => {
           const _label = `${pc.nome_gruppo}.${field.nome}`;
@@ -123,7 +123,7 @@ export class ConfigService {
         });
       });
     }
-    if (config.adesione && config.adesione.proprieta_custom) {
+    if (config.adesione?.proprieta_custom) {
       config.adesione.proprieta_custom.forEach((pc: any) => {
         pc.proprieta.forEach((field: any) => {
           const _label = `${pc.nome_gruppo}.${field.nome}`;

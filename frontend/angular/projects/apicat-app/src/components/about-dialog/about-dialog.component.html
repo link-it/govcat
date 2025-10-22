@@ -10,6 +10,14 @@
   </div>
 </div>
 <div class="modal-footer">
-  <!-- <button type="button" class="btn gl-button btn-default btn-sm-" (click)="closeModal()">{{ cancelText | translate }}</button> -->
-  <button type="button" class="btn gl-button btn-{{ confirmColor }} btn-sm-" (click)="closeModal(true)">{{ confirmText | translate }}</button>
+  <div class="d-flex w-100 justify-content-between align-items-center">
+    <div>
+      <a *ngIf="privacyPolicyUrl" [href]="privacyPolicyUrl" target="_blank" class="btn btn-link text-decoration-none">
+        {{ 'APP.PRIVACY_POLICY.Link' | translate }}
+      </a>
+    </div>
+    <div>
+      <button type="button" class="btn gl-button btn-{{ confirmColor }} btn-sm-" (click)="closeModal(true)">{{ confirmText | translate }}</button>
+    </div>
+  </div>
 </div>

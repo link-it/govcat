@@ -86,6 +86,11 @@
       "newLayout": false
     },
 
+    "Services": {
+      "showReferents": true,
+      "hideVersions": true
+    },
+
     "Layout": {
       "Login": {
         "title": "Catalogo API ModI",
@@ -159,12 +164,14 @@
       "showNotificationsBar": true,
       "enablePollingNotifications": true,
       "showTaxonomies": true,
+      "showCommunicationsMenu": true,
 
       "showVersion": false,
       "showBuild": false,
       "showAbout": true,
       "showAboutMiniBox": false,
-      "showNewsArea": false
+      "showNewsArea": false,
+      "privacyPolicyUrl": "https://www.link.it/informativa-privacy-policy/"
     },
 
     "CurrentThems": "linkit-blue",
@@ -216,6 +223,8 @@
           "--selected-shadow-color": "#303030",
           "--body-font-size": ".875rem",
           "--sidebar-link-font-size": ".875rem",
+          "--sidebar-link-height": "32px",
+          "--font-size-link-row": ".875rem",
           "--row-content-block-background-color": "#fafafa",
           "--row-content-block-border-color": "#eaeaea",
           "--row-content-block-color": "#303030",
@@ -276,6 +285,8 @@
           "--selected-shadow-color": "#303030",
           "--body-font-size": ".875rem",
           "--sidebar-link-font-size": ".875rem",
+          "--sidebar-link-height": "32px",
+          "--font-size-link-row": ".875rem",
           "--row-content-block-background-color": "#fafafa",
           "--row-content-block-border-color": "#eaeaea",
           "--row-content-block-color": "#303030",
@@ -336,6 +347,8 @@
           "--selected-shadow-color": "#303030",
           "--body-font-size": ".875rem",
           "--sidebar-link-font-size": ".875rem",
+          "--sidebar-link-height": "32px",
+          "--font-size-link-row": ".875rem",
           "--row-content-block-background-color": "#fafafa",
           "--row-content-block-border-color": "#eaeaea",
           "--row-content-block-color": "#303030",
@@ -397,6 +410,8 @@
           "--selected-shadow-color": "#303030",
           "--body-font-size": ".875rem",
           "--sidebar-link-font-size": ".875rem",
+          "--sidebar-link-height": "32px",
+          "--font-size-link-row": ".875rem",
           "--row-content-block-background-color": "#f4f8fa",
           "--row-content-block-border-color": "#dfe8eb",
           "--row-content-block-color": "#303030",
@@ -463,7 +478,9 @@
           "--action-bar-color-error": "#E43434",
           "--body-font-size": ".875rem",
           "--sidebar-link-font-size": ".875rem",
-          "--row-content-block-background-color": "#fafafa",
+          "--sidebar-link-height": "32px",
+          "--font-size-link-row": ".875rem",
+          "--row-content-block-background-color": "#f4f8fa",
           "--row-content-block-border-color": "#eaeaea",
           "--row-content-block-color": "#303030",
           "--row-content-block-hover-background-color": "#dbdbdb",

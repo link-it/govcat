@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -7,14 +7,12 @@ import { UtilsLib } from '../../utils/utils.lib';
 import { ConfigService } from '../../services/config.service';
 
 @Component({
-  selector: 'ui-item-row',
-  templateUrl: './item-row.component.html',
-  styleUrls: [
-    './item-row.component.scss'
-  ],
+  selector: 'ui-item-row-mobile',
+  templateUrl: './item-row-mobile.component.html',
+  styleUrls: ['./item-row-mobile.component.scss'],
   standalone: false
 })
-export class ItemRowComponent implements OnInit, AfterViewInit {
+export class ItemRowMobileComponent implements OnInit, AfterViewInit {
   @HostBinding('class.notify') get notifyClass(): boolean {
     return this.notify;
   }
@@ -49,8 +47,6 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
 
   _tooltipDelay: number = 300;
 
-  desktop: boolean = false;
-
   constructor(
     private element: ElementRef,
     private sanitized: DomSanitizer,
@@ -59,13 +55,7 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     private configService: ConfigService
   ) { }
 
-  @HostListener('window:resize') _onResize() {
-    this.desktop = (window.innerWidth >= 768);
-  }
-
   ngOnInit() {
-    this.desktop = (window.innerWidth >= 768);
-
     document.documentElement.style.setProperty('--item-row-background-color', this.hostBackground);
 
     this._itemRowConfig = this._config ? this._config[this.configRow] || this._config.itemRow || this._config.simpleItem : null;
@@ -86,16 +76,8 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     return this.sanitized.bypassSecurityTrustHtml(html);
   }
 
-  __itemClick(event: any, activeItem: any) {
-    if (!this.rowClick) {
-      this.itemClick.emit(this._data);
-    }
-  }
-
-  __itemClickRow(event: any, activeItem: any) {
-    if (this.rowClick) {
-      this.itemClick.emit(this._data);
-    }
+  __itemClick(event: any) {
+    this.itemClick.emit(this._data);
   }
 
   __actionlick(event: any) {
@@ -145,7 +127,6 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
       const _value = this.utilsLib.getObjectValue(this._data.source || this._data, boxOptions.background.field);
       const _optionsName = boxOptions.background.options;
       _background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_value]) ? this._config.options[_optionsName].values[_value].background : '#1f1f1f';
-      const _color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_value]) ? this._config.options[_optionsName].values[_value].color : '#fff';
     } else {
       _background = boxOptions.background;
     }
