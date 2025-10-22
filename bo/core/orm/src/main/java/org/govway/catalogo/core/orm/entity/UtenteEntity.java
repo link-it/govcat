@@ -31,6 +31,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
@@ -101,7 +102,8 @@ public class UtenteEntity {
 	
     @Column(name = "ruoli_notifiche_abilitate")
 	private String ruoliNotificheAbilitate;
-	
+
+	@Lob
 	private byte[] metadati;
 	
 	@ManyToMany(mappedBy = "utentiAssociati", fetch = FetchType.EAGER)
