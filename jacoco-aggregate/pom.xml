@@ -70,8 +70,21 @@
                 <version>${jacoco.plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>report-aggregate</id>
+                        <id>report-aggregate-verify</id>
                         <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/../target/site/jacoco-aggregate</outputDirectory>
+                            <includes>
+                                <include>org/govway/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report-aggregate-test</id>
+                        <phase>test</phase>
                         <goals>
                             <goal>report-aggregate</goal>
                         </goals>
