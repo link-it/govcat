@@ -32,10 +32,16 @@ public class JakartaPersistenceSqlGenerator {
 	public enum TipiDatabase {POSTGRESQL,MYSQL,ORACLE, DERBY, H2}
 	
 	public static void generate(String persistenceId, String folder) throws IOException {
-		
+
 //		TipiDatabase[] values = {TipiDatabase.POSTGRESQL,TipiDatabase.MYSQL,TipiDatabase.ORACLE, TipiDatabase.DERBY};
 		for(TipiDatabase tipoDatabase: TipiDatabase.values()) {
-			generate(persistenceId, folder, tipoDatabase);
+			try {
+				generate(persistenceId, folder, tipoDatabase);
+			} catch (IOException e) {
+				System.err.println("Error generating SQL for " + tipoDatabase + ": " + e.getMessage());
+				e.printStackTrace(System.err);
+				// Continue with next database instead of stopping
+			}
 		}
 	}
 	
@@ -77,15 +83,15 @@ public class JakartaPersistenceSqlGenerator {
 			break;
 		case DERBY:
 	        map.put("jakarta.persistence.database-product-name", "Derby");
-	        map.put("hibernate.dialect","org.hibernate.dialect.DerbyTenSevenDialect");
+	        map.put("hibernate.dialect","org.hibernate.community.dialect.DerbyLegacyDialect");
 			break;
 		case MYSQL:
-	        map.put("jakarta.persistence.database-product-name", "Mysql");
-	        map.put("hibernate.dialect","org.hibernate.dialect.MySQL5InnoDBDialect");
+	        map.put("jakarta.persistence.database-product-name", "MySQL");
+	        map.put("hibernate.dialect","org.hibernate.dialect.MySQLDialect");
 			break;
 		case ORACLE:
 	        map.put("jakarta.persistence.database-product-name", "Oracle");
-	        map.put("hibernate.dialect","org.hibernate.dialect.Oracle10gDialect");
+	        map.put("hibernate.dialect","org.hibernate.dialect.OracleDialect");
 			break;
 		case POSTGRESQL:
 	        map.put("jakarta.persistence.database-product-name", "Postgresql");
