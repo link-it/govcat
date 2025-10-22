@@ -123,6 +123,8 @@
 								<useAnnotatedBasePath>true</useAnnotatedBasePath>
 								<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
                                 <useJakartaEe>true</useJakartaEe>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}</output>
 							<generateApiTests>false</generateApiTests>
@@ -150,6 +152,8 @@
 								<useAnnotatedBasePath>true</useAnnotatedBasePath>
 								<legacyDiscriminatorBehavior>false</legacyDiscriminatorBehavior>
                                 <useJakartaEe>true</useJakartaEe>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}</output>
 							<generateApiTests>false</generateApiTests>

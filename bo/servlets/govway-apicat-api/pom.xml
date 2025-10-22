@@ -449,6 +449,8 @@
 								<useTags>true</useTags>
                                 <useJakartaEe>true</useJakartaEe>
                                 <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>false</generateSupportingFiles>
@@ -486,6 +488,8 @@
 								<useTags>true</useTags>
                                 <useJakartaEe>true</useJakartaEe>
                                 <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>false</generateSupportingFiles>
@@ -522,6 +526,8 @@
 								<useTags>true</useTags>
                                 <useJakartaEe>true</useJakartaEe>
                                 <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>false</generateSupportingFiles>
@@ -557,6 +563,8 @@
 								<useTags>true</useTags>
                                 <useJakartaEe>true</useJakartaEe>
                                 <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>true</generateSupportingFiles>
@@ -592,6 +600,8 @@
 								<useTags>true</useTags>
                                 <useJakartaEe>true</useJakartaEe>
                                 <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>true</generateSupportingFiles>
