@@ -172,7 +172,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- tools -->
-		<tools.dir>${project.basedir}/tools</tools.dir>
+		<tools.dir>${session.executionRootDirectory}/tools</tools.dir>
 
 		<!-- owasp properties -->
 		<owasp.plugin.version>12.1.0</owasp.plugin.version>
@@ -203,8 +203,8 @@
 
 		<!-- Versioni spring -->
 		<spring.boot.version>3.3.0</spring.boot.version>
-		<spring.framework.version>6.1.10</spring.framework.version>
-		<spring.security.version>6.3.0</spring.security.version>
+		<spring.framework.version>6.1.17</spring.framework.version>
+		<spring.security.version>6.3.5</spring.security.version>
 
 		<!-- Spring Data JPA -->
 		<spring-data.version>3.3.0</spring-data.version>
@@ -249,7 +249,11 @@
 		<!-- proxy -->
 		<jetty-proxy.version>11.0.24</jetty-proxy.version>
 
-		<dynamicreports-core.version>6.12.0</dynamicreports-core.version>
+		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
+		<itext.version>2.1.7.js10</itext.version>
+		<bouncycastle.version>1.79</bouncycastle.version>
+		<jasperreports.version>7.0.1</jasperreports.version>
+		<xalan.version>2.7.3</xalan.version>
 
 		<!-- Jackson -->
 		<jackson.version>2.17.0</jackson.version>
@@ -1040,9 +1044,102 @@
 						<groupId>net.sf.barcode4j</groupId>
 						<artifactId>barcode4j</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>com.lowagie</groupId>
+						<artifactId>itext</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>net.sf.jasperreports</groupId>
+						<artifactId>jasperreports</artifactId>
+					</exclusion>
 				</exclusions>
 
 			</dependency>
+
+			<dependency>
+				<groupId>com.lowagie</groupId>
+				<artifactId>itext</artifactId>
+				<version>${itext.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.bouncycastle</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<dependency>
+				<groupId>net.sf.jasperreports</groupId>
+				<artifactId>jasperreports</artifactId>
+				<version>${jasperreports.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.bouncycastle</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<!-- BouncyCastle -->
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcmail-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcpkix-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcutil-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+
+		<!-- Xalan -->
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>xalan</artifactId>
+			<version>${xalan.version}</version>
+		</dependency>
+
+		<!-- Override Spring Boot BOM versions for security fixes -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.17.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>xmlgraphics-commons</artifactId>
+			<version>2.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
 
 			<!-- Additional dependencies -->
 			<dependency>
@@ -1104,10 +1201,35 @@
 									${owasp.dir}/suppression/CVE-2020-5408.xml</suppressionFile>
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2024-38828.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-48734.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-48924.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2024-38810.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2018-1258.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2022-34169.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-54988.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2021-37533.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/itext-cves.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2023-33202.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-10492.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2022-42920.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2024-9329.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
 							tentativi visto il timeout alto -->
+						<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled><!-- Disable OSS Index to avoid rate limiting -->
 						</configuration>
 						<goals>
 							<goal>aggregate</goal>

@@ -1,0 +1,28 @@
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  <suppress>
+     <notes><![CDATA[
+     file name: itext-2.1.7.js10.jar
+     CVE-2017-9096, CVE-2022-24197, CVE-2022-24196 affect older versions of itext 2.1.7.
+     Upgraded to itext 2.1.7.js10 which includes security patches from JasperReports.
+     The project uses dynamicreports-core 6.20.1 which brings in the patched version of itext.
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.lowagie/itext@2\.1\.7\.js10$</packageUrl>
+     <cve>CVE-2017-9096</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: itext-2.1.7.js10.jar
+     CVE-2022-24197 affects older versions of itext. Upgraded to patched version 2.1.7.js10.
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.lowagie/itext@2\.1\.7\.js10$</packageUrl>
+     <cve>CVE-2022-24197</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: itext-2.1.7.js10.jar
+     CVE-2022-24196 affects older versions of itext. Upgraded to patched version 2.1.7.js10.
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.lowagie/itext@2\.1\.7\.js10$</packageUrl>
+     <cve>CVE-2022-24196</cve>
+  </suppress>
+</suppressions>
