@@ -19,54 +19,12 @@
  */
 package org.govway.catalogo.assembler;
 
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.govway.catalogo.controllers.OrganizzazioniController;
-import org.govway.catalogo.core.orm.entity.UtenteEntity;
-import org.govway.catalogo.servlets.model.ItemUtente;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
-
-public class UtenteItemAssembler extends RepresentationModelAssemblerSupport<UtenteEntity, ItemUtente> {
-
-	@Autowired
-	private OrganizzazioneItemAssembler organizzazioneItemAssembler;
-
-	@Autowired
-	private UtenteEngineAssembler utenteEngineAssembler;
-
-	@Autowired
-	private ClasseUtenteItemAssembler classeUtenteItemAssembler;
-
-	public UtenteItemAssembler() {
-		super(OrganizzazioniController.class, ItemUtente.class);
-	}
-
-	@Override
-	public ItemUtente toModel(UtenteEntity entity) {
-		
-		ItemUtente dettaglio = instantiateModel(entity);
-		BeanUtils.copyProperties(entity, dettaglio);
-		
-		dettaglio.setIdUtente(UUID.fromString(entity.getIdUtente()));
-		dettaglio.setPrincipal(entity.getPrincipal());
-		dettaglio.setReferenteTecnico(entity.isReferenteTecnico());
-
-		if(entity.getOrganizzazione()!=null) {
-			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
-		}
-		
-		dettaglio.setStato(utenteEngineAssembler.toStatoUtenteEnum(entity.getStato()));
-		
-		if(entity.getRuolo()!=null) {
-			dettaglio.setRuolo(utenteEngineAssembler.toRuolo(entity.getRuolo()));
-		}
-		
-		dettaglio.setClassiUtente(classeUtenteItemAssembler.toCollectionModel(entity.getClassi()).getContent().stream().collect(Collectors.toList()));
-
-		return dettaglio;
-	}
+/**
+ * Alias for backward compatibility. Use UtenteFullAssembler instead.
+ * Bean is defined in OpenAPI2SpringBoot configuration class.
+ * @deprecated Use {@link UtenteFullAssembler} instead
+ */
+@Deprecated
+public class UtenteItemAssembler extends UtenteFullAssembler {
 
 }
