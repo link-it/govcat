@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.security;
 
+import org.govway.catalogo.AutenticazioneUtenzeRegistrateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +27,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 /**
  * Configurazione di Spring Security per l'autenticazione OIDC tramite token JWT.
@@ -47,8 +53,53 @@ public class OidcSecurityConfiguration {
     @Autowired
     private org.govway.catalogo.RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
+    @Autowired
+    private AutenticazioneUtenzeRegistrateService customUserDetailsService;
+
+    @Autowired
+    @Lazy
+    private UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsByNameServiceWrapper;
+
     public OidcSecurityConfiguration() {
         logger.info("Inizializzazione OidcSecurityConfiguration - Modalità: OIDC_JWT");
+    }
+
+    /**
+     * Crea il wrapper per caricare i dettagli utente dal database.
+     * Questo permette di caricare l'utente dal DB dopo la validazione del JWT.
+     *
+     * @param customUserDetailsService servizio per caricare gli utenti
+     * @return wrapper configurato
+     */
+    @Bean
+    public UserDetailsByNameServiceWrapper<?> getUserDetailsByNameServiceWrapper(
+            AutenticazioneUtenzeRegistrateService customUserDetailsService) {
+        logger.info("Creazione UserDetailsByNameServiceWrapper per OIDC");
+        return new UserDetailsByNameServiceWrapper<>(customUserDetailsService);
+    }
+
+    /**
+     * Crea l'AuthenticationManager per l'autenticazione OIDC.
+     * Usa PreAuthenticatedAuthenticationProvider perché il token JWT è già stato validato
+     * dal JwtTokenValidator nel filter, e qui dobbiamo solo caricare l'utente dal DB.
+     *
+     * @param userDetailsWrapper wrapper per caricare dettagli utente
+     * @return AuthenticationManager configurato
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(
+            UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsWrapper) {
+
+        logger.info("Creazione AuthenticationManager per OIDC");
+
+        PreAuthenticatedAuthenticationProvider provider = new PreAuthenticatedAuthenticationProvider();
+        provider.setPreAuthenticatedUserDetailsService(userDetailsWrapper);
+        provider.setThrowExceptionWhenTokenRejected(false);
+
+        ProviderManager pm = new ProviderManager(provider);
+        pm.setEraseCredentialsAfterAuthentication(false);
+
+        return pm;
     }
 
     /**
