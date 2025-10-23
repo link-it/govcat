@@ -546,10 +546,10 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	return new ErogazioneItemAssembler();
     }
 
-    @Bean
-    public RequestUtils requestUtils() {
-    	return new RequestUtils();
-    }
+    // RequestUtils bean rimosso - gestito automaticamente da Spring tramite @Component/@ConditionalOnProperty
+    // Le implementazioni sono:
+    // - HeaderRequestUtils (modalità HEADER, default)
+    // - OidcRequestUtils (modalità OIDC_JWT)
 
     @Bean
     public AllegatoApiAssembler allegatoApiAssembler() {
