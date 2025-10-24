@@ -527,7 +527,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       }
     );
   }
-
   __onUpdate(id: string, body: any) {
     this._error = false;
     
@@ -727,11 +726,13 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
               this._isBozza = (this.adesione.stato == 'bozza');
 
               this._adesione = new Adesione({ ...response });
-              
+
+              this._adesione.id_logico = response.id_logico;
+
               this._adesione.servizio = response.servizio.servizio;
               this._adesione.id_servizio = response.servizio.id_servizio;
               this._adesione.servizio_nome = response.servizio.nome;
-              
+
               this._adesione.soggetto = response.soggetto.soggetto;
               this._adesione.id_soggetto = response.soggetto.id_soggetto;
               this._adesione.soggetto_nome = response.soggetto.nome;
