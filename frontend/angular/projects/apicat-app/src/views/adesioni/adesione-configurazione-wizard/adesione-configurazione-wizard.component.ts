@@ -249,7 +249,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     this._initBreadcrumb();
                     this._updateOtherActions();
 
-                    this.returnWeb = this.adesione.stato.includes('pubblicato_produzione');
+                    this.returnWeb = this.authenticationService.canJoin('adesione', this.adesione?.stato);
 
                     this.spin = false;
 
