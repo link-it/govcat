@@ -1053,6 +1053,140 @@
 			"CopiedToClipboard": "Copied to clipboard!",
 			"Empty": "",
 			"ERROR": {
+				"API": {
+					"404": "API [{{idApi}}] not found",
+					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists",
+					"400": {
+						"VISIBILITY": "Visibility [{{visibilita}}] not allowed",
+						"DUPLICATE": "Attachment [{{allegato}}] duplicated"
+					}
+				},
+				"SRV": {
+					"404": "Service [{{idServizio}}] not found",
+					"409": "Service [{{nome}}] already exists",
+					"400": {
+						"VISIBILITY": "Visibility [{{visibilita}}] not allowed for services"
+					},
+					"409_STATE": "Cannot modify service in state [{{stato}}]"
+				},
+				"ORG": {
+					"404": "Organization [{{idOrganizzazione}}] not found",
+					"409": "Organization [{{nome}}] already exists"
+				},
+				"DOM": {
+					"404": "Domain [{{idDominio}}] not found",
+					"409": "Domain [{{nome}}] already exists"
+				},
+				"SOG": {
+					"404": "Subject [{{idSoggetto}}] not found",
+					"409": "Subject [{{nome}}] already exists"
+				},
+				"UT": {
+					"404": "User [{{idUtente}}] not found",
+					"409": "User [{{principal}}] already exists"
+				},
+				"CLS": {
+					"404": "User class [{{idClasse}}] not found",
+					"409": "User class [{{nome}}] already exists"
+				},
+				"CLT": {
+					"404": "Client [{{idClient}}] not found",
+					"409": "Client [{{nome}}] already exists for subject [{{soggetto}}] and environment [{{ambiente}}]",
+					"400": {
+						"CONFIG": "Invalid client configuration: {{dettagli}}",
+						"EXTENSION": "Client extension [{{tipo}}] not supported"
+					}
+				},
+				"ADE": {
+					"404": "Membership [{{idAdesione}}] not found",
+					"409": "Membership [{{nome}}] already exists",
+					"400_STATE": "Membership state [{{stato}}] not valid for this operation",
+					"409_STATE": "Cannot modify membership in state [{{stato}}]",
+					"403_REFERENT": "Membership referent [{{referente}}] not authorized"
+				},
+				"TAX": {
+					"404": "Taxonomy [{{idTassonomia}}] not found",
+					"409": "Taxonomy [{{nome}}] already exists"
+				},
+				"CAT": {
+					"404": "Category [{{idCategoria}}] not found",
+					"409": "Category [{{nome}}] already exists for taxonomy [{{tassonomia}}]"
+				},
+				"GRP": {
+					"404": "Group [{{idGruppo}}] not found",
+					"409": "Group [{{nome}}] already exists",
+					"400_IN_USE": "Cannot delete group [{{nome}}] used in {{numeroUtilizzi}} services"
+				},
+				"DOC": {
+					"404": "Document [{{idDocumento}}] not found",
+					"404_VERSION": "Document with UUID [{{uuid}}] and version [{{versione}}] not found",
+					"400": {
+						"FORMAT": "Document format [{{formato}}] not supported",
+						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]"
+					},
+					"500": "Cannot process document: {{errore}}"
+				},
+				"NTF": {
+					"404": "Notification [{{idNotifica}}] not found",
+					"500": "Cannot send notification: {{errore}}",
+					"400_RECIPIENT": "Notification recipient [{{destinatario}}] not valid"
+				},
+				"MON": {
+					"404": "Monitoring data not available for service [{{servizio}}]",
+					"400_INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid",
+					"404_METRIC": "Metric [{{metrica}}] not found",
+					"404_ALARM": "Alarm [{{idAllarme}}] not found",
+					"400_ALARM_CONFIG": "Invalid alarm configuration: {{dettagli}}",
+					"404_STATS": "Statistics not available for period [{{periodo}}]"
+				},
+				"TRX": {
+					"404": "Transaction [{{idTransazione}}] not found"
+				},
+				"AUT": {
+					"401": "Authentication required",
+					"403": "Access not authorized",
+					"403_ROLE": "User must have one of the roles [{{ruoli}}] to execute the force",
+					"403_ORG_MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
+					"403_ORG_MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization",
+					"403_RESOURCE": "Access denied to resource [{{risorsa}}]",
+					"401_TOKEN": "Invalid authentication token",
+					"401_SESSION": "Session expired"
+				},
+				"VAL": {
+					"400": {
+						"REQUIRED": "Required field [{{campo}}] missing",
+						"FORMAT": "Field format [{{campo}}] not valid: {{formato}}",
+						"RANGE": "Value [{{valore}}] out of allowed range [{{min}} - {{max}}]",
+						"LENGTH": "Field length [{{campo}}] not valid: expected {{lunghezzaAttesa}}, found {{lunghezzaTrovata}}",
+						"PATTERN": "Pattern [{{pattern}}] not satisfied for field [{{campo}}]",
+						"DATE": "Date [{{data}}] not valid",
+						"URL": "URL [{{url}}] not valid",
+						"EMAIL": "Email [{{email}}] not valid",
+						"CF": "Tax code [{{codiceFiscale}}] not valid",
+						"PIVA": "VAT number [{{partitaIva}}] not valid"
+					},
+					"422": "Semantically invalid request: {{dettagli}}",
+					"422_COMPLEX": "Semantically invalid complex entity update: {{dettagli}}"
+				},
+				"WFL": {
+					"400_TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed",
+					"400_DATA_MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
+				},
+				"INT": {
+					"500": "Internal error: {{errore}}",
+					"500_DB": "Database error: {{errore}}",
+					"500_CONFIG": "Configuration error: {{errore}}",
+					"503": "Service temporarily unavailable"
+				},
+				"SYS": {
+					"500": "System error",
+					"503": "Service unavailable"
+				},
+				"GEN": {
+					"400": "Bad request",
+					"404": "Resource not found",
+					"500": "Internal server error"
+				},
 				"ApiNoDelete": "The API cannot be deleted in its current state.",
 				"CheckPrivateKey": "An error was found in the data you entered. Please check the data you entered and try again.",
 				"Default": "Sorry, unpredictable problem",

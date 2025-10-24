@@ -29,6 +29,7 @@ import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AllegatoMessaggio;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.AllegatoUpdateNew;
@@ -93,7 +94,7 @@ public class DocumentoAllegatoAssembler extends RepresentationModelAssemblerSupp
 		} else {
 			String uuid = ((DocumentoUpdateId)documento).getUuid().toString();
 			return this.service.find(uuid)
-					.orElseThrow(() -> new NotFoundException("Documento ["+uuid+"] non trovato"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 		}
 	}
 

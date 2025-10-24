@@ -34,6 +34,7 @@ import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.ClassiUtenteApi;
 import org.govway.catalogo.servlets.model.ClasseUtente;
@@ -90,7 +91,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 				ClasseUtenteEntity entity = this.dettaglioAssembler.toEntity(classeUtenteCreate);
 
 				if(this.service.exists(entity)) {
-					throw new ConflictException("ClasseUtente ["+classeUtenteCreate.getNome()+"] esiste gia");
+					throw new ConflictException(ErrorCode.CLS_404, java.util.Map.of("nome", classeUtenteCreate.getNome()));
 				}
 
 				this.service.save(entity);
@@ -108,7 +109,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 
@@ -119,7 +120,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-					.orElseThrow(() -> new NotFoundException("Organization ["+idClasseUtente+"] non trovata"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 
 			this.authorization.authorizeDelete(entity);
 			this.logger.debug("Autorizzazione completata con successo");     
@@ -136,7 +137,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -145,7 +146,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-					.orElseThrow(() -> new NotFoundException("Organization ["+idClasseUtente+"] non trovata"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 
 			this.authorization.authorizeGet(entity);
 			this.logger.debug("Autorizzazione completata con successo");     
@@ -163,7 +164,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -204,7 +205,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -216,7 +217,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-						.orElseThrow(() -> new NotFoundException("ClasseUtente ["+idClasseUtente+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 
 				this.authorization.authorizeUpdate(classeUtenteUpdate,entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -238,7 +239,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -252,7 +253,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//			return this.service.runTransaction( () -> {
 		//
 		//				ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-		//						.orElseThrow(() -> new NotFoundException("ClasseUtente ["+idClasseUtente+"] non trovata"));
+		//						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 		//	
 		//				ReferenteClasseUtente referenteEntity = referenteAssembler.toEntity(referenteClasseUtente, entity);
 		//				this.service.save(referenteEntity);
@@ -269,7 +270,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//		}
 		//		catch(Throwable e) {
 		//			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-		//			throw new InternalException(e);
+		//			throw new InternalException(ErrorCode.SYS_500);
 		//		}
 		return null;
 	}
@@ -293,7 +294,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//		}
 		//		catch(Throwable e) {
 		//			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-		//			throw new InternalException(e);
+		//			throw new InternalException(ErrorCode.SYS_500);
 		//		}
 		return null;
 	}
@@ -341,7 +342,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		//		}
 		//		catch(Throwable e) {
 		//			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-		//			throw new InternalException(e);
+		//			throw new InternalException(ErrorCode.SYS_500);
 		//		}
 		return null;
 	}

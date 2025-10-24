@@ -21,7 +21,7 @@ package org.govway.catalogo.assembler;
 
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.controllers.DominiController;
-import org.govway.catalogo.core.exceptions.NotFoundException;
+import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.core.orm.entity.DominioEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
@@ -30,6 +30,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Referente;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -114,15 +115,15 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 		
 		TIPO_REFERENTE tipoReferente = toTipoReferente(src.getTipo());
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
-				.orElseThrow(() -> new NotFoundException("Utente ["+src.getIdUtente()+"] non trovato"));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO)) {
-			throw new BadRequestException("L'utente ["+utente.getNome()+" "+utente.getCognome()+"] non risulta abilitato");
+			throw new BadRequestException(ErrorCode.UT_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getRuolo() == null) {
-				throw new BadRequestException("L'utente ["+utente.getNome()+" "+utente.getCognome()+"] non risulta referente servizio o gestore");
+				throw new BadRequestException(ErrorCode.UT_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 			}
 
 		}
@@ -130,11 +131,11 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 		entity.setReferente(utente);
 		entity.setTipo(tipoReferente);
 		entity.setDominio(dominio);
-		
+
 		boolean exists = dominio.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
-		
+
 		if(exists) {
-			throw new BadRequestException("Utente ["+entity.getReferente().getNome()+" "+entity.getReferente().getCognome()+"] gia referente di tipo ["+entity.getTipo()+"] per il dominio ["+entity.getDominio().getNome()+"]");
+			throw new BadRequestException(ErrorCode.ORG_409, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString(), "nomeDominio", entity.getDominio().getNome()));
 		}
 
 		return entity;

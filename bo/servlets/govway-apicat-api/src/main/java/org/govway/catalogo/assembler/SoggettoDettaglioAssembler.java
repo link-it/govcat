@@ -26,6 +26,7 @@ import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.SoggettoUpdate;
@@ -93,7 +94,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException("Impossibile disabilitare skip collaudo nel Soggetto ["+entity.getNome()+"], in quanto associato ad almeno un dominio con skip collaudo abilitato");
+					throw new BadRequestException(ErrorCode.ORG_404);
 				}
 			}
 			entity.setSkipCollaudo(src.isSkipCollaudo());
@@ -103,7 +104,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException("Impossibile rendere il Soggetto ["+entity.getNome()+"] non aderente, in quanto associato ad almeno una adesione");
+					throw new BadRequestException(ErrorCode.ORG_409);
 				}
 			}
 		}
@@ -113,14 +114,14 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isReferente() != null) {
 			if(!src.isReferente() && entity.isReferente()) {
 				if(isVincolaReferente(entity)) {
-					throw new BadRequestException("Impossibile rendere il Soggetto ["+entity.getNome()+"] non referente, in quanto associato ad almeno un dominio");
+					throw new BadRequestException(ErrorCode.DOM_404);
 				}
 			}
 		}
 		
 		entity.setReferente(src.isReferente());
 
-		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata)")));
+		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		return entity;
 	}
 	
@@ -137,7 +138,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setAderente(src.isAderente());
 		entity.setReferente(src.isReferente());
 		entity.setIdSoggetto(UUID.randomUUID().toString());
-		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata)")));
+		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		return entity;
 	}
 

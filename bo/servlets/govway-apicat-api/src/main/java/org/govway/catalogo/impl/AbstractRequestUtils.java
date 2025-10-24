@@ -32,6 +32,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.OrganizzazioneService;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.Idm;
@@ -162,10 +163,10 @@ public abstract class AbstractRequestUtils implements RequestUtils {
 
             if (checkStato) {
                 if (p.utente == null) {
-                    throw new NotAuthorizedException("Utente non abilitato");
+                    throw new NotAuthorizedException(ErrorCode.UT_404);
                 }
                 if (!p.utente.getStato().equals(Stato.ABILITATO)) {
-                    throw new NotAuthorizedException("Utente non abilitato");
+                    throw new NotAuthorizedException(ErrorCode.UT_403);
                 }
             }
             if (configurazione.getUtente().isAggiornamentoIdmAbilitato() && p.utente != null

@@ -9492,15 +9492,10 @@ components:
           format: "uri"
           example: "https://tools.ietf.org/html/rfc7231#section-6.6.4"
           default: "about:blank"
-    UpdateEntitaComplessaProblem:
-      allOf:
-        - $ref: "#/components/schemas/Problem"
-        - type: "object"
-          properties:
-            errori:
-              type: "array"
-              items:
-                $ref: "#/components/schemas/EntitaComplessaError"
+        errori:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EntitaComplessaError"
     URL:
       type: "string"
       format: "url"
@@ -10288,7 +10283,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/UpdateEntitaComplessaProblem"
+            $ref: "#/components/schemas/Problem"
     "404NotFound":
       description: "Not Found"
       content:

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.govway.catalogo.exception.ClientApiException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiException;
 import org.govway.catalogo.servlets.pdnd.model.Agreement;
@@ -103,7 +104,7 @@ public class PDNDClient {
 			throw e;
 		} catch(ApiException e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.INT_500_PDND, e);
 		}
 
 	}

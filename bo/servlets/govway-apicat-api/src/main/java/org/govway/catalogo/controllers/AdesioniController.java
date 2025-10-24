@@ -68,6 +68,7 @@ import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
@@ -205,7 +206,7 @@ public class AdesioniController implements AdesioniApi {
 				
 				if(this.service.existsBySoggettoServizioNonArchiviato(entity, configurazione.getAdesione().getWorkflow().getStatoArchiviato())) {
 					if(!entity.getServizio().isMultiAdesione()) {
-						throw new ConflictException("Adesione del soggetto ["+entity.getSoggetto().getNome()+"] al servizio ["+entity.getServizio().getNome()+"/"+entity.getServizio().getVersione()+"] esiste gia e servizio non multiadesione");
+						throw new ConflictException(ErrorCode.ADE_409, java.util.Map.of("soggetto", entity.getSoggetto().getNome(), "servizio", entity.getServizio().getNome(), "versione", entity.getServizio().getVersione().toString()));
 					}
 				}
 				
@@ -243,7 +244,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 		
 	}
@@ -253,7 +254,7 @@ public class AdesioniController implements AdesioniApi {
 		UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 		
 		if(utente == null) {
-			throw new NotFoundException("Adesione con id ["+idAdesione+"] non trovata");
+			throw new NotFoundException(ErrorCode.ADE_404, java.util.Map.of("idAdesione", idAdesione.toString()));
 		}
 		AdesioneSpecification aspec = new AdesioneSpecification();
 		
@@ -263,7 +264,7 @@ public class AdesioniController implements AdesioniApi {
 
 		aspec.setIdAdesioni(List.of(idAdesione));
 
-		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException("Adesione con id ["+idAdesione+"] non trovata"));
+		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404));
 		
 	}
 	
@@ -281,7 +282,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per il servizio ["+idAdesione+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -301,7 +302,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -335,7 +336,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -371,7 +372,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -399,7 +400,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -415,10 +416,10 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per l'adesione ["+idAdesione+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
 
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 
 				
 				messaggio.getAllegati().remove(allegato);
@@ -434,7 +435,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -476,7 +477,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -494,9 +495,9 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per l'adesione["+idAdesione+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 				Resource resource = new ByteArrayResource(allegato.getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -510,7 +511,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -538,7 +539,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -552,14 +553,14 @@ public class AdesioniController implements AdesioniApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 				
 				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
-					throw new BadRequestException("Lo stato ["+entity.getStato()+"] dell'adesione non consente lo scaricamento della scheda");
+					throw new BadRequestException(ErrorCode.ADE_400_STATE, java.util.Map.of("stato", entity.getStato().toString()));
 				}
 				Resource resource;
 				try {
 					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
-					throw new InternalException(e);
+					throw new InternalException(ErrorCode.SYS_500);
 				}
 				this.logger.info("Invocazione completata con successo");
 				
@@ -573,7 +574,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -607,7 +608,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -640,7 +641,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -705,7 +706,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -781,7 +782,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -815,7 +816,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -847,7 +848,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -895,7 +896,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -945,7 +946,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -994,7 +995,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1031,7 +1032,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1069,7 +1070,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1107,7 +1108,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1145,7 +1146,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1190,7 +1191,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1206,7 +1207,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per l'adesione ["+idAdesione+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1222,7 +1223,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1239,7 +1240,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException("Messaggio ["+idMessaggio+"] non trovato per l'adesione ["+idAdesione+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1260,7 +1261,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1287,7 +1288,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 				
 				if(allegato == null) {
-					throw new NotFoundException("Allegato ["+idAllegato+"] non trovato per l'adesione ["+idAdesione+"]");
+					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -1303,7 +1304,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1328,11 +1329,11 @@ public class AdesioniController implements AdesioniApi {
 						}
 					}
 				}
-				
+
 				if(allegato == null) {
-					throw new NotFoundException("Allegato ["+idAllegato+"] non trovato per l'adesione ["+idAdesione+"]");
+					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Resource resource = new ByteArrayResource(allegato.getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -1346,7 +1347,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1373,9 +1374,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException("Client per il profilo ["+profilo+"] non presente in collaudo per l'adesione ["+entity+"]");
+					throw new BadRequestException(ErrorCode.CLT_404, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1389,7 +1390,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1414,9 +1415,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException("Client per il profilo ["+profilo+"] non presente in produzione per l'adesione ["+entity+"]");
+					throw new BadRequestException(ErrorCode.CLT_404, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1430,7 +1431,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1455,9 +1456,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException("Erogazione per la API ["+idErogazione+"] non presente in collaudo per l'adesione ["+entity+"]");
+					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1471,7 +1472,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1496,9 +1497,9 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException("Erogazione per la API ["+idErogazione+"] non presente in produzione per l'adesione ["+entity+"]");
+					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
-				
+
 				Adesione model = this.dettaglioAssembler.toModel(entity);
 
 				this.logger.info("Invocazione completata con successo");
@@ -1512,7 +1513,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1540,7 +1541,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1573,7 +1574,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1607,7 +1608,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 	@Override
@@ -1640,7 +1641,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1673,7 +1674,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1685,7 +1686,7 @@ public class AdesioniController implements AdesioniApi {
 		boolean realForce = force != null && force;
 		if(realForce) {
 			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
-				throw new NotAuthorizedException("L'utente deve avere uno dei ruoli ["+listRuoloForce+"] per eseguire la force");
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ROLE, java.util.Map.of("ruoli", listRuoloForce.toString()));
 			}
 		}
 		return realForce;
@@ -1872,7 +1873,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -1890,9 +1891,9 @@ public class AdesioniController implements AdesioniApi {
 				List<EstensioneAdesioneEntity> lst = entity.getEstensioni().stream()
 						.filter(c -> c.getDocumento()!= null && c.getDocumento().getUuid().equals(idAllegato.toString()))
 						.collect(Collectors.toList());
-				
+
 				if(lst.size() != 1) {
-					throw new NotFoundException("Allegato con id ["+idAllegato+"] non trovato per l'adesione ["+idAdesione+"]");
+					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				DocumentoEntity allegato = lst.get(0).getDocumento();
@@ -1909,7 +1910,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -1942,7 +1943,7 @@ public class AdesioniController implements AdesioniApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

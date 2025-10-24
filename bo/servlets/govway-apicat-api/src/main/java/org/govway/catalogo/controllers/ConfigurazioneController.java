@@ -24,6 +24,7 @@ import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.api.ConfigurazioneApi;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.slf4j.Logger;
@@ -71,7 +72,7 @@ public class ConfigurazioneController implements ConfigurazioneApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -94,7 +95,7 @@ public class ConfigurazioneController implements ConfigurazioneApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -119,7 +120,7 @@ public class ConfigurazioneController implements ConfigurazioneApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

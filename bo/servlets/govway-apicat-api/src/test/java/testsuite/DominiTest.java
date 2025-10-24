@@ -41,7 +41,7 @@ import org.govway.catalogo.controllers.DominiController;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
-import org.govway.catalogo.core.exceptions.NotFoundException;
+import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;

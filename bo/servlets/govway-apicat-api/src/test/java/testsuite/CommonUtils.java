@@ -250,7 +250,7 @@ public class CommonUtils {
 	
 	public static InfoProfilo getInfoProfilo(String idUtente, UtenteService utenteService) {
 		return utenteService.runTransaction(() -> {
-			UtenteEntity utente = utenteService.findByPrincipal(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
+			UtenteEntity utente = utenteService.findByPrincipal(idUtente).orElseThrow(() -> new RuntimeException("Utente "+idUtente+" non trovato"));
 			
 			if(utente.getOrganizzazione()!=null) {
 				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});

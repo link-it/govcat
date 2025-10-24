@@ -19,15 +19,45 @@
  */
 package org.govway.catalogo.exception;
 
-public class NotAuthorizedException extends RuntimeException {
+import java.util.Map;
+
+public class NotAuthorizedException extends AbstractGovCatException {
 
 	private static final long serialVersionUID = 1L;
 
-	public NotAuthorizedException(String message) {
-		super(message);
+	/**
+	 * Costruttore con ErrorCode
+	 * @param errorCode il codice di errore
+	 */
+	public NotAuthorizedException(ErrorCode errorCode) {
+		this(errorCode, null, null);
 	}
-	
-	public NotAuthorizedException(Throwable t) {
-		super(t);
+
+	/**
+	 * Costruttore con ErrorCode e parametri
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 */
+	public NotAuthorizedException(ErrorCode errorCode, Map<String, String> parameters) {
+		this(errorCode, parameters, null);
+	}
+
+	/**
+	 * Costruttore con ErrorCode e causa
+	 * @param errorCode il codice di errore
+	 * @param cause la causa dell'eccezione
+	 */
+	public NotAuthorizedException(ErrorCode errorCode, Throwable cause) {
+		this(errorCode, null, cause);
+	}
+
+	/**
+	 * Costruttore completo con ErrorCode, parametri e causa
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 * @param cause la causa dell'eccezione
+	 */
+	public NotAuthorizedException(ErrorCode errorCode, Map<String, String> parameters, Throwable cause) {
+		super(errorCode, parameters, cause);
 	}
 }

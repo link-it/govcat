@@ -21,6 +21,7 @@ package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.SoggettiApi;
 import org.govway.catalogo.servlets.model.ItemSoggetto;
@@ -86,7 +88,7 @@ public class SoggettiController implements SoggettiApi {
 				SoggettoEntity entity = this.dettaglioAssembler.toEntity(soggettoCreate);
 
 				if(this.service.existsByNome(entity)) {
-					throw new ConflictException("Soggetto ["+soggettoCreate.getNome()+"] esiste gia");
+					throw new ConflictException(ErrorCode.SOG_409, Map.of("nome", soggettoCreate.getNome()));
 				}
 				
 				this.service.save(entity);
@@ -104,7 +106,7 @@ public class SoggettiController implements SoggettiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 		
@@ -117,16 +119,16 @@ public class SoggettiController implements SoggettiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				SoggettoEntity entity = this.service.find(idSoggetto)
-						.orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato ["+idSoggetto+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", idSoggetto.toString())));
 				this.authorization.authorizeDelete(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getDomini().isEmpty()) {
-					throw new BadRequestException("Impossibile eliminare il soggetto ["+entity.getNome()+"] in quanto associato a ["+entity.getDomini().size()+"] domini");
+					throw new BadRequestException(ErrorCode.SOG_404, Map.of("nome", entity.getNome()));
 				}
 				
 				if(entity.getOrganizzazione().getSoggettoDefault() != null && entity.getOrganizzazione().getSoggettoDefault().getId().equals(entity.getId())) {
-					throw new BadRequestException("Impossibile eliminare il soggetto ["+entity.getNome()+"] in quanto risulta soggetto di default per la sua organizzazione");
+					throw new BadRequestException(ErrorCode.SOG_404, Map.of("nome", entity.getNome()));
 				}
 				
 				this.service.delete(entity);
@@ -141,7 +143,7 @@ public class SoggettiController implements SoggettiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -151,7 +153,7 @@ public class SoggettiController implements SoggettiApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				SoggettoEntity entity = this.service.find(idSoggetto)
-						.orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato ["+idSoggetto+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", idSoggetto.toString())));
 				this.authorization.authorizeGet(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
 	
@@ -168,7 +170,7 @@ public class SoggettiController implements SoggettiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -214,7 +216,7 @@ public class SoggettiController implements SoggettiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -227,13 +229,13 @@ public class SoggettiController implements SoggettiApi {
 				this.logger.info("Invocazione in corso ...");   
 				
 				SoggettoEntity entity = this.service.find(idSoggetto)
-						.orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", idSoggetto.toString())));
 
 				this.authorization.authorizeUpdate(soggettoUpdate, entity);
 
 				if(!soggettoUpdate.getNome().equals(entity.getNome())) {
 					if(this.service.existsByNome(soggettoUpdate.getNome())) {
-						throw new ConflictException("Soggetto ["+soggettoUpdate.getNome()+"] esiste gia");
+						throw new ConflictException(ErrorCode.SOG_409, Map.of("nome", soggettoUpdate.getNome()));
 					}
 				}
 				
@@ -256,7 +258,7 @@ public class SoggettiController implements SoggettiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

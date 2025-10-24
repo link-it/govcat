@@ -16,7 +16,7 @@ import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Utente, Ruolo, Stato } from './utente';
 
-import { concat, from, Observable, of, Subject, throwError } from 'rxjs';
+import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
 
@@ -275,7 +275,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        console.log('__onSave error', error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
@@ -300,7 +301,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
@@ -358,7 +359,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             },
             (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           );
         }
