@@ -352,7 +352,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             baseUrl = `/servizi/${this.serviceBreadcrumbs.service.id_servizio}/${this.model}`;
         }
 
-        if (this.adesione.id_logico) {
+        if (this.adesione?.id_logico) {
             title = `${this.adesione.id_logico} (${_organizzazione})`;
         }
 
