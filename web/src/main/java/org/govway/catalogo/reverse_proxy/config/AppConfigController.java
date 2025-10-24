@@ -38,7 +38,7 @@ public class AppConfigController implements ServletContextAware {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private ServletContext servletContext;
 
-    @Value("${govcat.config.override.path:/var/govcat/conf/app-config-override.json}")
+    @Value("${govcat.config.override.path:/var/govcat/conf/app-config.json}")
     private String overrideConfigPath;
 
     @Value("${govcat.config.override.enabled:true}")
@@ -125,10 +125,10 @@ public class AppConfigController implements ServletContextAware {
     private JsonNode loadConfiguration(HttpServletResponse response) {
         try {
             // Carica configurazione di default dal webapp
-            InputStream defaultConfigStream = servletContext.getResourceAsStream("/assets/config/app-config-default.json");
+            InputStream defaultConfigStream = servletContext.getResourceAsStream("/assets/config/app-config.json");
 
             if (defaultConfigStream == null) {
-                log.error("File di configurazione di default non trovato: /assets/config/app-config-default.json");
+                log.error("File di configurazione di default non trovato: /assets/config/app-config.json");
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 return objectMapper.createObjectNode().put("error", "Configuration file not found");
             }
