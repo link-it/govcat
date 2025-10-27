@@ -20,6 +20,9 @@
 package org.govway.catalogo.core.orm.entity;
 
 import java.util.HashSet;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import java.util.Set;
 
 import jakarta.persistence.Column;
@@ -35,13 +38,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -67,7 +65,7 @@ public class GruppoEntity {
 	@Enumerated(EnumType.STRING)
 	private TipoServizio tipo;
     
-	@OneToOne(optional = true)
+	@ManyToOne(optional = true)
     @JoinColumn(name = "id_gruppo_padre", referencedColumnName = "id")
 	private GruppoEntity gruppoPadre;
 

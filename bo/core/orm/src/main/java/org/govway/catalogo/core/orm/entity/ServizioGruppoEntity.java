@@ -78,7 +78,7 @@ public class ServizioGruppoEntity {
     @Enumerated(EnumType.STRING)
 	private VISIBILITA visibilita;
 	
-	@ManyToOne
+	@OneToOne
     @JoinColumn(name = "id_gruppo", referencedColumnName = "id")
     private GruppoEntity gruppo;
 
