@@ -24,6 +24,12 @@
 		<dependency>
 			<groupId>net.sourceforge.dynamicreports</groupId>
 			<artifactId>dynamicreports-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.sf.jasperreports</groupId>
+                    <artifactId>jasperreports</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 
 		<dependency>
@@ -34,7 +40,14 @@
 		<dependency>
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
+            <version>${jasperreports.version}</version>
 		</dependency>
+
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-jaxen</artifactId>
+            <version>${jasperreports.version}</version>
+        </dependency>
 
 		<!-- BouncyCastle - required by itext and jasperreports -->
 		<dependency>
@@ -98,11 +111,6 @@
 		<dependency>
 			<groupId>net.sourceforge.barbecue</groupId>
 			<artifactId>barbecue</artifactId>
-		</dependency>
-
-		<dependency>
-		    <groupId>jaxen</groupId>
-		    <artifactId>jaxen</artifactId>
 		</dependency>
 		
 		<dependency>

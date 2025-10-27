@@ -134,7 +134,7 @@ public class StampePdf {
 			DefaultJasperReportsContext defaultJasperReportsContext = DefaultJasperReportsContext.getInstance();
 			
 			JRPropertiesUtil.getInstance(defaultJasperReportsContext).setProperty("net.sf.jasperreports.xpath.executer.factory",
-                    "net.sf.jasperreports.engine.util.xml.JaxenXPathExecuterFactory");
+                    "net.sf.jasperreports.jaxen.util.xml.JaxenXPathExecuterFactory");
 			
 			byte[] ba = getXML(input);
 			log.info("XML adesioni:"+ new String(ba));
