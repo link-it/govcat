@@ -232,8 +232,11 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 
 	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
 	String externalPath;
-	
-	@Bean(name ="configurazione") 
+
+	@Value("${api.mode:full}")
+	String apiMode;
+
+	@Bean(name ="configurazione")
 	public Configurazione configurazione(IMonitoraggioClient monitoraggioClient) throws IOException {
 		Resource resource = new FileSystemResource(this.externalPath+"/configurazione.json");
 		InputStream inputStream = resource.getInputStream();
@@ -243,9 +246,10 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
 
 		Configurazione configurazione = om.readValue(outputString, Configurazione.class);
-		
+
 		configurazione.getMonitoraggio().setLimitata(monitoraggioClient.isLimitata());
-		
+		configurazione.getGenerale().setIstanzaVetrina("vetrina".equalsIgnoreCase(this.apiMode));
+
 		return configurazione;
 	}
 
@@ -546,10 +550,10 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	return new ErogazioneItemAssembler();
     }
 
-    @Bean
-    public RequestUtils requestUtils() {
-    	return new RequestUtils();
-    }
+    // RequestUtils bean rimosso - gestito automaticamente da Spring tramite @Component/@ConditionalOnProperty
+    // Le implementazioni sono:
+    // - HeaderRequestUtils (modalità HEADER, default)
+    // - OidcRequestUtils (modalità OIDC_JWT)
 
     @Bean
     public AllegatoApiAssembler allegatoApiAssembler() {

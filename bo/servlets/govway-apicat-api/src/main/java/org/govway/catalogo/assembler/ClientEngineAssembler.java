@@ -31,6 +31,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.servlets.model.AdesioneClientCreate;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
@@ -153,9 +154,9 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		Set<EstensioneClientEntity> estensioni = assembler.getEstensioni(src.getDatiSpecifici(), configurazione);
 		
 		String duplicati = assembler.checkDuplicati(estensioni);
-		
+
 		if(duplicati != null) {
-			throw new ConflictException(duplicati);
+			throw new ConflictException(ErrorCode.CLT_409, java.util.Map.of("duplicati", duplicati));
 		}
 		
 		return estensioni;
@@ -184,7 +185,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND:return signPdndEstensioneClientAssembler;
 		}
 
-		throw new InternalException("Auth type ["+authType+"] non gestito");
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 
 	private ConfigurazioneAuthType getConfigurazione(AuthTypeEnum authType) {
@@ -193,7 +194,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 			.stream()
 			.filter(at -> at.getType().equals(authType))
 			.findAny()
-			.orElseThrow(() -> {return new InternalException("Auth type ["+authType+"] non gestito");});
+			.orElseThrow(() -> {return new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));});
 
 	}
 
@@ -214,7 +215,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND:return signPdndEstensioneClientAssembler;
 		}
 
-		throw new InternalException("Auth type ["+authType+"] non gestito");
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 
 	public AuthType getAuthType(AuthTypeEnum authType) {
@@ -233,7 +234,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND: return AuthType.SIGN_PDND;
 		}
 
-		throw new InternalException("Auth type ["+authType+"] non gestito");
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 
 	public AuthTypeEnum getAuthType(AuthType authType) {
@@ -252,6 +253,6 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		case SIGN_PDND:return AuthTypeEnum.SIGN_PDND;
 		}
 
-		throw new InternalException("Auth type ["+authType+"] non gestito");
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("authType", authType.toString()));
 	}
 }

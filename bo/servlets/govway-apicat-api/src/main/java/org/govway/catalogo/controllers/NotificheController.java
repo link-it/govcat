@@ -21,6 +21,7 @@ package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import org.govway.catalogo.core.services.NotificaService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.NotificheApi;
@@ -124,7 +126,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -168,7 +170,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -177,17 +179,17 @@ public class NotificheController implements NotificheApi {
 
 		UtenteEntity mittente = null;
 		if(idMittente != null) {
-			mittente = this.utenteService.find(idMittente).orElseThrow(() -> new NotFoundException("Utente ["+idMittente+"] non trovato"));			
+			mittente = this.utenteService.find(idMittente).orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idMittente.toString())));			
 		}
 		
 		ServizioEntity servizio = null;
 		if(idServizio != null) {
-			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException("Servizio ["+idServizio+"] non trovato"));
+			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
 		}
 		
 		AdesioneEntity adesione = null;
 		if(idAdesione != null) {
-			adesione  = this.adesioneService.findByIdAdesione(idAdesione.toString()).orElseThrow(() -> new NotFoundException("Adesione["+idAdesione+"] non trovato"));
+			adesione  = this.adesioneService.findByIdAdesione(idAdesione.toString()).orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404, Map.of("idAdesione", idAdesione.toString())));
 		}
 		
 		NotificaSpecification specification = new NotificaSpecification();
@@ -212,11 +214,11 @@ public class NotificheController implements NotificheApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				NotificaEntity entity = this.service.find(idNotifica)
-						.orElseThrow(() -> new NotFoundException("Notifica ["+idNotifica+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idNotifica.toString())));
 
 				if(!this.coreAuthorization.isAdmin()) {
 					if(!this.coreAuthorization.getUtenteSessione().getId().equals(entity.getDestinatario().getId())) {
-						throw new NotAuthorizedException("La notifica può essere aggiornata dall'utente destinatario della stessa");
+						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING);
 					}
 				}
 				
@@ -240,7 +242,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -253,7 +255,7 @@ public class NotificheController implements NotificheApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				NotificaEntity entity = this.service.find(idNotifica)
-						.orElseThrow(() -> new NotFoundException("Notifica["+idNotifica+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idNotifica.toString())));
 
 				Notifica model = this.dettaglioAssembler.toModel(entity);
 
@@ -269,7 +271,7 @@ public class NotificheController implements NotificheApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

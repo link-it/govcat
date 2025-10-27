@@ -1,8 +1,11 @@
 package org.govway.catalogo;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -20,10 +23,18 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
+/**
+ * Configurazione di Spring Security per l'autenticazione tramite header HTTP.
+ * Attiva per default o quando authentication.mode=HEADER (modalità legacy).
+ * Per l'autenticazione OIDC, vedere OidcSecurityConfiguration.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity // only if you use @PreAuthorize, etc. (safe to keep)
+@ConditionalOnProperty(name = "authentication.mode", havingValue = "HEADER", matchIfMissing = true)
 public class WebSecurityConfiguration {
+
+    private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfiguration.class);
 
     @Value("${headerAuthentication}")
     String headerAuthentication;
@@ -33,6 +44,8 @@ public class WebSecurityConfiguration {
 
     @PostConstruct
     public void setup() {
+        logger.info("Inizializzazione WebSecurityConfiguration - Modalità: HEADER");
+        logger.info("Header di autenticazione configurato: {}", headerAuthentication);
         // Use thread-local storage for the security context, avoiding the session
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
     }

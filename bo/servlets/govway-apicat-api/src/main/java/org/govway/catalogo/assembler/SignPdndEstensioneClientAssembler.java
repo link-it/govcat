@@ -25,6 +25,7 @@ import java.util.Set;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeSignPdnd;
 import org.govway.catalogo.servlets.model.AuthTypeSignPdndCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -40,13 +41,13 @@ public class SignPdndEstensioneClientAssembler extends AbstractEstensioneClientA
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypeSignPdndCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeSignPdndCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeSignPdndCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeSignPdndCreate specSrc = (AuthTypeSignPdndCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypeSignPdnd)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeSignPdnd.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", ConfigurazioneAuthTypeSignPdnd.class.getSimpleName()));
 		}
 		
 		ConfigurazioneAuthTypeSignPdnd conf = (ConfigurazioneAuthTypeSignPdnd) configurazione;
@@ -79,9 +80,9 @@ public class SignPdndEstensioneClientAssembler extends AbstractEstensioneClientA
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeSignPdnd)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeSignPdnd.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeSignPdnd.class.getSimpleName()));
 		}
 		
 		AuthTypeSignPdnd specDsc = (AuthTypeSignPdnd) dsc;

@@ -32,6 +32,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.AdesioneClientCreate;
@@ -104,7 +105,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		}
 		
 		if(src.getIdSoggetto()!=null) {
-			entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException("Soggetto ["+src.getIdSoggetto()+"] non trovata)")));
+			entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
 		}
 		
 		Set<EstensioneClientEntity> estensioni = clientEngineAssembler.getEstensioni(src, entity.getEstensioni());
@@ -143,7 +144,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 							return c;
 						}).collect(Collectors.toList()));
 				erroreLst.add(e);
-				throw new UpdateEntitaComplessaNonValidaSemanticamenteException("Forbidden", erroreLst);
+				throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_422_COMPLEX, erroreLst);
 			}
 		}
 	}
@@ -153,7 +154,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		ClientEntity entity = new ClientEntity();
 		BeanUtils.copyProperties(src, entity);
 		entity.setIdClient(UUID.randomUUID().toString());
-		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException("Soggetto ["+src.getIdSoggetto()+"] non trovata)")));
+		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
 		
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
@@ -180,7 +181,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		ClientEntity entity = new ClientEntity();
 		BeanUtils.copyProperties(src, entity);
 		entity.setIdClient(UUID.randomUUID().toString());
-		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException("Soggetto ["+src.getIdSoggetto()+"] non trovata)")));
+		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
 		entity.setStato(StatoEnum.NUOVO);
@@ -195,7 +196,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public void checkClientProfilo(ConfigurazioneProfilo cp, ClientEntity c) {
 		AuthTypeEnum authTypeClient = clientEngineAssembler.getAuthType(c.getAuthType());
 		if(!authTypeClient.equals(cp.getAuthType())) {
-			throw new BadRequestException("Il profilo ["+cp.getEtichetta()+"] richiede un authType ["+cp.getAuthType()+"]. Trovato ["+authTypeClient+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("profilo", cp.getEtichetta(), "authTypeRichiesto", cp.getAuthType().toString(), "authTypeTrovato", authTypeClient.toString()));
 		}
 	}
 

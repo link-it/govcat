@@ -33,6 +33,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity_;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity_;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeIndirizzoIp;
 import org.govway.catalogo.servlets.model.AuthTypeIndirizzoIpCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -47,15 +48,15 @@ public class IndirizzoIpEstensioneClientAssembler extends AbstractEstensioneClie
 
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
-		
+
 		if(!(src instanceof AuthTypeIndirizzoIpCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeIndirizzoIpCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeIndirizzoIpCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeIndirizzoIpCreate specSrc = (AuthTypeIndirizzoIpCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypeIndirizzoIp)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeIndirizzoIp.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", ConfigurazioneAuthTypeIndirizzoIp.class.getSimpleName()));
 		}
 
 		EstensioneClientEntity eIP = new EstensioneClientEntity();
@@ -108,9 +109,9 @@ public class IndirizzoIpEstensioneClientAssembler extends AbstractEstensioneClie
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeIndirizzoIp)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeIndirizzoIp.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeIndirizzoIp.class.getSimpleName()));
 		}
 		
 		AuthTypeIndirizzoIp specDsc = (AuthTypeIndirizzoIp) dsc;

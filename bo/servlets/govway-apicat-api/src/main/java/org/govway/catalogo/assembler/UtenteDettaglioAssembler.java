@@ -33,6 +33,7 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
 import org.govway.catalogo.servlets.model.ProfiloUpdate;
@@ -108,7 +109,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata")));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		} else {
 			entity.setOrganizzazione(null);
 		}
@@ -136,7 +137,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		if(src.getClassiUtente()!=null) {
 			for(UUID idcu: src.getClassiUtente()) {
-				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException("ClasseUtente con id ["+idcu+"] non trovata"));
+				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 				cu.getUtentiAssociati().add(entity);
 				entity.getClassi().add(cu);
 			}
@@ -160,7 +161,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException("Organizzazione ["+src.getIdOrganizzazione()+"] non trovata")));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
 		}
 		
 		if(src.isReferenteTecnico()!=null) {
@@ -179,7 +180,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		if(src.getClassiUtente()!=null) {
 			for(UUID idcu: src.getClassiUtente()) {
-				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException("ClasseUtente con id ["+idcu+"] non trovata"));
+				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
 				cu.getUtentiAssociati().add(entity);
 				entity.getClassi().add(cu);
 			}
@@ -229,7 +230,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 				return null;
 			}
 		} else {
-			throw new BadRequestException("Tipo non supportato per il campo metadati:  " + node.getClass());
+			throw new BadRequestException(ErrorCode.VAL_400_FORMAT);
 		}
 
 	}

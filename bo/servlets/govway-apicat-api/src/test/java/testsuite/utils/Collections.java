@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.govway.catalogo.core.utils;
+package testsuite.utils;
 
 import static org.apache.commons.collections4.IterableUtils.emptyIfNull;
 

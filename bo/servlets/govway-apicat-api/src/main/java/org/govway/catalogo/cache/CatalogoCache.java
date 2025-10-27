@@ -29,6 +29,7 @@ import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +58,8 @@ public class CatalogoCache {
 	}
 	
 	public SoggettoEntity getSoggetto(String nome) {
-		return this.findSoggetto(nome)			
-				.orElseThrow(() -> new NotFoundException("Soggetto ["+nome+"] non trovato"));
+		return this.findSoggetto(nome)
+				.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
 	}
 
 	public long countAdesioni(String idServizio, String idSoggetto) {

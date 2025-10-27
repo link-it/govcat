@@ -6227,6 +6227,14 @@ components:
         site:
           type: "string"
           format: "URI"
+        istanza_vetrina:
+          type: boolean
+          description: "Indica se l'istanza è in modalità vetrina/read-only (true quando api.mode=vetrina)"
+        whitelist_vetrina:
+          type: array
+          items:
+            type: string
+          description: "Operazioni consentite quando istanza_vetrina=true nel formato 'METHOD PATH' (es. 'GET /servizi', 'POST /adesioni'). Supporta wildcards nei path: * (singolo segmento), ** (tutti i sotto-path)"
     AccessoAmministrazioneItem:
       type: "object"
       required:
@@ -8101,6 +8109,45 @@ components:
           $ref: "#/components/schemas/String255"
         settings:
           type: object
+    ItemUtentePublic:
+      type: "object"
+      required:
+        - id_utente
+        - nome
+        - cognome
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+    ItemUtenteRestricted:
+      type: "object"
+      required:
+        - id_utente
+        - nome
+        - cognome
+        - telefono_aziendale
+        - email_aziendale
+        - stato
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+        telefono_aziendale:
+          $ref: "#/components/schemas/String255"
+        email_aziendale:
+          $ref: "#/components/schemas/Email"
+        stato:
+          $ref: "#/components/schemas/StatoUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
+        organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
     ItemUtente:
       type: "object"
       required:
@@ -8450,6 +8497,7 @@ components:
         - tipo
       properties:
         utente:
+          description: "User details - returns ItemUtentePublic, ItemUtenteRestricted, or ItemUtente depending on authorization context"
           $ref: "#/components/schemas/ItemUtente"
         tipo:
           $ref: "#/components/schemas/TipoReferenteEnum"
@@ -9444,15 +9492,10 @@ components:
           format: "uri"
           example: "https://tools.ietf.org/html/rfc7231#section-6.6.4"
           default: "about:blank"
-    UpdateEntitaComplessaProblem:
-      allOf:
-        - $ref: "#/components/schemas/Problem"
-        - type: "object"
-          properties:
-            errori:
-              type: "array"
-              items:
-                $ref: "#/components/schemas/EntitaComplessaError"
+        errori:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EntitaComplessaError"
     URL:
       type: "string"
       format: "url"
@@ -10240,7 +10283,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/UpdateEntitaComplessaProblem"
+            $ref: "#/components/schemas/Problem"
     "404NotFound":
       description: "Not Found"
       content:

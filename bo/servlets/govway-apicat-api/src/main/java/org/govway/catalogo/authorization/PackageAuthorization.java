@@ -28,6 +28,7 @@ import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
@@ -88,7 +89,7 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 		}
 		
 		if(erroreLst!=null && !erroreLst.isEmpty()) {
-			throw new UpdateEntitaComplessaNonValidaSemanticamenteException("Forbidden", erroreLst);
+			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_400_REQUIRED, erroreLst);
 		}
 		
 	}
@@ -157,7 +158,7 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 		this.coreAuthorization.requireAdmin();
 		super.authorizeModifica(entity, classiDato);
 		if(!entity.getApi().isEmpty()) {
-			throw new NotAuthorizedException("Impossibile avere delle API associate a un servizio Package. Trovate " + entity.getApi().size());
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ROLE);
 		}
 	}
 

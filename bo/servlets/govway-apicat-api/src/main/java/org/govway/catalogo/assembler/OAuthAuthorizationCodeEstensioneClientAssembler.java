@@ -28,6 +28,7 @@ import java.util.Set;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeOAuthAuthorizationCode;
 import org.govway.catalogo.servlets.model.AuthTypeOAuthAuthorizationCodeCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -45,15 +46,15 @@ public class OAuthAuthorizationCodeEstensioneClientAssembler extends AbstractEst
 
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
-		
+
 		if(!(src instanceof AuthTypeOAuthAuthorizationCodeCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeOAuthAuthorizationCodeCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeOAuthAuthorizationCodeCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeOAuthAuthorizationCodeCreate specSrc = (AuthTypeOAuthAuthorizationCodeCreate) src;
 
 		if(!(configurazione instanceof ConfigurazioneAuthTypeOAuthAuthorizationCode)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeOAuthAuthorizationCode.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", ConfigurazioneAuthTypeOAuthAuthorizationCode.class.getSimpleName()));
 		}
 
 		EstensioneClientEntity eHelpDesk = new EstensioneClientEntity();
@@ -103,9 +104,9 @@ public class OAuthAuthorizationCodeEstensioneClientAssembler extends AbstractEst
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeOAuthAuthorizationCode)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeOAuthAuthorizationCode.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeOAuthAuthorizationCode.class.getSimpleName()));
 		}
 		
 		AuthTypeOAuthAuthorizationCode specDsc = (AuthTypeOAuthAuthorizationCode) dsc;

@@ -19,15 +19,45 @@
  */
 package org.govway.catalogo.exception;
 
-public class BadRequestException extends RuntimeException {
+import java.util.Map;
+
+public class BadRequestException extends AbstractGovCatException {
 
 	private static final long serialVersionUID = 1L;
 
-	public BadRequestException(String message) {
-		super(message);
+	/**
+	 * Costruttore con ErrorCode
+	 * @param errorCode il codice di errore
+	 */
+	public BadRequestException(ErrorCode errorCode) {
+		this(errorCode, null, null);
 	}
-	
-	public BadRequestException(Throwable t) {
-		super(t);
+
+	/**
+	 * Costruttore con ErrorCode e parametri
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 */
+	public BadRequestException(ErrorCode errorCode, Map<String, String> parameters) {
+		this(errorCode, parameters, null);
+	}
+
+	/**
+	 * Costruttore con ErrorCode e causa
+	 * @param errorCode il codice di errore
+	 * @param cause la causa dell'eccezione
+	 */
+	public BadRequestException(ErrorCode errorCode, Throwable cause) {
+		this(errorCode, null, cause);
+	}
+
+	/**
+	 * Costruttore completo con ErrorCode, parametri e causa
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 * @param cause la causa dell'eccezione
+	 */
+	public BadRequestException(ErrorCode errorCode, Map<String, String> parameters, Throwable cause) {
+		super(errorCode, parameters, cause);
 	}
 }

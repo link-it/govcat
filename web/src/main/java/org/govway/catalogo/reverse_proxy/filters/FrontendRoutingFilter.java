@@ -5,7 +5,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/servizi/*", "/adesioni/*", "/gruppi/*", "/domini/*", "/soggetti/*", "/organizzazioni/*", "/client/*", "/utenti/*", "/classi-utente/*", "/pdnd/*", "/notifications/*", "/profile/*", "/dashboard/*"})
+@WebFilter(urlPatterns = {"/servizi/*", "/adesioni/*", "/gruppi/*", "/domini/*", "/soggetti/*", "/organizzazioni/*", "/client/*", "/utenti/*", "/classi-utente/*", "/pdnd/*", "/notifications/*", "/profile/*", "/dashboard/*", "/auth/*"})
 public class FrontendRoutingFilter implements Filter {
 
     @Override

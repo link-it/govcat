@@ -32,6 +32,7 @@ import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.DocumentoSingolo;
@@ -87,7 +88,7 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 	            BeanUtils.copyProperties(specificDocument, dettaglio);
 	        } else {
 	            // Gestire il caso in cui la versione specificata non è trovata (opzionale)
-	            throw new NotFoundException("Documento con la versione specificata non trovato");
+	            throw new NotFoundException(ErrorCode.DOC_404);
 	        }
 	    }
 
@@ -151,14 +152,14 @@ public class DocumentoAssembler extends RepresentationModelAssemblerSupport<Docu
 			String uuid = ((DocumentoUpdateId)documento).getUuid().toString();
 
 			DocumentoEntity entity = this.service.find(uuid)
-					.orElseThrow(() -> new NotFoundException("Documento ["+uuid+"] non trovato"));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 			
 			return entity;			
 		} else if(documento.getTipoDocumento().equals(TipoDocumentoEnum.UUID_COPIA)) {
 				String uuid = ((DocumentoUpdateId)documento).getUuid().toString();
 
 				DocumentoEntity entity = this.service.find(uuid)
-						.orElseThrow(() -> new NotFoundException("Documento ["+uuid+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 				
 				DocumentoUpdateNew documentoUpdateNew = new DocumentoUpdateNew();
 				

@@ -25,6 +25,7 @@ import java.util.Set;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsPdndSign;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsPdndSignCreate;
 import org.govway.catalogo.servlets.model.ConfigurazioneAuthType;
@@ -41,13 +42,13 @@ public class HttpsPdndSignEstensioneClientAssembler extends AbstractEstensioneCl
 	@Override
 	public Set<EstensioneClientEntity> getEstensioni(DatiSpecificiClientCreate src, ConfigurazioneAuthType configurazione) {
 		if(!(src instanceof AuthTypeHttpsPdndSignCreate)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeHttpsPdndSignCreate.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeHttpsPdndSignCreate.class.getSimpleName()));
 		}
-		
+
 		AuthTypeHttpsPdndSignCreate specSrc = (AuthTypeHttpsPdndSignCreate) src;
-		
+
 		if(!(configurazione instanceof ConfigurazioneAuthTypeHttpsPdndSign)) {
-			throw new BadRequestException("Configurazione dovrebbe essere un ["+ConfigurazioneAuthTypeHttpsPdndSign.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", ConfigurazioneAuthTypeHttpsPdndSign.class.getSimpleName()));
 		}
 		
 		ConfigurazioneAuthTypeHttpsPdndSign conf = (ConfigurazioneAuthTypeHttpsPdndSign) configurazione;
@@ -83,9 +84,9 @@ public class HttpsPdndSignEstensioneClientAssembler extends AbstractEstensioneCl
 	@Override
 	public List<String> getErroriConfigurabile(ClientEntity entity) {
 		DatiSpecificiClient dsc = getDatiSpecificiClient(entity.getEstensioni());
-		
+
 		if(!(dsc instanceof AuthTypeHttpsPdndSign)) {
-			throw new BadRequestException("DatiSpecifici dovrebbe essere un ["+AuthTypeHttpsPdndSign.class+"]");
+			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("expectedType", AuthTypeHttpsPdndSign.class.getSimpleName()));
 		}
 		
 		AuthTypeHttpsPdndSign specDsc = (AuthTypeHttpsPdndSign) dsc;

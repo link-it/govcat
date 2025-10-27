@@ -21,6 +21,7 @@ package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,6 +43,7 @@ import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.TassonomieApi;
 import org.govway.catalogo.servlets.model.Categoria;
@@ -116,7 +118,7 @@ public class TassonomieController implements TassonomieApi {
 				TassonomiaEntity entity = this.dettaglioAssembler.toEntity(tassonomiaCreate);
 
 				if(this.service.existsByNome(entity.getNome())) {
-					throw new ConflictException("Tassonomia ["+entity.getNome()+"] esiste gia");
+					throw new ConflictException(ErrorCode.TAX_409, Map.of("nome", entity.getNome()));
 				}
 
 				this.service.save(entity);
@@ -134,7 +136,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -148,13 +150,13 @@ public class TassonomieController implements TassonomieApi {
 			return this.service.runTransaction( () -> {
 
 				TassonomiaEntity tassonomia = this.service.find(idTassonomia)
-						.orElseThrow(() -> new NotFoundException("Tassonomia ["+idTassonomia+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idTassonomia", idTassonomia.toString())));
 
 
 				CategoriaEntity entity = this.categoriaDettaglioAssembler.toEntity(categoriaCreate, tassonomia);
 
 				if(this.service.existsCategoriaByNome(idTassonomia, entity.getNome())) {
-					throw new ConflictException("Categoria ["+entity.getNome()+"] esiste gia per la tassonomia ["+tassonomia.getNome()+"]");
+					throw new ConflictException(ErrorCode.CAT_409, Map.of("nome", entity.getNome(), "tassonomia", tassonomia.getNome()));
 				}
 
 				this.service.save(entity);
@@ -173,7 +175,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -187,22 +189,22 @@ public class TassonomieController implements TassonomieApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CategoriaEntity entity = this.service.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException("Categoria ["+idCategoria+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException("Categoria ["+idCategoria+"] non trovata per la tassonomia ["+idTassonomia+"]");
+					throw new NotFoundException(ErrorCode.CAT_404);
 				}
 
 				if(!entity.getFigli().isEmpty()) {
-					throw new BadRequestException("Categoria ["+entity.getNome()+"] non eliminabile in quanto padre di ["+entity.getFigli().size()+"] categorie");
+					throw new BadRequestException(ErrorCode.CAT_404, Map.of("nome", entity.getNome()));
 				}
 				
 				if(!entity.getServizi().isEmpty()) {
-					throw new BadRequestException("Categoria ["+entity.getNome()+"] non eliminabile in quanto associata a ["+entity.getServizi().size()+"] servizi");
+					throw new BadRequestException(ErrorCode.CAT_404, Map.of("nome", entity.getNome()));
 				}
 				
 				if(entity.getTassonomia().isVisibile() && entity.getTassonomia().getCategorie().size() == 1) {
-					throw new BadRequestException("Categoria ["+entity.getNome()+"] non eliminabile in quanto lascerebbe la Tassonomia ["+entity.getTassonomia().getNome()+"] senza categorie");
+					throw new BadRequestException(ErrorCode.CAT_404, Map.of("nome", entity.getNome()));
 				}
 				
 				this.service.delete(entity);
@@ -217,7 +219,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -231,10 +233,10 @@ public class TassonomieController implements TassonomieApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				TassonomiaEntity entity = this.service.find(idTassonomia)
-						.orElseThrow(() -> new NotFoundException("Tassonomia ["+idTassonomia+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idTassonomia", idTassonomia.toString())));
 
 				if(!entity.getCategorie().isEmpty()) {
-					throw new BadRequestException("Tassonomia ["+entity.getNome()+"] non eliminabile in quanto associata a ["+entity.getCategorie().size()+"] categorie");
+					throw new BadRequestException(ErrorCode.TAX_404, Map.of("nome", entity.getNome()));
 				}
 				
 				this.service.delete(entity);
@@ -249,7 +251,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -263,10 +265,10 @@ public class TassonomieController implements TassonomieApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CategoriaEntity entity = this.service.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException("Categoria ["+idCategoria+"] per Tassonomia ["+idTassonomia+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException("Categoria ["+idCategoria+"] per Tassonomia ["+idTassonomia+"] non trovata");
+					throw new NotFoundException(ErrorCode.CAT_404);
 				}
 
 				Categoria model = this.categoriaDettaglioAssembler.toModel(entity);
@@ -283,7 +285,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -297,7 +299,7 @@ public class TassonomieController implements TassonomieApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				TassonomiaEntity entity = this.service.find(idTassonomia)
-						.orElseThrow(() -> new NotFoundException("Tassonomia ["+idTassonomia+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idTassonomia", idTassonomia.toString())));
 
 				Tassonomia model = this.dettaglioAssembler.toModel(entity);
 
@@ -313,7 +315,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -358,7 +360,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -402,7 +404,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -417,11 +419,11 @@ public class TassonomieController implements TassonomieApi {
 			return this.service.runTransaction( () -> {
 
 				CategoriaEntity entity = this.service.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException("Categoria ["+idCategoria+"] per Tassonomia ["+idTassonomia+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException("Categoria ["+idCategoria+"] per Tassonomia ["+idTassonomia+"] non trovata");
+					throw new NotFoundException(ErrorCode.CAT_404);
 				}
 
 				entity = this.categoriaDettaglioAssembler.toEntity(categoriaUpdate, entity);
@@ -442,7 +444,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -456,7 +458,7 @@ public class TassonomieController implements TassonomieApi {
 			return this.service.runTransaction( () -> {
 
 				TassonomiaEntity entity = this.service.find(idTassonomia)
-						.orElseThrow(() -> new NotFoundException("Tassonomia ["+idTassonomia+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idTassonomia", idTassonomia.toString())));
 
 				entity = this.dettaglioAssembler.toEntity(tassonomiaUpdate, entity);
 
@@ -475,7 +477,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -488,11 +490,11 @@ public class TassonomieController implements TassonomieApi {
 			return this.service.runTransaction( () -> {
 
 				CategoriaEntity entity = this.service.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException("Categoria ["+idCategoria+"] per Tassonomia ["+idTassonomia+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException("Categoria ["+idCategoria+"] per Tassonomia ["+idTassonomia+"] non trovata");
+					throw new NotFoundException(ErrorCode.CAT_404);
 				}
 
 
@@ -522,7 +524,7 @@ public class TassonomieController implements TassonomieApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
