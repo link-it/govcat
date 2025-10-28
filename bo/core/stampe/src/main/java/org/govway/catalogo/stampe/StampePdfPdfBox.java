@@ -26,16 +26,17 @@ import org.govway.catalogo.stampe.model.EService;
 import org.govway.catalogo.stampe.model.SchedaAdesione;
 import org.govway.catalogo.stampe.pdfbox.PdfBoxReportEngine;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * PDF generation using PDFBox (replacement for JasperReports)
  */
-public class StampePdf {
+public class StampePdfPdfBox {
 
-    private static StampePdf _instance = null;
+    private static StampePdfPdfBox _instance = null;
     private static PdfBoxReportEngine engine = null;
 
-    public static StampePdf getInstance() {
+    public static StampePdfPdfBox getInstance() {
         if (_instance == null)
             init();
 
@@ -48,14 +49,14 @@ public class StampePdf {
         }
 
         if (_instance == null) {
-            _instance = new StampePdf();
+            _instance = new StampePdfPdfBox();
         }
     }
 
     public byte[] creaEServicePDF(Logger log, EService input) throws Exception {
         log.info("Generating eService PDF using PDFBox");
 
-        try (InputStream templateStream = StampePdf.class.getResourceAsStream("/eservice_template.json")) {
+        try (InputStream templateStream = StampePdfPdfBox.class.getResourceAsStream("/eservice_template.json")) {
             if (templateStream == null) {
                 throw new IOException("Template not found: /eservice_template.json");
             }
@@ -67,7 +68,7 @@ public class StampePdf {
     public byte[] creaAdesionePDF(Logger log, SchedaAdesione input) throws Exception {
         log.info("Generating scheda adesione PDF using PDFBox");
 
-        try (InputStream templateStream = StampePdf.class.getResourceAsStream("/scheda_adesione_template.json")) {
+        try (InputStream templateStream = StampePdfPdfBox.class.getResourceAsStream("/scheda_adesione_template.json")) {
             if (templateStream == null) {
                 throw new IOException("Template not found: /scheda_adesione_template.json");
             }

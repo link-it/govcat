@@ -64,8 +64,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import net.sf.jasperreports.engine.JRException;
-
 @Service
 public class SchedaAdesioneBuilder {
 
@@ -295,7 +293,7 @@ public class SchedaAdesioneBuilder {
 		a.setBaseUrlProduzione(apiEP);
 		try {
 			return StampePdf.getInstance().creaAdesionePDF(logger,a);
-		} catch (JAXBException | IOException | JRException e) {
+		} catch (Exception e) {
 			this.logger.error("Errore durante la creazione della scheda adesione: " + e.getMessage(), e);
 		}
 		return null;

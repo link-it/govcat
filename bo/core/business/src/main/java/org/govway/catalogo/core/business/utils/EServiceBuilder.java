@@ -65,8 +65,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import net.sf.jasperreports.engine.JRException;
-
 public class EServiceBuilder {
 
 	private Logger logger = LoggerFactory.getLogger(EServiceBuilder.class);
@@ -300,8 +298,8 @@ public class EServiceBuilder {
 				this.logger.error("Errore:" + e.getMessage(), e);
 			} catch (JAXBException e) {
 				this.logger.error("Errore:" + e.getMessage(), e);
-			} catch (JRException e) {
-				this.logger.error("Errore:" + e.getMessage(), e);
+			} catch (Exception e) {
+				this.logger.error("Errore generazione PDF:" + e.getMessage(), e);
 			}
 		}
 		

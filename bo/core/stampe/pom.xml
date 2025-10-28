@@ -21,6 +21,27 @@
 	
 	<dependencies>
 
+		<!-- PDFBox - New PDF generation library -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.31</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>fontbox</artifactId>
+			<version>2.0.31</version>
+		</dependency>
+
+		<!-- Jackson for JSON template parsing -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- TEMPORARILY COMMENTED - JasperReports dependencies (to be removed after migration) -->
+		<!--
 		<dependency>
 			<groupId>net.sourceforge.dynamicreports</groupId>
 			<artifactId>dynamicreports-core</artifactId>
@@ -48,6 +69,7 @@
             <artifactId>jasperreports-jaxen</artifactId>
             <version>${jasperreports.version}</version>
         </dependency>
+		-->
 
 		<!-- BouncyCastle - required by itext and jasperreports -->
 		<dependency>
@@ -103,6 +125,8 @@
 			<artifactId>xmlgraphics-commons</artifactId>
 		</dependency>
 
+		<!-- TEMPORARILY COMMENTED - JasperReports dependencies (to be removed after migration) -->
+		<!--
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
@@ -112,10 +136,24 @@
 			<groupId>net.sourceforge.barbecue</groupId>
 			<artifactId>barbecue</artifactId>
 		</dependency>
+		-->
 		
 		<dependency>
 		  <groupId>commons-codec</groupId>
 		  <artifactId>commons-codec</artifactId>
+		</dependency>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>

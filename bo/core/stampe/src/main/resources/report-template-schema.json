@@ -1,0 +1,213 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PDF Report Template Schema",
+  "description": "Schema for PDF report templates using PDFBox",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Report name"
+    },
+    "dataModel": {
+      "type": "string",
+      "description": "Root JAXB class name (e.g., EService, SchedaAdesione)"
+    },
+    "page": {
+      "type": "object",
+      "properties": {
+        "width": { "type": "number", "default": 595 },
+        "height": { "type": "number", "default": 842 },
+        "marginLeft": { "type": "number", "default": 20 },
+        "marginRight": { "type": "number", "default": 20 },
+        "marginTop": { "type": "number", "default": 20 },
+        "marginBottom": { "type": "number", "default": 20 }
+      },
+      "required": ["width", "height"]
+    },
+    "fonts": {
+      "type": "object",
+      "description": "Font definitions",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "family": { "type": "string" },
+          "size": { "type": "number" },
+          "bold": { "type": "boolean", "default": false },
+          "italic": { "type": "boolean", "default": false },
+          "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$", "default": "#000000" }
+        }
+      }
+    },
+    "styles": {
+      "type": "object",
+      "description": "Reusable style definitions",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "fontRef": { "type": "string" },
+          "backgroundColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+          "textAlign": { "enum": ["left", "center", "right"], "default": "left" },
+          "verticalAlign": { "enum": ["top", "middle", "bottom"], "default": "top" },
+          "padding": {
+            "type": "object",
+            "properties": {
+              "top": { "type": "number", "default": 0 },
+              "right": { "type": "number", "default": 0 },
+              "bottom": { "type": "number", "default": 0 },
+              "left": { "type": "number", "default": 0 }
+            }
+          },
+          "border": {
+            "type": "object",
+            "properties": {
+              "width": { "type": "number", "default": 0 },
+              "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$", "default": "#C0C0C0" },
+              "top": { "type": "boolean", "default": true },
+              "right": { "type": "boolean", "default": true },
+              "bottom": { "type": "boolean", "default": true },
+              "left": { "type": "boolean", "default": true }
+            }
+          },
+          "lineSpacing": { "type": "number", "default": 1.0 },
+          "conditional": {
+            "type": "object",
+            "description": "Conditional styling (for alternate rows, etc.)",
+            "properties": {
+              "condition": { "type": "string", "description": "Expression like 'rowIndex % 2 != 0'" },
+              "backgroundColor": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Report sections/bands",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "condition": { "type": "string", "description": "Expression to evaluate if section should be printed" },
+          "height": { "type": "number", "description": "Initial height, can stretch" },
+          "elements": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/definitions/textField" },
+                { "$ref": "#/definitions/imageField" },
+                { "$ref": "#/definitions/table" },
+                { "$ref": "#/definitions/nestedReport" }
+              ]
+            }
+          }
+        },
+        "required": ["name", "elements"]
+      }
+    }
+  },
+  "required": ["name", "dataModel", "page", "sections"],
+  "definitions": {
+    "textField": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "text" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "dataPath": { "type": "string", "description": "Path to data in JAXB object (e.g., 'titolo', 'scopo.etichette.titolo')" },
+        "staticText": { "type": "string", "description": "Static text instead of data binding" },
+        "styleRef": { "type": "string", "description": "Reference to style in styles object" },
+        "condition": { "type": "string", "description": "Print when expression" },
+        "stretchWithOverflow": { "type": "boolean", "default": false }
+      },
+      "required": ["type", "x", "y", "width", "height"]
+    },
+    "imageField": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "image" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "dataPath": { "type": "string", "description": "Path to base64 image data" },
+        "hAlign": { "enum": ["left", "center", "right"], "default": "left" },
+        "vAlign": { "enum": ["top", "middle", "bottom"], "default": "top" },
+        "styleRef": { "type": "string" },
+        "decodeBase64": { "type": "boolean", "default": true },
+        "removeDataPrefix": { "type": "boolean", "default": true, "description": "Remove 'data:image/png;base64,' prefix" }
+      },
+      "required": ["type", "x", "y", "width", "height", "dataPath"]
+    },
+    "table": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "table" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "dataPath": { "type": "string", "description": "Path to list data (e.g., 'scopo.righe.riga')" },
+        "alternateRowStyle": { "type": "boolean", "default": false },
+        "headerRow": {
+          "type": "object",
+          "properties": {
+            "height": { "type": "number", "default": 30 },
+            "styleRef": { "type": "string" },
+            "columns": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "width": { "type": "number" },
+                  "label": { "type": "string" },
+                  "labelDataPath": { "type": "string", "description": "Path to dynamic header label" },
+                  "styleRef": { "type": "string" }
+                },
+                "required": ["width"]
+              }
+            }
+          },
+          "required": ["columns"]
+        },
+        "dataRow": {
+          "type": "object",
+          "properties": {
+            "minHeight": { "type": "number", "default": 30 },
+            "styleRef": { "type": "string" },
+            "columns": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "width": { "type": "number" },
+                  "dataPath": { "type": "string", "description": "Path to field in row object (e.g., 'dato', 'valore')" },
+                  "styleRef": { "type": "string" },
+                  "stretchWithOverflow": { "type": "boolean", "default": false }
+                },
+                "required": ["width", "dataPath"]
+              }
+            }
+          },
+          "required": ["columns"]
+        }
+      },
+      "required": ["type", "x", "y", "dataPath", "headerRow", "dataRow"]
+    },
+    "nestedReport": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "nested" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "dataPath": { "type": "string", "description": "Path to nested data list" },
+        "templateRef": { "type": "string", "description": "Reference to another template file" },
+        "headerLabel": { "type": "string" },
+        "headerStyleRef": { "type": "string" },
+        "condition": { "type": "string" }
+      },
+      "required": ["type", "x", "y", "dataPath"]
+    }
+  }
+}

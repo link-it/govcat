@@ -1,0 +1,443 @@
+{
+  "name": "Scheda Adesione",
+  "dataModel": "org.govway.catalogo.stampe.model.SchedaAdesione",
+  "page": {
+    "width": 595,
+    "height": 842,
+    "marginLeft": 20,
+    "marginRight": 20,
+    "marginTop": 20,
+    "marginBottom": 20
+  },
+  "fonts": {
+    "header": {
+      "family": "Times-Roman",
+      "size": 20,
+      "bold": true,
+      "italic": true,
+      "color": "#000000"
+    },
+    "serviceName": {
+      "family": "Times-Roman",
+      "size": 24,
+      "bold": true,
+      "italic": false,
+      "color": "#000000"
+    },
+    "sectionTitle": {
+      "family": "Times-Roman",
+      "size": 14,
+      "bold": false,
+      "italic": false,
+      "color": "#000000"
+    },
+    "tableHeader": {
+      "family": "Times-Roman",
+      "size": 12,
+      "bold": true,
+      "italic": false,
+      "color": "#000000"
+    },
+    "tableCell": {
+      "family": "Times-Roman",
+      "size": 12,
+      "bold": false,
+      "italic": false,
+      "color": "#000000"
+    }
+  },
+  "styles": {
+    "headerBox": {
+      "fontRef": "header",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "padding": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "border": {
+        "width": 0.5,
+        "color": "#C0C0C0",
+        "top": false,
+        "right": false,
+        "bottom": true,
+        "left": false
+      }
+    },
+    "imageBox": {
+      "padding": {
+        "top": 10,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      },
+      "border": {
+        "width": 0.5,
+        "color": "#C0C0C0",
+        "top": true,
+        "right": true,
+        "bottom": false,
+        "left": true
+      }
+    },
+    "serviceNameBox": {
+      "fontRef": "serviceName",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "padding": {
+        "top": 5,
+        "right": 10,
+        "bottom": 5,
+        "left": 10
+      },
+      "border": {
+        "width": 0.5,
+        "color": "#C0C0C0",
+        "top": true,
+        "right": true,
+        "bottom": false,
+        "left": true
+      }
+    },
+    "sectionTitleBox": {
+      "fontRef": "sectionTitle",
+      "textAlign": "center",
+      "verticalAlign": "middle",
+      "padding": {
+        "top": 5,
+        "right": 10,
+        "bottom": 5,
+        "left": 10
+      },
+      "border": {
+        "width": 0.5,
+        "color": "#C0C0C0",
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      }
+    },
+    "tableHeaderCell": {
+      "fontRef": "tableHeader",
+      "backgroundColor": "#CCCCCC",
+      "textAlign": "left",
+      "verticalAlign": "middle",
+      "padding": {
+        "top": 5,
+        "right": 10,
+        "bottom": 5,
+        "left": 10
+      },
+      "border": {
+        "width": 0.5,
+        "color": "#000000",
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      }
+    },
+    "tableDataCell": {
+      "fontRef": "tableCell",
+      "textAlign": "left",
+      "verticalAlign": "middle",
+      "padding": {
+        "top": 8,
+        "right": 10,
+        "bottom": 8,
+        "left": 10
+      },
+      "border": {
+        "width": 0,
+        "color": "#000000",
+        "top": false,
+        "right": false,
+        "bottom": false,
+        "left": false
+      },
+      "lineSpacing": 20.0,
+      "conditional": {
+        "condition": "rowIndex % 2 != 0",
+        "backgroundColor": "#F0F0F0"
+      }
+    },
+    "nestedHeader": {
+      "fontRef": "tableHeader",
+      "backgroundColor": "#CCCCCC",
+      "textAlign": "left",
+      "verticalAlign": "middle",
+      "padding": {
+        "top": 8,
+        "right": 10,
+        "bottom": 8,
+        "left": 10
+      },
+      "border": {
+        "width": 0.5,
+        "color": "#000000",
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      }
+    }
+  },
+  "sections": [
+    {
+      "name": "main",
+      "height": 333,
+      "elements": [
+        {
+          "type": "text",
+          "x": 0,
+          "y": 0,
+          "width": 555,
+          "height": 38,
+          "dataPath": "header",
+          "styleRef": "headerBox",
+          "stretchWithOverflow": false
+        },
+        {
+          "type": "image",
+          "x": 0,
+          "y": 38,
+          "width": 555,
+          "height": 144,
+          "dataPath": "logo",
+          "hAlign": "center",
+          "vAlign": "top",
+          "styleRef": "imageBox",
+          "decodeBase64": true,
+          "removeDataPrefix": true
+        },
+        {
+          "type": "text",
+          "x": 0,
+          "y": 182,
+          "width": 555,
+          "height": 45,
+          "dataPath": "servizio",
+          "styleRef": "serviceNameBox",
+          "stretchWithOverflow": true
+        },
+        {
+          "type": "text",
+          "x": 0,
+          "y": 227,
+          "width": 555,
+          "height": 27,
+          "dataPath": "titolo",
+          "styleRef": "sectionTitleBox",
+          "stretchWithOverflow": true
+        },
+        {
+          "type": "table",
+          "x": 0,
+          "y": 283,
+          "width": 555,
+          "dataPath": "api.row",
+          "alternateRowStyle": true,
+          "headerRow": {
+            "height": 30,
+            "columns": [
+              {
+                "width": 145,
+                "label": "Dato",
+                "styleRef": "tableHeaderCell"
+              },
+              {
+                "width": 410,
+                "label": "Valore",
+                "styleRef": "tableHeaderCell"
+              }
+            ]
+          },
+          "dataRow": {
+            "minHeight": 30,
+            "columns": [
+              {
+                "width": 145,
+                "dataPath": "label",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              },
+              {
+                "width": 410,
+                "dataPath": "valore",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "configs_collaudo",
+      "condition": "configs != null && configs.collaudo != null && !configs.collaudo.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "nested",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "configs.collaudo",
+          "headerLabel": "Configurazioni (Ambiente di collaudo)",
+          "headerStyleRef": "nestedHeader"
+        }
+      ]
+    },
+    {
+      "name": "configs_produzione",
+      "condition": "configs != null && configs.produzione != null && !configs.produzione.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "nested",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "configs.produzione",
+          "headerLabel": "Configurazioni (Ambiente di produzione)",
+          "headerStyleRef": "nestedHeader"
+        }
+      ]
+    },
+    {
+      "name": "referents_subscription",
+      "condition": "referents != null && referents.subscription != null && referents.subscription.item != null && !referents.subscription.item.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "nested",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "referents.subscription.item",
+          "headerLabel": "Referenti Adesione",
+          "headerStyleRef": "nestedHeader"
+        }
+      ]
+    },
+    {
+      "name": "referents_service",
+      "condition": "referents != null && referents.service != null && referents.service.item != null && !referents.service.item.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "nested",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "referents.service.item",
+          "headerLabel": "Referenti Servizio",
+          "headerStyleRef": "nestedHeader"
+        }
+      ]
+    },
+    {
+      "name": "referents_group",
+      "condition": "referents != null && referents.group != null && referents.group.item != null && !referents.group.item.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "nested",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "referents.group.item",
+          "headerLabel": "Referenti Dominio",
+          "headerStyleRef": "nestedHeader"
+        }
+      ]
+    },
+    {
+      "name": "baseurl_collaudo",
+      "condition": "baseUrlCollaudo != null && baseUrlCollaudo.row != null && !baseUrlCollaudo.row.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "table",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "baseUrlCollaudo.row",
+          "alternateRowStyle": true,
+          "headerRow": {
+            "height": 30,
+            "columns": [
+              {
+                "width": 555,
+                "labelDataPath": "baseUrlCollaudo.titolo",
+                "styleRef": "nestedHeader"
+              }
+            ]
+          },
+          "dataRow": {
+            "minHeight": 30,
+            "columns": [
+              {
+                "width": 145,
+                "dataPath": "label",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              },
+              {
+                "width": 410,
+                "dataPath": "valore",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "baseurl_produzione",
+      "condition": "baseUrlProduzione != null && baseUrlProduzione.row != null && !baseUrlProduzione.row.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "table",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "baseUrlProduzione.row",
+          "alternateRowStyle": true,
+          "headerRow": {
+            "height": 30,
+            "columns": [
+              {
+                "width": 555,
+                "labelDataPath": "baseUrlProduzione.titolo",
+                "styleRef": "nestedHeader"
+              }
+            ]
+          },
+          "dataRow": {
+            "minHeight": 30,
+            "columns": [
+              {
+                "width": 145,
+                "dataPath": "label",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              },
+              {
+                "width": 410,
+                "dataPath": "valore",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
