@@ -35,7 +35,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @PropertySource("classpath:govcat-web.properties" )
-@PropertySource(value = {"file:${org.govway.catalogo.resource.path:/tmp}/govcat-web.properties" }, ignoreResourceNotFound  = true )
+@PropertySource(value = {"file:${org.govway.catalogo.resource.path:/var/govcat/conf/govcat-web.properties}" }, ignoreResourceNotFound  = true )
 public class WebConsoleConfig {
 	
 	private static Logger log = LoggerFactory.getLogger(WebConsoleConfig.class);

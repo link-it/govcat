@@ -43,7 +43,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication(exclude = JerseyServerMetricsAutoConfiguration.class)
 @PropertySource("classpath:govcat-web.properties")
-@PropertySource(value = "file:${org.govway.catalogo.resource.path:/var/govcat/conf}/govcat-web.properties", ignoreResourceNotFound = true)
+@PropertySource(value = "file:${org.govway.catalogo.resource.path:/var/govcat/conf/govcat-web.properties}", ignoreResourceNotFound = true)
 public class Application  extends SpringBootServletInitializer {
 
 //	private ServletContext servletContext;

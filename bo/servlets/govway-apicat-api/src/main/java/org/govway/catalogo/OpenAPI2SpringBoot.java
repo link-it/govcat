@@ -156,7 +156,7 @@ basePackages = {"org.govway.catalogo.core.dao.repositories"})
 
 @PropertySources({
     @PropertySource("classpath:govcat-api.properties" ),
-    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat}/govcat-api.properties", ignoreResourceNotFound = true)
+    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf/govcat-api.properties}", ignoreResourceNotFound = true)
     }
 )
 public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
@@ -230,15 +230,15 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		}
 	}
 
-	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
-	String externalPath;
+	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
+	String configurazioneJsonPath;
 
 	@Value("${api.mode:full}")
 	String apiMode;
 
 	@Bean(name ="configurazione")
 	public Configurazione configurazione(IMonitoraggioClient monitoraggioClient) throws IOException {
-		Resource resource = new FileSystemResource(this.externalPath+"/configurazione.json");
+		Resource resource = new FileSystemResource(this.configurazioneJsonPath);
 		InputStream inputStream = resource.getInputStream();
 		byte[] fileData = FileCopyUtils.copyToByteArray(inputStream);
 		String outputString = new String(fileData);
