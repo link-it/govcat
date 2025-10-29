@@ -11,35 +11,35 @@
   },
   "fonts": {
     "header": {
-      "family": "Times-Roman",
+      "family": "Times New Roman PS",
       "size": 20,
       "bold": true,
       "italic": true,
       "color": "#000000"
     },
     "serviceName": {
-      "family": "Times-Roman",
+      "family": "Times New Roman PS",
       "size": 24,
       "bold": true,
       "italic": false,
       "color": "#000000"
     },
     "sectionTitle": {
-      "family": "Times-Roman",
+      "family": "Times New Roman PS",
       "size": 14,
       "bold": false,
       "italic": false,
       "color": "#000000"
     },
     "tableHeader": {
-      "family": "Times-Roman",
+      "family": "Times New Roman PS",
       "size": 12,
       "bold": true,
       "italic": false,
       "color": "#000000"
     },
     "tableCell": {
-      "family": "Times-Roman",
+      "family": "Times New Roman PS",
       "size": 12,
       "bold": false,
       "italic": false,
