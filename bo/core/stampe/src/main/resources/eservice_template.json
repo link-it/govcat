@@ -58,12 +58,12 @@
         "left": 0
       },
       "border": {
-        "width": 0.5,
+        "width": 0,
         "color": "#C0C0C0",
-        "top": true,
-        "right": true,
-        "bottom": true,
-        "left": true
+        "top": false,
+        "right": false,
+        "bottom": false,
+        "left": false
       }
     },
     "imageBox": {
@@ -112,12 +112,12 @@
         "left": 10
       },
       "border": {
-        "width": 0.5,
+        "width": 0,
         "color": "#C0C0C0",
-        "top": true,
-        "right": true,
-        "bottom": true,
-        "left": true
+        "top": false,
+        "right": false,
+        "bottom": false,
+        "left": false
       }
     },
     "tableHeaderCell": {
