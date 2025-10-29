@@ -83,7 +83,6 @@
 		<zxing.javase.version>2.2</zxing.javase.version>
 		<apache.xmlgraphics-commons.version>2.11</apache.xmlgraphics-commons.version>
 		<groovy.version>2.4.21</groovy.version>
-		<barbecue.version>1.5-beta1</barbecue.version>
 		 <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco-aggregate/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
 	</properties>
 
@@ -106,12 +105,6 @@
 				<groupId>org.codehaus.groovy</groupId>
 				<artifactId>groovy-all</artifactId>
 				<version>${groovy.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>net.sourceforge.barbecue</groupId>
-				<artifactId>barbecue</artifactId>
-				<version>${barbecue.version}</version>
 			</dependency>
 
 			<!-- Log -->

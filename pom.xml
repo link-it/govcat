@@ -253,7 +253,6 @@
 		<jetty-proxy.version>11.0.24</jetty-proxy.version>
 
 		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
-		<itext.version>2.1.7.js10</itext.version>
 		<bouncycastle.version>1.79</bouncycastle.version>
 		<jasperreports.version>7.0.1</jasperreports.version>
 		<xalan.version>2.7.3</xalan.version>
@@ -1060,18 +1059,6 @@
 			</dependency>
 
 			<dependency>
-				<groupId>com.lowagie</groupId>
-				<artifactId>itext</artifactId>
-				<version>${itext.version}</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.bouncycastle</groupId>
-						<artifactId>*</artifactId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-
-			<dependency>
 				<groupId>net.sf.jasperreports</groupId>
 				<artifactId>jasperreports</artifactId>
 				<version>${jasperreports.version}</version>
@@ -1218,8 +1205,6 @@
 									${owasp.dir}/suppression/CVE-2025-54988.xml</suppressionFile>
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2021-37533.xml</suppressionFile>
-								<suppressionFile>
-									${owasp.dir}/suppression/itext-cves.xml</suppressionFile>
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2023-33202.xml</suppressionFile>
 								<suppressionFile>
