@@ -3,11 +3,12 @@
     <Properties>
         <Property name="LOG_PATTERN">%p &lt;%d{dd-MM-yyyy HH:mm:ss.SSS}&gt; %C.%M(%L): %m %n %n</Property>
         <Property name="APP_LOG_ROOT">@org.govway.catalogo.log.path@</Property>
+        <Property name="LOG_FILE_SUFFIX">@log.file.suffix@</Property>
     </Properties>
     <Appenders>
         <RollingFile name="root"
-            fileName="${APP_LOG_ROOT}/govcat-web_root.log"
-            filePattern="${APP_LOG_ROOT}/govcat-web_root.log.%i">
+            fileName="${APP_LOG_ROOT}/govcat-web_root${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-web_root${LOG_FILE_SUFFIX}.log.%i">
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="5000KB" />
@@ -16,8 +17,8 @@
         </RollingFile>
         
         <RollingFile name="core"
-            fileName="${APP_LOG_ROOT}/govcat-web_core.log"
-            filePattern="${APP_LOG_ROOT}/govcat-web_core.log.%i">
+            fileName="${APP_LOG_ROOT}/govcat-web_core${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-web_core${LOG_FILE_SUFFIX}.log.%i">
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="5000KB" />
