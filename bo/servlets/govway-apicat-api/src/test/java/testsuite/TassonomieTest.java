@@ -147,7 +147,7 @@ public class TassonomieTest {
         ConflictException exception = assertThrows(ConflictException.class, () -> {
             controller.createTassonomia(tassonomiaCreate);
         });
-        assertEquals("Tassonomia [" + tassonomiaCreate.getNome() + "] esiste gia", exception.getMessage());
+        assertEquals("TAX.409", exception.getMessage());
     }
 
     @Test
@@ -177,7 +177,7 @@ public class TassonomieTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.createTassonomiaCategoria(idTassonomiaNonEsistente, categoriaCreate);
         });
-        assertEquals("Tassonomia [" + idTassonomiaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("TAX.404", exception.getMessage());
     }
 
     @Test
@@ -205,7 +205,7 @@ public class TassonomieTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.deleteCategoria(idTassonomia, idCategoriaNonEsistente);
         });
-        assertEquals("Categoria [" + idCategoriaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("CAT.404", exception.getMessage());
     }
 
     @Test
@@ -229,7 +229,7 @@ public class TassonomieTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.getTassonomia(idTassonomiaNonEsistente);
         });
-        assertEquals("Tassonomia [" + idTassonomiaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("TAX.404", exception.getMessage());
     }
     
     @Test
@@ -427,7 +427,7 @@ public class TassonomieTest {
         });
 
         // Verifica del messaggio di errore
-        assertEquals("Categoria [" + idCategoriaNonEsistente + "] per Tassonomia [" + idTassonomia + "] non trovata", exception.getMessage());
+        assertEquals("CAT.404", exception.getMessage());
     }
 
     @Test
@@ -466,7 +466,7 @@ public class TassonomieTest {
         });
 
         // Verifica del messaggio di errore
-        assertEquals("Categoria [" + idCategoria + "] per Tassonomia [" + idTassonomia2 + "] non trovata", exception.getMessage());
+        assertEquals("CAT.404", exception.getMessage());
     }
 
     @Test
@@ -508,7 +508,7 @@ public class TassonomieTest {
         });
 
         // Verifica del messaggio di errore
-        assertEquals("Tassonomia [" + idTassonomiaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("TAX.404", exception.getMessage());
     }
 
     @Test

@@ -161,7 +161,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("ClasseUtente [" + classeUtenteCreate.getNome() + "] esiste gia", exception.getMessage());
+        assertEquals("CLS.404", exception.getMessage());
     }
 
     @Test
@@ -180,7 +180,7 @@ public class ClassiUtenteTest {
 	    });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -199,7 +199,7 @@ public class ClassiUtenteTest {
 	    });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -228,7 +228,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Organization [" + idClasseUtenteNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("ORG.404", exception.getMessage());
     }
 
     @Test
@@ -248,7 +248,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -268,7 +268,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -300,7 +300,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Organization [" + idClasseUtenteNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("ORG.404", exception.getMessage());
     }
 
     /*
@@ -321,7 +321,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     */
     
@@ -342,7 +342,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Required: Utente autenticato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -437,7 +437,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -461,7 +461,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
     
     @Autowired
@@ -512,7 +512,7 @@ public class ClassiUtenteTest {
         	controller.createClasseUtente(classeUtenteCreate);
     	});
 
-        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 }
 

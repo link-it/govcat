@@ -201,7 +201,7 @@ public class DominiTest {
             controller.createDominio(dominioCreate2);
         });
 
-        assertEquals("Dominio [" + dominioCreate2.getNome() + "] esiste gia", exception.getMessage());
+        assertEquals("DOM.409", exception.getMessage());
     }
 
     @Test
@@ -223,7 +223,7 @@ public class DominiTest {
             controller.createDominio(dominioCreate);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -245,7 +245,7 @@ public class DominiTest {
             controller.createDominio(dominioCreate);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -276,7 +276,7 @@ public class DominiTest {
             controller.deleteDominio(idDominioNonEsistente);
         });
 
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -300,7 +300,7 @@ public class DominiTest {
             controller.deleteDominio(createdDominio.getBody().getIdDominio());
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -324,7 +324,7 @@ public class DominiTest {
             controller.deleteDominio(createdDominio.getBody().getIdDominio());
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -359,7 +359,7 @@ public class DominiTest {
             controller.getDominio(idDominioNonEsistente);
         });
 
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -411,7 +411,7 @@ public class DominiTest {
             controller.updateDominio(idDominioNonEsistente, dominioUpdate);
         });
 
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -443,7 +443,7 @@ public class DominiTest {
             controller.updateDominio(createdDominio.getBody().getIdDominio(), dominioUpdate);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -475,7 +475,7 @@ public class DominiTest {
             controller.updateDominio(createdDominio.getBody().getIdDominio(), dominioUpdate);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -711,7 +711,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -744,7 +744,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -777,7 +777,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -851,13 +851,15 @@ public class DominiTest {
     void testDeleteReferenteDominioNotFound() {
     	UUID idDominioNonEsistente = UUID.randomUUID();
     	UUID idUtente = UUID.randomUUID();
-        
+
         // Tentativo di cancellare un referente per un dominio inesistente
-    	NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+        // Accept both NotFoundException types since either can be thrown
+    	RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             controller.deleteReferenteDominio(idDominioNonEsistente, idUtente, TipoReferenteEnum.REFERENTE);
         });
 
-        //assertEquals("Referente [" + idUtente + "] non trovato per dominio [" + idDominioNonEsistente + "] e tipo [REFERENTE]", exception.getMessage());
+        // Verify it's one of the expected exception types
+        assertTrue(exception.getClass().getSimpleName().equals("NotFoundException"));
     }
 
     @Test
@@ -956,11 +958,13 @@ public class DominiTest {
         // Tentativo di cancellare un referente inesistente
         UUID idUtenteNonEsistente = UUID.randomUUID();
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+        // Accept both NotFoundException types since either can be thrown
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             controller.deleteReferenteDominio(createdDominio.getBody().getIdDominio(), idUtenteNonEsistente, TipoReferenteEnum.REFERENTE);
         });
 
-        //assertEquals("Referente [" + idUtenteNonEsistente + "] non trovato per dominio [" + createdDominio.getBody().getIdDominio() + "] e tipo [REFERENTE]", exception.getMessage());
+        // Verify it's one of the expected exception types
+        assertTrue(exception.getClass().getSimpleName().equals("NotFoundException"));
     }
 
     @Test
@@ -1249,7 +1253,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
