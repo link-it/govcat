@@ -187,7 +187,7 @@ public class GruppiTest {
             controller.createGruppo(gruppo2);
         });
 
-        assertEquals("Gruppo [" + gruppo2.getNome() + "] esiste gia", exception.getMessage());
+        assertEquals("GRP.409", exception.getMessage());
     }
 
     @Test
@@ -199,7 +199,7 @@ public class GruppiTest {
             controller.createGruppo(gruppo);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -211,7 +211,7 @@ public class GruppiTest {
             controller.createGruppo(gruppo);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -269,7 +269,7 @@ public class GruppiTest {
         	controller.createGruppo(gruppoCreate);
         });
 
-        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
     
     /*
@@ -294,7 +294,7 @@ public class GruppiTest {
         	controller.getGruppo(idGruppo);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
 	*/
     
@@ -306,7 +306,7 @@ public class GruppiTest {
             controller.deleteGruppo(idGruppoNonEsistente);
         });
 
-        assertEquals("Gruppo [" + idGruppoNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("GRP.404", exception.getMessage());
     }
 
     @Test
@@ -323,7 +323,7 @@ public class GruppiTest {
             controller.deleteGruppo(idGruppo);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -340,7 +340,7 @@ public class GruppiTest {
             controller.deleteGruppo(idGruppo);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -366,7 +366,7 @@ public class GruppiTest {
             controller.getGruppo(idGruppoNonEsistente);
         });
 
-        assertEquals("Gruppo [" + idGruppoNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("GRP.404", exception.getMessage());
     }
 
 //    @Test
@@ -383,7 +383,7 @@ public class GruppiTest {
 //            controller.getGruppo(idGruppo);
 //        });
 //
-//        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+//        assertEquals("AUT.403", exception.getMessage());
 //
 //        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
 //        when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
@@ -484,7 +484,7 @@ public class GruppiTest {
             controller.updateGruppo(idGruppoNonEsistente, gruppoUpdate);
         });
 
-        assertEquals("Gruppo [" + idGruppoNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("GRP.404", exception.getMessage());
     }
 
     @Test
@@ -506,7 +506,7 @@ public class GruppiTest {
             controller.updateGruppo(idGruppo, gruppoUpdate);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -528,7 +528,7 @@ public class GruppiTest {
             controller.updateGruppo(idGruppo, gruppoUpdate);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @EventListener
@@ -568,7 +568,7 @@ public class GruppiTest {
             controller.getImmagineGruppo(idGruppo);
         });
 
-        assertEquals("Imagine per il gruppo [" + idGruppo + "] non trovata", exception.getMessage());
+        assertEquals("SRV.404.IMAGE", exception.getMessage());
     }
 
     @Test
@@ -579,7 +579,7 @@ public class GruppiTest {
             controller.getImmagineGruppo(idGruppoNonEsistente);
         });
 
-        assertEquals("Gruppo [" + idGruppoNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("GRP.404", exception.getMessage());
     }
 }
 

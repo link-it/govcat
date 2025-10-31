@@ -195,7 +195,7 @@ public class SoggettiTest {
             soggettiController.createSoggetto(soggettoCreate);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -211,7 +211,7 @@ public class SoggettiTest {
             soggettiController.createSoggetto(soggettoCreate);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -249,7 +249,7 @@ public class SoggettiTest {
             soggettiController.deleteSoggetto(soggetto.getIdSoggetto());
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -265,7 +265,7 @@ public class SoggettiTest {
             soggettiController.deleteSoggetto(soggetto.getIdSoggetto());
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -623,7 +623,7 @@ public class SoggettiTest {
         	soggettiController.createSoggetto(soggettoCreate);
     	});
 
-        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 }
 
