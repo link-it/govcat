@@ -44,14 +44,25 @@
                             </ng-container>
                             <ng-container *ngSwitchDefault>
                                 <div class="position-relative me-2 d-none d-inline-block" *ngIf="link.show">
-                                    <lnk-button [type]="'button'" [label]="link.title" (onAction)="onLinkClick(link)"></lnk-button>
+                                    <lnk-button
+                                        [type]="'button'"
+                                        [label]="link.buttonTitle"
+                                        [tooltip]=""
+                                        [icon]="link.buttonIcon"
+                                        [btnTooltip]="link.title"
+                                        (onAction)="onLinkClick(link)"
+                                    ></lnk-button>
                                 </div>
                             </ng-container>
                         </ng-container>
                     </ng-container>
                 </ng-container>
                 <div class="btn-group me-2 d-inline-block" *ngIf="!_spin && data">
-                    <lnk-button [type]="'button'" [spinner]="true" [onlySpinner]="true" *ngIf="_changingStatus"></lnk-button>
+                    <lnk-button *ngIf="_changingStatus"
+                        [type]="'button'"
+                        [spinner]="true"
+                        [onlySpinner]="true"
+                    ></lnk-button>
                     <ui-workflow *ngIf="!_changingStatus && generalConfig"
                         [data]="data"
                         [module]="'servizio'"
@@ -62,14 +73,39 @@
                     ></ui-workflow>
                 </div>
                 <div class="position-relative d-inline-block" *ngIf="!_isEdit && !_spin && _editable">
-                    <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.EditService' | translate" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
+                    <lnk-button
+                        [type]="'button'"
+                        [icon]="'bi bi-pencil'"
+                        [onlyIcon]="true"
+                        [ariaLabel]="'APP.TOOLTIP.EditService' | translate"
+                        [disabled]="!(_updateData | mapper:_canEditMapper)"
+                        [btnTooltip]="'APP.TOOLTIP.EditService'"
+                        (onAction)="_editService()"
+                    ></lnk-button>
                 </div>
                 <div class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
-                    <lnk-button [type]="'button'" [icon]="'bi bi-trash text-danger'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate" (onAction)="_confirmDelection()" [btnTooltip]="'APP.TOOLTIP.DeleteService'"></lnk-button>
+                    <lnk-button
+                        [type]="'button'"
+                        [icon]="'bi bi-trash text-danger'"
+                        [onlyIcon]="true"
+                        [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate"
+                        [btnTooltip]="'APP.TOOLTIP.DeleteService'"
+                        (onAction)="_confirmDelection()"
+                    ></lnk-button>
                 </div>
             </ng-container>
             <div class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-                <lnk-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></lnk-button>
+                <lnk-button
+                    [type]="'button'"
+                    [icon]="'bi bi-x-lg'"
+                    [onlyIcon]="true"
+                    [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate"
+                    [tertiary]="true"
+                    [otherClass]="'ms-2'"
+                    [disabled]="!(_updateData | mapper:_canEditMapper)"
+                    [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"
+                    (onAction)="_onCancelEdit()"
+                ></lnk-button>
             </div>
         </div>
     </div>
@@ -695,8 +731,18 @@
                         </div>
 
                         <div class="row-content-block footer-block" *ngIf="_isEdit">
-                            <lnk-button [type]="'submit'" [label]="'APP.BUTTON.Save'" [primary]="true" [otherClass]="'gl-mr-2'" [disabled]="_formGroup.invalid || _spin"></lnk-button>
-                            <lnk-button [type]="'button'" [label]="'APP.BUTTON.Cancel'" (onAction)="_onCancelEdit()"></lnk-button>
+                            <lnk-button
+                                [type]="'submit'"
+                                [label]="'APP.BUTTON.Save'"
+                                [primary]="true"
+                                [otherClass]="'gl-mr-2'"
+                                [disabled]="_formGroup.invalid || _spin"
+                            ></lnk-button>
+                            <lnk-button
+                                [type]="'button'"
+                                [label]="'APP.BUTTON.Cancel'"
+                                (onAction)="_onCancelEdit()"
+                            ></lnk-button>
                         </div>
                     </form>
                 </div>

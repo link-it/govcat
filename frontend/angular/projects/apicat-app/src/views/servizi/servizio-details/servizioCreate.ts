@@ -55,6 +55,8 @@ export class ServizioCreate {
 	skip_collaudo: boolean = false;
 	vincola_skip_collaudo: boolean = false;
 
+	fruizione: boolean = false;
+
 	constructor(_data?: any) {
 		if (_data) {
 			for (const key in _data) {
