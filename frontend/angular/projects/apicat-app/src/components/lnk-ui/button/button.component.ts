@@ -13,6 +13,7 @@ export class LnkButtonComponent implements OnInit {
     @Input() disabled: boolean = false;
     @Input() icon: string | null = null;
     @Input() onlyIcon: boolean = false;
+    @Input() forceIcon: boolean = false;
     @Input() size: string = 'md'; // sm | md
     @Input() primary: boolean = false;
     @Input() secondary: boolean = false;
@@ -25,6 +26,7 @@ export class LnkButtonComponent implements OnInit {
     @Input() btnTooltip: string = '';
     @Input() badgeCount: number | null = null;
     @Input() badgeColor: string = 'badge-info text-dark';
+    @Input() forceText: boolean = false;
 
     @Output() onAction = new EventEmitter();
 
