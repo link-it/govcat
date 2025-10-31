@@ -957,7 +957,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       baseUrl = `/servizi/${this._serviceBreadcrumbs.service.id_servizio}/${this.model}`;
     }
 
-    if (this.adesione.id_logico) {
+    if (this.adesione && this.adesione.id_logico) {
       title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
