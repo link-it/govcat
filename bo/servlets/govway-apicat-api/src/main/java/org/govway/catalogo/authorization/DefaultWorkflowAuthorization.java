@@ -103,7 +103,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 	public void authorizeUtenteCambioStato(ENTITY entity, String statoIniziale, String statoFinale) {
 
 		this.checkPermessiUtente(entity, statoIniziale, statoFinale, true);
-		this.checkCampiObbligatori(entity);
+		this.checkCampiObbligatori(entity, statoFinale);
 	}
 	
 	@Override
@@ -111,7 +111,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		
 		this.logger.debug("authorizeModifica: " + entity.getClass() + " classiDato: " + classiDato + " ...");
 		this.logger.debug("Check Campi Obbligatori");
-		this.checkCampiObbligatori(entity);
+		this.checkCampiObbligatori(entity, this.getStato(entity));
 		this.logger.debug("Check Campi Non Modificabili");
 		this.checkCampiNonModificabili(entity, classiDato);
 		this.logger.debug("authorizeModifica: " + entity.getClass() + " classiDato: " + classiDato + " OK");
@@ -122,10 +122,6 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		if(stato != null && stato.getNome().equals(statoFinale)) {
 			lstStati.add(stato);
 		}
-	}
-	
-	private void checkCampiObbligatori(ENTITY entity) {
-		checkCampiObbligatori(entity, this.getStato(entity));
 	}
 	
 	public void checkCampiObbligatori(ENTITY entity, String stato) {
