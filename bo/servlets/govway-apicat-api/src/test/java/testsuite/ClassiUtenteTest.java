@@ -228,7 +228,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("ORG.404", exception.getMessage());
+        assertEquals("CLS.404", exception.getMessage());
     }
 
     @Test
@@ -300,7 +300,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("ORG.404", exception.getMessage());
+        assertEquals("CLS.404", exception.getMessage());
     }
 
     /*

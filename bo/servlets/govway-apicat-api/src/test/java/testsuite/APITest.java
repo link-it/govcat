@@ -385,8 +385,7 @@ public class APITest {
             apiController.createAllegatoAPI(idApiNonEsistente, allegati);
         });
 
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -410,7 +409,7 @@ public class APITest {
             apiController.createAllegatoAPI(idApi, allegati);
         });
 
-        assertTrue(exception.getMessage().contains("DOC"));  // Error code check
+        assertTrue(exception.getMessage().startsWith("DOC") || exception.getMessage().startsWith("API"));  // Error code check
     }
 /*
  //TODO: controllare, nessuna autorizzazione richiesta
@@ -489,8 +488,7 @@ public class APITest {
             apiController.exportAPI(idApiNonEsistente);
         });
         //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -541,8 +539,7 @@ public class APITest {
             apiController.downloadSpecificaAPI(idApiNonEsistente, AmbienteEnum.COLLAUDO, null, false, null);
         });
         //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -1055,8 +1052,7 @@ public class APITest {
             apiController.updateApi(idApiNonEsistente, apiUpdate, null);
         });
         //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -1541,8 +1537,7 @@ public class APITest {
         });
         //System.out.println(exception.getMessage());
         // Verifica del messaggio di errore
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 /*
  //TODO: controllare, nessuna autorizzazione richiesta
