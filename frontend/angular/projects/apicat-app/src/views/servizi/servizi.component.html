@@ -134,29 +134,9 @@
                 </button>
             </div>
             <div class="btn-group" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
-                <div class="btn-group- d-inline-block" *ngIf="!_isEdit">
-                    <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
-                        <button aria-label="Altre azioni" aria-label="Altre azioni" aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
-                            <div class="gl-new-dropdown-inner">
-                                <div class="gl-new-dropdown-contents">
-                                    <li class="gl-new-dropdown-item">
-                                        <button role="menuitem" type="button" class="dropdown-item" (click)="_onNew()">
-                                            <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                                                <i class="bi bi-plus-lg"></i>
-                                            </div>
-                                            <div class="gl-new-dropdown-item-text-wrapper">
-                                                <p class="gl-new-dropdown-item-text-primary">{{ 'APP.MENU.AddService' | translate }}</p>
-                                            </div>
-                                        </button>
-                                    </li>
-                                </div>
-                            </div>
-                        </ul>
-                    </div>
-                </div>
+                <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="!_isEdit">
+                    <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.MENU.AddService' | translate }}</span>
+                </button>
             </div>
         </div>
     </div>

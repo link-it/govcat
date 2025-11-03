@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="govcat-icon" xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="gradient-teal" x1="-2.009" y1="37.74" x2="47.37" y2="37.74" gradientTransform="translate(-13.788 59.149) rotate(-90)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#94d0cf" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#94d0cf"/>
+    </linearGradient>
+    <linearGradient id="gradient-pink" x1="18.202" y1="31.298" x2="55.361" y2="31.298" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff828d"/>
+      <stop offset="1" stop-color="#ff9da6"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0, 5.5)">
+    <g>
+      <path d="M71.153,40.573L51.21,3.645c-2.625-4.859-9.597-4.859-12.221,0l-4.394,8.134h4.247c1.913,0,3.681,1.021,4.638,2.678l11.163,19.334c.957,1.657.957,3.698,0,5.355l-6.739,11.671h17.139c5.259,0,8.609-5.618,6.11-10.245Z" fill="#ff4050"/>
+      <path d="M19.046,40.573l15.55-28.794h-18.078c-1.913,0-3.681,1.021-4.638,2.678L.717,33.791c-.957,1.657-.957,3.698,0,5.355l11.163,19.334c.957,1.657,2.725,2.678,4.638,2.678h22.325c1.913,0,3.681-1.021,4.638-2.678l4.424-7.663h-22.749c-5.259,0-8.609-5.618-6.11-10.245Z" fill="url(#gradient-teal)"/>
+      <path d="M54.643,33.791l-11.163-19.334c-.957-1.657-2.725-2.678-4.638-2.678h-4.247l-15.55,28.794c-2.499,4.627.852,10.245,6.11,10.245h22.749l6.739-11.671c.957-1.657.957-3.698,0-5.355Z" fill="url(#gradient-pink)"/>
+    </g>
+  </g>
+</svg>

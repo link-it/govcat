@@ -474,7 +474,7 @@ public class NotificheTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> 
         notificheController.updateNotifica(idNotifica, updateNotifica));
         
-        assertEquals("Notifica [" + idNotifica + "] non trovata", exception.getMessage());
+        assertEquals("NTF.404", exception.getMessage());
     }
 
     @Test
@@ -500,7 +500,7 @@ public class NotificheTest {
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> 
         notificheController.updateNotifica(idNotifica, updateNotifica));
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
 
     @Test
@@ -547,6 +547,6 @@ public class NotificheTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> 
         notificheController.getNotifica(idNotifica));
 
-        assertEquals("Notifica[" + idNotifica + "] non trovata", exception.getMessage());
+        assertEquals("NTF.404", exception.getMessage());
     }
 }

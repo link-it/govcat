@@ -264,7 +264,7 @@ public class ToolsTest {
         richiesta.setApiType(ProtocolloEnum.REST);
 
         BadRequestException exception = assertThrows(BadRequestException.class, () -> toolsController.listaOperazioniWsdl(richiesta));
-        assertEquals("Impossibile recuperare le informazioni sulle azioni/risorse dal descrittore fornito", exception.getMessage());
+        assertEquals("DOC.500", exception.getMessage());
     }
 
     @Test

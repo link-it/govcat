@@ -144,7 +144,7 @@ public class UtentiTest {
             controller.createUtente(utente);
         });
 
-        assertEquals("Utente [" + CommonUtils.USERNAME + "] esiste gia", exception.getMessage());
+        assertEquals("UT.409", exception.getMessage());
     }
 
     @Test
@@ -161,7 +161,7 @@ public class UtentiTest {
             controller.createUtente(utente);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -178,7 +178,7 @@ public class UtentiTest {
             controller.createUtente(utente);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class UtentiTest {
             controller.deleteUtente(idUtenteNonEsistente);
         });
 
-        assertEquals("Utente [" + idUtenteNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("UT.404", exception.getMessage());
     }
 
     @Test
@@ -248,7 +248,7 @@ public class UtentiTest {
             controller.updateUtente(idUtenteNonEsistente, utenteUpdate);
         });
 
-        assertEquals("Utente [" + idUtenteNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("UT.404", exception.getMessage());
     }
 
     @Test
@@ -422,7 +422,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Classe Utente [" + idClasseUtenteNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("CLS.404", exception.getMessage());
     }
 
     @Test
@@ -455,7 +455,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -488,7 +488,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -601,7 +601,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente [" + idUtenteNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("UT.404", exception.getMessage());
     }
     /*
     @Test
@@ -625,7 +625,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     */
     @Test
@@ -648,7 +648,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Required: Utente autenticato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -691,7 +691,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente [" + idUtenteNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("UT.404", exception.getMessage());
     }
 
     @Test
@@ -721,7 +721,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -750,7 +750,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -787,7 +787,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente [" + idUtenteNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("UT.404", exception.getMessage());
     }
 
     @Test
@@ -811,7 +811,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -834,7 +834,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -871,7 +871,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente [" + idUtenteNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("UT.404", exception.getMessage());
     }
 
     @Test
@@ -898,7 +898,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
 
     @Test
@@ -924,7 +924,7 @@ public class UtentiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
     
     @Autowired
@@ -975,7 +975,7 @@ public class UtentiTest {
         	controller.createUtente(utenteCreate);
     	});
 
-        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 }
 

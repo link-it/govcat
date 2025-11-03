@@ -118,31 +118,31 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         {
             title: 'APP.SERVICES.TITLE.ApiInformations',
             subTitle: 'APP.SERVICES.TITLE.ApiInformations_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ApiInformations',
+            buttonIcon: 'bi bi-code-slash',
             route: 'api',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.ComponentsInformations',
             subTitle: 'APP.SERVICES.TITLE.ComponentsInformations_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'SERVICES.TITLE.ComponentsInformations',
+            buttonIcon: 'bi bi-code-slash',
             route: 'componenti',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.Attachments',
             subTitle: 'APP.SERVICES.TITLE.Attachments_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.Attachments',
+            buttonIcon: 'bi bi-file-earmark-text',
             route: 'allegati',
             show: true
         },
         // {
         //   title: 'APP.SERVICES.TITLE.Specific',
         //   subTitle: 'APP.SERVICES.TITLE.Specific_sub',
-        //   buttonTitle: 'APP.BUTTON.Go',
+        //   buttonTitle: 'APP.SERVICES.TITLE.Specific',
         //   buttonIcon: 'navigate_next',
         //   route: 'allegati-specifica',
         //   show: true
@@ -150,24 +150,24 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         {
             title: 'APP.SERVICES.TITLE.ShowReferents',
             subTitle: 'APP.SERVICES.TITLE.ShowReferents_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ShowReferents',
+            buttonIcon: 'bi bi-people',
             route: 'referenti',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.ShowGroups',
             subTitle: 'APP.SERVICES.TITLE.ShowGroups_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ShowGroups',
+            buttonIcon: 'bi bi-folder',
             route: 'gruppi',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.ShowCategories',
             subTitle: 'APP.SERVICES.TITLE.ShowCategories_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ShowCategories',
+            buttonIcon: 'bi bi-tags',
             route: 'categorie',
             show: true
         }
