@@ -1,11 +1,13 @@
 package org.govway.catalogo;
 
+import org.govway.catalogo.servlets.model.Configurazione;
+
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -25,13 +27,17 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 
 /**
  * Configurazione di Spring Security per l'autenticazione tramite header HTTP.
- * Attiva per default o quando authentication.mode=HEADER (modalità legacy).
+ * Attiva quando:
+ * - configurazione.utenti.accesso_anonimo_abilitato=false (o non specificato, default=false)
+ * - authentication.mode=HEADER (o non specificato, modalità legacy default)
+ *
  * Per l'autenticazione OIDC, vedere OidcSecurityConfiguration.
+ * Per l'accesso anonimo, vedere DisabledSecurityConfiguration.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity // only if you use @PreAuthorize, etc. (safe to keep)
-@ConditionalOnProperty(name = "authentication.mode", havingValue = "HEADER", matchIfMissing = true)
+@ConditionalOnExpression("!${configurazione.utenti.accesso_anonimo_abilitato:false} && ('${authentication.mode:HEADER}' == 'HEADER')")
 public class WebSecurityConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfiguration.class);
@@ -41,6 +47,9 @@ public class WebSecurityConfiguration {
 
     @Value("${spring.mvc.servlet.path}")
     String path;
+    
+    @Autowired
+    private Configurazione configurazione;
 
     @PostConstruct
     public void setup() {
@@ -98,11 +107,18 @@ public class WebSecurityConfiguration {
                         .frameOptions(f -> f.disable())
                 )
                 .csrf(csrf -> csrf.disable())
-                .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/profilo").permitAll()
-                        .anyRequest().authenticated()
-                );
+                .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint));
+        
+        
+        		if(this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
+                    http.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/**").permitAll()
+                    );
+        		} else {
+                    http.authorizeHttpRequests(auth -> auth
+                            .requestMatchers("/api/v1/profilo").permitAll()
+                            .anyRequest().authenticated()
+                    );
+        		}
 
         return http.build();
     }

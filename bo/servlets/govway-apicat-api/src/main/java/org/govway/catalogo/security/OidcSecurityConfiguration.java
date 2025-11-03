@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -39,10 +39,12 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 /**
  * Configurazione di Spring Security per l'autenticazione OIDC tramite token JWT.
- * Attiva solo quando authentication.mode=OIDC_JWT
+ * Attiva quando:
+ * - configurazione.utenti.accesso_anonimo_abilitato=false (o non specificato, default=false)
+ * - authentication.mode=OIDC_JWT
  */
 @Configuration
-@ConditionalOnProperty(name = "authentication.mode", havingValue = "OIDC_JWT")
+@ConditionalOnExpression("!${configurazione.utenti.accesso_anonimo_abilitato:false} && '${authentication.mode:HEADER}' == 'OIDC_JWT'")
 public class OidcSecurityConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(OidcSecurityConfiguration.class);
@@ -143,7 +145,7 @@ public class OidcSecurityConfiguration {
             .csrf(csrf -> csrf.disable())
             .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/profilo").permitAll()
+                .requestMatchers("/api/v1/*").permitAll()
                 .anyRequest().authenticated()
             );
 

@@ -3,7 +3,7 @@
     <Properties>
         <Property name="LOG_PATTERN">%p &lt;%d{dd-MM-yyyy HH:mm:ss.SSS}&gt; %C.%M(%L): %m %n %n</Property>
         <Property name="APP_LOG_ROOT">@org.govway.catalogo.log.path@</Property>
-        <Property name="LOG_FILE_SUFFIX">@log.file.suffix@</Property>
+        <Property name="LOG_FILE_SUFFIX">@app.suffix@</Property>
     </Properties>
     <Appenders>
         <RollingFile name="root"

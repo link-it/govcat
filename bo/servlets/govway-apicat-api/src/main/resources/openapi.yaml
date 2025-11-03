@@ -6227,9 +6227,6 @@ components:
         site:
           type: "string"
           format: "URI"
-        istanza_vetrina:
-          type: boolean
-          description: "Indica se l'istanza è in modalità vetrina/read-only (true quando api.mode=vetrina)"
         whitelist_vetrina:
           type: array
           items:

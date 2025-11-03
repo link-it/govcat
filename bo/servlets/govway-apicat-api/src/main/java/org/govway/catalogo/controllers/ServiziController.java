@@ -2048,13 +2048,13 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				if(this.coreAuthorization.isAnounymous()) {
+				if(this.coreAuthorization.isAnounymous() && this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
 
 					Grant grant = new Grant();
 
 					grant.setRuoli(new ArrayList<>());
 
-					grant.setIdentificativo(GrantType.	NESSUNO);
+					grant.setIdentificativo(GrantType.NESSUNO);
 					grant.setReferenti(GrantType.NESSUNO);
 					grant.setSpecifica(GrantType.NESSUNO);
 					grant.setGenerico(GrantType.NESSUNO);

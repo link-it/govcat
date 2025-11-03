@@ -26,7 +26,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
@@ -34,10 +34,12 @@ import org.springframework.stereotype.Component;
  * Estrattore e mappatore di claims da token JWT OIDC.
  * Supporta mapping configurabile di claims standard e custom.
  *
- * Attivo solo quando authentication.mode=OIDC_JWT
+ * Attivo quando:
+ * - configurazione.utenti.accesso_anonimo_abilitato=false (o non specificato, default=false)
+ * - authentication.mode=OIDC_JWT
  */
 @Component
-@ConditionalOnProperty(name = "authentication.mode", havingValue = "OIDC_JWT")
+@ConditionalOnExpression("!${configurazione.utenti.accesso_anonimo_abilitato:false} && '${authentication.mode:HEADER}' == 'OIDC_JWT'")
 public class OidcClaimsExtractor {
 
     private static final Logger logger = LoggerFactory.getLogger(OidcClaimsExtractor.class);

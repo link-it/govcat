@@ -24,7 +24,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -46,10 +46,12 @@ import java.util.List;
  * - Audience (opzionale)
  * - Scadenza e tempi di validità
  *
- * Attivo solo quando authentication.mode=OIDC_JWT
+ * Attivo quando:
+ * - configurazione.utenti.accesso_anonimo_abilitato=false (o non specificato, default=false)
+ * - authentication.mode=OIDC_JWT
  */
 @Component
-@ConditionalOnProperty(name = "authentication.mode", havingValue = "OIDC_JWT")
+@ConditionalOnExpression("!${configurazione.utenti.accesso_anonimo_abilitato:false} && '${authentication.mode:HEADER}' == 'OIDC_JWT'")
 public class JwtTokenValidator {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenValidator.class);

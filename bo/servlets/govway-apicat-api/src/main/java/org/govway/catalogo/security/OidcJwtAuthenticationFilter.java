@@ -24,6 +24,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.govway.catalogo.servlets.model.Configurazione;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,9 @@ public class OidcJwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private OidcClaimsExtractor oidcClaimsExtractor;
 
+    @Autowired
+    private Configurazione configurazione;
+
     private final AuthenticationManager authenticationManager;
 
     public OidcJwtAuthenticationFilter(AuthenticationManager authenticationManager) {
@@ -63,52 +68,56 @@ public class OidcJwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        try {
-            // Estrae il token JWT dalla richiesta
-            String token = extractBearerToken(request);
-
-            if (token != null) {
-                logger.debug("Token JWT trovato nella richiesta");
-
-                // Valida il token
-                Jwt jwt = jwtTokenValidator.validateAndDecode(token);
-
-                // Estrae i claims e li memorizza nel ThreadLocal
-                oidcClaimsExtractor.extractAndStoreClaims(jwt);
-
-                // Estrae il principal (username) dal token
-                String principal = oidcClaimsExtractor.getUsername();
-
-                if (principal == null || principal.trim().isEmpty()) {
-                    // Se non c'è username configurato, usa il subject del token
-                    principal = jwt.getSubject();
-                }
-
-                logger.debug("Autenticazione JWT per principal: {}", principal);
-
-                // Crea il token di autenticazione
-                PreAuthenticatedAuthenticationToken authToken =
-                    new PreAuthenticatedAuthenticationToken(principal, token);
-
-                // Autentica tramite l'AuthenticationManager
-                authToken = (PreAuthenticatedAuthenticationToken)
-                    authenticationManager.authenticate(authToken);
-
-                // Imposta l'autenticazione nel SecurityContext
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-
-                logger.debug("Autenticazione JWT completata con successo per: {}", principal);
-            } else {
-                logger.debug("Nessun token JWT trovato nella richiesta");
-            }
-        } catch (JwtException e) {
-            logger.warn("Errore di validazione JWT: {}", e.getMessage());
-            // Non impostiamo l'autenticazione, lasciamo che l'AuthenticationEntryPoint gestisca l'errore
-            SecurityContextHolder.clearContext();
-        } catch (Exception e) {
-            logger.error("Errore durante l'autenticazione JWT", e);
-            SecurityContextHolder.clearContext();
-        }
+    	
+    	if(!this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
+	        try {
+	            // Estrae il token JWT dalla richiesta
+	            String token = extractBearerToken(request);
+	
+	            if (token != null) {
+	                logger.debug("Token JWT trovato nella richiesta");
+	
+	                // Valida il token
+	                Jwt jwt = jwtTokenValidator.validateAndDecode(token);
+	
+	                // Estrae i claims e li memorizza nel ThreadLocal
+	                oidcClaimsExtractor.extractAndStoreClaims(jwt);
+	
+	                // Estrae il principal (username) dal token
+	                String principal = oidcClaimsExtractor.getUsername();
+	
+	                if (principal == null || principal.trim().isEmpty()) {
+	                    // Se non c'è username configurato, usa il subject del token
+	                    principal = jwt.getSubject();
+	                }
+	
+	                logger.debug("Autenticazione JWT per principal: {}", principal);
+	
+	                // Crea il token di autenticazione
+	                PreAuthenticatedAuthenticationToken authToken =
+	                    new PreAuthenticatedAuthenticationToken(principal, token);
+	
+	                // Autentica tramite l'AuthenticationManager
+	                authToken = (PreAuthenticatedAuthenticationToken)
+	                    authenticationManager.authenticate(authToken);
+	
+	                // Imposta l'autenticazione nel SecurityContext
+	                SecurityContextHolder.getContext().setAuthentication(authToken);
+	
+	                logger.debug("Autenticazione JWT completata con successo per: {}", principal);
+	            } else {
+	                logger.debug("Nessun token JWT trovato nella richiesta");
+	            }
+	        } catch (JwtException e) {
+	            logger.warn("Errore di validazione JWT: {}", e.getMessage());
+	            // Non impostiamo l'autenticazione, lasciamo che l'AuthenticationEntryPoint gestisca l'errore
+	            SecurityContextHolder.clearContext();
+	        } catch (Exception e) {
+	            logger.error("Errore durante l'autenticazione JWT", e);
+	            SecurityContextHolder.clearContext();
+	        }
+    		
+    	}
 
         try {
             // Prosegue con la filter chain

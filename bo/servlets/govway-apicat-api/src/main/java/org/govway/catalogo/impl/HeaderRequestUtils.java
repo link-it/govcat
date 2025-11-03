@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -35,13 +35,15 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * Implementazione di RequestUtils per la modalità di autenticazione tramite header HTTP.
  * Estrae tutti i dati utente dagli header HTTP configurati.
  *
- * Attiva quando authentication.mode=HEADER (o non specificato, default).
+ * Attiva quando:
+ * - configurazione.utenti.accesso_anonimo_abilitato=false (o non specificato, default=false)
+ * - authentication.mode=HEADER (o non specificato, modalità legacy default)
  *
  * Questa è la modalità legacy che presume protezione infrastrutturale
  * e non effettua validazione dei dati.
  */
 @Component
-@ConditionalOnProperty(name = "authentication.mode", havingValue = "HEADER", matchIfMissing = true)
+@ConditionalOnExpression("!${configurazione.utenti.accesso_anonimo_abilitato:false} && ('${authentication.mode:HEADER}' == 'HEADER')")
 public class HeaderRequestUtils extends AbstractRequestUtils {
 
     @Value("${header.email}")

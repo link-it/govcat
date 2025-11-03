@@ -25,20 +25,22 @@ import java.util.List;
 
 import org.govway.catalogo.security.OidcClaimsExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 /**
  * Implementazione di RequestUtils per la modalità di autenticazione OIDC tramite token JWT.
  * Estrae tutti i dati utente dai claims del token JWT validato.
  *
- * Attiva quando authentication.mode=OIDC_JWT.
+ * Attiva quando:
+ * - configurazione.utenti.accesso_anonimo_abilitato=false (o non specificato, default=false)
+ * - authentication.mode=OIDC_JWT
  *
  * Utilizza OidcClaimsExtractor per accedere ai claims del token JWT
  * che è stato precedentemente validato da OidcJwtAuthenticationFilter.
  */
 @Component
-@ConditionalOnProperty(name = "authentication.mode", havingValue = "OIDC_JWT")
+@ConditionalOnExpression("!${configurazione.utenti.accesso_anonimo_abilitato:false} && '${authentication.mode:HEADER}' == 'OIDC_JWT'")
 public class OidcRequestUtils extends AbstractRequestUtils {
 
     @Autowired

@@ -248,8 +248,6 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		Configurazione configurazione = om.readValue(outputString, Configurazione.class);
 
 		configurazione.getMonitoraggio().setLimitata(monitoraggioClient.isLimitata());
-		configurazione.getGenerale().setIstanzaVetrina("vetrina".equalsIgnoreCase(this.apiMode));
-
 		return configurazione;
 	}
 
