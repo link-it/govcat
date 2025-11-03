@@ -1,0 +1,175 @@
+name: GovCat workflow for BE and FE
+
+on:
+  push:
+    branches: [ "main", "v2.2.x", "v2.3.x", "upgrade-stack" ]
+    tags:
+      - '*'  # Trigger per tutti i tag
+  pull_request:
+    branches: [ "main", "v2.2.x", "v2.3.x" ]
+
+permissions:
+  contents: write
+  id-token: write
+  actions: write
+
+jobs:
+  build_BE:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Clona tutta la history Git
+      - name: Set timezone to Europe/Rome
+        run: sudo timedatectl set-timezone Europe/Rome
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+      - name: Check NVD_API_KEY
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "NVD_API_KEY is NOT set!"
+          else
+            echo "NVD_API_KEY is set. Length: ${#NVD_API_KEY}"
+          fi
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+      #  Cache .dependency-check/data
+      - name: Cache OWASP Dependency-Check DB
+        uses: actions/cache@v4
+        with:
+          path: .dependency-check/data
+          key: ${{ runner.os }}-owasp-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-owasp-
+
+      - name: Test
+        run: |
+          set -euo pipefail
+          mvn clean test -Dowasp=none
+        continue-on-error: ${{ github.ref_name != 'main' }}
+
+      - name: Show JaCoCo report location and Zip JaCoCo HTML report
+        run: |
+          ls -lh target/site/jacoco-aggregate/
+          file target/site/jacoco-aggregate/jacoco.xml || echo "Report non trovato"
+          cd target/site
+          zip -r ../jacoco-html-report.zip jacoco-aggregate
+          cd ../../
+          ls -lh target/
+        continue-on-error: ${{ github.ref_name != 'main' }}
+
+      - name: Archive JaCoCo report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco-aggregate
+
+      - name: Copy dependencies
+        run: |
+          mvn install -DskipTests -Dowasp=none 
+          mkdir -p target/dependency
+          mvn dependency:copy-dependencies -DoutputDirectory=target/dependency -DskipTests -Dowasp=none
+        continue-on-error: ${{ github.ref_name != 'main' }}
+
+      - name: SonarCloud Scan
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_SONARQUBE_JOB == 'true') }}
+        uses: SonarSource/sonarcloud-github-action@v2
+        continue-on-error: ${{ github.ref_name != 'main' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=link-it_govcat
+            -Dsonar.projectName=GovCat
+            -Dsonar.organization=link-it
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml
+            -Dsonar.sources=bo/clients/govwaymonitor/src/main/java,bo/core/business/src/main/java,bo/core/dao/src/main/java,bo/core/dto/src/main/java,bo/core/orm/src/main/java,bo/core/stampe/src/main/java,bo/servlets/govCatConfigurazioneBatch/src/main/java,bo/servlets/govway-apicat-api/src/main/java,configuratore/src/main/java,web/src/main/java
+            -Dsonar.tests=bo/clients/govwaymonitor/src/test/java,bo/core/business/src/test/java,bo/core/dao/src/test/java,bo/servlets/govCatConfigurazioneBatch/src/test/java,bo/servlets/govway-apicat-api/src/test/java,configuratore/src/test/java
+            -Dsonar.java.binaries=bo/clients/govwaymonitor/target/classes,bo/core/business/target/classes,bo/core/dao/target/classes,bo/core/dto/target/classes,bo/core/orm/target/classes,bo/core/stampe/target/classes,bo/servlets/govCatConfigurazioneBatch/target/classes,bo/servlets/govway-apicat-api/target/classes,configuratore/target/classes,web/target/classes
+            -Dsonar.coverage.exclusions=**/test/**,**/*Test*.java
+            -Dsonar.java.source=11
+            -Dsonar.java.libraries=target/dependency
+
+      - name: OWASP
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
+        run: mvn install -DskipTests -Dspring.profiles.active=test -Duser.timezone=Europe/Rome -DnvdApiKey=$NVD_API_KEY -DdataDirectory=.dependency-check/data -Dowasp.format=ALL -Dowasp.output.dir=./dependency-check-report
+        continue-on-error: ${{ github.ref_name != 'main' }}
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Archive OWASP dependency check report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: tools/owasp/report
+
+      - name: License Analysis
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_LICENSE_JOB == 'true') }}
+        run: |
+          set -euo pipefail
+          echo "Downloading license information..."
+          mvn org.codehaus.mojo:license-maven-plugin:2.4.0:aggregate-download-licenses -DexcludeScopes=test,provided,system -DincludeTransitiveDependencies=true
+          echo "Analyzing licenses..."
+          python3 .github/workflows/scripts/analyze_licenses.py --exceptions .github/workflows/scripts/license-exceptions.json
+        continue-on-error: ${{ github.ref_name != 'main' }}
+
+      - name: Archive licenses analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: be-third-party-licenses
+          path: third-party-licenses
+
+      - name: Build
+        run: |
+          set -euo pipefail
+          mvn clean package -DskipTests -Dowasp=none
+
+  build_FE:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Clona tutta la history Git
+      - name: Set timezone to Europe/Rome
+        run: sudo timedatectl set-timezone Europe/Rome
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          check-latest: true
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          cd frontend/angular/
+          npm install
+      - name: Licenses Analysis
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_LICENSE_JOB == 'true') }}
+        run: |
+          set -euo pipefail
+          cd frontend/angular/
+          echo "Downloading license information..."
+          npm config set cache .npm --location=project
+          npm ci --production
+          echo "Analyzing licenses..."
+          python3 ../../.github/workflows/scripts/analyze_npm_licenses.py --exceptions ../../.github/workflows/scripts/npm-license-exceptions.json
+        continue-on-error: ${{ github.ref_name != 'main' }}
+      - name: Archive licenses analysis results
+        uses: actions/upload-artifact@v4
+        with:
+          name: fe-third-party-licenses
+          path: frontend/angular/third-party-licenses
+      - name: Build packages
+        run: |
+          set -euo pipefail
+          cd frontend/angular/
+          npm ci
+          npm run build-packages
+      - name: Build
+        run: |
+          set -euo pipefail
+          cd frontend/angular/
+          npm run build-apicat
