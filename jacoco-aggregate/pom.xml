@@ -10,9 +10,9 @@
         <version>2.3</version>
     </parent>
 
-    <artifactId>jacoco-aggregate</artifactId>
+    <artifactId>govcat-project</artifactId>
     <packaging>pom</packaging>
-    <name>JaCoCo Aggregate Report</name>
+    <name>GovCat</name>
     <description>Module for aggregating JaCoCo coverage reports from all modules</description>
 
     <dependencies>
