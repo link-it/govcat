@@ -403,8 +403,8 @@ export class Tools {
           _msg = error.message;
         }
       }
-      if (error.name && !error.error) {
-        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${error.name}`);
+      if (error.detail && !error.error) {
+        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${error.detail}`);
       }
     } catch (e) {
       _msg = 'Si è verificato un problema non previsto.';
