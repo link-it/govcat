@@ -45,6 +45,7 @@ import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.model.AdesioneCreate;
 import org.govway.catalogo.servlets.model.AdesioneUpdate;
@@ -128,7 +129,7 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 		}
 		
 		if(erroreLst!=null && !erroreLst.isEmpty()) {
-			throw new UpdateEntitaComplessaNonValidaSemanticamenteException("Forbidden", erroreLst);
+			throw new UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode.VAL_422_COMPLEX, erroreLst);
 		}
 		
 	}
@@ -559,7 +560,7 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 			AuthTypeEnum atE = this.configurazione.getServizio().getApi().getProfili().stream()
 			.filter(p -> p.getCodiceInterno().equals(prof))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException("Profilo ["+prof+"] non trovato")).getAuthType();
+			.orElseThrow(() -> new BadRequestException(ErrorCode.GEN_404)).getAuthType();
 			c.setAuthType(atE);
 			client.add(c);
 		}

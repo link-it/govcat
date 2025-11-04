@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>servlets</artifactId>
-		<version>2.2</version>
+		<version>2.3</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -26,12 +26,6 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-dbcp2</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>antlr</groupId>
-			<artifactId>antlr</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -145,7 +139,7 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-expression</artifactId>
 		</dependency>
 			
@@ -154,43 +148,48 @@
 			<artifactId>spring-security-config</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+		</dependency>
+
 
 		<!-- Servlet API -->
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springdoc</groupId>
-			<artifactId>springdoc-openapi-ui</artifactId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 		</dependency>
 
 		<dependency>
@@ -221,10 +220,6 @@
 					<artifactId>spring-boot-starter-logging</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>org.jboss.logging</groupId>
-					<artifactId>jboss-logging</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>com.zaxxer</groupId>
 					<artifactId>HikariCP</artifactId>
 				</exclusion>
@@ -242,8 +237,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -263,27 +258,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-annotations</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-models</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-parser</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
 			<groupId>org.openapitools</groupId>
 			<artifactId>jackson-databind-nullable</artifactId>
 		</dependency>
@@ -297,7 +271,7 @@
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
-			<version>2.9.1</version>
+			<version>2.9.2</version>
 		</dependency>
 
 		<dependency>
@@ -375,13 +349,46 @@
 
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
 		</dependency>
-		
+
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+        </dependency>
+
+		<!-- JAXB API and implementation for Java 11+ -->
+		<!-- Jakarta namespace for new code -->
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger1</artifactId>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+		</dependency>
+
+		<!-- javax.xml.bind for compatibility with Jackson JAXB module -->
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-catalina</artifactId>
+			<version>10.1.20</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>		
@@ -397,7 +404,7 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<release>${javaVersion}</release>
+					<release>${java.version}</release>
 				</configuration>
 			</plugin>
 			
@@ -405,9 +412,10 @@
 				<artifactId>maven-war-plugin</artifactId>
 				<configuration>
 					<packagingExcludes>
-						WEB-INF/lib/jboss-logging-*.jar,WEB-INF/lib/commons-logging-*.jar</packagingExcludes>
+						WEB-INF/lib/commons-logging-*.jar</packagingExcludes>
 					<attachClasses>true</attachClasses>
 					<classesClassifier>classes</classesClassifier>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
 				</configuration>
 			</plugin>
 
@@ -417,11 +425,6 @@
 				<version>${openapi.tool.codegen.version}</version>
 
 				<dependencies>
-					<dependency>
-						<groupId>io.springfox</groupId>
-						<artifactId>springfox-swagger1</artifactId>
-						<version>${springfox.swagger1.version}</version>
-					</dependency>
 				</dependencies>
 				<executions>
 					<execution>
@@ -449,11 +452,16 @@
 								<interfaceOnly>true</interfaceOnly>
 								<hateoas>true</hateoas>
 								<useTags>true</useTags>
+                                <useJakartaEe>true</useJakartaEe>
+                                <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>false</generateSupportingFiles>
 							<generateApiTests>false</generateApiTests>
 							<generateModelTests>false</generateModelTests>
+
 						</configuration>
 					</execution>
 					<execution>
@@ -483,6 +491,10 @@
 								<interfaceOnly>true</interfaceOnly>
 								<hateoas>true</hateoas>
 								<useTags>true</useTags>
+                                <useJakartaEe>true</useJakartaEe>
+                                <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>false</generateSupportingFiles>
@@ -517,6 +529,10 @@
 								<interfaceOnly>true</interfaceOnly>
 								<hateoas>true</hateoas>
 								<useTags>true</useTags>
+                                <useJakartaEe>true</useJakartaEe>
+                                <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>false</generateSupportingFiles>
@@ -550,6 +566,10 @@
 								<interfaceOnly>true</interfaceOnly>
 								<hateoas>true</hateoas>
 								<useTags>true</useTags>
+                                <useJakartaEe>true</useJakartaEe>
+                                <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>true</generateSupportingFiles>
@@ -583,6 +603,10 @@
 								<interfaceOnly>true</interfaceOnly>
 								<hateoas>true</hateoas>
 								<useTags>true</useTags>
+                                <useJakartaEe>true</useJakartaEe>
+                                <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
 							</configOptions>
 							<output>${project.basedir}/target</output>
 							<generateSupportingFiles>true</generateSupportingFiles>
@@ -592,6 +616,82 @@
 					</execution>
 				</executions>
 			</plugin>
+						<plugin>
+  <groupId>org.jacoco</groupId>
+  <artifactId>jacoco-maven-plugin</artifactId>
+  <version>0.8.10</version>
+  <executions>
+    <execution>
+      <id>prepare-agent</id>
+      <goals>
+        <goal>prepare-agent</goal>
+      </goals>
+    </execution>
+    <execution>
+      <id>report</id>
+      <phase>verify</phase>
+      <goals>
+        <goal>report</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
 		</plugins>
 	</build>
+    <!-- ====================== PROFILE: Exclude jboss-logging ====================== -->
+    <profiles>
+        <profile>
+            <id>exclude-jboss-logging</id>
+            <!-- activate either via -Pexclude-jboss-logging or -Dexclude.jboss.logging=true -->
+            <activation>
+                <property>
+                    <name>exclude.jboss.logging</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <!-- Add the jboss-logging exclusion to the JPA starter -->
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-data-jpa</artifactId>
+                        <!-- repeat the two always-on exclusions + add jboss-logging -->
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-logging</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>com.zaxxer</groupId>
+                                <artifactId>HikariCP</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>org.jboss.logging</groupId>
+                                <artifactId>jboss-logging</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+
+            <!-- Also exclude the JBoss jar from the WAR -->
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <!-- Keep commons-logging excluded ALWAYS; add jboss-logging here -->
+                            <packagingExcludes>
+                                WEB-INF/lib/commons-logging-*.jar,WEB-INF/lib/jboss-logging-*.jar
+                            </packagingExcludes>
+                            <attachClasses>true</attachClasses>
+                            <classesClassifier>classes</classesClassifier>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

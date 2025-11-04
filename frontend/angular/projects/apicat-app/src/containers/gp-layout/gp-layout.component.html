@@ -5,8 +5,9 @@
             <app-head-bar *ngIf="!_spin"
                 [title]="_title"
                 [logo]="_config.AppConfig.Layout.Header.logo"
-                [loggedIn]="loggedIn"
+                [anonymous]="_isAnonymous"
                 [login]="login"
+                [loggedIn]="loggedIn"
                 [loginLabel]="loginLabel"
                 [username]="username"
                 [menu-action-list]="_menuActions"
@@ -24,7 +25,7 @@
         </div>
     </div>
 </header>
-<div id="page-full-scroll-container" class="layout-page hide-when-top-nav-responsive-open" [ngClass]="{ 'page-with-contextual-sidebar': (_contentLimeted || !_notSideBar) && !_isAnonymous, 'page-with-contextual-sidebar-reduced': _sideBarCollapsed && !_isAnonymous, 'page-with-icon-sidebar': _sideBarCollapsed && desktop && (_contentLimeted && !_notSideBar) }">
+<div id="page-full-scroll-container" class="layout-page hide-when-top-nav-responsive-open" [ngClass]="{ 'page-with-contextual-sidebar': (_contentLimeted || !_notSideBar) && !_isAnonymous, 'page-with-contextual-sidebar-reduced': _sideBarCollapsed && !_isAnonymous && !mobile, 'page-with-icon-sidebar': _sideBarCollapsed && desktop && (_contentLimeted && !_notSideBar) }">
     <aside class="nav-sidebar" [ngClass]="{ 'sidebar-collapsed-desktop': _sideBarCollapsed && desktop, 'sidebar-expanded-mobile': !_sideBarCollapsed && !desktop && !mobile || _openSideBar  }" *ngIf="(_contentLimeted || !_notSideBar) &&!_isAnonymous">
         <div class="d-flex flex-column align-items-start h-100">
             <div class="nav-sidebar-inner-scroll">

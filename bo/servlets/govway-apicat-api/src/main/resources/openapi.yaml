@@ -1197,6 +1197,88 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /utenti/{id_utente}/domini:
+    parameters:
+    - $ref: "#/components/parameters/id_utente"
+    get:
+      tags:
+      - "Utenti"
+      description: "Domini a cui è abilitato l'Utente"
+      operationId: "getUtenteDomini"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedModelItemDominio"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /utenti/{id_utente}/domini/{id_dominio}:
+    parameters:
+    - $ref: "#/components/parameters/id_utente"
+    - $ref: "#/components/parameters/id_dominio"
+    put:
+      tags:
+      - "Utenti"
+      description: "Aggiunta di un Dominio a quelli abilitati all'Utente"
+      operationId: "addDominioUtente"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+    delete:
+      tags:
+      - "Utenti"
+      description: "Rimozione di un Dominio da quelli abilitati all'Utente"
+      operationId: "deleteDominioUtente"
+      responses:
+        "204":
+          description: "Rimozione effettuata con successo"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /utenti/{id_utente}/settings/notifiche:
     parameters:
     - $ref: "#/components/parameters/id_utente"
@@ -2970,7 +3052,7 @@ paths:
       - $ref: "#/components/parameters/id_ambiente"
       - $ref: "#/components/parameters/versione_query_optional"
       - $ref: "#/components/parameters/includi_doc_allegati_query_optional"
-      - $ref: "#/components/parameters/try_out_query_optional"
+      - $ref: "#/components/parameters/download_specifica_API_mode_optional"
       responses:
         "200":
           description: Specifica
@@ -5101,6 +5183,14 @@ components:
       type: string
       enum: ['inline', 'uuid' ]
       example: 'uuid'
+    DownloadSpecificaAPIModeEnum:
+      type: "string"
+      description: "Modalità download specifica API"
+      example: "visualizzazione"
+      enum:
+        - download
+        - visualizzazione
+        - try_out
     ListaRisorseApiRichiesta:
       type: object
       required:
@@ -5316,6 +5406,7 @@ components:
         - utente
         - servizio
         - adesione
+        - monitoraggio
       properties:
         generale:
           $ref: '#/components/schemas/ConfigurazioneGenerale'
@@ -5387,6 +5478,17 @@ components:
           type: string
         tipo_soggetto_govway:
           type: string
+    ConfigurazioneStatisticheMonitoraggio:
+      type: "object"
+      properties:
+        tipi_distribuzione:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneTipiDistribuzione'
+        formati_report:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConfigurazioneFormatiReport'
     ConfigurazioneMonitoraggio:
       type: "object"
       required:
@@ -5415,6 +5517,8 @@ components:
             $ref: '#/components/schemas/ConfigurazioneSoggettoMonitoraggio'
         soggetto_pdnd:
             $ref: '#/components/schemas/ConfigurazioneSoggettoMonitoraggio'
+        statistiche:
+          $ref: '#/components/schemas/ConfigurazioneStatisticheMonitoraggio'
     ConfigurazioneAdesione:
       type: "object"
       required:
@@ -5557,7 +5661,7 @@ components:
        - api_soggetto_dominio
        - api_soggetto_aderente
       default: adesione
-    ConfigurazioneCustomProprietaVetrina:
+    ConfigurazioneVetrina:
       type: "object"
       required:
         - label
@@ -5582,9 +5686,12 @@ components:
         tipo:
           $ref: "#/components/schemas/TipoConfigurazioneCustomProprieta"
         vetrina:
-          $ref: "#/components/schemas/ConfigurazioneCustomProprietaVetrina"
+          $ref: "#/components/schemas/ConfigurazioneVetrina"
         required:
           type: boolean
+        index:
+          type: number
+          format: int32
       discriminator:
         propertyName: "tipo"
         mapping:
@@ -5825,6 +5932,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneCustomProprietaList"
+        vetrina:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneVetrina"
     ConfigurazioneTipoPolicyEnum:
       type: "string"
       enum:
@@ -5971,7 +6082,6 @@ components:
         - api
         - workflow
         - stati_adesione_consentita
-        - monitoraggio
         - visibilita_allegati_consentite
       properties:
         api_multiple:
@@ -5992,8 +6102,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ConfigurazioneNomeStato'
-        monitoraggio:
-          $ref: '#/components/schemas/ConfigurazioneMonitoraggio'
         visibilita_allegati_consentite:
           type: array
           items:
@@ -6119,6 +6227,11 @@ components:
         site:
           type: "string"
           format: "URI"
+        whitelist_vetrina:
+          type: array
+          items:
+            type: string
+          description: "Operazioni consentite quando istanza_vetrina=true nel formato 'METHOD PATH' (es. 'GET /servizi', 'POST /adesioni'). Supporta wildcards nei path: * (singolo segmento), ** (tutti i sotto-path)"
     AccessoAmministrazioneItem:
       type: "object"
       required:
@@ -6242,6 +6355,27 @@ components:
           type: "boolean"
         aggiornamento_idm_abilitato:
           type: "boolean"
+    ConfigurazioneTipiDistribuzione:
+      type: "string"
+      enum:
+        - andamento_temporale
+        - distribuzione_esiti
+        - distribuzione_errori
+        - distribuzione_soggetto_remoto
+        - distribuzione_api
+        - distribuzione_operazione
+        - distribuzione_applicativo
+        - distribuzione_token_client_id
+        - distribuzione_token_issuer
+        - distribuzione_ip
+        - distribuzione_principal
+    ConfigurazioneFormatiReport:
+      type: "string"
+      enum:
+        - csv
+        - pdf
+        - xls
+        - png
     StatoProfiloEnum:
       type: "string"
       enum:
@@ -7647,7 +7781,7 @@ components:
         stato:
           type: string
         tipo:
-          $ref: "#/components/schemas/TipoNotificaEnum"
+          type: string
     ComunicazioneTipoNotifica:
       type: "object"
       properties:
@@ -7656,7 +7790,7 @@ components:
         testo:
           type: string
         tipo:
-          $ref: "#/components/schemas/TipoNotificaEnum"
+          type: string
     EntitaNotifica:
       allOf:
         - type: object
@@ -7892,6 +8026,8 @@ components:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
           type: 'boolean'
+        abilitato_domini_esterni:
+          type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
         classi_utente:
@@ -7934,6 +8070,8 @@ components:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
           type: 'boolean'
+        abilitato_domini_esterni:
+          type: 'boolean'
         id_organizzazione:
           $ref: "#/components/schemas/IdOrganizzazione"
         classi_utente:
@@ -7968,6 +8106,45 @@ components:
           $ref: "#/components/schemas/String255"
         settings:
           type: object
+    ItemUtentePublic:
+      type: "object"
+      required:
+        - id_utente
+        - nome
+        - cognome
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+    ItemUtenteRestricted:
+      type: "object"
+      required:
+        - id_utente
+        - nome
+        - cognome
+        - telefono_aziendale
+        - email_aziendale
+        - stato
+      properties:
+        id_utente:
+          $ref: "#/components/schemas/IdUtente"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+        telefono_aziendale:
+          $ref: "#/components/schemas/String255"
+        email_aziendale:
+          $ref: "#/components/schemas/Email"
+        stato:
+          $ref: "#/components/schemas/StatoUtenteEnum"
+        referente_tecnico:
+          type: 'boolean'
+        organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
     ItemUtente:
       type: "object"
       required:
@@ -8004,6 +8181,8 @@ components:
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
+          type: 'boolean'
+        abilitato_domini_esterni:
           type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
@@ -8047,6 +8226,8 @@ components:
         ruolo:
           $ref: "#/components/schemas/RuoloUtenteEnum"
         referente_tecnico:
+          type: 'boolean'
+        abilitato_domini_esterni:
           type: 'boolean'
         organizzazione:
           $ref: "#/components/schemas/ItemOrganizzazione"
@@ -8313,6 +8494,7 @@ components:
         - tipo
       properties:
         utente:
+          description: "User details - returns ItemUtentePublic, ItemUtenteRestricted, or ItemUtente depending on authorization context"
           $ref: "#/components/schemas/ItemUtente"
         tipo:
           $ref: "#/components/schemas/TipoReferenteEnum"
@@ -8430,6 +8612,8 @@ components:
           type: "boolean"
         dominio:
             $ref: "#/components/schemas/Dominio"
+        fruizione:
+          type: boolean
         soggetto_interno:
           $ref: "#/components/schemas/ItemSoggetto"
         package:
@@ -8466,6 +8650,8 @@ components:
           $ref: "#/components/schemas/TipoServizio"
         id_dominio:
           $ref: "#/components/schemas/IdDominio"
+        fruizione:
+          type: boolean
         id_soggetto_interno:
           $ref: "#/components/schemas/IdSoggetto"
         referenti:
@@ -8545,6 +8731,8 @@ components:
           $ref: "#/components/schemas/String255"
         dominio:
           $ref: "#/components/schemas/Dominio"
+        fruizione:
+          type: boolean
         soggetto_interno:
           $ref: "#/components/schemas/ItemSoggetto"
         path_gruppo:
@@ -8628,6 +8816,8 @@ components:
           $ref: "#/components/schemas/IdDominio"
         skip_collaudo:
           type: "boolean"
+        fruizione:
+          type: boolean
         id_soggetto_interno:
           $ref: "#/components/schemas/IdSoggetto"
         visibilita:
@@ -9127,6 +9317,9 @@ components:
           $ref: "#/components/schemas/IdServizio"
         id_logico:
           $ref: "#/components/schemas/String255"
+        skip_collaudo:
+          type: "boolean"
+          default: false
         referenti:
           type: "array"
           items:
@@ -9296,15 +9489,10 @@ components:
           format: "uri"
           example: "https://tools.ietf.org/html/rfc7231#section-6.6.4"
           default: "about:blank"
-    UpdateEntitaComplessaProblem:
-      allOf:
-        - $ref: "#/components/schemas/Problem"
-        - type: "object"
-          properties:
-            errori:
-              type: "array"
-              items:
-                $ref: "#/components/schemas/EntitaComplessaError"
+        errori:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/EntitaComplessaError"
     URL:
       type: "string"
       format: "url"
@@ -9533,13 +9721,13 @@ components:
       required: false
       schema:
         type: boolean
-    try_out_query_optional:
-      name: "try_out"
+    download_specifica_API_mode_optional:
+      name: "mode"
       in: "query"
-      description: "indica se deve essere effettuato il post processing per il try out"
+      description: "Indica la modalità di download della specifica API"
       required: false
       schema:
-        type: boolean
+        $ref: '#/components/schemas/DownloadSpecificaAPIModeEnum'
     id_client_query_optional:
       name: "id_client"
       in: "query"
@@ -10092,7 +10280,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/UpdateEntitaComplessaProblem"
+            $ref: "#/components/schemas/Problem"
     "404NotFound":
       description: "Not Found"
       content:

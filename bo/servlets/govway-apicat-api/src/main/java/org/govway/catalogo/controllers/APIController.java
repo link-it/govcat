@@ -40,6 +40,7 @@ import org.govway.catalogo.assembler.ServizioDettaglioAssembler;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.core.business.utils.YamltoJsonUtils;
 import org.govway.catalogo.core.dao.specifications.AllegatoApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ApiSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
@@ -58,29 +59,11 @@ import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.ApiApi;
-import org.govway.catalogo.servlets.model.API;
-import org.govway.catalogo.servlets.model.APICreate;
-import org.govway.catalogo.servlets.model.Allegato;
-import org.govway.catalogo.servlets.model.AllegatoItemCreate;
-import org.govway.catalogo.servlets.model.AllegatoUpdate;
-import org.govway.catalogo.servlets.model.AmbienteEnum;
-import org.govway.catalogo.servlets.model.ApiUpdate;
-import org.govway.catalogo.servlets.model.Configurazione;
-import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
-import org.govway.catalogo.servlets.model.ConfigurazioneTokenPolicy;
-import org.govway.catalogo.servlets.model.Grant;
-import org.govway.catalogo.servlets.model.ItemApi;
-import org.govway.catalogo.servlets.model.PageMetadata;
-import org.govway.catalogo.servlets.model.PagedModelAllegato;
-import org.govway.catalogo.servlets.model.PagedModelItemApi;
-import org.govway.catalogo.servlets.model.ProprietaCustom;
-import org.govway.catalogo.servlets.model.Ruolo;
-import org.govway.catalogo.servlets.model.RuoloAPIEnum;
-import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
-import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
+import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,20 +144,20 @@ public class APIController implements ApiApi {
 				List<Allegato> allegatoLst = new ArrayList<>();
 				for(AllegatoItemCreate allegato: allegatoCreate) {
 					if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegato.getVisibilita())) {
-						throw new BadRequestException("Visibilita ["+allegato.getVisibilita()+"] non consentita");
+						throw new BadRequestException(ErrorCode.API_400_VISIBILITY, java.util.Map.of("visibilita", allegato.getVisibilita().toString()));
 					}
 					AllegatoApiEntity allEntity = this.allegatoAssembler.toEntity(allegato, entity);
 					String key = allEntity.getDocumento().getFilename()+ "_" + allEntity.getTipologia();
 					String keyString = "Nome: " + allEntity.getDocumento().getFilename()+ " di tipo: " + allegato.getTipologia();
 
 					if(keys.contains(key)) {
-						throw new BadRequestException("Allegato ["+keyString+"] duplicato");
+						throw new BadRequestException(ErrorCode.API_400_DUPLICATE, java.util.Map.of("allegato", keyString));
 					}
 
 					keys.add(key);
 
 					if(entity.getAllegati().stream().anyMatch(a-> key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-						throw new BadRequestException("Allegato ["+keyString+"] duplicato");
+						throw new BadRequestException(ErrorCode.API_400_DUPLICATE, java.util.Map.of("allegato", keyString));
 					}
 
 					this.service.save(allEntity);
@@ -194,7 +177,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -222,12 +205,12 @@ public class APIController implements ApiApi {
 	
 	private ApiEntity findApi(UUID idApi) {
 		ApiEntity entity = this.service.find(idApi)
-				.orElseThrow(() -> new NotFoundException("Api ["+idApi+"] non trovata"));
-		
+				.orElseThrow(() -> new NotFoundException(ErrorCode.API_400_VISIBILITY, java.util.Map.of("idApi", idApi.toString())));
+
 		Optional<ServizioEntity> oS = this.findOne(UUID.fromString(entity.getServizio().getIdServizio()));
-		
+
 		if(!oS.isPresent()) {
-			throw new NotFoundException("Api ["+idApi+"] non trovata");
+			throw new NotFoundException(ErrorCode.API_400_VISIBILITY, java.util.Map.of("idApi", idApi.toString()));
 		}
 		
 		return entity;
@@ -245,7 +228,7 @@ public class APIController implements ApiApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(this.service.existsByNomeVersioneSoggetto(apiCreate.getNome(), apiCreate.getVersione(), UUID.fromString(servizio.getDominio().getSoggettoReferente().getIdSoggetto()))) {
-					throw new ConflictException("API ["+apiCreate.getNome()+"/"+apiCreate.getVersione()+"/"+servizio.getDominio().getSoggettoReferente().getNome()+"] esiste gia");
+					throw new ConflictException(ErrorCode.API_400_DUPLICATE, java.util.Map.of("nome", apiCreate.getNome(), "versione", apiCreate.getVersione().toString(), "soggetto", servizio.getDominio().getSoggettoReferente().getNome()));
 				}
 
 				this.service.save(entity);
@@ -262,7 +245,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -277,7 +260,7 @@ public class APIController implements ApiApi {
 				ApiEntity entity = findApi(idApi);
 
 				if(!entity.getErogazioni().isEmpty()) {
-					throw new BadRequestException("Impossibile eliminare l'API ["+entity.getNome()+"/"+entity.getVersione()+"] perché è utilizzata in ["+entity.getErogazioni().size()+"] adesioni");
+					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString(), "count", String.valueOf(entity.getErogazioni().size())));
 				}
 
 				this.service.delete(entity);
@@ -296,7 +279,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -307,7 +290,7 @@ public class APIController implements ApiApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				AllegatoApiEntity entity = this.service.findAllegatoApi(idApi, idAllegato)
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato per l'API ["+idApi+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 
 				ConfigurazioneClasseDato conf = entity.getTipologia().equals(TIPOLOGIA.GENERICO) ? ConfigurazioneClasseDato.GENERICO : ConfigurazioneClasseDato.SPECIFICA;
 				this.servizioAuthorization.authorizeModifica(entity.getApi().getServizio(), Arrays.asList(conf));
@@ -326,7 +309,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -339,7 +322,7 @@ public class APIController implements ApiApi {
 			return this.service.runTransaction( () -> {
 
 				AllegatoApiEntity entity = this.service.findAllegatoApi(idApi, idAllegato)
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato per l'API ["+idApi+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 
 				Resource resource = new ByteArrayResource(entity.getDocumento().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -354,7 +337,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -366,7 +349,7 @@ public class APIController implements ApiApi {
 				this.logger.info("Invocazione in corso ...");     
 
 				AllegatoApiEntity entity = this.service.findAllegatoApi(idApi, idAllegato)
-						.orElseThrow(() -> new NotFoundException("Allegato ["+idAllegato+"] non trovato per l'API ["+idApi+"]"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 
 				//entity.getApi().getAllegati().stream().forEach(a-> System.out.println("DOCUMENTO: " + a.getDocumento().getFilename() + " ID_ALLEGATO: " + a.getDocumento().getUuid()));
 				
@@ -376,7 +359,7 @@ public class APIController implements ApiApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegatoUpdate.getVisibilita())) {
-					throw new BadRequestException("Visibilita ["+allegatoUpdate.getVisibilita()+"] non consentita");
+					throw new BadRequestException(ErrorCode.API_400_VISIBILITY, java.util.Map.of("visibilita", allegatoUpdate.getVisibilita().toString()));
 				}
 				//this.allegatoAssembler.toEntity(allegatoUpdate,entity);
 
@@ -384,9 +367,9 @@ public class APIController implements ApiApi {
 				String keyString = "Nome: " + allegatoUpdate.getFilename()+ " di tipo: " + allegatoUpdate.getTipologia();
 
 				//System.out.println(" NUMERO DI ELEMENTI: " + entity.getApi().getAllegati().size() + " - " + idAllegato + " - " + entity.getApi().getAllegati().iterator().next().getDocumento().getUuid());
-				
+
 				if(entity.getApi().getAllegati().stream().anyMatch(a-> !idAllegato.toString().equals(a.getDocumento().getUuid()) && key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-					throw new BadRequestException("Allegato ["+keyString+"] duplicato");
+					throw new BadRequestException(ErrorCode.API_400_DUPLICATE, java.util.Map.of("allegato", keyString));
 				}
 
 				this.allegatoAssembler.toEntity(allegatoUpdate,entity);
@@ -406,7 +389,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -432,7 +415,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -452,7 +435,7 @@ public class APIController implements ApiApi {
 					resource = new ByteArrayResource(this.serviceBuilder.getEServiceApi(entity));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
-					throw new InternalException(e);
+					throw new InternalException(ErrorCode.SYS_500);
 				}
 				this.logger.info("Invocazione completata con successo");
 
@@ -466,12 +449,12 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
 	@Override
-	public ResponseEntity<Resource> downloadSpecificaAPI(UUID idApi, AmbienteEnum ambiente, String versione, Boolean includiDocAllegati, Boolean tryOut) {
+    public ResponseEntity<Resource> downloadSpecificaAPI(UUID idApi, AmbienteEnum ambiente, String versione, Boolean includiDocAllegati, DownloadSpecificaAPIModeEnum mode) {
 		try {
 			return this.service.runTransaction(() -> {
 
@@ -491,7 +474,7 @@ public class APIController implements ApiApi {
 					
 					if(entity.getSpecifica()!=null) {
 						Resource resource;
-						if(tryOut != null && tryOut && (entity.getProtocollo().equals(PROTOCOLLO.OPENAPI_3) || entity.getProtocollo().equals(PROTOCOLLO.SWAGGER_2))) {
+						if(mode != null && mode.equals(DownloadSpecificaAPIModeEnum.TRY_OUT) && (entity.getProtocollo().equals(PROTOCOLLO.OPENAPI_3) || entity.getProtocollo().equals(PROTOCOLLO.SWAGGER_2))) {
 							try {
 								resource = new ByteArrayResource(this.serviceBuilder.getTryOutOpenAPI(entityA, entity, ambiente.equals(AmbienteEnum.COLLAUDO)));
 							} catch (IOException e) {
@@ -500,11 +483,29 @@ public class APIController implements ApiApi {
 						} else {
 							if(versione!=null) {
 								DocumentoEntity documentoEntity = this.documentoService.findDocumentoByUuidAndVersion(entity.getSpecifica().getUuid(), Integer.parseInt(versione))
-										.orElseThrow(() -> new NotFoundException("Documento con UUID ["+entity.getSpecifica().getUuid()+"] e versione ["+versione+"] non trovato"));
-
-								resource = new ByteArrayResource(documentoEntity.getRawData());
+										.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
+								
+								if(mode == null || mode.equals(DownloadSpecificaAPIModeEnum.DOWNLOAD)) {
+									resource = new ByteArrayResource(documentoEntity.getRawData());
+								} else {
+                                    try {
+                                        byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(documentoEntity.getRawData());
+                                        resource = new ByteArrayResource(jsonOpenapi);
+                                    } catch (IOException e) {
+                                        resource = new ByteArrayResource(documentoEntity.getRawData());
+                                    }
+                                }
 							} else {
-								resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+								if(mode == null || mode.equals(DownloadSpecificaAPIModeEnum.DOWNLOAD)) {
+									resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+								} else {
+                                    try {
+                                        byte[] jsonOpenapi = YamltoJsonUtils.convertYamlToJson(entity.getSpecifica().getRawData());
+                                        resource = new ByteArrayResource(jsonOpenapi);
+                                    } catch (IOException e) {
+                                        resource = new ByteArrayResource(entity.getSpecifica().getRawData());
+                                    }
+                                }
 							}
 						}
 						
@@ -514,7 +515,7 @@ public class APIController implements ApiApi {
 								.header("Content-Disposition", "attachment; filename="+entity.getSpecifica().getFilename())
 								.body(resource);
 					} else {
-						throw new BadRequestException("Specifica non presente");
+						throw new BadRequestException(ErrorCode.API_400_SPEC);
 					}
 				} else {
 					Resource resource;
@@ -522,7 +523,7 @@ public class APIController implements ApiApi {
 						resource = new ByteArrayResource(this.serviceBuilder.getSpecificaApi(entityA, entity));
 					} catch (Exception e) {
 						this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
-						throw new InternalException(e);
+						throw new InternalException(ErrorCode.SYS_500);
 					}
 					return ResponseEntity.status(HttpStatus.OK)
 							.header("Content-Disposition", "attachment; filename="+entity.getSpecifica().getFilename())
@@ -537,7 +538,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -607,7 +608,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -631,7 +632,7 @@ public class APIController implements ApiApi {
 
 					if(nomeCambiato || versioneCambiata) {
 						if(this.service.existsByNomeVersioneSoggetto(apiUpdate.getIdentificativo().getNome(), apiUpdate.getIdentificativo().getVersione(), UUID.fromString(servizio.getDominio().getSoggettoReferente().getIdSoggetto()))) {
-							throw new ConflictException("API ["+apiUpdate.getIdentificativo().getNome()+"/"+apiUpdate.getIdentificativo().getVersione()+"/"+servizio.getDominio().getSoggettoReferente().getNome()+"] esiste gia");
+							throw new ConflictException(ErrorCode.API_400_DUPLICATE, java.util.Map.of("nome", apiUpdate.getIdentificativo().getNome(), "versione", apiUpdate.getIdentificativo().getVersione().toString(), "soggetto", servizio.getDominio().getSoggettoReferente().getNome()));
 						}
 
 					}
@@ -662,7 +663,7 @@ public class APIController implements ApiApi {
 								.stream()
 								.filter(cp -> cp.getNomeGruppo().equals(pc.getGruppo()))
 								.findAny()
-								.orElseThrow(() -> new BadRequestException("Gruppo ["+pc.getGruppo()+"] non esiste"))
+								.orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404))
 								.getClasseDato());
 					}
 
@@ -701,7 +702,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 	
@@ -713,7 +714,7 @@ public class APIController implements ApiApi {
 		boolean realForce = force != null && force;
 		if(realForce) {
 			if(!listRuoli.stream().anyMatch(r -> this.listRuoloForce.contains(r))) {
-				throw new NotAuthorizedException("L'utente deve avere uno dei ruoli ["+listRuoloForce+"] per eseguire la force");
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, java.util.Map.of("ruoli", listRuoloForce.toString()));
 			}
 		}
 		return realForce;
@@ -781,7 +782,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -810,7 +811,7 @@ public class APIController implements ApiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

@@ -33,7 +33,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
@@ -62,9 +62,9 @@ import org.govway.catalogo.stampe.model.SchedaAdesione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import net.sf.jasperreports.engine.JRException;
-
+@Service
 public class SchedaAdesioneBuilder {
 
 	private Logger logger = LoggerFactory.getLogger(SchedaAdesioneBuilder.class);
@@ -293,7 +293,7 @@ public class SchedaAdesioneBuilder {
 		a.setBaseUrlProduzione(apiEP);
 		try {
 			return StampePdf.getInstance().creaAdesionePDF(logger,a);
-		} catch (JAXBException | IOException | JRException e) {
+		} catch (Exception e) {
 			this.logger.error("Errore durante la creazione della scheda adesione: " + e.getMessage(), e);
 		}
 		return null;

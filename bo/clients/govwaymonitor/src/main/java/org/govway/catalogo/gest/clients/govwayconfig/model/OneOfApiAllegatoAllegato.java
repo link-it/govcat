@@ -19,7 +19,7 @@
  */
 package org.govway.catalogo.gest.clients.govwayconfig.model;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 /**
 * OneOfApiAllegatoAllegato

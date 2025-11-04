@@ -522,12 +522,11 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
   }
-
   __onUpdate(id: string, body: any) {
     this._error = false;
     
@@ -546,7 +545,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         },
         (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
           this._spin = false;
         }
       );
@@ -590,7 +589,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           );
         }
@@ -727,11 +726,13 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
               this._isBozza = (this.adesione.stato == 'bozza');
 
               this._adesione = new Adesione({ ...response });
-              
+
+              this._adesione.id_logico = response.id_logico;
+
               this._adesione.servizio = response.servizio.servizio;
               this._adesione.id_servizio = response.servizio.id_servizio;
               this._adesione.servizio_nome = response.servizio.nome;
-              
+
               this._adesione.soggetto = response.soggetto.soggetto;
               this._adesione.id_soggetto = response.soggetto.id_soggetto;
               this._adesione.soggetto_nome = response.soggetto.nome;
@@ -954,6 +955,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     if (this._serviceBreadcrumbs) {
       title = this.id ? _organizzazione : title;
       baseUrl = `/servizi/${this._serviceBreadcrumbs.service.id_servizio}/${this.model}`;
+    }
+
+    if (this.adesione && this.adesione.id_logico) {
+      title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
     this.breadcrumbs = [
@@ -1213,7 +1218,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         },
         error: (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
           this._downloading = false;
         }
       });

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 
-import { combineLatest, forkJoin, Observable, of, throwError } from 'rxjs';
+import { forkJoin, Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -22,6 +22,9 @@ export type Certificato = {
     csr?: boolean;
     csr_modulo?: boolean;
 };
+
+type Elemento = { index?: number; [key: string]: any };
+type GenericItem = { [key: string]: any };
 
 const MappaCertificato: Record<TipoCertificatoEnum, (keyof Certificato)[]> = {
     [TipoCertificatoEnum.FORNITO]: ['file'],
@@ -453,5 +456,99 @@ export class UtilService {
         ?? config.certificato_autenticazione 
         ?? config.certificato_firma 
         ?? null;
+  }
+
+  // Sort functions
+
+  sortByIndexPreservingOrder(arr: Elemento[]): Elemento[] {
+    // Mappa degli elementi con index, salvando la loro posizione originale
+    const indexedItems: { originalIndex: number; item: Elemento }[] = arr
+      .map((item, i) => ({ item, originalIndex: i }))
+      .filter(({ item }) => typeof item.index === 'number');
+
+    // Ordina quelli con index
+    indexedItems.sort((a, b) => (a.item.index! - b.item.index!));
+
+    // Clona l’array per non modificarlo in-place
+    const result = [...arr];
+
+    // Inserisce gli item ordinati nella loro posizione originale
+    let sortedIndex = 0;
+    for (let i = 0; i < result.length; i++) {
+      if (typeof result[i].index === 'number') {
+        result[i] = indexedItems[sortedIndex].item;
+        sortedIndex++;
+      }
+    }
+
+    return result;
+  }
+
+  sortByFieldPreservingOthersMapper = (arr: any[], field: string) => this.sortByFieldPreservingOthers(arr, field);
+
+  sortByFieldPreservingOthers<T extends GenericItem>(
+    array: T[],
+    field: string
+  ): T[] {
+    // Estrai gli elementi che hanno il campo definito e sono numerici
+    const itemsWithField: { originalIndex: number; item: T }[] = array
+      .map((item, i) => ({ item, originalIndex: i }))
+      .filter(({ item }) => typeof item[field] === 'number');
+
+    // Ordina quelli con il campo specificato
+    itemsWithField.sort((a, b) => a.item[field] - b.item[field]);
+
+    // Crea una copia dell’array originale
+    const result = [...array];
+
+    // Inserisce gli elementi ordinati nei rispettivi posti (solo dove il campo era presente)
+    let sortedIndex = 0;
+    for (let i = 0; i < result.length; i++) {
+      if (typeof result[i][field] === 'number') {
+        result[i] = itemsWithField[sortedIndex].item;
+        sortedIndex++;
+      }
+    }
+
+    return result;
+  }
+
+  public GetErrorMsg(error: any) {
+    let _msg = 'Warning: status ' + error.status;
+    const _msgA: string[] = [];
+    try {
+      if (error.error?.detail) {
+        const code = error.error.detail;
+        let params = {};
+        if (error.error.errori?.length > 0) {
+          params = error.error.errori[0].params || {};
+        }
+        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
+      } else if (error.error?.title || error.error?.detail) {
+        if (error.error.title) {
+          _msgA.push(error.error.title);
+        }
+        if (error.error.detail) {
+          _msgA.push(error.error.detail);
+        }
+        _msg = _msgA.join(' - ');
+      } else {
+        if (error.status !== 0 && error.statusText) {
+          _msg = error.status + ': ' + error.statusText;
+          if (error.status === 404) {
+            _msg += error.url ? ` ${error.url.split('?')[0]}` : '';
+          }
+        } else {
+          _msg = error.message;
+        }
+      }
+      if (error.name && !error.error) {
+        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${error.name}`);
+      }
+    } catch (e) {
+      _msg = 'Si è verificato un problema non previsto.';
+    }
+
+    return _msg;
   }
 }

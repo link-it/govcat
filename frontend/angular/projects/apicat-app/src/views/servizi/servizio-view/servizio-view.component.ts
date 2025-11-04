@@ -1,4 +1,4 @@
-import { AfterContentChecked, Component, ElementRef, HostListener, Inject, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 
@@ -8,9 +8,7 @@ import { catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components'
-import { EventsManagerService } from '@linkit/components'
+import { ConfigService, EventsManagerService, MenuAction, EventType, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -23,9 +21,6 @@ import { AgidJwtSignatureDialogComponent } from '@app/components/authemtications
 import { AgidJwtTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-tracking-evidence-dialog/agid-jwt-tracking-evidence-dialog.component';
 import { CodeGrantDialogComponent } from '@app/components/authemtications-dialogs/code-grant-dialog/code-grant-dialog.component';
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
-
-import { MenuAction } from '@linkit/components'
-import { EventType } from '@linkit/components';
 
 import { environment } from '@app/environments/environment';
 
@@ -73,13 +68,19 @@ export interface ReferentView {
     types: string[];
 }
 
+export enum ApiMode {
+    TRY_OUT = 'try_out',
+    VISUALIZZAZIONE = 'visualizzazione',
+    DOWNLOAD = 'download'
+}
+
 @Component({
     selector: 'app-servizio-view',
     templateUrl: 'servizio-view.component.html',
     styleUrls: ['servizio-view.component.scss'],
     standalone: false
 })
-export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioViewComponent';
     readonly model: string = 'servizi';
 
@@ -140,6 +141,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     api_url: string = '';
 
     _maxReferenti: number = 3;
+    _showReferents: boolean = true;
 
     _grant: Grant | null = null;
     _ammissibili: string[] = [];
@@ -194,6 +196,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
+        this._showReferents = this.appConfig?.AppConfig?.Services?.showReferents !== false;
         const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
         this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
@@ -222,9 +225,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
             this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
         });
-    }
-
-    ngOnDestroy() {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -319,6 +319,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     loadReferenti() {
+        // Skip loading referents if not configured to show them
+        if (!this._showReferents) {
+            this.referentiLoading = false;
+            return;
+        }
+
         this.referenti = [];
         this.referentiLoading = true;
         forkJoin({
@@ -368,6 +374,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this._loadApis();
             }
         );
+    }
+
+    isAnonymousMapper = (): boolean => {
+        return this.authenticationService.isAnonymous();
     }
 
     _getProfiloLabelMapper(cod: string) {
@@ -512,7 +522,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _getApiUrlMapper = (api: any): string => {
-        const tryItOut = this. allowTryIt ? '?try_out=true' : '';
+        const tryItOut = this.allowTryIt ? `?mode=${ApiMode.TRY_OUT}` : `?mode=${ApiMode.VISUALIZZAZIONE}`;
         return api ? `${this.api_url}/api/${api.id_api}/specifica/${this._environmentId}/download${tryItOut}` : '';
     }
 
@@ -536,7 +546,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -579,13 +589,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const _srv: any = Tools.Configurazione.servizio;
         this.tokenPolicy = _srv.api?.token_policies?.find((item: any) => item.tipo_policy === this.tipoTokenPolicy);
         this.showJwtGenerator = this.allowTryIt && this._environmentId !== 'produzione';
-        // console.group('Show APi');
-        // console.log('profili', profili);
-        // console.log('profilo', apiProfilo, profilo);
-        // console.log('codiceTokenPolicy', this.codiceTokenPolicy);
-        // console.log('tipoTokenPolicy', this.tipoTokenPolicy);
-        // console.log('showJwtGenerator', this.showJwtGenerator);
-        // console.groupEnd();
         this._openApiInfo();
     }
 
@@ -593,7 +596,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this._modalInfoRef = this.modalService.show(this.openApiInfoTemplate, {
             id: 'open-api-info',
             ignoreBackdropClick: false,
-            class: 'modal-lg-custom modal-with-65'
+            class: 'modal-lg-custom modal-with-65 modal-fullscreen-sm-down'
         });
     }
 
@@ -625,7 +628,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -693,7 +696,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _canManagementMapper = (): boolean => {
         const _canManagement = this.authenticationService.canManagement('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
-        const _isPackage = this.data && this.data.package || false;
+        const _isPackage = this.data?.package || false;
         const _isGestore = this.authenticationService.isGestore(this._grant?.ruoli);
         const _canMonitoraggio = this.authenticationService.canMonitoraggio(this._grant?.ruoli);
         return _isPackage ? _isGestore : _canManagement;
@@ -704,7 +707,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _canManagementComunicazioniMapper = (): boolean => {
-        return this.data &&this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
+        return this.data && this.authenticationService.canManagementComunicazioni('servizio', 'servizio', this.data.stato, this._grant?.ruoli);
     }
 
     _isAmmissibile() {

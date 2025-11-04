@@ -18,7 +18,7 @@ import { AmbienteEnum } from '@app/model/ambienteEnum';
 
 import { PeriodEnum, Datispecifici, DatiSpecItem, CommonName, DoubleCert } from '../../adesione-configurazioni/datispecifici';
 
-import { Subscription } from 'rxjs';
+import { Subscription, expand, map, reduce } from 'rxjs';
 
 declare const saveAs: any;
 import * as _ from 'lodash';
@@ -463,7 +463,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                 },
                 error: (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                     // this.closeModal();
                 }
             });
@@ -706,30 +706,59 @@ export class AdesioneListaClientsComponent implements OnInit {
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.UsaClientEsistente'), 'id_client': SelectedClientEnum.UsaClientEsistente});
                 if (this.authenticationService.isGestore()) {
-                    this._loadClientsRiuso(auth_type, organizzazione, ambiente);
+                    this._loadClientsRiuso(auth_type, organizzazione, ambiente, true);
                 }
             }
         }
     };
 
     _loadClientsRiuso(auth_type: string = '', organizzazione: string = '', ambiente: string = '', checkRiuso: boolean = false) {
-        const _options: any = { params: { size: 100, 'auth_type': `${auth_type}`, 'id_organizzazione': `${organizzazione}`, 'ambiente': `${ambiente}`, 'stato': StatoConfigurazioneEnum.CONFIGURATO } };
-
-        this.apiService.getList('client', _options).subscribe({
-            next: (response: any) => {
-                response.content.map((el: any) => { this._arr_clients_riuso.push(el); });
-                if (checkRiuso) {
-                    const _riuso_client_obbligatorio: boolean = this._generalConfig.adesione.riuso_client_obbligatorio;
-                    if (this._arr_clients_riuso.length === 0 || !_riuso_client_obbligatorio) {
-                        this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
-                    }
-                }
-                this.onChangeCredenziali(this._currClient?.id_client ? null : SelectedClientEnum.NuovoCliente);
-            },
-            error: (error: any) => {
-                this._setErrorMessages(true);
+        const size = 100;
+        const baseOptions: any = {
+            params: {
+                size,
+                page: 0,
+                auth_type,
+                id_organizzazione: organizzazione,
+                ambiente,
+                stato: StatoConfigurazioneEnum.CONFIGURATO
             }
+        };
+
+        this.apiService.getList('client', baseOptions).pipe(
+            expand((response: any) => {
+                const { number, totalPages } = response.page;
+                if (number + 1 < totalPages) {
+                    return this.apiService.getList('client', {
+                        ...baseOptions,
+                        params: { ...baseOptions.params, page: number + 1 }
+                    });
+                } else {
+                    return [];
+                }
+            }),
+            map((res: any) => res.content),
+            reduce((acc, curr) => acc.concat(curr), [])
+        ).subscribe({
+            next: (allClients: any[]) => {
+                this._arr_clients_riuso = allClients;
+                this._postProcessClients(checkRiuso);
+            },
+            error: () => this._setErrorMessages(true)
         });
+    }
+
+    private _postProcessClients(checkRiuso: boolean) {
+        if (checkRiuso) {
+            const obbligatorio: boolean = this._generalConfig.adesione.riuso_client_obbligatorio;
+            if (this._arr_clients_riuso.length === 0 || !obbligatorio) {
+                this._arr_clients_riuso.unshift({
+                    nome: this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'),
+                    id_client: SelectedClientEnum.NuovoCliente
+                });
+            }
+        }
+        this.onChangeCredenziali(this._currClient?.id_client ? null : SelectedClientEnum.NuovoCliente);
     }
 
     _downloadsEnabled() {
@@ -1473,7 +1502,7 @@ export class AdesioneListaClientsComponent implements OnInit {
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -1706,7 +1735,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                 },
                 error: (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                     this._saving = false;
                 }
             });
@@ -1731,7 +1760,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                 },
                 error: (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                     this._saving = false;
                 }
             });

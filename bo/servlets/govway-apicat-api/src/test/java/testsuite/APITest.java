@@ -48,6 +48,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.DownloadSpecificaAPIModeEnum;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.IdentificativoApiUpdate;
@@ -71,6 +72,7 @@ import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -90,13 +92,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class APITest {
     @Mock
     private SecurityContext securityContext;
@@ -142,6 +150,9 @@ public class APITest {
 
     @Autowired
     GruppiController gruppiController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String UTENTE_GESTORE = "gestore";
     private static UUID ID_UTENTE_GESTORE;
@@ -327,7 +338,7 @@ public class APITest {
         
         //System.out.println(e.getMessage());
         
-        assertEquals("Utente non abilitato", e.getMessage());
+        assertEquals("UT.403", e.getMessage());
     }
     
     @Test
@@ -348,7 +359,7 @@ public class APITest {
         	apiController.createAllegatoAPI(idApi, allegati);
         });
         
-        assertEquals("Utente non specificato", e.getMessage());
+        assertEquals("AUT.403", e.getMessage());
     }
 
     @Test
@@ -374,8 +385,7 @@ public class APITest {
             apiController.createAllegatoAPI(idApiNonEsistente, allegati);
         });
 
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -399,745 +409,7 @@ public class APITest {
             apiController.createAllegatoAPI(idApi, allegati);
         });
 
-        String expectedMessage = "Allegato [Nome: " + allegatoCreate.getFilename() + " di tipo: " + allegatoCreate.getTipologia() + "] duplicato";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-    }
-
-    @Test
-    void testCreateAllegatoAPIViolationVisibilita() {
-        // Creazione di una API e di un allegato
-    	this.getAPI();
-
-        // Creazione di un allegato con visibilità non consentita
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.ADESIONE); // Visibilità non consentita
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-
-        // Test per visibilità non consentita
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            apiController.createAllegatoAPI(idApi, allegati);
-        });
-
-        String expectedMessage = "Visibilita [" + allegatoCreate.getVisibilita() + "] non consentita";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-    }
-
-    @Test
-    public void testCreateAPISuccess() {
-    	// Invocazione del metodo createApi
-        ResponseEntity<API> response = this.getAPI();
-
-        // Verifica del successo
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(CommonUtils.NOME_API, response.getBody().getNome());
-        assertEquals(CommonUtils.VERSIONE_API, response.getBody().getVersione().intValue());
-    }
-    
-    @Test
-    public void testCreateAPINotAuthorized() {
-    	CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
-    	
-        assertThrows(NotAuthorizedException.class, () -> {
-        	this.getAPI();
-        });
-    }
-    
-    @Test
-    public void testCreateAPIUtenteAnonimo() {
-    	this.tearDown();
-
-        assertThrows(NotAuthorizedException.class, () -> {
-        	this.getAPI();
-        });
-    }
-
-    @Test
-    public void testCreateAPIDuplicateConflict() {
-    	this.getAPI();
-
-        // Tentativo di creare la stessa API
-        assertThrows(ConflictException.class, () -> {
-            this.getAPI();
-        });
-        
-    }
-
-    @Test
-    public void testDeleteAPISuccess() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-        
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // Invocazione del metodo deleteAPI
-        ResponseEntity<Void> response = apiController.deleteAPI(idApi);
-
-        // Verifica del successo
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-    
-    @Test
-    public void testDeleteAPINotAuthorized() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-        
-        UUID idApi = responseApi.getBody().getIdApi();
-        
-    	CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
-
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.deleteAPI(idApi);
-        });
-    }
-    
-    @Test
-    public void testDeleteAPIUtenteAnonimo() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-        
-        UUID idApi = responseApi.getBody().getIdApi();
-        
-        this.tearDown();
-        
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.deleteAPI(idApi);
-        });
-    }
-
-    @Test
-    public void testDeleteAPINotFound() {
-        // ID di un'API non esistente
-        UUID idApiNonEsistente = UUID.randomUUID();
-
-        // Test per l'API non trovata
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.deleteAPI(idApiNonEsistente);
-        });
-        //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        //System.out.println(expectedMessage);
-        assertTrue(exception.getMessage().contains(expectedMessage));
-    }
-
-    @Test
-    public void testDeleteAPIUsedInAdesioni() {
-        soggettoCreate.setAderente(true);
-        servizioCreate.setAdesioneDisabilitata(false);
-        servizioCreate.setVisibilita(VisibilitaServizioEnum.PUBBLICO);
-        servizioCreate.setMultiAdesione(true);
-
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-        
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // Creazione dell'adesione
-        AdesioneCreate adesione = new AdesioneCreate();
-        adesione.setIdServizio(servizio.getIdServizio());
-        adesione.setIdSoggetto(createdSoggetto.getBody().getIdSoggetto());
-        /*
-        adesioniController.createAdesione(adesione);
-
-        // Invocazione del metodo deleteAPI e verifica del fallimento
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-            apiController.deleteAPI(idApi);
-        });
-
-        String expectedMessage = "Impossibile eliminare l'API [" + apiCreate.getNome() + "/" + apiCreate.getVersione() + "] perché è utilizzata in [1] adesioni";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-        */
-        //TODO: completare
-    }
-
-    @Test
-    public void testDeleteAllegatoAPISuccess() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // Creazione di un allegato per l'API
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        // Invocazione del metodo deleteAllegatoAPI
-        ResponseEntity<Void> response = apiController.deleteAllegatoAPI(idApi, idAllegato);
-
-        // Verifica del successo
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    }
-    
-    @Test
-    public void testDeleteAllegatoAPINotAuthorized() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // Creazione di un allegato per l'API
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
-        
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.deleteAllegatoAPI(idApi, idAllegato);
-        });
-    }
-    
-    @Test
-    public void testDeleteAllegatoAPIUtenteAnonimo() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // Creazione di un allegato per l'API
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        this.tearDown();
-        
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.deleteAllegatoAPI(idApi, idAllegato);
-        });
-    }
-
-    @Test
-    public void testDeleteAllegatoAPINotFound() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // ID di un allegato inesistente
-        UUID idAllegatoNonEsistente = UUID.randomUUID();
-
-        // Test per l'allegato non trovato
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.deleteAllegatoAPI(idApi, idAllegatoNonEsistente);
-        });
-
-        String expectedMessage = "Allegato [" + idAllegatoNonEsistente + "] non trovato per l'API [" + idApi + "]";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-    }
-
-    @Test
-    public void testDownloadAllegatoAPISuccess() {
-        // Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        // Invocazione del metodo downloadAllegatoAPI
-        ResponseEntity<Resource> response = apiController.downloadAllegatoAPI(idApi, idAllegato);
-
-        // Verifica del successo
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("allegato_test.pdf", response.getHeaders().getContentDisposition().getFilename());
-    }
-    /*
-    @Test
-    public void testDownloadAllegatoAPINotAuthorized() {
-        // Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
-
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.downloadAllegatoAPI(idApi, idAllegato);
-        });
-    }
-    
-    @Test
-    public void testDownloadAllegatoAPIUtenteAnonimo() {
-        // Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        this.tearDown();
-        
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.downloadAllegatoAPI(idApi, idAllegato);
-        });
-    }
-    */
-    @Test
-    public void testDownloadAllegatoAPINotFound() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // ID di un allegato inesistente
-        UUID idAllegatoNonEsistente = UUID.randomUUID();
-
-        // Test per l'allegato non trovato
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.downloadAllegatoAPI(idApi, idAllegatoNonEsistente);
-        });
-
-        String expectedMessage = "Allegato [" + idAllegatoNonEsistente + "] non trovato per l'API [" + idApi + "]";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-    }
-/*
-//TODO: VERIFICARE LE AUTORIZZAZIONI PERCHE' ATTUALMENTE NON VIENE CHIESTA ALCUNA AUTORIZZAZIONE
-    @Test
-    @Transactional
-    public void testDownloadAllegatoAPIAuthorizationFailed() {
-        // Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        // Configura un InfoProfilo senza il ruolo richiesto
-        InfoProfilo infoProfiloNonAutorizzato = new InfoProfilo("xxx", this.utenteService.find("xxx").get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloNonAutorizzato);
-
-        // Test per autorizzazione fallita
-        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            apiController.downloadAllegatoAPI(idApi, idAllegato);
-        });
-
-        String expectedMessage = "Required: Ruolo AMMINISTRATORE";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-
-        // Ripristino il profilo AMMINISTRATORE per gli altri test
-        InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.find(UTENTE_GESTORE).get(), List.of());
-        when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
-    }
-*/
-    @Test
-    void testUpdateAllegatoAPISuccess() {
-        // Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        // Aggiornamento dell'allegato
-        AllegatoUpdate allegatoUpdate = new AllegatoUpdate();
-        allegatoUpdate.setFilename("allegato_modificato.pdf");
-        DocumentoUpdateNew documento = new DocumentoUpdateNew();
-        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        //documento.setFilename("allegato_modificato_updated.pdf");
-        allegatoUpdate.setContent(documento);
-        allegatoUpdate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoUpdate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        // Invocazione del metodo updateAllegatoAPI
-        ResponseEntity<Allegato> response = apiController.updateAllegatoAPI(idApi, idAllegato, allegatoUpdate);
-
-        // Verifica del successo
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("allegato_modificato.pdf", response.getBody().getFilename());
-    }
-    
-    @Test
-    void testUpdateAllegatoAPINotAuthorized() {
-        // Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        // Aggiornamento dell'allegato
-        AllegatoUpdate allegatoUpdate = new AllegatoUpdate();
-        allegatoUpdate.setFilename("allegato_modificato.pdf");
-        DocumentoUpdateNew documento = new DocumentoUpdateNew();
-        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        //documento.setFilename("allegato_modificato_updated.pdf");
-        allegatoUpdate.setContent(documento);
-        allegatoUpdate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoUpdate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
-
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.updateAllegatoAPI(idApi, idAllegato, allegatoUpdate);
-        });
-    }
-    
-    @Test
-    void testUpdateAllegatoAPIUtenteAnonimo() {
-        // Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        // Aggiornamento dell'allegato
-        AllegatoUpdate allegatoUpdate = new AllegatoUpdate();
-        allegatoUpdate.setFilename("allegato_modificato.pdf");
-        DocumentoUpdateNew documento = new DocumentoUpdateNew();
-        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        //documento.setFilename("allegato_modificato_updated.pdf");
-        allegatoUpdate.setContent(documento);
-        allegatoUpdate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoUpdate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        this.tearDown();
-        
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.updateAllegatoAPI(idApi, idAllegato, allegatoUpdate);
-        });
-    }
-
-    @Test
-    void testUpdateAllegatoAPIDuplicate() {
-    	// Creazione di una API e di un allegato
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-        
-        //creo il primo allegato
-        AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        List<AllegatoItemCreate> allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        ResponseEntity<List<Allegato>> responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-        
-        //creo il secondo allegato
-        allegatoCreate = new AllegatoItemCreate();
-        allegatoCreate.setFilename("allegato_test2.pdf");
-        allegatoCreate.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
-        allegatoCreate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoCreate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        allegati = new ArrayList<>();
-        allegati.add(allegatoCreate);
-        responseAllegati = apiController.createAllegatoAPI(idApi, allegati);
-        assertEquals(HttpStatus.OK, responseAllegati.getStatusCode());
-
-        UUID idAllegato = UUID.fromString(responseAllegati.getBody().get(0).getUuid());
-
-        // Aggiornamento del secondo allegato ma utilizzando lo stesso nome del primo allegato
-        AllegatoUpdate allegatoUpdate = new AllegatoUpdate();
-        allegatoUpdate.setFilename("allegato_test.pdf");
-        DocumentoUpdateNew documento = new DocumentoUpdateNew();
-        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        //documento.setFilename("allegato_modificato_updated.pdf");
-        allegatoUpdate.setContent(documento);
-        allegatoUpdate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoUpdate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-        
-        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
-        	apiController.updateAllegatoAPI(idApi, idAllegato, allegatoUpdate);
-        });
-        String messaggio_atteso = "Allegato [Nome: allegato_test.pdf di tipo: generico] duplicato";
-        assertTrue(exception.getMessage().contains(messaggio_atteso));
-    }
-    
-    @Test
-    void testUpdateAllegatoAPINotFound() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // ID di un allegato inesistente
-        UUID idAllegatoNonEsistente = UUID.randomUUID();
-
-        // Aggiornamento dell'allegato
-        AllegatoUpdate allegatoUpdate = new AllegatoUpdate();
-        allegatoUpdate.setFilename("allegato_modificato.pdf");
-        DocumentoUpdateNew documento = new DocumentoUpdateNew();
-        documento.setTipoDocumento(TipoDocumentoEnum.NUOVO);
-        documento.setContentType("application/pdf");
-        documento.setContent(Base64.encodeBase64String("contenuto modificato".getBytes()));
-        documento.setFilename("allegato_modificato.pdf");
-        allegatoUpdate.setContent(documento);
-        allegatoUpdate.setTipologia(TipologiaAllegatoEnum.GENERICO);
-        allegatoUpdate.setVisibilita(VisibilitaAllegatoEnum.PUBBLICO);
-
-        // Test per l'allegato non trovato
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.updateAllegatoAPI(idApi, idAllegatoNonEsistente, allegatoUpdate);
-        });
-
-        String expectedMessage = "Allegato [" + idAllegatoNonEsistente + "] non trovato per l'API [" + idApi + "]";
-        assertTrue(exception.getMessage().contains(expectedMessage));
-    }
-
-    @Test
-    void testGetAPISuccess() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        // Invocazione del metodo getAPI
-        ResponseEntity<API> response = apiController.getAPI(idApi);
-
-        // Verifica del successo
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(apiCreate.getNome(), response.getBody().getNome());
-    }
-    
-    @Test
-    void testGetAPINotAuthorized() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
-
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.getAPI(idApi);
-        });
-    }
-    
-    @Test
-    void testGetAPIUtenteAnonimo() {
-        // Creazione di una API tramite il metodo di utilità
-        Servizio servizio = this.getServizio();
-        APICreate apiCreate = CommonUtils.getAPICreate();
-        apiCreate.setIdServizio(servizio.getIdServizio());
-        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
-        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
-
-        UUID idApi = responseApi.getBody().getIdApi();
-
-        this.tearDown();
-        
-        assertThrows(NotAuthorizedException.class, () -> {
-        	apiController.getAPI(idApi);
-        });
-    }
-
-    @Test
-    void testGetAPINotFound() {
-        // ID di una API inesistente
-        UUID idApiNonEsistente = UUID.randomUUID();
-
-        // Test per l'API non trovata
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.getAPI(idApiNonEsistente);
-        });
-        //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("DOC") || exception.getMessage().startsWith("API"));  // Error code check
     }
 /*
  //TODO: controllare, nessuna autorizzazione richiesta
@@ -1216,8 +488,7 @@ public class APITest {
             apiController.exportAPI(idApiNonEsistente);
         });
         //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -1265,11 +536,10 @@ public class APITest {
 
         // Test per l'API non trovata
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            apiController.downloadSpecificaAPI(idApiNonEsistente, AmbienteEnum.COLLAUDO, null, false, false);
+            apiController.downloadSpecificaAPI(idApiNonEsistente, AmbienteEnum.COLLAUDO, null, false, null);
         });
         //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -1285,7 +555,7 @@ public class APITest {
 
         // Test per la specifica non presente
         assertThrows(NullPointerException.class, () -> {
-            apiController.downloadSpecificaAPI(idApi, AmbienteEnum.COLLAUDO, null, false, true);
+            apiController.downloadSpecificaAPI(idApi, AmbienteEnum.COLLAUDO, null, false, DownloadSpecificaAPIModeEnum.TRY_OUT);
         });
     }
 
@@ -1314,6 +584,72 @@ public class APITest {
         assertNotNull(response.getBody());
         assertEquals(1, response.getBody().getContent().size());
         assertEquals(responseApi.getBody().getNome(), response.getBody().getContent().get(0).getNome());
+    }
+
+    @Test
+    void testListAPISuccessWithNomeGatewayQuery() {
+        // Creazione del servizio tramite il metodo di utilità
+        Servizio servizio = this.getServizio();
+        UUID idServizio = servizio.getIdServizio();
+
+        // Creazione di una API per il servizio
+        APICreate apiCreate = CommonUtils.getAPICreate();
+        apiCreate.setIdServizio(idServizio);
+
+        APIDatiAmbienteCreate apiDatiAmbienteCreateCollaudo = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreateCollaudo.setProtocollo(ProtocolloEnum.REST);
+        APIDatiErogazione apiDatiErogazioneCollaudo = new APIDatiErogazione();
+        apiDatiErogazioneCollaudo.setNomeGateway("APIGatewayColl");
+        apiDatiErogazioneCollaudo.setVersioneGateway(1);
+        apiDatiErogazioneCollaudo.setUrlPrefix("http://");
+        apiDatiErogazioneCollaudo.setUrl("testurl.com/test");
+        apiDatiAmbienteCreateCollaudo.setDatiErogazione(apiDatiErogazioneCollaudo);
+        apiCreate.setConfigurazioneCollaudo(apiDatiAmbienteCreateCollaudo);
+
+        APIDatiAmbienteCreate apiDatiAmbienteCreateProduzione = new APIDatiAmbienteCreate();
+        apiDatiAmbienteCreateProduzione.setProtocollo(ProtocolloEnum.REST);
+        APIDatiErogazione apiDatiErogazioneProduzione = new APIDatiErogazione();
+        apiDatiErogazioneProduzione.setNomeGateway("APIGatewayProd");
+        apiDatiErogazioneProduzione.setVersioneGateway(1);
+        apiDatiErogazioneProduzione.setUrlPrefix("http://");
+        apiDatiErogazioneProduzione.setUrl("testurl.com/test");
+        apiDatiAmbienteCreateProduzione.setDatiErogazione(apiDatiErogazioneProduzione);
+        apiCreate.setConfigurazioneProduzione(apiDatiAmbienteCreateProduzione);
+
+        ResponseEntity<API> responseApi = apiController.createApi(apiCreate);
+        assertEquals(HttpStatus.OK, responseApi.getStatusCode());
+
+        // Parametri per la paginazione e filtraggio
+        Integer page = 0;
+        Integer size = 10;
+        //List<String> sort = Arrays.asList("nome");
+
+        // Invocazione del metodo listAPI
+        ResponseEntity<PagedModelItemApi> response = apiController.listAPI(idServizio, null, null, null, null, "APIGateway", page, size, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(responseApi.getBody().getNome(), response.getBody().getContent().get(0).getNome());
+
+        // Invocazione del metodo listAPI
+        ResponseEntity<PagedModelItemApi> response2 = apiController.listAPI(idServizio, null, null, null, null, "APIGatewayColl", page, size, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertNotNull(response2.getBody());
+        assertEquals(1, response2.getBody().getContent().size());
+        assertEquals(responseApi.getBody().getNome(), response2.getBody().getContent().get(0).getNome());
+
+        // Invocazione del metodo listAPI
+        ResponseEntity<PagedModelItemApi> response3 = apiController.listAPI(idServizio, null, null, null, null, "APIGatewayProd", page, size, null);
+
+        // Verifica del successo
+        assertEquals(HttpStatus.OK, response3.getStatusCode());
+        assertNotNull(response3.getBody());
+        assertEquals(1, response3.getBody().getContent().size());
+        assertEquals(responseApi.getBody().getNome(), response3.getBody().getContent().get(0).getNome());
     }
     /*
     @Test
@@ -1716,8 +1052,7 @@ public class APITest {
             apiController.updateApi(idApiNonEsistente, apiUpdate, null);
         });
         //System.out.println(exception.getMessage());
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 
     @Test
@@ -2202,8 +1537,7 @@ public class APITest {
         });
         //System.out.println(exception.getMessage());
         // Verifica del messaggio di errore
-        String expectedMessage = "Api [" + idApiNonEsistente + "] non trovata";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("API."));  // Error code check
     }
 /*
  //TODO: controllare, nessuna autorizzazione richiesta

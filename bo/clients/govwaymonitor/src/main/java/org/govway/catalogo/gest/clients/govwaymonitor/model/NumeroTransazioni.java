@@ -20,8 +20,7 @@
 package org.govway.catalogo.gest.clients.govwaymonitor.model;
 
 import com.google.gson.annotations.SerializedName;
-
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class NumeroTransazioni implements OneOfTipoInformazioneReportNumeroTransazioniTipoInformazioneReportOccupazioneBandaTipoInformazioneReportTempoMedioRisposta, OneOfTipoInformazioneReportMultiLineNumeroTransazioniTipoInformazioneReportMultiLineOccupazioneBandaTipoInformazioneReportMultiLineTempoMedioRisposta {
 
@@ -29,7 +28,7 @@ public class NumeroTransazioni implements OneOfTipoInformazioneReportNumeroTrans
 	@SerializedName(SERIALIZED_NAME_TIPO)
 	private TipoInformazioneEnum tipo = TipoInformazioneEnum.NUMERO_TRANSAZIONI;
 
-	@ApiModelProperty(required = true, value = "")
+	@Schema(required = true, description = "")
 	@Override
 	public TipoInformazioneEnum getTipo() {
 		return tipo;

@@ -19,12 +19,13 @@
  */
 package org.govway.catalogo.reverse_proxy.servlets;
 
-import javax.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.WebServlet;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ProcessorUtils;
-import org.eclipse.jetty.util.ssl.SslContextFactory.Client;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 @WebServlet("${org.govway.catalogo.servlet.monitor.path}")
 public class ProxyServletMonitor extends org.eclipse.jetty.proxy.ProxyServlet.Transparent {
@@ -44,11 +45,19 @@ public class ProxyServletMonitor extends org.eclipse.jetty.proxy.ProxyServlet.Tr
 	        String value = getServletConfig().getInitParameter("selectors");
 	        if (value != null)
 	            selectors = Integer.parseInt(value);
-	        
-	        Client ssl = new Client();
-	        ssl.setTrustAll(true); 
-	        
-	        return new HttpClient(new HttpClientTransportOverHTTP(selectors), ssl);
+
+            // TLS config (Jetty 11): create SSL context factory and configure via ClientConnector
+            SslContextFactory.Client ssl = new SslContextFactory.Client();
+            ssl.setTrustAll(true);
+            ssl.setEndpointIdentificationAlgorithm(null);
+
+            ClientConnector clientConnector = new ClientConnector();
+            clientConnector.setSslContextFactory(ssl);
+            clientConnector.setSelectors(selectors);
+
+            HttpClient client = new HttpClient(new HttpClientTransportOverHTTP(clientConnector));
+
+            return client;
 	    }
 	}
 }

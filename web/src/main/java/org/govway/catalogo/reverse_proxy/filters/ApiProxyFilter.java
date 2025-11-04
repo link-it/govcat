@@ -19,9 +19,9 @@
  */
 package org.govway.catalogo.reverse_proxy.filters;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
 
 import org.govway.catalogo.reverse_proxy.costanti.Costanti;
 import org.springframework.stereotype.Component;

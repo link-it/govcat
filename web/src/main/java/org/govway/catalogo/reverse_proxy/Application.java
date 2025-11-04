@@ -19,8 +19,8 @@
  */
 package org.govway.catalogo.reverse_proxy;
 
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 
 import org.govway.catalogo.reverse_proxy.config.WebConsoleConfig;
 import org.govway.catalogo.reverse_proxy.costanti.Costanti;
@@ -38,9 +38,12 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.PropertySource;
 
 
 @SpringBootApplication(exclude = JerseyServerMetricsAutoConfiguration.class)
+@PropertySource("classpath:govcat-web.properties")
+@PropertySource(value = "file:${org.govway.catalogo.resource.path:/var/govcat/conf/govcat-web.properties}", ignoreResourceNotFound = true)
 public class Application  extends SpringBootServletInitializer {
 
 //	private ServletContext servletContext;

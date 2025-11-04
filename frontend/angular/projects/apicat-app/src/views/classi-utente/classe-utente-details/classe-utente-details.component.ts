@@ -198,7 +198,7 @@ export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterCon
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
       }
     );
   }
@@ -219,7 +219,7 @@ export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterCon
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
       }
     );
   }
@@ -267,7 +267,7 @@ export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterCon
             },
             (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           );
         }

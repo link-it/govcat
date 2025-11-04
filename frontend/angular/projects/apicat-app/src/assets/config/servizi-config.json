@@ -24,8 +24,8 @@
         "avatar": { "field": "logo", "type": "avatar-image", "mode": "cover", "alt": "nome" },
         "primaryText": [
             { "field": "nome", "type": "text", "emptySpace": true },
-            { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true },
-            { "field": "versione", "type": "text", "options": "status", "badged": true }
+            { "field": "v.", "type": "message", "tooltip": "APP.TOOLTIP.Version", "class": "", "emptySpace": true, "configDependency": "Services.hideVersions" },
+            { "field": "versione", "type": "text", "options": "status", "badged": true, "configDependency": "Services.hideVersions" }
         ],
         "secondaryText": [
             { "field": "stato", "type": "label", "options": "status" }
@@ -84,6 +84,7 @@
                 "autorizzato_produzione": { "label": "APP.WORKFLOW.STATUS.autorizzato_produzione", "background": "#10cc99", "border": "#10cc99", "color": "#1f1f1f" },
                 "in_configurazione_produzione": { "label": "APP.WORKFLOW.STATUS.in_configurazione_produzione", "background": "#38a3a5", "border": "#38a3a5", "color": "#1f1f1f" },
                 "pubblicato_produzione": { "label": "APP.WORKFLOW.STATUS.pubblicato_produzione", "background": "#22577a", "border": "#22577a", "color": "#ffffff" },        
+                "pubblicato_produzione_senza_collaudo": { "label": "APP.WORKFLOW.STATUS.pubblicato_produzione_senza_collaudo", "background": "#22577a", "border": "#22577a", "color":   "#ffffff" },
                 "archiviato": { "label": "APP.WORKFLOW.STATUS.archiviato", "background": "#242F40", "border": "#242F40", "color": "#ffffff" }
             }
         },
@@ -123,8 +124,8 @@
                 { "field": "nome", "type": "text" }
             ],
             "secondaryText": [
-                { "field": "Vers.", "type": "message", "emptySpace": true },
-                { "field": "versione", "type": "text" }
+                { "field": "Vers.", "type": "message", "emptySpace": true, "configDependency": "Services.hideVersions" },
+                { "field": "versione", "type": "text", "configDependency": "Services.hideVersions" }
             ],
             "metadata": {
                 "text": [

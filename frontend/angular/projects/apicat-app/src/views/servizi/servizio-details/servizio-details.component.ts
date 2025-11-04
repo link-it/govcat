@@ -1,6 +1,6 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -60,7 +60,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _isEdit = false;
     _closeEdit = true;
     _isNew = false;
-    _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+    _formGroup: FormGroup = new FormGroup({});
     _data: Servizio = new Servizio({});
     _dataCreate: ServizioCreate = new ServizioCreate({});
 
@@ -118,31 +118,31 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         {
             title: 'APP.SERVICES.TITLE.ApiInformations',
             subTitle: 'APP.SERVICES.TITLE.ApiInformations_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ApiInformations',
+            buttonIcon: 'bi bi-code-slash',
             route: 'api',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.ComponentsInformations',
             subTitle: 'APP.SERVICES.TITLE.ComponentsInformations_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'SERVICES.TITLE.ComponentsInformations',
+            buttonIcon: 'bi bi-code-slash',
             route: 'componenti',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.Attachments',
             subTitle: 'APP.SERVICES.TITLE.Attachments_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.Attachments',
+            buttonIcon: 'bi bi-file-earmark-text',
             route: 'allegati',
             show: true
         },
         // {
         //   title: 'APP.SERVICES.TITLE.Specific',
         //   subTitle: 'APP.SERVICES.TITLE.Specific_sub',
-        //   buttonTitle: 'APP.BUTTON.Go',
+        //   buttonTitle: 'APP.SERVICES.TITLE.Specific',
         //   buttonIcon: 'navigate_next',
         //   route: 'allegati-specifica',
         //   show: true
@@ -150,24 +150,24 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         {
             title: 'APP.SERVICES.TITLE.ShowReferents',
             subTitle: 'APP.SERVICES.TITLE.ShowReferents_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ShowReferents',
+            buttonIcon: 'bi bi-people',
             route: 'referenti',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.ShowGroups',
             subTitle: 'APP.SERVICES.TITLE.ShowGroups_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ShowGroups',
+            buttonIcon: 'bi bi-folder',
             route: 'gruppi',
             show: true
         },
         {
             title: 'APP.SERVICES.TITLE.ShowCategories',
             subTitle: 'APP.SERVICES.TITLE.ShowCategories_sub',
-            buttonTitle: 'APP.BUTTON.Go',
-            buttonIcon: 'navigate_next',
+            buttonTitle: 'APP.SERVICES.TITLE.ShowCategories',
+            buttonIcon: 'bi bi-tags',
             route: 'categorie',
             show: true
         }
@@ -266,20 +266,22 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+    hideVersions: boolean = false;
+
     constructor(
         public route: ActivatedRoute,
-        private router: Router,
-        private translate: TranslateService,
-        private modalService: BsModalService,
-        private configService: ConfigService,
-        private eventsManagerService: EventsManagerService,
+        private readonly router: Router,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
+        private readonly eventsManagerService: EventsManagerService,
         public tools: Tools,
-        private apiService: OpenAPIService,
-        private utils: UtilService,
-        private authenticationService: AuthenticationService
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService,
+        private readonly authenticationService: AuthenticationService
     ) {
         this.route.data.subscribe((data) => {
-        if (!data.componentBreadcrumbs) return;
+            if (!data.componentBreadcrumbs) return;
             this._componentBreadcrumbs = data.componentBreadcrumbs;
             this._initBreadcrumb();
         });
@@ -289,7 +291,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const servizio = this.authenticationService._getConfigModule('servizio');
         this.hasServiziApi = servizio?.api?.abilitato || false;
         this.hasGenerico = servizio?.generico?.abilitato || false;
-        this._tipiServizio.map((ts: any) => {
+        this._tipiServizio.forEach((ts: any) => {
             ts.enabled = (ts.value === 'API' && this.hasServiziApi) || (ts.value === 'Generico' && this.hasGenerico);
         });
 
@@ -297,6 +299,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
         this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
+        this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
 
         this.loadAnagrafiche();
     }
@@ -413,10 +416,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             if (item.route === 'categorie') {
                 const _taxonomiesRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
                 const _showTaxonomies = _taxonomiesRemoteConfig?.tassonomie_abilitate || false;
-                // if (_showTaxonomies && this.anagrafiche) {
-                //   console.log(this.anagrafiche);
-                //   return this.anagrafiche['tassonomie']?.length > 0 || false;
-                // }
                 return _showTaxonomies;
             }
             if (item.route === 'api') {
@@ -487,18 +486,18 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 switch (key) {
                     // case 'id_servizio':
                     //   value = data[key] ? data[key] : null;
-                    //   _group[key] = new UntypedFormControl(value, [Validators.required]);
+                    //   _group[key] = new FormControl(value, [Validators.required]);
                     //   break;
                     // case 'utente_richiedente':
                     // case 'utente_ultima_modifica':
                     case 'referente':
                     // case 'referente_tecnico':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [Validators.required]);
+                        _group[key] = new FormControl(value, [Validators.required]);
                         break;
                     case 'versione':
                         value = data[key] ? data[key] : '';
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.required,
                             Validators.pattern("^[1-9][0-9]*$")
                         ]);
@@ -506,73 +505,77 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     case 'nome':
                     case 'descrizione_sintetica':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             // Validators.required,
                             Validators.maxLength(255)
                         ]);
                         break;
                     case 'descrizione':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             // Validators.required,
                             Validators.maxLength(4000)
                         ]);
                         break;
                     case 'note':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.maxLength(1000)
                         ]);
                         break;
                     case 'termini_ricerca':
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, [
+                        _group[key] = new FormControl(value, [
                             Validators.maxLength(255)
                         ]);
                         break;
                     case 'multi_adesione':
                         value = data[key] ? data[key] : false;
-                        _group[key] = new UntypedFormControl({ value: value, disabled: true }, [Validators.required]);
+                        _group[key] = new FormControl({ value: value, disabled: true }, [Validators.required]);
                         break;
                     case 'id_dominio':
                     // case 'dominio':
                         value = data['dominio'] ? data['dominio'].id_dominio : this.generalConfig?.dominio?.dominio_default;
-                        _group[key] = new UntypedFormControl(value, [Validators.required]);
+                        _group[key] = new FormControl(value, [Validators.required]);
                         break;
                     // case 'id_gruppo':
                     // // case 'gruppo':
                     //   value = data['gruppo'] ? data['gruppo'].id_gruppo : null;
-                    //   _group[key] = new UntypedFormControl(value, []);
+                    //   _group[key] = new FormControl(value, []);
                     //   break;
                     case 'classi':
                         value = (data[key] ? data[key] : []);
-                        _group[key] = new UntypedFormControl(value, []);
+                        _group[key] = new FormControl(value, []);
                         break;
                     case 'data_creazione':
                     case 'data_ultima_modifica':
                         const _now = moment().format('DD-MM-YYYY hh:mm:ss');
                         value = data[key] ? moment(data[key]).format('DD-MM-YYYY HH:mm:ss') : _now;
-                        _group[key] = new UntypedFormControl({ value: value, disabled: true }, []);
+                        _group[key] = new FormControl({ value: value, disabled: true }, []);
                         break;
                     // case 'package':
                     //   value = data[key] ? data[key] : false;
-                    //   _group[key] = new UntypedFormControl({ value: value, disabled: this.hasApi || this.hasComponenti }, []);
+                    //   _group[key] = new FormControl({ value: value, disabled: this.hasApi || this.hasComponenti }, []);
                     //   break;
                     case 'skip_collaudo':
                         value = data[key] ? data[key] : false;
-                        _group[key] = new UntypedFormControl(value, []);
+                        _group[key] = new FormControl(value, []);
                         break;
                     case 'adesione_disabilitata':
                         boolValue = data[key] ? data[key] : false;
-                        _group[key] = new UntypedFormControl(boolValue, []);
+                        _group[key] = new FormControl(boolValue, []);
+                        break;
+                    case 'fruizione':
+                        boolValue = data[key] ? data[key] : false;
+                        _group[key] = new FormControl(boolValue, []);
                         break;
                     default:
                         value = data[key] ? data[key] : null;
-                        _group[key] = new UntypedFormControl(value, []);
+                        _group[key] = new FormControl(value, []);
                         break;
                 }
             });
-            this._formGroup = new UntypedFormGroup(_group);
+            this._formGroup = new FormGroup(_group);
 
             const controls: any = this._formGroup.controls;
             if (this._isVisibilita('riservato')) {
@@ -623,7 +626,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
                 this._errors = error.error.errori || [];
             }
@@ -652,6 +655,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
             skièp_collaudo: body.skièp_collaudo || false,
+            fruizione: body.fruizione || false,
         };
 
             if (!body.package) {
@@ -693,7 +697,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._data = new Servizio({ ...response });
                     this.id = this.data.id_servizio;
                     this._isDominioDeprecato = this.data.dominio.deprecato || false;
-                    this._isDominioEsterno = this.data.dominio.soggetto_referente.organizzazione.esterna || false;
+                    this._isDominioEsterno = this.data.fruizione || false;
                     this._initBreadcrumb();
                     this.loadCurrentData();
                     if (this.data.package) {
@@ -709,7 +713,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
                 this._errors = error.error.errori || [];
             }
@@ -741,7 +745,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 adesione_disabilitata: body.adesione_disabilitata || false,
                 id_soggetto_interno: body.id_soggetto_interno || null,
                 package: body.package || false,
-                skip_collaudo: body.skip_collaudo || false
+                skip_collaudo: body.skip_collaudo || false,
+                fruizione: body.fruizione || false
             },
             dati_generici: {
                 // gruppo: body.id_gruppo,
@@ -779,7 +784,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             error: (error) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
         });
     }
@@ -1272,11 +1277,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
 
-        this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
-        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
-        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
+        // this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
+        // this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        // this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
+        // this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        // this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
 
         this._enableDisableSkipCollaudo(this.selectedDominio);
     }
@@ -1325,6 +1330,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
         this.enableDisableControlPackage();
         this.enableDisableControlAdesioneConsentita();
+    }
+
+    _onChangeFruizione(event: any) {
+        this._isDominioEsterno = this._formGroup.get('fruizione')?.value || false;
+        this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
+        this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
+        this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
     }
 
     showReferenti: boolean = true;
@@ -1382,7 +1395,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -1404,7 +1417,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });

@@ -13,6 +13,7 @@ import org.govway.catalogo.core.configurazione.IConfigurazioneExecutor;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.dto.DTOAdesione;
+import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
@@ -132,28 +133,31 @@ public class ConfigurazioneItemProcessor implements ItemProcessor<AdesioneEntity
 			e.setData(new Date());
 			UtenteSpecification utenteSpec = new UtenteSpecification();
 			utenteSpec.setPrincipal(Optional.of(this.utenteConfiguratore));
-			e.setUtente(utenteRepository.findOne(utenteSpec).orElse(null));
-			logger.info("# stati:  {}", entity.getStati().size());
+			e.setUtente(utenteRepository.findOne(utenteSpec).orElseThrow(() -> new NotFoundException("Utente con principal " + this.utenteConfiguratore)));
+			logger.debug("# stati:  {}", entity.getStati().size());
 			entity.getStati().add(e);
 			entity.getStati().forEach(s -> logger.debug("[Processor] stato durante la gestione della adesione: uuid={}, stato={}, data={}", s.getUuid(), s.getStato(), s.getData()));
-			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.OK);
+			entity.setStatoConfigurazione(null);
+			entity.setMessaggioConfigurazione(null);
 
 			break;
 
 		case KO_DEFINITIVO:
 			entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.KO);
+			entity.setMessaggioConfigurazione(configurato.getMessaggioErrore());
 			break;
 
 		case KO_TEMPORANEO:
 			if (entity.getTentativi() >= numeroMassimoTentativi) {
 				entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.FALLITA);
+				entity.setMessaggioConfigurazione(configurato.getMessaggioErrore());
 			} else {
 				entity.setStatoConfigurazione(STATO_CONFIGURAZIONE.RETRY);
+				entity.setMessaggioConfigurazione(configurato.getMessaggioErrore());
 			}
 			break;
 		}
 
-		entity.setMessaggioConfigurazione(configurato.getMessaggioErrore());
 		logger.info("[Processor] Configurazione della adesione [ {} ] completata",entity.getIdAdesione());
 
 		return entity;

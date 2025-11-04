@@ -1,0 +1,16 @@
+{
+  "exceptions": [
+    {
+      "groupId": "@linkit",
+      "artifactId": "*",
+      "reason": "Internal Linkit packages - proprietary license managed separately",
+      "exclude_from_reports": true
+    },
+    {
+      "groupId": "govisee-workspace",
+      "artifactId": "govisee-workspace",
+      "reason": "Main project workspace - internal license not specified in package.json",
+      "exclude_from_reports": true
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import { Tools } from '@linkit/components';
 import { SearchBarFormComponent } from '@linkit/components'
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { UtilService } from '@app/services/utils.service';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
@@ -250,7 +251,8 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
         private translate: TranslateService,
         private configService: ConfigService,
         private apiService: OpenAPIService,
-        private authenticationService: AuthenticationService
+        private authenticationService: AuthenticationService,
+        private utils: UtilService
     ) {
         this.route.data.subscribe((data) => {
             if (!data.serviceBreadcrumbs) return;
@@ -1176,7 +1178,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                     },
                     (error: any) => {
                         this._error = true;
-                        this._errorMsg = Tools.GetErrorMsg(error);
+                        this._errorMsg = this.utils.GetErrorMsg(error);
                     }
                 );
             }
@@ -1202,7 +1204,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                 },
                 (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                 }
             );
         }
@@ -1234,7 +1236,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                 },
                 (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                 }
             );
         }
@@ -1309,7 +1311,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                 },
                 (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                     // this.closeModal();
                 }
             );
@@ -2107,7 +2109,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -2250,7 +2252,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
                         },
                         (error) => {
                             this._error = true;
-                            this._errorMsg = Tools.GetErrorMsg(error);
+                            this._errorMsg = this.utils.GetErrorMsg(error);
                         }
                     );
                 }

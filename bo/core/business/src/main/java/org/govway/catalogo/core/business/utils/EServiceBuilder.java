@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.govway.catalogo.core.orm.entity.AllegatoApiEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
@@ -64,8 +64,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import net.sf.jasperreports.engine.JRException;
 
 public class EServiceBuilder {
 
@@ -300,8 +298,8 @@ public class EServiceBuilder {
 				this.logger.error("Errore:" + e.getMessage(), e);
 			} catch (JAXBException e) {
 				this.logger.error("Errore:" + e.getMessage(), e);
-			} catch (JRException e) {
-				this.logger.error("Errore:" + e.getMessage(), e);
+			} catch (Exception e) {
+				this.logger.error("Errore generazione PDF:" + e.getMessage(), e);
 			}
 		}
 		

@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Campo;
 import org.govway.catalogo.servlets.model.ConfigurazioneCambioStato;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
@@ -55,10 +56,10 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		ConfigurazioneWorkflow workflow = getWorkflow(entity);
 		String statoIniziale = getStato(entity);
 		if(!workflow.getStati().contains(statoFinale)) {
-			throw new NotAuthorizedException("Stato ["+statoFinale+"] non previsto dal workflow");
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 		if(!workflow.getStati().contains(statoIniziale)) {
-			throw new NotAuthorizedException("Stato ["+statoIniziale+"] non previsto dal workflow");
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 		
 
@@ -69,7 +70,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			// dallo stato archiviato si può tornare solo allo stato precedente
 			String statoPrecedente = getStatoPrecedente(entity);
 			if(!statoFinale.equals(statoPrecedente)) {
-				throw new NotAuthorizedException("Stato ["+statoFinale+"] non raggiungibile dallo stato ["+statoIniziale+"] in quanto lo stato precedente e' ["+statoPrecedente+"]");
+				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
 			}
 		} else {
 
@@ -77,7 +78,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 					.filter(cs -> cs.getStatoAttuale().equals(statoIniziale)).collect(Collectors.toList());
 
 			if(lstStatoPartenza.isEmpty()) {
-				throw new NotAuthorizedException("Stato ["+statoIniziale+"] non previsto dal workflow");
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			}
 
 			List<ConfigurazioneStato> lstStatiArrivo = new ArrayList<>();
@@ -91,7 +92,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			}
 			
 			if(lstStatiArrivo.isEmpty()) {
-				throw new NotAuthorizedException("Stato ["+statoFinale+"] non raggiungibile da ["+statoIniziale+"]");
+				throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
 			}
 
 
@@ -102,7 +103,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 	public void authorizeUtenteCambioStato(ENTITY entity, String statoIniziale, String statoFinale) {
 
 		this.checkPermessiUtente(entity, statoIniziale, statoFinale, true);
-		this.checkCampiObbligatori(entity);
+		this.checkCampiObbligatori(entity, statoFinale);
 	}
 	
 	@Override
@@ -110,7 +111,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		
 		this.logger.debug("authorizeModifica: " + entity.getClass() + " classiDato: " + classiDato + " ...");
 		this.logger.debug("Check Campi Obbligatori");
-		this.checkCampiObbligatori(entity);
+		this.checkCampiObbligatori(entity, this.getStato(entity));
 		this.logger.debug("Check Campi Non Modificabili");
 		this.checkCampiNonModificabili(entity, classiDato);
 		this.logger.debug("authorizeModifica: " + entity.getClass() + " classiDato: " + classiDato + " OK");
@@ -121,10 +122,6 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		if(stato != null && stato.getNome().equals(statoFinale)) {
 			lstStati.add(stato);
 		}
-	}
-	
-	private void checkCampiObbligatori(ENTITY entity) {
-		checkCampiObbligatori(entity, this.getStato(entity));
 	}
 	
 	public void checkCampiObbligatori(ENTITY entity, String stato) {
@@ -170,7 +167,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			}
 		}
 		
-		throw new NotAuthorizedException("Utente"+erroreGrant+" non autorizzato a "+errore+" ["+stato+"]");
+		throw new NotAuthorizedException(ErrorCode.AUT_403);
 
 		
 	}
@@ -242,7 +239,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 				.filter(cs -> cs.getStatoAttuale().equals(statoPartenza)).collect(Collectors.toList());
 
 		if(lstStatoPartenza.size() != 1) {
-			throw new InternalException("Configurazione errata. ["+lstStatoPartenza.size()+"] elementi per lo stato ["+statoPartenza+"]");
+			throw new InternalException(ErrorCode.SYS_500_CONFIG);
 		}
 		
 		ConfigurazioneCambioStato statoSuccessivo = lstStatoPartenza.get(0);
@@ -265,7 +262,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		}
 
 		if(!lst.isEmpty()) {
-			throw new NotAuthorizedException("Tipo di dato "+lst+" non modificabile nello stato ["+stato+"]");
+			throw new NotAuthorizedException(ErrorCode.WFL_400_TRANSITION);
 		}
 	}
 

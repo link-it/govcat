@@ -44,7 +44,6 @@
             </div>
           </div>
           <div class="metadata gl-display-flex gl-flex-grow-1 gl-flex-shrink-0 gl-flex-wrap justify-content-md-between">
-            <!-- <div class="btn me-2" (click)="onDebug(item)">{{ item?.tassonomia?.visibile }} | {{ countChildren || 0 }}</div> -->
             <div class="stats gl-text-gray-500 group-stats gl-mt-2- gl-display-none gl-md-display-flex gl-align-items-center" [class.group-over-actions]="isEditable && !forceActions && !selectable">
               <button aria-label="Edit" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="onAction($event, 'edit', item)" [tooltip]="'APP.TOOLTIP.' + editTooltip | translate" container="body" *ngIf="isEditable && !selectable">
                 <i class="bi bi-pencil"></i>

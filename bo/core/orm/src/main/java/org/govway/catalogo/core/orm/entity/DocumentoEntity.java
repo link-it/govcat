@@ -21,12 +21,14 @@ package org.govway.catalogo.core.orm.entity;
 
 import java.util.Date;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -47,7 +49,7 @@ public class DocumentoEntity {
 	
 	@Column( nullable = false, name = "rawdata")
 	@Lob
-	@Type(type = "org.hibernate.type.ImageType")
+    @JdbcTypeCode(SqlTypes.LONGVARBINARY)
 	@Convert(disableConversion = true)
 	private byte[] rawData;
 	

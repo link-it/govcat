@@ -29,6 +29,8 @@ import org.govway.catalogo.core.configurazione.ConfigurazioneException;
 import org.govway.catalogo.core.dto.DTOClient;
 import org.govway.catalogo.core.dto.DTOSoggetto;
 import org.govway.catalogo.core.dto.HttpsClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import config.ControlloAccessiAutenticazione;
 import config.ControlloAccessiAutorizzazione;
@@ -58,6 +60,8 @@ import okhttp3.Response;
 public class ScenarioTLSModI implements ConfigurazioneScenario {
 	private Invokers invokers;
 	
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
 	private boolean ignoreConflict;
 	
 	public ScenarioTLSModI(Invokers invokers, Properties properties) {
@@ -68,8 +72,12 @@ public class ScenarioTLSModI implements ConfigurazioneScenario {
 	}
 	
 	@Override
-	public boolean check(DTOClient client, GruppoServizio api) {
-		return (api.getProfilo().equals("ModI") && !api.isFruizione());
+	public String getError(DTOClient client, GruppoServizio api) {
+		boolean check = api.isModI() && !api.isFruizione();
+		if(!check) {
+			return "L'API deve essere una fruizione ModI";
+		}
+		return null;
 	}
 
 	@Override
@@ -83,17 +91,22 @@ public class ScenarioTLSModI implements ConfigurazioneScenario {
 					apis.get(0).getSoggettoAderente().getTipoGateway());
 		}
 		
+		try (Response res = this.invokers.getConfigInvoker().createSoggetto(soggetto)){
+			this.invokers.getConfigInvoker().checkResponse(res, this.ignoreConflict);
+		} catch(TemplateException | IOException e) {
+			this.logger.error("errore nell'aggiunta del soggetto {}@{}", soggetto.getNomeGateway(), soggetto.getTipoGateway(), e);
+			throw new ConfigurazioneException(e.getMessage());
+		}
+		
 		Credenziali credenziali = new Credenziali();
 		credenziali.setCertificato(client.getCertificato());
 		credenziali.setModalitaAccesso("https");
 		credenziali.setTipoCertificato("CER");
 		
 		try (Response response = this.invokers.getConfigInvoker().postCredenzialiSoggetto(soggetto, credenziali)) {
-			
-			if (!response.isSuccessful())
-				throw new ConfigurazioneException();
+			this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 		} catch (IOException | TemplateException e) {
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		
 		return Map.of();
@@ -128,11 +141,10 @@ public class ScenarioTLSModI implements ConfigurazioneScenario {
 	
 			// infine associo il servizio applicativo ai richiedenti
 			try (Response response = configInvoker.postSoggettoAutorizzato(api, api.getSoggettoAderente().getNomeGateway())) {
-				if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-					throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+				this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 			}
 		} catch (IOException | TemplateException e) {
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		return Map.of();
 	}

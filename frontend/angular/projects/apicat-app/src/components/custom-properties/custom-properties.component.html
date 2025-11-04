@@ -3,9 +3,6 @@
         <div class="edit-form">
             <form novalidate class="gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="formGroup" (submit)="_onSubmit(formGroup.value)">
                 <div class="row custom-properties">
-                    <!-- <div class="col-12 my-3">
-                        <h4 class="pb-2 border-bottom">{{ 'APP.TITLE.Custom' | translate }}</h4>
-                    </div> -->
                     <div class="col-12">
                         <ng-container *ngFor="let pcg of _proprietaCustomGrouped | keyvalue">
                             <div class="" [class]="showGroupLabel ? 'd-flex justify-content-between align-items-center pb-2 border-bottom' : 'position-absolute top-16 end-16 z-3'">
@@ -13,12 +10,24 @@
                                     <h5 class="p-0">{{ _proprietaCustomGrouped[pcg.key + ''][0].label_gruppo }}</h5>
                                 </div>
                                 <div class="" *ngIf="!_isEdit && !_spin && editable">
-                                    <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Edit' | translate"  [placement]="'left'" [container]="'body'" (click)="_onEdit()">
+                                    <button
+                                        aria-expanded="false"
+                                        type="button"
+                                        class="btn btn-default btn-md gl-button btn-icon"
+                                        [tooltip]="'APP.TOOLTIP.Edit' | translate"  [container]="'body'" [delay]="500"
+                                        (click)="_onEdit()"
+                                    >
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                 </div>
                                 <div class="" *ngIf="_isEdit && !_spin && editable">
-                                    <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [placement]="'left'" [container]="'body'" (click)="_onCancelEdit()">
+                                    <button
+                                        aria-expanded="false"
+                                        type="button"
+                                        class="btn btn-default btn-md gl-button btn-default-tertiary ms-2"
+                                        [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" [container]="'body'" [delay]="500"
+                                        (click)="_onCancelEdit()"
+                                    >
                                         <i class="bi bi-x-lg"></i>
                                     </button>
                                 </div>
@@ -57,7 +66,6 @@
                                             <div class="" *ngIf="!_isEdit">
                                                 <ng-container *ngIf="cp.tipo === ProprietaType.Text">
                                                     <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="cfg().controls[cp.nome].value || '-'">
-                                                    <!-- <input type="text" class="form-control-plaintext" [name]="cp.nome" [id]="cp.nome" [placeholder]="'-'" [formControlName]="cp.nome" readonly> -->
                                                 </ng-container>
                                                 <ng-container *ngIf="cp.tipo === ProprietaType.Select">
                                                     <input type="text" readonly class="form-control-plaintext" [id]="cp.nome" [name]="cp.nome" [value]="(cfg().controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:pcg.key) || '-'">
@@ -72,7 +80,6 @@
                                                 </ng-container>
                                             </div>
                                         </div>
-                                        <!-- <div class="p-3 mb-3 border-bottom">{{ cp | json }}</div> -->
                                     </div>
                                 </ng-container>
                             </div>

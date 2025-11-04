@@ -25,12 +25,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ApiEntity_;
@@ -65,6 +65,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private Optional<String> versione = Optional.empty();
 	private Optional<String> idReferente = Optional.empty();
 	private List<UUID> gruppoList = null;
+	private Optional<Long> idGruppo = Optional.empty();
 	private Optional<UUID> dominio = Optional.empty();
 	private List<UUID> categorie = null;
 	private Optional<VISIBILITA> visibilita = Optional.empty();
@@ -169,6 +170,16 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 				predLst.add(cb.disjunction());
 			}
 		}
+		
+		if(idGruppo.isPresent()) {
+			ArrayList<Predicate> preds2 = new ArrayList<>();
+			
+			preds2.add(cb.like(root.join(ServizioEntity_.gruppi, JoinType.LEFT).get(GruppoEntity_.alberatura), "%#"+idGruppo.get()+"#%"));
+			preds2.add(cb.equal(root.join(ServizioEntity_.gruppi, JoinType.LEFT).get(GruppoEntity_.id), idGruppo.get()));
+			
+			predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
+			
+		}
 
 		if(categorie != null) {
 			if(!categorie.isEmpty()) {
@@ -247,18 +258,18 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		}
 		
 		if(this.utente.isPresent()) {
-			
+
 			UtenteEntity utente = this.utente.get();
-			
+
 			List<Predicate> predListMieiServizi = new ArrayList<>();
 			if(utente.getId() != null) {
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente), utente)); 
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente), utente));
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT), utente));
-				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT), utente));
-				predListMieiServizi.add(cb.equal(root.get(ServizioEntity_.richiedente), utente));
-				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT)));
-				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente)));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.get(ServizioEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT).get(UtenteEntity_.id)));
+				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente).get(UtenteEntity_.id)));
 			}
 			
 
@@ -481,6 +492,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setUtenteAdmin(Optional<Boolean> utenteAdmin) {
 		this.utenteAdmin = utenteAdmin;
+	}
+
+	public Optional<Long> getIdGruppo() {
+		return idGruppo;
+	}
+
+	public void setIdGruppo(Optional<Long> idGruppo) {
+		this.idGruppo = idGruppo;
 	}
 
 }

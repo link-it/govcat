@@ -22,13 +22,12 @@ package org.govway.catalogo.gest.clients.govwaymonitor.model;
 import java.util.Objects;
 
 import com.google.gson.annotations.SerializedName;
-
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * TempoMedioRisposta
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2023-09-27T18:38:39.702666+02:00[Europe/Rome]")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2023-09-27T18:38:39.702666+02:00[Europe/Rome]")
 public class TempoMedioRisposta implements OneOfTipoInformazioneReportNumeroTransazioniTipoInformazioneReportOccupazioneBandaTipoInformazioneReportTempoMedioRisposta, OneOfTipoInformazioneReportMultiLineNumeroTransazioniTipoInformazioneReportMultiLineOccupazioneBandaTipoInformazioneReportMultiLineTempoMedioRisposta {
 	public static final String SERIALIZED_NAME_TIPO = "tipo";
 	@SerializedName(SERIALIZED_NAME_TIPO)
@@ -49,7 +48,7 @@ public class TempoMedioRisposta implements OneOfTipoInformazioneReportNumeroTran
 	 * Get tipo
 	 * @return tipo
 	 **/
-	@ApiModelProperty(required = true, value = "")
+	@Schema(required = true, description = "")
 
 	public TipoInformazioneEnum getTipo() {
 		return tipo;
@@ -71,8 +70,8 @@ public class TempoMedioRisposta implements OneOfTipoInformazioneReportNumeroTran
 	 * Get tempoMedioRisposta
 	 * @return tempoMedioRisposta
 	 **/
-	@javax.annotation.Nullable
-	@ApiModelProperty(value = "")
+	@jakarta.annotation.Nullable
+	@Schema(description = "")
 
 	public TempoMedioRispostaTipi getTempoMedioRisposta() {
 		return tempoMedioRisposta;

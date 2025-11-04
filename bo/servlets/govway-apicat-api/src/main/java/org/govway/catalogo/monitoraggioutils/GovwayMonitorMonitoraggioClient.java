@@ -23,10 +23,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.gest.clients.govwaymonitor.PatchedApiClient;
@@ -42,6 +44,7 @@ import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroTemporale;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ListaTransazioni;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ProfiloEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaIntervalloTemporale;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaIntervalloTemporaleAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoFiltroMittenteEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TransazioneExtInformazioniApi;
 import org.govway.catalogo.monitoraggioutils.transazioni.GetTransazioneRequest;
@@ -88,7 +91,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			return response;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(e.getMessage());
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -484,7 +487,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			throw e;
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
-			throw new InternalException(e.getMessage());
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -606,7 +609,8 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 				
 				t.setIdentificazione(TipoFiltroMittenteEnum.EROGAZIONE_SOGGETTO);
 				t.setSoggetto(idApi.getSoggetto());
-				body.setMittente(t);
+				// Wrap FiltroMittenteErogazioneSoggettoImpl into the appropriate wrapper class
+				body.setMittente(new RicercaIntervalloTemporaleAllOfMittente(t));
 			}
 		} else {
 			body.setTipo(FiltroRicercaRuoloTransazioneEnum.FRUIZIONE);
@@ -682,7 +686,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			throw e;
 		} catch (Exception e) {
 			this.logger.error("Errore durante la serializzazione delle transazioni: " + e.getMessage(), e);
-			throw new InternalException("Errore durante la serializzazione delle transazioni: " + e.getMessage());
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 		
 	}
@@ -697,7 +701,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			if(apis.size() > 0) {
 				return;
 			} else {
-				throw new NotAuthorizedException("Transazione ["+transazione.getIdTraccia()+"] non associata a api del servizio selezionato");
+				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("idTraccia", transazione.getIdTraccia().toString()));
 			}
 
 			

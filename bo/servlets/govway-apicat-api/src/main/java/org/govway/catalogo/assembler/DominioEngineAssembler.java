@@ -21,6 +21,7 @@ package org.govway.catalogo.assembler;
 
 import org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 
 public class DominioEngineAssembler {
@@ -30,7 +31,7 @@ public class DominioEngineAssembler {
 		case PRIVATO: return VisibilitaDominioEnum.PRIVATO;
 		case PUBBLICO: return VisibilitaDominioEnum.PUBBLICO;
 		case RISERVATO: return VisibilitaDominioEnum.RISERVATO;
-		case COMPONENTE: throw new InternalException("Visibilita ["+VISIBILITA.COMPONENTE+"] non prevista per il dominio");
+		case COMPONENTE: throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("visibilita", VISIBILITA.COMPONENTE.toString()));
 		}
 		
 		return null;

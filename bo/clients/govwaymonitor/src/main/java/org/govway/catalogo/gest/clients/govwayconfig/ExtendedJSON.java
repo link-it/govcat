@@ -73,7 +73,6 @@ import org.govway.catalogo.gest.clients.govwayconfig.model.APIImplAutorizzazione
 import org.govway.catalogo.gest.clients.govwayconfig.model.ApiImplUrlInvocazioneView;
 import org.govway.catalogo.gest.clients.govwayconfig.model.ApiInterfacciaRest;
 import org.govway.catalogo.gest.clients.govwayconfig.model.ApiInterfacciaSoap;
-import org.govway.catalogo.gest.clients.govwayconfig.model.ControlloAccessiAutorizzazioneView;
 import org.govway.catalogo.gest.clients.govwayconfig.model.OneOfApiBaseTipoInterfaccia;
 import org.govway.catalogo.gest.clients.govwayconfig.model.OneOfControlloAccessiAutenticazioneAutenticazione;
 import org.govway.catalogo.gest.clients.govwayconfig.model.OneOfControlloAccessiAutorizzazioneViewAutorizzazione;
@@ -82,12 +81,12 @@ import org.govway.catalogo.gest.clients.govwayconfig.model.TipoAutenticazioneEnu
 import org.govway.catalogo.gest.clients.govwayconfig.model.TipoAutorizzazioneEnum;
 
 public class ExtendedJSON extends JSON {
-    private Gson gson;
-    private boolean isLenientOnJson = false;
-    private DateTypeAdapter dateTypeAdapter = new DateTypeAdapter();
-    private SqlDateTypeAdapter sqlDateTypeAdapter = new SqlDateTypeAdapter();
-    private OffsetDateTimeTypeAdapter offsetDateTimeTypeAdapter = new OffsetDateTimeTypeAdapter();
-    private LocalDateTypeAdapter localDateTypeAdapter = new LocalDateTypeAdapter();
+    private static Gson gson;
+    private static boolean isLenientOnJson = false;
+    private static DateTypeAdapter dateTypeAdapter = new DateTypeAdapter();
+    private static SqlDateTypeAdapter sqlDateTypeAdapter = new SqlDateTypeAdapter();
+    private static OffsetDateTimeTypeAdapter offsetDateTimeTypeAdapter = new OffsetDateTimeTypeAdapter();
+    private static LocalDateTypeAdapter localDateTypeAdapter = new LocalDateTypeAdapter();
     private OneOfApiBaseTipoInterfacciaAdapter oneOfApiBaseTipoInterfacciaAdapter = new OneOfApiBaseTipoInterfacciaAdapter();
     private OneOfControlloAccessiAutenticazioneAutenticazioneAdapter oneOfControlloAccessiAutenticazioneAutenticazione = new OneOfControlloAccessiAutenticazioneAutenticazioneAdapter();
     private OneOfControlloAccessiAutenticazioneAutorizzazioneAdapter oneOfControlloAccessiAutenticazioneAutorizzazione = new OneOfControlloAccessiAutenticazioneAutorizzazioneAdapter();
@@ -284,24 +283,21 @@ public class ExtendedJSON extends JSON {
      *
      * @return Gson
      */
-    public Gson getGson() {
+    public static Gson getGson() {
         return gson;
     }
 
     /**
      * Set Gson.
      *
-     * @param gson Gson
-     * @return JSON
+     * @param gsonToSet Gson
      */
-    public ExtendedJSON setGson(Gson gson) {
-        this.gson = gson;
-        return this;
+    public static void setGson(Gson gsonToSet) {
+        gson = gsonToSet;
     }
 
-    public ExtendedJSON setLenientOnJson(boolean lenientOnJson) {
+    public static void setLenientOnJson(boolean lenientOnJson) {
         isLenientOnJson = lenientOnJson;
-        return this;
     }
 
     /**
@@ -310,7 +306,7 @@ public class ExtendedJSON extends JSON {
      * @param obj Object
      * @return String representation of the JSON
      */
-    public String serialize(Object obj) {
+    public static String serialize(Object obj) {
         return gson.toJson(obj);
     }
 
@@ -323,7 +319,7 @@ public class ExtendedJSON extends JSON {
      * @return The deserialized Java object
      */
     @SuppressWarnings("unchecked")
-    public <T> T deserialize(String body, Type returnType) {
+    public static <T> T deserialize(String body, Type returnType) {
         try {
             if (isLenientOnJson) {
                 JsonReader jsonReader = new JsonReader(new StringReader(body));
@@ -389,7 +385,7 @@ public class ExtendedJSON extends JSON {
     /**
      * Gson TypeAdapter for JSR310 LocalDate type
      */
-    public class LocalDateTypeAdapter extends TypeAdapter<LocalDate> {
+    public static class LocalDateTypeAdapter extends TypeAdapter<LocalDate> {
 
         private DateTimeFormatter formatter;
 
@@ -691,14 +687,12 @@ public class ExtendedJSON extends JSON {
         }
     }
 
-    public ExtendedJSON setOffsetDateTimeFormat(DateTimeFormatter dateFormat) {
+    public static void setOffsetDateTimeFormat(DateTimeFormatter dateFormat) {
         offsetDateTimeTypeAdapter.setFormat(dateFormat);
-        return this;
     }
 
-    public ExtendedJSON setLocalDateFormat(DateTimeFormatter dateFormat) {
+    public static void setLocalDateFormat(DateTimeFormatter dateFormat) {
         localDateTypeAdapter.setFormat(dateFormat);
-        return this;
     }
 
     /**
@@ -814,14 +808,12 @@ public class ExtendedJSON extends JSON {
         }
     }
 
-    public ExtendedJSON setDateFormat(DateFormat dateFormat) {
+    public static void setDateFormat(DateFormat dateFormat) {
         dateTypeAdapter.setFormat(dateFormat);
-        return this;
     }
 
-    public ExtendedJSON setSqlDateFormat(DateFormat dateFormat) {
+    public static void setSqlDateFormat(DateFormat dateFormat) {
         sqlDateTypeAdapter.setFormat(dateFormat);
-        return this;
     }
 
 }

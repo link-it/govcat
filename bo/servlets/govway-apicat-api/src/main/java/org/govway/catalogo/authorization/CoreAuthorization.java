@@ -24,6 +24,7 @@ import org.govway.catalogo.RequestUtils;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,16 +37,17 @@ public class CoreAuthorization {
 	protected Configurazione configurazione;
 	
 	public UtenteEntity getUtenteSessione() {
-		return getUtenteSessione(this.configurazione.getUtente().isConsentiAccessoAnonimo());
+		boolean consentiAnonimo = this.configurazione.getUtente().isConsentiAccessoAnonimo();
+		return getUtenteSessione(consentiAnonimo);
 	}
 
 	private UtenteEntity getUtenteSessione(boolean consentiUtenteAnonimo) {
 		InfoProfilo utente = this.requestUtils.getPrincipal(!consentiUtenteAnonimo);
 		if(!consentiUtenteAnonimo) {
 			if(utente == null)
-				throw new NotAuthorizedException("Utente non specificato");
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			if(utente.utente == null)
-				throw new NotAuthorizedException("Utente non specificato");
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
 			return utente.utente;
 		} else {
 			if(utente != null) {
@@ -74,19 +76,19 @@ public class CoreAuthorization {
 	
 	public void requireAdmin() {
 		if(!isAdmin()) {
-			throw new NotAuthorizedException("Required: Ruolo " + Ruolo.AMMINISTRATORE);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 
 	public void requireLogged() {
 		if(isAnounymous()) {
-			throw new NotAuthorizedException("Required: Utente autenticato");
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 
 	public void requireReferenteTecnico() {
 		if(!isAdmin() && !isReferenteServizio() && !isReferenteTecnico()) {
-			throw new NotAuthorizedException("Required: Utente referente tecnico");
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 

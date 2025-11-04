@@ -4,21 +4,16 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
-import { BsDatepickerConfig, BsDatepickerContainerComponent, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
-import { TimepickerConfig } from 'ngx-bootstrap/timepicker';
+import { BsDatepickerConfig, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import * as moment from 'moment';
 
-import { BarVertical2DComponent, BarVerticalComponent, LegendPosition, LineChartComponent, PieChartComponent } from '@swimlane/ngx-charts';
-import { ScaleType } from '@swimlane/ngx-charts';
-import { colorSets } from '@swimlane/ngx-charts';
+import { BarVertical2DComponent, BarVerticalComponent, LegendPosition, LineChartComponent, PieChartComponent, ScaleType, colorSets } from '@swimlane/ngx-charts';
 import * as htmlToImage from 'html-to-image';
-import { set } from 'lodash';
 
 enum ReportTypeInformationEnum {
   NumberOfTransactions = 'numero_transazioni',
@@ -65,6 +60,7 @@ enum TimeTrendReportType {
 interface DistributionType {
   trendReport: boolean;
   value: string;
+  code: string;
   label: string;
   tableFirstColumnLabel: string;
 }
@@ -137,6 +133,20 @@ interface DownloadType {
   acceptHeader: string;
 }
 
+enum StatisticCode {
+  AndamentoTemporale = 'andamento_temporale',
+  DistribuzioneEsiti = 'distribuzione_esiti',
+  DistribuzioneErrori = 'distribuzione_errori',
+  DistribuzioneSoggettoRemoto = 'distribuzione_soggetto_remoto',
+  DistribuzioneOperazione = 'distribuzione_operazione',
+  DistribuzioneApplicativo = 'distribuzione_applicativo',
+  DistribuzioneIp = 'distribuzione_ip',
+  DistribuzioneTokenClientId = 'distribuzione_token_client_id',
+  DistribuzioneIssuer = 'distribuzione_token_issuer',
+  DistribuzionePrincipal = 'distribuzione_principal',
+  DistribuzioneApi = 'distribuzione_api', // NOT IMPLEMENTED
+}
+
 enum StatisticsUrl {
   AndamentoTemporale = 'andamento-temporale',
   DistribuzioneEsiti = 'distribuzione-esiti',
@@ -148,6 +158,7 @@ enum StatisticsUrl {
   DistribuzioneTokenClientId = 'distribuzione-token-clientid',
   DistribuzioneIssuer = 'distribuzione-token-issuer',
   DistribuzionePrincipal = 'distribuzione-principal',
+  DistribuzioneApi = 'distribuzione-api', // NOT IMPLEMENTED
 }
 
 const domainStatistics = [
@@ -175,6 +186,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   service: any = null;
 
+  generalConfig: any = Tools.Configurazione || null;
   config: any;
   statisticheConfig: any;
 
@@ -193,20 +205,23 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   _error: boolean = false;
   _errorMsg: string = '';
 
-  breadcrumbs: any[] = [];
+  breadcrumbs: any[] = [
+    { label: 'APP.TITLE.Services', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
+    { label: '...', url: '', type: 'title' }
+  ];
 
   single: {name: string, value: number}[] = [];
   multi: {name: string, series: {name: string, value: number}[]}[] = [];
   multi_bar_chart: {name: string, series: {name: string, value: number}[]}[] = [];
 
   get multi_table_rows() {
-    var rows:any = [];
+    let rows:any = [];
 
     // map this.multi.series to rows
     this.multi.forEach((serie) => {
       serie.series.forEach((row) => {
         const existingRow = rows.find((r:any) => r.name === row.name);
-        if(existingRow){
+        if (existingRow) {
           existingRow[serie.name] = row.value;
         } else {
           const newRow:any = {name: row.name};
@@ -215,7 +230,6 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
         }
       });
     });
-
 
     return rows;
   }
@@ -278,7 +292,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   };
 
   get colorSchemeResolved() {
-    if(this._formGroup.get('distribution_type')?.value.value === 'distribuzione-esiti'){
+    if (this._formGroup.get('distribution_type')?.value.value === 'distribuzione-esiti') {
       return this.linkitColorScheme;
     }
     return this.colorScheme;
@@ -286,14 +300,15 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   tipoGrafico: ReportType|TimeTrendReportType = ReportType.Bar; // bar - line - pie - table
 
-  exportList: DownloadType[] = [
-    { label: 'CVS', icon: 'filetype-csv', action: 'export-cvs', acceptHeader: 'text/csv' },
+  exportList: DownloadType[] = [];
+  exportListDefault: DownloadType[] = [
+    { label: 'CSV', icon: 'filetype-csv', action: 'export-csv', acceptHeader: 'text/csv' },
     { label: 'XLS', icon: 'filetype-xls', action: 'export-xls', acceptHeader: 'application/vnd.ms-excel' },
     { label: 'PDF', icon: 'filetype-pdf', action: 'export-pdf', acceptHeader: 'application/pdf' },
     { label: 'PNG', icon: 'filetype-png', action: 'export-png', acceptHeader: 'image/png' },
   ];
 
-  private _bsDatepickerConfig: Partial<BsDatepickerConfig> = {
+  private readonly _bsDatepickerConfig: Partial<BsDatepickerConfig> = {
     adaptivePosition: true,
     withTimepicker: false,
     containerClass: 'theme-dark-blue',
@@ -307,7 +322,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     dateInputFormat: 'DD/MM/YYYY'
   };
 
-  private _bsDatepickerConfigWithTime: Partial<BsDatepickerConfig> = {
+  private readonly _bsDatepickerConfigWithTime: Partial<BsDatepickerConfig> = {
     adaptivePosition: true,
     withTimepicker: true,
     containerClass: 'theme-dark-blue',
@@ -335,19 +350,25 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   @ViewChild('captureGraphArea', { static: false }) captureGraphArea: any;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
     public tools: Tools,
     public apiService: OpenAPIService,
-    private authenticationService: AuthenticationService
+    private readonly authenticationService: AuthenticationService
   ) {
     Object.assign(this, {
       colorSets
     });
 
     this.config = this.configService.getConfiguration();
+
+    const allowedExportTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.formati_report || [];
+    const filteredExportList = allowedExportTypes.length
+        ? this.exportListDefault.filter(el => allowedExportTypes.includes(el.action.split('export-')[1]))
+        : this.exportListDefault;
+    this.exportList = [ ...filteredExportList ];
 
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
@@ -361,10 +382,6 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   ngOnInit() {
-    // setTimeout(() => {
-    //   this.eventsManagerService.broadcast(EventType.LAYOUT_FULLWIDTH, { value: true });
-    // }, 200);
-
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.id = params['id'];
@@ -396,7 +413,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   _initBreadcrumb() {
-    const _title = this.service ? this.service.nome + ' v. ' + this.service.versione : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    let _title: string;
+    if (this.service) {
+      _title = this.service.nome + ' v. ' + this.service.versione;
+    } else if (this.id) {
+      _title = `${this.id}`;
+    } else {
+      _title = this.translate.instant('APP.TITLE.New');
+    }
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
     this.breadcrumbs = [
@@ -445,14 +469,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     apiControl.valueChanges.subscribe((value: any) => this.setupAdesioneField(value));
 
     dateFromControl.valueChanges.subscribe((value: Date) => {
-      if(!value || value.getMinutes() === 0) return;
+      if (!value || value.getMinutes() === 0) return;
 
       value.setMinutes(0, 0, 0);
       this.dpFrom.bsValueChange.next(value);
     });
 
     dateToControl.valueChanges.subscribe((value: Date) => {
-      if(!value || value.getMinutes() === 0) return;
+      if (!value || value.getMinutes() === 0) return;
 
       value.setMinutes(0, 0, 0);
       this.dpTo.bsValueChange.next(value);
@@ -478,7 +502,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       }
 
       this.colorSchemeChangeEnabled = true;
-      if(current.value === 'distribuzione-esiti'){
+      if (current.value === 'distribuzione-esiti') {
         this.colorSchemeChangeEnabled = false;
       }
 
@@ -510,7 +534,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   private prepareTransactionOutcomeField(isErrorDistribution: boolean) {
     this.transactionOutcomes = isErrorDistribution ? this._transactionOutcomes.filter((o) => o.value !== TransactionOutcome.OK): this._transactionOutcomes;
     const transactionOutcomeControl = this._formGroup.get('report_transaction_outcome_type');
-    if(transactionOutcomeControl && isErrorDistribution && transactionOutcomeControl.value === TransactionOutcome.OK){
+    if (transactionOutcomeControl && isErrorDistribution && transactionOutcomeControl.value === TransactionOutcome.OK) {
       transactionOutcomeControl.setValue(null);
     }
   }
@@ -520,22 +544,35 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     if (!adesioneControl) return;
 
     adesioneControl.enable();
-    console.log('adesioneControlEnabled');
+
+    let _distributionTypes: DistributionType[] = [];
     if (apiValue && apiValue.ruolo === 'erogato_soggetto_aderente') {
-      adesioneControl.setValidators([Validators.required]);
-      this.distributionTypes = [...this.distributionTypesDefault, ...this.distributionTypesAdherentSubject];
+        adesioneControl.setValidators([Validators.required]);
+        _distributionTypes = [
+          ...this.distributionTypesDefault,
+          ...this.distributionTypesAdherentSubject
+        ];
     } else {
-      adesioneControl.clearValidators();
-      this.distributionTypes = [...this.distributionTypesDefault, ...this.distributionTypesSubjectDomain];
+        adesioneControl.clearValidators();
+        _distributionTypes = [
+          ...this.distributionTypesDefault,
+          ...this.distributionTypesSubjectDomain
+        ];
 
-      const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
+        const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
 
-      if (!distributionType || !domainStatistics.some((s) => s === distributionType.value)) {
-        adesioneControl.setValue(null);
-        adesioneControl.disable();
-        console.log('adesioneControlDisabled');
-      }
+        if (!distributionType || !domainStatistics.some((s) => s === distributionType.value)) {
+          adesioneControl.setValue(null);
+          adesioneControl.disable();
+        }
     }
+
+    const allowedTypes: string[] = this.generalConfig?.monitoraggio?.statistiche?.tipi_distribuzione || [];
+    const filteredDistributionTypes = allowedTypes.length
+        ? _distributionTypes.filter(dt => allowedTypes.includes(dt.code))
+        : _distributionTypes;
+    this.distributionTypes = [ ...filteredDistributionTypes ];
+
     adesioneControl.updateValueAndValidity();
   }
 
@@ -550,7 +587,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   public canShowAdesioneSubjectDomain() {
     const distributionType: DistributionType = this._formGroup.get('distribution_type')?.value;
-    if(!distributionType || !domainStatistics.some((s) => s === distributionType.value)) return false;
+    if (!distributionType || !domainStatistics.some((s) => s === distributionType.value)) return false;
 
     const api = this._formGroup.get('api')?.value;
     return api && api.ruolo !== 'erogato_soggetto_aderente';
@@ -588,9 +625,9 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   private preselectAndMakeApiReadonlyIfOnlyOne() {
     this.setupAdesioneField(null);
-    if(this.apis.length === 1){
+    if (this.apis.length === 1) {
       const apiControl = this._formGroup.get('api');
-      if(!apiControl) return;
+      if (!apiControl) return;
       apiControl.setValue(this.apis[0]);
       apiControl.disable();
 
@@ -613,22 +650,22 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   public distributionTypes: DistributionType[] = [];
 
   public distributionTypesDefault: DistributionType[] = [
-    { trendReport: true, value: StatisticsUrl.AndamentoTemporale, label: 'Andamento Temporale', tableFirstColumnLabel: 'Data'},
-    { trendReport: true, value: StatisticsUrl.DistribuzioneEsiti, label: 'Distribuzione per Esiti', tableFirstColumnLabel: 'Data' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneErrori, label: 'Distribuzione per Errori', tableFirstColumnLabel: 'Esito' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneSoggettoRemoto, label: 'Distribuzione per Soggetto Remoto', tableFirstColumnLabel: 'Soggetto' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneOperazione, label: 'Distribuzione per Operazione', tableFirstColumnLabel: 'Azione' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneApplicativo, label: 'Distribuzione per Applicativo', tableFirstColumnLabel: 'Applicativo' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneIp, label: 'Distribuzione per Indirizzo IP',  tableFirstColumnLabel: 'Indirizzo IP' },
+    { trendReport: true, value: StatisticsUrl.AndamentoTemporale, code: StatisticCode.AndamentoTemporale, label: 'Andamento Temporale', tableFirstColumnLabel: 'Data'},
+    { trendReport: true, value: StatisticsUrl.DistribuzioneEsiti, code: StatisticCode.DistribuzioneEsiti, label: 'Distribuzione per Esiti', tableFirstColumnLabel: 'Data' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneErrori, code: StatisticCode.DistribuzioneErrori, label: 'Distribuzione per Errori', tableFirstColumnLabel: 'Esito' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneSoggettoRemoto, code: StatisticCode.DistribuzioneSoggettoRemoto, label: 'Distribuzione per Soggetto Remoto', tableFirstColumnLabel: 'Soggetto' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneOperazione, code: StatisticCode.DistribuzioneOperazione, label: 'Distribuzione per Operazione', tableFirstColumnLabel: 'Azione' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneApplicativo, code: StatisticCode.DistribuzioneApplicativo, label: 'Distribuzione per Applicativo', tableFirstColumnLabel: 'Applicativo' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneIp, code: StatisticCode.DistribuzioneIp, label: 'Distribuzione per Indirizzo IP',  tableFirstColumnLabel: 'Indirizzo IP' },
   ];
 
   public distributionTypesSubjectDomain: DistributionType[] = [
-    { trendReport: false, value: StatisticsUrl.DistribuzioneTokenClientId, label: 'Distribuzione per Token ClientId', tableFirstColumnLabel: 'ClientId' },
-    { trendReport: false, value: StatisticsUrl.DistribuzioneIssuer, label: 'Distribuzione per Token Issuer', tableFirstColumnLabel: 'Issuer' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneTokenClientId, code: StatisticCode.DistribuzioneTokenClientId, label: 'Distribuzione per Token ClientId', tableFirstColumnLabel: 'ClientId' },
+    { trendReport: false, value: StatisticsUrl.DistribuzioneIssuer, code: StatisticCode.DistribuzioneIssuer, label: 'Distribuzione per Token Issuer', tableFirstColumnLabel: 'Issuer' },
   ];
 
   public distributionTypesAdherentSubject: DistributionType[] = [
-    { trendReport: false, value: StatisticsUrl.DistribuzionePrincipal, label: 'Distribuzione per Principal', tableFirstColumnLabel: 'Principal' },
+    { trendReport: false, value: StatisticsUrl.DistribuzionePrincipal, code: StatisticCode.DistribuzionePrincipal, label: 'Distribuzione per Principal', tableFirstColumnLabel: 'Principal' },
   ];
 
   public reportTypeInformations = [
@@ -644,7 +681,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     { value: ReportTimeInterval.Monthly, label: this.translate.instant('APP.LABEL.' + ReportTimeInterval.Monthly) },
   ];
 
-  private _transactionOutcomes: {value: string, label: string}[] = [ 
+  public _transactionOutcomes: {value: string, label: string}[] = [ 
     { value: TransactionOutcome.Personalized, label: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Personalized) },
     { value: TransactionOutcome.OK, label: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.OK) },
     { value: TransactionOutcome.Fault, label: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Fault) },
@@ -674,12 +711,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
     const ambiente = this.environmentId === 'collaudo' ? 'collaudo' : 'produzione';
     const erogazioneOrFruizione = this._tipoVerifica(api);
-    // const pdndOrModi = this._isSoggettoPDND() ? 'pdnd' : 'modi';
     const _soggetto = this._getSoggettoNome();
 
     const distibutionType: DistributionType = formValue.distribution_type;
 
-    // return `${ambiente}/${erogazioneOrFruizione}/${pdndOrModi}/report/${distibutionType.value}`;
     return `${ambiente}/${erogazioneOrFruizione}/${_soggetto}/report/${distibutionType.value}`;
   }
 
@@ -733,7 +768,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     httpParams = httpParams.set('id_servizio', this.service.id_servizio);
     httpParams = httpParams.set('id_api', this._formGroup.get('api')?.value.id_api);
 
-    if(formValue.report_transaction_outcome_type){
+    if (formValue.report_transaction_outcome_type) {
       httpParams = httpParams.set('esito', formValue.report_transaction_outcome_type);
     }
 
@@ -749,16 +784,15 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   _onSubmit(formValue: any) {
-    console.log('onSubmit', formValue);
     this._formGroup.markAllAsTouched();
-    if(this._formGroup.invalid) return;
+    if (this._formGroup.invalid) return;
 
     const api = this._formGroup.get('api')?.value;
 
     let momentFrom = moment(formValue.report_date_from);
     let momentTo = moment(formValue.report_date_to);
 
-    if(!this.useTimepicker){
+    if (!this.useTimepicker) {
       momentFrom = momentFrom.startOf('day');
       momentTo = momentTo.startOf('day');
     }
@@ -786,17 +820,14 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       tipo_informazione_report: formValue.report_information_type,
     }
 
-    if(formValue.report_transaction_outcome_type || (formValue.report_transaction_outcome_codes && formValue.report_transaction_outcome_codes.length)){
+    if (formValue.report_transaction_outcome_type || formValue.report_transaction_outcome_codes?.length) {
       request.esito = {
         tipo: formValue.report_transaction_outcome_type ? formValue.report_transaction_outcome_type : undefined,
-        codici: formValue.report_transaction_outcome_codes && formValue.report_transaction_outcome_codes.length > 0 ? formValue.report_transaction_outcome_codes : undefined
+        codici: formValue.report_transaction_outcome_codes?.length > 0 ? formValue.report_transaction_outcome_codes : undefined
       }
     }
 
     const url = this._getReportUri(formValue);
-
-    console.log('url', url);  
-    console.log('request', request);
 
     this.single = [];
     this.multi = [];
@@ -805,95 +836,106 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     this._spin = true;
     this._setErrorMessages(false);
 
-    this.apiService.postMonitor(url, request).subscribe((result: {valori: any[]}) => { 
-      this._spin = false;
+    this.apiService.postMonitor(url, request).subscribe({
+      next: (result: {valori: any[]}) => { 
+        this._spin = false;
 
-      if(!result || !result.valori || !result.valori.length){
-        // this._setErrorMessages(true);
-        // this._errorMsg = this.translate.instant('APP.MESSAGE.NoTransactionsForPeriod');
-        this._message = 'APP.MESSAGE.NoTransactionsForPeriod';
-        this._messageHelp = 'APP.MESSAGE.NoTransactionsForPeriodHelp';  
-        return;
+        if (!result?.valori?.length) {
+          this._message = 'APP.MESSAGE.NoTransactionsForPeriod';
+          this._messageHelp = 'APP.MESSAGE.NoTransactionsForPeriodHelp';  
+          return;
+        }
+
+        switch (distibutionType.value) {
+          case StatisticsUrl.AndamentoTemporale: {
+            const values = result.valori as TimeProgressionItem[];
+            this.single = values.map((v) => ({name: v.data, value: v.valore}));
+
+            this.multi = [
+              {name: this.translate.instant('APP.LABEL.' + formValue.report_information_type), series: values.map((v) => ({name: v.data, value: v.valore}))},
+            ];;
+            this.multi_bar_chart = values.map((v) => {
+              return {
+                name: v.data,
+                series: [
+                  {name: this.translate.instant('APP.LABEL.' + formValue.report_information_type), value: v.valore},
+                ]
+              }
+            });
+            break;
+          }
+          case StatisticsUrl.DistribuzioneEsiti: {
+            const outcomeValues = result.valori as DistributionOutcomeItem[];
+            this.single = outcomeValues.map((v) => ({name: v.data, value: v.valore_ok}));
+            
+            this.multi_bar_chart = outcomeValues.map((v) => {
+              return {
+                name: v.data,
+                series: [
+                  {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.OK), value: v.valore_ok},
+                  {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Fault), value: v.valore_fault},
+                  {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Failed), value: v.valore_fallite},
+                ]
+              }
+            });
+
+            this.multi = [
+              {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.OK), series: outcomeValues.map((v) => ({name: v.data, value: v.valore_ok}))},
+              {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Fault), series: outcomeValues.map((v) => ({name: v.data, value: v.valore_fault}))},
+              {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Failed), series: outcomeValues.map((v) => ({name: v.data, value: v.valore_fallite}))},
+            ];
+            break;
+          }
+          case StatisticsUrl.DistribuzioneErrori: {
+            const errorValues = result.valori as DistributionErrorItem[];
+            this.single = errorValues.map((v) => ({name: v.esito.toString(), value: v.valore}));
+            break;
+          }
+          case StatisticsUrl.DistribuzioneSoggettoRemoto: {
+            const remoteSubjectValues = result.valori as DistributionRemoteSubjectItem[];
+            this.single = remoteSubjectValues.map((v) => ({name: v.nome, value: v.valore}));
+            break;
+          }
+          case StatisticsUrl.DistribuzioneOperazione: {
+            //checkout grouping below
+            const operationValues = result.valori as DistributionOperationItem[];
+            this.single = operationValues.map((v) => ({name: v.operazione, value: v.valore}));
+            break;
+          }
+          case StatisticsUrl.DistribuzioneApplicativo: {
+            // does not work
+            const applicationValues = result.valori as DistributionApplicationItem[];
+            this.single = applicationValues.map((v) => ({name: v.nome, value: v.valore}));
+            break;
+          }
+          case StatisticsUrl.DistribuzioneTokenClientId: {
+            // possibly multi
+            const tokenClientIdValues = result.valori as DistributionTokenClientIdItem[];
+            this.single = tokenClientIdValues.map((v) => ({name: v.client_id, value: v.valore}));
+            break;
+          }
+          case StatisticsUrl.DistribuzioneIssuer: {
+            const tokenIssuerValues = result.valori as DistributionTokenIssuerItem[];
+            this.single = tokenIssuerValues.map((v) => ({name: v.issuer, value: v.valore}));
+            break;
+          }
+          case StatisticsUrl.DistribuzionePrincipal: {
+            const principalValues = result.valori as DistributionPrincipalItem[];
+            this.single = principalValues.map((v) => ({name: v.indirizzo, value: v.valore}));
+            break;
+          }
+          case StatisticsUrl.DistribuzioneIp: {
+            const ipValues = result.valori as DistributionIpItem[];
+            this.single = ipValues.map((v) => ({name: v.indirizzo, value: v.valore}));
+            break;
+          }
+        }
+      },
+      error: (error: any) => {
+        this._spin = false;
+        this._setErrorMessages(true);
+        this._errorMsg = error.error?.message || error.message;
       }
-
-      switch(distibutionType.value){
-        case 'andamento-temporale':
-          const values = result.valori as TimeProgressionItem[];
-          this.single = values.map((v) => ({name: v.data, value: v.valore}));
-
-          this.multi = [
-            {name: this.translate.instant('APP.LABEL.' + formValue.report_information_type), series: values.map((v) => ({name: v.data, value: v.valore}))},
-          ];;
-          this.multi_bar_chart = values.map((v) => {
-            return {
-              name: v.data,
-              series: [
-                {name: this.translate.instant('APP.LABEL.' + formValue.report_information_type), value: v.valore},
-              ]
-            }
-          });
-          break;
-        case 'distribuzione-esiti':
-          const outcomeValues = result.valori as DistributionOutcomeItem[];
-          this.single = outcomeValues.map((v) => ({name: v.data, value: v.valore_ok}));
-          
-          this.multi_bar_chart = outcomeValues.map((v) => {
-            return {
-              name: v.data,
-              series: [
-                {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.OK), value: v.valore_ok},
-                {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Fault), value: v.valore_fault},
-                {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Failed), value: v.valore_fallite},
-              ]
-            }
-          });
-
-          this.multi = [
-            {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.OK), series: outcomeValues.map((v) => ({name: v.data, value: v.valore_ok}))},
-            {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Fault), series: outcomeValues.map((v) => ({name: v.data, value: v.valore_fault}))},
-            {name: this.translate.instant('APP.LABEL.TRANSACTION_OUTCOME.' + TransactionOutcome.Failed), series: outcomeValues.map((v) => ({name: v.data, value: v.valore_fallite}))},
-          ];
-          break;
-        case 'distribuzione-errori':
-          const errorValues = result.valori as DistributionErrorItem[];
-          this.single = errorValues.map((v) => ({name: v.esito.toString(), value: v.valore}));
-          break;
-        case 'distribuzione-soggetto-remoto':
-          const remoteSubjectValues = result.valori as DistributionRemoteSubjectItem[];
-          this.single = remoteSubjectValues.map((v) => ({name: v.nome, value: v.valore}));
-          break;
-        case 'distribuzione-operazione':
-          //checkout grouping below
-          const operationValues = result.valori as DistributionOperationItem[];
-          this.single = operationValues.map((v) => ({name: v.operazione, value: v.valore}));
-          break;
-        case 'distribuzione-applicativo':
-          // does not work
-          const applicationValues = result.valori as DistributionApplicationItem[];
-          this.single = applicationValues.map((v) => ({name: v.nome, value: v.valore}));
-          break;
-        case 'distribuzione-token-clientid':
-          // possibly multi
-          const tokenClientIdValues = result.valori as DistributionTokenClientIdItem[];
-          this.single = tokenClientIdValues.map((v) => ({name: v.client_id, value: v.valore}));
-          break;
-        case 'distribuzione-token-issuer':
-          const tokenIssuerValues = result.valori as DistributionTokenIssuerItem[];
-          this.single = tokenIssuerValues.map((v) => ({name: v.issuer, value: v.valore}));
-          break;
-        case 'distribuzione-principal':
-          const principalValues = result.valori as DistributionPrincipalItem[];
-          this.single = principalValues.map((v) => ({name: v.indirizzo, value: v.valore}));
-          break;
-        case 'distribuzione-ip':
-          const ipValues = result.valori as DistributionIpItem[];
-          this.single = ipValues.map((v) => ({name: v.indirizzo, value: v.valore}));
-          break;
-      }
-    }, error => {
-      this._spin = false;
-      this._setErrorMessages(true);
-      this._errorMsg = error.error?.message || error.message;
     });
   }
 
@@ -929,14 +971,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     }, 300);
   }
 
-  onSelect(event: any) {
-    // console.log(event);
-  }
-
-  onResize(event: any) {
-    console.log(event);
-    // this.view = [event.target.innerWidth - 600, event.target.innerHeight - 200];
-  }
+  onSelect(event: any) {}
 
   setTipoGrafico(type: any) {
     this.tipoGrafico = type
@@ -944,11 +979,11 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
   onExport(downloadType: DownloadType) {
     this._formGroup.markAllAsTouched();
-    if(this._formGroup.invalid) return;
+    if (this._formGroup.invalid) return;
 
     const fileName = this._formGroup.get('distribution_type')?.value.value;
 
-    if('export-png' === downloadType.action) {
+    if ('export-png' === downloadType.action) {
       let nodeList: NodeList = this.captureGraphArea.nativeElement.querySelectorAll('.ngx-charts-outer');
 
       let preservedAnimation = '';
@@ -963,7 +998,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
           (node as HTMLDivElement).style.animation = preservedAnimation;
         });
       });
-    }else{
+    } else {
       const url = this._getReportUri(this._formGroup.value);
       const httpParams = this.prepareDownloadUrlQuery( this._formGroup.value);
   
@@ -972,21 +1007,24 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   
       this._spin = true;
       this._setErrorMessages(false);
-      this.apiService.downloadMonitor(url, httpParams, headers).subscribe((result: HttpResponse<Blob>) => {
-        this._spin = false;
-        const blob = new Blob([result.body as BlobPart], { type: downloadType.acceptHeader });
+      this.apiService.downloadMonitor(url, httpParams, headers).subscribe({
+        next: (result: HttpResponse<Blob>) => {
+          this._spin = false;
+          const blob = new Blob([result.body as BlobPart], { type: downloadType.acceptHeader });
 
-        const anchor = document.createElement('a');
+          const anchor = document.createElement('a');
 
-        anchor.download = fileName;
-        anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
-        anchor.dataset.downloadurl = [downloadType.acceptHeader, anchor.download, anchor.href].join(':');
-        anchor.click();
-        
-      }, error => {
-        this._spin = false;
-        this._setErrorMessages(true);
-        this._errorMsg = error.error?.message || error.message;
+          anchor.download = fileName;
+          anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+          anchor.dataset.downloadurl = [downloadType.acceptHeader, anchor.download, anchor.href].join(':');
+          anchor.click();
+          
+        },
+        error: (error: any) => {
+          this._spin = false;
+          this._setErrorMessages(true);
+          this._errorMsg = error.error?.message || error.message;
+        }
       });
     }
   }

@@ -81,6 +81,10 @@ public class GruppoServizio {
 		return this;
 	}
 
+	public boolean isModI() {
+		return this.getProfilo().equals("ModIPA") || this.getProfilo().equals("ModI");
+	}
+	
 	public AmbienteEnum getAmbienteConfigurazione() {
 		return adesione.getAmbienteConfigurazione();
 	}

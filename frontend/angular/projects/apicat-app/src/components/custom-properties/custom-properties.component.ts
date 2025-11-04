@@ -5,6 +5,7 @@ import { Tools } from '@linkit/components';
 import { EventsManagerService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { UtilService } from '@app/services/utils.service';
 
 import { EventType } from '@linkit/components';
 
@@ -85,7 +86,8 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
         private formBuilder: FormBuilder,
         private eventsManagerService: EventsManagerService,
         private authenticationService: AuthenticationService,
-        private apiService: OpenAPIService
+        private apiService: OpenAPIService,
+        private utils: UtilService
     ) {}
 
     ngOnInit() {
@@ -240,7 +242,7 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
             (error: any) => {
                 this._spin = false;
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
         );
     }
@@ -255,8 +257,10 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
             if (this.api) {
                 _apiGrouped.api = this.api.id_api;
             }
+            // Use nome_gruppo from the first item in the group instead of the grouping key
+            const firstItem = this._proprietaCustomGrouped[k][0];
             const _customGrouped: any = {
-                gruppo: k,
+                gruppo: firstItem.nome_gruppo,
                 proprieta: []
             };
             this._proprietaCustomGrouped[k].forEach((item: any) => {
@@ -332,7 +336,7 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });

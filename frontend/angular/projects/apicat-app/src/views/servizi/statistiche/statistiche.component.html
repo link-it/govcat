@@ -2,11 +2,7 @@
   <div class="container-fluid top-area px-0">
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
-    <div class="nav-controls">
-      <!-- <div class="position-relative" *ngIf="service">
-        <app-back-web [service_id]="service.id_servizio"></app-back-web>
-      </div> -->
-    </div>
+    <div class="nav-controls"></div>
   </div>
   <div class="top-area">
     <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
@@ -34,10 +30,14 @@
       </div>
       <div class="btn-group- ms-2">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary- dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
-            <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
+          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="export" [disabled]="(!single || single.length < 1) && (!multi || multi.length < 1)">
+            <div class="d-flex flex-row gap-2">
+              <i class="bi bi-download"></i>
+              <span class="">{{ 'APP.MENU.Export' | translate }}</span>
+              <i class="bi bi-chevron-down ms-2"></i>
+            </div>
           </button>
-          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+          <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
             <div class="gl-new-dropdown-inner">
               <div class="gl-new-dropdown-contents">
                 <li class="gl-new-dropdown-item" *ngFor="let item of exportList">
@@ -58,12 +58,16 @@
       <div class="btn-group- ms-1">
         <div class="dropdown b-dropdown gl-new-dropdown btn-group">
           <button [disabled]="!colorSchemeChangeEnabled" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="themes">
-            <i class="bi bi-palette"></i> <span class="ms-2">{{ 'Color Scheme' }}</span>
+            <div class="d-flex flex-row gap-2">
+              <i class="bi bi-palette"></i>
+              <span class="">{{ 'Color Scheme' }}</span>
+              <i class="bi bi-chevron-down ms-2"></i>
+            </div>
           </button>
-          <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
+          <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="theme">
             <div class="gl-new-dropdown-inner">
               <div class="gl-new-dropdown-contents">
-                <li role="presentation" class="gl-new-dropdown-item" *ngFor="let item of colorSets">
+                <li class="gl-new-dropdown-item" *ngFor="let item of colorSets">
                   <button role="menuitem" type="button" class="dropdown-item" (click)="setColorScheme(item.name)">
                     <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                       <i class="bi bi-check2" *ngIf="selectedColorScheme == item.name"></i>
@@ -145,7 +149,8 @@
                                 {{ item.soggetto.nome }}
                               </ng-template>
                               <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                <div class="fw-bold">{{ item.soggetto.nome }}</div>
+                                <div class="fw-bold">{{ item.servizio.nome }} v.{{ item.servizio.versione }}</div>
+                                <div>{{ item.soggetto.nome }} <span *ngIf="item.id_logico"> - {{ item.id_logico }}</span></div>
                               </ng-template>
                             </ng-select>
                             <p *ngIf="_formGroup.get('adesione')?.dirty || _formGroup.get('adesione')?.touched" class="form-text text-danger">
@@ -183,7 +188,7 @@
                       <div class="row">
                         <div class="col-12">
                           <div class="form-group">
-                            <label class="label-bold">{{ 'APP.LABEL.ReportType' | translate }}</label>
+                            <span class="label label-bold">{{ 'APP.LABEL.ReportType' | translate }}</span>
                             <div class="text-center">
                               <div class="btn-group w-100" aria-label="Chart type">
                                 <button *ngIf="_formGroup.get('distribution_type')?.value?.trendReport" [disabled]="!_formGroup.get('distribution_type')?.value" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="setTipoGrafico('line')" [class.btn-confirm]="tipoGrafico === 'line'"><i class="bi bi-graph-up"></i></button>
@@ -292,7 +297,8 @@
                                 {{ item.soggetto.nome }}
                               </ng-template>
                               <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                <div class="fw-bold">{{ item.soggetto.nome }}</div>
+                                <div class="fw-bold">{{ item.servizio.nome }} v.{{ item.servizio.versione }}</div>
+                                <div>{{ item.soggetto.nome }} <span *ngIf="item.id_logico"> - {{ item.id_logico }}</span></div>
                               </ng-template>
                             </ng-select>
                             <p *ngIf="_formGroup.get('adesione')?.dirty || _formGroup.get('adesione')?.touched" class="form-text text-danger">
@@ -472,8 +478,7 @@
                         [maxYAxisTickLength]="chartOptions.maxYAxisTickLength"
                         (select)="onSelect($event)"
                         (activate)="onSelect($event)"
-                        (deactivate)="onSelect($event)"
-                        (window:resize)="onResize($event)">
+                        (deactivate)="onSelect($event)">
                       </ngx-charts-bar-vertical>
                     </div>
                   </div>

@@ -76,6 +76,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -94,13 +95,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class GestioneServiziAPITest {
 	private static final String UTENTE_REFERENTE_SERVIZIO = "utente_referente__servizio";
 	private static final String UTENTE_REFERENTE_TECNICO_SERVIZIO = "utente_referente_tecnico__servizio";
@@ -148,6 +155,9 @@ public class GestioneServiziAPITest {
     
     @Autowired
     private AdesioniController adesioniController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UUID idServizio;
     private UUID idOrganizzazione;
@@ -279,7 +289,7 @@ public class GestioneServiziAPITest {
 				break;
 			case RISERVATO: valueDominio = VisibilitaDominioEnum.RISERVATO;
 				break;
-			case COMPONENTE: throw new InternalException("Impossibile impostare la visibilita componente per un dominio");
+			case COMPONENTE: throw new RuntimeException("Impossibile impostare la visibilita componente per un dominio");
 			default:
 				break;}
         	
@@ -299,6 +309,8 @@ public class GestioneServiziAPITest {
         ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+        entityManager.flush();
+        entityManager.clear();
         return createdDominio.getBody();
     }
     
@@ -345,7 +357,8 @@ public class GestioneServiziAPITest {
          Servizio servizio = createdServizio.getBody();
 
          this.setIdServizio(servizio.getIdServizio());
-         
+         entityManager.flush();
+         entityManager.clear();
          return servizio;
     }
     
@@ -354,7 +367,8 @@ public class GestioneServiziAPITest {
         apiCreate.setIdServizio(idServizio);
 
         ResponseEntity<API> response = apiController.createApi(apiCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         return response.getBody();
     }
     

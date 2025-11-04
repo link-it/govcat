@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.govway.catalogo</groupId>
 	<artifactId>govcat</artifactId>
-	<version>2.2</version>
+	<version>2.3</version>
 	<packaging>pom</packaging>
 	<name>govcat</name>
 	<description>progetto govcat</description>
@@ -20,9 +20,10 @@
 			</activation>
 
 			<properties>
-				<web.warName>govcat-web</web.warName>
-				<api.warName>govcat-api</api.warName>
-				<batch.warName>govcat-batch</batch.warName>
+				<app.suffix></app.suffix>
+				<web.warName>govcat-web${app.suffix}</web.warName>
+				<api.warName>govcat-api${app.suffix}</api.warName>
+				<batch.warName>govcat-batch${app.suffix}</batch.warName>
 			</properties>
 
 			<build>
@@ -145,6 +146,7 @@
 		<module>web</module>
 		<module>configuratore</module>
 		<module>tools</module>
+		<module>jacoco-aggregate</module>
 	</modules>
 
 	<properties>
@@ -162,8 +164,11 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+		<!-- API mode: full (all operations) or readonly (only GET) -->
+		<api.mode>full</api.mode>
+
 		<!-- verisone ambienti -->
-		<java.version>11</java.version>
+		<java.version>21</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
@@ -171,10 +176,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- tools -->
-		<tools.dir>${project.basedir}/tools</tools.dir>
+		<tools.dir>${session.executionRootDirectory}/tools</tools.dir>
 
 		<!-- owasp properties -->
-		<owasp.plugin.version>11.0.0</owasp.plugin.version>
+		<owasp.plugin.version>12.1.0</owasp.plugin.version>
 		<owasp.plugin.autoUpdate>true</owasp.plugin.autoUpdate> <!-- Impostare a
 		false quando ci sono problemi su repository NIST -->
 		<owasp.plugin.failBuildOnCVSS>0</owasp.plugin.failBuildOnCVSS>
@@ -182,7 +187,7 @@
 		<owasp>verify</owasp> <!-- owasp phase, use 'none' for disable -->
 
 		<!-- Versioni Plugin Maven -->
-		<maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
+		<maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
 		<maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
 		<maven.dependency.plugin.version>2.2</maven.dependency.plugin.version>
 		<maven.install.plugin.version>2.5.2</maven.install.plugin.version>
@@ -191,7 +196,8 @@
 		<maven.clean.plugin.version>3.1.0</maven.clean.plugin.version>
 		<maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
 		<maven.properties.plugin.version>1.2.1</maven.properties.plugin.version>
-		<maven.surefire.version>3.2.2</maven.surefire.version>
+		<maven.surefire.version>3.2.5</maven.surefire.version>
+		<jacoco.plugin.version>0.8.10</jacoco.plugin.version>
 		<debug.level>DEBUG</debug.level>
 
 		<!-- Versioni Plugin Maven -->
@@ -200,27 +206,27 @@
 		<commons.logging.version>1.3.4</commons.logging.version>
 
 		<!-- Versioni spring -->
-		<spring.boot.version>2.7.18</spring.boot.version>
-		<spring.framework.version>5.3.39</spring.framework.version>
-		<spring.security.version>5.8.16</spring.security.version>
+		<spring.boot.version>3.3.0</spring.boot.version>
+		<spring.framework.version>6.1.17</spring.framework.version>
+		<spring.security.version>6.3.5</spring.security.version>
 
 		<!-- Spring Data JPA -->
-		<spring-data.version>2.7.18</spring-data.version>
+		<spring-data.version>3.3.0</spring-data.version>
 
-		<spring.batch.version>4.3.10</spring.batch.version>
+		<spring.batch.version>5.1.0</spring.batch.version>
 		<!-- Spring Data Rest -->
-		<spring-data-rest.version>3.7.18</spring-data-rest.version>
+		<spring-data-rest.version>4.3.0</spring-data-rest.version>
 
 		<!-- Spring-doc -->
-		<springdoc.version>1.6.4</springdoc.version>
+		<springdoc.version>1.8.0</springdoc.version>
 
 		<!-- JPA -->
-		<hibernate.version>5.5.9.Final</hibernate.version>
+		<hibernate.version>6.4.0.Final</hibernate.version>
 		<hibernate.jpamodelgen.version>${hibernate.version}</hibernate.jpamodelgen.version>
-		<hibernate.validator.version>6.0.23.Final</hibernate.validator.version>
+		<hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
 
 		<!-- Gson -->
-		<gson.version>2.8.9</gson.version>
+		<gson.version>2.10.1</gson.version>
 		<gson-fire.version>1.8.3</gson-fire.version>
 
 		<!-- com.squareup.okhttp -->
@@ -228,15 +234,15 @@
 		<com.squareup.okhttp3.version>4.12.0</com.squareup.okhttp3.version>
 
 		<!-- Swagger-codegen -->
-		<openapi.tool.codegen.version>5.0.1</openapi.tool.codegen.version>
+		<openapi.tool.codegen.version>7.8.0</openapi.tool.codegen.version>
 
 		<!-- swagger -->
-		<swagger.parser.v3.version>2.0.24</swagger.parser.v3.version>
+		<swagger.parser.v3.version>2.1.22</swagger.parser.v3.version>
 		<swagger.model.version>1.6.4</swagger.model.version>
 		<swagger.parser.version>1.0.56</swagger.parser.version>
 
-		<!-- snakeyaml -->
-		<snakeyaml.version>1.33</snakeyaml.version>
+	<!-- snakeyaml -->
+	<snakeyaml.version>2.2</snakeyaml.version>
 
 		<!-- springfox -->
 		<springfox.swagger1.version>3.0.0</springfox.swagger1.version>
@@ -245,15 +251,34 @@
 		<json-path.version>2.9.0</json-path.version>
 
 		<!-- proxy -->
-		<jetty-proxy.version>9.4.56.v20240826</jetty-proxy.version>
+		<jetty-proxy.version>11.0.24</jetty-proxy.version>
 
-		<dynamicreports-core.version>6.12.0</dynamicreports-core.version>
+		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
+		<bouncycastle.version>1.79</bouncycastle.version>
+		<jasperreports.version>7.0.1</jasperreports.version>
+		<xalan.version>2.7.3</xalan.version>
 
 		<!-- Jackson -->
-		<jackson.version>2.18.2</jackson.version>
+		<jackson.version>2.17.0</jackson.version>
 
 		<!-- jackson-databind-nullable -->
 		<jackson.databind.nullable.version>0.2.1</jackson.databind.nullable.version>
+
+		<!-- Additional dependencies -->
+		<antlr.version>4.13.0</antlr.version>
+		<httpclient.version>4.5.14</httpclient.version>
+		<servlet-api.version>4.0.1</servlet-api.version>
+
+		<!-- Jakarta EE versions -->
+		<jakarta.servlet.version>6.0.0</jakarta.servlet.version>
+		<jakarta.validation.version>3.0.2</jakarta.validation.version>
+		<jakarta.annotation.version>2.1.1</jakarta.annotation.version>
+		<jakarta.xml.bind.version>4.0.0</jakarta.xml.bind.version>
+		<jakarta.persistence.version>3.1.0</jakarta.persistence.version>
+		<jakarta.el.version>5.0.1</jakarta.el.version>
+		<jakarta.cache.version>3.0.0</jakarta.cache.version>
+		<jakarta.mail.version>2.1.0</jakarta.mail.version>
+		<jakarta.jaxws.version>4.0.0</jakarta.jaxws.version>
 
 	</properties>
 
@@ -552,9 +577,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-core</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -564,9 +589,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-web</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -576,9 +601,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-context</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -588,9 +613,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-expression</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -600,9 +625,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-context-support</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<dependency>
@@ -612,9 +637,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-webmvc</artifactId>
-				<version>5.3.39-gov4j-1</version>
+				<version>${spring.framework.version}</version>
 			</dependency>
 
 			<!-- Spring Security -->
@@ -788,8 +813,8 @@
 			<!-- Spring doc -->
 			<dependency>
 				<groupId>org.springdoc</groupId>
-				<artifactId>springdoc-openapi-ui</artifactId>
-				<version>${springdoc.version}</version>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				<version>2.5.0</version>
 
 				<exclusions>
 					<exclusion>
@@ -819,12 +844,6 @@
 						<artifactId>antlr</artifactId>
 					</exclusion>
 				</exclusions>
-			</dependency>
-
-			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-entitymanager</artifactId>
-				<version>${hibernate.version}</version>
 			</dependency>
 
 			<dependency>
@@ -912,18 +931,6 @@
 			</dependency>
 
 			<dependency>
-				<groupId>io.swagger</groupId>
-				<artifactId>swagger-models</artifactId>
-				<version>${swagger.model.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.swagger</groupId>
-				<artifactId>swagger-parser</artifactId>
-				<version>${swagger.parser.version}</version>
-			</dependency>
-
-			<dependency>
 				<groupId>org.yaml</groupId>
 				<artifactId>snakeyaml</artifactId>
 				<version>${snakeyaml.version}</version>
@@ -933,12 +940,6 @@
 				<groupId>org.openapitools</groupId>
 				<artifactId>jackson-databind-nullable</artifactId>
 				<version>${jackson.databind.nullable.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.springfox</groupId>
-				<artifactId>springfox-swagger1</artifactId>
-				<version>${springfox.swagger1.version}</version>
 			</dependency>
 
 			<dependency>
@@ -1046,8 +1047,136 @@
 						<groupId>net.sf.barcode4j</groupId>
 						<artifactId>barcode4j</artifactId>
 					</exclusion>
+					<exclusion>
+						<groupId>com.lowagie</groupId>
+						<artifactId>itext</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>net.sf.jasperreports</groupId>
+						<artifactId>jasperreports</artifactId>
+					</exclusion>
 				</exclusions>
 
+			</dependency>
+
+			<dependency>
+				<groupId>net.sf.jasperreports</groupId>
+				<artifactId>jasperreports</artifactId>
+				<version>${jasperreports.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.bouncycastle</groupId>
+						<artifactId>*</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+
+			<!-- BouncyCastle -->
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcmail-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcpkix-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcutil-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+
+		<!-- Xalan -->
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>xalan</artifactId>
+			<version>${xalan.version}</version>
+		</dependency>
+
+		<!-- Override Spring Boot BOM versions for security fixes -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.17.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>xmlgraphics-commons</artifactId>
+			<version>2.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-core</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
+
+			<!-- Additional dependencies -->
+			<dependency>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr4-runtime</artifactId>
+				<version>${antlr.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpclient</artifactId>
+				<version>${httpclient.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>jakarta.servlet</groupId>
+				<artifactId>jakarta.servlet-api</artifactId>
+				<version>${jakarta.servlet.version}</version>
+			</dependency>
+
+			<!-- JAXB API and implementation for Java 11+ -->
+			<dependency>
+				<groupId>jakarta.xml.bind</groupId>
+				<artifactId>jakarta.xml.bind-api</artifactId>
+				<version>${jakarta.xml.bind.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.glassfish.jaxb</groupId>
+				<artifactId>jaxb-runtime</artifactId>
+				<version>${jakarta.xml.bind.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -1078,10 +1207,33 @@
 									${owasp.dir}/suppression/CVE-2020-5408.xml</suppressionFile>
 								<suppressionFile>
 									${owasp.dir}/suppression/CVE-2024-38828.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-48734.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-48924.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2024-38810.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2018-1258.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2022-34169.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-54988.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2021-37533.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2023-33202.xml</suppressionFile>
+								<suppressionFile>
+									${owasp.dir}/suppression/CVE-2025-10492.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2022-42920.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2024-9329.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
 							tentativi visto il timeout alto -->
+						<ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled><!-- Disable OSS Index to avoid rate limiting -->
 						</configuration>
 						<goals>
 							<goal>aggregate</goal>

@@ -31,6 +31,7 @@ import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.services.ClientService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.CertificatoClient;
 import org.govway.catalogo.servlets.model.CertificatoClientCreate;
 import org.govway.catalogo.servlets.model.CertificatoClientFornito;
@@ -152,13 +153,13 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 
 	protected DocumentoEntity getDocumentoProperty(Set<EstensioneClientEntity> estensioni, String propertyName) {
 		return estensioni.stream().filter(e -> e.getNome().equals(propertyName))
-		.findAny().orElseThrow(() -> new InternalException("Property ["+propertyName+"] non trovata"))
+		.findAny().orElseThrow(() -> new InternalException(ErrorCode.SYS_500))
 		.getDocumento();
 	}
 
 	protected String getTextProperty(Set<EstensioneClientEntity> estensioni, String propertyName) {
 		return estensioni.stream().filter(e -> e.getNome().equals(propertyName))
-		.findAny().orElseThrow(() -> new InternalException("Property ["+propertyName+"] non trovata"))
+		.findAny().orElseThrow(() -> new InternalException(ErrorCode.SYS_500))
 		.getValore();
 	}
 
@@ -169,14 +170,14 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 
 	protected Set<EstensioneClientEntity> getEstensioniCertificato(CertificatoClientCreate certificato,
 			String nomeCertificato, ConfigurazioneCertificato configurazione) {
-		
+
 		switch(certificato.getTipoCertificato()) {
 		case FORNITO: return getEstensioniCertificatoFornito(((CertificatoClientFornitoCreate)certificato), nomeCertificato, configurazione);
 		case RICHIESTO_CN: return getEstensioniCertificatoRichiestoCN(((CertificatoClientRichiestoCnCreate)certificato), nomeCertificato, configurazione);
 		case RICHIESTO_CSR: return getEstensioniCertificatoRichiestoCSR(((CertificatoClientRichiestoCsrCreate)certificato), nomeCertificato, configurazione);
 		}
-		
-		throw new InternalException("Tipo certificato ["+certificato.getTipoCertificato()+"] non gestito");
+
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("tipoCertificato", certificato.getTipoCertificato().toString()));
 	}
 	
 	private String CERTIFICATO_CSR_PROPERTY = "CERTIFICATO";
@@ -191,7 +192,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 
 	protected Set<EstensioneClientEntity> getEstensioniCertificatoRichiestoCSR(CertificatoClientRichiestoCsrCreate certificato, String nomeCertificato, ConfigurazioneCertificato configurazione) {
 		if(!configurazione.isCsr()) {
-			throw new BadRequestException("Certificato con file non abilitato");
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 
 		Set<EstensioneClientEntity> lst = new HashSet<>();
@@ -226,7 +227,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 	
 	protected Set<EstensioneClientEntity> getEstensioniCertificatoRichiestoCN(CertificatoClientRichiestoCnCreate certificato, String nomeCertificato, ConfigurazioneCertificato configurazione) {
 		if(!configurazione.isCn()) {
-			throw new BadRequestException("Certificato con cn non abilitato");
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 
 		Set<EstensioneClientEntity> lst = new HashSet<>();
@@ -252,7 +253,7 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 	protected Set<EstensioneClientEntity> getEstensioniCertificatoFornito(CertificatoClientFornitoCreate certificato, String nomeCertificato, ConfigurazioneCertificato configurazione) {
 		
 		if(!configurazione.isFile()) {
-			throw new BadRequestException("Certificato con file non abilitato");
+			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
 		Set<EstensioneClientEntity> lst = new HashSet<>();
 		
@@ -295,9 +296,9 @@ public abstract class AbstractEstensioneClientAssembler implements IEstensioneCl
 			certificato.setCertificato(documentoAssembler.toModel(getDocumentoProperty(estensioni, getNomeProperty(nomeCertificato, CERTIFICATO_PROPERTY))));
 
 			return certificato;
-		} 
-		
-		throw new InternalException("Errore durante la definizione del certificato ["+nomeCertificato+"]");
+		}
+
+		throw new InternalException(ErrorCode.SYS_500, java.util.Map.of("nomeCertificato", nomeCertificato));
 	}
 
 }

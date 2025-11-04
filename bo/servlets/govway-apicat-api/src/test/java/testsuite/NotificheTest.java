@@ -69,6 +69,7 @@ import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -88,13 +89,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class NotificheTest {
 	@Mock
     private SecurityContext securityContext;
@@ -140,6 +147,9 @@ public class NotificheTest {
     
     @Autowired
     NotificheController notificheController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String UTENTE_GESTORE = "gestore";
     private static final String UTENTE_REFERENTE_TECNICO = "barbarossa";
@@ -227,7 +237,8 @@ public class NotificheTest {
         ref.setIdUtente(ID_UTENTE_GESTORE);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-
+        entityManager.flush();
+        entityManager.clear();
         return createdDominio.getBody();
     }
     
@@ -264,7 +275,8 @@ public class NotificheTest {
          Servizio servizio = createdServizio.getBody();
 
          idServizio = servizio.getIdServizio();
-         
+         entityManager.flush();
+         entityManager.clear();
          return servizio;
     }
     
@@ -322,7 +334,8 @@ public class NotificheTest {
         doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
         
         ResponseEntity<API> response = apiController.createApi(apiCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         return response.getBody();
     }
     
@@ -461,7 +474,7 @@ public class NotificheTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> 
         notificheController.updateNotifica(idNotifica, updateNotifica));
         
-        assertEquals("Notifica [" + idNotifica + "] non trovata", exception.getMessage());
+        assertEquals("NTF.404", exception.getMessage());
     }
 
     @Test
@@ -487,7 +500,7 @@ public class NotificheTest {
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> 
         notificheController.updateNotifica(idNotifica, updateNotifica));
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
 
     @Test
@@ -534,6 +547,6 @@ public class NotificheTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> 
         notificheController.getNotifica(idNotifica));
 
-        assertEquals("Notifica[" + idNotifica + "] non trovata", exception.getMessage());
+        assertEquals("NTF.404", exception.getMessage());
     }
 }

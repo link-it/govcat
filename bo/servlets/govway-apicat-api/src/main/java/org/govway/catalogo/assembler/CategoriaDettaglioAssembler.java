@@ -31,6 +31,7 @@ import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TassonomiaEntity;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Categoria;
 import org.govway.catalogo.servlets.model.CategoriaCreate;
 import org.govway.catalogo.servlets.model.CategoriaUpdate;
@@ -114,14 +115,14 @@ public class CategoriaDettaglioAssembler extends RepresentationModelAssemblerSup
 		entity.setTassonomia(tassonomia);
 		
 		if(src.getCategoriaPadre()!=null) {
-			CategoriaEntity padre = this.service.findCategoria(src.getCategoriaPadre()).orElseThrow(() -> new BadRequestException("Categoria ["+src.getCategoriaPadre()+"] non presente nella attuale tassonomia"));
-			
+			CategoriaEntity padre = this.service.findCategoria(src.getCategoriaPadre()).orElseThrow(() -> new BadRequestException(ErrorCode.TAX_404));
+
 			if(!padre.getTassonomia().getIdTassonomia().equals(entity.getTassonomia().getIdTassonomia())) {
-				throw new BadRequestException("Categoria ["+src.getCategoriaPadre()+"] per Tassonomia ["+entity.getTassonomia()+"] non trovata");
+				throw new BadRequestException(ErrorCode.TAX_409, java.util.Map.of("idCategoria", src.getCategoriaPadre().toString(), "tassonomia", entity.getTassonomia().toString()));
 			}
 
 			if(!padre.getServizi().isEmpty()) {
-				throw new BadRequestException("Impossibile impostare Categoria ["+src.getCategoriaPadre()+"] come padre in quanto risulta associata a "+padre.getServizi().size()+" servizi");
+				throw new BadRequestException(ErrorCode.CAT_404, java.util.Map.of("idCategoria", src.getCategoriaPadre().toString(), "numeroServizi", String.valueOf(padre.getServizi().size())));
 			}
 
 			

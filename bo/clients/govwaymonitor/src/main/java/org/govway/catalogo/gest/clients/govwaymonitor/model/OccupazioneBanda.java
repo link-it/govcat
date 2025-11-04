@@ -35,13 +35,13 @@ package org.govway.catalogo.gest.clients.govwaymonitor.model;
 import java.util.Objects;
 
 import com.google.gson.annotations.SerializedName;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import io.swagger.annotations.ApiModelProperty;
 
 /**
  * OccupazioneBanda
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2023-09-27T18:38:39.702666+02:00[Europe/Rome]")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2023-09-27T18:38:39.702666+02:00[Europe/Rome]")
 public class OccupazioneBanda implements OneOfTipoInformazioneReportNumeroTransazioniTipoInformazioneReportOccupazioneBandaTipoInformazioneReportTempoMedioRisposta, OneOfTipoInformazioneReportMultiLineNumeroTransazioniTipoInformazioneReportMultiLineOccupazioneBandaTipoInformazioneReportMultiLineTempoMedioRisposta {
   public static final String SERIALIZED_NAME_TIPO = "tipo";
   @SerializedName(SERIALIZED_NAME_TIPO)
@@ -62,7 +62,7 @@ public class OccupazioneBanda implements OneOfTipoInformazioneReportNumeroTransa
    * Get tipo
    * @return tipo
   **/
-  @ApiModelProperty(required = true, value = "")
+  @Schema(required = true, description = "")
 
   public TipoInformazioneEnum getTipo() {
     return tipo;
@@ -84,8 +84,8 @@ public class OccupazioneBanda implements OneOfTipoInformazioneReportNumeroTransa
    * Get occupazioneBanda
    * @return occupazioneBanda
   **/
-  @javax.annotation.Nullable
-  @ApiModelProperty(value = "")
+  @jakarta.annotation.Nullable
+  @Schema(description = "")
 
   public OccupazioneBandaTipi getOccupazioneBanda() {
     return occupazioneBanda;

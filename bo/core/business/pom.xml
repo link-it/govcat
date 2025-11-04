@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>core</artifactId>
-		<version>2.2</version>
+		<version>2.3</version>
 		<relativePath>../</relativePath>
 	</parent>
 	
@@ -33,28 +33,7 @@
 		    <groupId>io.swagger.parser.v3</groupId>
 		    <artifactId>swagger-parser-v3</artifactId>		    
 		</dependency>
-		
-		
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-annotations</artifactId>
-		</dependency>
 
-		<dependency>
-			<groupId>io.swagger</groupId>
-			<artifactId>swagger-models</artifactId>		    
-		</dependency>
-
-		<dependency>
-		    <groupId>io.swagger</groupId>
-		    <artifactId>swagger-parser</artifactId>		    
-		    <exclusions>
-		    <exclusion>
-	          <groupId>com.google.guava</groupId>
-	          <artifactId>guava</artifactId>
-	        </exclusion>
-		    </exclusions>
-		</dependency>
 
 		<dependency>
 			<groupId>org.openapitools</groupId>
@@ -112,7 +91,7 @@
 		
 		<!-- Spring -->
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
 			
@@ -123,7 +102,7 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.gov4j.thirdparty.org.springframework</groupId>
+			<groupId>org.springframework</groupId>
 			<artifactId>spring-expression</artifactId>
 		</dependency>
 
@@ -168,10 +147,67 @@
 			<artifactId>jackson-datatype-jsr310</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.govway.catalogo</groupId>
+			<artifactId>orm</artifactId>
+			<version>2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.mockito</groupId>
+		    <artifactId>mockito-junit-jupiter</artifactId>
+		    <version>5.8.0</version>
+		    <scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.bouncycastle</groupId>
+		    <artifactId>bcprov-jdk18on</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.mockito</groupId>
+		    <artifactId>mockito-inline</artifactId>
+		    <version>5.2.0</version>
+		    <scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.springframework</groupId>
+		    <artifactId>spring-test</artifactId>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-simple</artifactId>
+		    <version>2.0.9</version>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>javax.xml.bind</groupId>
+		    <artifactId>jaxb-api</artifactId>
+		    <version>2.3.1</version>
+		    <scope>test</scope>
+		</dependency>
 	</dependencies>
 	
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${maven.surefire.version}</version>
+				<configuration>
+					<additionalClasspathElements>
+						<additionalClasspathElement>${project.basedir}/../stampe/target/classes</additionalClasspathElement>
+					</additionalClasspathElements>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -186,6 +222,26 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+  				<groupId>org.jacoco</groupId>
+  				<artifactId>jacoco-maven-plugin</artifactId>
+  				<version>0.8.10</version>
+  				<executions>
+    				<execution>
+      					<id>prepare-agent</id>
+      					<goals>
+        					<goal>prepare-agent</goal>
+      					</goals>
+    				</execution>
+			    <execution>
+			      <id>report</id>
+			      <phase>verify</phase>
+			      <goals>
+			        <goal>report</goal>
+			      </goals>
+			    </execution>
+			  </executions>
 			</plugin>
 		</plugins>
 	</build>

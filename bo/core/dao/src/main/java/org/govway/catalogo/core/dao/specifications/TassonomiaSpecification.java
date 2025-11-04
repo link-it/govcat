@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.TassonomiaEntity;
 import org.govway.catalogo.core.orm.entity.TassonomiaEntity_;
@@ -126,4 +126,13 @@ public class TassonomiaSpecification implements Specification<TassonomiaEntity> 
 		this.visibile = visibile;
 	}
 
+    @Override
+    public Specification<TassonomiaEntity> and(Specification<TassonomiaEntity> other) {
+        return Specification.super.and(other);
+    }
+
+    @Override
+    public Specification<TassonomiaEntity> or(Specification<TassonomiaEntity> other) {
+        return Specification.super.or(other);
+    }
 }

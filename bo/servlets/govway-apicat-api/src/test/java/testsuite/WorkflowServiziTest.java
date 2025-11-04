@@ -58,6 +58,7 @@ import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -76,13 +77,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class WorkflowServiziTest {
 	private static final String UTENTE_QUALSIASI = "utente_qualsiasi";
 	private static final String UTENTE_RICHIEDENTE_SERVIZIO = "utente_richiedente_servizio";
@@ -136,6 +143,9 @@ public class WorkflowServiziTest {
     
     @Autowired
     private AdesioniController adesioniController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private UUID idServizio;
     private UUID idOrganizzazione;
@@ -631,14 +641,16 @@ public class WorkflowServiziTest {
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
 	    ResponseEntity<Servizio> servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
 	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
     	
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
@@ -647,14 +659,16 @@ public class WorkflowServiziTest {
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
 	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
 	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-	    
+        entityManager.flush();
+        entityManager.clear();
 	    assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
     	
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
@@ -663,14 +677,16 @@ public class WorkflowServiziTest {
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
 	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
 	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-	    
+        entityManager.flush();
+        entityManager.clear();
 	    assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_SERVIZIO, securityContext, authentication, utenteService);
@@ -681,6 +697,8 @@ public class WorkflowServiziTest {
 	    	statoServizioUpdaten.setCommento("richiesto in produzione");
 	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
+        entityManager.flush();
+        entityManager.clear();
 	    
 	    CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO_DOMINIO, securityContext, authentication, utenteService);
         
@@ -690,6 +708,8 @@ public class WorkflowServiziTest {
 	    	statoServizioUpdaten.setCommento("richiesto in produzione");
 	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
 	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
+        entityManager.flush();
+        entityManager.clear();
         
         CommonUtils.getSessionUtente(UTENTE_QUALSIASI, securityContext, authentication, utenteService);
         
@@ -698,22 +718,26 @@ public class WorkflowServiziTest {
 	    	statoServizioUpdaten.setStato("richiesto_produzione");
 	    	statoServizioUpdaten.setCommento("richiesto in produzione");
 	    	serviziController.updateStatoServizio(idServizio, statoServizioUpdaten, null);
-	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");     
-        
+	    }, "Utente non autorizzato, quindi viene lanciata l'eccezione");
+        entityManager.flush();
+        entityManager.clear();
         CommonUtils.getSessionUtente(UTENTE_RICHIEDENTE_SERVIZIO, securityContext, authentication, utenteService);
-        
+        entityManager.flush();
+        entityManager.clear();
         statoServizioUpdate = new StatoUpdate();
     	statoServizioUpdate.setStato("richiesto_produzione");
 	    statoServizioUpdate.setCommento("richiesto in produzione");
 	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-    	
+        entityManager.flush();
+        entityManager.clear();
     	assertEquals("richiesto_produzione", servizioUpdated.getBody().getStato());
     	
     	statoServizioUpdate = new StatoUpdate();
 	    statoServizioUpdate.setStato("pubblicato_collaudo");
 	    statoServizioUpdate.setCommento("pubblicato in collaudo");
 	    servizioUpdated = serviziController.updateStatoServizio(idServizio, statoServizioUpdate, null);
-	    
+        entityManager.flush();
+        entityManager.clear();
 	    assertEquals("pubblicato_collaudo", servizioUpdated.getBody().getStato());
 
     }
@@ -1022,17 +1046,20 @@ public class WorkflowServiziTest {
         // Itera sulla sequenza degli stati e applica ciascuno finché non raggiungi lo stato finale
         for (StatoUpdate statoUpdate : sequenzaStati) {
             serviziController.updateStatoServizio(idServizio, statoUpdate, null);
-
+            entityManager.flush();
+            entityManager.clear();
             // Termina il ciclo quando raggiungi lo stato finale desiderato
             if (statoUpdate.getStato().equals(statoFinale)) {
                 break;
             }
         }
+        entityManager.flush();
+        entityManager.clear();
     }
     
 	private InfoProfilo getInfoProfilo(String idUtente) {
 		return this.utenteService.runTransaction(() -> {
-			UtenteEntity utente = this.utenteService.findByPrincipal(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
+			UtenteEntity utente = this.utenteService.findByPrincipal(idUtente).orElseThrow(() -> new RuntimeException("Utente "+idUtente+" non trovato"));
 			
 			if(utente.getOrganizzazione()!=null) {
 				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});
@@ -1164,7 +1191,7 @@ public class WorkflowServiziTest {
 				break;
 			case RISERVATO: valueDominio = VisibilitaDominioEnum.RISERVATO;
 				break;
-			case COMPONENTE: throw new InternalException("Impossibile impostare la visibilita componente per un dominio");
+			case COMPONENTE: throw new RuntimeException("Impossibile impostare la visibilita componente per un dominio");
 			default:
 				break;}
 
@@ -1172,18 +1199,22 @@ public class WorkflowServiziTest {
         }
         dominio.setIdSoggettoReferente(createdSoggetto.getBody().getIdSoggetto());
         ResponseEntity<Dominio> createdDominio = dominiController.createDominio(dominio);
-        
+        entityManager.flush();
+        entityManager.clear();
         //creo il referente dominio
         ReferenteCreate ref = new ReferenteCreate();
         ref.setIdUtente(ID_UTENTE_REFERENTE_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-        
+        entityManager.flush();
+        entityManager.clear();
         //creo il referente tecnico dominio
         ref = new ReferenteCreate();
         ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+        entityManager.flush();
+        entityManager.clear();
         return createdDominio.getBody();
     }
     
@@ -1228,6 +1259,8 @@ public class WorkflowServiziTest {
 
          this.setIdServizio(servizio.getIdServizio());
          CommonUtils.getSessionUtente(UTENTE_GESTORE, securityContext, authentication, utenteService);
+         entityManager.flush();
+         entityManager.clear();
          return servizio;
     }
 
@@ -1285,7 +1318,8 @@ public class WorkflowServiziTest {
         doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
         
         ResponseEntity<API> response = apiController.createApi(apiCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         return response.getBody();
     }
 

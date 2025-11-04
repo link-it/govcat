@@ -30,19 +30,15 @@ import org.govway.catalogo.core.orm.entity.NotificaEntity.STATO;
 import org.govway.catalogo.core.orm.entity.NotificaEntity.TIPO;
 import org.govway.catalogo.core.orm.entity.NotificaEntity.TIPO_ENTITA;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
-import org.govway.catalogo.servlets.model.EntitaNotifica;
-import org.govway.catalogo.servlets.model.ItemAdesione;
-import org.govway.catalogo.servlets.model.ItemServizio;
-import org.govway.catalogo.servlets.model.RuoloNotifica;
-import org.govway.catalogo.servlets.model.StatoNotifica;
-import org.govway.catalogo.servlets.model.TipoEntitaNotifica;
-import org.govway.catalogo.servlets.model.TipoNotifica;
-import org.govway.catalogo.servlets.model.TipoNotificaEnum;
+import org.govway.catalogo.servlets.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class NotificaEngineAssembler extends CoreEngineAssembler {
 
-	@Autowired
+    private static final Logger log = LoggerFactory.getLogger(NotificaEngineAssembler.class);
+    @Autowired
 	private NotificheUtils notificheUtils;
 	
 	@Autowired
@@ -75,20 +71,22 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 	}
 
 	public TipoNotifica getTipoNotifica(NotificaEntity entity) {
-		TipoNotifica tn = new TipoNotifica();
 		TipoNotificaEnum tipo = this.getTipoNotificaEnum(entity.getTipo());
-		
-		tn.setTipo(tipo);
-		
+
 		switch(tipo) {
-		case CAMBIO_STATO: tn.setStato(entity.getInfoStato());
-			break;
+		case CAMBIO_STATO:
+            CambioStatoTipoNotifica cstn = new CambioStatoTipoNotifica();
+            cstn.setTipo(String.valueOf(tipo));
+            cstn.setStato(entity.getInfoStato());
+            return cstn;
 		case COMUNICAZIONE:
-			tn.setOggetto(entity.getInfoOggetto());
-			tn.setTesto(entity.getInfoMessaggio());
-			break;}
-		
-		return tn;
+            ComunicazioneTipoNotifica ctn = new ComunicazioneTipoNotifica();
+            ctn.setTipo(String.valueOf(tipo));
+            ctn.setOggetto(entity.getInfoOggetto());
+            ctn.setTesto(entity.getInfoMessaggio());
+            return ctn;
+        }
+        return null;
 	}
 
 	public List<RuoloNotifica> getRuoliNotifica(String tags) {

@@ -44,6 +44,7 @@ import org.govway.catalogo.core.orm.entity.TassonomiaEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.services.TassonomiaService;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
@@ -106,7 +107,7 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		requireNotNull(entity.getVersione(), "versione", entity, errore);
 		requireNotNull(entity.getDominio(), "dominio", entity, errore);
 
-		if(entity.getDominio().getSoggettoReferente().getOrganizzazione().isEsterna()) {
+		if(entity.isFruizione()) {
 			requireNotNull(entity.getSoggettoInterno(), "soggetto_interno", entity, errore);
 		}
 	}
@@ -176,7 +177,7 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 			AuthTypeEnum atE = this.configurazione.getServizio().getApi().getProfili().stream()
 			.filter(p -> p.getCodiceInterno().equals(at.getProfilo()))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException("Profilo ["+at.getProfilo()+"] non trovato")).getAuthType();
+			.orElseThrow(() -> new BadRequestException(ErrorCode.VAL_400_FORMAT)).getAuthType();
 			atLst.add(atE);
 			profili.add(at.getProfilo());
 		}

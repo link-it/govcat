@@ -74,8 +74,8 @@ public class ScenarioPDND implements ConfigurazioneScenario {
 	}
 	
 	@Override
-	public boolean check(DTOClient client, GruppoServizio api) {
-		return true;
+	public String getError(DTOClient client, GruppoServizio apis) {
+		return null;
 	}
 
 	@Override
@@ -101,11 +101,10 @@ public class ScenarioPDND implements ConfigurazioneScenario {
 		}
 		
 		try (Response response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto)) {
-			if (!response.isSuccessful() && (response.code() != 409 || !this.ignoreConflict))
-				throw new ConfigurazioneException();
+			this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 		} catch(TemplateException | IOException e) {
 			e.printStackTrace();
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		
 		return ret;
@@ -141,13 +140,12 @@ public class ScenarioPDND implements ConfigurazioneScenario {
 			//	throw new IOException("autorizzazione non impostata in modalita richiedente");
 	
 			// infine associo il servizio applicativo ai richiedenti
-			try (Response response = configInvoker.postApplicativoToServizio(gruppoServizio, client.getNome(), gruppoServizio.getSoggettoAderente().getNomeGateway())) {
-				if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-					throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			try (Response response = configInvoker.postApplicativoToServizioToken(gruppoServizio, client.getNome(), gruppoServizio.getSoggettoAderente().getNomeGateway())) {
+				this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 			}
 			
 		} catch (IOException | TemplateException e) {
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage(), e);
 		}
 		return Map.of();
 	}

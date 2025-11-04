@@ -19,16 +19,16 @@
  */
 package org.govway.catalogo.gest.clients.govwaymonitor.model;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.Gson;
@@ -44,7 +44,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 public class ProblemId implements AnyOfProblemId {
 
@@ -66,5 +66,35 @@ public class ProblemId implements AnyOfProblemId {
       return "null";
     }
     return o.toString().replace("\n", "\n    ");
+  }
+
+  // Custom Type Adapter Factory for Gson serialization
+  public static class CustomTypeAdapterFactory implements com.google.gson.TypeAdapterFactory {
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> com.google.gson.TypeAdapter<T> create(com.google.gson.Gson gson, com.google.gson.reflect.TypeToken<T> type) {
+      if (!ProblemId.class.isAssignableFrom(type.getRawType())) {
+        return null;
+      }
+      return (com.google.gson.TypeAdapter<T>) new ProblemIdAdapter(gson);
+    }
+  }
+
+  public static class ProblemIdAdapter extends com.google.gson.TypeAdapter<ProblemId> {
+    private final com.google.gson.Gson gson;
+
+    public ProblemIdAdapter(com.google.gson.Gson gson) {
+      this.gson = gson;
+    }
+
+    @Override
+    public void write(com.google.gson.stream.JsonWriter out, ProblemId value) throws java.io.IOException {
+      gson.toJson(value, ProblemId.class, out);
+    }
+
+    @Override
+    public ProblemId read(com.google.gson.stream.JsonReader in) throws java.io.IOException {
+      return gson.fromJson(in, ProblemId.class);
+    }
   }
 }

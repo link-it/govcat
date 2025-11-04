@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.govway.catalogo.exception.BadRequestException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.pdnd.mockserver.model.Agreement;
@@ -132,7 +133,7 @@ public class PDNDMockServer {
 	        	return valueType.cast(files.get(key));
 	    	} else {
 	        	this.logger.debug("File "+key+" non trovato. Restituisco BadRequest");
-	    		throw new BadRequestException(key);
+	    		throw new BadRequestException(ErrorCode.API_400_DELETE);  // key);
 	    	}
     	} catch(RuntimeException e) {
     		this.logger.error("Errore durante la getMockResponse: " + e.getMessage(), e);
@@ -157,15 +158,15 @@ public class PDNDMockServer {
 		if(id == null) return;
 		
 		if(id.startsWith("eeeee400")) {
-			throw new BadRequestException("ID ["+id+"]");
+			throw new BadRequestException(ErrorCode.API_400_DELETE);  // "ID ["+id+"]");
 		}
 		
 		if(id.startsWith("eeeee404")) {
-			throw new NotFoundException("ID ["+id+"]");
+			throw new NotFoundException(ErrorCode.GEN_404);  // "ID ["+id+"]");
 		}
 		
 		if(id.startsWith("eeeee500")) {
-			throw new InternalException("ID ["+id+"]");
+			throw new InternalException(ErrorCode.SYS_500);  // "ID ["+id+"]");
 		}
 	}
 	
@@ -178,15 +179,15 @@ public class PDNDMockServer {
 		if(id == null) return;
 		
 		if(id.longValue() == 40) {
-			throw new BadRequestException("ID ["+id+"]");
+			throw new BadRequestException(ErrorCode.API_400_DELETE);  // "ID ["+id+"]");
 		}
 		
 		if(id.longValue() == 44) {
-			throw new NotFoundException("ID ["+id+"]");
+			throw new NotFoundException(ErrorCode.GEN_404);  // "ID ["+id+"]");
 		}
 		
 		if(id.longValue() == 50) {
-			throw new InternalException("ID ["+id+"]");
+			throw new InternalException(ErrorCode.SYS_500);  // "ID ["+id+"]");
 		}
 	}
 

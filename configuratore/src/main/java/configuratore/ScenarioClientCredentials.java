@@ -64,10 +64,12 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 	}
 	
 	@Override
-	public boolean check(DTOClient client, GruppoServizio apis) {
-		if (!(client instanceof OauthClientCredentialsClient))
-			return false;
-		return true;
+	public String getError(DTOClient client, GruppoServizio apis) {
+		if (!(client instanceof OauthClientCredentialsClient)) {
+			return "Client non OAuth Client Credentials";
+		}
+
+		return null;
 	}
 
 	@Override
@@ -107,14 +109,13 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 				
 				Response response = this.invokers.getConfigInvoker().postServizioApplicativo(sa, soggetto);
 				
-				if (!response.isSuccessful() && (response.code() != 409 || !this.ignoreConflict))
-					throw new IOException("errore nella creazione del servizio govway, HTTP code: " + response.code());
+				this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 			}
 			
 			if (this.enableKeycloakBackendConfiguration)
 				return Map.of("client-secret", this.invokers.getKeycloak().getSecret(client.getClientId()));
 		} catch (IOException | TemplateException e) {
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		
 		return Map.of();
@@ -153,10 +154,9 @@ public class ScenarioClientCredentials implements ConfigurazioneScenario{
 			
 			Response response = this.invokers.getConfigInvoker().postApplicativoToServizioToken(api, client.getNome());
 			
-			if (!response.isSuccessful() && (!this.ignoreConflict || response.code() != 409))
-				throw new IOException("errore nel configurare l'erogazione, code: " + response.code());
+			this.invokers.getConfigInvoker().checkResponse(response, this.ignoreConflict);
 		} catch (IOException | TemplateException e) {
-			throw new ConfigurazioneException();
+			throw new ConfigurazioneException(e.getMessage());
 		}
 		return Map.of();
 	}

@@ -39,7 +39,7 @@ export class TokenSegmentComponent implements OnInit {
     this.api_url = this.config.AppConfig.GOVAPI.HOST || '';
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.data$ = of({ nome: this.token.value });
     let _endPoint = '';
     let _param1 = '';
@@ -59,7 +59,7 @@ export class TokenSegmentComponent implements OnInit {
         break;
     
       default:
-        if (this.token.data && this.token.data.params && this.token.data.params.resource) {
+        if (this.token.data?.params?.resource) {
           this.field = this.token.data.params.field;
           const _resource = this.token.data.params.resource;
           const _path = this.token.data.params.path;
@@ -73,7 +73,7 @@ export class TokenSegmentComponent implements OnInit {
             this._getData(`${_endPoint}`);
           }
         }
-        if (this.token.data && this.token.data.data && Array.isArray(this.token.value)) {
+        if (this.token.data?.data && Array.isArray(this.token.value)) {
           this._getDataFromData(this.token.value, this.token.data.data);
         }
         break;
@@ -118,20 +118,20 @@ export class TokenSegmentComponent implements OnInit {
       reqs.push(this.http.get(`${endPoint}/${item}`, {}));
     });
 
-    forkJoin(reqs).subscribe(
-      (results: Array<any>) => {
+    forkJoin(reqs).subscribe({
+      next: (results: Array<any>) => {
         const _resMap = results.map((item) => { return (item.nome || item); });
         _result = _resMap.join(', ');
         this.data$ = of({ nome: _result });
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('_getDataJoin forkJoin', error);
       }
-    );
+    });
   }
 
   _getObjectValue(data: any, elem: string) {
-    const _fields: RegExpMatchArray | null = elem.match(/\{(\w+)\}/g);
+    const _fields: RegExpMatchArray | null = elem.match(/\{([^}]+)\}/g);
     if (!_fields) {
       return this.utilsLib.getObjectValue(data, elem);
     } else {
@@ -151,23 +151,7 @@ export class TokenSegmentComponent implements OnInit {
 
   _getObjectValueMapper = (data: any, elem: string): string => {
     if (!elem) { return data.nome }
-    const _fields: RegExpMatchArray | null = elem.match(/\{(\w+)\}/g);
-    if (!_fields) {
-      return this.utilsLib.getObjectValue(data, elem);
-    } else {
-      const _values: any[] = [];
-      _fields.forEach(element => {
-        const _field = element.slice(1,-1);
-        const _value = this.utilsLib.getObjectValue(data, _field);
-        _values.push({ label: element, value: _value });
-      });
-      let _result: string = elem;
-      _values.forEach(element => {
-        _result = _result.replace(element.label, element.value);
-      });
-      return _result;
-    }
-  }
+    return this._getObjectValue(data, elem);}
 }
 
 import { Pipe, PipeTransform } from '@angular/core';

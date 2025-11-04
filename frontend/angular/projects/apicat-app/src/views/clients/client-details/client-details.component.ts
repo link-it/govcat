@@ -564,7 +564,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         },
         error: (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
           this._spin = false;
         }
       });
@@ -594,7 +594,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         },
         error: (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
         }
       });
     }
@@ -925,7 +925,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             },
             error: (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           });
         }
@@ -1359,7 +1359,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       },
       error: (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._downloading = false;
       }
     });
@@ -1383,7 +1383,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       },
       error: (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._errors = error.error.errori || [];
         this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.client.stato);
         this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + event);

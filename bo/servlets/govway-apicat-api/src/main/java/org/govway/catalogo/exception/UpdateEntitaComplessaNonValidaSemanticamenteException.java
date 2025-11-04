@@ -20,23 +20,55 @@
 package org.govway.catalogo.exception;
 
 import java.util.List;
+import java.util.Map;
 
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 
-public class UpdateEntitaComplessaNonValidaSemanticamenteException extends RuntimeException {
+public class UpdateEntitaComplessaNonValidaSemanticamenteException extends AbstractGovCatException {
 
 	private static final long serialVersionUID = 1L;
 
 	private List<EntitaComplessaError> errori;
 
 	public UpdateEntitaComplessaNonValidaSemanticamenteException(String message, List<EntitaComplessaError> errori) {
-		super(message);
+		super(message, null);
 		this.setErrori(errori);
 	}
-	
+
 	public UpdateEntitaComplessaNonValidaSemanticamenteException(Throwable t, List<EntitaComplessaError> errori) {
-		super(t);
+		super(t != null ? t.getMessage() : null, t);
 		this.setErrori(errori);
+	}
+
+	/**
+	 * Costruttore con ErrorCode ed errori
+	 * @param errorCode il codice di errore
+	 * @param errori lista degli errori
+	 */
+	public UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode errorCode, List<EntitaComplessaError> errori) {
+		this(errorCode, null, errori, null);
+	}
+
+	/**
+	 * Costruttore con ErrorCode, parametri ed errori
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 * @param errori lista degli errori
+	 */
+	public UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode errorCode, Map<String, String> parameters, List<EntitaComplessaError> errori) {
+		this(errorCode, parameters, errori, null);
+	}
+
+	/**
+	 * Costruttore completo con ErrorCode, parametri, errori e causa
+	 * @param errorCode il codice di errore
+	 * @param parameters mappa dei parametri per il messaggio
+	 * @param errori lista degli errori
+	 * @param cause la causa dell'eccezione
+	 */
+	public UpdateEntitaComplessaNonValidaSemanticamenteException(ErrorCode errorCode, Map<String, String> parameters, List<EntitaComplessaError> errori, Throwable cause) {
+		super(errorCode, parameters, cause);
+		this.errori = errori;
 	}
 
 	public List<EntitaComplessaError> getErrori() {

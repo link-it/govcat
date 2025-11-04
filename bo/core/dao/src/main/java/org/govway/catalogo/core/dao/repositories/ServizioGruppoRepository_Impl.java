@@ -22,8 +22,8 @@
 //import java.util.ArrayList;
 //import java.util.List;
 //
-//import javax.persistence.EntityManager;
-//import javax.persistence.Query;
+//import jakarta.persistence.EntityManager;
+//import jakarta.persistence.Query;
 //
 //import org.govway.catalogo.core.dao.specifications.ServizioGruppoSpecification;
 //import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;

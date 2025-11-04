@@ -3,9 +3,6 @@
         <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
         <div class="d-flex flex-grow-1">&nbsp;</div>
         <div class="nav-controls">
-            <!-- <div class="position-relative" *ngIf="data">
-                <app-back-web [service_id]="data.id_servizio"></app-back-web>
-            </div> -->
             <app-monitor-dropdown *ngIf="data"
                 [showMonitoring]="Tools.Configurazione.servizio.api.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
                 [returnWeb]="true"
@@ -24,18 +21,18 @@
                     <ng-container *ngFor="let link of _otherLinks">
                         <ng-container [ngSwitch]="link.type">
                             <ng-container *ngSwitchCase="'dropdown'">
-                                <div role="group" class="btn-group- me-2 d-inline-block" *ngIf="link.show">
+                                <div class="btn-group- me-2 d-inline-block" *ngIf="link.show">
                                     <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="other_actions">
                                         <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                                             <span>{{ link.title | translate }}</span> <i class="bi bi-chevron-down ms-1"></i>
                                         </button>
-                                        <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                                        <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
                                             <div class="gl-new-dropdown-inner">
                                                 <div class="gl-new-dropdown-contents" *ngFor="let menu of link.submenu">
-                                                    <li role="presentation" class="gl-new-dropdown-item" *ngIf="menu.show">
+                                                    <li class="gl-new-dropdown-item" *ngIf="menu.show">
                                                         <button role="menuitem" type="button" class="dropdown-item" [routerLink]="[menu.route]" [relativeTo]="route">
                                                             <div class="gl-new-dropdown-item-text-wrapper">
-                                                            <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
+                                                                <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
                                                             </div>
                                                         </button>
                                                     </li>
@@ -47,14 +44,25 @@
                             </ng-container>
                             <ng-container *ngSwitchDefault>
                                 <div class="position-relative me-2 d-none d-inline-block" *ngIf="link.show">
-                                    <lnk-button [type]="'button'" [label]="link.title" (onAction)="onLinkClick(link)"></lnk-button>
+                                    <lnk-button
+                                        [type]="'button'"
+                                        [label]="link.buttonTitle"
+                                        [tooltip]=""
+                                        [icon]="link.buttonIcon"
+                                        [btnTooltip]="link.title"
+                                        (onAction)="onLinkClick(link)"
+                                    ></lnk-button>
                                 </div>
                             </ng-container>
                         </ng-container>
                     </ng-container>
                 </ng-container>
-                <div role="group" class="btn-group me-2 d-inline-block" *ngIf="!_spin && data">
-                    <lnk-button [type]="'button'" [spinner]="true" [onlySpinner]="true" *ngIf="_changingStatus"></lnk-button>
+                <div class="btn-group me-2 d-inline-block" *ngIf="!_spin && data">
+                    <lnk-button *ngIf="_changingStatus"
+                        [type]="'button'"
+                        [spinner]="true"
+                        [onlySpinner]="true"
+                    ></lnk-button>
                     <ui-workflow *ngIf="!_changingStatus && generalConfig"
                         [data]="data"
                         [module]="'servizio'"
@@ -65,14 +73,39 @@
                     ></ui-workflow>
                 </div>
                 <div class="position-relative d-inline-block" *ngIf="!_isEdit && !_spin && _editable">
-                    <lnk-button [type]="'button'" [icon]="'bi bi-pencil'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.EditService' | translate" (onAction)="_editService()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="'APP.TOOLTIP.EditService'"></lnk-button>
+                    <lnk-button
+                        [type]="'button'"
+                        [icon]="'bi bi-pencil'"
+                        [onlyIcon]="true"
+                        [ariaLabel]="'APP.TOOLTIP.EditService' | translate"
+                        [disabled]="!(_updateData | mapper:_canEditMapper)"
+                        [btnTooltip]="'APP.TOOLTIP.EditService'"
+                        (onAction)="_editService()"
+                    ></lnk-button>
                 </div>
-                <div role="group" class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
-                    <lnk-button [type]="'button'" [icon]="'bi bi-trash text-danger'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate" (onAction)="_confirmDelection()" [btnTooltip]="'APP.TOOLTIP.DeleteService'"></lnk-button>
+                <div class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
+                    <lnk-button
+                        [type]="'button'"
+                        [icon]="'bi bi-trash text-danger'"
+                        [onlyIcon]="true"
+                        [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate"
+                        [btnTooltip]="'APP.TOOLTIP.DeleteService'"
+                        (onAction)="_confirmDelection()"
+                    ></lnk-button>
                 </div>
             </ng-container>
-            <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-                <lnk-button [type]="'button'" [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate" [tertiary]="true" [otherClass]="'ms-2'" (onAction)="_onCancelEdit()" [disabled]="!(_updateData | mapper:_canEditMapper)" [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"></lnk-button>
+            <div class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+                <lnk-button
+                    [type]="'button'"
+                    [icon]="'bi bi-x-lg'"
+                    [onlyIcon]="true"
+                    [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate"
+                    [tertiary]="true"
+                    [otherClass]="'ms-2'"
+                    [disabled]="!(_updateData | mapper:_canEditMapper)"
+                    [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"
+                    (onAction)="_onCancelEdit()"
+                ></lnk-button>
             </div>
         </div>
     </div>
@@ -113,7 +146,6 @@
                                 <div class="row logo mt-4">
                                     <div class="col-12">
                                         <div class="form-group logo">
-                                            <!-- <label class="label-bold" for="logo">{{ 'APP.LABEL.logo' | translate }}</label> -->
                                             <div class="" *ngIf="_isEdit">
                                                 <app-photo-base64
                                                     [boxWidth]="'250px'"
@@ -185,9 +217,26 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-4" *ngIf="(_updateData | mapper:_isGestoreMapper)">
+                                        <div class="form-group fruizione mt-2-">
+                                            <div class="form-group">
+                                                <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'fruizione'" *ngIf="_isEdit"></span></label>
+                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
+                                                    <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
+                                                    <label class="custom-control-label" for="fruizione"></label>
+                                                </div>
+                                                <div class="" *ngIf="!_isEdit">
+                                                    <span class="">
+                                                        <i class="bi bi-square" *ngIf="!data.fruizione"></i>
+                                                        <i class="bi bi-check-square" *ngIf="data.fruizione"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="row nome versione">
-                                    <div class="col-8">
+                                    <div [class.col-8]="!hideVersions || _isEdit" [class.col-12]="hideVersions && !_isEdit">
                                         <lnk-form-field
                                             name="nome"
                                             [label]="'APP.LABEL.nome' | translate"
@@ -197,22 +246,8 @@
                                             [plainText]="true"
                                             [helpContext]="'SERVICE.POPOVER'"
                                         ></lnk-form-field>
-                                        <!-- <div class="form-group nome">
-                                            <label class="label-bold" for="nome">{{ 'APP.LABEL.nome' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
-                                                <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                    <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
-                                                </p>
-                                                <ui-input-help field="nome" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="nome" [value]="data?.nome">
-                                            </div>
-                                        </div> -->
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-4" *ngIf="!hideVersions || _isEdit">
                                         <lnk-form-field
                                             type="number"
                                             name="versione"
@@ -223,20 +258,6 @@
                                             [plainText]="true"
                                             [helpContext]="'SERVICE.POPOVER'"
                                         ></lnk-form-field>
-                                        <!-- <div class="form-group versione">
-                                            <label class="label-bold" for="versione">{{ 'APP.LABEL.versione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione')" type="text" name="versione" id="versione" formControlName="versione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
-                                                <p *ngIf="f['versione'].invalid && (f['versione'].dirty || f['versione'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['versione'].errors && f['versione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                    <span *ngIf="f['versione'].errors && f['versione'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="versione" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="versione" [value]="data?.versione">
-                                            </div>
-                                        </div> -->
                                     </div>
                                 </div>
                                 <div class="form-group dominio" *ngIf="_hasMultiDominio">
@@ -314,34 +335,6 @@
                                                 </ng-container>
                                             </div>
                                         </div>
-                                        <!-- <div class="form-group visibilita">
-                                            <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <select class="form-select" id="visibilita" formControlName="visibilita" [class.gl-field-error-outline]="_hasControlError('visibilita')" (change)="_onChangeVisibilita($event)">
-                                                    <option *ngFor="let item of _tipiVisibilitaServizio"  [value]="item.value">{{ 'APP.VISIBILITY.' + item.label | translate }}</option>
-                                                </select>
-                                                <p *ngIf="f['visibilita'].invalid && (f['visibilita'].dirty || f['visibilita'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['visibilita'].errors && f['visibilita'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="visibilita" context="SERVICE" [params]="{ 'visibilita': 'APP.VISIBILITY.' + (data?.dominio?.visibilita || selectedDominio?.visibilita) | translate }" *ngIf="(f['visibilita'].value || f['id_dominio'].value) | mapper:_isVisibilitaNullMapper"></ui-input-help>
-                                            </div>
-                                            <div class="mt-1" *ngIf="!_isEdit">
-                                                <ng-container *ngIf="data && data.visibilita">
-                                                    <ui-data-type
-                                                        [data]="data"
-                                                        [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-                                                        [config]="config"
-                                                    ></ui-data-type>
-                                                </ng-container>
-                                                <ng-container *ngIf="!data.visibilita">
-                                                    <ui-data-type
-                                                        [data]="{ visibilita: data.dominio.visibilita + '_dominio' }"
-                                                        [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-                                                        [config]="config"
-                                                    ></ui-data-type>
-                                                </ng-container>
-                                            </div>
-                                        </div> -->
                                     </div>
                                     <div class="col-6">
                                         <div class="form-group classi" *ngIf="_isVisibilita('riservato')">
@@ -368,7 +361,6 @@
                                                 <ui-input-help field="classi" context="SERVICE"></ui-input-help>
                                             </div>
                                             <div class="mt-1" *ngIf="!_isEdit">
-                                                <!-- <input type="text" readonly class="form-control-plaintext" id="classi" [value]="data?.classi"> -->
                                                 <span id="classi" class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1" *ngFor="let classe of data?.classi">{{ classe.nome }}</span>
                                             </div>
                                         </div>
@@ -511,9 +503,7 @@
                                         <ui-input-help field="descrizione_sintetica" context="SERVICE"></ui-input-help>
                                     </div>
                                     <div class="" *ngIf="!_isEdit">
-                                        <!-- <input type="text" readonly class="form-control-plaintext" id="descrizione_sintetica" [value]="data?.descrizione_sintetica"> -->
                                         <span class="mt-1 white-space-pre text-wrap">{{ data?.descrizione_sintetica || '-' }}</span>
-                                        
                                     </div>
                                 </div>
                                 <div class="form-group descrizione">
@@ -529,12 +519,13 @@
                                     <div class="mb-2 markdown-container" [ngClass]="{ 'p-2 border border-info': _showMarkdownPreview, 'parent-': !_isEdit }" *ngIf="(!_isEdit && _showMarkdown) || _showMarkdownPreview">
                                         <div class="" [class.scroll-shadows-]="!_isEdit">
                                             <markdown ngPreserveWhitespaces
-                                                [data]="_showMarkdownPreview ? f['descrizione'].value: (data.descrizione || '- ')">
+                                                [data]="_showMarkdownPreview ? f['descrizione'].value: (data.descrizione || '- ')"
+                                                class="markdown"
+                                            >
                                             </markdown>
                                         </div>
                                     </div>
                                     <div class="my-2" *ngIf="!_isEdit && !_showMarkdown">
-                                        <!-- <textarea type="text" readonly class="form-control-plaintext" id="descrizione" [value]="data?.descrizione" rows="5"></textarea> -->
                                         <span class="mt-1 white-space-pre">{{ data?.descrizione || '-' }}</span>
                                     </div>
                                 </div>
@@ -559,7 +550,6 @@
                                         <ui-input-help field="tags" context="SERVICE"></ui-input-help>
                                     </div>
                                     <div class="mt-1" *ngIf="!_isEdit">
-                                        <!-- <input type="text" readonly class="form-control-plaintext" id="tags" [value]="data?.tags"> -->
                                         <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1" *ngFor="let tag of data?.tags">{{ tag }}</span>
                                         <span class="" *ngIf="!data?.tags?.length">-</span>
                                     </div>
@@ -589,7 +579,6 @@
                                         <ui-input-help field="note" context="SERVICE"></ui-input-help>
                                     </div>
                                     <div class="" *ngIf="!_isEdit">
-                                        <!-- <textarea type="text" readonly class="form-control-plaintext" id="note" [value]="data.note || '-'"></textarea> -->
                                         <span class="mt-1 white-space-pre">{{ data?.note || '-' }}</span>
                                     </div>
                                 </div>
@@ -620,7 +609,6 @@
                                                 <ui-input-help field="data_creazione" context="SERVICE"></ui-input-help>
                                             </div>
                                             <div class="mt-1" *ngIf="!_isEdit">
-                                                <!-- <input type="text" readonly class="form-control-plaintext" id="data_creazione" [value]="data?.data_creazione"> -->
                                                 <ui-data-type *ngIf="data"
                                                     [data]="data"
                                                     [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
@@ -657,7 +645,6 @@
                                                 <ui-input-help field="data_ultima_modifica" context="SERVICE"></ui-input-help>
                                             </div>
                                             <div class="mt-1" *ngIf="!_isEdit">
-                                                <!-- <input type="text" readonly class="form-control-plaintext" id="data_ultima_modifica" [value]="data?.data_ultima_modifica"> -->
                                                 <ui-data-type *ngIf="data"
                                                     [data]="data"
                                                     [elem]="{ field: 'data_ultima_modifica', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
@@ -744,8 +731,18 @@
                         </div>
 
                         <div class="row-content-block footer-block" *ngIf="_isEdit">
-                            <lnk-button [type]="'submit'" [label]="'APP.BUTTON.Save'" [primary]="true" [otherClass]="'gl-mr-2'" [disabled]="_formGroup.invalid || _spin"></lnk-button>
-                            <lnk-button [type]="'button'" [label]="'APP.BUTTON.Cancel'" (onAction)="_onCancelEdit()"></lnk-button>
+                            <lnk-button
+                                [type]="'submit'"
+                                [label]="'APP.BUTTON.Save'"
+                                [primary]="true"
+                                [otherClass]="'gl-mr-2'"
+                                [disabled]="_formGroup.invalid || _spin"
+                            ></lnk-button>
+                            <lnk-button
+                                [type]="'button'"
+                                [label]="'APP.BUTTON.Cancel'"
+                                (onAction)="_onCancelEdit()"
+                            ></lnk-button>
                         </div>
                     </form>
                 </div>

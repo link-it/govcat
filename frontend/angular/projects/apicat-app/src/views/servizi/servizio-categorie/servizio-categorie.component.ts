@@ -114,7 +114,7 @@ export class ServizioCategorieComponent implements OnInit, AfterContentChecked {
     private configService: ConfigService,
     public tools: Tools,
     public apiService: OpenAPIService,
-    public utilService: UtilService,
+    public utils: UtilService,
     public authenticationService: AuthenticationService
   ) {
     this.config = this.configService.getConfiguration();
@@ -347,7 +347,7 @@ export class ServizioCategorieComponent implements OnInit, AfterContentChecked {
       },
       (error: any) => {
         this._errorSave = true;
-        this._errorSaveMsg = error.details || Tools.GetErrorMsg(error);
+        this._errorSaveMsg = error.details || this.utils.GetErrorMsg(error);
         console.log('error', error);
       }
     );
@@ -441,7 +441,7 @@ export class ServizioCategorieComponent implements OnInit, AfterContentChecked {
         debounceTime(500),
         tap(() => this.categorieLoading = true),
         switchMap((term: any) => {
-          return this.utilService.getUtenti(term, this.categorieFilter).pipe(
+          return this.utils.getUtenti(term, this.categorieFilter).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.categorieLoading = false)
           )

@@ -22,10 +22,12 @@ package org.govway.catalogo.controllers;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.RequestUtils;
@@ -43,22 +45,11 @@ import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.UtentiApi;
-import org.govway.catalogo.servlets.model.Configurazione;
-import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
-import org.govway.catalogo.servlets.model.ItemUtente;
-import org.govway.catalogo.servlets.model.PageMetadata;
-import org.govway.catalogo.servlets.model.PagedModelItemUtente;
-import org.govway.catalogo.servlets.model.Profilo;
-import org.govway.catalogo.servlets.model.ProfiloUpdate;
-import org.govway.catalogo.servlets.model.RuoloUtenteEnumSearch;
-import org.govway.catalogo.servlets.model.StatoProfiloEnum;
-import org.govway.catalogo.servlets.model.StatoUtenteEnum;
-import org.govway.catalogo.servlets.model.Utente;
-import org.govway.catalogo.servlets.model.UtenteCreate;
-import org.govway.catalogo.servlets.model.UtenteUpdate;
+import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +99,11 @@ public class UtentiController implements UtentiApi {
 	private Logger logger = LoggerFactory.getLogger(UtentiController.class);
 
 	@Override
+	public ResponseEntity<Object> addDominioUtente(UUID idUtente, UUID idDominio, Object body) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public ResponseEntity<Utente> createUtente(UtenteCreate utenteCreate) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
@@ -117,7 +113,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 
 				if(this.service.existsByPrincipal(utenteCreate.getPrincipal())) {
-					throw new ConflictException("Utente ["+utenteCreate.getPrincipal()+"] esiste gia");
+					throw new ConflictException(ErrorCode.UT_409, Map.of("principal", utenteCreate.getPrincipal()));
 				}
 				
 				UtenteEntity entity = this.dettaglioAssembler.toEntity(utenteCreate);
@@ -137,10 +133,15 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 		
+	}
+
+	@Override
+	public ResponseEntity<Void> deleteDominioUtente(UUID idUtente, UUID idDominio) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -149,7 +150,7 @@ public class UtentiController implements UtentiApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity utente = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeDelete(utente);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -157,7 +158,7 @@ public class UtentiController implements UtentiApi {
 				String check = this.service.checkReferente(utente);
 				
 				if(check != null) {
-					throw new BadRequestException(check);
+					throw new BadRequestException(ErrorCode.SRV_403_REMOVE_REFERENT);
 				}
 				this.service.delete(utente);
 				this.logger.info("Invocazione completata con successo");
@@ -171,7 +172,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -183,7 +184,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -202,8 +203,13 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
+	}
+
+	@Override
+	public ResponseEntity<PagedModelItemDominio> getUtenteDomini(UUID idUtente) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -233,7 +239,7 @@ public class UtentiController implements UtentiApi {
 					
 					for(UUID classeUtente: classiUtente) {
 						entities.add(this.classeUtenteService.findByIdClasseUtente(classeUtente)
-								.orElseThrow(() -> new NotFoundException("Classe Utente ["+classeUtente+"] non trovata")));
+								.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
 					}
 					spec.setIdClassiUtente(entities);
 				}
@@ -273,7 +279,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -285,7 +291,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -307,7 +313,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -320,7 +326,7 @@ public class UtentiController implements UtentiApi {
 				InfoProfilo current = this.requestUtils.getPrincipal(false);
 
 				if(current == null || current.utente == null) {
-					throw new NotAuthorizedException("Impossibile eseguire l'update profilo, nessun utente in sessione");
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
 				}
 				
 				UtenteEntity entity = current.utente;
@@ -344,7 +350,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -438,7 +444,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -450,7 +456,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGet(entity);
 				
@@ -469,7 +475,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -480,7 +486,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -502,7 +508,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -514,7 +520,7 @@ public class UtentiController implements UtentiApi {
 	
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovata"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 	
 				this.authorization.authorizeGetNotifiche(entity);
 				
@@ -533,7 +539,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -544,7 +550,7 @@ public class UtentiController implements UtentiApi {
 				
 				this.logger.info("Invocazione in corso ...");     
 				UtenteEntity entity = this.service.find(idUtente)
-						.orElseThrow(() -> new NotFoundException("Utente ["+idUtente+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(configurazioneNotifiche, entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -566,7 +572,7 @@ public class UtentiController implements UtentiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 }

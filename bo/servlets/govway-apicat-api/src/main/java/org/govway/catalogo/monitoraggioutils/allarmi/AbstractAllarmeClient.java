@@ -22,6 +22,7 @@ package org.govway.catalogo.monitoraggioutils.allarmi;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 import org.slf4j.Logger;
@@ -182,10 +184,10 @@ public abstract class AbstractAllarmeClient {
 					if (entity != null) {
 						return IOUtils.readLines(entity.getContent(), Charset.defaultCharset());
 					} else {
-						throw new InternalException("Response entity null");
+						throw new InternalException(ErrorCode.INT_502, Map.of("idAllarme", idAllarme));
 					}
 				} else {
-					throw new InternalException("La chiamata all'allarme "+idAllarme+" ha avuto un return code imprevisto: " + response.getStatusLine().getStatusCode());
+					throw new InternalException(ErrorCode.INT_502, Map.of("idAllarme", idAllarme, "statusCode", String.valueOf(response.getStatusLine().getStatusCode())));
 				}
 	
 			} finally {
@@ -194,7 +196,7 @@ public abstract class AbstractAllarmeClient {
 			}
 		} catch(Exception e) {
 			this.logger.error(e.getMessage(), e);
-			throw new InternalException("Errore durante la chiamata alle API di Monitoraggio: " + e.getMessage());
+			throw new InternalException(ErrorCode.INT_500_COMMUNICATION, Map.of("idAllarme", idAllarme), e);
 		}
 	}
 }

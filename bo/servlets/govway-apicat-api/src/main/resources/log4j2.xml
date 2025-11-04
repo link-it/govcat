@@ -3,11 +3,12 @@
     <Properties>
         <Property name="LOG_PATTERN">%p &lt;%d{dd-MM-yyyy HH:mm:ss.SSS}&gt; %C.%M(%L): %m %n %n</Property>
 	<Property name="APP_LOG_ROOT">${logDir}</Property>
+	<Property name="LOG_FILE_SUFFIX">${app.suffix}</Property>
     </Properties>
     <Appenders>
         <RollingFile name="hibernate"
-            fileName="${APP_LOG_ROOT}/govcat_api_hibernate.log"
-            filePattern="${APP_LOG_ROOT}/govcat_api_hibernate.log.%i">
+            fileName="${APP_LOG_ROOT}/govcat-api-hibernate${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api-hibernate${LOG_FILE_SUFFIX}.log.%i">
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="5000KB" />
@@ -16,8 +17,8 @@
         </RollingFile>
  
         <RollingFile name="spring"
-            fileName="${APP_LOG_ROOT}/govcat_api_spring.log"
-            filePattern="${APP_LOG_ROOT}/govcat_api_spring.log.%i">
+            fileName="${APP_LOG_ROOT}/govcat-api-spring${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api-spring${LOG_FILE_SUFFIX}.log.%i">
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="5000KB" />
@@ -26,8 +27,8 @@
         </RollingFile>
  
         <RollingFile name="core"
-            fileName="${APP_LOG_ROOT}/govcat_api_core.log"
-            filePattern="${APP_LOG_ROOT}/govcat_api_core.log.%i">
+            fileName="${APP_LOG_ROOT}/govcat-api-core${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api-core${LOG_FILE_SUFFIX}.log.%i">
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="5000KB" />
@@ -36,8 +37,8 @@
         </RollingFile>
  
         <RollingFile name="controllers"
-            fileName="${APP_LOG_ROOT}/govcat_api.log"
-            filePattern="${APP_LOG_ROOT}/govcat_api.log.%i">
+            fileName="${APP_LOG_ROOT}/govcat-api${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-api${LOG_FILE_SUFFIX}.log.%i">
             <PatternLayout pattern="${LOG_PATTERN}" />
             <Policies>
                 <SizeBasedTriggeringPolicy size="5000KB" />

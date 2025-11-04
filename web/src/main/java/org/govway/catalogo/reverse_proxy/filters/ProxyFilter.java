@@ -32,15 +32,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.govway.catalogo.reverse_proxy.beans.Pair;
@@ -128,7 +128,7 @@ public abstract class ProxyFilter implements Filter {
 
 		Whitelist whitelist = webConsoleConfig.getWhitelist();
 		if(whitelist != null) {
-			HttpMethod httpMethod = HttpMethod.resolve(req.getMethod().toUpperCase());
+			HttpMethod httpMethod = HttpMethod.valueOf(req.getMethod().toUpperCase());
 			logger.debug("Controllo autorizzazione sulla risorsa richiesta, individuato HTTPMethod [{}].", httpMethod);
 
 			List<String> listaPerHttpMethod = whitelist.getListaPerHttpMethod(httpMethod);

@@ -168,7 +168,7 @@ export class AdesioneListaErogazioniComponent implements OnInit {
 
     getSottotipoGroupCompletedMapper = (update: string, tipo: string): number => {
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
-            return this.nextState?.dati_non_applicabili.includes(this.environment) ? 2 : 1;
+            return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
             return this._hasCambioStato() ? 0 : 1;
         }
@@ -314,7 +314,7 @@ export class AdesioneListaErogazioniComponent implements OnInit {
 
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._saving = false;
             }
         });

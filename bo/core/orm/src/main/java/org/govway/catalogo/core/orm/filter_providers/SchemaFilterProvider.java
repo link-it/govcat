@@ -33,7 +33,12 @@ public class SchemaFilterProvider implements org.hibernate.tool.schema.spi.Schem
 	    return CustomSchemaFilter.INSTANCE;
 	  }
 
-	  @Override
+    @Override
+    public SchemaFilter getTruncatorFilter() {
+        return CustomSchemaFilter.INSTANCE;
+    }
+
+    @Override
 	  public SchemaFilter getMigrateFilter() {
 	    return CustomSchemaFilter.INSTANCE;
 	  }

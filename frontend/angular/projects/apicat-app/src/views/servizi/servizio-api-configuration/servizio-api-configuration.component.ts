@@ -13,7 +13,7 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 import { Grant, RightsEnum } from '@app/model/grant';
 
 import * as _ from 'lodash';
-import { ApiConfiguration, ApiConfigurationRead, ApiCustomProperty, ApiDefinitionUpdateWithFile, ApiDefinitionUpdateWithReference, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from '../servizio-api-details/servizio-api-interfaces';
+import { ApiConfiguration, ApiConfigurationRead, ApiCustomProperty, ApiDefinitionUpdateWithFile, ApiDefinitionUpdateWithReference, ApiReadDetails, ApiUpdateRequest, IHistory, Profile, CustomPropertyDefinition, CustomProperty } from '../servizio-api-details/servizio-api-interfaces';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 declare const saveAs: any;
@@ -37,6 +37,17 @@ interface ApiForm {
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
 export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
+
+type Campo = {
+  nome_gruppo: string;
+  nome: string;
+  [key: string]: any;
+};
+
+type Raggruppamento = {
+  [gruppo: string]: { nome: string; valore: any }[];
+};
+
 
 @Component({
   selector: 'app-servizio-api-configuration',
@@ -142,6 +153,8 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   _messageHelp = 'APP.MESSAGE.ChooseEnvironmentHelp';
 
   _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
+
+  fieldToGroup = 'label_gruppo'; // nome_gruppo | label_gruppo
 
   constructor(
     private route: ActivatedRoute,
@@ -454,7 +467,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       },
       error: (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._downloading = false;
       }
     });
@@ -561,7 +574,17 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   _getGroupLabelMapper = (group: any): string => {
     const _srv: any = Tools.Configurazione.servizio;
     let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
-    return _proprietaCustom.find((item: any) => item.nome_gruppo === group)?.label_gruppo;
+    return _proprietaCustom.find((item: any) => item[this.fieldToGroup] === group)?.label_gruppo;
+  }
+
+  _getGroupNameByFieldGroup(group: any) {
+    const _srv: any = Tools.Configurazione.servizio;
+    let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+    return _proprietaCustom.find((item: any) => item[this.fieldToGroup] === group)?.nome_gruppo;
+  }
+
+  _getGroupNameByFieldGroupMapper = (group: any): string => {
+    return this._getGroupNameByFieldGroup(group);
   }
 
   _initProprietaCustom() {
@@ -572,29 +595,29 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
     _srv.api.proprieta_custom.forEach((item: any) => {
       if (item.profili && !item.profili.some((p: string) => profili.some((pr: Profile) => pr.codice_interno === p))) {
-          return;
+        return;
       }
 
       if (item.auth_type && !item.auth_type.some((auth_type: string) => profili.some((pr: Profile) => pr.auth_type === auth_type))) {
-          return;
+        return;
       }
 
       if (item.classe_dato !== this.environmentId) {
         return;
       }
 
-      const _gruppo = item.nome_gruppo;
       const _ruoli_abilitati = item.ruoli_abilitati;
-      item.proprieta.forEach((proprieta: any) => {
+      item.proprieta.sort((a: any, b: any) => a.index - b.index).forEach((proprieta: any) => {
         this._apiProprietaCustom.push({
-          nome_gruppo: _gruppo,
+          nome_gruppo: item.nome_gruppo,
+          label_gruppo: item.label_gruppo,
           classe_dato: item.classe_dato,
           ...proprieta,
           ruoli_abilitati: _ruoli_abilitati ? [ ..._ruoli_abilitati ] : undefined
         });
       });
     });
-    this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, 'nome_gruppo');
+    this._apiProprietaCustomGrouped = _.groupBy(this._apiProprietaCustom, this.fieldToGroup);
 
     const mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
     const genericoCustomPropertiesAreMandatory = mandatoryFields.some((item: string) => item === 'generico');
@@ -629,7 +652,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
             if (required) { _validators.push(Validators.required); }
             if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
   
-            this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
+            this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
   
             const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
               return (pc.gruppo === item.nome_gruppo);
@@ -641,7 +664,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
               _val = _defaultItem?.nome || null;
             }
   
-            const group = this.proprietaCustom.get(item.nome_gruppo) as FormGroup;
+            const group = this.proprietaCustom.get(item[this.fieldToGroup]) as FormGroup;
             group.addControl(item.nome, new FormControl(_val, [..._validators]));
           } else {
             // remove item from list
@@ -664,7 +687,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
     const _srv: any = Tools.Configurazione.servizio;
     const _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
-    const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group);
+    const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group || item.label_gruppo === group);
     const _pItem = _group.proprieta.find((item: any) => item.nome === name);
     const _label = _pItem.valori.find((item: any) => item.nome === cod)?.etichetta;
 
@@ -716,39 +739,65 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       request.configurazione_produzione = configuration;
     }
 
-    const proprieta_custom: any = [];
-
     if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
-      Object.keys(this._apiProprietaCustomGrouped).forEach((k) => {
-        if (this._apiProprietaCustomGrouped[k].length) {
-          const _customGrouped: ApiCustomProperty = {
-            gruppo: k,
-            proprieta: []
-          };
-          this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-            if (formValues.proprieta_custom[k][kk.nome]) {
-              _customGrouped.proprieta.push({
-                nome: kk.nome,
-                valore: formValues.proprieta_custom[k][kk.nome]
-              });
-            }
-          });
-          proprieta_custom.push(_customGrouped);
-        }
-      });
-      request.dati_custom = { proprieta_custom };
+      const result: ApiCustomProperty[] = this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom });
+      request.dati_custom = { proprieta_custom: result };
     }
 
-    this.apiService.putElement(this.model, this.id, request).subscribe(
-      (response: any) => {
+    this.apiService.putElement(this.model, this.id, request).subscribe({
+      next: (response: any) => {
         this._isEdit = false;
         this._loadServizioApi();
       },
-      (error: any) => {
+      error: (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
       }
-    );
+    });
+  }
+
+  generaApiCustomPropertiesDaFlatMap(
+    definizioni: { [label_gruppo: string]: (CustomProperty & {
+      nome_gruppo: string;
+      label_gruppo: string;
+      classe_dato: string;
+    })[] },
+    formValues: { proprieta_custom: { [label_gruppo: string]: { [nome: string]: any } } }
+  ): ApiCustomProperty[] {
+    const risultato: Record<string, { nome: string; valore: string }[]> = {};
+
+    for (const label_gruppo in definizioni) {
+      const campi = definizioni[label_gruppo];
+      const valoriGruppo = formValues.proprieta_custom?.[label_gruppo];
+      if (!valoriGruppo) continue;
+
+      for (const campo of campi) {
+        const nome = campo.nome;
+        const valore = valoriGruppo[nome];
+
+        const valoreNonValido =
+          valore === undefined ||
+          valore === null ||
+          (typeof valore === 'string' && valore.trim() === '') ||
+          (typeof valore === 'number' && isNaN(valore));
+
+        if (valoreNonValido) {
+          console.warn(`Campo escluso: ${nome} (gruppo: ${campo.nome_gruppo}) - valore non valido`);
+          continue;
+        }
+
+        if (!risultato[campo.nome_gruppo]) {
+          risultato[campo.nome_gruppo] = [];
+        }
+
+        risultato[campo.nome_gruppo].push({ nome, valore });
+      }
+    }
+
+    return Object.entries(risultato).map(([gruppo, proprieta]) => ({
+      gruppo,
+      proprieta
+    }));
   }
 
   _toggleSpecifica() {
@@ -827,4 +876,8 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   _isGestore() {
     return this.authenticationService.isGestore(this._grant?.ruoli);
   }
+
+  sortByIndexPreservingOrderMapper = (arr: any[]) => this.utils.sortByIndexPreservingOrder(arr);
+
+  sortByFieldPreservingOthersMapper = (arr: any[], field: string) => this.utils.sortByFieldPreservingOthers(arr, field);
 }

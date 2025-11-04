@@ -135,7 +135,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    public utilService: UtilService,
+    public utils: UtilService,
     public authenticationService: AuthenticationService
   ) {
     this.route.data.subscribe((data) => {
@@ -468,7 +468,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
       },
       (error: any) => {
         this._errorSave = true;
-        this._errorSaveMsg = error.details || Tools.GetErrorMsg(error);
+        this._errorSaveMsg = error.details || this.utils.GetErrorMsg(error);
         console.log('error', error);
       }
     );
@@ -534,7 +534,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
         switchMap((term: any) => {
           let aux: any = this._isDominioEsterno ? null : this._idDominioEsterno;
           const referente_tecnico = this.tipoReferente === 'referente_tecnico';
-          return this.utilService.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
+          return this.utils.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )

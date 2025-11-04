@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.govway.catalogo.core.business.utils.configurazione.ConfigurazioneReader;
@@ -18,9 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecutionListener;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.UnexpectedInputException;
@@ -39,10 +40,7 @@ import org.springframework.context.annotation.Configuration;
 public class ConfigurazioneBatchJobConfig {
 
 	@Autowired
-	DataSource dataSource;
-
-	@Autowired
-	protected StepBuilderFactory steps;
+    DataSource dataSource;
 
 	@Autowired
 	protected EntityManager entityManager;
@@ -60,12 +58,10 @@ public class ConfigurazioneBatchJobConfig {
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurazioneBatchJobConfig.class);
 
 	@Bean(name = "ConfigurazioneJob")
-	public Job configurazioneJob(JobBuilderFactory jobs,
-			@Qualifier("configurazioneStep") Step configurazioneStep)
+	public Job configurazioneJob(JobRepository jobs,
+                                 @Qualifier("configurazioneStep") Step configurazioneStep)
 					throws UnexpectedInputException {
-		return jobs.get("ConfigurazioneStep")
-				.start(configurazioneStep)
-				.build();
+        return new JobBuilder("ConfigurazioneStep", jobs).start(configurazioneStep).build();
 	}
 
 	@Bean
@@ -117,18 +113,18 @@ public class ConfigurazioneBatchJobConfig {
 
 	@Bean
 	@Qualifier("ConfigurazioneStep")
-	public Step configurazioneStep(
+	public Step configurazioneStep(JobRepository jobRepository,
 			@Qualifier("ConfigurazioneItemReader") JpaPagingItemReader<AdesioneEntity> reader,
 			@Qualifier("ConfigurazioneItemProcessor") ItemProcessor<AdesioneEntity, AdesioneEntity> configurazioneItemProcessor,
 			@Qualifier("ConfigurazioneItemWriter") ItemWriter<AdesioneEntity> configurazioneItemWriter,
 			PlatformTransactionManager transactionManager) throws IOException {
-		return steps.get("ConfigurazioneStep")
-				.<AdesioneEntity, AdesioneEntity>chunk(1)
-				.reader(configurazioneItemReader(entityManagerFactory))
-				.processor(configurazioneItemProcessor)
-				.writer(configurazioneItemWriter())
-				.listener(configurazioneStepListener())
-				.build();
+        return new StepBuilder("ConfigurazioneStep", jobRepository)
+                .<AdesioneEntity, AdesioneEntity>chunk(1, transactionManager)
+                .reader(reader)
+                .processor(configurazioneItemProcessor)
+                .writer(configurazioneItemWriter)
+                .listener(configurazioneStepListener())
+                .build();
 	}
 
 	@Bean

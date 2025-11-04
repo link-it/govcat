@@ -649,10 +649,6 @@ mat-list-item.mat-list-item:hover {
   font-weight: 600;
 }
 
-.border-bottom {
-  border-bottom: 1px solid #f0f0f0 !important;
-}
-
 // ng-select
 
 $tagColor: #f2f2f2; // #b8dbff;
@@ -739,6 +735,10 @@ $tagColorHover: #dbdbdb;
   }
 }
 
+.ng-dropdown-panel {
+  z-index: 1750 !important;
+}
+
 .badge-tag {
   padding: 0.5em !important;
   font-weight: normal !important;
@@ -781,6 +781,32 @@ $tagColorHover: #dbdbdb;
   section {
     padding-top: 0rem !important;
     padding-bottom: 1rem !important;
+  }
+  .wrapper {
+    section {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+  }
+
+  .model-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .model-box-control,
+  .models-control,
+  .opblock-summary-control {
+    overflow: hidden; 
+  }
+
+  .model-box {
+    .model {
+      .model-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
   }
 }
 
@@ -1002,5 +1028,20 @@ input[type=checkbox], input[type=radio] {
       p, ul {
           margin-bottom: 0;
       }
+  }
+}
+
+// Markdown
+
+.markdown {
+  b, strong {
+      font-weight: 700;
+  }
+
+  a {
+    color: #1f75cb !important;
+    &:hover {
+      text-decoration: underline !important;
+    }
   }
 }

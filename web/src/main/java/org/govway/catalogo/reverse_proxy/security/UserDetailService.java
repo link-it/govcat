@@ -19,12 +19,15 @@
  */
 package org.govway.catalogo.reverse_proxy.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.AuthenticationUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -55,11 +58,21 @@ private Logger logger = LoggerFactory.getLogger(UserDetailService.class);
 	private UserDetails loadUserDetails(String principal, Collection<? extends GrantedAuthority> authorities, ReverseProxyAuthenticationDetails authenticationDetails) {
 		logger.debug("Lettura delle informazioni per username: [{}] in corso..", principal);
 
+		// Spring Security 6.x requires at least one authority for authenticated users
+		List<GrantedAuthority> userAuthorities = new ArrayList<>();
+		if (authorities != null && !authorities.isEmpty()) {
+			userAuthorities.addAll(authorities);
+		} else if (principal != null) {
+			// Add a default authority for authenticated users to satisfy Spring Security 6.x
+			userAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+			logger.debug("Added default ROLE_USER authority for principal: {}", principal);
+		}
+
 		ReverseProxyUserDetails user = null;
 		if(principal ==null) {
-			user = new ReverseProxyUserDetails(null, "", false, false, false, false, authorities, authenticationDetails);
+			user = new ReverseProxyUserDetails(null, "", false, false, false, false, userAuthorities, authenticationDetails);
 		} else {
-			user = new ReverseProxyUserDetails(principal, "", true, true, true, true, authorities, authenticationDetails);
+			user = new ReverseProxyUserDetails(principal, "", true, true, true, true, userAuthorities, authenticationDetails);
 		}
 		logger.debug("Lettura delle informazioni per username: [{}] completata.", principal);
 		return user;

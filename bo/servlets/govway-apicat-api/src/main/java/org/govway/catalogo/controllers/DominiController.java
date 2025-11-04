@@ -21,6 +21,7 @@ package org.govway.catalogo.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.services.DominioService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
@@ -106,7 +108,7 @@ public class DominiController implements DominiApi {
 				DominioEntity entity = this.dettaglioAssembler.toEntity(dominioCreate);
 
 				if(this.service.existsByNome(entity)) {
-					throw new ConflictException("Dominio ["+dominioCreate.getNome()+"] esiste gia");
+					throw new ConflictException(ErrorCode.DOM_409, Map.of("nome", dominioCreate.getNome()));
 				}
 				
 				this.service.save(entity);
@@ -125,7 +127,7 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 		
@@ -137,13 +139,13 @@ public class DominiController implements DominiApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				DominioEntity dominio = this.service.find(idDominio)
-						.orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 	
 				this.authorization.authorizeDelete(dominio);
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(dominio.getServizi().size() > 0) {
-					throw new BadRequestException("Dominio ["+dominio.getNome()+"] non eliminabile perché riferito da ["+dominio.getServizi().size()+"] servizi");
+					throw new BadRequestException(ErrorCode.GEN_400, Map.of("nome", dominio.getNome(), "numServizi", String.valueOf(dominio.getServizi().size())));
 				}
 				
 				this.service.delete(dominio);
@@ -158,7 +160,7 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -169,7 +171,7 @@ public class DominiController implements DominiApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				DominioEntity entity = this.service.find(idDominio)
-						.orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 
 				this.authorization.authorizeGet(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -187,7 +189,7 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -232,7 +234,7 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 
 	}
@@ -243,7 +245,7 @@ public class DominiController implements DominiApi {
 			return this.service.runTransaction( () -> {
 				this.logger.info("Invocazione in corso ...");     
 				DominioEntity entity = this.service.find(idDominio)
-						.orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 	
 				this.authorization.authorizeUpdate(dominioUpdate,entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -267,7 +269,7 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -279,7 +281,7 @@ public class DominiController implements DominiApi {
 
 				this.logger.info("Invocazione in corso ..."); 
 				DominioEntity entity = this.service.find(idDominio)
-						.orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 
 				this.authorization.authorizeReferenteScrittura(entity);
 				this.logger.debug("Autorizzazione completata con successo");
@@ -302,27 +304,27 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 	
-	private void checkReferenti(DominioEntity servizioEntity) {
+	private void checkReferenti(DominioEntity dominioEntity) {
 
-		OrganizzazioneEntity organizzazione = servizioEntity.getSoggettoReferente().getOrganizzazione();
+		OrganizzazioneEntity organizzazione = dominioEntity.getSoggettoReferente().getOrganizzazione();
 		if(organizzazione.isEsterna()) {
 			return;
 		}
 		
 		
-		for(ReferenteDominioEntity referenteEntity: servizioEntity.getReferenti()) {
+		for(ReferenteDominioEntity referenteEntity: dominioEntity.getReferenti()) {
 			boolean admin = this.coreAuthorization.isAdmin(referenteEntity.getReferente());
 			
 			if(!admin) {
 				if(referenteEntity.getTipo().equals(TIPO_REFERENTE.REFERENTE) && !organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
+						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
 					} else {
-						throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] non associato ad alcuna organizzazione");
+						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
 					}
 				}
 			}
@@ -343,9 +345,9 @@ public class DominiController implements DominiApi {
 
 		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-				throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] associato all'organizzazione ["+referenteEntity.getReferente().getOrganizzazione().getNome()+"]");
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
 			} else {
-				throw new NotAuthorizedException("Organizzazione ["+organizzazione.getNome()+"] interna, ma utente ["+referenteEntity.getReferente().getIdUtente()+"] non associato ad alcuna organizzazione");
+				throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
 			}
 		}
 	}
@@ -379,7 +381,7 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 
@@ -390,7 +392,7 @@ public class DominiController implements DominiApi {
 			return this.service.runTransaction(() -> {
 				this.logger.info("Invocazione in corso ...");     
 				DominioEntity entity = this.service.find(idDominio)
-						.orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 	
 				this.authorization.authorizeReferenteLettura(entity);
 				this.logger.debug("Autorizzazione completata con successo");     
@@ -426,7 +428,7 @@ public class DominiController implements DominiApi {
 		}
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500);
 		}
 	}
 

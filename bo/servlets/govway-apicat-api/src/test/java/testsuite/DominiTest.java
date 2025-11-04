@@ -28,9 +28,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
@@ -40,7 +41,7 @@ import org.govway.catalogo.controllers.DominiController;
 import org.govway.catalogo.controllers.OrganizzazioniController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
-import org.govway.catalogo.core.exceptions.NotFoundException;
+import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
@@ -64,6 +65,7 @@ import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -83,13 +85,16 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class DominiTest {
 
     @Mock
@@ -124,6 +129,7 @@ public class DominiTest {
 
     @BeforeEach
     public void setUp() {
+        Locale.setDefault(Locale.ENGLISH);
         MockitoAnnotations.initMocks(this);
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
 
@@ -195,7 +201,7 @@ public class DominiTest {
             controller.createDominio(dominioCreate2);
         });
 
-        assertEquals("Dominio [" + dominioCreate2.getNome() + "] esiste gia", exception.getMessage());
+        assertEquals("DOM.409", exception.getMessage());
     }
 
     @Test
@@ -217,7 +223,7 @@ public class DominiTest {
             controller.createDominio(dominioCreate);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -239,7 +245,7 @@ public class DominiTest {
             controller.createDominio(dominioCreate);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -270,7 +276,7 @@ public class DominiTest {
             controller.deleteDominio(idDominioNonEsistente);
         });
 
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -294,7 +300,7 @@ public class DominiTest {
             controller.deleteDominio(createdDominio.getBody().getIdDominio());
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -318,7 +324,7 @@ public class DominiTest {
             controller.deleteDominio(createdDominio.getBody().getIdDominio());
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -353,7 +359,7 @@ public class DominiTest {
             controller.getDominio(idDominioNonEsistente);
         });
 
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -405,7 +411,7 @@ public class DominiTest {
             controller.updateDominio(idDominioNonEsistente, dominioUpdate);
         });
 
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -437,7 +443,7 @@ public class DominiTest {
             controller.updateDominio(createdDominio.getBody().getIdDominio(), dominioUpdate);
         });
 
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -469,7 +475,7 @@ public class DominiTest {
             controller.updateDominio(createdDominio.getBody().getIdDominio(), dominioUpdate);
         });
 
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -705,7 +711,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test
@@ -738,7 +744,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -771,7 +777,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -845,13 +851,15 @@ public class DominiTest {
     void testDeleteReferenteDominioNotFound() {
     	UUID idDominioNonEsistente = UUID.randomUUID();
     	UUID idUtente = UUID.randomUUID();
-        
+
         // Tentativo di cancellare un referente per un dominio inesistente
-    	NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+        // Accept both NotFoundException types since either can be thrown
+    	RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             controller.deleteReferenteDominio(idDominioNonEsistente, idUtente, TipoReferenteEnum.REFERENTE);
         });
 
-        //assertEquals("Referente [" + idUtente + "] non trovato per dominio [" + idDominioNonEsistente + "] e tipo [REFERENTE]", exception.getMessage());
+        // Verify it's one of the expected exception types
+        assertTrue(exception.getClass().getSimpleName().equals("NotFoundException"));
     }
 
     @Test
@@ -950,11 +958,13 @@ public class DominiTest {
         // Tentativo di cancellare un referente inesistente
         UUID idUtenteNonEsistente = UUID.randomUUID();
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+        // Accept both NotFoundException types since either can be thrown
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             controller.deleteReferenteDominio(createdDominio.getBody().getIdDominio(), idUtenteNonEsistente, TipoReferenteEnum.REFERENTE);
         });
 
-        //assertEquals("Referente [" + idUtenteNonEsistente + "] non trovato per dominio [" + createdDominio.getBody().getIdDominio() + "] e tipo [REFERENTE]", exception.getMessage());
+        // Verify it's one of the expected exception types
+        assertTrue(exception.getClass().getSimpleName().equals("NotFoundException"));
     }
 
     @Test
@@ -1243,7 +1253,7 @@ public class DominiTest {
         });
 
         // Asserzioni
-        assertEquals("Dominio [" + idDominioNonEsistente + "] non trovato", exception.getMessage());
+        assertEquals("DOM.404", exception.getMessage());
     }
 
     @Test

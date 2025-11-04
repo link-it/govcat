@@ -17,15 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.govway.catalogo.core.utils;
-
-import static org.apache.commons.collections4.IterableUtils.emptyIfNull;
+package testsuite.utils;
 
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 public class Collections {
+
+	/**
+	 * Returns an empty iterable if the argument is null, otherwise returns the argument itself.
+	 *
+	 * @param <T> the element type
+	 * @param iterable the iterable to check, may be null
+	 * @return the iterable if not null, or an empty iterable
+	 */
+	private static <T> Iterable<T> emptyIfNull(Iterable<T> iterable) {
+		return iterable != null ? iterable : java.util.Collections.emptyList();
+	}
 	
 	public static <T> Optional<T> findFirst(Iterable<? extends T> collection, Predicate<? super T> test) {
 	    T value = null;

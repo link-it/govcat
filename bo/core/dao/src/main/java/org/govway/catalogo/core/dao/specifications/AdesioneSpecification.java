@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
@@ -151,17 +151,17 @@ public class AdesioneSpecification implements Specification<AdesioneEntity> {
 		}
 		
 		if(this.utente.isPresent()) {
-			
+
 			UtenteEntity utente = this.utente.get();
 			List<Predicate> predLstQ = new ArrayList<>();
-			predLstQ.add(cb.equal(root.join(AdesioneEntity_.referenti, JoinType.LEFT).get(ReferenteAdesioneEntity_.referente), utente)); 
-			predLstQ.add(cb.equal(root.join(AdesioneEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente), utente)); 
-			predLstQ.add(cb.equal(root.join(AdesioneEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente), utente));
-			predLstQ.add(cb.equal(root.get(AdesioneEntity_.richiedente), utente)); 
-			predLstQ.add(cb.equal(root.get(AdesioneEntity_.servizio).get(ServizioEntity_.richiedente), utente)); 
-			
+			predLstQ.add(cb.equal(root.join(AdesioneEntity_.referenti, JoinType.LEFT).get(ReferenteAdesioneEntity_.referente).get(UtenteEntity_.id), utente.getId()));
+			predLstQ.add(cb.equal(root.join(AdesioneEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente).get(UtenteEntity_.id), utente.getId()));
+			predLstQ.add(cb.equal(root.join(AdesioneEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente).get(UtenteEntity_.id), utente.getId()));
+			predLstQ.add(cb.equal(root.get(AdesioneEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
+			predLstQ.add(cb.equal(root.get(AdesioneEntity_.servizio).get(ServizioEntity_.richiedente).get(UtenteEntity_.id), utente.getId()));
+
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
-			predLst.add(cb.notEqual(root.get(AdesioneEntity_.stato), "archiviato")); 
+			predLst.add(cb.notEqual(root.get(AdesioneEntity_.stato), "archiviato"));
 		}
 		if(stati != null) {
 			if(!stati.isEmpty()) {

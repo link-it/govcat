@@ -27,15 +27,21 @@ import java.util.Map;
 
 import org.govway.catalogo.core.orm.filter_providers.SchemaFilterProvider;
 
-public class JavaxPersistenceSqlGenerator {
+public class JakartaPersistenceSqlGenerator {
 
 	public enum TipiDatabase {POSTGRESQL,MYSQL,ORACLE, DERBY, H2}
 	
 	public static void generate(String persistenceId, String folder) throws IOException {
-		
+
 //		TipiDatabase[] values = {TipiDatabase.POSTGRESQL,TipiDatabase.MYSQL,TipiDatabase.ORACLE, TipiDatabase.DERBY};
 		for(TipiDatabase tipoDatabase: TipiDatabase.values()) {
-			generate(persistenceId, folder, tipoDatabase);
+			try {
+				generate(persistenceId, folder, tipoDatabase);
+			} catch (IOException e) {
+				System.err.println("Error generating SQL for " + tipoDatabase + ": " + e.getMessage());
+				e.printStackTrace(System.err);
+				// Continue with next database instead of stopping
+			}
 		}
 	}
 	
@@ -51,7 +57,7 @@ public class JavaxPersistenceSqlGenerator {
 		
 		// Persistence.generateSchema(persistenceId, map);
 		try {
-			Class<?> cPersistence = Class.forName("javax.persistence.Persistence");
+			Class<?> cPersistence = Class.forName("jakarta.persistence.Persistence");
 			Method m = cPersistence.getMethod("generateSchema", persistenceId.getClass(), java.util.Map.class);
 			m.invoke(null, persistenceId, map);
 		}catch(Throwable t) {
@@ -63,35 +69,35 @@ public class JavaxPersistenceSqlGenerator {
 	private static Map<String, String> getMap(String persistenceId, String create, String drop, TipiDatabase tipoDatabase) throws IOException {
 		Map<String, String> map = new HashMap<String, String>();
 
-        map.put("javax.persistence.schema-generation.scripts.action", "drop-and-create");
-        map.put("javax.persistence.schema-generation.scripts.create-target", create);
-        map.put("javax.persistence.schema-generation.scripts.drop-target", drop);
+        map.put("jakarta.persistence.schema-generation.scripts.action", "drop-and-create");
+        map.put("jakarta.persistence.schema-generation.scripts.create-target", create);
+        map.put("jakarta.persistence.schema-generation.scripts.drop-target", drop);
         map.put("hibernate.hbm2ddl.schema_filter_provider", SchemaFilterProvider.class.getName());
         map.put("hibernate.hbm2ddl.delimiter", ";");
         map.put("hibernate.format_sql", "true");
 		
         switch(tipoDatabase) {
 		case H2:
-	        map.put("javax.persistence.database-product-name", "H2");
+	        map.put("jakarta.persistence.database-product-name", "H2");
 	        map.put("hibernate.dialect","org.hibernate.dialect.H2Dialect");
 			break;
 		case DERBY:
-	        map.put("javax.persistence.database-product-name", "Derby");
-	        map.put("hibernate.dialect","org.hibernate.dialect.DerbyTenSevenDialect");
+	        map.put("jakarta.persistence.database-product-name", "Derby");
+	        map.put("hibernate.dialect","org.hibernate.community.dialect.DerbyLegacyDialect");
 			break;
 		case MYSQL:
-	        map.put("javax.persistence.database-product-name", "Mysql");
-	        map.put("hibernate.dialect","org.hibernate.dialect.MySQL5InnoDBDialect");
+	        map.put("jakarta.persistence.database-product-name", "MySQL");
+	        map.put("hibernate.dialect","org.hibernate.dialect.MySQLDialect");
 			break;
 		case ORACLE:
-	        map.put("javax.persistence.database-product-name", "Oracle");
-	        map.put("hibernate.dialect","org.hibernate.dialect.Oracle10gDialect");
+	        map.put("jakarta.persistence.database-product-name", "Oracle");
+	        map.put("hibernate.dialect","org.hibernate.dialect.OracleDialect");
 			break;
 		case POSTGRESQL:
-	        map.put("javax.persistence.database-product-name", "Postgresql");
+	        map.put("jakarta.persistence.database-product-name", "Postgresql");
 	        map.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-	        map.put("javax.persistence.database-major-version", "9");
-	        map.put("javax.persistence.database-minor-version", "1");
+	        map.put("jakarta.persistence.database-major-version", "9");
+	        map.put("jakarta.persistence.database-minor-version", "1");
 			break;
 		default:
 			break;

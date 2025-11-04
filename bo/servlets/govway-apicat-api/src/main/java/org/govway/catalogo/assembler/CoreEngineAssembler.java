@@ -23,6 +23,7 @@ import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.RequestUtils;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CoreEngineAssembler {
@@ -34,7 +35,7 @@ public class CoreEngineAssembler {
 		InfoProfilo principal = this.requestUtils.getPrincipal();
 //		UtenteEntity u = principal.utente;
 		if(principal.utente == null) {
-			throw new NotAuthorizedException("Utente ["+principal.idUtente+"] non trovato");
+			throw new NotAuthorizedException(ErrorCode.UT_404, java.util.Map.of("idUtente", principal.idUtente.toString()));
 		}
 		
 		return principal.utente;

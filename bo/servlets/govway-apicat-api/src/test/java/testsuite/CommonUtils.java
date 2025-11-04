@@ -78,7 +78,7 @@ public class CommonUtils {
 	
 	public static final String NOME_SOGGETTO = "Nome Soggetto TEST";
 	public static final String NOME_GATEWAY = "Nome Gateway TEST";
-	public static final TipoSoggettoGateway TIPO_SOGGETTO_GATEWAY = TipoSoggettoGateway.EDELIVERY;
+	public static final TipoSoggettoGateway TIPO_SOGGETTO_GATEWAY = TipoSoggettoGateway.E_DELIVERY;
 	
 	public static final String CLIENT_NOME = "Nome Client TEST";
 	public static final AmbienteEnum AMBIENTE = AmbienteEnum.COLLAUDO;
@@ -250,7 +250,7 @@ public class CommonUtils {
 	
 	public static InfoProfilo getInfoProfilo(String idUtente, UtenteService utenteService) {
 		return utenteService.runTransaction(() -> {
-			UtenteEntity utente = utenteService.findByPrincipal(idUtente).orElseThrow(() -> new NotFoundException("Utente "+idUtente+" non trovato"));
+			UtenteEntity utente = utenteService.findByPrincipal(idUtente).orElseThrow(() -> new RuntimeException("Utente "+idUtente+" non trovato"));
 			
 			if(utente.getOrganizzazione()!=null) {
 				utente.getOrganizzazione().getSoggetti().stream().forEach(s -> {s.getNome();});

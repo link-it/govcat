@@ -123,7 +123,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
     private configService: ConfigService,
     public tools: Tools,
     public apiService: OpenAPIService,
-    public utilService: UtilService,
+    public utils: UtilService,
     public authenticationService: AuthenticationService
   ) {
     this.route.data.subscribe((data) => {
@@ -382,7 +382,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
       },
       (error: any) => {
         this._errorSave = true;
-        this._errorSaveMsg = error.details || Tools.GetErrorMsg(error);
+        this._errorSaveMsg = error.details || this.utils.GetErrorMsg(error);
         console.log('error', error);
       }
     );
@@ -474,7 +474,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
         debounceTime(500),
         tap(() => this.gruppiLoading = true),
         switchMap((term: any) => {
-          return this.utilService.getUtenti(term, this.gruppiFilter).pipe(
+          return this.utils.getUtenti(term, this.gruppiFilter).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.gruppiLoading = false)
           )

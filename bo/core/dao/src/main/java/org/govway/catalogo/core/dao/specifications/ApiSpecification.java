@@ -24,17 +24,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
-import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.orm.entity.*;
 import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
-import org.govway.catalogo.core.orm.entity.ApiEntity_;
-import org.govway.catalogo.core.orm.entity.DominioEntity_;
-import org.govway.catalogo.core.orm.entity.ServizioEntity_;
-import org.govway.catalogo.core.orm.entity.SoggettoEntity_;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ApiSpecification implements Specification<ApiEntity> {
@@ -66,7 +64,13 @@ public class ApiSpecification implements Specification<ApiEntity> {
 		if (q.isPresent()) {
 			List<Predicate> predLstQ = new ArrayList<>();
 			String pattern = "%" + q.get().toUpperCase() + "%";
-			predLstQ.add(cb.like(cb.upper(root.get(ApiEntity_.nome)), pattern)); 
+			predLstQ.add(cb.like(cb.upper(root.get(ApiEntity_.nome)), pattern));
+
+            Join<ApiEntity, ApiConfigEntity> collaudoJoin   = root.join(ApiEntity_.collaudo, JoinType.LEFT);
+            Join<ApiEntity, ApiConfigEntity> produzioneJoin = root.join(ApiEntity_.produzione, JoinType.LEFT);
+
+            predLstQ.add(cb.like(cb.upper(collaudoJoin.get(ApiConfigEntity_.nomeGateway)), pattern));
+            predLstQ.add(cb.like(cb.upper(produzioneJoin.get(ApiConfigEntity_.nomeGateway)), pattern));
 			
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}

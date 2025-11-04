@@ -42,13 +42,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class SecurityConfig {
 
 	
-	@Value("org.govway.catalogo.servlet.api.path")
+	@Value("${org.govway.catalogo.servlet.api.path}")
 	private String baseurlCatalogoApi;
-	
-	@Value("org.govway.catalogo.servlet.pdnd.path")
+
+	@Value("${org.govway.catalogo.servlet.pdnd.path}")
 	private String baseurlCatalogoPdnd;
-	
-	@Value("org.govway.catalogo.servlet.monitor.path")
+
+	@Value("${org.govway.catalogo.servlet.monitor.path}")
 	private String baseurlCatalogoMonitor;
 	
     @Bean

@@ -170,7 +170,7 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
@@ -192,7 +192,7 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
@@ -241,7 +241,7 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
       },
       (error) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
       }
     );
   }

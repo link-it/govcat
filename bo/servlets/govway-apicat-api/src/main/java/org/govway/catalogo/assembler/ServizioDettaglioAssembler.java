@@ -44,6 +44,7 @@ import org.govway.catalogo.core.services.SoggettoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.DatiGenericiServizioUpdate;
 import org.govway.catalogo.servlets.model.Grant;
@@ -175,6 +176,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 		dettaglio.setMultiAdesione(entity.isMultiAdesione());
+		dettaglio.setFruizione(entity.isFruizione());
 
 		return dettaglio;
 	}
@@ -185,11 +187,13 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException("Impossibile disabilitare skip collaudo nel Servizio ["+entity.getNome()+" " + entity.getVersione()+"], in quanto associato ad almeno una adesione con skip collaudo abilitato");
+					throw new BadRequestException(ErrorCode.GEN_400);
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
 		}
+
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
 
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
@@ -204,10 +208,10 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		if(!tipo.equals(entity.getTipo())) {
 			if(!entity.getGruppi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException("Impossibile cambiare il Tipo per il Servizio["+entity.getNome()+" " + entity.getVersione() + "]. "+entity.getGruppi().size()+" Gruppi associati");
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			if(!entity.getApi().isEmpty()) {
-				throw new RichiestaNonValidaSemanticamenteException("Impossibile cambiare il Tipo per il Servizio["+entity.getNome()+" " + entity.getVersione() + "]. "+entity.getApi().size()+" API associate");
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			
 			entity.setTipo(tipo);
@@ -218,7 +222,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException("ClasseUtente ["+classe+"] non trovata")));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -249,18 +253,18 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	private void saveDominioServizio(UUID idDominio, UUID idSoggetto, ServizioEntity entity) {
 		DominioEntity newDominio = dominioService.find(idDominio).
-				orElseThrow(() -> new NotFoundException("Dominio ["+idDominio+"] non trovato"));
+				orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404));
 		
-		if(newDominio.getSoggettoReferente().getOrganizzazione().isEsterna()) {
+		if(entity.isFruizione()) {
 			if(idSoggetto==null) {
-				throw new RichiestaNonValidaSemanticamenteException("Dominio ["+newDominio.getNome()+"] esterno e soggetto interno non specificato");
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			
 			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
-					orElseThrow(() -> new NotFoundException("Soggetto ["+idSoggetto+"] non trovato"));
+					orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
 			
 			if(soggettoInterno.getOrganizzazione().isEsterna()) {
-				throw new RichiestaNonValidaSemanticamenteException("Il soggetto interno ["+soggettoInterno.getNome()+"] deve appartenere a una organizzazione interna");
+				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 			}
 			
 			entity.setSoggettoInterno(soggettoInterno);
@@ -274,11 +278,11 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setDominio(newDominio);
 		
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare il servizio ["+entity.getNome()+" " + entity.getVersione()+"]. Skip collaudo abilitato sul Servizio e non sul Dominio ["+entity.getDominio().getNome()+"]");
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 		}
 		
 		if(entity.getDominio().isDeprecato() && !this.coreAuthorization.isAdmin()) {
-			throw new RichiestaNonValidaSemanticamenteException("Impossibile salvare il servizio ["+entity.getNome()+" " + entity.getVersione()+"]. Dominio ["+entity.getDominio().getNome()+"] deprecato");
+			throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
 		}
 		
 	}
@@ -307,7 +311,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new BadRequestException("Impossibile impostare skip collaudo sul Servizio ["+entity.getNome()+" "+entity.getVersione()+"], in quanto il Dominio ["+entity.getDominio().getNome()+"] non lo consente");
+			throw new BadRequestException(ErrorCode.GEN_400);
 		}
 	}
 
@@ -349,6 +353,8 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 		entity.setTipo(engine.toTipo(src.getTipo()));
 
+		entity.setFruizione(Boolean.TRUE.equals(src.isFruizione()));
+
 		if(src.getIdDominio()!=null) {
 			saveDominioServizio(src.getIdDominio(), src.getIdSoggettoInterno(), entity);
 		}
@@ -371,7 +377,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException("ClasseUtente ["+classe+"] non trovata")));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -383,7 +389,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			}
 		} else {
 			if(!src.isPackage()) {
-				throw new BadRequestException("Referenti non possono essere null su un Servizio non Package");
+				throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 			}
 		}
 		

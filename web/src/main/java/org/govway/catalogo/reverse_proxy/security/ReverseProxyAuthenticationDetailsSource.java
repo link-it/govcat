@@ -19,7 +19,7 @@
  */
 package org.govway.catalogo.reverse_proxy.security;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.govway.catalogo.reverse_proxy.config.WebConsoleConfig;
 import org.slf4j.Logger;

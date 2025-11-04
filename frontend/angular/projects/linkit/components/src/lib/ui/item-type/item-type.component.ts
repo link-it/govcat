@@ -112,7 +112,7 @@ export class ItemTypeComponent implements OnInit {
             }
         }
         if (this._elem.type === 'tag') {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+            this._tooltip = this._elem.tooltip ? this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip) : '';
             this._class = 'badge badge-pill';
             this._class += this._elem.class ? ' ' + this._elem.class : '';
             this._showBadged = (this._elem.badged !== undefined) ? this._elem.badged : true;

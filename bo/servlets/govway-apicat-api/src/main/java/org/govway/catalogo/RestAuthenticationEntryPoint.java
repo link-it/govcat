@@ -23,10 +23,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.govway.catalogo.servlets.model.Problem;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -35,28 +33,31 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Component
 public final class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    @Override
-    public void commence(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException authException) throws IOException {
-    	if(authException != null) {
-    		
-    			Problem problem = new Problem();
-    			problem.setStatus(HttpStatus.FORBIDDEN.value());
-    			problem.setTitle(HttpStatus.FORBIDDEN.getReasonPhrase());
-    			try {problem.setType(new URI("https://tools.ietf.org/html/rfc7231#section-6.5.1"));} catch (URISyntaxException e) {}
-    			problem.setDetail("Full authentication required");
+	@Override
+	public void commence(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException authException) throws IOException {
+		if(authException != null) {
 
-    			ObjectMapper om = new ObjectMapper();
-    			om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+			Problem problem = new Problem();
+			problem.setStatus(HttpStatus.FORBIDDEN.value());
+			problem.setTitle(HttpStatus.FORBIDDEN.getReasonPhrase());
+			try {problem.setType(new URI("https://tools.ietf.org/html/rfc7231#section-6.5.1"));} catch (URISyntaxException e) {}
+			problem.setDetail("Full authentication required");
 
-    			response.setStatus(HttpStatus.FORBIDDEN.value());
-    			response.setContentType("application/json+problem");
-    			
-    			om.writeValue(response.getOutputStream(), problem);
-    			
-    	}
-    }
+			ObjectMapper om = new ObjectMapper();
+			om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+
+			response.setStatus(HttpStatus.FORBIDDEN.value());
+			response.setContentType("application/json+problem");
+
+			om.writeValue(response.getOutputStream(), problem);
+
+		}
+	}
 
 }

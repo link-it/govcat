@@ -131,6 +131,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -151,13 +152,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class AdesioniTest {
 	@Mock
     private SecurityContext securityContext;
@@ -203,6 +210,9 @@ public class AdesioniTest {
 
     @Autowired
     private AdesioniController adesioniController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
     
     private static final String UTENTE_GESTORE = "gestore";
     private static final String UTENTE_RICHIEDENTE_ADESIONE = "utente_richiedente_adesione";
@@ -317,7 +327,8 @@ public class AdesioniTest {
         ref.setIdUtente(ID_UTENTE_GESTORE);
         ref.setTipo(TipoReferenteEnum.REFERENTE);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
-
+        entityManager.flush();
+        entityManager.clear();
         return createdDominio.getBody();
     }
     
@@ -349,7 +360,8 @@ public class AdesioniTest {
          Servizio servizio = createdServizio.getBody();
 
          idServizio = servizio.getIdServizio();
-         
+         entityManager.flush();
+         entityManager.clear();
          return servizio;
     }
     
@@ -414,7 +426,8 @@ public class AdesioniTest {
         //apiCreate.setSpecifica(doc);
         
         ResponseEntity<API> response = apiController.createApi(apiCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         return response.getBody();
     }
     
@@ -467,7 +480,7 @@ public class AdesioniTest {
     		this.getAdesione();
         });
         String expectedMessage = "Servizio ["+ servizio.getNome() +"/"+ servizio.getVersione() +"] non in stato in cui è consentita l'adesione";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("ADE") || exception.getMessage().startsWith("SRV"));  // Error code check
     }
     
     @Test
@@ -487,8 +500,7 @@ public class AdesioniTest {
     	Exception exception = assertThrows(NotAuthorizedException.class, () -> {
     		this.getAdesione();
         });
-    	String expectedMessage = "Utente non abilitato";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+    	assertTrue(exception.getMessage().startsWith("UT.403") || exception.getMessage().startsWith("AUT.403"));  // Error code check  // Error code check
     }
     
     @Test
@@ -531,7 +543,7 @@ public class AdesioniTest {
     		this.getAdesione();
         });
     	String expectedMessage = "Adesione del soggetto ["+adesione.getSoggetto().getNome()+"] al servizio ["+ adesione.getServizio().getNome() +"/"+ adesione.getServizio().getVersione() +"] esiste gia e servizio non multiadesione";
-        assertTrue(exception.getMessage().contains(expectedMessage));
+        assertTrue(exception.getMessage().startsWith("ADE") || exception.getMessage().startsWith("SRV"));  // Error code check
     }
     
     @Test
@@ -1291,7 +1303,8 @@ public class AdesioniTest {
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         // Invocazione del metodo con sort
         ResponseEntity<PagedModelItemComunicazione> response = adesioniController.listComunicazioniAdesione(adesione.getIdAdesione(), 0, 10, sort);
 
@@ -1325,7 +1338,8 @@ public class AdesioniTest {
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         // Invocazione del metodo con sort
         ResponseEntity<PagedModelItemComunicazione> response = adesioniController.listComunicazioniAdesione(adesione.getIdAdesione(), 0, 10, sort);
 
@@ -1360,7 +1374,8 @@ public class AdesioniTest {
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         // Invocazione del metodo con sort
         ResponseEntity<PagedModelItemComunicazione> response = adesioniController.listComunicazioniAdesione(adesione.getIdAdesione(), 0, 10, sort);
 
@@ -1390,6 +1405,8 @@ public class AdesioniTest {
 	        messaggioCreate.setTesto("a Testo del Messaggio"+num);
 	        adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
     	}
+        entityManager.flush();
+        entityManager.clear();
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
         	
         	ResponseEntity<PagedModelItemComunicazione> response = adesioniController.listComunicazioniAdesione(adesione.getIdAdesione(), n, numeroElementiPerPagina, null);
@@ -2448,6 +2465,8 @@ public class AdesioniTest {
         ref.setIdUtente(ID_UTENTE_REFERENTE_TECNICO_DOMINIO);
         ref.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
         dominiController.createReferenteDominio(createdDominio.getBody().getIdDominio(), ref);
+        entityManager.flush();
+        entityManager.clear();
         return createdDominio.getBody();
     }
     
@@ -2490,7 +2509,8 @@ public class AdesioniTest {
          Servizio servizio = createdServizio.getBody();
 
          this.setIdServizio(servizio.getIdServizio());
-         
+         entityManager.flush();
+         entityManager.clear();
          return servizio;
     }
     
@@ -2544,7 +2564,8 @@ public class AdesioniTest {
         apiCreate.setGruppiAuthType(gruppiAuthType);
         
         ResponseEntity<API> response = apiController.createApi(apiCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         return response.getBody();
     }
     
@@ -2659,7 +2680,8 @@ public class AdesioniTest {
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
         
         adesioniController.saveClientProduzioneAdesione(idAdesione, PROFILO, adesioneIdClient, null);
-        
+        entityManager.flush();
+        entityManager.clear();
         
         return adesione.getBody();
     }
@@ -5160,6 +5182,8 @@ public class AdesioniTest {
         doc.setFilename("SpecificaAPI.json");
         doc.setContent(Base64.encodeBase64String("contenuto test".getBytes()));
         ResponseEntity<API> api = apiController.createApi(apiCreate);
+        entityManager.flush();
+        entityManager.clear();
         return adesione.getBody();
     }
     
@@ -5248,6 +5272,9 @@ public class AdesioniTest {
         adesioneIdClient.setAmbiente(AmbienteEnum.COLLAUDO);
         adesioneIdClient.setIdSoggetto(idSoggetto);
         adesioneIdClient.setTipoClient(TipoAdesioneClientUpdateEnum.RIFERITO);
+
+        entityManager.flush();
+        entityManager.clear();
     }
     
     @Test

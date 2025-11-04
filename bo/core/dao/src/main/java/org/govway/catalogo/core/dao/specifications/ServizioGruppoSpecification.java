@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity_;
@@ -110,13 +110,13 @@ public class ServizioGruppoSpecification implements Specification<ServizioGruppo
 			
 			List<Predicate> predListMieiServizi = new ArrayList<>();
 			if(utente.getId() != null) {
-				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente), utente)); 
-				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente), utente));
-				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT), utente));
-				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT), utente));
-				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).get(ServizioEntity_.richiedente), utente));
-				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT)));
-				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente))); //TODO
+				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.referenti, JoinType.LEFT).get(ReferenteServizioEntity_.referente).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).get(ReferenteDominioEntity_.referente).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.classi, JoinType.LEFT).join(ClasseUtenteEntity_.utentiAssociati, JoinType.LEFT).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.equal(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).get(ServizioEntity_.richiedente).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id), utente.getId()));
+				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.adesioni, JoinType.LEFT).join(AdesioneEntity_.referenti, JoinType.LEFT).join(ReferenteAdesioneEntity_.referente, JoinType.LEFT).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id)));
+				predListMieiServizi.add(cb.literal(utente.getId()).in(root.join(ServizioGruppoEntity_.servizio, JoinType.LEFT).join(ServizioEntity_.adesioni, JoinType.LEFT).get(AdesioneEntity_.richiedente).get(org.govway.catalogo.core.orm.entity.UtenteEntity_.id)));
 			}
 
 			ArrayList<Predicate> predsStati = new ArrayList<>();

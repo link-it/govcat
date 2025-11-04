@@ -219,7 +219,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
       },
       error: (error: any) => {
         this.error = true;
-        this.errorMsg = Tools.GetErrorMsg(error);
+        this.errorMsg = this.utils.GetErrorMsg(error);
       }
     })
   }

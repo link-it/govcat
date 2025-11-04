@@ -30,7 +30,7 @@ public class SqlGenerator {
 	public static void generate(String punit) {
 		String folder = "target/database/sql/";
 		try {
-			JavaxPersistenceSqlGenerator.generate(punit, folder);
+			JakartaPersistenceSqlGenerator.generate(punit, folder);
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace(System.err);

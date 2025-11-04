@@ -1,4 +1,26 @@
-<div #ir class="d-flex flex-column" [class.cursor-pointer]="rowClick && hasLink" (click)="__itemClickRow($event, ir)">
+<!-- Mobile version -->
+<ui-item-row-mobile *ngIf="!desktop"
+  [data]="_data"
+  [config]="_config"
+  [configRow]="configRow"
+  [actionDisabled]="actionDisabled"
+  [notify]="notify"
+  [hoverFeedback]="hoverFeedback"
+  [hasLink]="hasLink"
+  [hasAction]="hasAction"
+  [iconAction]="iconAction"
+  [actionText]="actionText"
+  [actionTooltip]="actionTooltip"
+  [rowClick]="rowClick"
+  [hostBackground]="hostBackground"
+  [primaryClass]="primaryClass"
+  [isAnonymous]="isAnonymous"
+  (itemClick)="itemClick.emit($event)"
+  (actionClick)="actionClick.emit($event)">
+</ui-item-row-mobile>
+
+<!-- Desktop version -->
+<div #ir class="d-flex flex-column" *ngIf="desktop" [class.cursor-pointer]="rowClick && hasLink" (click)="__itemClickRow($event, ir)">
   <div class="active-item d-flex flex-grow-1 align-items-center">
     <div class="d-flex align-items-center w-100" [class.flex-wrap]="_itemRowConfig?.wrap">
       <div class="avatar-image" *ngIf="_itemRowConfig?.avatar">
@@ -13,7 +35,7 @@
           <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
             <a href="javascript:void(0);" class="item-row-link" [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" (click)="__itemClick($event, ir)">
               <ng-container *ngFor="let elem of _itemRowConfig?.primaryText">
-                <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+                <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                   [data]="_data"
                   [elem]="elem"
                   [config]="_config">
@@ -25,7 +47,7 @@
         <div class="meta-data">
           <div class="d-inline-block text" *ngIf="_itemRowConfig?.metadata?.text.length > 0">
             <ng-container *ngFor="let elem of _itemRowConfig?.metadata.text">
-              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                 [data]="_data"
                 [elem]="elem"
                 [config]="_config">
@@ -34,7 +56,7 @@
           </div>
           <div class="d-inline-block labels ms-2" *ngIf="_itemRowConfig?.metadata?.label.length > 0">
             <ng-container *ngFor="let elem of _itemRowConfig?.metadata.label">
-              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                 [data]="_data"
                 [elem]="elem"
                 [config]="_config">
@@ -46,7 +68,7 @@
       <div class="meta-info main-content" [class.pb-0]="_itemRowConfig?.footer" *ngIf="_itemRowConfig?.secondaryText?.length > 0 || _itemRowConfig?.secondaryMetadata?.length > 0">
         <div class="main-data d-block" *ngIf="_itemRowConfig?.secondaryText?.length > 0">
           <ng-container *ngFor="let elem of _itemRowConfig?.secondaryText">
-            <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
               [data]="_data"
               [elem]="elem"
               [config]="_config">
@@ -55,7 +77,7 @@
         </div>
         <div class="meta-data" *ngIf="_itemRowConfig?.secondaryMetadata?.length > 0">
           <ng-container *ngFor="let elem of _itemRowConfig?.secondaryMetadata">
-            <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+            <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
               [data]="_data"
               [elem]="elem"
               [config]="_config">
@@ -68,7 +90,7 @@
         <div class="box-status align-self-stretch d-flex flex-column" [style.background-color]="_getBackground(_itemRowConfig?.boxStatus1)" [style.color]="_getColor(_itemRowConfig?.boxStatus1)" *ngIf="_itemRowConfig?.boxStatus1" [tooltip]="tooltipBox1Template" [placement]="_tooltipPlacementBox1" [delay]="_tooltipDelay" container="body">
           <div class="box-status-1">
             <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus1?.primaryText">
-              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                 [data]="_data"
                 [elem]="elem"
                 [config]="_config">
@@ -77,7 +99,7 @@
           </div>
           <div class="box-status-2 box-status-meta mt-auto">
             <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus1?.metadata">
-              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                 [data]="_data"
                 [elem]="elem"
                 [config]="_config">
@@ -89,7 +111,7 @@
         <div class="box-status align-self-stretch d-flex flex-column" [style.background-color]="_getBackground(_itemRowConfig?.boxStatus2)" [style.color]="_getColor(_itemRowConfig?.boxStatus2)" *ngIf="_itemRowConfig?.boxStatus2" [tooltip]="tooltipBox2Template" [placement]="_tooltipPlacementBox2" [delay]="_tooltipDelay" container="body">
           <div class="box-status-1">
             <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus2?.primaryText">
-              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                 [data]="_data"
                 [elem]="elem"
                 [config]="_config">
@@ -98,7 +120,7 @@
           </div>
           <div class="box-status-2 box-status-meta mt-auto">
             <ng-container *ngFor="let elem of _itemRowConfig?.boxStatus2?.metadata">
-              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem)"
+              <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                 [data]="_data"
                 [elem]="elem"
                 [config]="_config">
@@ -117,7 +139,7 @@
   </div>
   <div class="footer-info" *ngIf="_itemRowConfig?.footer">
     <ng-container *ngFor="let elem of _itemRowConfig?.footer">
-      <div class="d-inline-block text" *ngIf="_itemRowConfig?.footer.length > 0 && _showEmpty(elem)">
+      <div class="d-inline-block text" *ngIf="_itemRowConfig?.footer.length > 0 && _showEmpty(elem) && _checkConfigDependency(elem)">
         <ui-item-type
           [data]="_data"
           [elem]="elem"

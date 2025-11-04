@@ -5,6 +5,9 @@ import {
     Output,
     EventEmitter,
     forwardRef,
+    OnInit,
+    OnChanges,
+    SimpleChanges,
 } from "@angular/core";
 import {
     ControlValueAccessor,
@@ -29,7 +32,7 @@ import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
     ],
     standalone: false
 })
-export class LnkFormLiveSearchComponent implements ControlValueAccessor {
+export class LnkFormLiveSearchComponent implements ControlValueAccessor, OnInit, OnChanges {
     @Input() id: string = '';
     @Input() label?: string;
     @Input() bindLabel: string = 'label';
@@ -113,6 +116,17 @@ export class LnkFormLiveSearchComponent implements ControlValueAccessor {
 
     ngOnInit() {
         this.loadItems();
+        // Se esiste un valore iniziale, usalo per impostare il valore corrente
+        if (this.initValue) {
+            this.value = this.initValue.value;
+        }
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        // Gestisci i cambiamenti di initValue
+        if (changes['initValue'] && changes['initValue'].currentValue) {
+            this.value = changes['initValue'].currentValue.value;
+        }
     }
 
     loadItems() {
@@ -148,7 +162,12 @@ export class LnkFormLiveSearchComponent implements ControlValueAccessor {
             scan((acc, results) => {
                 if (this.searchState$.value.pageNumber === 0) {
                     // Se è la prima pagina, sostituisci i risultati esistenti
-                    return results;
+                    // Ma assicurati che initValue sia presente se esiste
+                    let items = results;
+                    if (this.initValue && !items.find((item: any) => item.value === this.initValue.value)) {
+                        items = [this.initValue, ...results];
+                    }
+                    return items;
                 } else {
                     // Altrimenti, concatena i nuovi risultati
                     return [...acc, ...results];

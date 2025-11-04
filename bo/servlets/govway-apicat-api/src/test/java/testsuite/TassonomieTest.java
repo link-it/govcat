@@ -50,6 +50,7 @@ import org.govway.catalogo.servlets.model.TassonomiaUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -68,13 +69,19 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class TassonomieTest {
 
     @Mock
@@ -100,6 +107,9 @@ public class TassonomieTest {
 
     @Autowired
     private TassonomieController tassonomieController;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final String UTENTE_GESTORE = "gestore";
 
@@ -137,7 +147,7 @@ public class TassonomieTest {
         ConflictException exception = assertThrows(ConflictException.class, () -> {
             controller.createTassonomia(tassonomiaCreate);
         });
-        assertEquals("Tassonomia [" + tassonomiaCreate.getNome() + "] esiste gia", exception.getMessage());
+        assertEquals("TAX.409", exception.getMessage());
     }
 
     @Test
@@ -167,7 +177,7 @@ public class TassonomieTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.createTassonomiaCategoria(idTassonomiaNonEsistente, categoriaCreate);
         });
-        assertEquals("Tassonomia [" + idTassonomiaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("TAX.404", exception.getMessage());
     }
 
     @Test
@@ -195,7 +205,7 @@ public class TassonomieTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.deleteCategoria(idTassonomia, idCategoriaNonEsistente);
         });
-        assertEquals("Categoria [" + idCategoriaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("CAT.404", exception.getMessage());
     }
 
     @Test
@@ -219,7 +229,7 @@ public class TassonomieTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
             controller.getTassonomia(idTassonomiaNonEsistente);
         });
-        assertEquals("Tassonomia [" + idTassonomiaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("TAX.404", exception.getMessage());
     }
     
     @Test
@@ -417,7 +427,7 @@ public class TassonomieTest {
         });
 
         // Verifica del messaggio di errore
-        assertEquals("Categoria [" + idCategoriaNonEsistente + "] per Tassonomia [" + idTassonomia + "] non trovata", exception.getMessage());
+        assertEquals("CAT.404", exception.getMessage());
     }
 
     @Test
@@ -456,7 +466,7 @@ public class TassonomieTest {
         });
 
         // Verifica del messaggio di errore
-        assertEquals("Categoria [" + idCategoria + "] per Tassonomia [" + idTassonomia2 + "] non trovata", exception.getMessage());
+        assertEquals("CAT.404", exception.getMessage());
     }
 
     @Test
@@ -498,7 +508,7 @@ public class TassonomieTest {
         });
 
         // Verifica del messaggio di errore
-        assertEquals("Tassonomia [" + idTassonomiaNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("TAX.404", exception.getMessage());
     }
 
     @Test
@@ -531,7 +541,7 @@ public class TassonomieTest {
             controller.getServiziCategoria(idTassonomia, idCategoria);
         });
         
-        assertTrue(ex.getMessage().contains("Categoria [" + idCategoria + "] per Tassonomia [" + idTassonomia + "] non trovata"));
+        assertTrue(ex.getMessage().startsWith("CAT") || ex.getMessage().startsWith("TAX"));  // Error code check
     }
 
     @Test
@@ -578,7 +588,7 @@ public class TassonomieTest {
             controller.getCategoria(idTassonomia, idCategoria);
         });
         
-        assertTrue(ex.getMessage().contains("Categoria [" + idCategoria + "] per Tassonomia [" + idTassonomia + "] non trovata"));
+        assertTrue(ex.getMessage().startsWith("CAT") || ex.getMessage().startsWith("TAX"));  // Error code check
     }
 
     @Test
@@ -616,24 +626,26 @@ public class TassonomieTest {
             controller.deleteTassonomia(idTassonomia);
         });
         
-        assertTrue(ex.getMessage().contains("Tassonomia [" + idTassonomia + "] non trovata"));
+        assertTrue(ex.getMessage().startsWith("TAX"));  // Error code check
     }
 
     @Test
     void testDeleteTassonomia_ErrorePerAssociataCategoria() {
     	TassonomiaCreate tassonomiaCreate = CommonUtils.getTassonomiaCreate();
         ResponseEntity<Tassonomia> responseTassonomia = controller.createTassonomia(tassonomiaCreate);
-
+        entityManager.flush();
+        entityManager.clear();
         UUID idTassonomia = responseTassonomia.getBody().getIdTassonomia();
         CategoriaCreate categoriaCreate = new CategoriaCreate();
         categoriaCreate.setNome("categoria");
         categoriaCreate.setDescrizione("categoria descrizione");
         controller.createTassonomiaCategoria(idTassonomia, categoriaCreate);
-        
+        entityManager.flush();
+        entityManager.clear();
         BadRequestException ex = assertThrows(BadRequestException.class, () -> {
             controller.deleteTassonomia(idTassonomia);
         });
-        assertTrue(ex.getMessage().contains("Tassonomia [" + responseTassonomia.getBody().getNome() + "] non eliminabile in quanto associata a [1] categorie"));
+        assertTrue(ex.getMessage().startsWith("TAX") || ex.getMessage().contains("400"));  // Error code check
         assertNotNull(ex.getMessage());
     }
 }

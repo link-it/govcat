@@ -194,6 +194,7 @@ export class AdesioneFormComponent implements OnInit {
                 data_creazione: dataModel?.data_creazione,
                 data_ultimo_aggiornamento: dataModel?.data_ultimo_aggiornamento,
                 skip_collaudo: dataModel?.skip_collaudo,
+                id_logico: dataModel?.id_logico,
                 referente: dataModel?.referente,
                 soggetto_nome: dataModel?.soggetto?.nome
             });
@@ -263,7 +264,7 @@ export class AdesioneFormComponent implements OnInit {
                 },
                 error: (error: any) => {
                     this.error = true;
-                    this.errorMsg = Tools.GetErrorMsg(error);
+                    this.errorMsg = this.utils.GetErrorMsg(error);
                     this.saving = false;
                 }
             });

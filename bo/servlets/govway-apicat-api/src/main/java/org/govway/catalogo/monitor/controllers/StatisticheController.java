@@ -21,10 +21,12 @@ package org.govway.catalogo.monitor.controllers;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.govway.catalogo.MonitorV1Controller;
+import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.ProfiloEnum;
@@ -36,6 +38,8 @@ import org.govway.catalogo.monitoraggioutils.IStatisticheClient;
 import org.govway.catalogo.monitoraggioutils.IdApi;
 import org.govway.catalogo.monitoraggioutils.PostReportResponse;
 import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.servlets.model.ConfigurazioneFormatiReport;
+import org.govway.catalogo.servlets.model.ConfigurazioneTipiDistribuzione;
 import org.govway.catalogo.servlets.monitor.model.AmbienteEnum;
 import org.govway.catalogo.servlets.monitor.model.AndamentoTemporaleQuery;
 import org.govway.catalogo.servlets.monitor.model.DistribuzioneApiQuery;
@@ -125,15 +129,40 @@ public class StatisticheController implements StatisticheApi {
 		DISTRIBUZIONE_TOKEN_ISSUER, DISTRIBUZIONE_IP, DISTRIBUZIONE_PRINCIPAL
 	}
 
-	private void authorize() {
-		if (!this.configurazione.getServizio().getMonitoraggio().isAbilitato()) {
-			throw new NotFoundException("Monitoraggio non abilitato");
+	private void authorize(ConfigurazioneTipiDistribuzione configurazioneTipiDistribuzione) {
+		if (!this.configurazione.getMonitoraggio().isAbilitato()) {
+			throw new NotFoundException(ErrorCode.MON_404, Map.of());
 		}
 
-		if (this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate() != null
-				&& !this.configurazione.getServizio().getMonitoraggio().isStatisticheAbilitate()) {
-			throw new NotFoundException("Statistiche non abilitate");
+		if (this.configurazione.getMonitoraggio().isStatisticheAbilitate() != null
+				&& !this.configurazione.getMonitoraggio().isStatisticheAbilitate()) {
+			throw new NotFoundException(ErrorCode.MON_404_STATS, Map.of("tipo", "statistiche"));
 		}
+
+        if(this.configurazione.getMonitoraggio().getStatistiche() != null &&
+            this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione() != null &&
+            !this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione().isEmpty() &&
+                !this.configurazione.getMonitoraggio().getStatistiche().getTipiDistribuzione().contains(configurazioneTipiDistribuzione)) {
+			throw new NotFoundException(ErrorCode.MON_404_STATS, Map.of("tipo", "statistiche"));
+        }
+
+        ConfigurazioneFormatiReport formatoReportRichiesto = ConfigurazioneFormatiReport.CSV;
+        String acceptValue = this.request.getHeader("Accept");
+        if(acceptValue == null || acceptValue.contains("csv")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.CSV;
+        } else if(acceptValue.contains("pdf")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.PDF;
+        } else if(acceptValue.contains("vnd.ms-excel")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.XLS;
+        } else if(acceptValue.contains("png")) {
+            formatoReportRichiesto = ConfigurazioneFormatiReport.PNG;
+        }
+        if(this.configurazione.getMonitoraggio().getStatistiche() != null &&
+                this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport() != null &&
+                !this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport().isEmpty() &&
+                !this.configurazione.getMonitoraggio().getStatistiche().getFormatiReport().contains(formatoReportRichiesto)) {
+			throw new NotFoundException(ErrorCode.MON_404_STATS, Map.of("tipo", "statistiche"));
+        }
 
 		// TODO check ruoli
 	}
@@ -608,7 +637,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -625,7 +654,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -635,7 +664,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, andamentoTemporaleQuery,
@@ -650,7 +679,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -663,7 +692,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -680,7 +709,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -690,7 +719,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApiQuery,
@@ -705,7 +734,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -718,7 +747,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -735,7 +764,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -745,7 +774,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApplicativoQuery,
@@ -760,7 +789,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -773,7 +802,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -790,7 +819,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -800,7 +829,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneErroriQuery,
@@ -815,7 +844,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -829,7 +858,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -846,7 +875,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -856,7 +885,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneEsitiQuery,
@@ -871,7 +900,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -884,7 +913,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -901,7 +930,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -911,7 +940,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIPQuery,
@@ -926,7 +955,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -939,7 +968,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -956,7 +985,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -966,7 +995,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneOperazioneQuery,
@@ -981,7 +1010,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -994,7 +1023,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1011,7 +1040,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1021,7 +1050,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneSoggettoRemotoQuery,
@@ -1036,7 +1065,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1049,7 +1078,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_CLIENT_ID);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1066,7 +1095,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1076,7 +1105,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_CLIENT_ID);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneClientIdQuery,
@@ -1091,7 +1120,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1104,7 +1133,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_ISSUER);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1121,7 +1150,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1131,7 +1160,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_TOKEN_ISSUER);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIssuerQuery,
@@ -1146,7 +1175,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1160,7 +1189,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1177,7 +1206,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1187,7 +1216,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.ANDAMENTO_TEMPORALE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, andamentoTemporaleQuery,
@@ -1202,7 +1231,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1215,7 +1244,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1232,7 +1261,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1242,7 +1271,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_API);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApiQuery,
@@ -1257,7 +1286,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1270,7 +1299,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1287,7 +1316,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1297,7 +1326,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_APPLICATIVO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneApplicativoQuery,
@@ -1312,7 +1341,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1325,7 +1354,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1342,7 +1371,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1352,7 +1381,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ERRORI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneErroriQuery,
@@ -1367,7 +1396,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1381,7 +1410,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1398,7 +1427,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1408,7 +1437,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_ESITI);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneEsitiQuery,
@@ -1423,7 +1452,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1436,7 +1465,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1453,7 +1482,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1463,7 +1492,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_IP);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneIPQuery,
@@ -1478,7 +1507,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1491,7 +1520,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1508,7 +1537,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1518,7 +1547,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_OPERAZIONE);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneOperazioneQuery,
@@ -1533,7 +1562,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1546,7 +1575,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_PRINCIPAL);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1563,7 +1592,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1573,7 +1602,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_PRINCIPAL);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzionePrincipalQuery,
@@ -1588,7 +1617,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1601,7 +1630,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillGetReportRequest(ambiente, idServizio, dataDa, dataA, idApi, esito,
@@ -1618,7 +1647,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 
@@ -1628,7 +1657,7 @@ public class StatisticheController implements StatisticheApi {
 		try {
 			this.logger.info("Invocazione in corso ...");
 
-			this.authorize();
+			this.authorize(ConfigurazioneTipiDistribuzione.DISTRIBUZIONE_SOGGETTO_REMOTO);
 			this.logger.debug("Autorizzazione completata con successo");
 
 			GetReportRequest request = fillPostReportRequest(ambiente, distribuzioneSoggettoRemotoQuery,
@@ -1643,7 +1672,7 @@ public class StatisticheController implements StatisticheApi {
 			throw e;
 		} catch (Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
-			throw new InternalException(e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
 		}
 	}
 

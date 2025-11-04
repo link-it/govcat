@@ -16,6 +16,7 @@ export class HeadBarComponent implements OnInit {
   @Input() title: string = '';
   @Input() logo: string = '';
 
+  @Input() anonymous: boolean = true;
   @Input() login: boolean = false;
   @Input() loginLabel: string = 'Login';
   @Input('username') _username: string = '';

@@ -48,6 +48,7 @@ import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -66,13 +67,16 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
 @EnableAutoConfiguration(exclude = {GroovyTemplateAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = Replace.ANY)
 @ActiveProfiles("test")
-@DirtiesContext(classMode = ClassMode.BEFORE_EACH_TEST_METHOD)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
+@Transactional
 public class ClassiUtenteTest {
 
     @Mock
@@ -157,7 +161,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("ClasseUtente [" + classeUtenteCreate.getNome() + "] esiste gia", exception.getMessage());
+        assertEquals("CLS.404", exception.getMessage());
     }
 
     @Test
@@ -176,7 +180,7 @@ public class ClassiUtenteTest {
 	    });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -195,7 +199,7 @@ public class ClassiUtenteTest {
 	    });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -224,7 +228,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Organization [" + idClasseUtenteNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("CLS.404", exception.getMessage());
     }
 
     @Test
@@ -244,7 +248,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -264,7 +268,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -296,7 +300,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Organization [" + idClasseUtenteNonEsistente + "] non trovata", exception.getMessage());
+        assertEquals("CLS.404", exception.getMessage());
     }
 
     /*
@@ -317,7 +321,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     */
     
@@ -338,7 +342,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Required: Utente autenticato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 
     @Test
@@ -433,7 +437,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non abilitato", exception.getMessage());
+        assertEquals("UT.403", exception.getMessage());
     }
     
     @Test
@@ -457,7 +461,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("Utente non specificato", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
     
     @Autowired
@@ -508,7 +512,7 @@ public class ClassiUtenteTest {
         	controller.createClasseUtente(classeUtenteCreate);
     	});
 
-        assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
+        assertEquals("AUT.403", exception.getMessage());
     }
 }
 

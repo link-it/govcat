@@ -10,8 +10,8 @@
 	<parent>
 		<groupId>org.govway.catalogo</groupId>
 		<artifactId>core</artifactId>
-		<version>2.2</version>
-		<relativePath>../</relativePath>
+		<version>2.3</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<properties>
@@ -21,17 +21,89 @@
 	
 	<dependencies>
 
+		<!-- PDFBox - New PDF generation library -->
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.31</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>fontbox</artifactId>
+			<version>2.0.31</version>
+		</dependency>
+
+		<!-- Jackson for JSON template parsing -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- TEMPORARILY COMMENTED - JasperReports dependencies (to be removed after migration) -->
+		<!--
 		<dependency>
 			<groupId>net.sourceforge.dynamicreports</groupId>
 			<artifactId>dynamicreports-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.sf.jasperreports</groupId>
+                    <artifactId>jasperreports</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
-		
-				<!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
+
 		<dependency>
-		    <groupId>javax.xml.bind</groupId>
-		    <artifactId>jaxb-api</artifactId>
-		    <scope>provided</scope>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>net.sf.jasperreports</groupId>
+			<artifactId>jasperreports</artifactId>
+            <version>${jasperreports.version}</version>
+		</dependency>
+
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-jaxen</artifactId>
+            <version>${jasperreports.version}</version>
+        </dependency>
+		-->
+
+		<!-- BouncyCastle - required by itext and jasperreports -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcmail-jdk18on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcutil-jdk18on</artifactId>
+		</dependency>
+
+				<!-- https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api -->
+
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+            <version>4.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
 		
 				<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<dependency>
@@ -53,6 +125,8 @@
 			<artifactId>xmlgraphics-commons</artifactId>
 		</dependency>
 
+		<!-- TEMPORARILY COMMENTED - JasperReports dependencies (to be removed after migration) -->
+		<!--
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
@@ -62,15 +136,24 @@
 			<groupId>net.sourceforge.barbecue</groupId>
 			<artifactId>barbecue</artifactId>
 		</dependency>
-
-		<dependency>
-		    <groupId>jaxen</groupId>
-		    <artifactId>jaxen</artifactId>
-		</dependency>
+		-->
 		
 		<dependency>
 		  <groupId>commons-codec</groupId>
 		  <artifactId>commons-codec</artifactId>
+		</dependency>
+
+		<!-- Test dependencies -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>
@@ -78,7 +161,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxb2-maven-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<id>xjc1</id>
@@ -86,7 +169,7 @@
 							<goal>xjc</goal>
 						</goals>
 						<configuration>
-							<target>2.1</target>
+							<target>3.0</target>
 							<sources>
 								<source>src/main/resources/stampe.xsd</source>
 							</sources>
@@ -96,11 +179,6 @@
 					</execution>
 				</executions>
 				<dependencies>
-				<dependency>
-    <groupId>javax.activation</groupId>
-    <artifactId>activation</artifactId>
-    <version>1.1.1</version>
-</dependency>
 				
 				</dependencies>
 			</plugin>
@@ -120,6 +198,26 @@
 					</execution>
 				</executions>
 			</plugin>
+						<plugin>
+  <groupId>org.jacoco</groupId>
+  <artifactId>jacoco-maven-plugin</artifactId>
+  <version>0.8.10</version>
+  <executions>
+    <execution>
+      <id>prepare-agent</id>
+      <goals>
+        <goal>prepare-agent</goal>
+      </goals>
+    </execution>
+    <execution>
+      <id>report</id>
+      <phase>verify</phase>
+      <goals>
+        <goal>report</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
 		</plugins>
 	</build>
 <repositories>

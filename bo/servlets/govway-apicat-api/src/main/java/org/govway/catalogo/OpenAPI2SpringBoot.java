@@ -29,7 +29,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
 import org.apache.tika.Tika;
@@ -156,7 +156,7 @@ basePackages = {"org.govway.catalogo.core.dao.repositories"})
 
 @PropertySources({
     @PropertySource("classpath:govcat-api.properties" ),
-    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat}/govcat-api.properties", ignoreResourceNotFound = true)
+    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf/govcat-api.properties}", ignoreResourceNotFound = true)
     }
 )
 public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
@@ -230,12 +230,15 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		}
 	}
 
-	@Value("${org.govway.api.catalogo.resource.path:/var/govcat/conf}")
-	String externalPath;
-	
-	@Bean(name ="configurazione") 
+	@Value("${org.govway.api.catalogo.configurazione.path:/var/govcat/conf/configurazione.json}")
+	String configurazioneJsonPath;
+
+	@Value("${api.mode:full}")
+	String apiMode;
+
+	@Bean(name ="configurazione")
 	public Configurazione configurazione(IMonitoraggioClient monitoraggioClient) throws IOException {
-		Resource resource = new FileSystemResource(this.externalPath+"/configurazione.json");
+		Resource resource = new FileSystemResource(this.configurazioneJsonPath);
 		InputStream inputStream = resource.getInputStream();
 		byte[] fileData = FileCopyUtils.copyToByteArray(inputStream);
 		String outputString = new String(fileData);
@@ -243,9 +246,12 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
 
 		Configurazione configurazione = om.readValue(outputString, Configurazione.class);
-		
+
 		configurazione.getMonitoraggio().setLimitata(monitoraggioClient.isLimitata());
-		
+		if (configurazione.getMonitoraggio() != null) {
+			configurazione.getMonitoraggio().setLimitata(monitoraggioClient.isLimitata());
+		}
+
 		return configurazione;
 	}
 
@@ -546,10 +552,10 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     	return new ErogazioneItemAssembler();
     }
 
-    @Bean
-    public RequestUtils requestUtils() {
-    	return new RequestUtils();
-    }
+    // RequestUtils bean rimosso - gestito automaticamente da Spring tramite @Component/@ConditionalOnProperty
+    // Le implementazioni sono:
+    // - HeaderRequestUtils (modalità HEADER, default)
+    // - OidcRequestUtils (modalità OIDC_JWT)
 
     @Bean
     public AllegatoApiAssembler allegatoApiAssembler() {

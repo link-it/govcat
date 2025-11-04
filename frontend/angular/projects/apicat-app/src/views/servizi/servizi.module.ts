@@ -13,6 +13,7 @@ import { ServiziComponent } from './servizi.component';
 import { ServiziRoutingModule } from './servizi-routing.module';
 import { ServizioDetailsModule } from './servizio-details/servizio-details.module';
 import { ServizioViewModule } from './servizio-view/servizio-view.module';
+import { ServiziGroupListCardComponent } from './components/servizi-group-list-card/servizi-group-list-card.component';
 
 @NgModule({
     imports: [
@@ -28,7 +29,8 @@ import { ServizioViewModule } from './servizio-view/servizio-view.module';
         ServizioViewModule
     ],
     declarations: [
-        ServiziComponent
+        ServiziComponent,
+        ServiziGroupListCardComponent
     ],
     providers: [],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]

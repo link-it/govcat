@@ -1,10 +1,6 @@
 {
-	<#if descrizione??>"descrizione": "${descrizione}",</#if><#if modiDominio??>
-	<#if modiDominio??>"modi": {
-		"dominio": "${modiDominio}"
-	},
-	</#if>
-	</#if>"credenziali": {
+	<#if descrizione??>"descrizione": "${descrizione}",</#if>
+	"credenziali": {
 		"modalita_accesso": "${modalitaAccesso}",
 		<#if modalitaAccesso="https">"certificato": {
 			"archivio": "${certificato}",
