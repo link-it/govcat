@@ -1,0 +1,22 @@
+{
+  "exceptions": [
+    {
+      "groupId": "it.govhub",
+      "artifactId": "*",
+      "reason": "Internal GovHub artifacts - proprietary license managed separately",
+      "exclude_from_reports": true
+    },
+    {
+      "groupId": "wsdl4j",
+      "artifactId": "wsdl4j",
+      "reason": "CPL license - Required for SOAP/WSDL support, no alternatives available. Legal team approved usage.",
+      "exclude_from_reports": false
+    },
+    {
+      "groupId": "org.govway.catalogo",
+      "artifactId": "*",
+      "reason": "Internal GovCat artifacts - proprietary license managed separately",
+      "exclude_from_reports": true
+    }
+  ]
+}

@@ -623,6 +623,8 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			
 			map.get(k).add(e);
 		}
+
+        if(pca.getGruppi() == null) pca.setGruppi(new ArrayList<>());
 		
 		for(Entry<String, List<EstensioneAdesioneEntity>> e: map.entrySet()) {
 			pca.getGruppi().add(toProprietaCustomPerGruppo(e.getKey(), e.getValue()));

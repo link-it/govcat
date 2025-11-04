@@ -481,6 +481,9 @@ public class RegistrazioneServizioIntegrationTest {
         // Step API creation
         this.getAPI();
 
+        entityManager.flush();
+        entityManager.clear();
+
         // Allegato creation
         AllegatoItemCreate allegatoCreate = new AllegatoItemCreate();
         allegatoCreate.setFilename("allegato_test.pdf");
@@ -556,7 +559,6 @@ public class RegistrazioneServizioIntegrationTest {
 	    }
 	    //ResponseEntity<Resource> specificaAPI = apiController.downloadSpecificaAPI(idAPI, true);
         entityManager.flush();
-        entityManager.clear();
     }
     
     public void testUtenteReferenteDominio() {

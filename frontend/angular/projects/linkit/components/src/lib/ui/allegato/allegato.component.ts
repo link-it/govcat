@@ -44,12 +44,24 @@ export class AllegatoComponent implements OnInit {
     return (this.required && !this._selected && !this.disabled);
   }
 
+  get fileName(): string {
+    if (this.multiple) {
+      return '';
+    }
+    if (!this.control || !this.control.value) {
+      return '';
+    }
+    return this.control.value.file || this.control.value.filename || '';
+  }
+
   __triggering() {
     if (!this.disabled && !this.readonly) {
       if (this._selected) {
         this.__reset();
       } else {
-        this._browse.nativeElement.click();
+        if (this._browse && this._browse.nativeElement) {
+          this._browse.nativeElement.click();
+        }
       }
     }
   }
@@ -83,7 +95,9 @@ export class AllegatoComponent implements OnInit {
 
   public onOversize() {
     this.oversizeError.emit({ type: 'oversize', limit: this.maxUpload });
-    this._browse.nativeElement.value = '';
+    if (this._browse && this._browse.nativeElement) {
+      this._browse.nativeElement.value = '';
+    }
   }
 
   protected __reset() {

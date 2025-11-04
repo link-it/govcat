@@ -735,6 +735,10 @@ $tagColorHover: #dbdbdb;
   }
 }
 
+.ng-dropdown-panel {
+  z-index: 1750 !important;
+}
+
 .badge-tag {
   padding: 0.5em !important;
   font-weight: normal !important;
