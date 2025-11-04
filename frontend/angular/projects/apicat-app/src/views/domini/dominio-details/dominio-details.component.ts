@@ -249,30 +249,26 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
     console.log('POST: ', _body)
 
-    const _DVLP_invia: boolean = true;
-
-    if (_DVLP_invia) {
-      this.apiService.saveElement(this.model, _body).subscribe(
-        (response: any) => {
-          this.dominio = new Dominio({ ...response });
-          this._dominio = new Dominio({ ...response });
-          this.id = this.dominio.id_dominio;
-          this._initBreadcrumb();
-          this._initSoggettiSelect([this.dominio.soggetto_referente]);
-          
-          this._spin = false;
-          this._isEdit = false;
-          this._isNew = false;
-          this.router.navigate([this.model, this.id], { replaceUrl: true });
-
-        },
-        (error: any) => {
-          this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
-          this._spin = false;
-        }
-      );
-    }
+    this.apiService.saveElement(this.model, _body).subscribe({
+      next: (response: any) => {
+        this.dominio = new Dominio({ ...response });
+        this._dominio = new Dominio({ ...response });
+        this.id = this.dominio.id_dominio;
+        this._initBreadcrumb();
+        this._initSoggettiSelect([this.dominio.soggetto_referente]);
+        
+        this._spin = false;
+        this._isEdit = false;
+        this._isNew = false;
+        this.router.navigate([this.model, this.id], { replaceUrl: true });
+      },
+      error: (error: any) => {
+        this._error = true;
+        console.error('__onSave', error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
+        this._spin = false;
+      }
+    });
   }
 
   __onUpdate(id: number, body: any) {
@@ -291,19 +287,19 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
       skip_collaudo: body.skip_collaudo || false,
     };
 
-    this.apiService.putElement(this.model, id, _body).subscribe(
-        (response: any) => {
+    this.apiService.putElement(this.model, id, _body).subscribe({
+        next: (response: any) => {
           this._isEdit = !this._closeEdit;
           this.dominio = new Dominio({ ...response });
           this._dominio = new Dominio({ ...response });
           this.id = this.dominio.id;
           this.save.emit({ id: this.id, payment: response, update: true });
         },
-        (error: any) => {
+        error: (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
         }
-      );
+    });
   }
 
   _onSubmit(form: any, close: boolean = true) {
@@ -341,7 +337,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
             },
             (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           );
         }

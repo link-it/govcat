@@ -522,7 +522,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
@@ -545,7 +545,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         },
         (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
           this._spin = false;
         }
       );
@@ -589,7 +589,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           );
         }
@@ -1218,7 +1218,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         },
         error: (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
           this._downloading = false;
         }
       });

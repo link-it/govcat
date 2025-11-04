@@ -117,7 +117,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    public utilService: UtilService,
+    public utils: UtilService,
     public authenticationService: AuthenticationService
   ) {
     this.config = this.configService.getConfiguration();
@@ -368,7 +368,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
       },
       (error: any) => {
         this._errorSave = true;
-        this._errorSaveMsg = error.details || Tools.GetErrorMsg(error);
+        this._errorSaveMsg = error.details || this.utils.GetErrorMsg(error);
         console.log('error', error);
       }
     );

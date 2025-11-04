@@ -353,7 +353,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
                 },
                 error: (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                     _open = false;
                 }
             });
@@ -388,7 +388,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
             error: (error: any) => {
                 this._saving = false;
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
         });
     }
@@ -434,7 +434,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
             },
             error: (error) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._deleting = false;
             }
         });

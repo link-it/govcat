@@ -467,7 +467,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       },
       error: (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._downloading = false;
       }
     });
@@ -751,7 +751,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       },
       error: (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
       }
     });
   }

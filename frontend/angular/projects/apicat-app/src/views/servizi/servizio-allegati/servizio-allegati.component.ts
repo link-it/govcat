@@ -426,7 +426,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
       },
       (error) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._deleting = false;
       }
     );
@@ -453,7 +453,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
       },
       error: (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         if (index === -1) {
           this._downloading = false;
         } else {

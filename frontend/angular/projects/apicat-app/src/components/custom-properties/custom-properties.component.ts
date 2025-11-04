@@ -5,6 +5,7 @@ import { Tools } from '@linkit/components';
 import { EventsManagerService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { UtilService } from '@app/services/utils.service';
 
 import { EventType } from '@linkit/components';
 
@@ -85,7 +86,8 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
         private formBuilder: FormBuilder,
         private eventsManagerService: EventsManagerService,
         private authenticationService: AuthenticationService,
-        private apiService: OpenAPIService
+        private apiService: OpenAPIService,
+        private utils: UtilService
     ) {}
 
     ngOnInit() {
@@ -240,7 +242,7 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
             (error: any) => {
                 this._spin = false;
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
         );
     }
@@ -334,7 +336,7 @@ export class CustomPropertiesComponent implements OnInit, OnChanges {
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });

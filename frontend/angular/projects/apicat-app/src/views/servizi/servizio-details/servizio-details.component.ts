@@ -626,7 +626,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
                 this._errors = error.error.errori || [];
             }
@@ -713,7 +713,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
                 this._errors = error.error.errori || [];
             }
@@ -784,7 +784,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             error: (error) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
         });
     }
@@ -1395,7 +1395,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -1417,7 +1417,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
