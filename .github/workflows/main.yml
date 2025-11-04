@@ -151,7 +151,8 @@ jobs:
         with:
           path: 'frontend/angular'
           out: 'reports'
-          args: --format ALL --scan "frontend/angular" --failOnCVSS 7
+          format: 'ALL'
+          args: --failOnCVSS 7
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v4
         with:
