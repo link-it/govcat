@@ -706,7 +706,7 @@ export class AdesioneListaClientsComponent implements OnInit {
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.UsaClientEsistente'), 'id_client': SelectedClientEnum.UsaClientEsistente});
                 if (this.authenticationService.isGestore()) {
-                    this._loadClientsRiuso(auth_type, organizzazione, ambiente);
+                    this._loadClientsRiuso(auth_type, organizzazione, ambiente, true);
                 }
             }
         }
