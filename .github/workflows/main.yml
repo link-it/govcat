@@ -146,14 +146,16 @@ jobs:
           set -euo pipefail
           cd frontend/angular/
           npm install
-      - name: Dependency-Check
+      - name: OWASP
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
         uses: dependency-check/Dependency-Check_Action@main
+        continue-on-error: ${{ github.ref_name != 'main' }}
         with:
           project: ${{ github.repository }}
           path: 'frontend/angular'
           out: 'reports'
           format: 'ALL'
-          args: --failOnCVSS 7
+          args: --failOnCVSS 0
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v4
         with:
