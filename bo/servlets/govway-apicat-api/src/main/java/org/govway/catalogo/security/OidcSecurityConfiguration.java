@@ -20,6 +20,7 @@
 package org.govway.catalogo.security;
 
 import org.govway.catalogo.AutenticazioneUtenzeRegistrateService;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,9 @@ public class OidcSecurityConfiguration {
     @Autowired
     @Lazy
     private UserDetailsByNameServiceWrapper<PreAuthenticatedAuthenticationToken> userDetailsByNameServiceWrapper;
+
+    @Autowired
+    private Configurazione configurazione;
 
     public OidcSecurityConfiguration() {
         logger.info("Inizializzazione OidcSecurityConfiguration - Modalità: OIDC_JWT");
@@ -143,11 +147,10 @@ public class OidcSecurityConfiguration {
                 .frameOptions(f -> f.disable())
             )
             .csrf(csrf -> csrf.disable())
-            .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/*").permitAll()
-                .anyRequest().authenticated()
-            );
+            .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint));
+
+        // Configura le regole di autorizzazione degli endpoint usando la classe helper centralizzata
+        SecurityEndpointsConfigurer.configureEndpoints(http, this.configurazione);
 
         logger.info("SecurityFilterChain OIDC configurata con successo");
         return http.build();

@@ -66,15 +66,16 @@ public class ReadOnlyModeInterceptor implements HandlerInterceptor {
 		String method = request.getMethod();
 		String path = request.getRequestURI();
 
-		// Rimuovi il context path se presente
-		String contextPath = request.getContextPath() + "/api/v1";
-		if (contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)) {
-			path = path.substring(contextPath.length());
-		}
-
 		log.info("Operazione {} {} invocata dall'utente {}", method, path, idUtente);
 
 		if (!accessoAutenticato) {
+
+			// Rimuovi il context path se presente
+			String contextPath = request.getContextPath() + "/api/v1";
+			if (contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)) {
+				path = path.substring(contextPath.length());
+			}
+
 			// Con accesso anonimo, verifica la whitelist "METHOD PATH"
 			List<String> operazioniConsentite = configurazione.getGenerale().getWhitelistVetrina();
 

@@ -1,5 +1,6 @@
 package org.govway.catalogo;
 
+import org.govway.catalogo.security.SecurityEndpointsConfigurer;
 import org.govway.catalogo.servlets.model.Configurazione;
 
 import jakarta.annotation.PostConstruct;
@@ -108,18 +109,9 @@ public class WebSecurityConfiguration {
                 )
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(restAuthenticationEntryPoint));
-        
-        
-        		if(this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
-                    http.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/**").permitAll()
-                    );
-        		} else {
-                    http.authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/api/v1/profilo").permitAll()
-                            .requestMatchers("/pdnd/mock/*").permitAll()
-                            .anyRequest().authenticated()
-                    );
-        		}
+
+        		// Configura le regole di autorizzazione degli endpoint usando la classe helper centralizzata
+        		SecurityEndpointsConfigurer.configureEndpoints(http, this.configurazione);
 
         return http.build();
     }
