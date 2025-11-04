@@ -22,6 +22,7 @@ package org.govway.catalogo.controllers;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.ApiV1Controller;
@@ -84,7 +85,7 @@ public class ToolsController implements ToolsApi {
 			return ResponseEntity.ok(lst);
 		} catch(Exception e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
-			throw new BadRequestException(ErrorCode.DOC_500);
+			throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
 		}
 	}
 	
@@ -93,22 +94,22 @@ public class ToolsController implements ToolsApi {
 	    	if(OpenapiUtils.isOpenapi(restBytes)) {
 		    	List<String> collect = OpenapiUtils.getProtocolInfoFromOpenapi(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
 				if(collect.isEmpty()) {
-					throw new BadRequestException(ErrorCode.DOC_500);
+					throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Lista vuota"));
 				}
 		    	return collect;
 	    	} else if(SwaggerUtils.isSwagger(restBytes)) {
 		    	List<String> collect = SwaggerUtils.getProtocolInfoFromSwagger(restBytes).stream().map(i -> i.getOp() + " " + i.getPath()).collect(Collectors.toList());
 				if(collect.isEmpty()) {
-					throw new BadRequestException(ErrorCode.DOC_500);
+					throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Lista vuota"));
 				}
 				return collect;
 	    	} else {
-				throw new BadRequestException(ErrorCode.DOC_500);
+				throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", "Documento non riconosciuto"));
 	    	}
 	    	
 	    } catch(Exception e) {
 	    	this.logger.error("Errore durante la lettura delle operazioni dal descrittore REST: " + e.getMessage(), e);
-	    	throw new BadRequestException(ErrorCode.DOC_500);
+	    	throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
 	    }
 	}
 	
@@ -117,7 +118,7 @@ public class ToolsController implements ToolsApi {
 	    	return WsdlUtils.getOperationFromWsdl(wsdlBytes);
 	    } catch(Exception e) {
 	    	this.logger.error("Errore durante la lettura delle operazioni dal WSDL: " + e.getMessage(), e);
-	    	throw new BadRequestException(ErrorCode.DOC_500);
+	    	throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
 	    }
 	}
 
