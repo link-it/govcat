@@ -116,6 +116,7 @@ public class WebSecurityConfiguration {
         		} else {
                     http.authorizeHttpRequests(auth -> auth
                             .requestMatchers("/api/v1/profilo").permitAll()
+                            .requestMatchers("/pdnd/mock/*").permitAll()
                             .anyRequest().authenticated()
                     );
         		}
