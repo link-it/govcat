@@ -4,7 +4,7 @@
     <label class="label-bold" for="filename">{{ label }} <span *ngIf="required">*</span></label>
     <div class="input-group mb-3">
       <button class="btn btn-default btn-md gl-button input-group-text bg-white-" type="button" [class.gl-field-error-outline]="hasControlError()" [class.disabled]="disabled"><em class="bi bi-file-earmark"></em></button>
-      <input autocomplete="off" id="filename" class="form-control text-truncate" [class.gl-field-error-outline]="hasControlError()" type="text" [value]="multiple ? ('APP.MESSAGE.ChooseFiles' | translate) : (control.value.file || control.value.filename  || '')" [required]="required" [disabled]="disabled">
+      <input autocomplete="off" id="filename" class="form-control text-truncate" [class.gl-field-error-outline]="hasControlError()" type="text" [value]="multiple ? ('APP.MESSAGE.ChooseFiles' | translate) : fileName" [required]="required" [disabled]="disabled">
       <button class="btn btn-default btn-md gl-button" type="button" [class]="disabled?'disabled':''" [class.gl-field-error-outline]="hasControlError()">
         <span *ngIf="((control && control.value && control.value.file) || _selected)"><em class="bi bi-x-lg"></em></span>
         <span *ngIf="!((control && control.value && control.value.file) || _selected)"><em class="bi bi-paperclip"></em></span>
