@@ -264,7 +264,7 @@ export class AdesioneFormComponent implements OnInit {
                 },
                 error: (error: any) => {
                     this.error = true;
-                    this.errorMsg = Tools.GetErrorMsg(error);
+                    this.errorMsg = this.utils.GetErrorMsg(error);
                     this.saving = false;
                 }
             });

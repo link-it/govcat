@@ -1198,7 +1198,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                     if (error.name === 'TimeoutError') {
                         Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
                     } else {
-                        Tools.showMessage(Tools.GetErrorMsg(error), 'danger', true);
+                        Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
                     }
                 }
             });

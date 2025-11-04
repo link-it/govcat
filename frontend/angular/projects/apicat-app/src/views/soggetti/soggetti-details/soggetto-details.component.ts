@@ -108,7 +108,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
     private modalService: BsModalService,
     private configService: ConfigService,
     private tools: Tools,
-    private utilService: UtilService,
+    private utils: UtilService,
     private apiService: OpenAPIService,
     private authenticationService: AuthenticationService
   ) {
@@ -323,7 +323,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
           },
           error: (error: any) => {
             this._error = true;
-            this._errorMsg = Tools.GetErrorMsg(error);
+            this._errorMsg = this.utils.GetErrorMsg(error);
           }
         });
     }
@@ -369,7 +369,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
         },
         (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
         }
       );
     }
@@ -420,7 +420,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
             },
             (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           );
         }
@@ -467,7 +467,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
       this.domini = [];
 
       let aux:any = null;
-      aux = { params: this.utilService._queryToHttpParams({ id_soggetto: this.id }) };
+      aux = { params: this.utils._queryToHttpParams({ id_soggetto: this.id }) };
 
       this._spin = true;
       this.apiService.getList('domini', aux).subscribe({

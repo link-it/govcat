@@ -440,7 +440,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 error: (error: any) => {
                     this._spin--;
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                 }
             });
     }
@@ -551,7 +551,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             (error: any) => {
                 this._spin--;
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
         );
     }
@@ -653,7 +653,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             },
             (error) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._errors = error.error.errori || [];
             }
         );
@@ -892,7 +892,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -913,7 +913,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -1078,7 +1078,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 },
                 error: (error: any) => {
                     this._error = true;
-                    this._errorMsg = Tools.GetErrorMsg(error);
+                    this._errorMsg = this.utils.GetErrorMsg(error);
                     this._risorse = [];
                     this._descrittoreCtrl.setValue('');
                     if (this.des) {

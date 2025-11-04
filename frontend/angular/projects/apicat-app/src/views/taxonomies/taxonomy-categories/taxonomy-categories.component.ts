@@ -342,7 +342,7 @@ export class TaxonomyCategoriesComponent implements OnInit, AfterViewInit, After
         },
         (error: any) => {
           this._error = true;
-          this._errorMsg = Tools.GetErrorMsg(error);
+          this._errorMsg = this.utils.GetErrorMsg(error);
           _open = false;
           Tools.showMessage(this._errorMsg, 'danger', true);
         }
@@ -378,7 +378,7 @@ export class TaxonomyCategoriesComponent implements OnInit, AfterViewInit, After
       (error: any) => {
         this._saving = false;
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
       }
     );
   }
@@ -429,7 +429,7 @@ export class TaxonomyCategoriesComponent implements OnInit, AfterViewInit, After
       },
       (error) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._deleting = false;
       }
     );

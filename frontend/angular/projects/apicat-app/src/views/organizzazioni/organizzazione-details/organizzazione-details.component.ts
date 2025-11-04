@@ -261,7 +261,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
@@ -295,7 +295,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
       },
       (error: any) => {
         this._error = true;
-        this._errorMsg = Tools.GetErrorMsg(error);
+        this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
     );
@@ -347,7 +347,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
             },
             (error) => {
               this._error = true;
-              this._errorMsg = Tools.GetErrorMsg(error);
+              this._errorMsg = this.utils.GetErrorMsg(error);
             }
           );
         }

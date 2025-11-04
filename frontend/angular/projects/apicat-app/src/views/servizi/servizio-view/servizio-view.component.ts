@@ -546,7 +546,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
@@ -628,7 +628,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             },
             error: (error: any) => {
                 this._error = true;
-                this._errorMsg = Tools.GetErrorMsg(error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
                 this._downloading = false;
             }
         });
