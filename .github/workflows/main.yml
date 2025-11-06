@@ -2,7 +2,7 @@ name: GovCat workflow for BE and FE
 
 on:
   push:
-    branches: [ "main", "v2.2.x", "v2.3.x", "upgrade-stack" ]
+    branches: [ "*" ]
     tags:
       - '*'  # Trigger per tutti i tag
   pull_request:
@@ -50,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           mvn clean test -Dowasp=none
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: Show JaCoCo report location and Zip JaCoCo HTML report
         run: |
@@ -60,7 +60,7 @@ jobs:
           zip -r ../jacoco-html-report.zip jacoco-aggregate
           cd ../../
           ls -lh target/
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: Archive JaCoCo report
         uses: actions/upload-artifact@v4
@@ -73,12 +73,12 @@ jobs:
           mvn install -DskipTests -Dowasp=none 
           mkdir -p target/dependency
           mvn dependency:copy-dependencies -DoutputDirectory=target/dependency -DskipTests -Dowasp=none
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: SonarCloud Scan
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_SONARQUBE_JOB == 'true') }}
         uses: SonarSource/sonarcloud-github-action@v2
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -91,13 +91,14 @@ jobs:
             -Dsonar.tests=bo/clients/govwaymonitor/src/test/java,bo/core/business/src/test/java,bo/core/dao/src/test/java,bo/servlets/govCatConfigurazioneBatch/src/test/java,bo/servlets/govway-apicat-api/src/test/java,configuratore/src/test/java
             -Dsonar.java.binaries=bo/clients/govwaymonitor/target/classes,bo/core/business/target/classes,bo/core/dao/target/classes,bo/core/dto/target/classes,bo/core/orm/target/classes,bo/core/stampe/target/classes,bo/servlets/govCatConfigurazioneBatch/target/classes,bo/servlets/govway-apicat-api/target/classes,configuratore/target/classes,web/target/classes
             -Dsonar.coverage.exclusions=**/test/**,**/*Test*.java
-            -Dsonar.java.source=11
+            -Dsonar.java.source=21
             -Dsonar.java.libraries=target/dependency
+            -Dsonar.qualitygate.wait=true
 
       - name: OWASP
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
         run: mvn install -DskipTests -Dspring.profiles.active=test -Duser.timezone=Europe/Rome -DnvdApiKey=$NVD_API_KEY -DdataDirectory=.dependency-check/data -Dowasp.format=ALL -Dowasp.output.dir=./dependency-check-report
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
@@ -115,7 +116,7 @@ jobs:
           mvn org.codehaus.mojo:license-maven-plugin:2.4.0:aggregate-download-licenses -DexcludeScopes=test,provided,system -DincludeTransitiveDependencies=true
           echo "Analyzing licenses..."
           python3 .github/workflows/scripts/analyze_licenses.py --exceptions .github/workflows/scripts/license-exceptions.json
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: Archive licenses analysis results
         uses: actions/upload-artifact@v4
@@ -149,7 +150,7 @@ jobs:
       - name: OWASP
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
         uses: dependency-check/Dependency-Check_Action@main
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
         with:
           project: ${{ github.repository }}
           path: 'frontend/angular'
@@ -174,7 +175,7 @@ jobs:
           npm ci --production
           echo "Analyzing licenses..."
           python3 ../../.github/workflows/scripts/analyze_npm_licenses.py --exceptions ../../.github/workflows/scripts/npm-license-exceptions.json
-        continue-on-error: ${{ github.ref_name != 'main' }}
+        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
       - name: Archive licenses analysis results
         uses: actions/upload-artifact@v4
         with:
