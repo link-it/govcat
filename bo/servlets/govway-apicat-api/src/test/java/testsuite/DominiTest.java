@@ -859,7 +859,7 @@ public class DominiTest {
         });
 
         // Verify it's one of the expected exception types
-        assertTrue(exception.getClass().getSimpleName().equals("NotFoundException"));
+        assertTrue(exception instanceof NotFoundException);
     }
 
     @Test
@@ -964,7 +964,7 @@ public class DominiTest {
         });
 
         // Verify it's one of the expected exception types
-        assertTrue(exception.getClass().getSimpleName().equals("NotFoundException"));
+        assertTrue(exception instanceof NotFoundException);
     }
 
     @Test
