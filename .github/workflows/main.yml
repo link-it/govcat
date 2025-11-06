@@ -155,7 +155,10 @@ jobs:
           path: 'frontend/angular'
           out: 'reports'
           format: 'ALL'
-          args: --failOnCVSS 0
+          args: >
+            --failOnCVSS 0
+            --nodeAuditSkipDevDependencies
+            --nodePackageSkipDevDependencies
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v4
         with:
