@@ -55,7 +55,6 @@
 						"scripts": [
 							"node_modules/jquery/dist/jquery.min.js",
 							"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
-							"node_modules/hammerjs/hammer.min.js",
 							"node_modules/file-saver/dist/FileSaver.min.js"
 						],
 						"extraWebpackConfig": "projects/apicat-app/webpack.config.js",
