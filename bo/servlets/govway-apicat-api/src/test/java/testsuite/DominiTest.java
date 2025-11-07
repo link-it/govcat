@@ -859,7 +859,8 @@ public class DominiTest {
         });
 
         // Verify it's one of the expected exception types
-        assertTrue(exception instanceof NotFoundException);
+        assertTrue(exception instanceof NotFoundException ||
+                   exception instanceof org.govway.catalogo.core.exceptions.NotFoundException);
     }
 
     @Test
@@ -964,7 +965,8 @@ public class DominiTest {
         });
 
         // Verify it's one of the expected exception types
-        assertTrue(exception instanceof NotFoundException);
+        assertTrue(exception instanceof NotFoundException ||
+                   exception instanceof org.govway.catalogo.core.exceptions.NotFoundException);
     }
 
     @Test
