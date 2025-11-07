@@ -87,7 +87,7 @@ public class ServizioGruppoEntity {
     @Enumerated(EnumType.STRING)
 	private VISIBILITA visibilita;
 	
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_gruppo", referencedColumnName = "id")
     private GruppoEntity gruppo;
 
@@ -96,7 +96,7 @@ public class ServizioGruppoEntity {
     @Cascade({CascadeType.PERSIST,CascadeType.MERGE})
     private DocumentoEntity immagine;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id", referencedColumnName = "id", nullable = true)
 	private ServizioEntity servizio;
 

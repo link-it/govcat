@@ -65,7 +65,7 @@ public class GruppoEntity {
 	@Enumerated(EnumType.STRING)
 	private TipoServizio tipo;
     
-	@ManyToOne(optional = true)
+	@ManyToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_gruppo_padre", referencedColumnName = "id")
 	private GruppoEntity gruppoPadre;
 
@@ -81,13 +81,13 @@ public class GruppoEntity {
     @Cascade({CascadeType.PERSIST,CascadeType.MERGE})
     private DocumentoEntity immagine;
     
-    @OneToMany(mappedBy = "gruppoPadre")
-    private Set<GruppoEntity> figli = new HashSet<>(); 
+    @OneToMany(mappedBy = "gruppoPadre", fetch = FetchType.LAZY)
+    private Set<GruppoEntity> figli = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "gruppi_servizi", 
-    joinColumns = @JoinColumn(name = "id_gruppo"), 
+    name = "gruppi_servizi",
+    joinColumns = @JoinColumn(name = "id_gruppo"),
     inverseJoinColumns = @JoinColumn(name = "id_servizio"))
     private Set<ServizioEntity> servizi = new HashSet<>();
 

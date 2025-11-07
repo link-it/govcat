@@ -48,20 +48,20 @@ public class EstensioneAdesioneEntity {
 	@Column
 	private String valore;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_documento", referencedColumnName = "id")
 	@Cascade({CascadeType.ALL})
     private DocumentoEntity documento;
-    
+
 	@Column(nullable=false)
     @Enumerated(EnumType.STRING)
 	private AmbienteEnum ambiente;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_adesioni", referencedColumnName = "id", nullable = false)
 	private AdesioneEntity adesione;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_api", referencedColumnName = "id", nullable = true)
 	private ApiEntity api;
 }

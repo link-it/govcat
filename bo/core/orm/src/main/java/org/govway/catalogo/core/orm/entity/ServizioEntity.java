@@ -80,32 +80,32 @@ public class ServizioEntity {
     @Column(name = "data_ultima_modifica")
     private Date dataUltimaModifica;
     
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_richiedente", referencedColumnName = "id")
 	private UtenteEntity richiedente;
-    
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_utente_ultima_modifica", referencedColumnName = "id")
 	private UtenteEntity utenteUltimaModifica;
 
 	// si
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_dominio", referencedColumnName = "id")
     private DominioEntity dominio;
 
 	// si
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_soggetto_interno", referencedColumnName = "id")
     private SoggettoEntity soggettoInterno;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "gruppi_servizi", 
-    joinColumns = @JoinColumn(name = "id_servizio"), 
+    name = "gruppi_servizi",
+    joinColumns = @JoinColumn(name = "id_servizio"),
     inverseJoinColumns = @JoinColumn(name = "id_gruppo"))
     private Set<GruppoEntity> gruppi = new HashSet<>();
 
-    @OneToMany(mappedBy = "servizio")
+    @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
     @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
     private Set<ReferenteServizioEntity> referenti = new HashSet<>();
 
@@ -120,10 +120,10 @@ public class ServizioEntity {
     @Cascade({CascadeType.PERSIST,CascadeType.MERGE})
     private DocumentoEntity immagine;
     
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
     name = "tag_servizi",
-    joinColumns = @JoinColumn(name = "id_servizio"), 
+    joinColumns = @JoinColumn(name = "id_servizio"),
     inverseJoinColumns = @JoinColumn(name = "id_tag"))
     @Cascade({CascadeType.PERSIST,CascadeType.MERGE})
 	private Set<TagEntity> tags = new HashSet<>();
@@ -152,11 +152,11 @@ public class ServizioEntity {
     @Column(name = "skip_collaudo", nullable = false)
     private boolean skipCollaudo;
     
-    @OneToMany(mappedBy = "_package")
+    @OneToMany(mappedBy = "_package", fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<PackageServizioEntity> componenti = new HashSet<>();
 
-    @OneToMany(mappedBy = "servizio")
+    @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<PackageServizioEntity> packages = new HashSet<>();
 
@@ -166,43 +166,43 @@ public class ServizioEntity {
     @Column(name = "adesione_disabilitata")
     private boolean adesioneDisabilitata;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "classi_servizi", 
-    joinColumns = @JoinColumn(name = "id_servizio"), 
+    name = "classi_servizi",
+    joinColumns = @JoinColumn(name = "id_servizio"),
     inverseJoinColumns = @JoinColumn(name = "id_classe"))
 	private Set<ClasseUtenteEntity> classi = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "categorie_servizi", 
-    joinColumns = @JoinColumn(name = "id_servizio"), 
+    name = "categorie_servizi",
+    joinColumns = @JoinColumn(name = "id_servizio"),
     inverseJoinColumns = @JoinColumn(name = "id_categoria"))
 	private Set<CategoriaEntity> categorie = new HashSet<>();
 
-    @OneToMany(mappedBy = "servizio")
+    @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<StatoServizioEntity> stati = new HashSet<>();
-    
-    @OneToMany(mappedBy = "servizio")
+
+    @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<NotificaEntity> notifiche = new HashSet<>();
-    
-    @OneToMany(mappedBy = "servizio")
+
+    @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
     @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
 	private Set<MessaggioServizioEntity> messaggi = new HashSet<>();
-	
-    @OneToMany(mappedBy = "servizio")
+
+    @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
 	private Set<AdesioneEntity> adesioni = new HashSet<>();
-	
-    @ManyToMany
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "api_servizi", 
-    joinColumns = @JoinColumn(name = "id_servizio"), 
+    name = "api_servizi",
+    joinColumns = @JoinColumn(name = "id_servizio"),
     inverseJoinColumns = @JoinColumn(name = "id_api"))
     private Set<ApiEntity> api = new HashSet<>();
-	
-    @OneToMany(mappedBy = "servizio")
+
+    @OneToMany(mappedBy = "servizio", fetch = FetchType.LAZY)
     @Cascade(CascadeType.PERSIST)
     private Set<AllegatoServizioEntity> allegati = new HashSet<>();
 

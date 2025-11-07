@@ -51,7 +51,7 @@ public class ApiEntity {
     @Column(name="id_api", nullable=false)
 	private String idApi;
 	
-    @OneToMany(mappedBy = "api", orphanRemoval = true)
+    @OneToMany(mappedBy = "api", orphanRemoval = true, fetch = FetchType.LAZY)
 	@Cascade(CascadeType.ALL)
     private List<AuthTypeEntity> authType = new ArrayList<>(); 
 
@@ -76,31 +76,31 @@ public class ApiEntity {
     @Column(name="codice_asset")
     private String codiceAsset;
 
-    @OneToMany(mappedBy = "api", orphanRemoval = true)
+    @OneToMany(mappedBy = "api", orphanRemoval = true, fetch = FetchType.LAZY)
 	@Cascade(CascadeType.ALL)
     private List<EstensioneApiEntity> estensioni = new ArrayList<>(); 
 
-    @OneToMany(mappedBy = "api")
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY)
 	@Cascade(CascadeType.ALL)
     private Set<AllegatoApiEntity> allegati = new HashSet<>(); 
 
-    @OneToMany(mappedBy = "api")
+    @OneToMany(mappedBy = "api", fetch = FetchType.LAZY)
     private Set<ErogazioneEntity> erogazioni = new HashSet<>(); 
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_config_collaudo", referencedColumnName = "id")
 	@Cascade(CascadeType.ALL)
 	private ApiConfigEntity collaudo;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_config_produzione", referencedColumnName = "id")
 	@Cascade(CascadeType.ALL)
 	private ApiConfigEntity produzione;
 	
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "api_servizi", 
-    joinColumns = @JoinColumn(name = "id_api"), 
+    name = "api_servizi",
+    joinColumns = @JoinColumn(name = "id_api"),
     inverseJoinColumns = @JoinColumn(name = "id_servizio"))
     private Set<ServizioEntity> servizi = new HashSet<>();
 

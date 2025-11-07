@@ -25,6 +25,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -60,11 +61,11 @@ public class AdesioneEntity {
     @Column(name="id_adesione", nullable=false)
 	private String idAdesione;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_servizio", referencedColumnName = "id")
     private ServizioEntity servizio;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_soggetto", referencedColumnName = "id")
     private SoggettoEntity soggetto;
     
@@ -86,31 +87,31 @@ public class AdesioneEntity {
     @Column(name = "data_ultima_modifica")
     private Date dataUltimaModifica;
     
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_richiedente", referencedColumnName = "id")
 	private UtenteEntity richiedente;
-    
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_utente_ultima_modifica", referencedColumnName = "id")
 	private UtenteEntity utenteUltimaModifica;
 
-    @OneToMany(mappedBy = "adesione")
+    @OneToMany(mappedBy = "adesione", fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<StatoAdesioneEntity> stati = new HashSet<>();
-    
-    @OneToMany(mappedBy = "adesione")
+
+    @OneToMany(mappedBy = "adesione", fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<NotificaEntity> notifiche = new HashSet<>();
-    
-    @OneToMany(mappedBy = "adesione")
+
+    @OneToMany(mappedBy = "adesione", fetch = FetchType.LAZY)
     @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
     private Set<ReferenteAdesioneEntity> referenti = new HashSet<>();
 
-    @OneToMany(mappedBy = "adesione")
+    @OneToMany(mappedBy = "adesione", fetch = FetchType.LAZY)
     @Cascade(CascadeType.PERSIST)
 	private Set<MessaggioAdesioneEntity> messaggi = new HashSet<>();
 
-    @OneToMany(mappedBy = "adesione", orphanRemoval = true)
+    @OneToMany(mappedBy = "adesione", orphanRemoval = true, fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
     private List<EstensioneAdesioneEntity> estensioni = new ArrayList<>();
 
@@ -124,19 +125,19 @@ public class AdesioneEntity {
     @Column(name = "messaggio_configurazione")
     private String messaggioConfigurazione;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "erogazioni_adesioni", 
-    joinColumns = @JoinColumn(name = "id_adesione"), 
+    name = "erogazioni_adesioni",
+    joinColumns = @JoinColumn(name = "id_adesione"),
     inverseJoinColumns = @JoinColumn(name = "id_erogazione"))
 	@Cascade({CascadeType.ALL})
     private Set<ErogazioneEntity> erogazioni = new HashSet<>();
 
-	@OneToMany(mappedBy = "adesione", orphanRemoval = true)
+	@OneToMany(mappedBy = "adesione", orphanRemoval = true, fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
 	private Set<ClientAdesioneEntity> client = new HashSet<>();
 
-	@OneToOne(optional = true)
+	@OneToOne(optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "id_adesione_collaudo", referencedColumnName = "id")
 	private AdesioneEntity adesioneCollaudo;
 

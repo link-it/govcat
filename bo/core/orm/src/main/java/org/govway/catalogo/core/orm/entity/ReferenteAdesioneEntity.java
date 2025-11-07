@@ -23,6 +23,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -46,11 +47,11 @@ public class ReferenteAdesioneEntity {
     @SequenceGenerator(name = "seq_referenti_adesioni", sequenceName = "seq_referenti_adesioni", allocationSize = 1)
     private Long id;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_referente", referencedColumnName = "id")
 	private UtenteEntity referente;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_adesione", referencedColumnName = "id")
 	private AdesioneEntity adesione;
 	

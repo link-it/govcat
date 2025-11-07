@@ -21,6 +21,7 @@ package org.govway.catalogo.core.orm.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -54,12 +55,12 @@ public class EstensioneClientEntity {
 	@Column(length = 4000)
     private String valore;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_documento", referencedColumnName = "id")
 	@Cascade({CascadeType.ALL})
     private DocumentoEntity documento;
-    
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_client", referencedColumnName = "id")
     private ClientEntity client;
 }

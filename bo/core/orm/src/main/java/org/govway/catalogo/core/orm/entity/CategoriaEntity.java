@@ -24,6 +24,7 @@ import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -59,26 +60,26 @@ public class CategoriaEntity {
     private String nome;
 	private String descrizione;
     
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria_padre", referencedColumnName = "id")
 	private CategoriaEntity categoriaPadre;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_tassonomia", referencedColumnName = "id", nullable = false)
 	private TassonomiaEntity tassonomia;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_immagine", referencedColumnName = "id")
     @Cascade({CascadeType.PERSIST,CascadeType.MERGE})
     private DocumentoEntity immagine;
 
-	@OneToMany(mappedBy = "categoriaPadre")
+	@OneToMany(mappedBy = "categoriaPadre", fetch = FetchType.LAZY)
 	private Set<CategoriaEntity> figli = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "categorie_servizi", 
-    joinColumns = @JoinColumn(name = "id_categoria"), 
+    name = "categorie_servizi",
+    joinColumns = @JoinColumn(name = "id_categoria"),
     inverseJoinColumns = @JoinColumn(name = "id_servizio"))
 	private Set<ServizioEntity> servizi = new HashSet<>();
 

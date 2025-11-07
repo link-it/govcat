@@ -23,6 +23,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -52,7 +53,7 @@ public class AllegatoApiEntity {
     @SequenceGenerator(name = "seq_allegati_api", sequenceName = "seq_allegati_api", allocationSize = 1)
 	private Long id;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_documento", referencedColumnName = "id")
 	@Cascade({CascadeType.ALL})
 	private DocumentoEntity documento;
@@ -63,7 +64,7 @@ public class AllegatoApiEntity {
     @Enumerated(EnumType.STRING)
 	private TIPOLOGIA tipologia;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_api", referencedColumnName = "id")
 	private ApiEntity api;
 
