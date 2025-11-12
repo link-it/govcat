@@ -233,6 +233,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             this.apiService.getDetails(this.model, this.id).subscribe({
                 next: (response: any) => {
                     this.adesione = response;
+                    this.adesione.id_logico = response.id_logico;
                     this.title = this._geServicetTitle();
 
                     this.isBozza = (this.adesione.stato == 'bozza');
@@ -248,7 +249,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     this._initBreadcrumb();
                     this._updateOtherActions();
 
-                    this.returnWeb = this.adesione.stato.includes('pubblicato_produzione');
+                    this.returnWeb = this.authenticationService.canJoin('adesione', this.adesione?.stato);
 
                     this.spin = false;
 
@@ -349,6 +350,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         if (this.serviceBreadcrumbs) {
             title = _organizzazione;
             baseUrl = `/servizi/${this.serviceBreadcrumbs.service.id_servizio}/${this.model}`;
+        }
+
+        if (this.adesione.id_logico) {
+            title = `${this.adesione.id_logico} (${_organizzazione})`;
         }
 
         if (this.config?.useEditWizard) {
