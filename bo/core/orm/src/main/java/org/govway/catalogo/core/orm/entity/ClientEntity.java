@@ -26,6 +26,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -86,11 +87,11 @@ public class ClientEntity {
     @Column(name = "indirizzo_ip")
     private String indirizzoIp;
 
-	@OneToMany(mappedBy = "client", orphanRemoval = true)
+	@OneToMany(mappedBy = "client", orphanRemoval = true, fetch = FetchType.LAZY)
 	@Cascade(CascadeType.ALL)
 	private Set<EstensioneClientEntity> estensioni = new HashSet<>();
 
-	@OneToMany(mappedBy = "client")
+	@OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
 	private Set<ClientAdesioneEntity> adesioni = new HashSet<>();
 
 

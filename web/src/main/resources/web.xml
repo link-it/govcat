@@ -35,4 +35,9 @@
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
 
+	<!-- Disable JSESSIONID cookie creation by using URL tracking only -->
+	<session-config>
+		<tracking-mode>URL</tracking-mode>
+	</session-config>
+
 </web-app>

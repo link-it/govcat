@@ -25,6 +25,7 @@ import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -53,25 +54,25 @@ public class MessaggioServizioEntity {
     @SequenceGenerator(name = "seq_messaggi_servizi", sequenceName = "seq_messaggi_servizi", allocationSize = 1)
 	private Long id;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_utente", referencedColumnName = "id")
-	private UtenteEntity utente;	
+	private UtenteEntity utente;
 	private String uuid;
 	private String oggetto;
 	private String testo;
-	
+
 	@Column(name = "data")
     private Date data;
-	
-    @ManyToMany
+
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "allegati_messaggi_servizi", 
-    joinColumns = @JoinColumn(name = "id_messaggio"), 
+    name = "allegati_messaggi_servizi",
+    joinColumns = @JoinColumn(name = "id_messaggio"),
     inverseJoinColumns = @JoinColumn(name = "id_allegato"))
 	@Cascade({CascadeType.ALL})
     private Set<DocumentoEntity> allegati = new HashSet<>();
-    
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_servizio", referencedColumnName = "id")
     private ServizioEntity servizio;
 

@@ -24,6 +24,7 @@ import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -75,14 +76,14 @@ public class OrganizzazioneEntity {
     @Column(name = "esterna", nullable = false)
     private boolean esterna;
     
-    @OneToMany(mappedBy = "organizzazione")
+    @OneToMany(mappedBy = "organizzazione", fetch = FetchType.LAZY)
     private Set<SoggettoEntity> soggetti = new HashSet<>();
-    
-    @OneToOne
+
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_soggetto_default", referencedColumnName = "id")
     private SoggettoEntity soggettoDefault;
-    
-    @OneToMany(mappedBy = "organizzazione")
+
+    @OneToMany(mappedBy = "organizzazione", fetch = FetchType.LAZY)
     private Set<UtenteEntity> utenti = new HashSet<>();
     
 

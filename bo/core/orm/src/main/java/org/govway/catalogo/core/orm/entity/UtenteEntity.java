@@ -74,7 +74,7 @@ public class UtenteEntity {
     @Column(name = "referente_tecnico", nullable=false)
 	private boolean referenteTecnico;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_organizzazione", referencedColumnName = "id")
 	private OrganizzazioneEntity organizzazione;
 	

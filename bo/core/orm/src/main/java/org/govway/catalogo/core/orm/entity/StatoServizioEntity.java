@@ -23,6 +23,7 @@ import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -54,13 +55,13 @@ public class StatoServizioEntity {
 
     @Column(nullable = false)
 	private Date data;
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_utente", referencedColumnName = "id")
 	private UtenteEntity utente;
 
 	private String commento;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_servizio", referencedColumnName = "id")
 	private ServizioEntity servizio;
 

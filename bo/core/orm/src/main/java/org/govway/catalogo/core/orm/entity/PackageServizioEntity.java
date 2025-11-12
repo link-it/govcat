@@ -21,6 +21,7 @@ package org.govway.catalogo.core.orm.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,11 +45,11 @@ public class PackageServizioEntity {
     @SequenceGenerator(name = "seq_package_servizi", sequenceName = "seq_package_servizi", allocationSize = 1)
 	private Long id;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_package", referencedColumnName = "id")
 	private ServizioEntity _package;
-	
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_servizio", referencedColumnName = "id")
 	private ServizioEntity servizio;
 

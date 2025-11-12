@@ -25,6 +25,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -65,22 +66,22 @@ public class NotificaEntity {
     @Column(name="id_entita", nullable=false)
     private String idEntita;
     
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_servizio", referencedColumnName = "id", nullable=true)
 	private ServizioEntity servizio;
-    
-	@ManyToOne
+
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_adesione", referencedColumnName = "id", nullable=true)
 	private AdesioneEntity adesione;
-    
+
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
 	private STATO stato;
-	
+
     @Column(nullable=false)
     private Date data;
-    
+
     @Column(name="info_stato")
     private String infoStato;
     @Column(name="info_oggetto")
@@ -88,11 +89,11 @@ public class NotificaEntity {
     @Column(name="info_messaggio")
     private String infoMessaggio;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_destinatario", referencedColumnName = "id", nullable=false)
 	private UtenteEntity destinatario;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_mittente", referencedColumnName = "id", nullable=false)
 	private UtenteEntity mittente;
 

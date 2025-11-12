@@ -26,6 +26,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -73,7 +74,7 @@ public class DominioEntity {
     @Column(name = "skip_collaudo", nullable = false)
     private boolean skipCollaudo;
     
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_soggetto_referente", referencedColumnName = "id")
 	private SoggettoEntity soggettoReferente;
 
@@ -81,28 +82,28 @@ public class DominioEntity {
 	private VISIBILITA visibilita;
 
     private String descrizione;
-	
+
     @Column(name = "url_invocazione", nullable = true)
 	private String urlInvocazione;
-    
+
     @Column(name = "url_prefix_collaudo", nullable = true)
     private String urlPrefixCollaudo;
 
     @Column(name = "url_prefix_produzione", nullable = true)
     private String urlPrefixProduzione;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-    name = "classi_domini", 
-    joinColumns = @JoinColumn(name = "id_dominio"), 
+    name = "classi_domini",
+    joinColumns = @JoinColumn(name = "id_dominio"),
     inverseJoinColumns = @JoinColumn(name = "id_classe"))
 	private Set<ClasseUtenteEntity> classi = new HashSet<>();
 
-    @OneToMany(mappedBy = "dominio")
+    @OneToMany(mappedBy = "dominio", fetch = FetchType.LAZY)
     @Cascade({CascadeType.PERSIST,CascadeType.DELETE})
     private Set<ReferenteDominioEntity> referenti = new HashSet<>();
-	
-    @OneToMany(mappedBy = "dominio")
+
+    @OneToMany(mappedBy = "dominio", fetch = FetchType.LAZY)
     private Set<ServizioEntity> servizi = new HashSet<>();
 	
 }

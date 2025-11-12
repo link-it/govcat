@@ -50,7 +50,7 @@ public class AuthTypeEntity {
 
 	private String note;
 	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_api", referencedColumnName = "id", nullable = false)
 	private ApiEntity api;
 	
