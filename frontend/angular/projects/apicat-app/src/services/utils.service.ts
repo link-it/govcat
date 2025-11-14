@@ -61,7 +61,7 @@ export class UtilService {
     const _options: any = { params: { q: term } };
     if (role) { _options.params.ruolo = role; }
     if (stato) { _options.params.stato = stato; }
-    if (organizzazione) { _options.params.id_organizzazione = organizzazione; }
+    if (organizzazione && !referenteTecnico) { _options.params.id_organizzazione = organizzazione; }
     if (referenteTecnico) { _options.params.referente_tecnico = true; }
 
     return this.apiService.getList('utenti', _options)
