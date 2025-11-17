@@ -54,8 +54,12 @@ import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroRicercaRuoloTr
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroMittenteErogazioneSoggettoImpl;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroTemporale;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.FormatoReportEnum;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.NumeroTransazioni;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.OccupazioneBanda;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoInformazioneReportNumeroTransazioni;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoInformazioneReportOccupazioneBanda;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoInformazioneReportTempoMedioRisposta;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoInformazioneReportMultiLineNumeroTransazioni;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoInformazioneReportMultiLineOccupazioneBanda;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoInformazioneReportMultiLineTempoMedioRisposta;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OneOfTipoInformazioneReportMultiLineNumeroTransazioniTipoInformazioneReportMultiLineOccupazioneBandaTipoInformazioneReportMultiLineTempoMedioRisposta;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OneOfTipoInformazioneReportNumeroTransazioniTipoInformazioneReportOccupazioneBandaTipoInformazioneReportTempoMedioRisposta;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.OpzioniGenerazioneReport;
@@ -77,7 +81,6 @@ import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDis
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneSoggettoRemoto;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneSoggettoRemotoAllOfMittente;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaStatisticaDistribuzioneTokenInfo;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.TempoMedioRisposta;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoFiltroMittenteEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoReportEnum;
 import org.govway.catalogo.gest.clients.govwaymonitor.model.TokenClaimEnum;
@@ -515,20 +518,22 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		case TABLE: tipo = TipoReportEnum.TABLE;
 		}
 		ml.setTipo(tipo);
-		OneOfTipoInformazioneReportMultiLineNumeroTransazioniTipoInformazioneReportMultiLineOccupazioneBandaTipoInformazioneReportMultiLineTempoMedioRisposta tipoInfo = null;
-		
-		switch(tipoInformazioneReportEnum) {
-		case NUMERO_TRANSAZIONI: tipoInfo = new NumeroTransazioni();
-		break;
-		case OCCUPAZIONE_BANDA: tipoInfo = new OccupazioneBanda();
-		break;
-		case TEMPO_MEDIO_RISPOSTA: tipoInfo = new TempoMedioRisposta();
-		break;
-		}
+		Object tipoInfo = null;
 
-		// Wrap the tipoInfo into the appropriate wrapper class
-		if (tipoInfo != null) {
-			ml.setTipoInformazione(new OpzioniGenerazioneReportMultiLineAllOfTipoInformazione(tipoInfo));
+		if (tipoInformazioneReportEnum != null) {
+			switch(tipoInformazioneReportEnum) {
+			case NUMERO_TRANSAZIONI: tipoInfo = new TipoInformazioneReportMultiLineNumeroTransazioni();
+			break;
+			case OCCUPAZIONE_BANDA: tipoInfo = new TipoInformazioneReportMultiLineOccupazioneBanda();
+			break;
+			case TEMPO_MEDIO_RISPOSTA: tipoInfo = new TipoInformazioneReportMultiLineTempoMedioRisposta();
+			break;
+			}
+
+			// Wrap the tipoInfo into the appropriate wrapper class
+			if (tipoInfo != null) {
+				ml.setTipoInformazione(new OpzioniGenerazioneReportMultiLineAllOfTipoInformazione(tipoInfo));
+			}
 		}
 
 		return ml;
@@ -571,21 +576,23 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			}
 			ml.setTipo(tipo);
 		}
-		
-		OneOfTipoInformazioneReportNumeroTransazioniTipoInformazioneReportOccupazioneBandaTipoInformazioneReportTempoMedioRisposta tipoInfo = null;
-		
-		switch(tipoInformazioneReportEnum) {
-		case NUMERO_TRANSAZIONI: tipoInfo = new NumeroTransazioni();
-		break;
-		case OCCUPAZIONE_BANDA: tipoInfo = new OccupazioneBanda();
-		break;
-		case TEMPO_MEDIO_RISPOSTA: tipoInfo = new TempoMedioRisposta();
-		break;
-		}
 
-		// Wrap the tipoInfo into the appropriate wrapper class
-		if (tipoInfo != null) {
-			ml.setTipoInformazione(new OpzioniGenerazioneReportAllOfTipoInformazione(tipoInfo));
+		Object tipoInfo = null;
+
+		if (tipoInformazioneReportEnum != null) {
+			switch(tipoInformazioneReportEnum) {
+			case NUMERO_TRANSAZIONI: tipoInfo = new TipoInformazioneReportNumeroTransazioni();
+			break;
+			case OCCUPAZIONE_BANDA: tipoInfo = new TipoInformazioneReportOccupazioneBanda();
+			break;
+			case TEMPO_MEDIO_RISPOSTA: tipoInfo = new TipoInformazioneReportTempoMedioRisposta();
+			break;
+			}
+
+			// Wrap the tipoInfo into the appropriate wrapper class
+			if (tipoInfo != null) {
+				ml.setTipoInformazione(new OpzioniGenerazioneReportAllOfTipoInformazione(tipoInfo));
+			}
 		}
 
 		return ml;
@@ -809,15 +816,18 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 
 	private String getValoreString(GetReportRequest request) {
 		String valoreString = null;
-		switch(request.getTipoInformazioneReport()) {
-		case NUMERO_TRANSAZIONI: valoreString = "Numero Transazioni";
-			break;
-		case OCCUPAZIONE_BANDA: valoreString = "Occupazione Banda Complessiva [bytes]";
-			break;
-		case TEMPO_MEDIO_RISPOSTA: valoreString = "Latenza Media Totale [ms]";
-			break;
-		default:
-			break;}
+		if (request.getTipoInformazioneReport() != null) {
+			switch(request.getTipoInformazioneReport()) {
+			case NUMERO_TRANSAZIONI: valoreString = "Numero Transazioni";
+				break;
+			case OCCUPAZIONE_BANDA: valoreString = "Occupazione Banda Complessiva [bytes]";
+				break;
+			case TEMPO_MEDIO_RISPOSTA: valoreString = "Latenza Media Totale [ms]";
+				break;
+			default:
+				break;
+			}
+		}
 		return valoreString;
 	}
 

@@ -30,13 +30,7 @@ import org.govway.catalogo.gest.clients.govwaymonitor.api.MonitoraggioApi;
 import org.govway.catalogo.gest.clients.govwaymonitor.impl.ApiClient;
 import org.govway.catalogo.gest.clients.govwaymonitor.impl.JSON.DateTypeAdapter;
 import org.govway.catalogo.gest.clients.govwaymonitor.impl.JSON.OffsetDateTimeTypeAdapter;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroApiSoggetti;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroMittenteErogazioneSoggettoImpl;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.FiltroRicercaRuoloTransazioneEnum;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.ListaTransazioni;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.ProfiloEnum;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.RicercaIntervalloTemporale;
-import org.govway.catalogo.gest.clients.govwaymonitor.model.TipoFiltroMittenteEnum;
+import org.govway.catalogo.gest.clients.govwaymonitor.model.*;
 
 import com.google.gson.Gson;
 
@@ -55,6 +49,7 @@ public class PatchedApiClient extends ApiClient {
                 .registerTypeAdapter(java.sql.Date.class, new JSON.SqlDateTypeAdapter())
                 .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeTypeAdapter())
                 .registerTypeAdapter(LocalDate.class, new org.govway.catalogo.gest.clients.govwaymonitor.impl.JSON.LocalDateTypeAdapter())
+                .registerTypeHierarchyAdapter(AbstractOpenApiSchema.class, new OpenApiSchemaAdapter())
                 .create();
 
         this.getJSON()
