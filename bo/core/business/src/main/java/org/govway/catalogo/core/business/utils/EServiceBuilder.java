@@ -145,32 +145,105 @@ public class EServiceBuilder {
         ObjectMapper reader = new ObjectMapper();
         reader.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
+        Logger logger = LoggerFactory.getLogger(EServiceBuilder.class);
+
         // Step 2: Parse OpenAPI file
         JsonNode openApiJson = reader.readTree(originalOpenapi);
 
-        // Step 3: Inject new server URL
-        JsonNode serversNode = openApiJson.path("servers");
+        logger.debug("Parsing OpenAPI JSON for try-out. OpenAPI root type: {}", openApiJson.getClass().getName());
 
-        if (serversNode.isArray() && serversNode.size() > 0) {
-        	ObjectNode serverNode = ((ObjectNode) serversNode.get(0));
-            serverNode.put("url", conf.getServerUrl());
+        // Detect if it's Swagger 2.0 or OpenAPI 3.0
+        JsonNode swaggerVersion = openApiJson.path("swagger");
+        JsonNode openapiVersion = openApiJson.path("openapi");
 
-        	serversNode = reader.createArrayNode().add(serverNode);
-            ((ObjectNode) openApiJson).set("servers", serversNode);
+        boolean isSwagger2 = !swaggerVersion.isMissingNode() && swaggerVersion.asText().startsWith("2.");
+        boolean isOpenApi3 = !openapiVersion.isMissingNode() && openapiVersion.asText().startsWith("3.");
+
+        logger.debug("Detected format - isSwagger2: {}, isOpenApi3: {}", isSwagger2, isOpenApi3);
+
+        if (isSwagger2) {
+            // Swagger 2.0: parse URL and set host, basePath, schemes
+            logger.debug("Processing Swagger 2.0 format");
+            String serverUrl = conf.getServerUrl();
+
+            try {
+                java.net.URL url = new java.net.URL(serverUrl);
+                String scheme = url.getProtocol();
+                String host = url.getHost();
+                if (url.getPort() != -1 && url.getPort() != 80 && url.getPort() != 443) {
+                    host = host + ":" + url.getPort();
+                }
+                String basePath = url.getPath();
+                if (basePath == null || basePath.isEmpty()) {
+                    basePath = "/";
+                }
+
+                logger.debug("Parsed URL - scheme: {}, host: {}, basePath: {}", scheme, host, basePath);
+
+                // Set schemes
+                ArrayNode schemesArray = reader.createArrayNode();
+                schemesArray.add(scheme);
+                ((ObjectNode) openApiJson).set("schemes", schemesArray);
+
+                // Set host
+                ((ObjectNode) openApiJson).put("host", host);
+
+                // Set basePath
+                ((ObjectNode) openApiJson).put("basePath", basePath);
+
+                logger.debug("Updated Swagger 2.0 with host: {}, basePath: {}, schemes: [{}]", host, basePath, scheme);
+
+            } catch (Exception e) {
+                logger.error("Failed to parse URL: {} - {}", serverUrl, e.getMessage(), e);
+            }
+
+        } else if (isOpenApi3) {
+            // OpenAPI 3.0: set servers array
+            logger.debug("Processing OpenAPI 3.0 format");
+            JsonNode serversNode = openApiJson.path("servers");
+            logger.debug("serversNode type: {}, isMissingNode: {}, isArray: {}, size: {}",
+                    serversNode.getClass().getName(),
+                    serversNode.isMissingNode(),
+                    serversNode.isArray(),
+                    serversNode.isArray() ? serversNode.size() : "N/A");
+
+            if (serversNode.isArray() && serversNode.size() > 0) {
+                logger.debug("Modifying existing servers node with first server");
+                ObjectNode serverNode = ((ObjectNode) serversNode.get(0));
+                serverNode.put("url", conf.getServerUrl());
+
+                serversNode = reader.createArrayNode().add(serverNode);
+                ((ObjectNode) openApiJson).set("servers", serversNode);
+                logger.debug("Updated servers node with URL: {}", conf.getServerUrl());
+            } else {
+                logger.debug("Creating new servers node (servers was missing or empty)");
+                ObjectNode serverNode = reader.createObjectNode();
+                serverNode.put("url", conf.getServerUrl());
+
+                // If no servers node exists, create one
+                ArrayNode newServersArray = reader.createArrayNode().add(serverNode);
+                ((ObjectNode) openApiJson).set("servers", newServersArray);
+                logger.debug("Created new servers array with URL: {}", conf.getServerUrl());
+
+                // Verify the node was actually set
+                JsonNode verifyServers = openApiJson.path("servers");
+                logger.debug("Verification after set - servers exists: {}, isArray: {}, size: {}",
+                        !verifyServers.isMissingNode(),
+                        verifyServers.isArray(),
+                        verifyServers.isArray() ? verifyServers.size() : "N/A");
+            }
         } else {
-            ObjectNode serverNode = reader.createObjectNode();
-            serverNode.put("url", conf.getServerUrl());
-
-            // If no servers node exists, create one
-            ArrayNode newServersArray = reader.createArrayNode().add(serverNode);
-            ((ObjectNode) openApiJson).set("servers", newServersArray);
+            logger.warn("Unknown API specification format (not Swagger 2.0 or OpenAPI 3.0)");
         }
 
         ObjectMapper writer = new ObjectMapper();
+        writer.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         // Step 5: Serialize updated OpenAPI object back in JSON
-        return writer
-                .writeValueAsBytes(openApiJson);
+        byte[] result = writer.writeValueAsBytes(openApiJson);
+        logger.debug("Serialized OpenAPI to {} bytes", result.length);
+
+        return result;
     }
 
 	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo) {
