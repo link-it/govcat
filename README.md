@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://www.link.it/wp-content/uploads/2025/01/logo-Govcat.svg" alt="GovCat Logo" width="320"/>
+  <img src="https://www.link.it/wp-content/uploads/2025/01/logo-Govcat.svg" alt="GovCat Logo" width="200"/>
 </p>
 
 # GovCat – Catalogo dei Servizi Digitali della Pubblica Amministrazione
