@@ -26,6 +26,7 @@ public class Servizio {
 	private String tipoApi;
 	private String aderente;
 	private String idAdesione;
+	private String stato;
 	private String implementazioneAPI;
 	private String azioneRisorsa;
 	private String urlInvocazioneCollaudo;
@@ -175,6 +176,12 @@ public class Servizio {
 	}
 	public void setIdAdesione(String idAdesione) {
 		this.idAdesione = idAdesione;
+	}
+	public String getStato() {
+		return stato;
+	}
+	public void setStato(String stato) {
+		this.stato = stato;
 	}
 	
 }
