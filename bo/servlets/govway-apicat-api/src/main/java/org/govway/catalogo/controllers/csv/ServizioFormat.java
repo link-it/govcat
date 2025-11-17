@@ -35,6 +35,8 @@ public abstract class ServizioFormat {
 	abstract String getAderente();
 	@JsonProperty("Id Adesione")
 	abstract String getIdAdesione();
+	@JsonProperty("Stato")
+	abstract String getStato();
 	@JsonProperty("API")
 	abstract String getImplementazioneAPI();
 	@JsonProperty("Azione/Risorsa")

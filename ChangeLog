@@ -1,3 +1,27 @@
+2025-11-17  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #68
+	Aggiunta colonna Stato nell'export delle adesioni in formato CSV
+
+2025-11-17  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto Bug #63
+	Risolto caso in cui l'endpoint dello Swagger della specifica non veniva mostrato correttamente
+
+2025-11-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #64
+	Eliminato filtro per organizzazione quando si ricerca per referente tecnico
+
+2025-11-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #41
+	Modificato il breadcrumb per mostrare l'idLogico quando presente
+
 2025-11-12  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.3.1

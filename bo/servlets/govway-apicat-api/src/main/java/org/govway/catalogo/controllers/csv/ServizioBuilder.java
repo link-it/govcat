@@ -110,6 +110,7 @@ public class ServizioBuilder {
 					this.logger.debug("Adesione: " + adesione.getIdLogico() + " api: " + api.getNome());
 					Servizio s = new Servizio();
 					s.setAzioneRisorsa(api.getAuthType().stream().map(at -> new String(at.getResources()).replaceAll(",", "\n")).collect(Collectors.joining("\n")));
+					s.setStato(processStato(adesione.getStato()));
 
 					s.setImplementazioneAPI(api.getNome() + " v" + api.getVersione());
 					s.setTipoApi(api.getCollaudo().getProtocollo().toString().contains("WSDL") ? "soap" : "rest"); //TODO
@@ -191,6 +192,43 @@ public class ServizioBuilder {
 
 
 		return serviziCSV;
+	}
+
+	private String processStato(String stato) {
+		if (stato == null || stato.isEmpty()) {
+			return stato;
+		}
+
+		String result;
+
+		if (stato.endsWith("_produzione_senza_collaudo")) {
+			// Gestione caso speciale: _produzione_senza_collaudo
+			String prefix = stato.substring(0, stato.length() - "_produzione_senza_collaudo".length());
+			prefix = prefix.replace("_", " ");
+			result = capitalizeFirst(prefix) + " in produzione senza collaudo";
+		} else if (stato.endsWith("_produzione")) {
+			// Gestione caso: _produzione
+			String prefix = stato.substring(0, stato.length() - "_produzione".length());
+			prefix = prefix.replace("_", " ");
+			result = capitalizeFirst(prefix) + " in produzione";
+		} else if (stato.endsWith("_collaudo")) {
+			// Gestione caso: _collaudo
+			String prefix = stato.substring(0, stato.length() - "_collaudo".length());
+			prefix = prefix.replace("_", " ");
+			result = capitalizeFirst(prefix) + " in collaudo";
+		} else {
+			// Stati semplici (bozza, archiviato, etc.)
+			result = capitalizeFirst(stato.replace("_", " "));
+		}
+
+		return result;
+	}
+
+	private String capitalizeFirst(String str) {
+		if (str == null || str.isEmpty()) {
+			return str;
+		}
+		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 
 	private boolean hasCollaudo(String stato) {

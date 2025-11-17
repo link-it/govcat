@@ -95,6 +95,7 @@ export interface RichiestaErogazione {
 
 export interface Adesione {
   id_adesione: string;
+  id_logico: string | null;
   soggetto: {
     id_soggetto: string;
     nome: string;
@@ -403,6 +404,10 @@ export class AdesioneViewComponent implements OnInit {
     if (this._serviceBreadcrumbs) {
       title = _organizzazione;
       baseUrl = `/servizi/${this._serviceBreadcrumbs.service.id_servizio}/${this.model}`;
+    }
+
+    if (this.adesione?.id_logico) {
+      title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
     this.breadcrumbs = [

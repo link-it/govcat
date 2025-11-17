@@ -461,17 +461,17 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   saveModal(body: any){
     this._errorSave = false;
     this._errorSaveMsg = '';    
-    this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe(
-      (response: any) => {
+    this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe({
+      next: (response: any) => {
         this._modalEditRef.hide();
         this._loadServizioReferenti();
       },
-      (error: any) => {
+      error: (error: any) => {
         this._errorSave = true;
         this._errorSaveMsg = error.details || this.utils.GetErrorMsg(error);
         console.log('error', error);
       }
-    );
+    });
   }
 
   closeModal() {
@@ -532,9 +532,9 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
         debounceTime(500),
         tap(() => this.referentiLoading = true),
         switchMap((term: any) => {
-          let aux: any = this._isDominioEsterno ? null : this._idDominioEsterno;
+          let organizzazione: any = this._isDominioEsterno ? null : this._idDominioEsterno;
           const referente_tecnico = this.tipoReferente === 'referente_tecnico';
-          return this.utils.getUtenti(term, this.referentiFilter, 'abilitato', aux, referente_tecnico).pipe(
+          return this.utils.getUtenti(term, this.referentiFilter, 'abilitato', organizzazione, referente_tecnico).pipe(
             catchError(() => of([])), // empty list on error
             tap(() => this.referentiLoading = false)
           )
