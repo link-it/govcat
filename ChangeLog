@@ -1,0 +1,123 @@
+2025-11-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.1
+
+2025-11-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo, GovwayMonitor-client]
+	Risolto Bug
+	Risolta regressione nell'interrogazione delle Statistiche dovuta all'upgrade della dipendenza OpenAPI Generator
+
+2025-11-10  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #59
+	Risolto un comportamento anomalo del componente dialog "Configura modalità di Autenticazione" nelle Adesioni
+
+2025-11-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ORM]
+	Migliorate prestazioni
+	Aggiunta una strategia di Fetch ottimizzata per l'attuale versione di Hibernate dopo il recente upgrade dello stack
+
+2025-11-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto Bug #55
+	Risolta segnalazione di reliability con score C di SonarCloud nella classe di test DominiTest
+
+2025-11-06  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [Pipeline]
+	Aggiunta funzionalità
+	Aggiunto flag per attendere il Quality Gate nello step di Sonar Cloud Scan
+
+2025-11-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolte vulnerabilità #58
+	jquery.min.js → CVE-2015-9251(6.1), jquery issue: 162(3.9), CVE-2019-11358(6.1), CVE-2020-11023(6.1), CVE-2020-11022(6.1)
+    jspdf:3.0.1 → GHSA-8mvj-3j78-4qmw(7.5)
+    mermaid:11.6.0 → CVE-2025-54880(5.1)
+    vite:6.3.5 → GHSA-jqfw-vq24-v9c3(3.9), CVE-2025-58751(2.3), GHSA-93m4-6634-74q7(6.9), CVE-2025-58752(2.3), GHSA-g4jq-h2w9-997c(3.9)
+
+2025-11-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ReverseProxy]
+	Risolto Bug #29
+	Rimosso cookie JSESSIONID creato erroneamente
+
+2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.0
+
+2025-11-04  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [Autenticazione]
+	Aggiunto supporto a OpenID Connect per un’autenticazione più sicura e standardizzata.
+
+2025-11-04  Giovanni Bussu <giovanni.bussu@link.it
+
+	* [ModalitàPubblica]
+	Introdotta la modalità pubblica in sola lettura, che consente la consultazione dei dati senza autenticazione 
+	e senza possibilità di modifica o inserimento.
+
+2025-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [InterfacciaUtente]
+	Aggiunto link diretto all’informativa sulla privacy.
+	Introdotto supporto all’internazionalizzazione (multi-lingua).
+	Migliorata la compatibilità con dispositivi mobili.
+	Aggiunta nuova visualizzazione a lista per servizi e gruppi.
+	Estese le possibilità di personalizzazione del tema grafico.
+	Aggiunta l’opzione per nascondere i referenti quando non necessario.
+	Introdotto il supporto a diversi formati di versione dei servizi.
+
+2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [StackTecnologico]
+	Aggiornato lo stack tecnologico a Java 21, Spring 6 e Spring Boot 3.3.0, 
+	con supporto al deploy su Tomcat 11 per migliori prestazioni e manutenibilità.
+
+2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [RicercaEDati]
+	Risolto Bug #1721
+	Corretta la ricerca dei servizi per gruppo per garantire il corretto ritorno dei risultati associati.
+	Risolto Bug #1722
+	Corretta la creazione dell’adesione a partire dal servizio tramite il tasto “Aderisci al servizio”.
+
+2025-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [UI/UX]
+	Riviste le label nelle maschere dei servizi e delle statistiche/monitoraggio per maggiore chiarezza.
+	Aggiunto tooltip mancante sul tag del profilo.
+	Corretto il comportamento della barra di ricerca con form.
+
+2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [Configurazioni]
+	Risolto Bug
+	Corrette le configurazioni relative alle pagine di statistiche e monitoraggio.
+	Risolto Bug
+	Corretto il codice generato automaticamente tramite configurazioni.
+	Risolto Bug
+	Corretto errore nella generazione degli schema SQL per alcuni tipi di database.
+
+2025-11-04  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [PDF]
+	Introdotta la libreria PdfBox per la generazione dei PDF, sostituendo la precedente implementazione.
+	Rimosso codice Bootstrap deprecato e non più utilizzato dal modulo web.
+
+2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [Sicurezza]
+	Risolte vulnerabilità note nelle seguenti dipendenze:
+	commons-beanutils-1.9.4.jar → CVE-2025-48734 (8.8)
+	commons-lang3-3.12.0.jar, commons-lang3-3.9.jar → CVE-2025-48924 (5.3)
+	hibernate-validator-6.0.23.Final.jar → CVE-2025-35036 (6.9), CVE-2023-1932 (6.1)
+	itext-2.1.7.js7.jar → CVE-2017-9096 (8.8), CVE-2022-24197 (6.5), CVE-2022-24196 (6.5)
+	jetty-io-9.4.56.v20240826.jar → CVE-2024-13009 (7.2), CVE-2024-6763 (5.3)
+	spring-tx-5.3.31.jar → CVE-2024-38808 (4.3), CVE-2024-22259 (8.1)
+	tika-core-2.9.1.jar → CVE-2025-54988 (8.4)

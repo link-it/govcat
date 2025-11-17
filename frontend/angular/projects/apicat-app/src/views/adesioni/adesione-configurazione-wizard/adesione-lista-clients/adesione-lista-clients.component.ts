@@ -290,7 +290,6 @@ export class AdesioneListaClientsComponent implements OnInit {
     _isConfigClients: boolean = true;
 
     client: any = null;
-    showSubscription!: Subscription;
     loadingDialog: boolean = false;
 
     _currClient: any = null;
@@ -391,9 +390,6 @@ export class AdesioneListaClientsComponent implements OnInit {
         this._arr_clients_riuso = [];
         this._modalEditRef.hide();
         this.isEditClient = false;
-        if (this.showSubscription) {
-            this.showSubscription.unsubscribe();
-        }
     }
 
     _resetError() {
@@ -425,20 +421,6 @@ export class AdesioneListaClientsComponent implements OnInit {
         const _isNotConfigurato = (client.source.stato === StatoConfigurazioneEnum.NONCONFIGURATO);
         const _isNomeProposto = client?.source?.nome_proposto ? true : false;
         this._show_nome_proposto = _isNomeProposto;
-
-        this.showSubscription = this.modalService.onShown.subscribe(($event: any, reason: string) => {
-            // setTimeout(() => {
-                const _id_client =  client.id_client;
-                if (_isNomeProposto && !_id_client) {
-                    this._editFormGroupClients.controls['credenziali'].setValue(SelectedClientEnum.UsaClientEsistente);
-                    this._currentServiceClient = _id_client;
-                    this.onChangeCredenziali(SelectedClientEnum.UsaClientEsistente);
-                } else {
-                    this._editFormGroupClients.controls['credenziali'].setValue(_id_client || SelectedClientEnum.NuovoCliente);
-                    this.onChangeCredenziali(SelectedClientEnum.NuovoCliente);
-                }
-            // }, 400);
-        });
 
         if (!client.id_client || _isNotConfigurato || _isNomeProposto) {
             this.isEditClient = false;
@@ -758,7 +740,10 @@ export class AdesioneListaClientsComponent implements OnInit {
                 });
             }
         }
-        this.onChangeCredenziali(this._currClient?.id_client ? null : SelectedClientEnum.NuovoCliente);
+        // Only call onChangeCredenziali if form is initialized to prevent race condition
+        if (this._editFormGroupClients && this._editFormGroupClients.controls) {
+            this.onChangeCredenziali(this._currClient?.id_client ? null : SelectedClientEnum.NuovoCliente);
+        }
     }
 
     _downloadsEnabled() {
