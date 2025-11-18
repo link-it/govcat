@@ -25,7 +25,7 @@
 		<logback.version>1.2.13</logback.version>
 
 		<!-- jakarta.mail -->
-		<jakarta.mail.version>2.1.0</jakarta.mail.version>
+		<jakarta.mail.version>2.0.4</jakarta.mail.version>
 
 		<!-- Commons -->
 		<commons.lang2.version>2.6</commons.lang2.version>
@@ -302,7 +302,7 @@
 			</dependency>
 
 			<dependency>
-				<groupId>com.sun.mail</groupId>
+				<groupId>org.eclipse.angus</groupId>
 				<artifactId>jakarta.mail</artifactId>
 				<version>${jakarta.mail.version}</version>
 			</dependency>
