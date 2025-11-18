@@ -277,7 +277,7 @@
 		<jakarta.persistence.version>3.1.0</jakarta.persistence.version>
 		<jakarta.el.version>5.0.1</jakarta.el.version>
 		<jakarta.cache.version>3.0.0</jakarta.cache.version>
-		<jakarta.mail.version>2.1.0</jakarta.mail.version>
+		<jakarta.mail.version>2.0.4</jakarta.mail.version>
 		<jakarta.jaxws.version>4.0.0</jakarta.jaxws.version>
 
 	</properties>
@@ -1229,6 +1229,8 @@
 								${owasp.dir}/suppression/CVE-2022-42920.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2024-9329.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2025-7962.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
