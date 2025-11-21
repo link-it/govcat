@@ -456,18 +456,20 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     let _data: any = null;
     let _path: string = '';
     if (this.currentSearchType === SearchTypeEnum.Generic) {
-      if (!url) {
-        this.elements = [];
-        query = { ...query, id_servizio: this.id };
-        const _range: any = this._prepareRange(query);
-        query = { ...query, ..._range };
-      }
+      query = { ...query, id_servizio: this.id };
+      const _range: any = this._prepareRange(query);
+      query = { ...query, ..._range };
 
       _data = this._prepareData(query);
 
       const _verifica = this._tipoVerifica(this._apiSelected);
       const _soggetto = this._getSoggettoNome();
-      _path = `${this.environmentId}/${_verifica}/${_soggetto}/diagnostica/lista-transazioni`;
+      if (url) {
+        _path = url;
+      } else {
+        this.elements = [];
+        _path = `${this.environmentId}/${_verifica}/${_soggetto}/diagnostica/lista-transazioni`;
+      }
     } else {
       _data = { id_transazione: query.id_transazione, id_servizio: this.service.id_servizio };
       _path = `${this.environmentId}/diagnostica/lista-transazioni-id`;
