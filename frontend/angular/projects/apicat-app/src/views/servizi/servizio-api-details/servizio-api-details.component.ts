@@ -1433,6 +1433,24 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         return _hasPDND;
     }
 
+    _canShowPDNDActionsMapper = (): boolean => {
+        // Verifica se PDND è configurato
+        const hasPDNDConfigured = this._hasPDNDConfiguredMapper();
+        if (!hasPDNDConfigured) {
+            return false;
+        }
+
+        // Verifica se il soggetto referente è presente nell'array _pdnd
+        if (!this.service?.dominio?.soggetto_referente?.nome || !this._pdnd) {
+            return false;
+        }
+
+        const _soggetto = this.service.dominio.soggetto_referente.nome;
+        const _index = this._pdnd.findIndex((item: any) => item.nome_soggetto === _soggetto);
+
+        return _index !== -1;
+    }
+
     // API Proprietà custom
 
     acfg() {
