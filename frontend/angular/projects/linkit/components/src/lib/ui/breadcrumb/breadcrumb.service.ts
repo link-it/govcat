@@ -71,11 +71,11 @@ export class BreadcrumbService {
   }
 
   public clearBreadcrumbs() {
-    localStorage.removeItem(BreadcrumbService.BREADCRUMBS_STORAGE);
+    sessionStorage.removeItem(BreadcrumbService.BREADCRUMBS_STORAGE);
   }
 
   public getBreadcrumbs() {
-    const storage = localStorage.getItem(BreadcrumbService.BREADCRUMBS_STORAGE);
+    const storage = sessionStorage.getItem(BreadcrumbService.BREADCRUMBS_STORAGE);
     if (storage) {
       const breadcrumbs = JSON.parse(decodeURI(atob(storage)));
       return breadcrumbs;
@@ -85,6 +85,6 @@ export class BreadcrumbService {
 
   public storeBreadcrumbs(data: any) {
     const breadcrumbs = btoa(encodeURI(JSON.stringify(data)));
-    localStorage.setItem(BreadcrumbService.BREADCRUMBS_STORAGE, breadcrumbs);
+    sessionStorage.setItem(BreadcrumbService.BREADCRUMBS_STORAGE, breadcrumbs);
   }
 }
