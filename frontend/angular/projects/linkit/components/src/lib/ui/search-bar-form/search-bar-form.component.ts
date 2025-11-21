@@ -110,9 +110,10 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     const isInsideComponent = this._elementRef.nativeElement.contains(target);
     const isInDropdownOption = target.closest('.ng-option');
     const isInDropdownPanel = target.closest('.ng-dropdown-panel');
-    
-    const isOutsideClick = !isInsideComponent && !isInDropdownOption && !isInDropdownPanel;
-    
+    const isInDatepicker = target.closest('.bs-datepicker-container') || target.closest('bs-datepicker-container');
+
+    const isOutsideClick = !isInsideComponent && !isInDropdownOption && !isInDropdownPanel && !isInDatepicker;
+
     if (isOutsideClick && this._isOpen && !this._notCloseForm) {
       this._isOpen = false;
       $("#form_toggle").dropdown('hide');
