@@ -1,0 +1,49 @@
+/**
+ * Roboto Font - v50
+ *
+ * Font files downloaded from Google Fonts (fonts.gstatic.com)
+ * Source: https://fonts.google.com/specimen/Roboto
+ *
+ * Font structure:
+ * assets/fonts/roboto/
+ *   ├── Roboto-Regular.woff2
+ *   ├── Roboto-Bold.woff2
+ *   ├── Roboto-Italic.woff2
+ *   └── Roboto-BoldItalic.woff2
+ */
+
+/* Regular (400) */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../roboto/Roboto-Regular.woff2') format('woff2');
+}
+
+/* Bold (700) */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../roboto/Roboto-Bold.woff2') format('woff2');
+}
+
+/* Italic (400) */
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../roboto/Roboto-Italic.woff2') format('woff2');
+}
+
+/* Bold Italic (700) */
+@font-face {
+  font-family: 'Roboto';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../roboto/Roboto-BoldItalic.woff2') format('woff2');
+}

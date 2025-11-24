@@ -174,10 +174,33 @@
       "privacyPolicyUrl": "https://www.link.it/informativa-privacy-policy/"
     },
 
+    "Fonts": [
+      {
+        "Name": "System Default",
+        "FontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif"
+      },
+      {
+        "Name": "Lato",
+        "CssFile": "fonts/css/lato.css",
+        "FontFamily": "'Lato', Helvetica, Arial, sans-serif"
+      },
+      {
+        "Name": "Titillium Web",
+        "CssFile": "fonts/css/titillium-web.css",
+        "FontFamily": "'Titillium Web', sans-serif"
+      },
+      {
+        "Name": "Roboto",
+        "CssFile": "fonts/css/roboto.css",
+        "FontFamily": "'Roboto', sans-serif"
+      }
+    ],
+
     "CurrentThems": "linkit-blue",
     "Themes": [
       {
         "Name": "Default",
+        "FontName": "System Default",
         "Variables": {
           "--body-back-color": "#ffffff",
           "--body-color": "#303030",
@@ -239,6 +262,7 @@
       },
       {
         "Name": "linkit-white",
+        "FontName": "System Default",
         "Variables": {
           "--body-back-color": "#ffffff",
           "--body-color": "#303030",
@@ -301,6 +325,7 @@
       },
       {
         "Name": "linkit-coral",
+        "FontName": "System Default",
         "Variables": {
           "--body-back-color": "#ffffff",
           "--body-color": "#303030",
@@ -364,6 +389,7 @@
       },
       {
         "Name": "linkit-blue",
+        "FontName": "System Default",
         "Variables": {
           "--body-back-color": "#ffffff",
           "--body-color": "#303030",
@@ -426,6 +452,7 @@
       },
       {
         "Name": "linkit-no-border",
+        "FontName": "System Default",
         "Variables": {
           "--body-back-color": "#f4f8fa",
           "--body-color": "#303030",
@@ -490,6 +517,67 @@
           "--dropdown-item-color-hover": "#303030",
           "--group-button-background": "#dbdbdb",
           "--group-button-color": "#303030"
+        }
+      },
+      {
+        "Name": "linkit-lato",
+        "FontName": "Lato",
+        "Variables": {
+          "--body-back-color": "#ffffff",
+          "--body-color": "#646464",
+          "--border-color": "#dfe8ec",
+          "--header-back-color": "#ffffff",
+          "--header-color": "#646464",
+          "--footer-back-color": "#616775",
+          "--footer-color": "#FFFFFF",
+          "--footer-expander-back-color": "#616775",
+          "--footer-expander-color": "#FFFFFF",
+          "--footer-border-color": "#616775",
+          "--navbar-back-color": "#f4f8fa",
+          "--navbar-color": "#646464",
+          "--navbar-link-color": "#646464",
+          "--navbar-link-active-color": "#646464",
+          "--navbar-link-active-back-color": "#dfe8ec",
+          "--navbar-toggle-back-color": "#f4f8fa",
+          "--navbar-toggle-back-over-color": "#dfe8ec",
+          "--navbar-toggle-over-color": "#646464",
+          "--navbar-border-color": "#dfe8ec",
+          "--version-button-hover-color": "#dfe8ec",
+          "--link-color": "#212121",
+          "--link-hover-color": "#212121",
+          "--fly-out-back-item": "#000000",
+          "--fly-out-color-item": "#FFFFFF",
+          "--fly-out-back-top": "#f0f0f0",
+          "--fly-out-color-top": "#646464",
+          "--fly-out-color-link": "#f0f0f0",
+          "--btn-confirm": "#ff4050",
+          "--btn-confirm-color": "#FFFFFF",
+          "--btn-confirm-hover": "#ed1527",
+          "--btn-confirm-hover-shadow": "#e5081b",
+          "--shadow-focus-color": "#428fdc",
+          "--btn-secondary": "#6c757d",
+          "--btn-secondary-color": "#FFFFFF",
+          "--btn-secondary-hover": "#4E555b",
+          "--btn-secondary-hover-shadow": "#242628",
+          "--item-row-metadata-font-size": "12px",
+          "--item-row-metadata-avatar-size": "16px",
+          "--item-selected-background": "#f0f0f0",
+          "--item-selected-color": "#303030",
+          "--selected-background": "#E9f3FC",
+          "--selected-color": "#303030",
+          "--selected-shadow-color": "#303030",
+          "--body-font-size": ".875rem",
+          "--sidebar-link-font-size": ".875rem",
+          "--row-content-block-background-color": "#f4f8fa",
+          "--row-content-block-border-color": "#dfe8eb",
+          "--row-content-block-color": "#646464",
+          "--row-content-block-hover-background-color": "#dfe8ec",
+          "--gp-theme-accent": "#2e445a",
+          "--top-area-border-color": "#dfe8eb",
+          "--dropdown-item-back-hover": "#dfe8ec",
+          "--dropdown-item-color-hover": "#646464",
+          "--group-button-background": "#dbdbdb",
+          "--group-button-color": "#646464"
         }
       }
     ]
