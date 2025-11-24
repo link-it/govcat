@@ -464,11 +464,14 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
 
       const _verifica = this._tipoVerifica(this._apiSelected);
       const _soggetto = this._getSoggettoNome();
+      _path = `${this.environmentId}/${_verifica}/${_soggetto}/diagnostica/lista-transazioni`;
+
       if (url) {
-        _path = url;
+        // gestione delle chiamate url per ngx-infinite-scroll o per la paginazione
+        let searchParmas = url.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
+        _path = `${_path}${searchParmas}`;
       } else {
         this.elements = [];
-        _path = `${this.environmentId}/${_verifica}/${_soggetto}/diagnostica/lista-transazioni`;
       }
     } else {
       _data = { id_transazione: query.id_transazione, id_servizio: this.service.id_servizio };
