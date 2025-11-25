@@ -544,7 +544,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   __loadMoreData() {
     if (this._links && this._links.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
-      this._loadTransazioni(null, this._links.next.href);
+      this._loadTransazioni(this._filterData, this._links.next.href);
     }
   }
 
