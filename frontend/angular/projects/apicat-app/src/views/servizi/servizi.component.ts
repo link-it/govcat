@@ -1,6 +1,7 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
+import { HttpHeaders } from '@angular/common/http';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { NgxMasonryOptions } from 'ngx-masonry';
@@ -23,7 +24,7 @@ import { ModalCategoryChoiceComponent } from '@app/components/modal-category-cho
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, timeout } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
@@ -1162,11 +1163,11 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
         aux = this.utils._queryToHttpParams(query);
 
+        // Imposta timeout di 150 secondi tramite header per l'interceptor
+        const headers = new HttpHeaders().set('timeout', '150000');
+
         this._downloading = true;
-        this.apiService.download(`${this.model}-export`, null, undefined, aux)
-            .pipe(
-                timeout(150000) // timeout di 150 secondi
-            )
+        this.apiService.download(`${this.model}-export`, null, undefined, aux, headers)
             .subscribe({
                 next: (response: any) => {
                     let filename: string = Tools.GetFilenameFromHeader(response);
