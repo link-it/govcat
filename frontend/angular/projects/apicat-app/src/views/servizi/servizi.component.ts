@@ -202,7 +202,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     hasMultiSelection: boolean = true;
     elementsSelected: any[] = [];
-    _downloading: boolean = true;
+    _downloading: boolean = false;
     uncheckAllInTheMenu: boolean = true;
 
     tipo_servizio: string = TipoServizioEnum.API;
@@ -1150,6 +1150,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     _onExport(type: string) {
+        // Chiudi il dropdown
+        document.getElementById('export-actions')?.click();
+
         let aux: any;
         let query = null;
 
