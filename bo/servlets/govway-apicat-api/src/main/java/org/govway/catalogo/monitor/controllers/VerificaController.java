@@ -31,6 +31,7 @@ import javax.validation.constraints.Size;
 
 import org.govway.catalogo.MonitorV1Controller;
 import org.govway.catalogo.RequestUtils;
+import org.govway.catalogo.controllers.CustomPageRequest;
 import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.monitor.controllers.StatisticheController.TipoVerifica;
@@ -796,15 +797,16 @@ public class VerificaController implements VerificaApi {
 	@Override
 	public ResponseEntity<PagedModelItemServiziVerificati> ambienteServiziSoggettoBackendDetailsGet(
 			AmbienteEnum ambiente, String soggetto,
-			Pageable pageable) {
+			Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			List<ItemServizioVerificato> esitoVerificaCertificatiInScadenza = this.allarmiClient.getServiziBackendStato(getConfigurazioneConnessione(ambiente), soggetto);
-			
+
 			PagedModelItemServiziVerificati pmsv = filterAndSort(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
@@ -849,15 +851,16 @@ public class VerificaController implements VerificaApi {
 	@Override
 	public ResponseEntity<PagedModelItemServiziVerificati> ambienteServiziSoggettoCertificatiInScadenzaGet(
 			AmbienteEnum ambiente, String soggetto,
-			Pageable pageable) {
+			Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			List<ItemServizioVerificato> esitoVerificaCertificatiInScadenza = this.allarmiClient.getCertificatiServiziInScadenza(getConfigurazioneConnessione(ambiente), soggetto);
-			
+
 			PagedModelItemServiziVerificati pmsv = filterAndSort(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
@@ -876,15 +879,16 @@ public class VerificaController implements VerificaApi {
 	@Override
 	public ResponseEntity<PagedModelItemServiziVerificati> ambienteServiziSoggettoCertificatiScadutiGet(
 			AmbienteEnum ambiente, String soggetto,
-			Pageable pageable) {
+			Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			List<ItemServizioVerificato> esitoVerificaCertificatiInScadenza = this.allarmiClient.getCertificatiServiziScaduti(getConfigurazioneConnessione(ambiente), soggetto);
-			
+
 			PagedModelItemServiziVerificati pmsv = filterAndSort(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
@@ -933,15 +937,16 @@ public class VerificaController implements VerificaApi {
 	public ResponseEntity<PagedModelItemServiziVerificati> ambienteServiziSoggettoConnectionTimeoutDetailsGet(
 			AmbienteEnum ambiente, String soggetto,
 			OffsetDateTime dataInizioVerifica, OffsetDateTime dataFineVerifica,
-			Pageable pageable) {
+			Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			List<ItemServizioVerificato> esitoVerificaCertificatiInScadenza = getDetailServizi(soggetto, TipoVerifica.CONNECTION_TIMEOUT, ambiente, dataInizioVerifica, dataFineVerifica);
-			
+
 			PagedModelItemServiziVerificati pmsv = filterAndSort(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
@@ -988,15 +993,16 @@ public class VerificaController implements VerificaApi {
 	public ResponseEntity<PagedModelItemServiziVerificati> ambienteServiziSoggettoRateLimitingDetailsGet(
 			AmbienteEnum ambiente, String soggetto,
 			OffsetDateTime dataInizioVerifica, OffsetDateTime dataFineVerifica,
-			Pageable pageable) {
+			Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			List<ItemServizioVerificato> esitoVerificaCertificatiInScadenza = getDetailServizi(soggetto, TipoVerifica.RATE_LIMITING, ambiente, dataInizioVerifica, dataFineVerifica);
-			
+
 			PagedModelItemServiziVerificati pmsv = filterAndSort(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
@@ -1043,15 +1049,16 @@ public class VerificaController implements VerificaApi {
 	public ResponseEntity<PagedModelItemServiziVerificati> ambienteServiziSoggettoReadTimeoutDetailsGet(
 			AmbienteEnum ambiente, String soggetto,
 			OffsetDateTime dataInizioVerifica, OffsetDateTime dataFineVerifica,
-			Pageable pageable) {
+			Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			List<ItemServizioVerificato> esitoVerificaCertificatiInScadenza = getDetailServizi(soggetto, TipoVerifica.READ_TIMEOUT, ambiente, dataInizioVerifica, dataFineVerifica);
-			
+
 			PagedModelItemServiziVerificati pmsv = filterAndSort(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
@@ -1144,16 +1151,17 @@ public class VerificaController implements VerificaApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemApplicativiVerificati> ambienteApplicativiCertificatiInScadenzaGet(
-			AmbienteEnum ambiente, Pageable pageable) {
+			AmbienteEnum ambiente, Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			ConfigurazioneConnessione configurazioneConnessione = getConfigurazioneConnessione(ambiente);
 			List<ItemApplicativoVerificato> esitoVerificaCertificatiInScadenza = this.allarmiClient.getCertificatiApplicativiInScadenza(configurazioneConnessione);
-			
+
 			PagedModelItemApplicativiVerificati pmsv = filterAndSortApplicativi(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
@@ -1171,7 +1179,8 @@ public class VerificaController implements VerificaApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemApplicativiVerificati> ambienteApplicativiCertificatiScadutiGet(
-			AmbienteEnum ambiente, Pageable pageable) {
+			AmbienteEnum ambiente,
+			Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ..."); 
 			
@@ -1181,6 +1190,8 @@ public class VerificaController implements VerificaApi {
 			ConfigurazioneConnessione configurazioneConnessione = getConfigurazioneConnessione(ambiente);
 			List<ItemApplicativoVerificato> esitoVerificaCertificatiInScadenza = this.allarmiClient.getCertificatiApplicativiScaduti(configurazioneConnessione);
 			
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
+
 			PagedModelItemApplicativiVerificati pmsv = filterAndSortApplicativi(esitoVerificaCertificatiInScadenza, pageable);
 			
 			this.logger.debug("Invocazione completata con successo");
