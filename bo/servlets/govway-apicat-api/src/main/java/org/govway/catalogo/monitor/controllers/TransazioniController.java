@@ -21,11 +21,13 @@ package org.govway.catalogo.monitor.controllers;
 
 import java.io.IOException;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.MonitorV1Controller;
+import org.govway.catalogo.controllers.CustomPageRequest;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
 import org.govway.catalogo.core.services.SoggettoService;
@@ -241,9 +243,8 @@ public class TransazioniController implements TransazioniApi {
 	}
 
 	private ListTransazioniRequest fillListaTransazioniRequest(AmbienteEnum ambiente,
-			ListaTransazioniQuery query, ErogazioneFruizioneEnum erogazione, String nome) {
+			ListaTransazioniQuery query, Pageable pageable, ErogazioneFruizioneEnum erogazione, String nome) {
 		ListTransazioniRequest request = new ListTransazioniRequest();
-
 
 		List<IdApi> idapi = this.filtriUtils.getApi(query.getApi().getIdServizio(), query.getApi().getIdApi(), query.getApi().getIdAdesione(), ambiente);
 		request.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
@@ -253,20 +254,22 @@ public class TransazioniController implements TransazioniApi {
 		}
 		IntervalloTemporale it = ((IntervalloTemporale)query.getIntervalloTemporale());
 
-		request.setDataA(it.getDataFine());		
+		request.setDataA(it.getDataFine());
 		request.setDataDa(it.getDataInizio());
 		request.setProfilo(this.filtriUtils.getProfilo(query.getApi().getIdServizio(), query.getApi().getIdApi()));
-		
+
 		request.setSoggettoReferente(this.filtriUtils.getSoggettoNome(nome));
 		request.setIdAdesione(query.getApi().getIdAdesione());
 		request.setIdClient(query.getApi().getIdClient());
-		if(query.getPaging()!= null) {
+
+		// Retrocompatibilità: usa paging dal body se presente, altrimenti query params
+		if (query.getPaging() != null) {
 			Sort sort = query.getPaging().getSort() != null ? Sort.by(query.getPaging().getSort().toArray(new String[]{})) : Sort.unsorted();
 			request.setPageable(PageRequest.of(query.getPaging().getPage(), query.getPaging().getSize(), sort));
 		} else {
-			request.setPageable(PageRequest.of(0, 20));
+			request.setPageable(pageable);
 		}
-		
+
 		return request;
 	}
 	
@@ -359,13 +362,14 @@ public class TransazioniController implements TransazioniApi {
 			String soggetto,
 			UUID idServizio, OffsetDateTime dataDa,
 			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoCodici, UUID idAdesione, UUID idClient, Pageable pageable) {
+			List<Integer> esitoCodici, UUID idAdesione, UUID idClient, Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoCodici, idAdesione, idClient, pageable,
 					ErogazioneFruizioneEnum.EROGAZIONE, soggetto);
 			ListTransazioniRawResponse response = this.client.listTransazioniRaw(request);
@@ -387,14 +391,16 @@ public class TransazioniController implements TransazioniApi {
 	@Override
 	public ResponseEntity<PagedModelItemTransazione> ambienteErogazioniSoggettoDiagnosticaListaTransazioniPost(
 			AmbienteEnum ambiente, String soggetto,
+			Integer page, Integer size, List<String> sort,
 			ListaTransazioniQuery listaTransazioniQuery) {
 	try {
-		this.logger.info("Invocazione in corso ..."); 
-		
-		this.authorize();
-		this.logger.debug("Autorizzazione completata con successo");     
+		this.logger.info("Invocazione in corso ...");
 
-		ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, listaTransazioniQuery,
+		this.authorize();
+		this.logger.debug("Autorizzazione completata con successo");
+
+		CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
+		ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, listaTransazioniQuery, pageable,
 				ErogazioneFruizioneEnum.EROGAZIONE, soggetto);
 		ListTransazioniResponse response = this.client.listTransazioni(request);
 
@@ -417,13 +423,14 @@ public class TransazioniController implements TransazioniApi {
 			String soggetto,
 			UUID idServizio, OffsetDateTime dataDa,
 			OffsetDateTime dataA, UUID idApi, EsitoTransazioneEnum esito,
-			List<Integer> esitoCodici, UUID idAdesione, UUID idClient, Pageable pageable) {
+			List<Integer> esitoCodici, UUID idAdesione, UUID idClient, Integer page, Integer size, List<String> sort) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
-			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 
+			this.authorize();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
 			ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, idServizio, dataDa, dataA, idApi, esito, esitoCodici, idAdesione, idClient, pageable,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto);
 			ListTransazioniRawResponse response = this.client.listTransazioniRaw(request);
@@ -445,14 +452,16 @@ public class TransazioniController implements TransazioniApi {
 	@Override
 	public ResponseEntity<PagedModelItemTransazione> ambienteFruizioniSoggettoDiagnosticaListaTransazioniPost(
 			AmbienteEnum ambiente, String soggetto,
+			Integer page, Integer size, List<String> sort,
 			ListaTransazioniQuery listaTransazioniQuery) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
+			this.logger.info("Invocazione in corso ...");
 
 			this.authorize();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
 
-			ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, listaTransazioniQuery,
+			CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("id"));
+			ListTransazioniRequest request = fillListaTransazioniRequest(ambiente, listaTransazioniQuery, pageable,
 					ErogazioneFruizioneEnum.FRUIZIONE, soggetto);
 			ListTransazioniResponse response = this.client.listTransazioni(request);
 
