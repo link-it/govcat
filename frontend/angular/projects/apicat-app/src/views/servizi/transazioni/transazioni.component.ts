@@ -301,10 +301,14 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   _initSearchForm() {
     const transactionOutcomeCodesControl = new UntypedFormControl(null);
 
+    // Imposta le date di default (ultimi N minuti)
+    const defaultDataDa = moment().add(-this.defaultTransactionInterval, 'minutes').toDate();
+    const defaultDataA = moment().toDate();
+
     this._formGroup = new UntypedFormGroup({
       search_type: new UntypedFormControl(SearchTypeEnum.Generic),
-      data_da: new UntypedFormControl(''),
-      data_a: new UntypedFormControl(''),
+      data_da: new UntypedFormControl(defaultDataDa),
+      data_a: new UntypedFormControl(defaultDataA),
       q: new UntypedFormControl(''),
       id_api: new UntypedFormControl(null, Validators.required),
       id_adesione: new UntypedFormControl(''),
@@ -443,7 +447,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
 
   _loadTransazioni(query: any = null, url: string = '') {
     this._setErrorMessages(false);
-    
+
     if (!this._formGroup.valid) {
       this._spin = false;
       return;
@@ -452,19 +456,23 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     let _data: any = null;
     let _path: string = '';
     if (this.currentSearchType === SearchTypeEnum.Generic) {
-      if (!url) {
-        this.elements = [];
-        query = { ...query, id_servizio: this.id };
-        const _range: any = this._prepareRange(query);
-        query = { ...query, ..._range };
-      }
+      query = { ...query, id_servizio: this.id };
+      const _range: any = this._prepareRange(query);
+      query = { ...query, ..._range };
 
       _data = this._prepareData(query);
 
-      
       const _verifica = this._tipoVerifica(this._apiSelected);
       const _soggetto = this._getSoggettoNome();
       _path = `${this.environmentId}/${_verifica}/${_soggetto}/diagnostica/lista-transazioni`;
+
+      if (url) {
+        // gestione delle chiamate url per ngx-infinite-scroll o per la paginazione
+        let searchParmas = url.replace(/^[^:]+:\/\/[^/?#]+.+?(?=\?)/, '');
+        _path = `${_path}${searchParmas}`;
+      } else {
+        this.elements = [];
+      }
     } else {
       _data = { id_transazione: query.id_transazione, id_servizio: this.service.id_servizio };
       _path = `${this.environmentId}/diagnostica/lista-transazioni-id`;
@@ -615,6 +623,31 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
       this._resetForm();
     } else {
       this._loadTransazioni(this._filterData);
+    }
+  }
+
+  _setDefaultDateRange() {
+    // Utility: Imposta le date di default se non sono già valorizzate (usato in caso di reset/modifica)
+    if (this.currentSearchType === SearchTypeEnum.Generic) {
+      const dataDaControl = this._formGroup.get('data_da');
+      const dataAControl = this._formGroup.get('data_a');
+
+      if (!dataDaControl?.value && !dataAControl?.value) {
+        // Entrambe le date sono vuote, impostiamo il range di default
+        const dataDa = moment().add(-this.defaultTransactionInterval, 'minutes').toDate();
+        const dataA = moment().toDate();
+
+        dataDaControl?.setValue(dataDa);
+        dataAControl?.setValue(dataA);
+      } else if (dataDaControl?.value && !dataAControl?.value) {
+        // Solo data_da è impostata, impostiamo data_a a "ora"
+        const dataA = moment().toDate();
+        dataAControl?.setValue(dataA);
+      } else if (!dataDaControl?.value && dataAControl?.value) {
+        // Solo data_a è impostata, impostiamo data_da usando defaultTransactionInterval
+        const dataDa = moment(dataAControl.value).add(-this.defaultTransactionInterval, 'minutes').toDate();
+        dataDaControl?.setValue(dataDa);
+      }
     }
   }
 

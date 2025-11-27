@@ -30,6 +30,10 @@ export class ConfigService {
           this.config = config;
           const _currentTheme = this.config.AppConfig.CurrentThems;
           const _theme = this.config.AppConfig.Themes.find((theme: any) => theme.Name === _currentTheme);
+
+          // Load font CSS if theme has a font configured
+          this.loadThemeFont(_theme);
+
           Tools.SetThemeColors(_theme || null);
 
           // OAUTH2
@@ -181,5 +185,62 @@ export class ConfigService {
 
   getPage(name: string, folder: string = 'pages') {
     return this.http.get<any>(`./assets/${folder}/${name}.html`, { responseType: 'text' as 'json' });
+  }
+
+  /**
+   * Load font CSS and apply font-family to theme
+   * @param theme The theme configuration object
+   */
+  private loadThemeFont(theme: any): void {
+    if (!theme || !theme.FontName) {
+      return;
+    }
+
+    const fonts = this.config.AppConfig.Fonts;
+    if (!fonts || !Array.isArray(fonts)) {
+      return;
+    }
+
+    const font = fonts.find((f: any) => f.Name === theme.FontName);
+    if (!font) {
+      console.warn(`Font "${theme.FontName}" not found in configuration`);
+      return;
+    }
+
+    // Load CSS file if specified
+    if (font.CssFile) {
+      this.loadFontCSS(font.CssFile);
+    }
+
+    // Apply font-family to document
+    if (font.FontFamily) {
+      document.documentElement.style.setProperty('--font-family-base', font.FontFamily);
+      document.body.style.fontFamily = font.FontFamily;
+    }
+  }
+
+  /**
+   * Dynamically load a CSS file for fonts
+   * @param cssPath Path to the CSS file (relative to assets)
+   */
+  private loadFontCSS(cssPath: string): void {
+    // Check if CSS is already loaded
+    const existingLink = document.getElementById('theme-font-css');
+    if (existingLink) {
+      existingLink.remove();
+    }
+
+    // Create and append link element
+    const link = document.createElement('link');
+    link.id = 'theme-font-css';
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = `./assets/${cssPath}`;
+
+    link.onerror = () => {
+      console.error(`Failed to load font CSS: ${cssPath}`);
+    };
+
+    document.head.appendChild(link);
   }
 }

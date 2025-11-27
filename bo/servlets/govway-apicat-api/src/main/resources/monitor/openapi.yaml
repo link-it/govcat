@@ -31,10 +31,12 @@ paths:
   /{ambiente}/applicativi/certificati/scaduti:
     parameters:
       - $ref: '#/components/parameters/Ambiente'
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di applicativi che possiedono certificati scaduti
       responses:
         '200':
@@ -49,8 +51,11 @@ paths:
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di applicativi che possiedono certificati in scadenza
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+        - $ref: "#/components/parameters/sort_query_optional"
       responses:
         '200':
           description: OK
@@ -114,8 +119,11 @@ paths:
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di servizi che possiedono certificati scaduti
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+        - $ref: "#/components/parameters/sort_query_optional"
       responses:
         '200':
           description: OK
@@ -130,8 +138,11 @@ paths:
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di servizi che possiedono certificati in scadenza
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+        - $ref: "#/components/parameters/sort_query_optional"
       responses:
         '200':
           description: OK
@@ -161,8 +172,11 @@ paths:
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di servizi che presentano errori di connettività verso il backend
+      parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+        - $ref: "#/components/parameters/sort_query_optional"
       responses:
         '200':
           description: OK
@@ -197,9 +211,11 @@ paths:
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di servizi che presentano errori di read timeout
       parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+        - $ref: "#/components/parameters/sort_query_optional"
         - $ref: "#/components/parameters/data_inizio_verifica"
         - $ref: "#/components/parameters/data_fine_verifica"
       responses:
@@ -236,9 +252,11 @@ paths:
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di servizi che presentano errori di connection timeout
       parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+        - $ref: "#/components/parameters/sort_query_optional"
         - $ref: "#/components/parameters/data_inizio_verifica"
         - $ref: "#/components/parameters/data_fine_verifica"
       responses:
@@ -275,9 +293,11 @@ paths:
     get:
       tags:
         - Verifica
-      x-spring-paginated: true
       summary: Ritorna la lista di servizi che presentano errori di violazione rate-limiting
       parameters:
+        - $ref: "#/components/parameters/page_query_optional"
+        - $ref: "#/components/parameters/size_query_optional"
+        - $ref: "#/components/parameters/sort_query_optional"
         - $ref: "#/components/parameters/data_inizio_verifica"
         - $ref: "#/components/parameters/data_fine_verifica"
       responses:
@@ -1318,7 +1338,6 @@ paths:
       tags:
         - Transazioni
       summary: Lista delle transazioni relative a erogazioni
-      x-spring-paginated: true
       parameters:
       - $ref: '#/components/parameters/Ambiente'
       - $ref: '#/components/parameters/Soggetto'
@@ -1330,6 +1349,9 @@ paths:
       - $ref: "#/components/parameters/esito_transazione_codici"
       - $ref: "#/components/parameters/id_adesione_query_optional"
       - $ref: "#/components/parameters/id_client_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
       responses:
         '200':
           description: OK
@@ -1344,6 +1366,9 @@ paths:
       parameters:
       - $ref: '#/components/parameters/Ambiente'
       - $ref: '#/components/parameters/Soggetto'
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
       requestBody:
         content:
           application/json:
@@ -1395,7 +1420,6 @@ paths:
       tags:
         - Transazioni
       summary: Lista delle transazioni relative a fruizioni
-      x-spring-paginated: true
       parameters:
       - $ref: '#/components/parameters/Ambiente'
       - $ref: '#/components/parameters/Soggetto'
@@ -1407,6 +1431,9 @@ paths:
       - $ref: "#/components/parameters/esito_transazione_codici"
       - $ref: "#/components/parameters/id_adesione_query_optional"
       - $ref: "#/components/parameters/id_client_query_optional"
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
       responses:
         '200':
           description: OK
@@ -1421,6 +1448,9 @@ paths:
       parameters:
       - $ref: '#/components/parameters/Ambiente'
       - $ref: '#/components/parameters/Soggetto'
+      - $ref: "#/components/parameters/page_query_optional"
+      - $ref: "#/components/parameters/size_query_optional"
+      - $ref: "#/components/parameters/sort_query_optional"
       requestBody:
         content:
           application/json:
@@ -2934,3 +2964,30 @@ components:
       description: tipo della verifica
       schema:
         $ref: '#/components/schemas/TipoVerificaEnum'
+    page_query_optional:
+      name: "page"
+      in: "query"
+      description: "numero di pagina di una richiesta paginata"
+      required: false
+      schema:
+        type: integer
+        format: int32
+        default: 0
+    size_query_optional:
+      name: "size"
+      in: "query"
+      description: "dimensione della pagina di una richiesta paginata"
+      required: false
+      schema:
+        type: integer
+        format: int32
+        default: 20
+    sort_query_optional:
+      name: "sort"
+      in: "query"
+      description: "ordinamento di una richiesta paginata"
+      required: false
+      schema:
+        type: array
+        items:
+         type: string

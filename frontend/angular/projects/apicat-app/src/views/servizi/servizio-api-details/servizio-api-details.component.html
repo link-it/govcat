@@ -28,14 +28,14 @@
                         <div class="gl-new-dropdown-inner">
                             <div class="gl-new-dropdown-contents">
                                 <li role="presentation" class="gl-new-dropdown-item">
-                                    <button role="menuitem" type="button" class="dropdown-item" (click)="_showGeneralInformationsPDND()" [disabled]="!(_updateMapper | mapper:_hasPDNDConfiguredMapper)">
+                                    <button role="menuitem" type="button" class="dropdown-item" (click)="_showGeneralInformationsPDND()" [disabled]="!(_updateMapper | mapper:_canShowPDNDActionsMapper)">
                                         <div class="gl-new-dropdown-item-text-wrapper">
                                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDGeneralInformations' | translate }}</p>
                                         </div>
                                     </button>
                                 </li>
                                 <li role="presentation" class="gl-new-dropdown-item">
-                                    <button role="menuitem" type="button" class="dropdown-item" (click)="_showPDND()" [disabled]="!(_updateMapper | mapper:_hasPDNDConfiguredMapper)">
+                                    <button role="menuitem" type="button" class="dropdown-item" (click)="_showPDND()" [disabled]="!(_updateMapper | mapper:_canShowPDNDActionsMapper)">
                                         <div class="gl-new-dropdown-item-text-wrapper">
                                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDUsers' | translate }}</p>
                                         </div>

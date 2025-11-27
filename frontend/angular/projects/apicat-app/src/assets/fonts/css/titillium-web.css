@@ -1,0 +1,49 @@
+/**
+ * Titillium Web Font - v19
+ *
+ * Font files downloaded from Google Fonts (fonts.gstatic.com)
+ * Source: https://fonts.google.com/specimen/Titillium+Web
+ *
+ * Font structure:
+ * assets/fonts/titillium-web/
+ *   ├── TitilliumWeb-Regular.woff2
+ *   ├── TitilliumWeb-Bold.woff2
+ *   ├── TitilliumWeb-Italic.woff2
+ *   └── TitilliumWeb-BoldItalic.woff2
+ */
+
+/* Regular (400) */
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../titillium-web/TitilliumWeb-Regular.woff2') format('woff2');
+}
+
+/* Bold (700) */
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../titillium-web/TitilliumWeb-Bold.woff2') format('woff2');
+}
+
+/* Italic (400) */
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../titillium-web/TitilliumWeb-Italic.woff2') format('woff2');
+}
+
+/* Bold Italic (700) */
+@font-face {
+  font-family: 'Titillium Web';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../titillium-web/TitilliumWeb-BoldItalic.woff2') format('woff2');
+}
