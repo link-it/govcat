@@ -39,7 +39,7 @@
                                         <a class="divider"></a>
                                     </ng-container>
                                     <ng-container *ngSwitchCase="'title'">
-                                        <a href="javascript: void(0);" class="gl-link cursor-pointer" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
+                                        <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
                                             <span class="nav-icon-container">
                                                 <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_item)">{{ _item.icon}}</span>
                                                 <i class="bi bi-{{ _item.iconBs}}" *ngIf="sidebarNavHelper.hasIconBs(_item)"></i>
@@ -58,7 +58,7 @@
                                             <li class="divider fly-out-top-item"></li>
                                             <ng-container *ngFor="let _subItem of _item.children">
                                                 <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
-                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="_onClickMenu($event, _subItem)">
+                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" (click)="_onClickMenu($event, _subItem)">
                                                         <!-- <span class="nav-icon-container">
                                                         <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
                                                         </span> -->

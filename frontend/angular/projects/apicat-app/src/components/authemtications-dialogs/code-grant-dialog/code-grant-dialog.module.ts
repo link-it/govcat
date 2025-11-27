@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { AppComponentsModule } from "@app/components/components.module";
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 
@@ -15,7 +15,7 @@ import { CodeGrantDialogComponent } from './code-grant-dialog.component';
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     AppComponentsModule,
     MarkAsteriskModule
   ],

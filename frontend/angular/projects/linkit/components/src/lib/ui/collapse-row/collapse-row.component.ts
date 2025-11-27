@@ -87,9 +87,9 @@ export class CollapseRowComponent extends CdkAccordionItem implements OnInit {
     }
   }
 
-  __itemClick(event: any) {
+  __itemClick(event: MouseEvent) {
     if (!this.actionDisabled) {
-      this.itemClick.emit(this._data);
+      this.itemClick.emit({ data: this._data, event });
     } else {
       event.stopImmediatePropagation();
       event.preventDefault();

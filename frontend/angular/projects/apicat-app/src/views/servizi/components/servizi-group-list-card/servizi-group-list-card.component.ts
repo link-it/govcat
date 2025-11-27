@@ -40,13 +40,13 @@ export class ServiziGroupListCardComponent implements OnInit {
     this.textColor = this.utilsLib.contrast(this.backColor);
   }
 
-  onCardClick(event: any) {
-    this.simpleClick.emit(event);
+  onCardClick(event: MouseEvent) {
+    this.simpleClick.emit({ data: this.data, event });
   }
 
-  onImageClick(event: any) {
+  onImageClick(event: MouseEvent) {
     if (this.enabledImageLink) {
-      this.simpleClick.emit(event);
+      this.simpleClick.emit({ data: this.data, event });
     }
   }
 }

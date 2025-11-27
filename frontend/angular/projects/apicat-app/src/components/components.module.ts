@@ -32,6 +32,7 @@ import { LnkFieldPlaintextComponent } from "@app/components/lnk-ui/field-plainte
 
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
+import { OpenInNewTabModule } from "@app/directives/open-in-new-tab/open-in-new-tab.module";
 
 @NgModule({
     declarations: [
@@ -68,7 +69,8 @@ import { UppercaseModule } from "@app/directives/uppercase/uppercase.module";
         MarkdownModule,
 
         MarkAsteriskModule,
-        UppercaseModule
+        UppercaseModule,
+        OpenInNewTabModule
     ],
     exports: [
         // ErrorViewComponent,

@@ -17,6 +17,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { EventType } from '@linkit/components';
 import { BreadcrumbService } from '@linkit/components'
+import { NavigationService } from '@app/services/navigation.service';
 
 import { SearchBarFormComponent } from '@linkit/components'
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
@@ -223,7 +224,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         public utils: UtilService,
         public apiService: OpenAPIService,
         public authenticationService: AuthenticationService,
-        private breadCrumbService: BreadcrumbService
+        private breadCrumbService: BreadcrumbService,
+        private navigationService: NavigationService
     ) {
         this.tipo_servizio = (this.router.url === '/servizi') ? TipoServizioEnum.API : TipoServizioEnum.Generico;
 
@@ -611,23 +613,28 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();
         }
-        if (this.showPresentation) {
-            this.router.navigate([this.model, param.idServizio, 'view']);
-        } else {
-            this.router.navigate([this.model, param.idServizio]);
-        }
+        // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+        const mouseEvent = this.navigationService.extractEvent(event);
+        const data = this.navigationService.extractData(param) || param;
+        const route = this.showPresentation
+            ? [this.model, data.idServizio, 'view']
+            : [this.model, data.idServizio];
+        this.navigationService.navigateWithEvent(mouseEvent, route);
     }
 
     _onEditGroup(event: any, param: any) {
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();
         }
-        if (param.type === 'servizio') {
-            if (this.showPresentation) {
-                this.router.navigate([this.model, param.id, 'view']);
-            } else {
-                this.router.navigate([this.model, param.id]);
-            }
+        // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+        const mouseEvent = this.navigationService.extractEvent(event);
+        const data = this.navigationService.extractData(param) || param;
+        if (data.type === 'servizio') {
+            console.log('Navigating to servizio', data);
+            const route = this.showPresentation
+                ? [this.model, data.id, 'view']
+                : [this.model, data.id];
+            this.navigationService.navigateWithEvent(mouseEvent, route);
         } else {
             this._currIdGruppoPadre = param.id;
             this._gruppoPadreNull = false;

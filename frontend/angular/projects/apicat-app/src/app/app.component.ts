@@ -7,6 +7,7 @@ import { Tools } from '@linkit/components';
 import { ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { ConsoleToggleService } from '@services/console-toggle.service';
+import { ModifierKeyService } from '@services/modifier-key.service';
 
 import { environment } from '../environments/environment.prod';
 import { registerLocaleData } from '@angular/common';
@@ -52,8 +53,11 @@ export class AppComponent implements OnInit {
     private apiService: OpenAPIService,
     private consoleToggleService: ConsoleToggleService,
     private bsLocaleService: BsLocaleService,
+    private modifierKeyService: ModifierKeyService,
   ) {
     this.consoleToggleService.disableConsoleInProduction();
+    // Inizializza il servizio per rilevare Ctrl/Cmd (startListening è chiamato nel costruttore)
+    this.modifierKeyService.startListening();
     this._config = this.configService.getConfiguration();
     Tools.Versione = `Ver. ${environment.version}`;
 

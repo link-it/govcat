@@ -496,7 +496,18 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         window.dispatchEvent(new Event('resize'));
     }
 
-    _onClickMenu(event: any, item: INavData) {
+    _onClickMenu(event: MouseEvent, item: INavData) {
+        // Supporto apertura in nuova scheda con Ctrl+Click, Cmd+Click o middle-click
+        const shouldOpenInNewTab = event.ctrlKey || event.metaKey || event.button === 1;
+        if (shouldOpenInNewTab && item.url) {
+            event.preventDefault();
+            event.stopPropagation();
+            // Gestisce sia url stringa che array di segmenti
+            const url = Array.isArray(item.url) ? item.url.join('/') : item.url;
+            window.open(url, '_blank');
+            return;
+        }
+
         if (item.url === '/servizi') {
             this.breadCrumbService.clearBreadcrumbs();
             this.eventsManagerService.broadcast(EventType.BREADCRUMBS_RESET, { currIdGruppoPadre: '', gruppoPadreNull: true, groupsBreadcrumbs: [] });
@@ -545,13 +556,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     _onContextualMenu(event: any) {
         this._stopPropagation = true;
         event.event.stopPropagation();
-        this.localStorageService.setItem('LOCATION', event.item.url);
-        const url = `${this._api_url}`;
-        // const url = `${this._api_url}${event.item.url}`;
+        // Apre direttamente l'URL del menu item in una nuova scheda
+        // Gestisce sia url stringa che array di segmenti
+        const url = Array.isArray(event.item.url) ? event.item.url.join('/') : event.item.url;
         window.open(url, '_blank');
         setTimeout(() => {
             this._stopPropagation = false;
-        }, 6000);
+        }, 1000);
     }
 
     _onMenuHeaderAction(event: any) {

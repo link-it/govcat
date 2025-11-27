@@ -1,4 +1,4 @@
-<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" (click)="__itemClick($event)">
+<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" [class.supports-new-tab]="hasLink || rowClick" (click)="__itemClick($event)" (auxclick)="__itemClick($event)">
   <!-- Header: Avatar + Primary Text + Action -->
   <div class="mobile-header">
     <div class="mobile-avatar" *ngIf="_itemRowConfig?.avatar">

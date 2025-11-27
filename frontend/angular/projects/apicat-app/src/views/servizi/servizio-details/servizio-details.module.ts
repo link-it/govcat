@@ -10,6 +10,7 @@ import { AppComponentsModule } from "@app/components/components.module";
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 import { DisablePermissionModule } from '@app/directives/disable-permission/disable-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
+import { OpenInNewTabModule } from '@app/directives/open-in-new-tab/open-in-new-tab.module';
 import { WorkflowModule } from '@app/components/workflow/workflow.module';
 // import { BackWebModule } from '../components/back-web/back-web.module';
 import { ModalGroupChoiceModule } from '@app/components/modal-group-choice/modal-group-choice.module';
@@ -33,6 +34,7 @@ import { MarkdownModule } from 'ngx-markdown';
         HasPermissionModule,
         DisablePermissionModule,
         MarkAsteriskModule,
+        OpenInNewTabModule,
         WorkflowModule,
         // BackWebModule,
         ModalGroupChoiceModule,

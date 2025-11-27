@@ -22,7 +22,7 @@
             </span>
           </li>
           <li class="d-flex align-self-center" *ngIf="item.type == 'link'">
-            <a class="group-path breadcrumb-item-text d-flex align-self-center align-items-center" [class]="{ 'text-decoration-none': item.url === '', 'cursor-default': item.url === '' }" (click)="_onClick(item)" [tooltip]="item.tooltip || '' | translate" container="body">
+            <a class="group-path breadcrumb-item-text d-flex align-self-center align-items-center" [class.text-decoration-none]="item.url === ''" [class.cursor-default]="item.url === ''" [class.supports-new-tab]="item.url && item.url !== ''" [class.no-icon]="item.url && item.url !== ''" (click)="_onClick($event, item)" (auxclick)="_onClick($event, item)" [tooltip]="item.tooltip || '' | translate" container="body">
               <span class="avatar-tile" *ngIf="item.icon">
                 <span class="material-icons-outlined">{{ item.icon }}</span>
               </span>

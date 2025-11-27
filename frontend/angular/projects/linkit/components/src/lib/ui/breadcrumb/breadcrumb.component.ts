@@ -63,7 +63,16 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
     }
   }
 
-  _onClick(item: any) {
+  _onClick(event: MouseEvent, item: any) {
+    // Supporto apertura in nuova scheda con Ctrl+Click, Cmd+Click o middle-click
+    const shouldOpenInNewTab = event.ctrlKey || event.metaKey || event.button === 1;
+    if (shouldOpenInNewTab && item.url && item.url !== '' && item.url !== 'root') {
+      event.preventDefault();
+      event.stopPropagation();
+      window.open(item.url, '_blank');
+      return;
+    }
+
     if (item.group) {
       this._onGoupsBreadcrumbs(item);
       this.onClick.emit(item);

@@ -7,6 +7,7 @@ import { TranslateModule } from '@ngx-translate/core';
  import { ComponentsModule } from '@linkit/components';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
+import { OpenInNewTabModule } from '@app/directives/open-in-new-tab/open-in-new-tab.module';
 
 import { DominioDetailsComponent } from './dominio-details.component';
 import { DominioDetailsRoutingModule } from './dominio-details-routing.module';
@@ -19,6 +20,7 @@ import { DominioDetailsRoutingModule } from './dominio-details-routing.module';
      ComponentsModule,
     HasPermissionModule,
     MarkAsteriskModule,
+    OpenInNewTabModule,
     DominioDetailsRoutingModule
   ],
   declarations: [

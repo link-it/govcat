@@ -1,4 +1,4 @@
-<div class="card e-card d-flex flex-column justify-content-between" (click)="__simpleClick($event)" *ngIf="!cardBs">
+<div class="card e-card d-flex flex-column justify-content-between" (click)="__simpleClick($event)" (auxclick)="__simpleClick($event)" *ngIf="!cardBs">
   <div class="top">
     <img [src]="_image" *ngIf="_image" alt="logo">
     <h1 *ngIf="_primaryText" [attr.title]="_primaryText">{{ _primaryText }}</h1>
@@ -15,13 +15,13 @@
   </div>
 </div>
 <div class="card h-100" [class.group]="data.tipo === 'gruppo'" *ngIf="cardBs">
-  <div tabindex="0" class="card-image" [class.cursor-pointer]="_enabledImageLink" *ngIf="_showImage && (_image || _showEmptyImage)" (click)="__imageClick($event)"
+  <div tabindex="0" class="card-image" [class.cursor-pointer]="_enabledImageLink" *ngIf="_showImage && (_image || _showEmptyImage)" (click)="__imageClick($event)" (auxclick)="__imageClick($event)"
     setBackgroundImage [imageUrl]="{ path: _image } | httpImgSrc" [position]="'cover'" [ngStyle]="{ 'background-color': _backColor }">
     <span class="logo-text text-nowrap" [ngStyle]="{'color': _textColor}" *ngIf="!_image">{{ _logoText }}</span>
   </div>
-  <div class="card-body">
-    <h5 tabindex="0" class="card-title text-hover cursor-pointer text-break" [attr.title]="_primaryText" *ngIf="_primaryText" (click)="__simpleClick($event)">{{ _primaryText }}</h5>
-    <p class="card-text" *ngIf="_secondaryText">{{ _secondaryText }}</p>
+  <div class="card-body" (click)="__cardClick($event)" (auxclick)="__cardClick($event)">
+    <h5 tabindex="0" class="card-title text-hover cursor-pointer text-break" [class.supports-new-tab]="data.tipo !== 'gruppo'" [attr.title]="_primaryText" *ngIf="_primaryText" (click)="__simpleClick($event)" (auxclick)="__simpleClick($event)">{{ _primaryText }}</h5>
+    <p class="card-text"><span *ngIf="_secondaryText">{{ _secondaryText }}</span></p>
     <p *ngIf="_metadata">{{ _metadata }}</p>
     <!-- <div class="btn btn-primary" (click)="__simpleClick($event)">{{ _readMore }}</div> -->
     <ui-data-type class="me-2" *ngIf="data.stato"

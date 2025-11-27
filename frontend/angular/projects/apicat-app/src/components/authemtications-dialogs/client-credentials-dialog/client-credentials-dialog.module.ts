@@ -15,7 +15,7 @@ import { ClientCredentialsDialogComponent } from './client-credentials-dialog.co
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     AppComponentsModule,
     MarkAsteriskModule
   ],

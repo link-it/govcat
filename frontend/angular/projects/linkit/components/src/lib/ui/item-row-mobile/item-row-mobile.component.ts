@@ -76,8 +76,8 @@ export class ItemRowMobileComponent implements OnInit, AfterViewInit {
     return this.sanitized.bypassSecurityTrustHtml(html);
   }
 
-  __itemClick(event: any) {
-    this.itemClick.emit(this._data);
+  __itemClick(event: MouseEvent) {
+    this.itemClick.emit({ data: this._data, event });
   }
 
   __actionlick(event: any) {

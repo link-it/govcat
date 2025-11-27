@@ -70,16 +70,16 @@ export class CardComponent implements OnInit {
     this.editSelection.emit({ selected: event.checked });
   }
 
-  __simpleClick(event: any) {
+  __simpleClick(event: MouseEvent) {
     if (!this._editMode) {
-      this.simpleClick.emit(event);
+      this.simpleClick.emit({ data: this.data, event });
     }
   }
 
-  __imageClick(event: any) {
+  __imageClick(event: MouseEvent) {
     if (this._enabledImageLink) {
       if (!this._editMode) {
-        this.simpleClick.emit(event);
+        this.simpleClick.emit({ data: this.data, event });
       }
     }
   }

@@ -26,12 +26,17 @@
         </div> -->
         <!-- btn link [start] -->
         <div class="position-relative me-2" *ngIf="!_spin">
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [routerLink]="['configurazioni']" [state]="{ data: adesione }">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon supports-new-tab"
+            [routerLink]="['configurazioni']"
+            [state]="{ data: adesione }"
+            [appOpenInNewTab]="[id, 'configurazioni']">
             {{ 'APP.ADESIONI.TITLE.Configurations' | translate }}
           </button>
         </div>
         <div class="position-relative me-2" *ngIf="!_spin">
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon" [routerLink]="['referenti']">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon supports-new-tab"
+            [routerLink]="['referenti']"
+            [appOpenInNewTab]="[id, 'referenti']">
             {{ 'APP.ADESIONI.TITLE.ShowReferents' | translate }}
           </button>
         </div>
