@@ -1,3 +1,10 @@
+2025-11-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug
+	Sono state risolte le seguenti vulnerabilità relative ai jar di terza parte
+	- CVE-2025-24813: aggiornata libreria 'tomcat-catalina'
+
 2025-11-18  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
