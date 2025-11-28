@@ -16,12 +16,11 @@ import { MarkdownModule } from 'ngx-markdown';
 
 import { HeadBarComponent } from './head-bar/head-bar.component';
 import { SpinnerComponent } from './spinner/spinner.component';
-import { MultiSnackbarComponent } from './dialogs/multi-snackbar/multi-snackbar.component';
 
 import { directives } from './directives';
 import { ui, uiServices } from './ui';
 import { pipes } from './pipes';
-import { dialogs } from './dialogs';
+import { dialogs, standaloneDialogs, MultiSnackbarComponent } from './dialogs';
 import { defineCustomElements } from 'xml-viewer-component/dist/loader';
 
 const gravatarConfig: GravatarConfig = {
@@ -47,12 +46,12 @@ const gravatarConfig: GravatarConfig = {
     NgSelectModule,
     NgxChartsModule,
     NgxMasonryModule,
-    MarkdownModule
+    MarkdownModule,
+    ...standaloneDialogs
   ],
   declarations: [
     HeadBarComponent,
     SpinnerComponent,
-    MultiSnackbarComponent,
 
     ...pipes,
     ...directives,
@@ -62,12 +61,12 @@ const gravatarConfig: GravatarConfig = {
   exports: [
     HeadBarComponent,
     SpinnerComponent,
-    MultiSnackbarComponent,
 
     ...ui,
     ...pipes,
     ...directives,
     ...dialogs,
+    ...standaloneDialogs,
 
     FormsModule,
     ReactiveFormsModule,

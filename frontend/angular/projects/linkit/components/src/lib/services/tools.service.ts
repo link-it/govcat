@@ -10,7 +10,7 @@ import moment from 'moment/moment';
 
 import { GridFormatters } from '../utils/grid-formatters';
 import { FieldClass } from '../ui/classes';
-// import { MultiSnackbarComponent } from '../dialogs';
+import { MultiSnackbarComponent } from '../dialogs';
 declare const $: any;
 
 @Injectable({
@@ -414,14 +414,14 @@ export class Tools {
   }
 
   public static MultiSnackbarDestroyAll() {
-    // MultiSnackbarComponent.DestroyAllStickyMessages();
+    MultiSnackbarComponent.DestroyAllStickyMessages();
   }
 
   public static showMessage(message: string, type: string, action: boolean = false, keep: boolean = false, actionLabel: string | null = null) {
     const _action: boolean = action;
     const _keep: boolean = keep;
     const _actionLabel: string | null = actionLabel;
-    // MultiSnackbarComponent.PushMessage(message, _action, _keep, _actionLabel, null, type);
+    MultiSnackbarComponent.PushMessage(message, _action, _keep, _actionLabel, null, type);
   }
   
   /**
@@ -445,8 +445,7 @@ export class Tools {
     } catch (e) {
       _msg = 'Si è verificato un problema non previsto.';
     }
-    // MultiSnackbarComponent.PushMessage((_msg || error.message), true, _keep);
-    // Tools.Alert(_msg || error.message);
+    MultiSnackbarComponent.PushMessage((_msg || error.message), true, _keep);
   }
   
   /**
@@ -458,7 +457,7 @@ export class Tools {
    * @param {string} _actionLabel
    */
     public static Alert(_message: string, _action: boolean = true, _keep: boolean = false, _actionLabel: string | null = null) {
-      // MultiSnackbarComponent.PushMessage(_message, _action, _keep, _actionLabel);
+      MultiSnackbarComponent.PushMessage(_message, _action, _keep, _actionLabel);
     }
   
   /**
