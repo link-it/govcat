@@ -9,6 +9,7 @@ import { ConfigService } from '@linkit/components';
 import { Tools } from '@linkit/components';
 import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { CustomValidators } from '@linkit/validators';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
@@ -173,6 +174,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, [
               Validators.required,
+              CustomValidators.notOnlyWhitespace,
               Validators.maxLength(255)
             ]);
             break;

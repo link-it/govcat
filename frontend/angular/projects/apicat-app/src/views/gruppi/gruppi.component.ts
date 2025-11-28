@@ -2,6 +2,7 @@ import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy,
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
+import { CustomValidators } from '@linkit/validators';
 
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
@@ -327,8 +328,8 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         this._editFormGroup = new FormGroup({
             id_gruppo_padre: new FormControl(_padre, []),
             id_gruppo_padre_label: new FormControl(_padre_label, []),
-            nome: new FormControl(_nome, [Validators.required, Validators.maxLength(255)]),
-            tipo: new FormControl(_tipo, [Validators.required, Validators.maxLength(255)]),
+            nome: new FormControl(_nome, [Validators.required, CustomValidators.notOnlyWhitespace, Validators.maxLength(255)]),
+            tipo: new FormControl(_tipo, [Validators.required, CustomValidators.notOnlyWhitespace, Validators.maxLength(255)]),
             descrizione: new FormControl(_descrizione, [Validators.maxLength(255)]),
             descrizione_sintetica: new FormControl(_descrizione_sintetica, [Validators.maxLength(255)]),
             immagine: new FormControl(data?.immagine, []),

@@ -11,6 +11,7 @@ import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { FieldClass } from '@linkit/components';
+import { CustomValidators } from '@linkit/validators';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
@@ -161,6 +162,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, [
               Validators.required,
+              CustomValidators.notOnlyWhitespace,
               Validators.maxLength(255)
             ]);
             break;

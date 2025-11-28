@@ -32,6 +32,7 @@ import { uuid } from './uuid/validator';
 import { cf } from './codice-fiscale/validator';
 import { oneOf } from './one-of/validator';
 import { oneOfLength } from './one-of-length/validator';
+import { notOnlyWhitespace, noLeadingTrailingWhitespace } from './not-only-whitespace/validator';
 
 export const CustomValidators = {
   arrayLength,
@@ -65,5 +66,7 @@ export const CustomValidators = {
   uuid,
   cf,
   oneOf,
-  oneOfLength
+  oneOfLength,
+  notOnlyWhitespace,
+  noLeadingTrailingWhitespace
 };

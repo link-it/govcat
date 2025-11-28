@@ -75,9 +75,10 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
                     <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
                       <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['nome'].errors && f['nome'].errors['notOnlyWhitespace']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
                       <span *ngIf="f['nome'].errors && f['nome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome'].errors['maxlength'].requiredLength } }}</span>
                     </p>
                     <ui-input-help field="nome" context="USERS"></ui-input-help>
@@ -94,9 +95,10 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'cognome'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cognome')" type="text" name="cognome" id="cognome" formControlName="cognome">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cognome')" type="text" name="cognome" id="cognome" formControlName="cognome" appTrimOnBlur>
                     <p *ngIf="f['cognome'].invalid && (f['cognome'].dirty || f['cognome'].touched)" class="form-text text-danger">
                       <span *ngIf="f['cognome'].errors && f['cognome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['cognome'].errors && f['cognome'].errors['notOnlyWhitespace']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
                       <span *ngIf="f['cognome'].errors && f['cognome'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['cognome'].errors['maxlength'].requiredLength } }}</span>
                     </p>
                     <ui-input-help field="cognome" context="USERS"></ui-input-help>
@@ -116,9 +118,10 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'principal'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" type="text" name="principal" id="principal" formControlName="principal">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('principal')" type="text" name="principal" id="principal" formControlName="principal" appTrimOnBlur>
                     <p *ngIf="f['principal'].invalid && (f['principal'].dirty || f['principal'].touched)" class="form-text text-danger">
                       <span *ngIf="f['principal'].errors && f['principal'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['principal'].errors && f['principal'].errors['notOnlyWhitespace']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
                       <span *ngIf="f['principal'].errors && f['principal'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['principal'].errors['maxlength'].requiredLength } }}</span>
                     </p>
                     <ui-input-help field="principal" context="USERS"></ui-input-help>
@@ -174,7 +177,7 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono')" type="text" name="telefono" id="telefono" formControlName="telefono">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono')" type="text" name="telefono" id="telefono" formControlName="telefono" appTrimOnBlur>
                     <p *ngIf="f['telefono'].invalid && (f['telefono'].dirty || f['telefono'].touched)" class="form-text text-danger">
                       <span *ngIf="f['telefono'].errors && f['telefono'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                       <span *ngIf="f['telefono'].errors && f['telefono'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['telefono'].errors['maxlength'].requiredLength } }}</span>
@@ -193,7 +196,7 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email')" type="text" name="email" id="email" formControlName="email">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email')" type="text" name="email" id="email" formControlName="email" appTrimOnBlur>
                     <p *ngIf="f['email'].invalid && (f['email'].dirty || f['email'].touched)" class="form-text text-danger">
                       <span *ngIf="f['email'].errors && f['email'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                       <span *ngIf="f['email'].errors && f['email'].errors['email']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Email' | translate }}</span>
@@ -215,9 +218,10 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'telefono_aziendale'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono_aziendale')" type="text" name="telefono_aziendale" id="telefono_aziendale" formControlName="telefono_aziendale">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('telefono_aziendale')" type="text" name="telefono_aziendale" id="telefono_aziendale" formControlName="telefono_aziendale" appTrimOnBlur>
                     <p *ngIf="f['telefono_aziendale'].invalid && (f['telefono_aziendale'].dirty || f['telefono_aziendale'].touched)" class="form-text text-danger">
                       <span *ngIf="f['telefono_aziendale'].errors && f['telefono_aziendale'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                      <span *ngIf="f['telefono_aziendale'].errors && f['telefono_aziendale'].errors['notOnlyWhitespace']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
                       <span *ngIf="f['telefono_aziendale'].errors && f['telefono_aziendale'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['telefono_aziendale'].errors['maxlength'].requiredLength } }}</span>
                     </p>
                     <ui-input-help field="telefono_aziendale" context="USERS"></ui-input-help>
@@ -234,7 +238,7 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'email_aziendale'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email_aziendale')" type="text" name="email_aziendale" id="email_aziendale" formControlName="email_aziendale">
+                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('email_aziendale')" type="text" name="email_aziendale" id="email_aziendale" formControlName="email_aziendale" appTrimOnBlur>
                     <p *ngIf="f['email_aziendale'].invalid && (f['email_aziendale'].dirty || f['email_aziendale'].touched)" class="form-text text-danger">
                       <span *ngIf="f['email_aziendale'].errors && f['email_aziendale'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                       <span *ngIf="f['email_aziendale'].errors && f['email_aziendale'].errors['email']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Email' | translate }}</span>
@@ -351,7 +355,7 @@
                     <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'note'" *ngIf="_isEdit"></span>
                   </label>
                   <div class="" *ngIf="_isEdit">
-                    <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" name="note" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="note" formControlName="note" rows="3"></textarea>
+                    <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" name="note" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="note" formControlName="note" rows="3" appTrimOnBlur></textarea>
                     <p *ngIf="f['note'].invalid && (f['note'].dirty || f['note'].touched)" class="form-text text-danger">
                       <span *ngIf="f['note'].errors && f['note'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                       <span *ngIf="f['note'].errors && f['note'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors['maxlength'].requiredLength } }}</span>

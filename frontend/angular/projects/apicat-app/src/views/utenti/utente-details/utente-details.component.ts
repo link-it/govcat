@@ -10,7 +10,8 @@ import { Tools } from '@linkit/components';
 import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { FieldClass } from '@linkit/components'
+import { FieldClass } from '@linkit/components';
+import { CustomValidators } from '@linkit/validators';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
@@ -202,6 +203,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [
               Validators.required,
+              CustomValidators.notOnlyWhitespace,
               Validators.maxLength(255)
             ]);
             break;

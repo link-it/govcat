@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 
 import { SoggettiRoutingModule } from './soggetti-routing.module';
@@ -16,7 +16,7 @@ import { SoggettoDetailsModule } from './soggetti-details/soggetto-details.modul
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     HasPermissionModule,
     SoggettiRoutingModule,
     SoggettoDetailsModule

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 
 import { DominioReferentiComponent } from './dominio-referenti.component';
@@ -15,7 +15,7 @@ import { DominioReferentiRoutingModule } from './dominio-referenti-routing.modul
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     MarkAsteriskModule,
     DominioReferentiRoutingModule
   ],

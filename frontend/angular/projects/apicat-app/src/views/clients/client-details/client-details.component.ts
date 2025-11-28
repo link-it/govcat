@@ -11,6 +11,7 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 import { EventsManagerService, EventType } from '@linkit/components';
+import { CustomValidators } from '@linkit/validators';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
@@ -321,6 +322,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             _group[key] = new UntypedFormControl(value, [Validators.pattern(/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i)]);
             break;
           case 'nome':
+            value = data[key] ? data[key] : null;
+            _group[key] = new UntypedFormControl(value, [Validators.required, CustomValidators.notOnlyWhitespace]);
+            break;
           case 'ambiente':
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, [Validators.required]);

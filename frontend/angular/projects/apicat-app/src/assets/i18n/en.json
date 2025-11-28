@@ -1309,6 +1309,7 @@
 				"MaxLength": "The length must be less than or equal to {{length}}.",
 				"MinAmount": "The amount must be a value greater than {{value}}",
 				"NoSpace": "The field cannot contain spaces",
+				"NotOnlyWhitespace": "The field cannot contain only spaces",
 				"NoticeLenght": "The notice number must have {{value}} char",
 				"Number": "The value must be a number",
 				"OneOfLength": "The length must be one of the following values",
