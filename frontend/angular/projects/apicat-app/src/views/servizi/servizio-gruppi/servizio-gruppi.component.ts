@@ -412,14 +412,16 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElementRelated(this.model, this.id, `gruppi/${data.id_gruppo}`).subscribe(
-            (response) => {
-              this._loadServizioGruppi();
-            },
-            (error) => {
-              this._error = true;
-              const _message = this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent');
-              Tools.showMessage(_message, 'danger', true);
+          this.apiService.deleteElementRelated(this.model, this.id, `gruppi/${data.id_gruppo}`)
+            .subscribe({
+              next: (response) => {
+                this._loadServizioGruppi();
+              },
+              error: (error) => {
+                this._error = true;
+                const _message = this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent');
+                Tools.showMessage(_message, 'danger', true);
+              }
             }
           );
         }
