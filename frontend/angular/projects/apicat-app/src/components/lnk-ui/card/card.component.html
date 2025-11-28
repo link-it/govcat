@@ -19,7 +19,7 @@
     setBackgroundImage [imageUrl]="{ path: _image } | httpImgSrc" [position]="'cover'" [ngStyle]="{ 'background-color': _backColor }">
     <span class="logo-text text-nowrap" [ngStyle]="{'color': _textColor}" *ngIf="!_image">{{ _logoText }}</span>
   </div>
-  <div class="card-body">
+  <div class="card-body" [class.cursor-pointer]="!_image && !_secondaryText && !_showEmptyImage" (click)="__cardBodyClick($event)">
     <h5 tabindex="0" class="card-title text-hover cursor-pointer text-break" [attr.title]="_primaryText" *ngIf="_primaryText" (click)="__simpleClick($event)">{{ _primaryText }}</h5>
     <p class="card-text" *ngIf="_secondaryText">{{ _secondaryText }}</p>
     <p *ngIf="_metadata">{{ _metadata }}</p>

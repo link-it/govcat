@@ -83,4 +83,14 @@ export class CardComponent implements OnInit {
       }
     }
   }
+
+  __cardBodyClick(event: any) {
+    // Click on card-body only when there's no image, no description, and no empty image placeholder
+    // This improves UX when only the title is visible
+    if (!this._image && !this._secondaryText && !this._showEmptyImage) {
+      if (!this._editMode) {
+        this.simpleClick.emit(event);
+      }
+    }
+  }
 }
