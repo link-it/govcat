@@ -1,11 +1,12 @@
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
+import { TrimOnBlurModule } from '@app/directives/trim-on-blur/trim-on-blur.module';
 
 import { ClasseUtenteDetailsComponent } from './classe-utente-details.component';
 import { ClasseUtenteDetailsRoutingModule } from './classe-utente-details-routing.module';
@@ -14,9 +15,11 @@ import { ClasseUtenteDetailsRoutingModule } from './classe-utente-details-routin
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     HasPermissionModule,
+    TrimOnBlurModule,
     ClasseUtenteDetailsRoutingModule
   ],
   declarations: [

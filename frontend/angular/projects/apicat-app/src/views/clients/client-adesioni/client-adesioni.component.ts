@@ -338,14 +338,16 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElementRelated(this.model, this.id, `referenti/${data.source.utente.id_utente}?tipo_referente=${data.source.tipo}`).subscribe(
-            (response) => {
-              this._loadClientAdesioni();
-            },
-            (error) => {
-              this._error = true;
-              const _message = this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent');
-              Tools.showMessage(_message, 'danger', true);
+          this.apiService.deleteElementRelated(this.model, this.id, `referenti/${data.source.utente.id_utente}?tipo_referente=${data.source.tipo}`)
+            .subscribe({
+              next: (response) => {
+                this._loadClientAdesioni();
+              },
+              error: (error) => {
+                this._error = true;
+                const _message = this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent');
+                Tools.showMessage(_message, 'danger', true);
+              }
             }
           );
         }

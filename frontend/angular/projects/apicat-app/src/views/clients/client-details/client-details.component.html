@@ -179,9 +179,10 @@
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome'" *ngIf="_isEdit"></span>
                       </label>
                       <div class="" *ngIf="_isEdit">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome')" type="text" name="nome" id="nome" formControlName="nome" appTrimOnBlur>
                         <p *ngIf="f['nome'].invalid && (f['nome'].dirty || f['nome'].touched)" class="form-text text-danger">
                           <span *ngIf="f['nome'].errors && f['nome'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          <span *ngIf="f['nome'].errors && f['nome'].errors['notOnlyWhitespace']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.NotOnlyWhitespace' | translate }}</span>
                         </p>
                         <ui-input-help field="nome" context="CLIENT"></ui-input-help>
                       </div>
@@ -274,7 +275,7 @@
                     <div class="form-group">
                       <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }}</label>
                       <div class="" *ngIf="_isEdit">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" type="text" name="descrizione" id="descrizione" formControlName="descrizione" appTrimOnBlur>
                         <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
                           <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         </p>
@@ -291,7 +292,7 @@
                     <div class="form-group">
                       <label class="label-bold" for="indirizzo_ip">{{ 'APP.ADESIONI.TITLE.IPfruizione' | translate }}</label>
                       <div class="" *ngIf="_isEdit">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('indirizzo_ip')" type="text" name="indirizzo_ip" id="indirizzo_ip" formControlName="indirizzo_ip">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('indirizzo_ip')" type="text" name="indirizzo_ip" id="indirizzo_ip" formControlName="indirizzo_ip" appTrimOnBlur>
                         <p *ngIf="f['indirizzo_ip'].invalid && (f['indirizzo_ip'].dirty || f['indirizzo_ip'].touched)" class="form-text text-danger">
                           <span *ngIf="f['indirizzo_ip'].errors && f['indirizzo_ip'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         </p>
@@ -347,7 +348,7 @@
                       <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'finalita'"></span>
                     </label>
                     <div class="" *ngIf="_isEdit">
-                      <input class="form-control form-control-sm" id="finalita" type="text" formControlName="finalita">
+                      <input class="form-control form-control-sm" id="finalita" type="text" formControlName="finalita" appTrimOnBlur>
                       <p *ngIf="f['finalita'].invalid && (f['finalita'].dirty || f['finalita'].touched)" class="form-text text-danger">
                         <span *ngIf="f['finalita'].errors && f['finalita'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         <span *ngIf="f['finalita'].errors && f['finalita'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
@@ -371,7 +372,7 @@
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'username'" *ngIf="_isNew || _isEdit"></span>
                       </label>
                       <div class="" *ngIf="_isEdit">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('username')" type="text" name="username" id="username" formControlName="username">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('username')" type="text" name="username" id="username" formControlName="username" appTrimOnBlur>
                         <p *ngIf="f['username'].invalid && (f['username'].dirty || f['username'].touched)" class="form-text text-danger">
                           <span *ngIf="f['username'].errors && f['username'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         </p>
@@ -401,7 +402,7 @@
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'client_id'" *ngIf="_isNew || _isEdit"></span>
                       </label>
                       <div class="" *ngIf="_isEdit">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('client_id')" type="text" name="client_id" id="client_id" formControlName="client_id">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('client_id')" type="text" name="client_id" id="client_id" formControlName="client_id" appTrimOnBlur>
                         <p *ngIf="f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)" class="form-text text-danger">
                           <span *ngIf="f['client_id'].errors && f['client_id'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         </p>
@@ -430,7 +431,7 @@
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_redirezione'" *ngIf="_isNew || _isEdit"></span>
                         </label>
                         <div class="" *ngIf="_isEdit">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_redirezione')" type="text" name="url_redirezione" id="url_redirezione" formControlName="url_redirezione">
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_redirezione')" type="text" name="url_redirezione" id="url_redirezione" formControlName="url_redirezione" appTrimOnBlur>
                           <p *ngIf="f['url_redirezione'].invalid && (f['url_redirezione'].dirty || f['url_redirezione'].touched)" class="form-text text-danger">
                             <span *ngIf="f['url_redirezione'].errors && f['url_redirezione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           </p>
@@ -447,7 +448,7 @@
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_esposizione'" *ngIf="_isNew || _isEdit"></span>
                         </label>
                         <div class="" *ngIf="_isEdit">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_esposizione')" type="text" name="url_esposizione" id="url_esposizione" formControlName="url_esposizione">
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_esposizione')" type="text" name="url_esposizione" id="url_esposizione" formControlName="url_esposizione" appTrimOnBlur>
                           <p *ngIf="f['url_esposizione'].invalid && (f['url_esposizione'].dirty || f['url_esposizione'].touched)" class="form-text text-danger">
                             <span *ngIf="f['url_esposizione'].errors && f['url_esposizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           </p>
@@ -464,7 +465,7 @@
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'help_desk'" *ngIf="_isNew || _isEdit"></span>
                         </label>
                         <div class="" *ngIf="_isEdit">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('help_desk')" type="text" name="help_desk" id="help_desk" formControlName="help_desk">
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('help_desk')" type="text" name="help_desk" id="help_desk" formControlName="help_desk" appTrimOnBlur>
                           <p *ngIf="f['help_desk'].invalid && (f['help_desk'].dirty || f['help_desk'].touched)" class="form-text text-danger">
                             <span *ngIf="f['help_desk'].errors && f['help_desk'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           </p>
@@ -481,7 +482,7 @@
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome_applicazione_portale'" *ngIf="_isNew || _isEdit"></span>
                         </label>
                         <div class="" *ngIf="_isEdit">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_applicazione_portale')" type="text" name="nome_applicazione_portale" id="nome_applicazione_portale" formControlName="nome_applicazione_portale">
+                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_applicazione_portale')" type="text" name="nome_applicazione_portale" id="nome_applicazione_portale" formControlName="nome_applicazione_portale" appTrimOnBlur>
                           <p *ngIf="f['nome_applicazione_portale'].invalid && (f['nome_applicazione_portale'].dirty || f['nome_applicazione_portale'].touched)" class="form-text text-danger">
                             <span *ngIf="f['nome_applicazione_portale'].errors && f['nome_applicazione_portale'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                           </p>
@@ -502,7 +503,7 @@
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'client_id'" *ngIf="_isNew || _isEdit"></span>
                       </label>
                       <div class="" *ngIf="_isEdit">
-                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('client_id')" type="text" name="client_id" id="client_id" formControlName="client_id">
+                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('client_id')" type="text" name="client_id" id="client_id" formControlName="client_id" appTrimOnBlur>
                         <p *ngIf="f['client_id'].invalid && (f['client_id'].dirty || f['client_id'].touched)" class="form-text text-danger">
                           <span *ngIf="f['client_id'].errors && f['client_id'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                         </p>
@@ -591,7 +592,7 @@
                             <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'cn'" *ngIf="_isNew || _isEdit"></span>
                           </label>
                           <div class="" *ngIf="_isEdit">
-                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cn')" type="text" name="cn" id="cn" formControlName="cn">
+                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cn')" type="text" name="cn" id="cn" formControlName="cn" appTrimOnBlur>
                             <p *ngIf="f['cn'].invalid && (f['cn'].dirty || f['cn'].touched)" class="form-text text-danger">
                               <span *ngIf="f['cn'].errors && f['cn'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             </p>
@@ -785,7 +786,7 @@
                             <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'cn_firma'" *ngIf="_isNew || _isEdit"></span>
                           </label>
                           <div class="" *ngIf="_isEdit">
-                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cn_firma')" type="text" name="cn_firma" id="cn_firma" formControlName="cn_firma">
+                            <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('cn_firma')" type="text" name="cn_firma" id="cn_firma" formControlName="cn_firma" appTrimOnBlur>
                             <p *ngIf="f['cn_firma'].invalid && (f['cn_firma'].dirty || f['cn_firma'].touched)" class="form-text text-danger">
                               <span *ngIf="f['cn_firma'].errors && f['cn_firma'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                             </p>

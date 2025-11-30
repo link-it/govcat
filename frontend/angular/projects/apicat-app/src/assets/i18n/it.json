@@ -1309,6 +1309,7 @@
 				"MaxLength": "La lunghezza deve essere minore o uguale a {{length}}.",
 				"MinAmount": "L'importo deve essere un valore maggiore di {{value}}",
 				"NoSpace": "Il campo non può contenere spazi",
+				"NotOnlyWhitespace": "Il campo non può contenere solo spazi",
 				"NoticeLenght": "Il numero avviso deve contenere {{value}} caratteri",
 				"Number": "Il valore deve essere un numero",
 				"OneOfLength": "La lunghezza deve essere uno dei seguenti valori",

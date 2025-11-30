@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 
 import { OrganizzazioniComponent } from './organizzazioni.component';
@@ -16,7 +16,7 @@ import { OrganizzazioneDetailsModule } from './organizzazione-details/organizzaz
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     HasPermissionModule,
     OrganizzazioniRoutingModule,
     OrganizzazioneDetailsModule

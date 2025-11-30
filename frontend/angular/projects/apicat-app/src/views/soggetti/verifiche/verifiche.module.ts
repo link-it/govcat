@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 // import { BackWebModule } from '../components/back-web/back-web.module';
 
 import { VerificheComponent } from './verifiche.component';
@@ -16,7 +16,7 @@ import { VerificaSoggettoTokenModule } from './verifica-soggetto-token/verifica-
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     // BackWebModule,
     VerificheRoutingModule,
     VerificaSoggettoTokenModule
