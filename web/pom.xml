@@ -20,7 +20,7 @@
 		<filter-file>${web-filter-file}</filter-file>
 
 		<!-- Commons -->
-		<commons.lang.version>2.6</commons.lang.version>
+		<commons.lang.version>3.18.0</commons.lang.version>
 	</properties>
 
 	<dependencies>
@@ -151,11 +151,11 @@
 
 
 		<!-- Commons -->
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>${commons.lang.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>commons-logging</groupId>

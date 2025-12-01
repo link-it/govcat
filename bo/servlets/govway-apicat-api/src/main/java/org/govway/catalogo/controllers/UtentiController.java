@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 import org.govway.catalogo.ApiV1Controller;
 import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.RequestUtils;

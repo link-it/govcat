@@ -42,7 +42,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.govway.catalogo.reverse_proxy.beans.Pair;
 import org.govway.catalogo.reverse_proxy.config.HeadersDaAggiungere;
 import org.govway.catalogo.reverse_proxy.config.WebConsoleConfig;
