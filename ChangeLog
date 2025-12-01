@@ -1,3 +1,11 @@
+2025-12-01  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo,ReverseProxy]
+	Risolto bug
+	Sono state risolte le seguenti vulnerabilità relative ai jar di terza parte
+	- CVE-2025-48924: upgrade dipendenza commons-lang
+	- CVE-2025-48734: upgrade dipendenza commons-beanutils
+
 2025-11-27  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
