@@ -28,7 +28,6 @@
 		<jakarta.mail.version>2.0.4</jakarta.mail.version>
 
 		<!-- Commons -->
-		<commons.lang2.version>2.6</commons.lang2.version>
 		<commons.lang.version>3.18.0</commons.lang.version>
 		<commons.codec.version>1.11</commons.codec.version>
 		<commons.io.version>2.18.0</commons.io.version>
@@ -146,15 +145,6 @@
 				<version>${commons.lang.version}</version>
 			</dependency>
 
-			<!-- Questa è una sottodipendenza di spring-security, che alla
-			versione 
-				attual non è ancora passata a commons-lang3, rimuovere quando non sarà più 
-				necessaria. -->
-			<dependency>
-				<groupId>commons-lang</groupId>
-				<artifactId>commons-lang</artifactId>
-				<version>${commons.lang2.version}</version>
-			</dependency>
 			<dependency>
 				<groupId>commons-codec</groupId>
 				<artifactId>commons-codec</artifactId>
