@@ -1796,7 +1796,7 @@ public class ServiziController implements ServiziApi {
 
 	private boolean isVisibile(ServizioEntity servizio, UtenteEntity utenteSessione) {
 		
-		if(this.coreAuthorization.isAdmin(utenteSessione)) {
+		if(this.coreAuthorization.isAdmin(utenteSessione) || this.coreAuthorization.isCoordinatore(utenteSessione)) {
 			return true;
 		}
 
