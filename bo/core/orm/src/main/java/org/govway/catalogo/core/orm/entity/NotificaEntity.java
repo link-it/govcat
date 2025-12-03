@@ -42,8 +42,8 @@ import lombok.Setter;
 @Table(name = "notifiche")
 public class NotificaEntity {
 
-	public enum TIPO {COMUNICAZIONE, CAMBIO_STATO}
-	public enum TIPO_ENTITA {SERVIZIO, ADESIONE}
+	public enum TIPO {COMUNICAZIONE, CAMBIO_STATO, COMUNICAZIONE_EMAIL, CAMBIO_STATO_EMAIL}
+	public enum TIPO_ENTITA {SERVIZIO, ADESIONE, SERVIZIO_EMAIL, ADESIONE_EMAIL}
 	public enum STATO {NUOVA,LETTA,ARCHIVIATA}
 	
 	@Id

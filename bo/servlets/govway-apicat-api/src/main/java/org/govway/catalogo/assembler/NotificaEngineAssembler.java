@@ -100,7 +100,7 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 
 	public RuoloNotifica toRuoloNotifica(RuoloNotificaEnum e) {
 		if(e == null) return null;
-		
+
 		switch(e) {
 		case ADESIONE_REFERENTE_ADESIONE: return RuoloNotifica.ADESIONE_REFERENTE_ADESIONE;
 		case ADESIONE_REFERENTE_DOMINIO: return RuoloNotifica.ADESIONE_REFERENTE_DOMINIO;
@@ -115,13 +115,25 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 		case SERVIZIO_REFERENTE_SERVIZIO: return RuoloNotifica.SERVIZIO_REFERENTE_SERVIZIO;
 		case SERVIZIO_REFERENTE_TECNICO_SERVIZIO: return RuoloNotifica.SERVIZIO_REFERENTE_TECNICO_SERVIZIO;
 		case SERVIZIO_RICHIEDENTE_SERVIZIO: return RuoloNotifica.SERVIZIO_RICHIEDENTE_SERVIZIO;
+		case ADESIONE_REFERENTE_ADESIONE_EMAIL: return RuoloNotifica.ADESIONE_REFERENTE_ADESIONE_EMAIL;
+		case ADESIONE_REFERENTE_DOMINIO_EMAIL: return RuoloNotifica.ADESIONE_REFERENTE_DOMINIO_EMAIL;
+		case ADESIONE_REFERENTE_TECNICO_DOMINIO_EMAIL: return RuoloNotifica.ADESIONE_REFERENTE_TECNICO_DOMINIO_EMAIL;
+		case ADESIONE_REFERENTE_SERVIZIO_EMAIL: return RuoloNotifica.ADESIONE_REFERENTE_SERVIZIO_EMAIL;
+		case ADESIONE_REFERENTE_TECNICO_ADESIONE_EMAIL: return RuoloNotifica.ADESIONE_REFERENTE_TECNICO_ADESIONE_EMAIL;
+		case ADESIONE_RICHIEDENTE_ADESIONE_EMAIL: return RuoloNotifica.ADESIONE_RICHIEDENTE_ADESIONE_EMAIL;
+		case ADESIONE_RICHIEDENTE_SERVIZIO_EMAIL: return RuoloNotifica.ADESIONE_RICHIEDENTE_SERVIZIO_EMAIL;
+		case SERVIZIO_REFERENTE_DOMINIO_EMAIL: return RuoloNotifica.SERVIZIO_REFERENTE_DOMINIO_EMAIL;
+		case SERVIZIO_REFERENTE_TECNICO_DOMINIO_EMAIL: return RuoloNotifica.SERVIZIO_REFERENTE_TECNICO_DOMINIO_EMAIL;
+		case SERVIZIO_REFERENTE_SERVIZIO_EMAIL: return RuoloNotifica.SERVIZIO_REFERENTE_SERVIZIO_EMAIL;
+		case SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL: return RuoloNotifica.SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL;
+		case SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL: return RuoloNotifica.SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL;
 		}
 		return null;
  	}
 
 	public RuoloNotificaEnum toTag(RuoloNotifica e) {
 		if(e == null) return null;
-		
+
 		switch(e) {
 		case ADESIONE_REFERENTE_ADESIONE: return RuoloNotificaEnum.ADESIONE_REFERENTE_ADESIONE;
 		case ADESIONE_REFERENTE_DOMINIO: return RuoloNotificaEnum.ADESIONE_REFERENTE_DOMINIO;
@@ -136,8 +148,21 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 		case SERVIZIO_REFERENTE_SERVIZIO: return RuoloNotificaEnum.SERVIZIO_REFERENTE_SERVIZIO;
 		case SERVIZIO_REFERENTE_TECNICO_SERVIZIO: return RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_SERVIZIO;
 		case SERVIZIO_RICHIEDENTE_SERVIZIO: return RuoloNotificaEnum.SERVIZIO_RICHIEDENTE_SERVIZIO;
+		case ADESIONE_REFERENTE_ADESIONE_EMAIL: return RuoloNotificaEnum.ADESIONE_REFERENTE_ADESIONE_EMAIL;
+		case ADESIONE_REFERENTE_DOMINIO_EMAIL: return RuoloNotificaEnum.ADESIONE_REFERENTE_DOMINIO_EMAIL;
+		case ADESIONE_REFERENTE_TECNICO_DOMINIO_EMAIL: return RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_DOMINIO_EMAIL;
+		case ADESIONE_REFERENTE_SERVIZIO_EMAIL: return RuoloNotificaEnum.ADESIONE_REFERENTE_SERVIZIO_EMAIL;
+		case ADESIONE_REFERENTE_TECNICO_ADESIONE_EMAIL: return RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_ADESIONE_EMAIL;
+		case ADESIONE_REFERENTE_TECNICO_SERVIZIO_EMAIL: return RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_SERVIZIO_EMAIL;
+		case ADESIONE_RICHIEDENTE_ADESIONE_EMAIL: return RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE_EMAIL;
+		case ADESIONE_RICHIEDENTE_SERVIZIO_EMAIL: return RuoloNotificaEnum.ADESIONE_RICHIEDENTE_SERVIZIO_EMAIL;
+		case SERVIZIO_REFERENTE_DOMINIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_REFERENTE_DOMINIO_EMAIL;
+		case SERVIZIO_REFERENTE_TECNICO_DOMINIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_DOMINIO_EMAIL;
+		case SERVIZIO_REFERENTE_SERVIZIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_REFERENTE_SERVIZIO_EMAIL;
+		case SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL;
+		case SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL;
 		}
-		
+
 		return null;
  	}
 
@@ -155,23 +180,27 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 
 	public TipoNotificaEnum getTipoNotificaEnum(TIPO tipo) {
 		if(tipo == null) return null;
-		
+
 		switch(tipo) {
 		case CAMBIO_STATO: return TipoNotificaEnum.CAMBIO_STATO;
 		case COMUNICAZIONE: return TipoNotificaEnum.COMUNICAZIONE;
+		case CAMBIO_STATO_EMAIL: return TipoNotificaEnum.CAMBIO_STATO_EMAIL;
+		case COMUNICAZIONE_EMAIL: return TipoNotificaEnum.COMUNICAZIONE_EMAIL;
 		}
-		
+
 		return null;
 	}
 
 	public TipoEntitaNotifica getTipoEntitaNotifica(TIPO_ENTITA tipoEntita) {
 		if(tipoEntita == null) return null;
-		
+
 		switch(tipoEntita) {
 		case ADESIONE: return TipoEntitaNotifica.ADESIONE;
 		case SERVIZIO: return TipoEntitaNotifica.SERVIZIO;
+		case ADESIONE_EMAIL: return TipoEntitaNotifica.ADESIONE_EMAIL;
+		case SERVIZIO_EMAIL: return TipoEntitaNotifica.SERVIZIO_EMAIL;
 		}
-		
+
 		return null;
 	}
 
@@ -189,23 +218,27 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 
 	public TIPO getTipo(TipoNotificaEnum tipo) {
 		if(tipo == null) return null;
-		
+
 		switch(tipo) {
 		case CAMBIO_STATO: return TIPO.CAMBIO_STATO;
 		case COMUNICAZIONE: return TIPO.COMUNICAZIONE;
+		case CAMBIO_STATO_EMAIL: return TIPO.CAMBIO_STATO_EMAIL;
+		case COMUNICAZIONE_EMAIL: return TIPO.COMUNICAZIONE_EMAIL;
 		}
-		
+
 		return null;
 	}
 
 	public TIPO_ENTITA getTipoEntita(TipoEntitaNotifica tipoEntita) {
 		if(tipoEntita == null) return null;
-		
+
 		switch(tipoEntita) {
 		case ADESIONE: return TIPO_ENTITA.ADESIONE;
 		case SERVIZIO: return TIPO_ENTITA.SERVIZIO;
+		case ADESIONE_EMAIL: return TIPO_ENTITA.ADESIONE_EMAIL;
+		case SERVIZIO_EMAIL: return TIPO_ENTITA.SERVIZIO_EMAIL;
 		}
-		
+
 		return null;
 	}
 

@@ -544,9 +544,146 @@ public class NotificheTest {
     	
         UUID idNotifica = UUID.randomUUID();
 
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> 
+        NotFoundException exception = assertThrows(NotFoundException.class, () ->
         notificheController.getNotifica(idNotifica));
 
         assertEquals("NTF.404", exception.getMessage());
+    }
+
+    @Test
+    public void testListNotificheWithEmailTypeFilter() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        String q = null;
+        // Test con filtro per tipo email (non dovrebbe trovare nulla perché le notifiche esistenti sono push)
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.COMUNICAZIONE_EMAIL;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
+        UUID idEntitaNotifica = null;
+        UUID idMittente = null;
+        UUID idServizio = servizio.getIdServizio();
+        UUID idAdesione = null;
+        int page = 0;
+        int size = 10;
+        List<String> sort = List.of("data,desc");
+
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        // Non dovrebbe trovare notifiche con tipo email perché le notifiche esistenti sono di tipo push
+        assertEquals(0, response.getBody().getContent().size());
+    }
+
+    @Test
+    public void testCountNotificheWithEmailTypeFilter() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	MessaggioCreate messaggioComunicazione = new MessaggioCreate();
+        messaggioComunicazione.setOggetto("Oggetto Comunicazione");
+        messaggioComunicazione.setTesto("Si richiede di procedere con la configurazione dell'adesione al servizio");
+        serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        String query = null;
+        // Test con filtro per tipo email cambio_stato_email
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.CAMBIO_STATO_EMAIL;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO;
+        UUID idEntitaNotifica = null;
+        UUID idMittente = null;
+        UUID idServizio = servizio.getIdServizio();
+        UUID idAdesione = null;
+
+        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Non dovrebbe trovare notifiche con tipo email perché le notifiche esistenti sono di tipo push
+        assertEquals(0L, response.getBody().getCount());
+    }
+
+    @Test
+    public void testListNotificheWithEmailEntitaFilter() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        String q = null;
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.COMUNICAZIONE;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        // Test con filtro per entità email
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.SERVIZIO_EMAIL;
+        UUID idEntitaNotifica = null;
+        UUID idMittente = null;
+        UUID idServizio = servizio.getIdServizio();
+        UUID idAdesione = null;
+        int page = 0;
+        int size = 10;
+        List<String> sort = List.of("data,desc");
+
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        // Non dovrebbe trovare notifiche con tipo entità email
+        assertEquals(0, response.getBody().getContent().size());
+    }
+
+    @Test
+    public void testCountNotificheWithAdesioneEmailEntitaFilter() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        String query = null;
+        TipoNotificaEnum tipoNotifica = TipoNotificaEnum.COMUNICAZIONE;
+        List<StatoNotifica> statoNotifica = List.of(StatoNotifica.NUOVA);
+        // Test con filtro per entità adesione email
+        TipoEntitaNotifica tipoEntitaNotifica = TipoEntitaNotifica.ADESIONE_EMAIL;
+        UUID idEntitaNotifica = null;
+        UUID idMittente = null;
+        UUID idServizio = servizio.getIdServizio();
+        UUID idAdesione = null;
+
+        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Non dovrebbe trovare notifiche con tipo entità email
+        assertEquals(0L, response.getBody().getCount());
     }
 }

@@ -7694,11 +7694,15 @@ components:
       enum:
         - servizio
         - adesione
+        - servizio_email
+        - adesione_email
     TipoNotificaEnum:
       type: "string"
       enum:
         - comunicazione
         - cambio_stato
+        - comunicazione_email
+        - cambio_stato_email
     StatoNotifica:
       type: "string"
       enum:
@@ -7721,6 +7725,19 @@ components:
         - adesione_referente_adesione
         - adesione_referente_tecnico_adesione
         - adesione_richiedente_adesione
+        - servizio_referente_dominio_email
+        - servizio_referente_tecnico_dominio_email
+        - servizio_referente_servizio_email
+        - servizio_referente_tecnico_servizio_email
+        - servizio_richiedente_servizio_email
+        - adesione_referente_dominio_email
+        - adesione_referente_tecnico_dominio_email
+        - adesione_referente_servizio_email
+        - adesione_referente_tecnico_servizio_email
+        - adesione_richiedente_servizio_email
+        - adesione_referente_adesione_email
+        - adesione_referente_tecnico_adesione_email
+        - adesione_richiedente_adesione_email
     UpdateNotifica:
       type: "object"
       properties:
