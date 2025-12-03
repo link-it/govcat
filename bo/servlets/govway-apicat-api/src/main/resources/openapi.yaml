@@ -9101,6 +9101,14 @@ components:
           example: "2017-07-21T17:32:28Z"
         url:
           $ref: "#/components/schemas/URL"
+    TargetComunicazioneEnum:
+      type: "string"
+      description: "Target della comunicazione per il servizio"
+      enum:
+        - pubblica
+        - solo_referenti
+        - solo_aderenti
+      default: pubblica
     MessaggioCreate:
       type: object
       required:
@@ -9110,10 +9118,16 @@ components:
           $ref: "#/components/schemas/String255"
         testo:
           $ref: "#/components/schemas/String4000"
+        target:
+          $ref: "#/components/schemas/TargetComunicazioneEnum"
+        includi_tecnici:
+          type: boolean
+          default: true
+          description: "Se true, include anche i referenti tecnici nel target selezionato"
         allegati:
           type: "array"
           items:
-            $ref: '#/components/schemas/AllegatoMessaggioCreate' 
+            $ref: '#/components/schemas/AllegatoMessaggioCreate'
     MessaggioUpdate:
       type: object
       required:

@@ -58,6 +58,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
+import org.govway.catalogo.servlets.model.TargetComunicazioneEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
@@ -1961,15 +1962,104 @@ public class ServiziTest {
 	void testAssociaComponentePackageNotFound2() {
 		Servizio servizio = this.getServizio();
 		UUID idServizio = servizio.getIdServizio();
-		
+
 	    UUID idPackage = UUID.randomUUID();
-	    
-	    
+
+
 	    Exception exception = assertThrows(NotFoundException.class, () -> {
 	    	serviziController.associaComponentePackage(idPackage, idServizio);
 	    });
-	    
+
         assertTrue(exception.getMessage().contains("SRV"));  // Error code check
+	}
+
+	@Test
+	void testCreateMessaggioServizioWithTargetPubblica() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+
+		MessaggioCreate messaggio = new MessaggioCreate();
+		messaggio.setOggetto("Test Target Pubblica");
+		messaggio.setTesto("Messaggio con target pubblica");
+		messaggio.setTarget(TargetComunicazioneEnum.PUBBLICA);
+		messaggio.setIncludiTecnici(true);
+
+		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
+
+		assertNotNull(response.getBody());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("Test Target Pubblica", response.getBody().getOggetto());
+	}
+
+	@Test
+	void testCreateMessaggioServizioWithTargetSoloReferenti() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+
+		MessaggioCreate messaggio = new MessaggioCreate();
+		messaggio.setOggetto("Test Target Solo Referenti");
+		messaggio.setTesto("Messaggio con target solo referenti");
+		messaggio.setTarget(TargetComunicazioneEnum.SOLO_REFERENTI);
+		messaggio.setIncludiTecnici(true);
+
+		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
+
+		assertNotNull(response.getBody());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("Test Target Solo Referenti", response.getBody().getOggetto());
+	}
+
+	@Test
+	void testCreateMessaggioServizioWithTargetSoloAderenti() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+
+		MessaggioCreate messaggio = new MessaggioCreate();
+		messaggio.setOggetto("Test Target Solo Aderenti");
+		messaggio.setTesto("Messaggio con target solo aderenti");
+		messaggio.setTarget(TargetComunicazioneEnum.SOLO_ADERENTI);
+		messaggio.setIncludiTecnici(false);
+
+		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
+
+		assertNotNull(response.getBody());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("Test Target Solo Aderenti", response.getBody().getOggetto());
+	}
+
+	@Test
+	void testCreateMessaggioServizioWithTargetSoloReferentiSenzaTecnici() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+
+		MessaggioCreate messaggio = new MessaggioCreate();
+		messaggio.setOggetto("Test Solo Referenti Senza Tecnici");
+		messaggio.setTesto("Messaggio con target solo referenti senza tecnici");
+		messaggio.setTarget(TargetComunicazioneEnum.SOLO_REFERENTI);
+		messaggio.setIncludiTecnici(false);
+
+		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
+
+		assertNotNull(response.getBody());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("Test Solo Referenti Senza Tecnici", response.getBody().getOggetto());
+	}
+
+	@Test
+	void testCreateMessaggioServizioWithTargetDefault() {
+		Servizio servizio = this.getServizio();
+		UUID idServizio = servizio.getIdServizio();
+
+		// Messaggio senza target specificato (deve usare il default PUBBLICA)
+		MessaggioCreate messaggio = new MessaggioCreate();
+		messaggio.setOggetto("Test Target Default");
+		messaggio.setTesto("Messaggio senza target specificato");
+
+		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
+
+		assertNotNull(response.getBody());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertEquals("Test Target Default", response.getBody().getOggetto());
 	}
 }
 
