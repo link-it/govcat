@@ -977,5 +977,577 @@ public class UtentiTest {
 
         assertEquals("Required: Ruolo AMMINISTRATORE", exception.getMessage());
     }
+
+    // ==================== Test Controlli Gerarchici ====================
+
+    @Test
+    public void testCoordinatoreNonPuoCreareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di creare un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(utenteGestore);
+        });
+
+        assertTrue(exception.getMessage().contains("coordinatore non può creare utenti con ruolo gestore"));
+    }
+
+    @Test
+    public void testCoordinatorePuoCreareCoordinatore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Crea un altro utente coordinatore
+        UtenteCreate altroCoordinatore = CommonUtils.getUtenteCreate();
+        altroCoordinatore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        altroCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        altroCoordinatore.setPrincipal("altro_coordinatore_test");
+
+        ResponseEntity<Utente> response = controller.createUtente(altroCoordinatore);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testCoordinatoreNonPuoModificareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+        ResponseEntity<Utente> responseGestore = controller.createUtente(utenteGestore);
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di modificare l'utente gestore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome("NuovoNome");
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("gestore_test");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateUtente(responseGestore.getBody().getIdUtente(), utenteUpdate);
+        });
+
+        assertTrue(exception.getMessage().contains("coordinatore non può modificare utenti con ruolo gestore"));
+    }
+
+    @Test
+    public void testCoordinatoreNonPuoEliminareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+        ResponseEntity<Utente> responseGestore = controller.createUtente(utenteGestore);
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.deleteUtente(responseGestore.getBody().getIdUtente());
+        });
+
+        assertTrue(exception.getMessage().contains("coordinatore non può eliminare utenti con ruolo gestore"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoCreareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di creare un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(utenteGestore);
+        });
+
+        assertTrue(exception.getMessage().contains("referente_servizio non può creare utenti con ruolo gestore"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoCreareCoordinatore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di creare un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.createUtente(utenteCoordinatore);
+        });
+
+        assertTrue(exception.getMessage().contains("referente_servizio non può creare utenti con ruolo coordinatore"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoModificareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+        ResponseEntity<Utente> responseGestore = controller.createUtente(utenteGestore);
+
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di modificare l'utente gestore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome("NuovoNome");
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("gestore_test");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateUtente(responseGestore.getBody().getIdUtente(), utenteUpdate);
+        });
+
+        assertTrue(exception.getMessage().contains("referente_servizio non può modificare utenti con ruolo gestore"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoModificareCoordinatore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di modificare l'utente coordinatore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome("NuovoNome");
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("coordinatore_test");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateUtente(responseCoordinatore.getBody().getIdUtente(), utenteUpdate);
+        });
+
+        assertTrue(exception.getMessage().contains("referente_servizio non può modificare utenti con ruolo coordinatore"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoEliminareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+        ResponseEntity<Utente> responseGestore = controller.createUtente(utenteGestore);
+
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.deleteUtente(responseGestore.getBody().getIdUtente());
+        });
+
+        assertTrue(exception.getMessage().contains("referente_servizio non può eliminare utenti con ruolo gestore"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoEliminareCoordinatore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.deleteUtente(responseCoordinatore.getBody().getIdUtente());
+        });
+
+        assertTrue(exception.getMessage().contains("referente_servizio non può eliminare utenti con ruolo coordinatore"));
+    }
+
+    @Test
+    public void testGestorePuoCreareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // L'utente in sessione è già un gestore (setup del test)
+
+        // Crea un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+
+        ResponseEntity<Utente> response = controller.createUtente(utenteGestore);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testGestorePuoModificareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+        ResponseEntity<Utente> responseGestore = controller.createUtente(utenteGestore);
+
+        // L'utente in sessione è già un gestore (setup del test)
+
+        // Modifica l'utente gestore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome("NuovoNome");
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("gestore_test");
+
+        ResponseEntity<Utente> response = controller.updateUtente(responseGestore.getBody().getIdUtente(), utenteUpdate);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("NuovoNome", response.getBody().getNome());
+    }
+
+    @Test
+    public void testGestorePuoEliminareGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente gestore
+        UtenteCreate utenteGestore = CommonUtils.getUtenteCreate();
+        utenteGestore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteGestore.setRuolo(RuoloUtenteEnum.GESTORE);
+        utenteGestore.setPrincipal("gestore_test");
+        ResponseEntity<Utente> responseGestore = controller.createUtente(utenteGestore);
+
+        // L'utente in sessione è già un gestore (setup del test)
+
+        ResponseEntity<Void> response = controller.deleteUtente(responseGestore.getBody().getIdUtente());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    // ==================== Test Auto-Promozione ====================
+
+    @Test
+    public void testCoordinatoreNonPuoAutoPromuoversiAGestore() {
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di auto-promuoversi a gestore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome(CommonUtils.NOME_UTENTE);
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("coordinatore_test");
+        utenteUpdate.setRuolo(RuoloUtenteEnum.GESTORE);
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateUtente(responseCoordinatore.getBody().getIdUtente(), utenteUpdate);
+        });
+
+        assertTrue(exception.getMessage().contains("non può auto-promuoversi"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoAutoPromuoversiAGestore() {
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di auto-promuoversi a gestore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome(CommonUtils.NOME_UTENTE);
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("referente_test");
+        utenteUpdate.setRuolo(RuoloUtenteEnum.GESTORE);
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateUtente(responseReferente.getBody().getIdUtente(), utenteUpdate);
+        });
+
+        assertTrue(exception.getMessage().contains("non può auto-promuoversi"));
+    }
+
+    @Test
+    public void testReferenteServizioNonPuoAutoPromuoversiACoordinatore() {
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Imposta il referente come utente in sessione
+        CommonUtils.getSessionUtente(responseReferente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di auto-promuoversi a coordinatore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome(CommonUtils.NOME_UTENTE);
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("referente_test");
+        utenteUpdate.setRuolo(RuoloUtenteEnum.COORDINATORE);
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateUtente(responseReferente.getBody().getIdUtente(), utenteUpdate);
+        });
+
+        assertTrue(exception.getMessage().contains("non può auto-promuoversi"));
+    }
+
+    @Test
+    public void testCoordinatorePuoAutoDeclassarsiAReferenteServizio() {
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Auto-declassamento a referente_servizio
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome(CommonUtils.NOME_UTENTE);
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("coordinatore_test");
+        utenteUpdate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+
+        ResponseEntity<Utente> response = controller.updateUtente(responseCoordinatore.getBody().getIdUtente(), utenteUpdate);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloUtenteEnum.REFERENTE_SERVIZIO, response.getBody().getRuolo());
+    }
+
+    @Test
+    public void testCoordinatorePuoMantenereIlProprioRuolo() {
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Mantiene il ruolo coordinatore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome("NuovoNome");
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("coordinatore_test");
+        utenteUpdate.setRuolo(RuoloUtenteEnum.COORDINATORE);
+
+        ResponseEntity<Utente> response = controller.updateUtente(responseCoordinatore.getBody().getIdUtente(), utenteUpdate);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("NuovoNome", response.getBody().getNome());
+        assertEquals(RuoloUtenteEnum.COORDINATORE, response.getBody().getRuolo());
+    }
+
+    @Test
+    public void testCoordinatoreNonPuoAssegnareRuoloGestoreAdAltroUtente() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente referente_servizio
+        UtenteCreate utenteReferente = CommonUtils.getUtenteCreate();
+        utenteReferente.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteReferente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteReferente.setPrincipal("referente_test");
+        ResponseEntity<Utente> responseReferente = controller.createUtente(utenteReferente);
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // Imposta il coordinatore come utente in sessione
+        CommonUtils.getSessionUtente(responseCoordinatore.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Tenta di promuovere il referente a gestore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome(CommonUtils.NOME_UTENTE);
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("referente_test");
+        utenteUpdate.setRuolo(RuoloUtenteEnum.GESTORE);
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateUtente(responseReferente.getBody().getIdUtente(), utenteUpdate);
+        });
+
+        assertTrue(exception.getMessage().contains("coordinatore non può assegnare il ruolo"));
+    }
+
+    @Test
+    public void testGestorePuoPromuovereAltroUtenteAGestore() {
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Crea un utente coordinatore
+        UtenteCreate utenteCoordinatore = CommonUtils.getUtenteCreate();
+        utenteCoordinatore.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCoordinatore.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utenteCoordinatore.setPrincipal("coordinatore_test");
+        ResponseEntity<Utente> responseCoordinatore = controller.createUtente(utenteCoordinatore);
+
+        // L'utente in sessione è già un gestore (setup del test)
+
+        // Promuove il coordinatore a gestore
+        UtenteUpdate utenteUpdate = new UtenteUpdate();
+        utenteUpdate.setNome(CommonUtils.NOME_UTENTE);
+        utenteUpdate.setStato(CommonUtils.STATO_UTENTE);
+        utenteUpdate.setCognome(CommonUtils.COGNOME_UTENTE);
+        utenteUpdate.setEmailAziendale(CommonUtils.EMAIL_AZIENDALE);
+        utenteUpdate.setTelefonoAziendale(CommonUtils.TELEFONO_AZIENDALE);
+        utenteUpdate.setPrincipal("coordinatore_test");
+        utenteUpdate.setRuolo(RuoloUtenteEnum.GESTORE);
+
+        ResponseEntity<Utente> response = controller.updateUtente(responseCoordinatore.getBody().getIdUtente(), utenteUpdate);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloUtenteEnum.GESTORE, response.getBody().getRuolo());
+    }
 }
 
