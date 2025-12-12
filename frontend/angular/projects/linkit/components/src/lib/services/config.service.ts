@@ -47,6 +47,9 @@ export class ConfigService {
             scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
             requireHttps: false
           };
+          if (!_oauthConfig.StrictDiscoveryDocumentValidation) {
+            cfg.strictDiscoveryDocumentValidation = _oauthConfig.StrictDiscoveryDocumentValidation;
+          }
           if (!_oauthConfig.BackdoorOAuth) {
             const authCodeFlowConfig: AuthConfig = new AuthConfig(cfg);
             this.oauthService.configure(authCodeFlowConfig);

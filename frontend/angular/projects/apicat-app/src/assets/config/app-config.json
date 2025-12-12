@@ -47,7 +47,8 @@
         "ShowDebugInformation": false,
         "BackdoorOAuth": true,
         "Scope": "openid profile email offline_access",
-        "AutoAuthDiscovery": false
+        "AutoAuthDiscovery": false,
+        "StrictDiscoveryDocumentValidation": true
       },
 
       "TOKEN_POLICIES": {
