@@ -39,7 +39,6 @@ export class ConfigService {
           // OAUTH2
           const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
           const cfg: any = {
-            issuer: (_oauthConfig.Issuer || ''),
             redirectUri: (_oauthConfig.RedirectUri || ''),
             postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
             clientId: (_oauthConfig.ClientId || ''),
@@ -47,6 +46,15 @@ export class ConfigService {
             scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
             requireHttps: false
           };
+          if (_oauthConfig.Issuer) {
+            cfg.issuer = _oauthConfig.Issuer;
+          } else {
+            // Configurazione manuale degli endpoint:
+            cfg.loginUrl = (_oauthConfig.LoginUrl || '');
+            cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
+            cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
+            cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
+          }
           if (!_oauthConfig.StrictDiscoveryDocumentValidation) {
             cfg.strictDiscoveryDocumentValidation = _oauthConfig.StrictDiscoveryDocumentValidation;
           }
