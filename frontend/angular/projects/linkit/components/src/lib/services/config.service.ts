@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthConfig, OAuthErrorEvent, OAuthService } from 'angular-oauth2-oidc';
 
 import { Observable } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { Tools } from './tools.service';
 
@@ -46,6 +46,9 @@ export class ConfigService {
             scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
             requireHttps: false
           };
+          if (_oauthConfig.DummyClientSecret) {
+            cfg.dummyClientSecret = _oauthConfig.DummyClientSecret;
+          }
           if (_oauthConfig.Issuer) {
             cfg.issuer = _oauthConfig.Issuer;
           } else {
@@ -62,43 +65,37 @@ export class ConfigService {
             const authCodeFlowConfig: AuthConfig = new AuthConfig(cfg);
             this.oauthService.configure(authCodeFlowConfig);
             this.oauthService.setupAutomaticSilentRefresh();
-            this.oauthService.loadDiscoveryDocument().then(() => {
-              this.oauthService.tryLogin().then(() => {
-                if (this.oauthService.getAccessToken()) {
+
+            this.oauthService.loadDiscoveryDocumentAndTryLogin()
+              .then(() => {
+                if (this.oauthService.hasValidAccessToken()) {
                   this._tokenLoaded();
                 } else {
-                  // console.log('Autenticazione fallita');
                   Tools.LoginAccess();
                 }
-              }).catch((error: any) => {
-                // console.log('catch Autenticazione fallita');
+                resolve();
+              })
+              .catch((error: any) => {
+                console.warn('OAuth initialization error:', error);
                 Tools.LoginAccess();
+                resolve();
               });
-            });
+
             this.oauthService.events.subscribe(event => {
               if (!(event instanceof OAuthErrorEvent)) {
                 if (event.type === 'session_terminated') {
                   this._sessionTerminated();
                 }
-                // if (event.type === 'token_received') {
-                //   this._tokenLoaded(resolve);
-                // }
               } else {
                 if (event && event.reason) {
-                  // Tools.OnError(event.reason);
                   console.warn(event.reason);
                 }
               }
             });
           } else {
             Tools.LoginAccess();
-          }
-
-          // if (this.config.AppConfig.ANONYMOUS_ACCESS) {
-          //   this.loadRemoteConfig(resolve);
-          // } else {
             resolve();
-          // }
+          }
 
         });
     });

@@ -98,8 +98,8 @@ export class LoginComponent implements OnInit {
   login(value: any) {
     this.loading = true;
     this.authenticationService.login(value.username, value.password)
-      .subscribe(
-        (response: any) => {
+      .subscribe({
+        next: (response: any) => {
           if (!this.returnUrl || this.returnUrl === '/') {
             this.returnUrl = '/dashboard';
           }
@@ -111,12 +111,12 @@ export class LoginComponent implements OnInit {
           this.router.navigate([this.returnUrl]);
           this.loading = false;
         },
-        (error: any) => {
+        error: (error: any) => {
           this.error = error;
           this.errorCode = error.error.status;
           this.loading = false;
         }
-      );
+      });
 
     // Mockup
     // const response = {
