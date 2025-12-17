@@ -1,19 +1,25 @@
-<header class="navbar navbar-gitlab navbar-expand-sm js-navbar" *ngIf="_showHeaderBar">
+<div class="sup-header px-0" *ngIf="_showSupHeaderBar">
+    <div class="h-100" [innerHtml]="_headerHtml | safeHtml">
+        <!-- /assets/pages/sup-header.html -->
+    </div>
+</div>
+<header class="navbar navbar-gitlab navbar-expand-sm js-navbar" [class.has-sub-header]="_showSupHeaderBar" *ngIf="_showHeaderBar">
     <div class="container-fluid">
         <div class="header-container w-100">
             <div class="" *ngIf="_spin"><span class="spinner-border spinner-border-sm text-white"></span></div>
             <app-head-bar *ngIf="!_spin"
-                [title]="_title"
+                [title]="_applicationTitle"
                 [logo]="_config.AppConfig.Layout.Header.logo"
                 [anonymous]="_isAnonymous"
-                [login]="login"
                 [loggedIn]="loggedIn"
+                [login]="login"
                 [loginLabel]="loginLabel"
                 [username]="username"
+                [showUsername]="_showUsername"
                 [menu-action-list]="_menuActions"
                 [menu-app-action-list]="_menuAppActions"
                 [language-list]="_languages"
-                [show-language-menu]="false"
+                [show-language-menu]="_showLanguagesMenu"
                 [show-notifications]="_showNotificationsBar"
                 [icon-notifications]="'inbox'"
                 [notifications-counter]="_counters['notifications']"
@@ -25,8 +31,8 @@
         </div>
     </div>
 </header>
-<div id="page-full-scroll-container" class="layout-page hide-when-top-nav-responsive-open" [ngClass]="{ 'page-with-contextual-sidebar': (_contentLimeted || !_notSideBar) && !_isAnonymous, 'page-with-contextual-sidebar-reduced': _sideBarCollapsed && !_isAnonymous && !mobile, 'page-with-icon-sidebar': _sideBarCollapsed && desktop && (_contentLimeted && !_notSideBar) }">
-    <aside class="nav-sidebar" [ngClass]="{ 'sidebar-collapsed-desktop': _sideBarCollapsed && desktop, 'sidebar-expanded-mobile': !_sideBarCollapsed && !desktop && !mobile || _openSideBar  }" *ngIf="(_contentLimeted || !_notSideBar) &&!_isAnonymous">
+<div id="page-full-scroll-container" class="layout-page hide-when-top-nav-responsive-open" [ngClass]="{ 'page-with-contextual-sidebar': (_contentLimited || !_notSideBar) && !_isAnonymous, 'page-with-contextual-sidebar-reduced': _sideBarCollapsed && !_isAnonymous && !mobile, 'page-with-icon-sidebar': _sideBarCollapsed && desktop && (_contentLimited && !_notSideBar) }">
+    <aside class="nav-sidebar" [ngClass]="{ 'sidebar-collapsed-desktop': _sideBarCollapsed && desktop, 'sidebar-expanded-mobile': !_sideBarCollapsed && !desktop && !mobile || _openSideBar  }" *ngIf="(_contentLimited || !_notSideBar) &&!_isAnonymous">
         <div class="d-flex flex-column align-items-start h-100">
             <div class="nav-sidebar-inner-scroll">
                 <div class="w-100 text-center mt-3" *ngIf="_spin"><span class="spinner-border spinner-border-sm text-muted"></span></div>
@@ -51,16 +57,17 @@
                                         <ul class="sidebar-sub-level-items">
                                             <li class="fly-out-top-item" [appRouterLinkMatch]="{ 'active': _item.path + '' }">
                                                 <span class="fly-out-top-item-container">
-                                                <strong class="fly-out-top-item-name">{{ _item.label + '' | translate }}</strong>
-                                                <span class="gl-badge badge badge-pill badge-info sm count fly-out-badge merge_counter js-merge-counter" *ngIf="_item.counter && _counters[_item.counter]">{{ _counters[_item.counter] || 0 }}</span>
+                                                    <strong class="fly-out-top-item-name">{{ _item.label + '' | translate }}</strong>
+                                                    <span class="gl-badge badge badge-pill badge-info sm count fly-out-badge merge_counter js-merge-counter" *ngIf="_item.counter && _counters[_item.counter]">{{ _counters[_item.counter] || 0 }}</span>
                                                 </span>
                                             </li>
                                             <li class="divider fly-out-top-item"></li>
                                             <ng-container *ngFor="let _subItem of _item.children">
-                                                <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
+                                                <!-- <li class="text-wrap" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" [contextMenu]="contextualMenuNav" [contextMenuSubject]="_subItem" *ngIf="_subItem | mapper:_showMenu"> -->
+                                                <li class="text-wrap" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
                                                     <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="_onClickMenu($event, _subItem)">
                                                         <!-- <span class="nav-icon-container">
-                                                        <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
+                                                            <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
                                                         </span> -->
                                                         <span class="">{{ _subItem.label + '' | translate }}</span>
                                                         <!-- <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter">580</span> -->
@@ -74,11 +81,11 @@
                         </ng-container>
                     </ng-container>
                 </ul>
-                <context-menu #contextualMenuNav>
+                <!-- <context-menu #contextualMenuNav>
                     <ng-template contextMenuItem (execute)="_onContextualMenu($event)">
                         <span class="me-2">{{ 'APP.MENU.OpenInNewWindow' | translate }}</span><i class="bi-box-arrow-up-right"></i>
                     </ng-template>
-                </context-menu>
+                </context-menu> -->
             </div>
             <div class="d-flex flex-column align-items-start" [class.pt-2]="_showNewsArea && !_sideBarCollapsed" [class.border-top]="(_showAboutMiniBox || _showNewsArea) && !_sideBarCollapsed">
                 <div class="news-area" *ngIf="_showNewsArea && !_sideBarCollapsed">
@@ -94,12 +101,12 @@
                 <div class="about-area" *ngIf="_showAboutMiniBox && !_sideBarCollapsed">
                     <app-about-mini-box></app-about-mini-box>
                 </div>
-                <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed" *ngIf="_showVersion || _showAbout">
+                <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed" *ngIf="_showVersion">
                     <ul class="sidebar-top-level-items mb-0">
                         <li class="" appFlyOut>
-                            <a tabindex="0" class="gl-link cursor-pointer d-flex gap-2" (click)="showInfo()">
-                                <span class="nav-icon-container mr-0" *ngIf="_showAbout"><i class="bi bi-info-circle"></i></span>
-                                <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed && _showVersion">{{ 'v.' | translate }} {{ version }}</span>
+                            <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="showInfo()">
+                                <span class="nav-icon-container" *ngIf="_showAbout || _sideBarCollapsed" [title]="('APP.LABEL.Version' | translate) + ' ' + version"><i class="bi bi-info-circle"></i></span>
+                                <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed">{{ 'v.' | translate }} {{ version }}</span>
                             </a>
                             <ul class="sidebar-sub-level-items">
                                 <li class="fly-out-top-item">
@@ -117,7 +124,7 @@
                         <span class="material-icons-outlined">{{ (_sideBarCollapsed) ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
                         <span class="collapse-text gp-ml-3">{{ 'APP.BUTTON.CollapseSidebar' | translate }}</span>
                     </a>
-                    <button name="button" type="button" class="close-nav-button position-relative" (click)="__closeSideBar()" title="Toggle sidebar [v.{{ version }}]">
+                    <button name="button" type="button" class="close-nav-button position-relative" (click)="__closeSideBar()" title="[v.{{ version }}]">
                         <!-- <i class="bi bi-x-lg"></i> -->
                         <span class="material-icons-outlined">close</span>
                         <span class="collapse-text gl-ml-3">{{ 'APP.BUTTON.CloseSidebar' | translate }}</span>
@@ -126,16 +133,31 @@
             </div>
         </div>
     </aside>
-    <div class="content-wrapper" [ngClass]="{'content-wrapper-margin': _contentLimeted || _notSideBar}">
-        <div class="mobile-overlay" [class.mobile-nav-open]="_openSideBar" (click)="__closeSideBar()" *ngIf="_contentLimeted"></div>
-        <div class="container-fluid" [ngClass]="{'container-limited': _contentLimeted, 'px-0': !_contentLimeted, 'py-0': !_contentLimeted}">
-            <main class="content">
+    <div class="content-wrapper" [ngClass]="{'content-wrapper-margin': _contentLimited || _notSideBar}">
+        <div class="mobile-overlay" [class.mobile-nav-open]="_openSideBar" (click)="__closeSideBar()" *ngIf="_contentLimited"></div>
+        <div class="container-fluid" [ngClass]="{'container-limited': _contentLimited, 'container-limited-max': !_contentLimited, 'px-md-4 px-sm-2': !_contentLimited, 'py-0': !_contentLimited}">
+            <main id="main-content" tabindex="-1" class="content">
                 <router-outlet></router-outlet>
             </main>
         </div>
     </div>
 </div>
-    <!-- <app-spinner *ngIf="_spin"></app-spinner> -->
+<footer id="footer" class="px-0" [class.expanded]="_expandedFooter" *ngIf="_showFooterBar">
+    <div id="footerExpander" class="footer-expander" (click)="_toggleExpandFooter($event)">
+        <i class="bi bi-chevron-compact-down" *ngIf="_expandedFooter"></i>
+        <i class="bi bi-chevron-compact-up" *ngIf="!_expandedFooter"></i>
+    </div>
+    <div id="footerExpanderClose" class="footer-expander-alt" (click)="_toggleExpandFooter($event)">
+        <i class="bi bi-x-lg"></i>
+    </div>
+    <div class="h-100" [innerHtml]="_footerHtml | safeHtml" *ngIf="_expandedFooter">
+        <!-- /assets/pages/footer.html -->
+    </div>
+    <div class="h-100" [innerHtml]="_footerSmallHtml | safeHtml" *ngIf="!_expandedFooter">
+        <!-- /assets/pages/footer-small.html -->
+    </div>
+</footer>
+<!-- <app-spinner *ngIf="_spin"></app-spinner> -->
 <app-multi-snackbar></app-multi-snackbar>
 <div #watermark class="staging-box d-flex align-items-center justify-content-center" *ngIf="_config.AppConfig?.Watermark && _config.AppConfig?.WatermarkText">
     <span class="text-truncate">{{ _config.AppConfig?.WatermarkText }}</span>

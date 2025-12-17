@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChe
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { BreakpointObserver } from '@angular/cdk/layout';
 
-import { TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OAuthService } from 'angular-oauth2-oidc';
 
@@ -26,8 +26,8 @@ import { navItemsMainMenu, navItemsAdministratorMenu, navNotificationsMenu } fro
 
 import { environment } from '@app/environments/environment';
 
-import { Observable, of, firstValueFrom } from 'rxjs';
-import { filter, tap } from 'rxjs/operators';
+import { Observable, of, firstValueFrom, forkJoin } from 'rxjs';
+import { catchError, filter, tap } from 'rxjs/operators';
 
 import * as _ from 'lodash';
 
@@ -88,7 +88,18 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     _autologin: boolean = false;
     _anonymousAccess: boolean = false;
     _autoAuthDiscovery: boolean = true;
+
+    _hasSideBar: boolean = false;
+    _showUsername: boolean = false;
     _showHeaderBar: boolean = false;
+    _showSupHeaderBar: boolean = false;
+    _showFooterBar: boolean = false;
+    _showFooterExpander: boolean = false;
+    _supHeaderHeight: string = '0px';
+    _footerHeight: string = '48px';
+    _footerExpandedHeight: string = '48px';
+    _footerExpandedOver: boolean = false;
+    _expandedFooter: boolean = false;
     _forceMenuOpen: boolean = false;
     _showVersion: boolean = false;
     _showBuild: boolean = false;
@@ -96,15 +107,21 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     _showAboutMiniBox: boolean = true;
     _showNewsArea: boolean = true;
 
+    _headerHtml: string = '';
+    _footerHtml: string = '';
+    _footerSmallHtml: string = '';
+
     _title: string = '';
 
-    _contentLimeted: boolean = true;
+    _urlSite: string = '';
+    _contentLimited: boolean = true;
     _notSideBar: boolean = false;
 
     _api_url: string = '';
 
     _stopPropagation: boolean = false; // Fix contextMenu
 
+    _showLanguagesMenu: boolean = true;
     _showNotificationsMenu: boolean = false;
     _showNotificationsBar: boolean = true;
     _enablePollingNotifications: boolean = true;
@@ -148,22 +165,60 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         console.log('Configurazione Remota gl-layout', Tools.Configurazione);
 
         this._config = this.configService.getConfiguration();
+        this._urlSite = this._config.AppConfig.SITE || '';
+        this._contentLimited = this._config.AppConfig.Layout.contentLimited || false;
         this._loginEnabled = this._config.AppConfig.AUTH_SETTINGS.LOGIN_ENABLED || false;
         this._autologin = this._config.AppConfig.AUTH_SETTINGS.AUTOLOGIN || false;
         this._anonymousAccess = this._config.AppConfig.ANONYMOUS_ACCESS || false;
         this._autoAuthDiscovery = this._config.AppConfig.AUTH_SETTINGS.OAUTH?.AutoAuthDiscovery || false;
+
+        this._hasSideBar = this._config.AppConfig.Layout.hasSideBar || false;
+        this._showUsername = this._config.AppConfig.Layout.showUsername || false;
         this._showHeaderBar = this._config.AppConfig.Layout.showHeaderBar || false;
+        this._showSupHeaderBar = this._config.AppConfig.Layout.showSupHeaderBar || false;
+        this._showFooterBar = this._config.AppConfig.Layout.showFooterBar || false;
+        this._showFooterExpander = this._config.AppConfig.Layout.showFooterExpander || false;
+        this._supHeaderHeight = this._config.AppConfig.Layout.supHeaderHeight || '0px';
+        this._footerHeight = this._config.AppConfig.Layout.footerHeight || '48px';
+        this._footerExpandedHeight = this._config.AppConfig.Layout.footerExpandedHeight || '48px';
+        this._footerExpandedOver = this._config.AppConfig.Layout.footerExpandedOver || false;
         this._forceMenuOpen = this._config.AppConfig.Layout.forceMenuOpen || false;
+        
         this._showVersion = this._config.AppConfig.Layout.showVersion || false;
         this._showBuild = this._config.AppConfig.Layout.showBuild || false;
         this._showAbout = this._config.AppConfig.Layout.showAbout || false;
         this._showAboutMiniBox = this._config.AppConfig.Layout.showAboutMiniBox || false;
         this._showNewsArea = this._config.AppConfig.Layout.showNewsArea || false;
+
+        this._showLanguagesMenu = this._config.AppConfig.Layout.showLanguagesMenu || false;
         this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
         this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
         this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
         this._title = this._config.AppConfig.Layout.Header.title;
         this._api_url = this._config.AppConfig.SITE;
+
+        let offset = 0;
+        if (this._showSupHeaderBar) {
+            offset += parseInt(this._supHeaderHeight, 10);
+        }
+        if (this._showHeaderBar) {
+            offset += 48;
+        }
+        if (this._showFooterBar) {
+            offset += parseInt(this._footerHeight, 10);
+        }
+        document.documentElement.style.setProperty('--header-offset', `${offset}px`);
+        document.documentElement.style.setProperty('--header-height', this._showHeaderBar ? '48px' : '0px');
+        document.documentElement.style.setProperty('--content-wrapper-top', this._showHeaderBar ? '48px' : '0px');
+
+        document.documentElement.style.setProperty('--sup-header-height', this._showSupHeaderBar ? this._supHeaderHeight : '0px');
+        
+        document.documentElement.style.setProperty('--footer-height', this._showFooterBar ? this._footerHeight : '0px');
+        document.documentElement.style.setProperty('--footer-expanded-height', this._showFooterBar ? this._footerExpandedHeight : '0px');
+        document.documentElement.style.setProperty('--content-wrapper-bottom', this._showFooterBar ? this._footerHeight : '0px');
+        
+        // document.documentElement.style.setProperty('--header-height', this._showSupHeaderBar ? '48px' : '0px');
+        document.documentElement.style.setProperty('--footer-offset', this._showFooterBar ? '48px' : '0px');
 
         if (Tools.Configurazione) {
             const _dashboardRemoteConfig: any = this.authenticationService._getConfigModule('dashboard');
@@ -194,19 +249,25 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this.setHeaderBar(this._isAnonymous);
 
         if (Tools.CurrentApplication && Tools.CurrentApplication.menu) {
-            this._contentLimeted = Tools.CurrentApplication.menu.action === 'dashboard';
+            this._contentLimited = Tools.CurrentApplication.menu.action === 'dashboard';
         }
 
         this.router.events.pipe(
-            filter((event: any) => event instanceof NavigationEnd)
-        ).subscribe(event => {
-            // this._contentLimeted = true;
-            // const root = this.router.routerState.snapshot.root;
-        });
+                filter((event: any) => event instanceof NavigationEnd)
+            ).subscribe(event => {
+                this._contentLimited = this._config.AppConfig.Layout.contentLimited || false;
+            });
 
+        this.translate.onLangChange.subscribe((event: LangChangeEvent) => {
+            this._loadHeaderFooter();
+            this.initMenuActions();
+        });
+    
         this.initLanguages();
         this.initMenuActions();
         this.onResize();
+
+        this._loadHeaderFooter();
     }
 
     @HostListener('window:resize')
@@ -231,6 +292,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         }
     }
 
+    @HostListener('window:keydown', ['$event'])
+    keyEvent(event: KeyboardEvent) {
+        if (event.key === 'l' && event.ctrlKey) {
+            this._contentLimited = !this._contentLimited;
+        }
+    }
+
     async ngOnInit() {
         if (!Tools.Configurazione) {
             console.log('1 - GpLayout loading RemoteConfig');
@@ -245,7 +313,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
         this.eventsManagerService.on(EventType.LAYOUT_FULLWIDTH, (event: any) => {
             console.log(EventType.LAYOUT_FULLWIDTH, event);
-            this._contentLimeted = !event;
+            this._contentLimited = !event;
         });
 
         setTimeout(() => {
@@ -328,6 +396,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this.loginLabel = this.translate.instant('APP.BUTTON.Login');
         if (anonymous) {
             this._enablePollingNotifications = false;
+            this._showLanguagesMenu = this._config.AppConfig.Layout.showLanguagesMenu || false;
             this._showNotificationsMenu = false;
             this._showNotificationsBar = false;
             this.loggedIn = false;
@@ -335,12 +404,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.username = '';
         } else {
             this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
-            this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
+            this._showLanguagesMenu = this._config.AppConfig.Layout.showLanguagesMenu || false;
+            this._showNotificationsMenu = false;
             this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
             this.notificationsCount$ = this.notificationsService.getNotificationsCount();
-            this.loggedIn = (this._session.stato  === 'abilitato');
-            this.login = (this._session.stato  === 'abilitato');
-            this.username = (this._session?.utente?.email || this._session?.utente?.email_aziendale) || null;
+            this.loggedIn = (this._session !== null);
+            this.login = (this._session !== null);
+            this.username = this._session?.utente?.username || '';
             this._startCounters();
         }
     }
@@ -469,6 +539,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         }
     }
 
+    get _applicationTitle(): string {
+        return this._title; // this.translate.instant('APP.TITLE.AppTitle')
+    }
+
     _onChangeLanguage(event: any) {
         if (event.language.alpha2Code !== this.translate.currentLang) {
             Tools.WaitForResponse();
@@ -582,11 +656,11 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         // this._title = (Tools.CurrentApplication && Tools.CurrentApplication.menu) ? Tools.CurrentApplication.menu.title : this._config.AppConfig.Layout.Header.title;
         switch (event.menu.action) {
             case 'dashboard':
-                this._contentLimeted = false;
+                this._contentLimited = false;
                 this.router.navigate([event.menu.url]);
                 break
             default:
-                this._contentLimeted = false;
+                this._contentLimited = false;
                 this.router.navigate(['/application']);
                 break;
         }
@@ -634,6 +708,84 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this.navItems.forEach((item: INavData) => {
         item.expanded = false;
         });
+    }
+
+    @HostListener('click', ['$event'])
+    onClick(e: any) {
+        if (e.target.id !== 'footerExpander' && this._expandedFooter) {
+            if (this._footerExpandedOver) {
+                this._expandedFooter = false;
+            } else {
+                document.documentElement.style.setProperty('--footer-height', this._expandedFooter ? this._footerExpandedHeight : this._footerHeight);
+                document.documentElement.style.setProperty('--content-wrapper-bottom', this._expandedFooter ? this._footerExpandedHeight : this._footerHeight);
+            }
+        }
+    }
+
+    _toggleExpandFooter(event: any) {
+        event.stopPropagation();
+        this._expandedFooter = !this._expandedFooter;
+        if (!this._footerExpandedOver) {
+            document.documentElement.style.setProperty('--footer-height', this._expandedFooter ? this._footerExpandedHeight : this._footerHeight);
+            document.documentElement.style.setProperty('--content-wrapper-bottom', this._expandedFooter ? this._footerExpandedHeight : this._footerHeight);
+        }
+    }
+
+    _loadHeaderFooter() {
+        if (this._showFooterBar || this._showHeaderBar) {
+            this._loadStyle('./assets/pages/css/styles.css');
+            this._loadStyle('./assets/pages/css/custom_styles.css', 'custom-css');
+            this._loadScript('./assets/pages/js/scripts.js');
+
+            const reqs: Observable<any>[] = [];  
+            const folder = `pages/${this.translate.currentLang}`;
+            reqs.push( this.configService.getPage('header', folder).pipe(catchError((err) => { return of(''); })) );
+            reqs.push( this.configService.getPage('footer-small', folder).pipe(catchError((err) => { return of(''); })) );
+            reqs.push( this.configService.getPage('footer', folder) .pipe( catchError((err) => { return of(''); })) );
+            forkJoin(reqs).subscribe(
+                (results: Array<any>) => {
+                    const header = results[0].replace(/##SITE_URL##/g, this._urlSite);
+                    this._headerHtml = header;
+                    this._footerSmallHtml = results[1];
+                    this._footerHtml = results[2];
+                },
+                (error: any) => {
+                    console.log('_loadHeaderFooter forkJoin error', error);
+                }
+            );
+        }
+    }
+
+    _loadStyle(styleName: string, id: string = 'footer-css') {
+        const head = document.getElementsByTagName('head')[0];
+
+        let cssLink = document.getElementById(id) as HTMLLinkElement;
+        if (cssLink) {
+            cssLink.href = styleName;
+        } else {
+            const style = document.createElement('link');
+            style.id = id;
+            style.rel = 'stylesheet';
+            style.href = `${styleName}`;
+
+            head.appendChild(style);
+        }
+    }
+
+    _loadScript(scriptName: string, id: string = 'footer-script') {
+        const head = document.getElementsByTagName('head')[0];
+
+        let jsLink = document.getElementById(id) as HTMLLinkElement;
+        if (jsLink) {
+            jsLink.href = scriptName;
+        } else {
+            const script = document.createElement('script');
+            script.id = id;
+            script.type = 'text/javascript';
+            script.src = `${scriptName}`;
+        
+            head.appendChild(script);
+        }
     }
 
     _showMenu = (menu: any): boolean => {

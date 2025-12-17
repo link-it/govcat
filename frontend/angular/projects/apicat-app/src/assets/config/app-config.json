@@ -1,5 +1,5 @@
 {
-  "version": "0.1",
+  "version": "1.0",
 
   "sessionPrefix": "GWAC",
 
@@ -98,7 +98,18 @@
         "logo": "linkit_logo/LINK_logo-Govcat-O.svg",
         "header": "linkit_logo/LINK_logo-Govcat-O.svg"
       },
+      "contentLimited": false,
+      "hasSideBar": false,
+      "showSupHeaderBar": false,
       "showHeaderBar": true,
+      "showUsername": true,
+      "showLanguagesMenu": false,
+      "showFooterBar": false,
+      "showFooterExpander": true,
+      "supHeaderHeight": "60px",
+      "footerHeight": "48px",
+      "footerExpandedHeight": "245px",
+      "footerExpandedOver": true,
       "Header": {
         "title": "Catalogo API ModI",
         "logo": "linkit_logo/LINK_logo-Govcat-O.svg"
