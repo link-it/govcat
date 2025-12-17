@@ -44,29 +44,41 @@ export class ConfigService {
             clientId: (_oauthConfig.ClientId || ''),
             responseType: (_oauthConfig.ResponseType || 'code'),
             scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
-            requireHttps: false
+            requireHttps: false,
+            showDebugInformation: false
           };
           if (_oauthConfig.DummyClientSecret) {
             cfg.dummyClientSecret = _oauthConfig.DummyClientSecret;
           }
+          const useDiscoveryDocument = !!_oauthConfig.Issuer;
+
           if (_oauthConfig.Issuer) {
             cfg.issuer = _oauthConfig.Issuer;
           } else {
-            // Configurazione manuale degli endpoint:
+            // Configurazione manuale degli endpoint (senza discovery document):
             cfg.loginUrl = (_oauthConfig.LoginUrl || '');
             cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
             cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
             cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
+            cfg.skipIssuerCheck = true;
+            cfg.strictDiscoveryDocumentValidation = false;
           }
-          if (!_oauthConfig.StrictDiscoveryDocumentValidation) {
+          if (_oauthConfig.Issuer && !_oauthConfig.StrictDiscoveryDocumentValidation) {
             cfg.strictDiscoveryDocumentValidation = _oauthConfig.StrictDiscoveryDocumentValidation;
           }
           if (!_oauthConfig.BackdoorOAuth) {
             const authCodeFlowConfig: AuthConfig = new AuthConfig(cfg);
+
             this.oauthService.configure(authCodeFlowConfig);
             this.oauthService.setupAutomaticSilentRefresh();
 
-            this.oauthService.loadDiscoveryDocumentAndTryLogin()
+            // Con Issuer: carica discovery document e prova login
+            // Senza Issuer (endpoint manuali): solo tryLogin
+            const loginPromise = useDiscoveryDocument
+              ? this.oauthService.loadDiscoveryDocumentAndTryLogin()
+              : this.oauthService.tryLogin();
+
+            loginPromise
               .then(() => {
                 if (this.oauthService.hasValidAccessToken()) {
                   this._tokenLoaded();
