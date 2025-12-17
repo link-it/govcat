@@ -39,7 +39,6 @@
       "SHOW_USER_REGISTRATION": false,
 
       "OAUTH": {
-        "Issuer": "",
         "ClientId": "catalogo-app",
         "RedirectUri": "",
         "LogoutRedirectUri": "",
