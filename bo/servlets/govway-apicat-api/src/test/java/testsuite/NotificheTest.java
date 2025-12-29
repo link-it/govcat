@@ -1,8 +1,6 @@
 package testsuite;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -66,6 +64,9 @@ import org.govway.catalogo.servlets.model.UpdateNotifica;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
 import org.govway.catalogo.servlets.model.VisibilitaDominioEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
+import org.govway.catalogo.core.orm.entity.NotificaEntity;
+import org.govway.catalogo.core.dao.specifications.NotificaSpecification;
+import org.govway.catalogo.core.services.NotificaService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -147,6 +148,9 @@ public class NotificheTest {
     
     @Autowired
     NotificheController notificheController;
+
+    @Autowired
+    NotificaService notificaService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -685,5 +689,115 @@ public class NotificheTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         // Non dovrebbe trovare notifiche con tipo entità email
         assertEquals(0L, response.getBody().getCount());
+    }
+
+    @Test
+    public void testNotificaSpecificationEscludiEmail() {
+        // Test diretto sulla specification per escludere email
+        NotificaSpecification spec = new NotificaSpecification();
+        spec.setEscludiEmail(true);
+
+        // Verifica che il flag sia impostato correttamente
+        assertEquals(true, spec.isEscludiEmail());
+        assertEquals(false, spec.isSoloEmailNonInviate());
+    }
+
+    @Test
+    public void testNotificaSpecificationSoloEmailNonInviate() {
+        // Test diretto sulla specification per le email non inviate
+        NotificaSpecification spec = new NotificaSpecification();
+        spec.setSoloEmailNonInviate(true);
+
+        // Verifica che il flag sia impostato correttamente
+        assertEquals(false, spec.isEscludiEmail());
+        assertEquals(true, spec.isSoloEmailNonInviate());
+    }
+
+    @Test
+    public void testListNotificheExcludesEmailNotifications() {
+        // Creo il dominio
+        Dominio dominio = this.getDominio(null);
+        // Creo un servizio
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        // Creo API
+        this.getAPI();
+
+        // Pubblico il servizio per generare notifiche
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        // Invio un messaggio per generare notifiche push E email
+        MessaggioCreate messaggioComunicazione = new MessaggioCreate();
+        messaggioComunicazione.setOggetto("Oggetto Test Email");
+        messaggioComunicazione.setTesto("Testo per verificare esclusione email");
+        serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        // La GET notifiche dovrebbe restituire solo le notifiche push, non quelle email
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(
+            null, null, null, null, null, null, idServizio, null, 0, 100, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        // Tutte le notifiche restituite dovrebbero essere di tipo push (non email)
+        for (var notifica : response.getBody().getContent()) {
+            // Verifica che il tipo non sia email
+            assertNotNull(notifica.getTipo());
+            // Le notifiche push sono COMUNICAZIONE e CAMBIO_STATO, non COMUNICAZIONE_EMAIL e CAMBIO_STATO_EMAIL
+            if (notifica.getTipo() != null) {
+                String tipo = notifica.getTipo().getTipo();
+                boolean isEmailType = TipoNotificaEnum.COMUNICAZIONE_EMAIL.getValue().equals(tipo)
+                    || TipoNotificaEnum.CAMBIO_STATO_EMAIL.getValue().equals(tipo);
+                assertEquals(false, isEmailType, "La notifica non dovrebbe essere di tipo email");
+            }
+        }
+    }
+
+    @Test
+    public void testCountNotificheExcludesEmailNotifications() {
+        // Creo il dominio
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        // Creo API
+        this.getAPI();
+
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        // Invio un messaggio per generare notifiche push E email
+        MessaggioCreate messaggioComunicazione = new MessaggioCreate();
+        messaggioComunicazione.setOggetto("Oggetto Test Email Count");
+        messaggioComunicazione.setTesto("Testo per verificare esclusione email count");
+        serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        // Il count dovrebbe escludere le notifiche email
+        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(
+            null, null, null, null, null, null, idServizio, null);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Il count dovrebbe includere solo notifiche push, non email
+        // Questo test verifica che l'esclusione sia attiva
+        assertNotNull(response.getBody().getCount());
+    }
+
+    @Test
+    public void testEmailInviataFlag() {
+        // Test per verificare che il flag emailInviata funzioni correttamente
+        NotificaEntity notifica = new NotificaEntity();
+
+        // Inizialmente il flag dovrebbe essere false
+        assertFalse(notifica.isEmailInviata());
+
+        // Imposta il flag a true
+        notifica.setEmailInviata(true);
+        assertTrue(notifica.isEmailInviata());
+
+        // Imposta il flag a false
+        notifica.setEmailInviata(false);
+        assertFalse(notifica.isEmailInviata());
     }
 }

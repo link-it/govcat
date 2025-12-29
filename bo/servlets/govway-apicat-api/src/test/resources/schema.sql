@@ -307,6 +307,7 @@ create sequence seq_utenti start with 1 increment by 1;
         info_messaggio varchar(255),
         info_oggetto varchar(255),
         info_stato varchar(255),
+        email_inviata boolean not null,
         ruoli varchar(255),
         stato varchar(255) not null,
         tipo varchar(255) not null,

@@ -98,4 +98,7 @@ public class NotificaEntity {
 	private UtenteEntity mittente;
 
 	private String ruoli;
+
+	@Column(name = "email_inviata", nullable = false)
+	private boolean emailInviata;
 }

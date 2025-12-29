@@ -21,6 +21,8 @@ package org.govway.catalogo;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -32,6 +34,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Compatibile con Java 21 e Tomcat 11 (Jakarta EE 10+).
  */
 @Configuration
+@EnableScheduling
+@EnableAsync
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Autowired
