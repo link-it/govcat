@@ -1363,6 +1363,10 @@
 			"TYPE": {
 				"CambioStato": "Cambio stato",
 				"Comunicazione": "Comunicazione"
+			},
+			"CHANNEL": {
+				"InApp": "In-app",
+				"Email": "Email"
 			}
 		},
 		"ORGANIZATIONS": {
