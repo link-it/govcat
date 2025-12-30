@@ -1,9 +1,14 @@
-import { AfterContentChecked, Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { Tools } from '../../services';
 
 import moment from 'moment/moment';
+
+export interface TargetOption {
+  label: string;
+  value: string;
+}
 
 @Component({
     selector: 'ui-sender',
@@ -17,6 +22,14 @@ export class SenderComponent implements AfterContentChecked {
   @ViewChild('msg', { static: false, read: ElementRef }) _messaggio!: ElementRef;
   @ViewChild('msgBar', { read: ElementRef, static: false }) _msgBar!: ElementRef;
   @ViewChild('browse', { static: false, read: ElementRef }) _browse!: ElementRef;
+
+  @Input() showTarget: boolean = false;
+  @Input() targetOptions: TargetOption[] = [
+    { label: 'APP.LABEL.TargetPubblica', value: 'pubblica' },
+    { label: 'APP.LABEL.TargetSoloReferenti', value: 'solo_referenti' },
+    { label: 'APP.LABEL.TargetSoloAderenti', value: 'solo_aderenti' }
+  ];
+  @Input() includiTecniciLabel: string = 'APP.LABEL.IncludiTecnici';
 
   @Output() download: EventEmitter<any> = new EventEmitter<any>();
   @Output() send: EventEmitter<any> = new EventEmitter<any>();
@@ -32,12 +45,20 @@ export class SenderComponent implements AfterContentChecked {
   _formGroup: FormGroup = new FormGroup({});
   _msgCtrl = new FormControl('', Validators.required);
   _allegatiCtrl: FormControl = new FormControl('');
+  _targetCtrl: FormControl = new FormControl('pubblica');
+  _includiTecniciCtrl: FormControl = new FormControl(true);
 
   constructor() {
     this._formGroup = new FormGroup({
       messaggio: this._msgCtrl,
-      allegati: this._allegatiCtrl
+      allegati: this._allegatiCtrl,
+      target: this._targetCtrl,
+      includi_tecnici: this._includiTecniciCtrl
     });
+  }
+
+  get showIncludiTecnici(): boolean {
+    return this._targetCtrl.value !== 'pubblica';
   }
 
   ngAfterContentChecked() {

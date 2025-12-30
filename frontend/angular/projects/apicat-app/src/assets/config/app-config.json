@@ -257,7 +257,9 @@
           "--dropdown-item-back-hover": "#f0f0f0",
           "--dropdown-item-color-hover": "#303030",
           "--group-button-background": "#dbdbdb",
-          "--group-button-color": "#303030"
+          "--group-button-color": "#303030",
+          "--message-bar-color": "#000000",
+          "--message-bar-chips-color": "#d1d1d1"
         }
       },
       {
@@ -320,7 +322,9 @@
           "--dropdown-item-back-hover": "#f0f0f0",
           "--dropdown-item-color-hover": "#303030",
           "--group-button-background": "#dbdbdb",
-          "--group-button-color": "#303030"
+          "--group-button-color": "#303030",
+          "--message-bar-color": "#000000",
+          "--message-bar-chips-color": "#d1d1d1"
         }
       },
       {
@@ -384,7 +388,9 @@
           "--dropdown-item-back-hover": "#f0f0f0",
           "--dropdown-item-color-hover": "#303030",
           "--group-button-background": "#dbdbdb",
-          "--group-button-color": "#303030"
+          "--group-button-color": "#303030",
+          "--message-bar-color": "#000000",
+          "--message-bar-chips-color": "#d1d1d1"
         }
       },
       {
@@ -447,7 +453,9 @@
           "--dropdown-item-back-hover": "#dfe8ec",
           "--dropdown-item-color-hover": "#303030",
           "--group-button-background": "#dbdbdb",
-          "--group-button-color": "#303030"
+          "--group-button-color": "#303030",
+          "--message-bar-color": "#000000",
+          "--message-bar-chips-color": "#d1d1d1"
         }
       },
       {
@@ -516,7 +524,9 @@
           "--dropdown-item-back-hover": "#f0f0f0",
           "--dropdown-item-color-hover": "#303030",
           "--group-button-background": "#dbdbdb",
-          "--group-button-color": "#303030"
+          "--group-button-color": "#303030",
+          "--message-bar-color": "#000000",
+          "--message-bar-chips-color": "#d1d1d1"
         }
       },
       {
@@ -577,7 +587,9 @@
           "--dropdown-item-back-hover": "#dfe8ec",
           "--dropdown-item-color-hover": "#646464",
           "--group-button-background": "#dbdbdb",
-          "--group-button-color": "#646464"
+          "--group-button-color": "#646464",
+          "--message-bar-color": "#000000",
+          "--message-bar-chips-color": "#d1d1d1"
         }
       }
     ]

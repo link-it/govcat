@@ -23,7 +23,7 @@ import { ProgressComponent } from "./progress/progress.component";
 import { RepeaterComponent } from "./repeater/repeater.component";
 import { SearchBarFormComponent } from "./search-bar-form/search-bar-form.component";
 import { TokenSegmentComponent } from "./search-bar-form/token-segment/token-segment.component";
-import { SenderComponent } from "./sender/sender.component";
+import { SenderComponent, TargetOption } from "./sender/sender.component";
 
 export const ui = [
     AddEditValueComponent,
@@ -83,6 +83,7 @@ export {
     SearchBarFormComponent,
     TokenSegmentComponent,
     SenderComponent,
+    TargetOption,
 
     BreadcrumbService
 }

@@ -27,8 +27,8 @@
   max-width: 200px;
   overflow: hidden;
   font-weight: 500;
-  color: var(--message-bar-color, #000);
-  background-color: var(--message-bar-chips-color, #808080);
+  color: var(--message-bar-color, #000000);
+  background-color: var(--message-bar-chips-color, #d1d1d1);
 }
 
 .message-bar .chip .material-icons {
