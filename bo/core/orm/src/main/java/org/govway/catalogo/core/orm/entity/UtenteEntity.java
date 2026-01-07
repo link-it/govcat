@@ -39,6 +39,8 @@ import jakarta.persistence.Table;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -104,6 +106,7 @@ public class UtenteEntity {
 	private String ruoliNotificheAbilitate;
 
 	@Lob
+	@JdbcTypeCode(SqlTypes.VARBINARY)
 	private byte[] metadati;
 	
 	@ManyToMany(mappedBy = "utentiAssociati", fetch = FetchType.EAGER)

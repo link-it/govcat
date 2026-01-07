@@ -20,7 +20,10 @@
 package org.govway.catalogo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -46,5 +49,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // Registra l'interceptor per la modalità readonly su tutti i path
         registry.addInterceptor(readOnlyModeInterceptor)
                 .addPathPatterns("/**");
+    }
+
+    /**
+     * Configura il MessageSource per l'internazionalizzazione (i18n).
+     * Carica i messaggi dai file messages_*.properties nel classpath.
+     */
+    @Bean
+    public MessageSource messageSource() {
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setFallbackToSystemLocale(false);
+        return messageSource;
     }
 }

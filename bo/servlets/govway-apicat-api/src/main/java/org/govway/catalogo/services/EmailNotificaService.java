@@ -20,6 +20,7 @@
 package org.govway.catalogo.services;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.govway.catalogo.core.dao.specifications.NotificaSpecification;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
@@ -29,14 +30,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 
 /**
  * Servizio per l'invio delle email delle notifiche.
@@ -53,6 +60,9 @@ public class EmailNotificaService {
 	@Autowired
 	private NotificaService notificaService;
 
+	@Autowired
+	private MessageSource messageSource;
+
 	@Value("${email.notifiche.from:no-reply@govcat.it}")
 	private String fromAddress;
 
@@ -61,6 +71,12 @@ public class EmailNotificaService {
 
 	@Value("${email.notifiche.batch.size:50}")
 	private int batchSize;
+
+	@Value("${email.notifiche.locale:it}")
+	private String localeCode;
+
+	@Value("${email.notifiche.portal.url:}")
+	private String portalUrl;
 
 	/**
 	 * Elabora le notifiche email pendenti in batch.
@@ -120,8 +136,9 @@ public class EmailNotificaService {
 
 	/**
 	 * Invia un'email per una singola notifica.
+	 * L'email viene inviata in formato multipart/alternative con versione plain text e HTML.
 	 */
-	private void inviaEmail(NotificaEntity notifica) throws MailException {
+	private void inviaEmail(NotificaEntity notifica) throws MailException, MessagingException {
 		UtenteEntity destinatario = notifica.getDestinatario();
 
 		String emailDestinatario = getEmailDestinatario(destinatario);
@@ -131,14 +148,35 @@ public class EmailNotificaService {
 			return;
 		}
 
-		SimpleMailMessage message = new SimpleMailMessage();
-		message.setFrom(fromAddress);
-		message.setTo(emailDestinatario);
-		message.setSubject(buildSubject(notifica));
-		message.setText(buildBody(notifica));
+		MimeMessage mimeMessage = mailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+
+		helper.setFrom(fromAddress);
+		helper.setTo(emailDestinatario);
+		helper.setSubject(buildSubject(notifica));
+
+		String textBody = buildTextBody(notifica);
+		String htmlBody = buildHtmlBody(notifica);
+
+		// Crea struttura multipart/alternative semplice
+		MimeMultipart multipart = new MimeMultipart("alternative");
+
+		// Parte plain text
+		MimeBodyPart textPart = new MimeBodyPart();
+		textPart.setText(textBody, "UTF-8", "plain");
+
+		// Parte HTML
+		MimeBodyPart htmlPart = new MimeBodyPart();
+		htmlPart.setText(htmlBody, "UTF-8", "html");
+
+		// L'ordine è importante: prima text, poi html (i client preferiscono l'ultimo che possono renderizzare)
+		multipart.addBodyPart(textPart);
+		multipart.addBodyPart(htmlPart);
+
+		mimeMessage.setContent(multipart);
 
 		this.logger.debug("Invio email a {} per notifica {}", emailDestinatario, notifica.getIdNotifica());
-		mailSender.send(message);
+		mailSender.send(mimeMessage);
 	}
 
 	/**
@@ -153,23 +191,38 @@ public class EmailNotificaService {
 	}
 
 	/**
+	 * Restituisce il Locale configurato per le email.
+	 */
+	private Locale getLocale() {
+		return Locale.forLanguageTag(localeCode);
+	}
+
+	/**
+	 * Ottiene un messaggio localizzato dal MessageSource.
+	 */
+	private String getMessage(String key, Object... args) {
+		return messageSource.getMessage(key, args, getLocale());
+	}
+
+	/**
 	 * Costruisce l'oggetto dell'email basandosi sulla notifica.
 	 */
 	private String buildSubject(NotificaEntity notifica) {
-		StringBuilder sb = new StringBuilder("[GovCat] ");
+		StringBuilder sb = new StringBuilder(getMessage("email.subject.prefix"));
+		sb.append(" ");
 
 		if (notifica.getInfoOggetto() != null && !notifica.getInfoOggetto().isBlank()) {
 			sb.append(notifica.getInfoOggetto());
 		} else {
 			switch (notifica.getTipo()) {
 				case COMUNICAZIONE_EMAIL:
-					sb.append("Nuova comunicazione");
+					sb.append(getMessage("email.subject.comunicazione"));
 					break;
 				case CAMBIO_STATO_EMAIL:
-					sb.append("Cambio stato");
+					sb.append(getMessage("email.subject.cambio_stato"));
 					break;
 				default:
-					sb.append("Notifica");
+					sb.append(getMessage("email.subject.default"));
 			}
 		}
 
@@ -177,37 +230,94 @@ public class EmailNotificaService {
 	}
 
 	/**
-	 * Costruisce il corpo dell'email basandosi sulla notifica.
+	 * Costruisce il corpo dell'email in formato plain text.
 	 */
-	private String buildBody(NotificaEntity notifica) {
+	private String buildTextBody(NotificaEntity notifica) {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("Gentile ").append(notifica.getDestinatario().getNome())
-		  .append(" ").append(notifica.getDestinatario().getCognome()).append(",\n\n");
+		// Saluto iniziale con nome e cognome
+		sb.append(getMessage("email.body.text.greeting",
+				notifica.getDestinatario().getNome(),
+				notifica.getDestinatario().getCognome()));
+		sb.append("\n\n");
 
 		if (notifica.getInfoMessaggio() != null && !notifica.getInfoMessaggio().isBlank()) {
 			sb.append(notifica.getInfoMessaggio());
 		} else {
 			switch (notifica.getTipo()) {
 				case COMUNICAZIONE_EMAIL:
-					sb.append("Hai ricevuto una nuova comunicazione.");
+					sb.append(getMessage("email.body.text.comunicazione"));
 					break;
 				case CAMBIO_STATO_EMAIL:
-					sb.append("Si è verificato un cambio di stato");
-					if (notifica.getInfoStato() != null) {
-						sb.append(": ").append(notifica.getInfoStato());
+					if (notifica.getInfoStato() != null && !notifica.getInfoStato().isBlank()) {
+						sb.append(getMessage("email.body.text.cambio_stato.con_stato", notifica.getInfoStato()));
+					} else {
+						sb.append(getMessage("email.body.text.cambio_stato")).append(".");
 					}
-					sb.append(".");
 					break;
 				default:
-					sb.append("Hai ricevuto una nuova notifica.");
+					sb.append(getMessage("email.body.text.default"));
 			}
 		}
 
 		sb.append("\n\n");
-		sb.append("Accedi al portale per maggiori dettagli.\n\n");
-		sb.append("Cordiali saluti,\n");
-		sb.append("Il team GovCat");
+		sb.append(getMessage("email.body.text.portal_link", portalUrl)).append("\n\n");
+		sb.append(getMessage("email.body.text.regards")).append("\n");
+		sb.append(getMessage("email.body.text.signature"));
+
+		return sb.toString();
+	}
+
+	/**
+	 * Costruisce il corpo dell'email in formato HTML.
+	 */
+	private String buildHtmlBody(NotificaEntity notifica) {
+		StringBuilder sb = new StringBuilder();
+
+		// Struttura HTML completa
+		sb.append("<!DOCTYPE html>");
+		sb.append("<html>");
+		sb.append("<head>");
+		sb.append("<meta charset=\"UTF-8\">");
+		sb.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+		sb.append("</head>");
+		sb.append("<body style=\"margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f5f5f5;\">");
+		sb.append("<div style=\"max-width:600px;margin:0 auto;background-color:#ffffff;padding:30px;border-radius:8px;\">");
+
+		// Saluto iniziale con nome e cognome
+		sb.append(getMessage("email.body.html.greeting",
+				notifica.getDestinatario().getNome(),
+				notifica.getDestinatario().getCognome()));
+
+		if (notifica.getInfoMessaggio() != null && !notifica.getInfoMessaggio().isBlank()) {
+			sb.append("<p style=\"padding-bottom:0px;margin-bottom:-5px;font-size:16px;color:#333333;line-height:1.5;text-align:left;\">");
+			sb.append(notifica.getInfoMessaggio());
+			sb.append("</p>");
+		} else {
+			switch (notifica.getTipo()) {
+				case COMUNICAZIONE_EMAIL:
+					sb.append(getMessage("email.body.html.comunicazione"));
+					break;
+				case CAMBIO_STATO_EMAIL:
+					if (notifica.getInfoStato() != null && !notifica.getInfoStato().isBlank()) {
+						sb.append(getMessage("email.body.html.cambio_stato.con_stato", notifica.getInfoStato()));
+					} else {
+						sb.append(getMessage("email.body.html.cambio_stato"));
+					}
+					break;
+				default:
+					sb.append(getMessage("email.body.html.default"));
+			}
+		}
+
+		sb.append(getMessage("email.body.html.portal_link", portalUrl));
+		sb.append(getMessage("email.body.html.regards"));
+		sb.append(getMessage("email.body.html.signature"));
+
+		// Chiusura struttura HTML
+		sb.append("</div>");
+		sb.append("</body>");
+		sb.append("</html>");
 
 		return sb.toString();
 	}
