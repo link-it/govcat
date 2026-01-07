@@ -42,6 +42,8 @@ import org.hibernate.annotations.CascadeType;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -104,6 +106,7 @@ public class UtenteEntity {
 	private String ruoliNotificheAbilitate;
 
 	@Lob
+    @JdbcTypeCode(SqlTypes.LONGVARBINARY)
 	private byte[] metadati;
 	
 	@ManyToMany(mappedBy = "utentiAssociati", fetch = FetchType.EAGER)
