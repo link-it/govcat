@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthConfig, OAuthErrorEvent, OAuthService } from 'angular-oauth2-oidc';
 
 import { Observable } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { Tools } from './tools.service';
 
@@ -39,55 +39,75 @@ export class ConfigService {
           // OAUTH2
           const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
           const cfg: any = {
-            issuer: (_oauthConfig.Issuer || ''),
             redirectUri: (_oauthConfig.RedirectUri || ''),
             postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
             clientId: (_oauthConfig.ClientId || ''),
             responseType: (_oauthConfig.ResponseType || 'code'),
             scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
-            requireHttps: false
+            requireHttps: false,
+            showDebugInformation: false
           };
+          if (_oauthConfig.DummyClientSecret) {
+            cfg.dummyClientSecret = _oauthConfig.DummyClientSecret;
+          }
+          const useDiscoveryDocument = !!_oauthConfig.Issuer;
+
+          if (_oauthConfig.Issuer) {
+            cfg.issuer = _oauthConfig.Issuer;
+          } else {
+            // Configurazione manuale degli endpoint (senza discovery document):
+            cfg.loginUrl = (_oauthConfig.LoginUrl || '');
+            cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
+            cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
+            cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
+            cfg.skipIssuerCheck = true;
+            cfg.strictDiscoveryDocumentValidation = false;
+          }
+          if (_oauthConfig.Issuer && !_oauthConfig.StrictDiscoveryDocumentValidation) {
+            cfg.strictDiscoveryDocumentValidation = _oauthConfig.StrictDiscoveryDocumentValidation;
+          }
           if (!_oauthConfig.BackdoorOAuth) {
             const authCodeFlowConfig: AuthConfig = new AuthConfig(cfg);
+
             this.oauthService.configure(authCodeFlowConfig);
             this.oauthService.setupAutomaticSilentRefresh();
-            this.oauthService.loadDiscoveryDocument().then(() => {
-              this.oauthService.tryLogin().then(() => {
-                if (this.oauthService.getAccessToken()) {
+
+            // Con Issuer: carica discovery document e prova login
+            // Senza Issuer (endpoint manuali): solo tryLogin
+            const loginPromise = useDiscoveryDocument
+              ? this.oauthService.loadDiscoveryDocumentAndTryLogin()
+              : this.oauthService.tryLogin();
+
+            loginPromise
+              .then(() => {
+                if (this.oauthService.hasValidAccessToken()) {
                   this._tokenLoaded();
                 } else {
-                  // console.log('Autenticazione fallita');
                   Tools.LoginAccess();
                 }
-              }).catch((error: any) => {
-                // console.log('catch Autenticazione fallita');
+                resolve();
+              })
+              .catch((error: any) => {
+                console.warn('OAuth initialization error:', error);
                 Tools.LoginAccess();
+                resolve();
               });
-            });
+
             this.oauthService.events.subscribe(event => {
               if (!(event instanceof OAuthErrorEvent)) {
                 if (event.type === 'session_terminated') {
                   this._sessionTerminated();
                 }
-                // if (event.type === 'token_received') {
-                //   this._tokenLoaded(resolve);
-                // }
               } else {
                 if (event && event.reason) {
-                  // Tools.OnError(event.reason);
                   console.warn(event.reason);
                 }
               }
             });
           } else {
             Tools.LoginAccess();
-          }
-
-          // if (this.config.AppConfig.ANONYMOUS_ACCESS) {
-          //   this.loadRemoteConfig(resolve);
-          // } else {
             resolve();
-          // }
+          }
 
         });
     });

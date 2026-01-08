@@ -69,6 +69,33 @@
             </ul>
           </div>
 
+          <div id="language" class="ml-auto" *ngIf="_showLanguageMenu && _translations && _translations.length > 1">
+            <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
+              <!-- <span class="material-icons-outlined align-middle">language</span> -->
+              <i class="bi bi-translate align-middle"></i>
+              <div class="d-inline ms-2 align-middle">{{ _currentLanguage }}</div>
+              <span class="material-icons-outlined align-middle mx-1">expand_more</span>
+            </button>
+            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" style="right: auto;" aria-labelledby="language">
+              <div class="gl-new-dropdown-inner">
+                <div class="gl-new-dropdown-contents">
+                  <ng-container *ngFor="let lang of _translations; let index = index;">
+                    <li class="gl-new-dropdown-item">
+                      <button role="menuitem" type="button" class="dropdown-item" [disabled]="_currentLanguage === lang.alpha3Code" (click)="_changeLanguage(lang)">
+                        <!-- <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start" *ngIf="menu.icon">
+                          <i class="bi bi-{{ lang.icon }}"></i>
+                        </div> -->
+                        <div class="gl-new-dropdown-item-text-wrapper">
+                          <div class="gl-font-weight-bold-">{{ 'APP.MENU.' + lang.language | translate }}</div>
+                        </div>
+                      </button>
+                    </li>
+                  </ng-container>
+                </div>
+              </div>
+            </ul>
+          </div>
+
           <div class="ml-auto" *ngIf="loggedIn">
             <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
               <!-- <img width="23" height="23" class="header-user-avatar" [alt]="_username" src="./assets/images/avatar.png"> -->
@@ -119,23 +146,6 @@
               <i class="bi bi-box-arrow-in-right me-2"></i>
               <span class="">{{ loginLabel }}</span>
             </button>
-          </div>
-
-          <div class="ml-auto" *ngIf="_showLanguageMenu && _translations && _translations.length > 1">
-            <button class="btn color-inherit text-uppercase pe-0 fw-light" data-bs-toggle="dropdown">
-              <span class="material-icons-outlined" class="align-middle">language</span>
-              <div class="d-inline ms-2 align-middle">{{ _currentLanguage }}</div>
-              <span class="material-icons-outlined align-middle mx-1">expand_more</span>
-            </button>
-            <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="language">
-              <li role="presentation" class="gl-new-dropdown-item gl-search-box-by-click-history-item" *ngFor="let lang of _translations">
-                <button role="menuitem" type="button" class="dropdown-item" [disabled]="_currentLanguage === lang.alpha3Code" (click)="_changeLanguage(lang)">
-                  <div class="gl-new-dropdown-item-text-wrapper">
-                    <p class="gl-new-dropdown-item-text-primary m-0">{{ lang.language }}</p>
-                  </div>
-                </button>
-              </li>
-            </ul>
           </div>
         </div>
       </div>

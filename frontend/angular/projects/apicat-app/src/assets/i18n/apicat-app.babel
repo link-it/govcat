@@ -13376,6 +13376,21 @@
 										</translations>
 									</concept_node>
 									<concept_node>
+										<name>English</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
 										<name>eServiceDescriptor</name>
 										<description/>
 										<comment/>
@@ -13587,6 +13602,21 @@
 									</concept_node>
 									<concept_node>
 										<name>Home</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>Italiano</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -17085,6 +17115,21 @@
 											</concept_node>
 											<concept_node>
 												<name>NoticeLenght</name>
+												<description/>
+												<comment/>
+												<translations>
+													<translation>
+														<language>en-US</language>
+														<approved>false</approved>
+													</translation>
+													<translation>
+														<language>it-IT</language>
+														<approved>false</approved>
+													</translation>
+												</translations>
+											</concept_node>
+											<concept_node>
+												<name>NotOnlyWhitespace</name>
 												<description/>
 												<comment/>
 												<translations>
@@ -21397,6 +21442,21 @@
 									</concept_node>
 									<concept_node>
 										<name>Api</name>
+										<description/>
+										<comment/>
+										<translations>
+											<translation>
+												<language>en-US</language>
+												<approved>false</approved>
+											</translation>
+											<translation>
+												<language>it-IT</language>
+												<approved>false</approved>
+											</translation>
+										</translations>
+									</concept_node>
+									<concept_node>
+										<name>AppTitle</name>
 										<description/>
 										<comment/>
 										<translations>
