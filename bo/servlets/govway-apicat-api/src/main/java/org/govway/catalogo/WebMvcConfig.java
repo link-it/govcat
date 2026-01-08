@@ -20,10 +20,11 @@
 package org.govway.catalogo;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -44,6 +45,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private ReadOnlyModeInterceptor readOnlyModeInterceptor;
 
+    @Value("${email.notifiche.messages.path:/var/govcat/conf}")
+    private String externalMessagesPath;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // Registra l'interceptor per la modalità readonly su tutti i path
@@ -53,14 +57,26 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     /**
      * Configura il MessageSource per l'internazionalizzazione (i18n).
-     * Carica i messaggi dai file messages_*.properties nel classpath.
+     * Cerca prima i messaggi nel path esterno configurato, poi nel classpath come fallback.
+     *
+     * File esterni (opzionali, sovrascrivono quelli nel classpath):
+     * - ${email.notifiche.messages.path}/messages.properties
+     * - ${email.notifiche.messages.path}/messages_it.properties
+     * - ${email.notifiche.messages.path}/messages_en.properties
+     *
+     * Default path esterno: /var/govcat/conf
      */
     @Bean
     public MessageSource messageSource() {
-        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("messages");
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        // Ordine di priorità: prima esterno, poi classpath
+        messageSource.setBasenames(
+            "file:" + externalMessagesPath + "/messages",  // File esterni (priorità alta)
+            "classpath:messages"                            // Classpath (fallback)
+        );
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setFallbackToSystemLocale(false);
+        messageSource.setCacheSeconds(300); // Ricarica i file ogni 5 minuti
         return messageSource;
     }
 }

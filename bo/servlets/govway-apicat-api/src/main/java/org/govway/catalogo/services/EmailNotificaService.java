@@ -194,7 +194,9 @@ public class EmailNotificaService {
 	 * Restituisce il Locale configurato per le email.
 	 */
 	private Locale getLocale() {
-		return Locale.forLanguageTag(localeCode);
+		Locale locale = new Locale(localeCode);
+		this.logger.debug("Locale configurato per le email: {} (da localeCode={})", locale, localeCode);
+		return locale;
 	}
 
 	/**
