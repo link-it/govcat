@@ -24,6 +24,10 @@
 				<web.warName>govcat-web${app.suffix}</web.warName>
 				<api.warName>govcat-api${app.suffix}</api.warName>
 				<batch.warName>govcat-batch${app.suffix}</batch.warName>
+                <org.govway.api.catalogo.resource.path>/var/govcat/conf/govcat-api${app.suffix}.properties</org.govway.api.catalogo.resource.path>
+                <org.govway.api.catalogo.configurazione.path>/var/govcat/conf/configurazione${app.suffix}.json</org.govway.api.catalogo.configurazione.path>
+                <org.govway.catalogo.resource.path>/var/govcat/conf/govcat-web${app.suffix}.properties</org.govway.catalogo.resource.path>
+                <govcat.config.override.path>/var/govcat/conf/app-config${app.suffix}.json</govcat.config.override.path>
 			</properties>
 
 			<build>
