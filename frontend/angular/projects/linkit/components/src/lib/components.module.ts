@@ -20,7 +20,7 @@ import { SpinnerComponent } from './spinner/spinner.component';
 import { directives } from './directives';
 import { ui, uiServices } from './ui';
 import { pipes } from './pipes';
-import { dialogs, standaloneDialogs, MultiSnackbarComponent } from './dialogs';
+import { dialogs, standaloneDialogs } from './dialogs';
 import { defineCustomElements } from 'xml-viewer-component/dist/loader';
 
 const gravatarConfig: GravatarConfig = {
@@ -91,6 +91,5 @@ defineCustomElements(window);
 
 export {
   HeadBarComponent,
-  SpinnerComponent,
-  MultiSnackbarComponent
+  SpinnerComponent
 };

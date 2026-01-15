@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
-    selector: 'app-multi-snackbar',
+    selector: 'linkit-multi-snackbar',
     standalone: true,
     imports: [CommonModule],
-    host: { 'data-component-id': 'linkit-multi-snackbar' },
     template: `
     <div *ngFor="let snackbar of MSC.MultiSnackbar; let idx = index" [ngClass]="idx !== (MSC.MultiSnackbar.length - 1)?'old-message':''"
         class="snackbar-message d-flex flex-column flex-sm-row align-items-sm-center justify-content-sm-between" [ngStyle]="{ 'background-color': _colors[snackbar.type].background, 'border-color': _colors[snackbar.type].border, 'color': _colors[snackbar.type].color }">
