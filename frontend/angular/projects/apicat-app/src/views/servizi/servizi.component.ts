@@ -155,8 +155,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { label: 'APP.GROUPS.TITLE.Root', url: 'root', type: 'link', iconBs: 'folder' }
     ];
 
-    _col: number = 4;
-
     minLengthTerm = 1;
 
     servizi$!: Observable<any[]>;
@@ -184,7 +182,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     hideVersions: boolean = false;
 
-    _useNewSearchUI : boolean = false;
+    _useNewSearchUI : boolean = true;
 
     numberCharLogoText: number = 2;
     enabledImageLink: boolean = false;
@@ -793,14 +791,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // this._saveSettings();
         this._manualSelected = this._groupsView ? false : true;
         this.refresh();
-    }
-
-    _toggleSearchUI() {
-        this._useNewSearchUI = !this._useNewSearchUI;
-    }
-
-    _toggleCols() {
-        this._col = this._col === 4 ? 6 : 4;
     }
 
     _toggleGroupsViewMode() {
