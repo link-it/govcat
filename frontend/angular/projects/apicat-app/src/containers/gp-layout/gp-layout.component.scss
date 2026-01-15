@@ -11,7 +11,6 @@
     color: #303030;
 
     &:focus {
-        // position: static;
         left: auto;
         top: 6px;
         right: 16px;
@@ -28,9 +27,6 @@
     position: relative;
 
     &:focus {
-        // box-shadow: inset 0 0 0 0 #868686, 0 0 0 1px #fff, 0 0 0 3px #428fdc;
-        // border: none;
-        // outline: none;
         &::before {
             content: '\229A';
             position: absolute;
@@ -41,8 +37,8 @@
             line-height: 10px;
             text-align: center;
             border-radius: 50%;
-            background-color: var(--header-back-color, #aaa);
-            color: var(--header-color, #000);
+            background-color: transparent;
+            color: transparent;
             font-weight: bold;
         }
     }
@@ -55,7 +51,6 @@
 
 .about-area {
     width: 100%;
-    // padding: 0px 12px 6px 12px;
 }
 
 .version-area {
@@ -67,17 +62,12 @@
 }
 
 footer {
-    position: relative;
-    // display: flex;
-    // flex-wrap: wrap;
-    // align-items: center;
-    // justify-content: space-between;
+    position: fixed;
     padding: 0;
     z-index: 1700;
     margin-bottom: 0;
     height: var(--footer-height, 48px);
     border: 0;
-    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
@@ -225,7 +215,6 @@ footer {
         &.expanded {
             overflow-y: auto;
             overflow-x: hidden;
-            // --footer-expanded-height: calc(100%);
 
             .footer-expander {
                 display: none;
