@@ -58,55 +58,86 @@ public class ReadOnlyModeInterceptor implements HandlerInterceptor {
 			throws Exception {
 
 
-		InfoProfilo infoProfilo = this.requestUtils.getPrincipal();
+		InfoProfilo infoProfilo = this.requestUtils.getPrincipal(false);
 
+		// Utente completamente autenticato (JWT valido + presente nel DB)
 		boolean accessoAutenticato = infoProfilo != null && infoProfilo.utente != null;
-		String idUtente = accessoAutenticato ? infoProfilo.utente.getIdUtente() : "anonimo";
+		// Utente autenticato via JWT ma non ancora registrato nel DB
+		boolean accessoJwtNonRegistrato = infoProfilo != null && infoProfilo.idUtente != null && infoProfilo.utente == null;
+
+		String idUtente = accessoAutenticato ? infoProfilo.utente.getIdUtente() :
+						  (accessoJwtNonRegistrato ? infoProfilo.idUtente + " (non registrato)" : "anonimo");
 
 		String method = request.getMethod();
 		String path = request.getRequestURI();
 
 		log.info("Operazione {} {} invocata dall'utente {}", method, path, idUtente);
 
-		if (!accessoAutenticato) {
+		// Rimuovi il context path e il prefisso API per il matching dei pattern
+		String pathSenzaContext = path;
+		String contextPath = request.getContextPath();
 
-			// Rimuovi il context path se presente
-			String contextPath = request.getContextPath() + "/api/v1";
-			if (contextPath != null && !contextPath.isEmpty() && path.startsWith(contextPath)) {
-				path = path.substring(contextPath.length());
+		// Prima rimuovi il context path dell'applicazione (es. /govcat-api)
+		if (contextPath != null && !contextPath.isEmpty() && pathSenzaContext.startsWith(contextPath)) {
+			pathSenzaContext = pathSenzaContext.substring(contextPath.length());
+		}
+
+		// Poi rimuovi il prefisso /api/v1 se presente
+		if (pathSenzaContext.startsWith("/api/v1")) {
+			pathSenzaContext = pathSenzaContext.substring("/api/v1".length());
+		}
+
+		log.debug("Path originale: {}, contextPath: {}, pathSenzaContext: {}", path, contextPath, pathSenzaContext);
+
+		// Utenti JWT-autenticati ma non registrati possono accedere solo agli endpoint di registrazione
+		if (accessoJwtNonRegistrato) {
+			if (pathSenzaContext.startsWith("/registrazione") || pathSenzaContext.equals("/profilo")) {
+				log.debug("Operazione {} {} consentita per utente JWT non registrato", method, pathSenzaContext);
+				return true;
+			} else {
+				log.warn("Operazione {} {} bloccata - utente JWT non registrato può accedere solo a /registrazione e /profilo", method, pathSenzaContext);
+				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+				response.setContentType("application/json");
+				response.getWriter().write(
+						String.format("{\"type\":\"about:blank\",\"title\":\"Forbidden\"," +
+								"\"status\":403,\"detail\":\"Accesso negato. L'utente non è ancora registrato. Completare prima la registrazione.\"}")
+						);
+				return false;
 			}
+		}
 
-			// Con accesso anonimo, verifica la whitelist "METHOD PATH"
+		if (!accessoAutenticato) {
+			// Con accesso anonimo (nessun JWT), verifica la whitelist "METHOD PATH"
 			List<String> operazioniConsentite = configurazione.getGenerale().getWhitelistVetrina();
 
 			if (operazioniConsentite != null && !operazioniConsentite.isEmpty()) {
 				boolean isAllowed = false;
 				for (String whitelistEntry : operazioniConsentite) {
-					if (matchesOperationPattern(method, path, whitelistEntry)) {
+					if (matchesOperationPattern(method, pathSenzaContext, whitelistEntry)) {
 						isAllowed = true;
-						log.debug("Operazione {} {} consentita dalla whitelist: {}  (accesso anonimo)", method, path, whitelistEntry);
+						log.debug("Operazione {} {} consentita dalla whitelist: {}  (accesso anonimo)", method, pathSenzaContext, whitelistEntry);
 						break;
 					}
 				}
 
 				if (!isAllowed) {
-					log.warn("Operazione {} {} bloccata - non presente nella whitelist", method, path);
+					log.warn("Operazione {} {} bloccata - non presente nella whitelist", method, pathSenzaContext);
 					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 					response.setContentType("application/json");
 					response.getWriter().write(
 							String.format("{\"type\":\"about:blank\",\"title\":\"Forbidden\"," +
-									"\"status\":403,\"detail\":\"Accesso negato. L'operazione %s %s non è disponibile in modalità anonima.\"}", method, path)
+									"\"status\":403,\"detail\":\"Accesso negato. L'operazione %s %s non è disponibile in modalità anonima.\"}", method, pathSenzaContext)
 							);
 					return false;
 				}
 			} else {
 				// Se non c'è whitelist configurata, blocca tutto
-				log.warn("Operazione {} {} bloccata - nessuna whitelist configurata (accesso anonimo)", method, path);
+				log.warn("Operazione {} {} bloccata - nessuna whitelist configurata (accesso anonimo)", method, pathSenzaContext);
 				response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 				response.setContentType("application/json");
 				response.getWriter().write(
 						String.format("{\"type\":\"about:blank\",\"title\":\"Forbidden\"," +
-								"\"status\":403,\"detail\":\"Accesso negato. L'operazione %s %s non è disponibile in modalità vetrina.\"}", method, path)
+								"\"status\":403,\"detail\":\"Accesso negato. L'operazione %s %s non è disponibile in modalità vetrina.\"}", method, pathSenzaContext)
 						);
 				return false;
 			}

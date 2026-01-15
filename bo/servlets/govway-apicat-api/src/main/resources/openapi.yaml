@@ -145,6 +145,168 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /registrazione/stato:
+    get:
+      tags:
+      - "Registrazione"
+      description: "Verifica lo stato di registrazione dell'utente corrente. Utilizzato durante il primo login quando firstlogin_verifica_email_abilitata è true."
+      operationId: "getStatoRegistrazione"
+      responses:
+        "200":
+          description: "Stato registrazione restituito con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/conferma-email:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Conferma l'email proveniente dal token JWT senza modificarla"
+      operationId: "confermaEmailJwt"
+      responses:
+        "200":
+          description: "Email confermata, registrazione completata"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/modifica-email:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Modifica l'email proposta per la registrazione"
+      operationId: "modificaEmail"
+      requestBody:
+        description: "Nuova email da utilizzare"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModificaEmailRequest"
+      responses:
+        "200":
+          description: "Email aggiornata, in attesa verifica"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/invia-codice:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Invia il codice di verifica all'email proposta"
+      operationId: "inviaCodiceVerifica"
+      responses:
+        "200":
+          description: "Codice inviato con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodiceInviato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/verifica-codice:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Verifica il codice inserito dall'utente"
+      operationId: "verificaCodice"
+      requestBody:
+        description: "Codice di verifica"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerificaCodiceRequest"
+      responses:
+        "200":
+          description: "Risultato della verifica"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoVerifica"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "410":
+          description: "Codice scaduto"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/completa:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Completa il processo di registrazione dopo la verifica email"
+      operationId: "completaRegistrazione"
+      responses:
+        "200":
+          description: "Registrazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /notifiche:
     get:
       tags:
@@ -6355,6 +6517,9 @@ components:
           type: "boolean"
         aggiornamento_idm_abilitato:
           type: "boolean"
+        firstlogin_verifica_email_abilitata:
+          type: "boolean"
+          description: "Se true, abilita il flusso di verifica email al primo login"
     ConfigurazioneTipiDistribuzione:
       type: "string"
       enum:
@@ -6383,6 +6548,96 @@ components:
         - non_configurato
         - abilitato
         - disabilitato
+        - registrazione_richiesta
+    StatoRegistrazione:
+      type: "object"
+      required:
+        - stato
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoRegistrazioneEnum"
+        email_jwt:
+          type: "string"
+          format: "email"
+          description: "Email proveniente dal token JWT"
+        email_proposta:
+          type: "string"
+          format: "email"
+          description: "Email modificata dall'utente (se diversa)"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+        principal:
+          $ref: "#/components/schemas/String255"
+        messaggio_informativo:
+          type: "string"
+          description: "Testo template fisso da mostrare"
+        tentativi_registrazione:
+          type: "integer"
+          description: "Numero tentativi di registrazione effettuati"
+    StatoRegistrazioneEnum:
+      type: "string"
+      enum:
+        - gia_registrato
+        - in_attesa_conferma
+        - in_attesa_verifica
+        - email_verificata
+        - completato
+    ModificaEmailRequest:
+      type: "object"
+      required:
+        - email
+      properties:
+        email:
+          type: "string"
+          format: "email"
+          maxLength: 255
+    VerificaCodiceRequest:
+      type: "object"
+      required:
+        - codice
+      properties:
+        codice:
+          type: "string"
+          minLength: 1
+          maxLength: 10
+    CodiceInviato:
+      type: "object"
+      properties:
+        messaggio:
+          type: "string"
+        scadenza_secondi:
+          type: "integer"
+          description: "Secondi rimanenti prima della scadenza"
+    RisultatoVerifica:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          type: "boolean"
+        tentativi_rimanenti:
+          type: "integer"
+        messaggio:
+          type: "string"
+    RisultatoRegistrazione:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          $ref: "#/components/schemas/EsitoRegistrazioneEnum"
+        profilo:
+          $ref: "#/components/schemas/Profilo"
+        messaggio:
+          type: "string"
+          description: "Messaggio di benvenuto o informativo"
+    EsitoRegistrazioneEnum:
+      type: "string"
+      enum:
+        - nuovo_utente
+        - principal_aggiornato
     ItemMessaggio:
       type: object
       required:
