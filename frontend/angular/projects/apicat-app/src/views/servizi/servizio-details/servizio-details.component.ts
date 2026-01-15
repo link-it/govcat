@@ -5,10 +5,7 @@ import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/fo
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction } from '@linkit/components';
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { MenuAction, ConfigService, EventsManagerService, Tools, EventType } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -21,9 +18,6 @@ import { ServizioCreate, Soggetto } from './servizioCreate';
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-// import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
-
-import { EventType } from '@linkit/components';
 import { Grant } from '@app/model/grant';
 
 declare const saveAs: any;
@@ -1160,7 +1154,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _nome: string = this.data ? this.data.nome : 'null';
         const _versione: string = this.data ? this.data.versione : null;
 
-        let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : (this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New'));
+        let title = '';
+        if (_nome && _versione) {            
+            title = this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}` ;
+        } else {
+            title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+        }
         let baseUrl = `/${this.model}`;
 
         if (this._componentBreadcrumbs) {
@@ -1183,7 +1182,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _editService() {
-        // this._initForm({ ...this._data });
         this._isEdit = true;
         this._changeEdit(this._isEdit);
         this.__resetError();

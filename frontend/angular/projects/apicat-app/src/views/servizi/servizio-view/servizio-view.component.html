@@ -39,7 +39,7 @@
 
                   <div class="titolo-block mt-4">
                     <h4 class="d-inline text-break">{{ data?.nome }}</h4>
-                    <span class="badge badge-pill badge-primary swagger--hero-pill ml-2">v. {{ data?.versione }}</span>
+                    <span class="badge badge-pill badge-primary swagger--hero-pill ml-2" *ngIf="!hideVersions">v. {{ data?.versione }}</span>
                   </div>
 
                   <div class="organizzazione-block stato-block mt-2">

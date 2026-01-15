@@ -11,7 +11,6 @@ import { HasPermissionModule } from '@app/directives/has-permission/has-permissi
 import { DisablePermissionModule } from '@app/directives/disable-permission/disable-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 import { WorkflowModule } from '@app/components/workflow/workflow.module';
-// import { BackWebModule } from '../components/back-web/back-web.module';
 import { ModalGroupChoiceModule } from '@app/components/modal-group-choice/modal-group-choice.module';
 import { ModalCategoryChoiceModule } from '@app/components/modal-category-choice/modal-category-choice.module';
 import { ErrorViewModule } from '@app/components/error-view/error-view.module';

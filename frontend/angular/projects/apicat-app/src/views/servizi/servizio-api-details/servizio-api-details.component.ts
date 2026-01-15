@@ -5,10 +5,7 @@ import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Valida
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction } from '@linkit/components';
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent } from '@linkit/components';
 import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -16,17 +13,14 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
 
-import { AllegatoComponent } from '@linkit/components';
-
 import { ServizioApiCreate } from './servizio-api-create';
 
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
+import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 import { Grant } from '@app/model/grant';
-import { EventType } from '@linkit/components';
 
 import * as _ from 'lodash';
-import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 declare const saveAs: any;
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
@@ -801,13 +795,19 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _versione: string = this.service ? this.service.versione : null;
         const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
         const _api = this.servizioApi;
-        const _titleAPI = _api ? `${_api.nome} v. ${_api.versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+        const _titleAPI = _api
+            ? (this.hideVersions ? _api.nome : `${_api.nome} v. ${_api.versione}`)
+            : (this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New'));
 
-        let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+        let title = this.hideVersions
+            ? (_nome || this.id || '...')
+            : ((_nome && _versione) ? `${_nome} v. ${_versione}` : (this.id || '...'));
         let baseUrl = `/servizi`;
 
         if (this._componentBreadcrumbs) {
-            title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+            title = this.hideVersions
+                ? (_nome || this.id || '...')
+                : ((_nome && _versione) ? `${_nome} v. ${_versione}` : (this.id || '...'));
             baseUrl = `/servizi/${this._componentBreadcrumbs.service.id_servizio}/componenti`;
         }
 
