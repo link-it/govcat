@@ -64,6 +64,7 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification.TipoMieiServizi;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
@@ -74,6 +75,7 @@ import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
@@ -1822,7 +1824,15 @@ public class ServiziController implements ServiziApi {
 				for(ReferenteDominioEntity referente: servizio.getDominio().getReferenti()) {
 					utentiVisibili.add(referente.getReferente());
 				}
-				
+
+				// Aggiunge anche i referenti e richiedenti delle adesioni al servizio
+				for(AdesioneEntity adesione: servizio.getAdesioni()) {
+					utentiVisibili.add(adesione.getRichiedente());
+					for(ReferenteAdesioneEntity referenteAdesione: adesione.getReferenti()) {
+						utentiVisibili.add(referenteAdesione.getReferente());
+					}
+				}
+
 				contains =  contains || contains(utentiVisibili, utenteSessione);
 
 				if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.RISERVATO)) {
