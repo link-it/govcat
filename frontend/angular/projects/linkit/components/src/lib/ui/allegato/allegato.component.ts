@@ -69,7 +69,7 @@ export class AllegatoComponent implements OnInit {
   __onChange(event: any) {
     if (event.currentTarget.files && event.currentTarget.files.length !== 0) {
       if (this.multiple) {
-        event.currentTarget.files.forEach((file: any) => {
+        Array.from(event.currentTarget.files as FileList).forEach((file: File) => {
           this._file = file;
           if (!this.maxUpload || this._file.size < this.maxUpload) {
             if (this.control) {

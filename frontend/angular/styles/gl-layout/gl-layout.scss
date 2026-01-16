@@ -10,6 +10,14 @@
   }
 }
 
+.container-limited-max {
+  max-width: 1880px;
+
+  &.limit-container-width {
+    max-width: 1590px;
+  }
+}
+
 .content-wrapper {
   width: 100%;
   padding-bottom: 100px;
@@ -82,7 +90,7 @@
 
 .navbar-gitlab {
   padding: 0 16px;
-  z-index: 600;
+  z-index: 1000;
   margin-bottom: 0;
   min-height: var(--header-height, 48px);
   border: 0;
@@ -108,18 +116,6 @@
   position: relative;
   min-height: var(--header-height, 48px);
   padding-left: 0;
-}
-
-.top-area {
-  border-bottom: 1px solid var(--top-area-border-color, #dbdbdb);
-  display: flex;
-  align-items: center !important;
-}
-
-.top-area .nav-controls {
-  display: inline-block;
-  text-align: right;
-  padding: 8px;
 }
 
 .close-nav-button,
@@ -182,9 +178,28 @@
   color: #303030;
 }
 
+.layout-page {
+  height: calc(100vh - var(--sup-header-height, 0px) - var(--header-height, 48px) - var(--footer-height, 0px));
+  margin-top: var(--content-wrapper-top, 48px);
+  margin-bottom: var(--content-wrapper-bottom, 0px);
+}
+
+.nav-sidebar {
+  height: calc(100vh - var(--header-offset, 0px));
+  margin-top: calc(var(--content-wrapper-top, 48px) + var(--sup-header-height, 0px) - 48px);
+}
+
+.content-wrapper {
+  height: calc(100vh - var(--sup-header-height, 0px) - var(--header-height, 48px) - var(--sup-header-height, 0px) - 48px);
+  // margin-top: calc(var(--content-wrapper-top, 48px) + var(--sup-header-height, 0px) - 60px);
+  // margin-bottom: calc(var(--content-wrapper-bottom, 48px) - var(--sup-header-height, 0px));
+}
+
 .page-full-scroll {
   .layout-page {
-    height: 100vh;
+    height: calc(100vh - var(--sup-header-height, 0px) - var(--header-height, 48px) - var(--footer-height, 0px));
+    margin-top: var(--content-wrapper-top, 48px);
+    margin-bottom: var(--content-wrapper-bottom, 0px);
     overflow-x: hidden;
     overflow-y: auto;
   }

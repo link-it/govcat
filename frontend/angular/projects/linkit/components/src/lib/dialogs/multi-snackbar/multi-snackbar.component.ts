@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
-    selector: 'app-multi-snackbar',
+    selector: 'linkit-multi-snackbar',
     standalone: true,
     imports: [CommonModule],
     template: `

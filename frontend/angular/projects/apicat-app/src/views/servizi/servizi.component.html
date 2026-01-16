@@ -33,18 +33,6 @@
             </div>
         </div>
         <div class="nav-controls align-self-center d-flex">
-            <!-- <div class="btn-group ms-3 me-5" *ngIf="!_production">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="numColoms" [checked]="_col === 4" (click)="_toggleCols()">
-                    <label class="form-check-label" for="numColoms">{{ '3 Col' | translate }}</label>
-                </div>
-            </div> -->
-            <!-- <div class="btn-group me-5" *ngIf="!_production">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="searchUI" [checked]="_useNewSearchUI" (click)="_toggleSearchUI()">
-                    <label class="form-check-label" for="searchUI">{{ 'New Search UI' | translate }}</label>
-                </div>
-            </div> -->
             <div class="btn-group me-5" *ngIf="!_production">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="groupsView" [checked]="_groupsView" (click)="_toggleGroups()" disabled>
@@ -78,9 +66,6 @@
                                     </li>
                                     <li class="gl-new-dropdown-item">
                                         <button role="menuitem" type="button" class="dropdown-item" (click)="_onExport('search')">
-                                            <!-- <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                                                <i class="bi bi-plus-lg"></i>
-                                            </div> -->
                                             <div class="gl-new-dropdown-item-text-wrapper me-0">
                                                 <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
                                                     <span>{{ 'APP.MENU.EsportSearch' | translate }}</span>
@@ -91,9 +76,6 @@
                                     </li>
                                     <li class="gl-new-dropdown-item">
                                         <button role="menuitem" type="button" class="dropdown-item" (click)="_onExport('selection')" [disabled]="elementsSelected.length === 0">
-                                            <!-- <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                                                <i class="bi bi-plus-lg"></i>
-                                            </div> -->
                                             <div class="gl-new-dropdown-item-text-wrapper me-0">
                                                 <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
                                                     <span>{{ 'APP.MENU.EsportSelected' | translate }}</span>
@@ -384,7 +366,12 @@
             <div class="row justify-content-center" *ngIf="_groupsViewMode === 'card'">
                 <div class="col-12" [class.col-lg-10-]="viewBoxed" *ngIf="!_showMasonry">
                     <div class="row" style="padding-right: 8px;">
-                        <div *ngFor="let element of groups; trackBy: _trackBy;" class="col-12 col-lg-4 col-md-{{ _col }} mb-3" [class.d-flex]="_fillBox" [class.align-items-stretch]="_fillBox" [class.pr-2]="!desktop">
+                        <div *ngFor="let element of groups; trackBy: _trackBy;"
+                            class="col-12 col-xl-3 col-lg-4 col-md-6 mb-3"
+                            [class.d-flex]="_fillBox"
+                            [class.align-items-stretch]="_fillBox"
+                            [class.pr-2]="!desktop"
+                        >
                             <lnk-card class="extended" [class.flex-fill]="_fillBox"
                                 [primaryText]="element.primaryText"
                                 [secondaryText]="element.secondaryText"

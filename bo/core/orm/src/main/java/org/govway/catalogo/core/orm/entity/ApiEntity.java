@@ -28,6 +28,8 @@ import jakarta.persistence.*;
 
 import org.govway.catalogo.core.orm.converters.Utf8StringToBytesConverter;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.hibernate.annotations.CascadeType;
 
 import lombok.Getter;
@@ -70,6 +72,7 @@ public class ApiEntity {
 	
 	@Column
 	@Lob
+	@JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Convert(converter = Utf8StringToBytesConverter.class)
 	private byte[] descrizione;
     

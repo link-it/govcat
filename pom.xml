@@ -24,6 +24,10 @@
 				<web.warName>govcat-web${app.suffix}</web.warName>
 				<api.warName>govcat-api${app.suffix}</api.warName>
 				<batch.warName>govcat-batch${app.suffix}</batch.warName>
+                <org.govway.api.catalogo.resource.path>/var/govcat/conf/govcat-api${app.suffix}.properties</org.govway.api.catalogo.resource.path>
+                <org.govway.api.catalogo.configurazione.path>/var/govcat/conf/configurazione${app.suffix}.json</org.govway.api.catalogo.configurazione.path>
+                <org.govway.catalogo.resource.path>/var/govcat/conf/govcat-web${app.suffix}.properties</org.govway.catalogo.resource.path>
+                <govcat.config.override.path>/var/govcat/conf/app-config${app.suffix}.json</govcat.config.override.path>
 			</properties>
 
 			<build>
@@ -279,6 +283,9 @@
 		<jakarta.cache.version>3.0.0</jakarta.cache.version>
 		<jakarta.mail.version>2.0.4</jakarta.mail.version>
 		<jakarta.jaxws.version>4.0.0</jakarta.jaxws.version>
+
+		<!-- Log4j version override for CVE-2025-68161 fix -->
+		<log4j2.version>2.25.3</log4j2.version>
 
 	</properties>
 
@@ -1109,7 +1116,7 @@
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
-			<version>2.9.2</version>
+			<version>3.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>

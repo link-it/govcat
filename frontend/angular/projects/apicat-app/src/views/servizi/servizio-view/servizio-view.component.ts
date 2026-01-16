@@ -180,26 +180,28 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     debug: boolean = !environment.production;
 
     tokenPolicy: any = null;
+    hideVersions: boolean = false;
 
     constructor (
-        private route: ActivatedRoute,
-        private router: Router,
-        private clipboard: Clipboard,
-        private translate: TranslateService,
-        private modalService: BsModalService,
-        private configService: ConfigService,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
+        private readonly clipboard: Clipboard,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
         public tools: Tools,
-        private eventsManagerService: EventsManagerService,
-        private apiService: OpenAPIService,
-        private utils: UtilService,
-        private authenticationService: AuthenticationService
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService,
+        private readonly authenticationService: AuthenticationService
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
         this._showReferents = this.appConfig?.AppConfig?.Services?.showReferents !== false;
         const _srv: any = Tools.Configurazione?.servizio || null;
-        this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
-        this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+        this._profili = (_srv?.api) ? _srv.api.profili : [];
+        this._proprieta_custom = (_srv?.api) ? _srv.api.proprieta_custom : [];
+        this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
     }
 
     ngOnInit() {
@@ -222,8 +224,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
             const _srv: any = Tools.Configurazione.servizio;
-            this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
-            this._proprieta_custom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+            this._profili = (_srv?.api) ? _srv.api.profili : [];
+            this._proprieta_custom = (_srv?.api) ? _srv.api.proprieta_custom : [];
         });
     }
 
@@ -499,7 +501,12 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     _initBreadcrumb() {
-        const _title = this.data ? this.data.nome + ' v. ' + this.data.versione : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+        let _title = '';
+        if (this.data) {            
+            _title = this.hideVersions ? `${this.data.nome}` : `${this.data.nome} v. ${this.data.versione}` ;
+        } else {
+            _title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+        }
         this.breadcrumbs = [
             { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
             { label: `${_title}`, url: '', type: 'title' }
