@@ -19,7 +19,10 @@
     "audit:prod": "npm audit --omit=dev",
     "audit:better": "better-npm-audit audit",
     "audit:better:prod": "npm audit --omit=dev --json | better-npm-audit audit",
-    "audit:ci": "audit-ci --config audit-ci.json"
+    "audit:ci": "audit-ci --config audit-ci.json",
+    "license:add": "licenseheaders -t license-header.txt -cy -d ./projects -E .ts .js .html .css .scss && licenseheaders -t license-header.txt -cy -f *.js *.mjs",
+    "license:check": "FILES=$( { find ./projects -type f \\( -name '*.ts' -o -name '*.js' -o -name '*.mjs' -o -name '*.html' -o -name '*.css' -o -name '*.scss' \\); find . -maxdepth 1 -type f \\( -name '*.ts' -o -name '*.js' -o -name '*.mjs' \\); } | xargs grep -L 'GovCat - GovWay API Catalogue' 2>/dev/null); if [ -n \"$FILES\" ]; then echo \"Files missing license header:\"; echo \"$FILES\"; exit 1; fi",
+    "license:update-year": "{ find ./projects -type f \\( -name '*.ts' -o -name '*.js' -o -name '*.mjs' -o -name '*.html' -o -name '*.css' -o -name '*.scss' \\); find . -maxdepth 1 -type f \\( -name '*.ts' -o -name '*.js' -o -name '*.mjs' \\); } | xargs sed -i 's/2021-2026/2021-2027/g'"
   },
   "private": true,
   "dependencies": {
