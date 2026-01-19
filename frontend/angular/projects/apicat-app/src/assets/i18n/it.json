@@ -196,6 +196,7 @@
 			"AddUser": "Aggiungi utente",
 			"AddUserClass": "Aggiungi Classe Utente",
 			"AlertAction": "Chiudi",
+			"Back": "Indietro",
 			"BackToAnonymous": "Continua a navigare in modalità anonima",
 			"Cancel": "Annulla",
 			"CancelCustomAuthentication": "Annulla personalizzazione",
@@ -646,6 +647,7 @@
 			"codice_asset": "Codice applicazione",
 			"CodiceRisposta": "Codice risposta",
 			"CodiceRispostaClient": "Codice Risposta Client",
+			"CodiceFiscale": "Codice Fiscale",
 			"cognome": "Cognome",
 			"CommonName": "Common Name",
 			"configurazione_non_trovata": "Configurazione non definita",
@@ -682,6 +684,7 @@
 			"Domain": "Dominio",
 			"DueDate": "Data di scadenza",
 			"email": "E-mail",
+			"Email": "E-mail",
 			"Empty": " ",
 			"erogato_soggetto_aderente": "Erogate dal soggetto aderente",
 			"erogato_soggetto_aderente_type": "Fruizione",
@@ -752,6 +755,7 @@
 			"LegalName": "Ragione sociale",
 			"Limit": "Limite",
 			"LoadName": "Mostra il nome",
+			"Loading": "Caricamento",
 			"logo": "Logo",
 			"Mandatory": "Obbligatorietà",
 			"Markdown": "Markdown",
@@ -1009,11 +1013,11 @@
 			"English": "Inglese",
 			"eServiceDescriptor": "Descrittore eService",
 			"eServiceExtendedDescriptor": "Descrittore eService esteso",
-			"EsportSearch": "Ricerca",
-			"EsportSelected": "Selezionati",
-			"EsportSelectedSubscriptions": "Adesioni dei servizi selezionati",
-			"EsportSelection": "Esporta selezione",
-			"EsportServiceSubscriptions": "Adesioni dei servizi",
+			"ExportSearch": "Ricerca",
+			"ExportSelected": "Selezionati",
+			"ExportSelectedSubscriptions": "Adesioni dei servizi selezionati",
+			"ExportSelection": "Esporta selezione",
+			"ExportServiceSubscriptions": "Adesioni dei servizi",
 			"Export": "Esporta",
 			"ExportCSV": "Esporta CSV",
 			"ExportPDF": "Esporta PDF",
@@ -1235,7 +1239,7 @@
 					"403_ACTION": "Azione workflow [{{azione}}] non autorizzata per l'utente [{{utente}}]"
 				}
 			},
-			"EsportingFile": "Sto esportando il documento…",
+			"ExportingFile": "Sto esportando il documento…",
 			"Files_Results": {
 				"none": "Nessun file trovato",
 				"plural": "Trovati {{count}} tracciati",
@@ -1411,6 +1415,54 @@
 			"TAB": {
 				"Profile": "Profilo",
 				"Settings": "Impostazioni"
+			}
+		},
+		"REGISTRAZIONE": {
+			"TITLE": {
+				"Registrazione": "Registrazione",
+				"ConfermaEmail": "Conferma i tuoi dati",
+				"ModificaEmail": "Modifica email",
+				"VerificaCodice": "Verifica codice",
+				"Benvenuto": "Benvenuto"
+			},
+			"STEP": {
+				"Conferma": "Conferma",
+				"Verifica": "Verifica",
+				"Completato": "Completato"
+			},
+			"LABEL": {
+				"EmailAttuale": "Email attuale",
+				"NuovaEmail": "Nuova email",
+				"ConfermaEmail": "Conferma email"
+			},
+			"BUTTON": {
+				"ConfermaEProcedi": "Conferma e procedi",
+				"ModificaEmail": "Modifica email",
+				"InviaCodice": "Invia codice di verifica",
+				"Verifica": "Verifica codice",
+				"ReinviaCodice": "Reinvia codice",
+				"CambiaEmail": "Cambia email",
+				"VaiAlCatalogo": "Vai al catalogo"
+			},
+			"MESSAGE": {
+				"ConfermaEmailDesc": "Abbiamo recuperato i tuoi dati dal sistema di autenticazione. Verifica che siano corretti.",
+				"ConfermaEmailInfo": "Confermando i dati, utilizzeremo questa email per le comunicazioni.",
+				"ModificaEmailDesc": "Inserisci la nuova email che desideri utilizzare per le comunicazioni.",
+				"InvieremoCodiceSMS": "Ti invieremo un codice di verifica alla nuova email.",
+				"VerificaCodiceDesc": "Abbiamo inviato un codice di verifica a:",
+				"CodiceScadeIn": "Il codice scade tra",
+				"CodiceScaduto": "Il codice e' scaduto. Richiedi un nuovo codice.",
+				"RegistrazioneCompletata": "La tua registrazione e' stata completata con successo!",
+				"CosaFare": "Ecco cosa puoi fare ora:",
+				"PuoiEsplorare": "Esplorare il catalogo dei servizi disponibili",
+				"PuoiRichiedere": "Richiedere l'adesione ai servizi di tuo interesse",
+				"RiceveraiNotifiche": "Ricevere notifiche sullo stato delle tue richieste"
+			},
+			"ERROR": {
+				"EmailRequired": "L'email e' obbligatoria",
+				"EmailInvalid": "Inserisci un indirizzo email valido",
+				"EmailMismatch": "Le email non corrispondono",
+				"CodiceLength": "Il codice deve essere di 6 caratteri"
 			}
 		},
 		"ROLE": {

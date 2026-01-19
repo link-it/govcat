@@ -19,7 +19,7 @@
               <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('search')" [disabled]="totalSearch === 0">
                 <div class="gl-new-dropdown-item-text-wrapper me-0">
                   <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
-                      <span>{{ 'APP.MENU.EsportSearch' | translate }}</span>
+                      <span>{{ 'APP.MENU.ExportSearch' | translate }}</span>
                       <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ totalSearch }}</span>
                   </p>
                 </div>
@@ -29,14 +29,14 @@
               <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('selection')" [disabled]="totalSeleted === 0">
                 <div class="gl-new-dropdown-item-text-wrapper me-0">
                     <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
-                        <span>{{ 'APP.MENU.EsportSelected' | translate }}</span>
+                        <span>{{ 'APP.MENU.ExportSelected' | translate }}</span>
                         <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ totalSeleted }}</span>
                     </p>
                 </div>
               </button>
             </li>
             <li class="gl-new-dropdown-divider" *ngIf="totalSeleted && uncheckAllInTheMenu">
-              <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+              <hr aria-orientation="horizontal" class="dropdown-divider">
             </li>
               <li class="gl-new-dropdown-item" *ngIf="totalSeleted && uncheckAllInTheMenu">
                 <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('uncheckAll')">

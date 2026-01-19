@@ -1,3 +1,9 @@
+2026-01-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #115
+	Aggiunto flusso first-login con verifica email per utenti OIDC non registrati
+
 2025-12-01  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo,ReverseProxy]

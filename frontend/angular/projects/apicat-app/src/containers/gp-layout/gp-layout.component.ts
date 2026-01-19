@@ -368,6 +368,14 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this._spin = true;
         this.apiService.getList('profilo').subscribe({
             next: (response: any) => {
+                // Controlla se e' richiesta la registrazione (first-login)
+                if (response.stato === 'registrazione_richiesta') {
+                    this.authenticationService.setCurrentSession(response);
+                    this._spin = false;
+                    this.router.navigate(['/auth/registrazione']);
+                    return;
+                }
+
                 this.authenticationService.setCurrentSession(response);
                 this._session = this.authenticationService.reloadSession();
                 if (_.isEmpty(this._session.settings) || !this._session.settings.version) {
@@ -381,7 +389,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
                 this.localStorageService.setItem('PROFILE', true);
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: this._session });
-                
+
                 this._spin = false;
             },
             error: (error: any) => {

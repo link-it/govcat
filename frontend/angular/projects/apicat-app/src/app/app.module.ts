@@ -27,6 +27,7 @@ import { GestoreGuard } from '@app/guard/gestore.guard';
 import { ForbidAnonymousGuard } from '@app/guard/forbid-anonymous.guard';
 import { CategorieGuard } from '@app/guard/categorie.guard';
 import { MonitoraggioGuard } from '@app/guard/monitoraggio.guard';
+import { RegistrazioneGuard } from '@app/guard/registrazione.guard';
 
 import { appHttpInterceptorProviders } from '@app/interceptors/index';
 
@@ -127,6 +128,7 @@ export function storageFactory() : OAuthStorage {
     ForbidAnonymousGuard,
     CategorieGuard,
     MonitoraggioGuard,
+    RegistrazioneGuard,
     { provide: OAuthStorage, useFactory: storageFactory }
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

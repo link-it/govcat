@@ -105,6 +105,7 @@ export * from './protocolloEnum';
 export * from './referente';
 export * from './referenteClasseUtente';
 export * from './referenteCreate';
+export * from './registrazione';
 export * from './ruoloAPIEnum';
 export * from './ruoloUtenteEnum';
 export * from './servizio';
