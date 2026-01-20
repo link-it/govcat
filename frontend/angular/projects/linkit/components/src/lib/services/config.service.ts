@@ -60,6 +60,7 @@ export class ConfigService {
             cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
             cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
             cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
+            cfg.revocationEndpoint = (_oauthConfig.RevocationEndpoint || '');
             cfg.skipIssuerCheck = true;
             cfg.strictDiscoveryDocumentValidation = false;
           }
