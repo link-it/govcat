@@ -17,51 +17,14 @@
     "AUTH_SETTINGS": { 
       "LOGIN_ENABLED": false,
       "AUTH_USER": false,
-      "OTHER_AUTHS": [
-        {
-          "label": "Accedi con Github",
-          "icon": "github",
-          "image": "",
-          "enabled": false,
-          "signin_url": "http://172.16.1.90/govhub-reverse-proxy/oauth2/authorization/github"
-        },
-        {
-          "label": "Accedi con OAuth",
-          "icon": "",
-          "image": "Oauth_logo.svg",
-          "enabled": true,
-          "signin_url": "",
-          "signin_action": "oauth"
-        }
-      ],
-
       "AUTOLOGIN": true,
-      "SHOW_USER_REGISTRATION": false,
-
-      "OAUTH": {
-        "ClientId": "catalogo-app",
-        "RedirectUri": "",
-        "LogoutRedirectUri": "",
-        "ResponseType": "code",
-        "ShowDebugInformation": false,
-        "BackdoorOAuth": true,
-        "Scope": "openid profile email offline_access",
-        "AutoAuthDiscovery": false,
-        "StrictDiscoveryDocumentValidation": true
-      },
-
-      "TOKEN_POLICIES": {
-        "code_grant": {
-          "redirect_uri": "/code-grant-authorization/?return=ok"
-        }
-      }
+      "SHOW_USER_REGISTRATION": false
     },
 
     "GOVAPI": {
       "HOST": "/govcat-api/api/v1",
       "HOST_PDND": "/govcat-api/pdnd/v1",
       "HOST_MONITOR": "/govcat-api/monitor/v1",
-      "LOGOUT_URL": "/logout"
     },
 
     "Languages": [
