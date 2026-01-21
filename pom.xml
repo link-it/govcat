@@ -284,6 +284,9 @@
 		<jakarta.mail.version>2.0.4</jakarta.mail.version>
 		<jakarta.jaxws.version>4.0.0</jakarta.jaxws.version>
 
+		<!-- Log4j version override for CVE-2025-68161 fix -->
+		<log4j2.version>2.25.3</log4j2.version>
+
 	</properties>
 
 	<dependencyManagement>
@@ -302,6 +305,28 @@
 				<version>${spring.framework.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+
+			<!-- Log4j version override to fix CVE-2025-68161 -->
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-api</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-slf4j2-impl</artifactId>
+				<version>${log4j2.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-1.2-api</artifactId>
+				<version>${log4j2.version}</version>
 			</dependency>
 
 			<dependency>
@@ -1113,7 +1138,7 @@
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
-			<version>2.9.2</version>
+			<version>3.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>

@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
@@ -69,7 +87,7 @@ export class AllegatoComponent implements OnInit {
   __onChange(event: any) {
     if (event.currentTarget.files && event.currentTarget.files.length !== 0) {
       if (this.multiple) {
-        event.currentTarget.files.forEach((file: any) => {
+        Array.from(event.currentTarget.files as FileList).forEach((file: File) => {
           this._file = file;
           if (!this.maxUpload || this._file.size < this.maxUpload) {
             if (this.control) {
