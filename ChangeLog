@@ -7,6 +7,12 @@
 2026-01-16  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Aggiunta funzionalità #115
+	Aggiunte API di registrazione per implementare flusso di first-login con verifica dell'indirizzo email
+
+2026-01-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
 	Risolto bug
 	Sono state risolte le seguenti vulnerabilità relative ai jar di terza parte
 	- CVE-2025-68161: upgrade dipendenza log4j
