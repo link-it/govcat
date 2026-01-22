@@ -4,6 +4,7 @@
 	Implementata funzionalità #144
 	Risolto bug
 	Aggiornato lodash da 4.17.21 a 4.17.23 per risolvere vulnerabilità CVE-2025-13465
+	Corretto spinner che rimaneva visibile nella ricerca transazioni - Fix #149
 
 2026-01-22  Giovanni De Luca <giovanni.deluca@link.it>
 

@@ -546,9 +546,9 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
             return element;
           });
           this.elements = (url) ? [...this.elements, ..._list] : [..._list];
-          this._preventMultiCall = false;
-          this._spin = false;
         }
+        this._preventMultiCall = false;
+        this._spin = false;
       },
       error: (error: any) => {
         this._setErrorMessages(true, error);
