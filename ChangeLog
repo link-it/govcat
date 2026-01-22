@@ -5,6 +5,7 @@
 	Risolto bug
 	Aggiornato lodash da 4.17.21 a 4.17.23 per risolvere vulnerabilità CVE-2025-13465
 	Corretto spinner che rimaneva visibile nella ricerca transazioni - Fix #149
+	Aggiunto tooltip informativo per checkbox Masonry nelle impostazioni profilo - Issue #143
 
 2026-01-22  Giovanni De Luca <giovanni.deluca@link.it>
 

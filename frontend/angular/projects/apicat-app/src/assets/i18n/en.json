@@ -1924,6 +1924,7 @@
 			"HideDetails": "Hide details",
 			"Indeterminate": "Not applicable in this state",
 			"Information": "Information",
+			"MasonryInfo": "Dynamic grid layout that arranges cards optimally, automatically adapting to available space",
 			"Modify": "Edit",
 			"Organization": "Organization",
 			"Preview": "Preview",
