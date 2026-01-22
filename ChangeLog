@@ -1,6 +1,7 @@
 2026-01-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Implementata funzionalità #144
 	Risolto bug
 	Aggiornato lodash da 4.17.21 a 4.17.23 per risolvere vulnerabilità CVE-2025-13465
 
