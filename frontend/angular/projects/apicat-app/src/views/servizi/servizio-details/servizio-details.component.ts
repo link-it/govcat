@@ -518,7 +518,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     case 'descrizione_sintetica':
                         value = data[key] ? data[key] : null;
                         _group[key] = new FormControl(value, [
-                            // Validators.required,
+                            Validators.required,
                             Validators.maxLength(255)
                         ]);
                         break;
@@ -574,9 +574,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         _group[key] = new FormControl(value, []);
                         break;
                     case 'adesione_disabilitata':
-                        boolValue = data[key] ? data[key] : false;
-                        _group[key] = new FormControl(boolValue, []);
-                        break;
                     case 'fruizione':
                         boolValue = data[key] ? data[key] : false;
                         _group[key] = new FormControl(boolValue, []);

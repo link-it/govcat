@@ -22,7 +22,7 @@
         <div class="d-flex flex-grow-1">&nbsp;</div>
         <div class="nav-controls">
             <app-monitor-dropdown *ngIf="data"
-                [showMonitoring]="Tools.Configurazione.servizio.api.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
+                [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
                 [returnWeb]="true"
                 [otherActions]="_showExternalOtherActions ? _otherActions : []"
                 (action)="onActionMonitor($event)"
