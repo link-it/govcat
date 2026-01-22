@@ -1607,12 +1607,20 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 				if (service.isEliminabile(entity)) {
+				    // Cancellazione degli allegati del servizio
+				    AllegatoServizioSpecification spec = new AllegatoServizioSpecification();
+				    spec.setIdServizio(Optional.of(idServizio));
+				    Page<AllegatoServizioEntity> allegati = service.findAllAllegatiServizio(spec, Pageable.unpaged());
+				    for (AllegatoServizioEntity allegato : allegati.getContent()) {
+				        this.service.delete(allegato);
+				    }
+
 				    service.delete(entity);
 				} else {
 				    throw new BadRequestException(ErrorCode.SRV_400_NOT_DELETABLE);

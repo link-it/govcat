@@ -1,3 +1,15 @@
+2026-01-22  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug #158
+	Aggiunta cancellazione automatica degli allegati di un servizio con allegati al momento della cancellazione di un servizio
+
+2026-01-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #132
+	Migliorata accessibilità pagina di Login
+
 2026-01-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
