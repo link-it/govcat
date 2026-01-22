@@ -118,6 +118,8 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
+  hideVersions: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -136,6 +138,7 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     });
 
     this.config = this.configService.getConfiguration();
+    this.hideVersions = this.config?.AppConfig?.Services?.hideVersions || false;
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
@@ -209,7 +212,7 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
     
-    let title = this.service ?`${_nome} v. ${_versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    let title = this.service ? (this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}`) : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     let baseUrl = `/${this.model}`;
 
     if (this._componentBreadcrumbs) {

@@ -123,6 +123,8 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
+  hideVersions: boolean = false;
+
   modalAttachmentsRef!: BsModalRef;
 
   constructor(
@@ -144,6 +146,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     });
 
     this.config = this.configService.getConfiguration();
+    this.hideVersions = this.config?.AppConfig?.Services?.hideVersions || false;
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
@@ -220,7 +223,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _allegati = 'APP.SERVICES.TITLE.Allegati';
 
-    let title = (_nome && _versione) ?`${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+    let title = (_nome && _versione) ? (this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}`) : this.id ? `${this.id}` : '...';
     let baseUrl = `/${this.model}`;
 
     if (this._componentBreadcrumbs) {
