@@ -166,7 +166,7 @@
                 <div class="gl-px-5" *ngIf="auth.enabled">
                   <button type="button" class="gl-button btn btn-block btn-default" (click)="logidWithUrlAction(auth)">
                     <i class="bi bi-{{ auth.icon }} me-2" *ngIf="auth.icon"></i>
-                    <img class="me-2" width="16" height="16" [src]="'./assets/images/' + auth.image" *ngIf="auth.image && !auth.icon">
+                    <img class="me-2" alt="Logo {{ auth.label | translate }}" width="16" height="16" [src]="'./assets/images/' + auth.image" *ngIf="auth.image && !auth.icon">
                     <span>{{ auth.label | translate }}</span>
                   </button>
                 </div>
