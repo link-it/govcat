@@ -22,16 +22,18 @@ package org.govway.catalogo;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
+import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Problem;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,21 +41,30 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public final class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+	private static final String JSON_MEDIA_TYPE = "application/json";
+
 	@Override
 	public void commence(final HttpServletRequest request, final HttpServletResponse response, final AuthenticationException authException) throws IOException {
 		if(authException != null) {
 
 			Problem problem = new Problem();
-			problem.setStatus(HttpStatus.FORBIDDEN.value());
-			problem.setTitle(HttpStatus.FORBIDDEN.getReasonPhrase());
-			try {problem.setType(new URI("https://tools.ietf.org/html/rfc7231#section-6.5.1"));} catch (URISyntaxException e) {}
-			problem.setDetail("Full authentication required");
+			problem.setStatus(HttpStatus.UNAUTHORIZED.value());
+			problem.setTitle(HttpStatus.UNAUTHORIZED.getReasonPhrase());
+			try {
+				problem.setType(new URI("https://tools.ietf.org/html/rfc7235#section-3.1"));
+			} catch (URISyntaxException e) {
+				// URI statica, non può fallire
+			}
+			problem.setDetail(ErrorCode.AUT_401.getCode());
+
+			EntitaComplessaError errore = new EntitaComplessaError();
+			problem.setErrori(List.of(errore));
 
 			ObjectMapper om = new ObjectMapper();
-			om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+			om.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 
-			response.setStatus(HttpStatus.FORBIDDEN.value());
-			response.setContentType("application/json+problem");
+			response.setStatus(HttpStatus.UNAUTHORIZED.value());
+			response.setContentType(JSON_MEDIA_TYPE);
 
 			om.writeValue(response.getOutputStream(), problem);
 
