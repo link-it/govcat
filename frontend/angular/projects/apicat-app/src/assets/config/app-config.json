@@ -24,7 +24,7 @@
     "GOVAPI": {
       "HOST": "/govcat-api/api/v1",
       "HOST_PDND": "/govcat-api/pdnd/v1",
-      "HOST_MONITOR": "/govcat-api/monitor/v1",
+      "HOST_MONITOR": "/govcat-api/monitor/v1"
     },
 
     "Languages": [
@@ -52,6 +52,11 @@
     "Services": {
       "showReferents": true,
       "hideVersions": true
+    },
+
+    "Scrollbar": {
+      "hidden": true,
+      "hideOnIdle": true
     },
 
     "Layout": {

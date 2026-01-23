@@ -155,6 +155,12 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _isAnonymous: boolean = true;
 
+    // Scrollbar options
+    _scrollbarHidden: boolean = false;
+    _scrollbarHideOnIdle: boolean = false;
+    private _scrollbarTimeout: any = null;
+    private _scrollbarHideDelay: number = 1000;
+
     version: string = environment.version;
     build: string = environment.build;
     backInfo: any = null;
@@ -244,6 +250,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
             this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
         }
+
+        // Scrollbar options
+        this._scrollbarHidden = this._config.AppConfig?.Scrollbar?.hidden || false;
+        this._scrollbarHideOnIdle = this._config.AppConfig?.Scrollbar?.hideOnIdle || false;
 
         if (this._showBuild) {
             this.version = `${this.version} (${this.build})`;
@@ -347,6 +357,49 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
         // setTimeout(async () => {}, 200);
         this.loadProfile();
+
+        // Init scrollbar options
+        this._initScrollbarOptions();
+    }
+
+    private _initScrollbarOptions(): void {
+        // Scrollbar completamente nascosta (priorità su hideOnIdle)
+        if (this._scrollbarHidden) {
+            document.body.classList.add('scrollbar-hidden');
+            return;
+        }
+
+        // Scrollbar nascosta quando inattivo
+        if (this._scrollbarHideOnIdle) {
+            document.body.classList.add('scrollbar-hide-on-idle');
+
+            // Bind event handlers
+            this._onMouseMoveHandler = this._onMouseMoveHandler.bind(this);
+            this._onScrollHandler = this._onScrollHandler.bind(this);
+
+            document.addEventListener('mousemove', this._onMouseMoveHandler);
+            document.addEventListener('scroll', this._onScrollHandler, true);
+        }
+    }
+
+    private _onMouseMoveHandler(): void {
+        this._showScrollbar();
+    }
+
+    private _onScrollHandler(): void {
+        this._showScrollbar();
+    }
+
+    private _showScrollbar(): void {
+        document.body.classList.add('scrollbar-visible');
+
+        if (this._scrollbarTimeout) {
+            clearTimeout(this._scrollbarTimeout);
+        }
+
+        this._scrollbarTimeout = setTimeout(() => {
+            document.body.classList.remove('scrollbar-visible');
+        }, this._scrollbarHideDelay);
     }
 
     async loadRemoteConfig() {
@@ -380,6 +433,18 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     }
 
     ngOnDestroy() {
+        // Cleanup scrollbar options
+        if (this._scrollbarHidden) {
+            document.body.classList.remove('scrollbar-hidden');
+        }
+        if (this._scrollbarHideOnIdle) {
+            document.removeEventListener('mousemove', this._onMouseMoveHandler);
+            document.removeEventListener('scroll', this._onScrollHandler, true);
+            document.body.classList.remove('scrollbar-hide-on-idle', 'scrollbar-visible');
+            if (this._scrollbarTimeout) {
+                clearTimeout(this._scrollbarTimeout);
+            }
+        }
     }
 
     loadProfile() {

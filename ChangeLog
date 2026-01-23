@@ -1,3 +1,8 @@
+2026-01-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunta gestione visibilità scrollbar configurabile con opzioni hidden e hideOnIdle
+
 2026-01-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
