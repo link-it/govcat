@@ -39,6 +39,7 @@ import * as _ from 'lodash';
 
 import { NotificationType, NotificationState, NotificationEntityType } from './notifications'
 import { MenuSelectType } from './notifications'
+import { NavigationService } from '@app/services/navigation.service';
 
 import { Observable } from 'rxjs/internal/Observable';
 
@@ -151,7 +152,8 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
     public apiService: OpenAPIService,
     public utilService: UtilService,
     public authenticationService: AuthenticationService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
+    private navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._enablePollingNotifications = this.config.AppConfig.Layout.enablePollingNotifications || false;
@@ -320,15 +322,19 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
       this.searchBarForm._pinLastSearch();
     }
 
-    const _notificaId = param.id_notifica;
-    const _messageId = param.entita.id_entita;
-    const _servizio = param.entita.servizio;
-    const _adesione = param.entita.adesione;
-    const _tipoUrl = (param.tipo.tipo === NotificationType.Comunicazione) ? `/comunicazioni?` : '?';
+    // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+    const mouseEvent = this.navigationService.extractEvent(event);
+    const data = this.navigationService.extractData(param) || param;
+
+    const _notificaId = data.id_notifica;
+    const _messageId = data.entita.id_entita;
+    const _servizio = data.entita.servizio;
+    const _adesione = data.entita.adesione;
+    const _tipoUrl = (data.tipo.tipo === NotificationType.Comunicazione) ? `/comunicazioni?` : '?';
 
     const _useId: boolean = true;
-    const _notificationB64 = btoa(encodeURI(JSON.stringify(param)));
-    
+    const _notificationB64 = btoa(encodeURI(JSON.stringify(data)));
+
     let _url = '';
     if (_servizio) {
       _url = `/servizi/${_servizio.id_servizio}${_tipoUrl}`;
@@ -337,7 +343,14 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
       _url = `/adesioni/${_adesione.id_adesione}${_tipoUrl}`;
       _url += _useId ? `notificationId=${_notificaId}&messageid=${_messageId}` : `notification=${_notificationB64}`;
     }
-    this.router.navigateByUrl(_url); 
+
+    if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
+      mouseEvent?.preventDefault();
+      mouseEvent?.stopPropagation();
+      window.open(_url, '_blank');
+    } else {
+      this.router.navigateByUrl(_url);
+    }
   }
 
   markNotification(elem: any, stato: string, refresh: boolean = false) {

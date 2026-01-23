@@ -30,6 +30,7 @@ import { UtilService } from '@app/services/utils.service';
 
 import { SearchBarFormComponent } from '@linkit/components';
 
+import { NavigationService } from '@app/services/navigation.service';
 import { Page} from '../../models/page';
 
 @Component({
@@ -93,7 +94,8 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
     private configService: ConfigService,
     public tools: Tools,
     public apiService: OpenAPIService,
-    private utils: UtilService
+    private utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
 
@@ -199,7 +201,11 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
     if (this.searchBarForm) {
       this.searchBarForm._pinLastSearch();
     }
-    this.router.navigate([this.model, param.id]);
+    // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+    const mouseEvent = this.navigationService.extractEvent(event);
+    const data = this.navigationService.extractData(param) || param;
+    const route = [this.model, data.id];
+    this.navigationService.navigateWithEvent(mouseEvent, route);
   }
 
   _onNew() {

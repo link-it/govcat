@@ -1,6 +1,12 @@
 2026-01-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Implementata funzionalità #116
+	Aggiunto supporto apertura link in nuova scheda (Ctrl+Click, Cmd+Click, middle-click) su sidebar, breadcrumbs, liste e bottoni di navigazione. Aggiunto feedback visivo con icona e cursore dedicato.
+
+2026-01-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Aggiunta gestione visibilità scrollbar configurabile con opzioni hidden e hideOnIdle
 
 2026-01-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>

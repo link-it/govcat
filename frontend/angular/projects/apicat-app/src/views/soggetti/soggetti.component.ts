@@ -34,6 +34,7 @@ import { SearchBarFormComponent } from '@linkit/components';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
+import { NavigationService } from '@app/services/navigation.service';
 import { Page} from '../../models/page';
 
 import * as moment from 'moment';
@@ -134,7 +135,8 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService
+    private utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -251,8 +253,11 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
       if (this.searchBarForm) {
         this.searchBarForm._pinLastSearch();
       }
-      
-      this.router.navigate([this.model, param.source.id_soggetto]);
+      // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+      const mouseEvent = this.navigationService.extractEvent(event);
+      const data = this.navigationService.extractData(param) || param;
+      const route = [this.model, data.source.id_soggetto];
+      this.navigationService.navigateWithEvent(mouseEvent, route);
     } else {
       this._isEdit = true;
       this._editCurrent = param;

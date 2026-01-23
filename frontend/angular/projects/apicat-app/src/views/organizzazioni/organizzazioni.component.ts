@@ -31,6 +31,7 @@ import { UtilService } from '@app/services/utils.service';
 
 import { SearchBarFormComponent } from '@linkit/components';
 
+import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
 
 @Component({
@@ -114,7 +115,8 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService
+    private utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -237,7 +239,11 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _onEdit(event: any, param: any) {
-    this.router.navigate([this.model, param.id]);
+    // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+    const mouseEvent = this.navigationService.extractEvent(event);
+    const data = this.navigationService.extractData(param) || param;
+    const route = [this.model, data.id];
+    this.navigationService.navigateWithEvent(mouseEvent, route);
   }
 
   _onNew() {
