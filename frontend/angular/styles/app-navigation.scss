@@ -1,0 +1,72 @@
+/**
+ * Stili per elementi che supportano l'apertura in nuova scheda
+ * con Ctrl+Click (Windows/Linux), Cmd+Click (macOS) o middle-click
+ *
+ * Classi disponibili:
+ * - .supports-new-tab: base, mostra icona dopo il contenuto su hover
+ * - .supports-new-tab.no-icon: solo cursore, nessuna icona (per bottoni con icona propria)
+ */
+
+// Classe base per elementi che supportano apertura in nuova scheda
+.supports-new-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer; // Default: pointer
+
+  // Icona che appare su hover (allineata a destra)
+  // Usa display:none di default per non occupare spazio
+  &::after {
+    content: '\F1C5'; // Bootstrap Icons: box-arrow-up-right
+    font-family: 'bootstrap-icons';
+    font-size: 0.7em;
+    margin-left: auto;
+    padding-left: 0.5em;
+    display: none;
+    color: currentColor;
+    opacity: 0.5;
+  }
+
+  &:hover::after {
+    display: inline-flex;
+  }
+}
+
+// Variante senza icona - SEMPRE nasconde l'icona (massima specificità)
+.supports-new-tab.no-icon::after,
+.supports-new-tab.no-icon:hover::after,
+body.modifier-key-pressed .supports-new-tab.no-icon::after,
+body.modifier-key-pressed .supports-new-tab.no-icon:hover::after {
+  display: none !important;
+  content: none !important;
+}
+
+// Quando Ctrl/Cmd è premuto, il body riceve questa classe via JS
+body.modifier-key-pressed {
+  // Cursore che indica "apri in nuova finestra"
+  .supports-new-tab {
+    cursor: alias !important;
+  }
+
+  // Icona blu al 100% solo su hover (solo per elementi CON icona)
+  .supports-new-tab:not(.no-icon):hover::after {
+    display: inline !important;
+    opacity: 1 !important;
+    color: var(--link-hover-color, #0d6efd) !important;
+  }
+
+  // Per la variante no-icon, mostra un feedback visivo con outline solo su hover
+  .supports-new-tab.no-icon:hover {
+    outline: 2px dashed var(--link-hover-color, #0d6efd) !important;
+    outline-offset: 2px !important;
+  }
+}
+
+// Fix per rendere visibile l'outline nei breadcrumbs (rimuove overflow:hidden)
+.breadcrumbs-list > li:not(:last-child):not(.dropdown) {
+  overflow: visible !important;
+}
+
+.breadcrumbs-list > li > a.supports-new-tab {
+  overflow: visible !important;
+}

@@ -66,16 +66,22 @@ export class LnkCardComponent implements OnInit {
     this._textColor = '#111111'; // this.utilsLib.contrast(this._backColor);
   }
 
-  __simpleClick(event: any) {
-    if (!this._editMode) {
-      this.simpleClick.emit(event);
+  __cardClick(event: MouseEvent) {
+    if (!this._editMode && this.showGroupLabel) {
+      this.simpleClick.emit({ data: this.data, event });
     }
   }
 
-  __imageClick(event: any) {
+  __simpleClick(event: MouseEvent) {
+    if (!this._editMode) {
+      this.simpleClick.emit({ data: this.data, event });
+    }
+  }
+
+  __imageClick(event: MouseEvent) {
     if (this._enabledImageLink) {
       if (!this._editMode) {
-        this.simpleClick.emit(event);
+        this.simpleClick.emit({ data: this.data, event });
       }
     }
   }

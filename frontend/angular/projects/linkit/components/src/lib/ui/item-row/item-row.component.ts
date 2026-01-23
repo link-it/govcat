@@ -49,6 +49,7 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   @Input() actionText: string = 'download';
   @Input() actionTooltip: string = 'download';
   @Input() rowClick: boolean = false;
+  @Input() linkRoute: boolean = true;
   @Input() hostBackground: string = '#ffffff';
   @Input() primaryClass: string = '';
   @Input() isAnonymous: boolean = false;
@@ -104,15 +105,15 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     return this.sanitized.bypassSecurityTrustHtml(html);
   }
 
-  __itemClick(event: any, activeItem: any) {
+  __itemClick(event: MouseEvent, activeItem: any) {
     if (!this.rowClick) {
-      this.itemClick.emit(this._data);
+      this.itemClick.emit({ data: this._data, event });
     }
   }
 
-  __itemClickRow(event: any, activeItem: any) {
+  __itemClickRow(event: MouseEvent, activeItem: any) {
     if (this.rowClick) {
-      this.itemClick.emit(this._data);
+      this.itemClick.emit({ data: this._data, event });
     }
   }
 

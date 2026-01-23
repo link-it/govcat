@@ -27,11 +27,16 @@
     <div class="nav-controls">
       <div class="position-relative" *ngIf="!_isEdit && !_spin">
 
-        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" [routerLink]="['verifiche']" *ngIf="_updateMapper | mapper:_hasVerifica">
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2 supports-new-tab"
+          [routerLink]="['verifiche']"
+          [appOpenInNewTab]="[id, 'verifiche']"
+          *ngIf="_updateMapper | mapper:_hasVerifica">
           {{ 'APP.CLIENT.BUTTON.Check' | translate }}
         </button>
 
-        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2" [routerLink]="['adesioni']">
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2 supports-new-tab"
+          [routerLink]="['adesioni']"
+          [appOpenInNewTab]="[id, 'adesioni']">
           {{ 'APP.CLIENT.BUTTON.Adesioni' | translate }}
         </button>
 

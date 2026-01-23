@@ -60,10 +60,10 @@
                             <li class="position-relative" [ngClass]="{ 'js-collapsed-desktop': _sideBarCollapsed && desktop, 'js-expanded-mobile': _sideBarCollapsed && !desktop, 'js-mobile': mobile, 'expanded': (_item.expanded && mobile) || _forceMenuOpen, 'force-menu-open': _forceMenuOpen }" [appRouterLinkMatch]="{ 'active': _item.path + '' }" appFlyOut>
                                 <ng-container [ngSwitch]="sidebarNavHelper.itemType(_item)">
                                     <ng-container *ngSwitchCase="'divider'">
-                                        <a class="divider"></a>
+                                        <a class="divider">&nbsp;</a>
                                     </ng-container>
                                     <ng-container *ngSwitchCase="'title'">
-                                        <a href="javascript: void(0);" class="gl-link cursor-pointer" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
+                                        <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
                                             <span class="nav-icon-container">
                                                 <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_item)">{{ _item.icon}}</span>
                                                 <i class="bi bi-{{ _item.iconBs}}" *ngIf="sidebarNavHelper.hasIconBs(_item)"></i>
@@ -81,14 +81,13 @@
                                             </li>
                                             <li class="divider fly-out-top-item"></li>
                                             <ng-container *ngFor="let _subItem of _item.children">
-                                                <!-- <li class="text-wrap" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" [contextMenu]="contextualMenuNav" [contextMenuSubject]="_subItem" *ngIf="_subItem | mapper:_showMenu"> -->
-                                                <li class="text-wrap" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
-                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="_onClickMenu($event, _subItem)">
-                                                        <!-- <span class="nav-icon-container">
+                                                <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
+                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" (click)="_onClickMenu($event, _subItem)">
+                                                        <span class="nav-icon-container" *ngIf="false">
                                                             <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
-                                                        </span> -->
+                                                        </span>
                                                         <span class="">{{ _subItem.label + '' | translate }}</span>
-                                                        <!-- <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter">580</span> -->
+                                                        <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter" *ngIf="false">0</span>
                                                     </a>
                                                 </li>
                                             </ng-container>
@@ -99,11 +98,6 @@
                         </ng-container>
                     </ng-container>
                 </ul>
-                <!-- <context-menu #contextualMenuNav>
-                    <ng-template contextMenuItem (execute)="_onContextualMenu($event)">
-                        <span class="me-2">{{ 'APP.MENU.OpenInNewWindow' | translate }}</span><i class="bi-box-arrow-up-right"></i>
-                    </ng-template>
-                </context-menu> -->
             </div>
             <div class="d-flex flex-column align-items-start" [class.pt-2]="_showNewsArea && !_sideBarCollapsed" [class.border-top]="(_showAboutMiniBox || _showNewsArea) && !_sideBarCollapsed">
                 <div class="news-area" *ngIf="_showNewsArea && !_sideBarCollapsed">

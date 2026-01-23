@@ -16,7 +16,7 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" (click)="__itemClick($event)">
+<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" [class.supports-new-tab]="hasLink || rowClick" (click)="__itemClick($event)" (auxclick)="__itemClick($event)">
   <!-- Header: Avatar + Primary Text + Action -->
   <div class="mobile-header">
     <div class="mobile-avatar" *ngIf="_itemRowConfig?.avatar">
