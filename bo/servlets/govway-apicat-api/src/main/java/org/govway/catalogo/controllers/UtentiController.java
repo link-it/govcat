@@ -368,21 +368,35 @@ public class UtentiController implements UtentiApi {
 			if(current != null) {
 				if(current.utente==null) {
 					if(this.configurazione.getUtente().isAutoregistrazioneAbilitata()) {
-						
+
+						// Verifica se è abilitata la verifica email al primo login
+						Boolean verificaEmailAbilitata = this.configurazione.getUtente().isFirstloginVerificaEmailAbilitata();
+						if (Boolean.TRUE.equals(verificaEmailAbilitata)) {
+							// Nuovo flusso: richiede registrazione con verifica email
+							logger.info("Verifica email primo login abilitata - ritorno stato REGISTRAZIONE_RICHIESTA");
+
+							Profilo contact = new Profilo();
+							contact.setStato(StatoProfiloEnum.REGISTRAZIONE_RICHIESTA);
+							contact.setIdm(this.requestUtils.getIdm());
+
+							return ResponseEntity.ok(contact);
+						}
+
+						// Flusso originale: autoregistrazione immediata
 						logger.info("PRE getUtente");
-						
+
 						UtenteEntity contact = this.requestUtils.getUtente();
-						
+
 						logger.info("POST getUtente");
-						
+
 						logger.info("PRE getBlankContactFields");
-						
+
 						List<String> fields = this.profiloAssembler.getBlankContactFields(contact);
-						
+
 						logger.info("POST getBlankContactFields");
-						
+
 						logger.info("PRE setStato");
-						
+
 						if(!this.configurazione.getUtente().isAutoabilitazioneAbilitata()) {
 							contact.setStato(Stato.NON_CONFIGURATO);
 						} else if(!fields.isEmpty()) {
@@ -391,10 +405,10 @@ public class UtentiController implements UtentiApi {
 						} else {
 							contact.setStato(Stato.ABILITATO);
 						}
-						
+
 						this.service.save(contact);
 						logger.info("POST setStato");
-						
+
 						return ResponseEntity.ok(this.profiloAssembler.toModel(contact));
 					} else {
 						

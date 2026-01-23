@@ -133,6 +133,8 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
+  hideVersions: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -152,6 +154,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
 
     this.config = this.configService.getConfiguration();
     this.apiUrl = this.config.AppConfig.GOVAPI.HOST;
+    this.hideVersions = this.config.AppConfig.Services?.hideVersions || false;
 
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
@@ -196,7 +199,12 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
     const _versione: string = this.service ? this.service.versione : null;
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
 
-    let title = (_nome && _versione) ?`${_nome} v. ${_versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    let title = '';
+    if (_nome && _versione) {            
+        title = this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}` ;
+    } else {
+        title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    }
     let baseUrl = `/${this.model}`;
 
     if (this._componentBreadcrumbs) {

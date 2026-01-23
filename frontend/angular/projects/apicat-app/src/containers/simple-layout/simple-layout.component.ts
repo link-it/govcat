@@ -22,7 +22,11 @@ import { ConfigService } from '@linkit/components';
 
 @Component({
   selector: 'app-simple-layout',
-  template: '<router-outlet></router-outlet>',
+  template: `
+    <main id="main-content" tabindex="-1">
+        <router-outlet></router-outlet>
+    </main>
+  `,
   standalone: false
 })
 export class SimpleLayoutComponent {

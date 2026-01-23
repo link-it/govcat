@@ -382,7 +382,30 @@ public enum ErrorCode {
     GEN_409_STATE("Conflitto con stato attuale"),
 
     /** Richiesta non valida */
-    GEN_400_REQUEST("Richiesta non valida");
+    GEN_400_REQUEST("Richiesta non valida"),
+
+    // ==================== REGISTRAZIONE ====================
+
+    /** Funzionalità di registrazione non abilitata */
+    REG_400_NOT_ENABLED("Funzionalità di verifica email al primo login non abilitata"),
+
+    /** Nessuna registrazione in corso per questo utente */
+    REG_400_NO_REGISTRATION("Nessuna registrazione in corso"),
+
+    /** Nessun codice di verifica inviato */
+    REG_400_NO_CODE("Nessun codice di verifica inviato"),
+
+    /** Email non ancora verificata */
+    REG_400_NOT_VERIFIED("Email non ancora verificata"),
+
+    /** Superato numero massimo tentativi di invio codice */
+    REG_429_MAX_SENDS("Superato il numero massimo di tentativi di invio codice"),
+
+    /** Codice di verifica scaduto */
+    REG_410_EXPIRED("Codice di verifica scaduto"),
+
+    /** Principal già associato ad altro utente */
+    REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente");
 
     // ==================== ATTRIBUTI E METODI ====================
 

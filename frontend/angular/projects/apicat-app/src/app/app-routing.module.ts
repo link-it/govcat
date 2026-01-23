@@ -22,6 +22,7 @@ import { RouterModule, Routes, PreloadAllModules } from '@angular/router';
 import { AuthGuard } from '../guard/auth.guard';
 import { GestoreGuard } from '../guard/gestore.guard';
 import { ForbidAnonymousGuard } from '../guard/forbid-anonymous.guard';
+import { RegistrazioneGuard } from '../guard/registrazione.guard';
 
 import { GpLayoutComponent, SimpleLayoutComponent } from '../containers';
 
@@ -38,6 +39,10 @@ const routes: Routes = [
       {
         path: 'accesso',
         loadChildren: () => import('../views/accesso/accesso.module').then(m => m.AccessoModule)
+      },
+      {
+        path: 'registrazione',
+        loadChildren: () => import('../views/registrazione/registrazione.module').then(m => m.RegistrazioneModule)
       }
     ]
   },
@@ -54,7 +59,7 @@ const routes: Routes = [
   {
     path: '',
     component: GpLayoutComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RegistrazioneGuard],
     children: [
       {
         path: '_home',

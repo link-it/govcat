@@ -196,6 +196,7 @@
 			"AddUser": "Add user",
 			"AddUserClass": "Add User Class",
 			"AlertAction": "Close",
+			"Back": "Back",
 			"BackToAnonymous": "Continue browsing anonymously",
 			"Cancel": "Cancel",
 			"CancelCustomAuthentication": "Cancel customization",
@@ -646,6 +647,7 @@
 			"codice_asset": "Application code",
 			"CodiceRisposta": "Response Code",
 			"CodiceRispostaClient": "Client Response Code",
+			"CodiceFiscale": "Tax Code",
 			"cognome": "Lastname",
 			"CommonName": "Common Name",
 			"configurazione_non_trovata": "Undefined configuration",
@@ -682,6 +684,7 @@
 			"Domain": "Domain",
 			"DueDate": "Due date",
 			"email": "Email",
+			"Email": "Email",
 			"Empty": " ",
 			"erogato_soggetto_aderente": "Provided by the member",
 			"erogato_soggetto_aderente_type": "Fruition",
@@ -752,6 +755,7 @@
 			"LegalName": "Legal name",
 			"Limit": "Limit",
 			"LoadName": "Load name",
+			"Loading": "Loading",
 			"logo": "Logo",
 			"Mandatory": "Mandatory",
 			"Markdown": "Markdown",
@@ -1009,11 +1013,11 @@
 			"English": "English",
 			"eServiceDescriptor": "eService descriptor",
 			"eServiceExtendedDescriptor": "Extended eService descriptor",
-			"EsportSearch": "Research",
-			"EsportSelected": "Selected",
-			"EsportSelectedSubscriptions": "Adhesions of selected services",
-			"EsportSelection": "Export selection",
-			"EsportServiceSubscriptions": "Service Adhesions",
+			"ExportSearch": "Research",
+			"ExportSelected": "Selected",
+			"ExportSelectedSubscriptions": "Adhesions of selected services",
+			"ExportSelection": "Export selection",
+			"ExportServiceSubscriptions": "Service Adhesions",
 			"Export": "Export",
 			"ExportCSV": "Export CSV",
 			"ExportPDF": "Export PDF",
@@ -1235,7 +1239,7 @@
 					"403_ACTION": ""
 				}
 			},
-			"EsportingFile": "Exporting File…",
+			"ExportingFile": "Exporting File…",
 			"Files_Results": {
 				"none": "No files found",
 				"plural": "Found {{count}} files",
@@ -1411,6 +1415,54 @@
 			"TAB": {
 				"Profile": "Profile",
 				"Settings": "Settings"
+			}
+		},
+		"REGISTRAZIONE": {
+			"TITLE": {
+				"Registrazione": "Registration",
+				"ConfermaEmail": "Confirm your details",
+				"ModificaEmail": "Change email",
+				"VerificaCodice": "Verify code",
+				"Benvenuto": "Welcome"
+			},
+			"STEP": {
+				"Conferma": "Confirm",
+				"Verifica": "Verify",
+				"Completato": "Complete"
+			},
+			"LABEL": {
+				"EmailAttuale": "Current email",
+				"NuovaEmail": "New email",
+				"ConfermaEmail": "Confirm email"
+			},
+			"BUTTON": {
+				"ConfermaEProcedi": "Confirm and proceed",
+				"ModificaEmail": "Change email",
+				"InviaCodice": "Send verification code",
+				"Verifica": "Verify code",
+				"ReinviaCodice": "Resend code",
+				"CambiaEmail": "Change email",
+				"VaiAlCatalogo": "Go to catalog"
+			},
+			"MESSAGE": {
+				"ConfermaEmailDesc": "We have retrieved your data from the authentication system. Please verify it is correct.",
+				"ConfermaEmailInfo": "By confirming, we will use this email for communications.",
+				"ModificaEmailDesc": "Enter the new email address you wish to use for communications.",
+				"InvieremoCodiceSMS": "We will send a verification code to your new email.",
+				"VerificaCodiceDesc": "We have sent a verification code to:",
+				"CodiceScadeIn": "Code expires in",
+				"CodiceScaduto": "The code has expired. Please request a new code.",
+				"RegistrazioneCompletata": "Your registration has been completed successfully!",
+				"CosaFare": "Here's what you can do now:",
+				"PuoiEsplorare": "Browse the catalog of available services",
+				"PuoiRichiedere": "Request access to services of interest",
+				"RiceveraiNotifiche": "Receive notifications about your request status"
+			},
+			"ERROR": {
+				"EmailRequired": "Email is required",
+				"EmailInvalid": "Please enter a valid email address",
+				"EmailMismatch": "Emails do not match",
+				"CodiceLength": "Code must be 6 characters"
 			}
 		},
 		"ROLE": {
@@ -1872,6 +1924,7 @@
 			"HideDetails": "Hide details",
 			"Indeterminate": "Not applicable in this state",
 			"Information": "Information",
+			"MasonryInfo": "Dynamic grid layout that arranges cards optimally, automatically adapting to available space",
 			"Modify": "Edit",
 			"Organization": "Organization",
 			"Preview": "Preview",

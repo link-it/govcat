@@ -1,0 +1,283 @@
+.registrazione-page {
+  .navless-container {
+    margin-top: var(--header-height, 40px);
+    padding-top: 32px;
+  }
+
+  .container {
+    max-width: 960px !important;
+  }
+
+  .flash-container {
+    margin-bottom: 16px;
+    position: relative;
+    top: 8px;
+  }
+
+  .flash-container.sticky {
+    position: sticky;
+    top: 48px;
+    z-index: 251;
+  }
+
+  .flash-alert {
+    position: relative;
+    padding: 16px;
+    margin-top: 10px;
+    background-color: #fcf1ef;
+    border-radius: 4px;
+  }
+
+  .close-icon-wrapper {
+    padding: 16px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    cursor: pointer;
+  }
+}
+
+.registrazione-container {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px #dbdbdb;
+  padding: 24px;
+}
+
+// Step indicator
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #e9ecef;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .step-label {
+      font-size: 12px;
+      color: #6c757d;
+      text-align: center;
+      max-width: 80px;
+      transition: color 0.3s ease;
+    }
+
+    &.active {
+      .step-number {
+        background-color: var(--primary-color, #0d6efd);
+        color: #fff;
+      }
+
+      .step-label {
+        color: var(--primary-color, #0d6efd);
+        font-weight: 600;
+      }
+    }
+
+    &.completed {
+      .step-number {
+        background-color: #198754;
+        color: #fff;
+      }
+
+      .step-label {
+        color: #198754;
+      }
+    }
+  }
+
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background-color: #e9ecef;
+    margin: 0 8px;
+    margin-bottom: 24px;
+    max-width: 60px;
+    transition: background-color 0.3s ease;
+
+    &.completed {
+      background-color: #198754;
+    }
+  }
+}
+
+// Step content common styles
+:host ::ng-deep {
+  .step-content {
+    .step-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .step-description {
+      color: #6c757d;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .user-info {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .info-label {
+          font-weight: 500;
+          color: #495057;
+        }
+
+        .info-value {
+          color: #212529;
+        }
+      }
+    }
+
+    .email-highlight {
+      font-weight: 600;
+      color: var(--primary-color, #0d6efd);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+
+      &.actions-row {
+        flex-direction: row;
+        justify-content: center;
+
+        .btn {
+          flex: 1;
+          max-width: 200px;
+        }
+      }
+    }
+
+    .countdown {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #6c757d;
+
+      .countdown-timer {
+        font-weight: 600;
+        color: #dc3545;
+        font-family: monospace;
+        font-size: 18px;
+      }
+
+      &.expired {
+        .countdown-timer {
+          color: #6c757d;
+        }
+      }
+    }
+
+    .attempts-info {
+      text-align: center;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #6c757d;
+    }
+
+    .otp-input-container {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 24px 0;
+
+      .otp-input {
+        width: 100%;
+        max-width: 200px;
+        text-align: center;
+        font-size: 24px;
+        letter-spacing: 8px;
+        font-family: monospace;
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  // Success state
+  .success-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+
+    .bi-check-circle-fill {
+      font-size: 64px;
+      color: #198754;
+    }
+  }
+
+  .welcome-message {
+    text-align: center;
+
+    h2 {
+      color: #198754;
+      margin-bottom: 16px;
+    }
+
+    p {
+      color: #6c757d;
+      margin-bottom: 8px;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .step-indicator {
+    .step {
+      .step-label {
+        font-size: 10px;
+        max-width: 60px;
+      }
+
+      .step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+    }
+
+    .step-line {
+      max-width: 40px;
+    }
+  }
+
+  .registrazione-container {
+    padding: 16px;
+  }
+}

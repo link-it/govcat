@@ -457,7 +457,10 @@
                                         </div>
                                         <div class="gl-form-checkbox custom-control custom-checkbox">
                                             <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showMasonry" name="servizi_showmasonry" id="servizi_showmasonry" [(ngModel)]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_showmasonry')">
-                                            <label class="custom-control-label" for="servizi_showmasonry"><span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span></label>
+                                            <label class="custom-control-label" for="servizi_showmasonry">
+                                                <span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span>
+                                                <i class="bi bi-info-circle ms-1" [tooltip]="'APP.TOOLTIP.MasonryInfo' | translate" container="body"></i>
+                                            </label>
                                         </div>
                                     </div>
                                 </form>

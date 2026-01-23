@@ -172,6 +172,8 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+  hideVersions: boolean = false;
+
   fieldToGroup = 'label_gruppo'; // nome_gruppo | label_gruppo
 
   constructor(
@@ -192,6 +194,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     });
 
     this.config = this.configService.getConfiguration();
+    this.hideVersions = this.config?.AppConfig?.Services?.hideVersions || false;
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
@@ -325,7 +328,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     const _api = this.servizioApi;
     const _titleAPI = _api ? `${_api.nome} v. ${_api.versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
 
-    let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+    let title = (_nome && _versione) ? (this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}`) : this.id ? `${this.id}` : '...';
     let baseUrl = `/servizi`;
 
     if (this._componentBreadcrumbs) {

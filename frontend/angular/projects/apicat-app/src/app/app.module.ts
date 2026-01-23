@@ -45,6 +45,7 @@ import { GestoreGuard } from '@app/guard/gestore.guard';
 import { ForbidAnonymousGuard } from '@app/guard/forbid-anonymous.guard';
 import { CategorieGuard } from '@app/guard/categorie.guard';
 import { MonitoraggioGuard } from '@app/guard/monitoraggio.guard';
+import { RegistrazioneGuard } from '@app/guard/registrazione.guard';
 
 import { appHttpInterceptorProviders } from '@app/interceptors/index';
 
@@ -52,6 +53,7 @@ import { HasPermissionModule } from '../directives/has-permission/has-permission
 import { DisablePermissionModule } from '@app/directives/disable-permission/disable-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk';
 import { RemoveHostModule } from '@app/directives/remove-host/remove-host.module';
+import { ScrollbarHoverModule } from '@app/directives/scrollbar-hover/scrollbar-hover.module';
 import { ServiceFiltersModule } from '@app/pipes/service-filters.module';
 
 import { NewsBoxModule } from '../components/news-box/news-box.module';
@@ -115,6 +117,7 @@ export function storageFactory() : OAuthStorage {
     DisablePermissionModule,
     MarkAsteriskModule,
     RemoveHostModule,
+    ScrollbarHoverModule,
     ServiceFiltersModule,
 
     NewsBoxModule,
@@ -145,6 +148,7 @@ export function storageFactory() : OAuthStorage {
     ForbidAnonymousGuard,
     CategorieGuard,
     MonitoraggioGuard,
+    RegistrazioneGuard,
     { provide: OAuthStorage, useFactory: storageFactory }
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],

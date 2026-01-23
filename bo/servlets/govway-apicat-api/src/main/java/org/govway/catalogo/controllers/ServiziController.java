@@ -1607,12 +1607,20 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 				if (service.isEliminabile(entity)) {
+				    // Cancellazione degli allegati del servizio
+				    AllegatoServizioSpecification spec = new AllegatoServizioSpecification();
+				    spec.setIdServizio(Optional.of(idServizio));
+				    Page<AllegatoServizioEntity> allegati = service.findAllAllegatiServizio(spec, Pageable.unpaged());
+				    for (AllegatoServizioEntity allegato : allegati.getContent()) {
+				        this.service.delete(allegato);
+				    }
+
 				    service.delete(entity);
 				} else {
 				    throw new BadRequestException(ErrorCode.SRV_400_NOT_DELETABLE);
@@ -1703,7 +1711,7 @@ public class ServiziController implements ServiziApi {
 				PagedModelItemServizioGruppo list = new PagedModelItemServizioGruppo();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 				list.add(lst.getLinks());
-				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
+				list.setPage(new PageMetadata().size((long)filtered.size()).number(0L).totalElements((long)filtered.size()).totalPages(1L));
 				this.logger.info("POST pagedmodel");
 
 				this.logger.info("Invocazione completata con successo");

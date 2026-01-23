@@ -1,0 +1,63 @@
+<div class="step-content">
+  <h3 class="step-title">{{ 'APP.REGISTRAZIONE.TITLE.VerificaCodice' | translate }}</h3>
+  <p class="step-description">
+    {{ 'APP.REGISTRAZIONE.MESSAGE.VerificaCodiceDesc' | translate }}
+    <strong class="email-highlight">{{ email }}</strong>
+  </p>
+
+  <form [formGroup]="form" (ngSubmit)="onVerifica()">
+    <div class="otp-input-container">
+      <input
+        type="text"
+        class="form-control otp-input"
+        formControlName="codice"
+        maxlength="6"
+        autocomplete="one-time-code"
+        [class.is-invalid]="codiceControl?.invalid && codiceControl?.touched"
+        (input)="onCodiceInput($event)"
+        placeholder="______">
+    </div>
+
+    <div class="text-center text-danger small mb-3" *ngIf="codiceControl?.errors?.['minlength'] && codiceControl?.touched">
+      {{ 'APP.REGISTRAZIONE.ERROR.CodiceLength' | translate }}
+    </div>
+
+    <!-- Countdown -->
+    <div class="countdown" [class.expired]="isExpired">
+      <ng-container *ngIf="!isExpired">
+        <span class="me-2">{{ 'APP.REGISTRAZIONE.MESSAGE.CodiceScadeIn' | translate }}</span>
+        <span class="countdown-timer">{{ countdownFormatted }}</span>
+      </ng-container>
+      <ng-container *ngIf="isExpired">
+        <span class="text-danger">{{ 'APP.REGISTRAZIONE.MESSAGE.CodiceScaduto' | translate }}</span>
+      </ng-container>
+    </div>
+
+    <div class="actions">
+      <lnk-button
+        [type]="'submit'"
+        [label]="'APP.REGISTRAZIONE.BUTTON.Verifica'"
+        [icon]="'bi bi-check-lg'"
+        [primary]="true"
+        [otherClass]="'w-100'"
+        [disabled]="form.invalid || isExpired">
+      </lnk-button>
+
+      <div class="d-flex gap-2 justify-content-center">
+        <lnk-button
+          [label]="'APP.REGISTRAZIONE.BUTTON.ReinviaCodice'"
+          [icon]="'bi bi-arrow-repeat'"
+          [secondary]="true"
+          [disabled]="!isExpired"
+          (onAction)="onReinvia()">
+        </lnk-button>
+        <lnk-button
+          [label]="'APP.REGISTRAZIONE.BUTTON.CambiaEmail'"
+          [icon]="'bi bi-envelope'"
+          [secondary]="true"
+          (onAction)="onCambiaEmail()">
+        </lnk-button>
+      </div>
+    </div>
+  </form>
+</div>

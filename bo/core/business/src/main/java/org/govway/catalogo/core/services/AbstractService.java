@@ -48,6 +48,7 @@ import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
 import org.govway.catalogo.core.dao.repositories.TagRepository;
 import org.govway.catalogo.core.dao.repositories.TassonomiaRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
+import org.govway.catalogo.core.dao.repositories.RegistrazioneUtenteRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +108,8 @@ public class AbstractService {
 	protected CategoriaRepository categoriaRepo;
 	@Autowired
 	protected ApiRepository apiRepo;
+	@Autowired
+	protected RegistrazioneUtenteRepository registrazioneUtenteRepo;
 
 	@Autowired
 	protected JpaTransactionManager txManager;

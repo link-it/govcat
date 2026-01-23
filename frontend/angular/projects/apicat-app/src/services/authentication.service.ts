@@ -268,14 +268,28 @@ export class AuthenticationService {
 
   logout() {
     localStorage.removeItem(AUTH_CONST.storageSession);
-    
-    if (this.isAuthLogged()) {
-      this.oauthService.revokeTokenAndLogout();
-      // this.oauthService.logOut(true);
-    }
 
-    // let url = `${this.appConfig.GOVAPI['HOST']}${this.API_LOGOUT}`;
-    // return this.http.get(url);
+    // Check if there's an access token to revoke (even if expired)
+    const hasAccessToken = !!this.oauthService.getAccessToken();
+
+    if (hasAccessToken) {
+      // Check if revocation endpoint is configured in app config or loaded from discovery document
+      const oauthConfig = this.appConfig.AUTH_SETTINGS?.OAUTH;
+      const configRevocationEndpoint = oauthConfig?.RevocationEndpoint;
+      // Also check if loaded from discovery document (when using Issuer)
+      const discoveryRevocationEndpoint = (this.oauthService as any).revocationEndpoint;
+      const revocationEndpoint = configRevocationEndpoint || discoveryRevocationEndpoint;
+
+      if (revocationEndpoint) {
+        this.oauthService.revokeTokenAndLogout().catch((error: any) => {
+          console.warn('Error revoking token, falling back to logOut:', error);
+          this.oauthService.logOut(true);
+        });
+      } else {
+        // No revocation endpoint configured, just logout
+        this.oauthService.logOut(true);
+      }
+    }
   }
 
   setCurrentSession(data: any) {

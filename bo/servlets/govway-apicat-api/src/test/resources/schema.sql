@@ -30,6 +30,7 @@ create sequence seq_stati_servizio start with 1 increment by 1;
 create sequence seq_tags start with 1 increment by 1;
 create sequence seq_tassonomie start with 1 increment by 1;
 create sequence seq_utenti start with 1 increment by 1;
+create sequence seq_registrazioni_utenti start with 1 increment by 1;
 
     create table adesioni (
        id bigint not null,
@@ -491,6 +492,27 @@ create sequence seq_utenti start with 1 increment by 1;
         id_utente bigint not null,
         primary key (id_classe, id_utente)
     );
+
+    create table registrazioni_utenti (
+       id bigint not null,
+        principal varchar(255) not null,
+        nome varchar(255) not null,
+        cognome varchar(255) not null,
+        email_jwt varchar(255),
+        email_proposta varchar(255),
+        codice_verifica varchar(50),
+        codice_verifica_scadenza timestamp,
+        tentativi_verifica integer not null default 0,
+        tentativi_totali integer not null default 0,
+        stato varchar(50) not null,
+        data_creazione timestamp not null,
+        data_ultimo_tentativo timestamp,
+        token_id varchar(255),
+        primary key (id)
+    );
+
+    alter table registrazioni_utenti
+       add constraint UK_registrazioni_utenti_principal unique (principal);
 
     alter table organizations 
        add constraint UK_p9pbw3flq9hkay8hdx3ypsldy unique (name);

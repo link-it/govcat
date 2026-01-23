@@ -50,6 +50,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private List<ClasseUtenteEntity> idClassiUtente = null;
 	private Optional<String> email = Optional.empty();
+	private Optional<String> emailAziendale = Optional.empty();
 	private Optional<String> principal = Optional.empty();
 	private Optional<String> principalLike = Optional.empty();
 	private List<Ruolo> ruoli = null;
@@ -108,12 +109,16 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		if (email.isPresent()) {
 			List<Predicate> predLstQ = new ArrayList<>();
 			String pattern = "%" + email.get().toUpperCase() + "%";
-			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.email)), pattern)); 
+			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.email)), pattern));
 			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.emailAziendale)), pattern));
-			
+
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
-		
+
+		if (emailAziendale.isPresent()) {
+			predLst.add(cb.equal(cb.lower(root.get(UtenteEntity_.emailAziendale)), emailAziendale.get().toLowerCase()));
+		}
+
 		if (principalLike.isPresent()) {
 			String pattern = "%" + principalLike.get().toUpperCase() + "%";
 			predLst.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), pattern)); 
@@ -222,6 +227,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setEmail(Optional<String> email) {
 		this.email = email;
+	}
+
+	public Optional<String> getEmailAziendale() {
+		return emailAziendale;
+	}
+
+	public void setEmailAziendale(Optional<String> emailAziendale) {
+		this.emailAziendale = emailAziendale;
 	}
 
 	public Optional<Boolean> getRuoloNull() {
