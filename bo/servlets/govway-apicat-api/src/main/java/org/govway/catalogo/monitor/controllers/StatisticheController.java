@@ -331,6 +331,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -361,6 +362,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -391,6 +393,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -421,6 +424,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -451,6 +455,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -481,6 +486,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -511,6 +517,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -541,6 +548,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -571,6 +579,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
