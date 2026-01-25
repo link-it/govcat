@@ -33,7 +33,7 @@ GovCat consente agli enti pubblici di **documentare, organizzare e rendere visib
 ## 📄 Licenza
 
 **GovCat – Catalogo dei Servizi Digitali della Pubblica Amministrazione**  
-Copyright (c) 2025 [Link.it srl](https://link.it)
+Copyright (c) 2021-2026 [Link.it srl](https://link.it)
 
 Questo programma è software libero: può essere redistribuito e/o modificato secondo i termini della **GNU General Public License v3** pubblicata dalla Free Software Foundation.
 
