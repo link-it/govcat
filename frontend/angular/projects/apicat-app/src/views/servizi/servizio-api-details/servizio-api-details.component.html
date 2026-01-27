@@ -183,7 +183,7 @@
                                         <div class="form-group nome_gateway">
                                             <label class="label-bold" for="nome_gateway">{{ 'APP.LABEL.nome_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome_gateway'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text" name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                                 <p *ngIf="f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)" class="form-text text-danger">
                                                     <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                                     <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['nome_gateway'].errors['maxlength'].requiredLength } }}</span>
@@ -196,7 +196,7 @@
                                         <div class="form-group versione_gateway">
                                             <label class="label-bold" for="versione_gateway">{{ 'APP.LABEL.versione_gateway' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione_gateway'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="text" name="versione_gateway" id="versione_gateway" formControlName="versione_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="text" name="versione_gateway" id="versione_gateway" formControlName="versione_gateway" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                                 <p *ngIf="f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)" class="form-text text-danger">
                                                     <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                                     <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['pattern']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
@@ -266,7 +266,7 @@
                                 <div class="form-group descrizione">
                                     <label class="label-bold" for="descrizione">{{ 'APP.LABEL.descrizione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'" *ngIf="_isEdit"></span></label>
                                     <div class="" *ngIf="_isEdit">
-                                        <textarea aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" id="descrizione" formControlName="descrizione" rows="4" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
                                         <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
                                             <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                             <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
@@ -280,7 +280,7 @@
                                 <div class="form-group codice_asset" *ngIf="_codiceAssetObbligatorio">
                                     <label class="label-bold" for="codice_asset">{{ 'APP.LABEL.codice_asset' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'codice_asset'" *ngIf="_isEdit"></span></label>
                                     <div class="" *ngIf="_isEdit">
-                                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_asset')" type="text" name="codice_asset" id="codice_asset" formControlName="codice_asset" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                        <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('codice_asset')" type="text" name="codice_asset" id="codice_asset" formControlName="codice_asset" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                         <p *ngIf="f['codice_asset'].invalid && (f['codice_asset'].dirty || f['codice_asset'].touched)" class="form-text text-danger">
                                             <span *ngIf="f['codice_asset'].errors && f['codice_asset'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                             <span *ngIf="f['codice_asset'].errors && f['codice_asset'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['codice_asset'].errors['maxlength'].requiredLength } }}</span>
@@ -296,7 +296,7 @@
                                         <div class="form-group url_produzione">
                                             <label class="label-bold" for="url_produzione">{{ 'APP.LABEL.url_produzione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_produzione'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_produzione')" type="text" name="url_produzione" id="url_produzione" formControlName="url_produzione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                                 <p *ngIf="f['url_produzione'].invalid && (f['url_produzione'].dirty || f['url_produzione'].touched)" class="form-text text-danger">
                                                     <span *ngIf="f['url_produzione'].errors && f['url_produzione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                                 </p>
@@ -308,7 +308,7 @@
                                         <div class="form-group url_collaudo">
                                             <label class="label-bold" for="url_collaudo">{{ 'APP.LABEL.url_collaudo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'url_collaudo'" *ngIf="_isEdit"></span></label>
                                             <div class="" *ngIf="_isEdit">
-                                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('url_collaudo')" type="text" name="url_collaudo" id="url_collaudo" formControlName="url_collaudo" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
                                                 <p *ngIf="f['url_collaudo'].invalid && (f['url_collaudo'].dirty || f['url_collaudo'].touched)" class="form-text text-danger">
                                                     <span *ngIf="f['url_collaudo'].errors && f['url_collaudo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                                 </p>

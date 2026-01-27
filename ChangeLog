@@ -1,3 +1,10 @@
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #157
+	Corretto salvataggio identificativo eService PDND in creazione API
+	Corretto indicatore asterisco per campi obbligatori url_collaudo e url_produzione
+
 2026-01-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
