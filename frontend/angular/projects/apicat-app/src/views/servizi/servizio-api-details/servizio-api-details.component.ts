@@ -420,9 +420,14 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this._descrittoreCtrl.setValidators([Validators.required]);
             } else {
                 this._descrittoreCtrl.clearValidators();
+                // Se la specifica viene disabilitata e il protocollo è già selezionato,
+                // inizializza l'array di autenticazione
+                const controls = this._formGroup.controls;
+                if (controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
+                    this._setAuthsArrayWithoutSpecification();
+                }
             }
             this._descrittoreCtrl.updateValueAndValidity();
-            // this.__protocolloChange();
             this.__descrittoreChange(null);
         }, 100);
     }
