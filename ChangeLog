@@ -1,6 +1,11 @@
 2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Modificata label colonna storico specifica da "Versione" a "Progressivo"
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Risolto bug #162
 	Corretto campo Autenticazione Prevista non visibile quando si disabilita Specifica Interfaccia
 
