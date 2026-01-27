@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.govway.catalogo</groupId>
 	<artifactId>govcat</artifactId>
-	<version>2.3.1</version>
+	<version>2.3.2</version>
 	<packaging>pom</packaging>
 	<name>govcat</name>
 	<description>progetto govcat</description>
@@ -227,7 +227,7 @@
 		<!-- JPA -->
 		<hibernate.version>6.4.0.Final</hibernate.version>
 		<hibernate.jpamodelgen.version>${hibernate.version}</hibernate.jpamodelgen.version>
-		<hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
+		<hibernate.validator.version>8.0.3.Final</hibernate.validator.version>
 
 		<!-- Gson -->
 		<gson.version>2.10.1</gson.version>
@@ -1260,6 +1260,8 @@
 								${owasp.dir}/suppression/CVE-2024-9329.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2025-7962.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2025-15104.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max

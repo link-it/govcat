@@ -263,6 +263,10 @@ public class APIController implements ApiApi {
 					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString(), "count", String.valueOf(entity.getErogazioni().size())));
 				}
 
+				if(!entity.getServizio().getAdesioni().isEmpty()) {
+					throw new BadRequestException(ErrorCode.API_400_DELETE, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString()));
+				}
+
 				this.service.delete(entity);
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 

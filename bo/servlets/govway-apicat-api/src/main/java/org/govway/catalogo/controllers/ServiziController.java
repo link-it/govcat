@@ -1711,7 +1711,7 @@ public class ServiziController implements ServiziApi {
 				PagedModelItemServizioGruppo list = new PagedModelItemServizioGruppo();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 				list.add(lst.getLinks());
-				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
+				list.setPage(new PageMetadata().size((long)filtered.size()).number(0L).totalElements((long)filtered.size()).totalPages(1L));
 				this.logger.info("POST pagedmodel");
 
 				this.logger.info("Invocazione completata con successo");

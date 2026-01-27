@@ -16,6 +16,18 @@
 	Corretto salvataggio identificativo eService PDND in creazione API
 	Corretto indicatore asterisco per campi obbligatori url_collaudo e url_produzione
 
+2026-01-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug #155
+	Aggiunta gestione errori per la cancellazione delle API di un servizio con adesioni attive
+	Risolto bug #122
+	Corretta paginazione nella risposta dell'API servizi_gruppi
+	Risolto bug #160
+	Corretta inizializzazione del campo tipoInformazioneReport nelle richieste POST delle statistiche
+	Risolto bug #161
+	Corretta gestione delle eccezioni in RestAuthenticationEntryPoint
+
 2026-01-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
