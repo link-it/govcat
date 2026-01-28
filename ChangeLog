@@ -1,6 +1,15 @@
 2026-01-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Implementata funzionalità #163
+	Permesso archiviazione servizi per referenti in base alla configurazione workflow
+	- Opzione "Archivia" sempre visibile, disabilitata se utente non autorizzato
+	- Tooltip informativo quando disabilitato
+	Corretto bug: gestione configurazione OAUTH mancante in app-config.json
+
+2026-01-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Implementata funzionalità #167
 	Migliorata gestione icone e colori nel wizard Configura Adesioni
 	- Sezione Collaudo: icona grigia quando skip_collaudo è attivo

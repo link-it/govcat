@@ -1840,6 +1840,7 @@
 			"BulkEsitoOk": "Successo",
 			"CancelEdit": "Annulla modifica",
 			"CancelNew": "Annulla inserimento",
+			"CannotArchive": "Non hai i permessi per archiviare. Contatta un gestore.",
 			"ChangeStatus": "Cambia stato",
 			"Completed": "Completato",
 			"ComponentsList": "Lista componenti",

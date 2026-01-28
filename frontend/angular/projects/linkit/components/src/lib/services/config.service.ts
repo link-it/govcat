@@ -55,33 +55,34 @@ export class ConfigService {
           Tools.SetThemeColors(_theme || null);
 
           // OAUTH2
-          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
-          const cfg: any = {
-            redirectUri: (_oauthConfig.RedirectUri || ''),
-            postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
-            clientId: (_oauthConfig.ClientId || ''),
-            responseType: (_oauthConfig.ResponseType || 'code'),
-            scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
-            requireHttps: false,
-            showDebugInformation: false
-          };
-          if (_oauthConfig.DummyClientSecret) {
-            cfg.dummyClientSecret = _oauthConfig.DummyClientSecret;
-          }
-          const useDiscoveryDocument = !!_oauthConfig.Issuer;
+          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS?.OAUTH;
+          if (_oauthConfig) {
+            const cfg: any = {
+              redirectUri: (_oauthConfig.RedirectUri || ''),
+              postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
+              clientId: (_oauthConfig.ClientId || ''),
+              responseType: (_oauthConfig.ResponseType || 'code'),
+              scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
+              requireHttps: false,
+              showDebugInformation: false
+            };
+            if (_oauthConfig.DummyClientSecret) {
+              cfg.dummyClientSecret = _oauthConfig.DummyClientSecret;
+            }
+            const useDiscoveryDocument = !!_oauthConfig.Issuer;
 
-          if (_oauthConfig.Issuer) {
-            cfg.issuer = _oauthConfig.Issuer;
-          } else {
-            // Configurazione manuale degli endpoint (senza discovery document):
-            cfg.loginUrl = (_oauthConfig.LoginUrl || '');
-            cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
-            cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
-            cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
-            cfg.revocationEndpoint = (_oauthConfig.RevocationEndpoint || '');
-            cfg.skipIssuerCheck = true;
-            cfg.strictDiscoveryDocumentValidation = false;
-          }
+            if (_oauthConfig.Issuer) {
+              cfg.issuer = _oauthConfig.Issuer;
+            } else {
+              // Configurazione manuale degli endpoint (senza discovery document):
+              cfg.loginUrl = (_oauthConfig.LoginUrl || '');
+              cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
+              cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
+              cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
+              cfg.revocationEndpoint = (_oauthConfig.RevocationEndpoint || '');
+              cfg.skipIssuerCheck = true;
+              cfg.strictDiscoveryDocumentValidation = false;
+            }
           if (_oauthConfig.Issuer && !_oauthConfig.StrictDiscoveryDocumentValidation) {
             cfg.strictDiscoveryDocumentValidation = _oauthConfig.StrictDiscoveryDocumentValidation;
           }
@@ -123,7 +124,12 @@ export class ConfigService {
                 }
               }
             });
+            } else {
+              Tools.LoginAccess();
+              resolve();
+            }
           } else {
+            // OAUTH non configurato
             Tools.LoginAccess();
             resolve();
           }

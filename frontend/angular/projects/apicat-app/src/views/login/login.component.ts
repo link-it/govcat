@@ -60,17 +60,17 @@ export class LoginComponent implements OnInit {
   OTHER_AUTHS: any[] = [];
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private oauthService: OAuthService,
-    private authenticationService: AuthenticationService,
-    private configService: ConfigService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly oauthService: OAuthService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly configService: ConfigService
   ) {
     this.config = this.configService.getConfiguration();
     this.ANONYMOUS_ACCESS = this.config.AppConfig.ANONYMOUS_ACCESS;
-    this.AUTH_USER = this.config.AppConfig.AUTH_SETTINGS.AUTH_USER;
-    this.OTHER_AUTHS = this.config.AppConfig.AUTH_SETTINGS.OTHER_AUTHS;
+    this.AUTH_USER = this.config.AppConfig.AUTH_SETTINGS?.AUTH_USER || false;
+    this.OTHER_AUTHS = this.config.AppConfig.AUTH_SETTINGS?.OTHER_AUTHS || [];
 
     const _currentNav: Navigation | null = this.router.getCurrentNavigation();
     if (_currentNav?.extras.state) {

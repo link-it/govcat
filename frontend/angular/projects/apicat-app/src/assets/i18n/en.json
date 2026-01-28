@@ -1840,6 +1840,7 @@
 			"BulkEsitoOk": "Success",
 			"CancelEdit": "Cancel edit",
 			"CancelNew": "Cancel add",
+			"CannotArchive": "You don't have permission to archive. Contact an administrator.",
 			"ChangeStatus": "Change status",
 			"Completed": "Completed",
 			"ComponentsList": "Components list",
