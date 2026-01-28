@@ -823,7 +823,9 @@
 				"ServiceList": "Elenco Servizi",
 				"Single": "Singolo",
 				"Throughput": "Numero di richieste al giorno",
-				"VerifiedAttributes": "Attributi verificati"
+				"VerifiedAttributes": "Attributi verificati",
+				"AccessRequirements": "Requisiti di accesso",
+				"NoAttributesRequired": "L'erogatore non richiede il possesso di attributi per accedere a questa API."
 			},
 			"PDNDCollaudo": {
 				"identificativo_eservice_pdnd": "Collaudo - Identificativo eService PDND",

@@ -61,7 +61,23 @@ const descriptorDetailsConfiguration = [
 
 const descriptorColapseConfiguration = {
   "itemRow": {
-    "primaryText": [{ "field": "id", "type": "text" }]
+    "primaryText": [{ "field": "versionLabel", "type": "text" }],
+    "secondaryMetadata": [
+      { "field": "state", "type": "label", "options": "state" }
+    ]
+  },
+  "options": {
+    "state": {
+      "label": "",
+      "small": true,
+      "values": {
+        "PUBLISHED": { "label": "PUBLISHED", "background": "#c7f9cc", "border": "#c7f9cc", "color": "#1f1f1f" },
+        "DEPRECATED": { "label": "DEPRECATED", "background": "#ffc107", "border": "#ffc107", "color": "#1f1f1f" },
+        "SUSPENDED": { "label": "SUSPENDED", "background": "#dc3545", "border": "#dc3545", "color": "#ffffff" },
+        "ARCHIVED": { "label": "ARCHIVED", "background": "#6c757d", "border": "#6c757d", "color": "#ffffff" },
+        "DRAFT": { "label": "DRAFT", "background": "#17a2b8", "border": "#17a2b8", "color": "#ffffff" }
+      }
+    }
   }
 }
 
@@ -90,8 +106,8 @@ const attributeColapseConfiguration = {
 const attributeListConfiguration = {
   "itemRow": {
     "primaryText": [
-      { "field": "code", "type": "text" },
-      { "field": "origin", "type": "text" }
+      { "field": "name", "type": "text" },
+      { "field": "codeOrigin", "type": "text" }
     ],
     "metadata": {
       "text": [
@@ -133,12 +149,15 @@ export class PdndEServiceViewComponent implements OnChanges {
       collapseView: { configuration: descriptorColapseConfiguration, collapsed: true },
       listView: { title: this.translate.instant('APP.LABEL.Documents'), configuration: descriptorDownloadsListConfiguration }
     },
+  ];
+
+  public attributeViews: PdndView[] = [
     {
       title: this.translate.instant('APP.LABEL.PDND.CertifiedAttributes'),
       type: 'list-ui-collapse-row',
       configuration: [],
       hideContent: true,
-      collapseView: { configuration: attributeColapseConfiguration, collapsed: true },
+      collapseView: { configuration: attributeColapseConfiguration, collapsed: false },
       listView: { configuration: attributeListConfiguration }
     },
     {
@@ -146,7 +165,7 @@ export class PdndEServiceViewComponent implements OnChanges {
       type: 'list-ui-collapse-row',
       configuration: [],
       hideContent: true,
-      collapseView: { configuration: attributeColapseConfiguration, collapsed: true },
+      collapseView: { configuration: attributeColapseConfiguration, collapsed: false },
       listView: { configuration: attributeListConfiguration }
     },
     {
@@ -154,10 +173,13 @@ export class PdndEServiceViewComponent implements OnChanges {
       type: 'list-ui-collapse-row',
       configuration: [],
       hideContent: true,
-      collapseView: { configuration: attributeColapseConfiguration, collapsed: true },
+      collapseView: { configuration: attributeColapseConfiguration, collapsed: false },
       listView: { configuration: attributeListConfiguration }
     },
   ];
+
+  public attributeData: any[] = [];
+  public hasAnyAttributes = false;
 
   public data: any = null;
 
@@ -195,12 +217,8 @@ export class PdndEServiceViewComponent implements OnChanges {
       eServiceResponse: this.pdndService.eservice(this._environmentId, this._eServiceId),
       eServiceDescriptorsResponse: this.pdndService.eserviceDescriptors(this._environmentId, this._eServiceId)
     }).subscribe(({ eServiceResponse, eServiceDescriptorsResponse }) => {
-      this.loading.emit(false);
       let eServiceMap: any = null;
       let organizationMap: any = null;
-      let certifiedAttributesMap: any = null;
-      let declaredAttributesMap: any = null;
-      let verifiedAttributesMap: any = null;
 
       if (eServiceResponse.data) {
         const eService = eServiceResponse.data;
@@ -211,7 +229,7 @@ export class PdndEServiceViewComponent implements OnChanges {
           technology: eService.technology,
           state: eService.state,
           description: eService.description,
-        }
+        };
 
         let organization = eService.producer;
 
@@ -222,38 +240,96 @@ export class PdndEServiceViewComponent implements OnChanges {
           category: organization.category
         };
 
-        const attributesMapper = (attribute: GroupOrSingleAttribute, index: number) => {
-          const list = attribute.single ? [attribute.single] : attribute.group;
-          const name = attribute.single ? 'SINGLE' : 'GROUP';
-          return {
-            data: {
-              name: name,
-            }, list: list?.map((item: any) => {
-              return {
-                id: item.id,
-                code: item.code,
-                origin: item.origin,
-                explicitAttributeVerification: item.explicitAttributeVerification ? 'true' : 'false'
-              }
-            })
-          }
-        }
+        // Collect all attribute IDs to fetch their names
+        const allAttributes: { id: string, attribute: any, type: 'certified' | 'declared' | 'verified', groupIndex: number, itemIndex: number }[] = [];
 
-        certifiedAttributesMap = eService.attributes.certified?.map(attributesMapper);
-        declaredAttributesMap = eService.attributes.declared?.map(attributesMapper);
-        verifiedAttributesMap = eService.attributes.verified?.map(attributesMapper);
+        const collectAttributes = (attrs: GroupOrSingleAttribute[] | undefined, type: 'certified' | 'declared' | 'verified') => {
+          attrs?.forEach((attr, groupIndex) => {
+            const list = attr.single ? [attr.single] : attr.group;
+            list?.forEach((item: any, itemIndex) => {
+              allAttributes.push({ id: item.id, attribute: item, type, groupIndex, itemIndex });
+            });
+          });
+        };
+
+        collectAttributes(eService.attributes.certified, 'certified');
+        collectAttributes(eService.attributes.declared, 'declared');
+        collectAttributes(eService.attributes.verified, 'verified');
+
+        // Fetch attribute names from API
+        if (allAttributes.length > 0) {
+          const attributeRequests = allAttributes.map(attr =>
+            this.pdndService.attribute(this._environmentId!, attr.id)
+          );
+
+          forkJoin(attributeRequests).subscribe(responses => {
+            // Map attribute names back
+            const attributeNames = new Map<string, string>();
+            responses.forEach((response, index) => {
+              if (response.data) {
+                attributeNames.set(allAttributes[index].id, response.data.name);
+              }
+            });
+
+            // Build attributes maps with names
+            const attributesMapper = (attribute: GroupOrSingleAttribute, index: number) => {
+              const list = attribute.single ? [attribute.single] : attribute.group;
+              const name = attribute.single ? 'SINGLE' : 'GROUP';
+              return {
+                data: {
+                  name: name,
+                }, list: list?.map((item: any) => {
+                  const attrName = attributeNames.get(item.id) || '';
+                  return {
+                    id: item.id,
+                    name: attrName,
+                    codeOrigin: `${item.code} - ${item.origin}`,
+                    code: item.code,
+                    origin: item.origin,
+                    explicitAttributeVerification: item.explicitAttributeVerification ? 'true' : 'false'
+                  }
+                })
+              }
+            };
+
+            const certifiedAttributesMap = eService.attributes.certified?.map(attributesMapper) || [];
+            const declaredAttributesMap = eService.attributes.declared?.map(attributesMapper) || [];
+            const verifiedAttributesMap = eService.attributes.verified?.map(attributesMapper) || [];
+
+            this.attributeData = [certifiedAttributesMap, declaredAttributesMap, verifiedAttributesMap];
+            this.hasAnyAttributes = certifiedAttributesMap.length > 0 || declaredAttributesMap.length > 0 || verifiedAttributesMap.length > 0;
+
+            this.loading.emit(false);
+          }, () => {
+            // On error, use attributes without names
+            this._buildAttributesWithoutNames(eService);
+            this.loading.emit(false);
+          });
+        } else {
+          this.attributeData = [[], [], []];
+          this.hasAnyAttributes = false;
+          this.loading.emit(false);
+        }
+      } else {
+        this.attributeData = [
+          eServiceResponse.error,
+          eServiceResponse.error,
+          eServiceResponse.error
+        ];
+        this.hasAnyAttributes = false;
+        this.loading.emit(false);
       }
-     
 
       let descriptorsMap: any = null;
       if (eServiceDescriptorsResponse.data) {
         descriptorsMap = eServiceDescriptorsResponse.data.descriptors
-        .sort((a, b) => a.version < b.version ? 1 : -1)
+        .sort((a, b) => Number(b.version) - Number(a.version))
         .map(descriptor => {
           return {
             data: {
               id: descriptor.id,
               version: descriptor.version,
+              versionLabel: `v. ${descriptor.version}`,
               state: descriptor.state,
               audience_url: descriptor.audience.pop(),
               server_url: descriptor.serverUrls.pop(),
@@ -267,16 +343,41 @@ export class PdndEServiceViewComponent implements OnChanges {
       }
 
       this.data = [
-        eServiceMap ? eServiceMap : eServiceResponse.error,
-        organizationMap ? organizationMap : eServiceResponse.error,
-        descriptorsMap ? descriptorsMap : eServiceDescriptorsResponse.error,
-        certifiedAttributesMap ? certifiedAttributesMap : eServiceResponse.error,
-        declaredAttributesMap ? declaredAttributesMap : eServiceResponse.error,
-        verifiedAttributesMap ? verifiedAttributesMap : eServiceResponse.error
+        eServiceMap || eServiceResponse.error,
+        organizationMap || eServiceResponse.error,
+        descriptorsMap || eServiceDescriptorsResponse.error
       ];
-    }, (error) => { 
+    }, (error) => {
       this.loading.emit(false);
       console.error('PdndEServiceViewComponent: Error loading data', error);
     });
+  }
+
+  private _buildAttributesWithoutNames(eService: any) {
+    const attributesMapper = (attribute: GroupOrSingleAttribute, index: number) => {
+      const list = attribute.single ? [attribute.single] : attribute.group;
+      const name = attribute.single ? 'SINGLE' : 'GROUP';
+      return {
+        data: {
+          name: name,
+        }, list: list?.map((item: any) => {
+          return {
+            id: item.id,
+            name: '',
+            codeOrigin: `${item.code} - ${item.origin}`,
+            code: item.code,
+            origin: item.origin,
+            explicitAttributeVerification: item.explicitAttributeVerification ? 'true' : 'false'
+          }
+        })
+      }
+    };
+
+    const certifiedAttributesMap = eService.attributes.certified?.map(attributesMapper) || [];
+    const declaredAttributesMap = eService.attributes.declared?.map(attributesMapper) || [];
+    const verifiedAttributesMap = eService.attributes.verified?.map(attributesMapper) || [];
+
+    this.attributeData = [certifiedAttributesMap, declaredAttributesMap, verifiedAttributesMap];
+    this.hasAnyAttributes = certifiedAttributesMap.length > 0 || declaredAttributesMap.length > 0 || verifiedAttributesMap.length > 0;
   }
 }
