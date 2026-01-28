@@ -1,3 +1,11 @@
+2026-01-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #167
+	Migliorata gestione icone e colori nel wizard Configura Adesioni
+	- Sezione Collaudo: icona grigia quando skip_collaudo è attivo
+	- Sezione Produzione: icona grigia quando l'adesione è in fase di collaudo
+
 2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
