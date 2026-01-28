@@ -165,6 +165,20 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			if(c.getStatoPrecedente() != null && c.getStatoPrecedente().getNome().equals(stato)  && compatibile(c.getStatoPrecedente().getRuoliAbilitati(), grant, cambioStato)) {
 				return;
 			}
+			if(c.getStatiUlteriori() != null && !c.getStatiUlteriori().isEmpty()) {
+				for(ConfigurazioneStato ulteriore: c.getStatiUlteriori()) {
+					if(ulteriore.getNome().equals(stato) && compatibile(ulteriore.getRuoliAbilitati(), grant, cambioStato)) {
+						return;
+					}
+				}
+			}
+			if(workflow.getStatoArchiviato() != null && workflow.getStatoArchiviato().equals(stato)) {
+				if(c.getRuoliAbilitatiStatoArchiviato() != null && !c.getRuoliAbilitatiStatoArchiviato().isEmpty()) {
+					if(compatibile(c.getRuoliAbilitatiStatoArchiviato(), grant, cambioStato)) {
+						return;
+					}
+				}
+			}
 		}
 		
 		throw new NotAuthorizedException(ErrorCode.AUT_403);

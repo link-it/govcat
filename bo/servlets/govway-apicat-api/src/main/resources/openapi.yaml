@@ -6327,6 +6327,10 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneStato'
+        ruoli_abilitati_stato_archiviato:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneAutomatica:
       type: "object"
       required:
