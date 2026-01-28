@@ -9,6 +9,13 @@
 2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Implementata funzionalità #164
+	Migliorata visualizzazione PDND Informazioni generali (descrittori e attributi)
+	Aggiunto box "Requisiti di accesso" per raggruppare i tipi di attributi
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Modificata label colonna storico specifica da "Versione" a "Progressivo"
 
 2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
