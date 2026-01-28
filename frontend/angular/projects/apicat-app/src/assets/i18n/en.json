@@ -823,7 +823,9 @@
 				"ServiceList": "List of Services",
 				"Single": "Single",
 				"Throughput": "Throughput",
-				"VerifiedAttributes": "Verified Attributes"
+				"VerifiedAttributes": "Verified Attributes",
+				"AccessRequirements": "Access Requirements",
+				"NoAttributesRequired": "The provider does not require the possession of attributes to access this API."
 			},
 			"PDNDCollaudo": {
 				"identificativo_eservice_pdnd": "Testing - PDND eService identifier",
@@ -835,6 +837,7 @@
 			},
 			"Principal": "Username",
 			"ProblemDetails": "Problem Details",
+			"Progressive": "Progressive",
 			"produzione": "Interface",
 			"Profilo": "Profile",
 			"profilo_non_configurato": "Incomplete configuration",

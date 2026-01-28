@@ -1,3 +1,36 @@
+2026-01-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #167
+	Migliorata gestione icone e colori nel wizard Configura Adesioni
+	- Sezione Collaudo: icona grigia quando skip_collaudo è attivo
+	- Sezione Produzione: icona grigia quando l'adesione è in fase di collaudo
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #164
+	Migliorata visualizzazione PDND Informazioni generali (descrittori e attributi)
+	Aggiunto box "Requisiti di accesso" per raggruppare i tipi di attributi
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Modificata label colonna storico specifica da "Versione" a "Progressivo"
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #162
+	Corretto campo Autenticazione Prevista non visibile quando si disabilita Specifica Interfaccia
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #157
+	Corretto salvataggio identificativo eService PDND in creazione API
+	Corretto indicatore asterisco per campi obbligatori url_collaudo e url_produzione
+
 2026-01-23  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

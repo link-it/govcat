@@ -420,9 +420,14 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this._descrittoreCtrl.setValidators([Validators.required]);
             } else {
                 this._descrittoreCtrl.clearValidators();
+                // Se la specifica viene disabilitata e il protocollo è già selezionato,
+                // inizializza l'array di autenticazione
+                const controls = this._formGroup.controls;
+                if (controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
+                    this._setAuthsArrayWithoutSpecification();
+                }
             }
             this._descrittoreCtrl.updateValueAndValidity();
-            // this.__protocolloChange();
             this.__descrittoreChange(null);
         }, 100);
     }
@@ -520,24 +525,41 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
 
         if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
-            _newBody.proprieta_custom = [];
-            Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
-                // Use nome_gruppo from the first item in the group instead of the grouping key
-                const firstItem = this._apiProprietaCustomGrouped[k][0];
-                const _customGrouped: ApiCustomProperty = {
-                    gruppo: firstItem.nome_gruppo,
-                    proprieta: []
-                };
-                this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
-                        _customGrouped.proprieta.push({
-                            nome: kk.nome,
-                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
-                        });
+            // Raggruppa le proprietà per nome_gruppo (non per label_gruppo)
+            // Questo gestisce correttamente il caso in cui proprietà con lo stesso label_gruppo
+            // abbiano diversi nome_gruppo (es: PDNDCollaudo e PDNDCollaudo_identificativo)
+            const risultato: Record<string, { nome: string; valore: string }[]> = {};
+
+            Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
+                this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
+                    // Cerca il valore usando il nome_gruppo specifico della proprietà
+                    const valoriGruppo = body.proprieta_custom?.[campo.nome_gruppo];
+                    if (!valoriGruppo) return;
+
+                    const nome = campo.nome;
+                    const valore = valoriGruppo[nome];
+
+                    // Salta valori non validi
+                    const valoreNonValido =
+                        valore === undefined ||
+                        valore === null ||
+                        (typeof valore === 'string' && valore.trim() === '') ||
+                        (typeof valore === 'number' && isNaN(valore));
+
+                    if (valoreNonValido) return;
+
+                    // Raggruppa per nome_gruppo nel risultato
+                    if (!risultato[campo.nome_gruppo]) {
+                        risultato[campo.nome_gruppo] = [];
                     }
+                    risultato[campo.nome_gruppo].push({ nome, valore });
                 });
-                _newBody.proprieta_custom.push(_customGrouped);
             });
+
+            _newBody.proprieta_custom = Object.entries(risultato).map(([gruppo, proprieta]) => ({
+                gruppo,
+                proprieta
+            }));
         }
 
         return _newBody;
@@ -978,6 +1000,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         _mandatoryFields.forEach((field: string) => {
             if (controls[field]) {
                 controls[field].setValidators([Validators.required]);
+                // Forza l'aggiornamento per triggerare statusChanges e aggiornare l'asterisco
+                controls[field].updateValueAndValidity();
             }
         });
 
@@ -988,7 +1012,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 }
             });
         }
-        
+
         this._formGroup.updateValueAndValidity();
     }
 
@@ -996,6 +1020,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.__disableUrlFields(controls);
         controls.authTypes.disable();
         controls.authTypes.clearValidators();
+        controls.authTypes.updateValueAndValidity();
         this._formGroup.updateValueAndValidity();
     }
 
@@ -1003,9 +1028,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         controls.url_produzione.setValue(null);
         controls.url_produzione.disable();
         controls.url_produzione.clearValidators();
+        controls.url_produzione.updateValueAndValidity();
         controls.url_collaudo.setValue(null);
         controls.url_collaudo.disable();
         controls.url_collaudo.clearValidators();
+        controls.url_collaudo.updateValueAndValidity();
         this._formGroup.updateValueAndValidity();
     }
 
