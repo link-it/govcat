@@ -21,13 +21,16 @@ package org.govway.catalogo.monitoraggioutils.transazioni;
 
 import java.util.UUID;
 
+import org.govway.catalogo.monitor.controllers.StatisticheController.ErogazioneFruizioneEnum;
 import org.govway.catalogo.monitoraggioutils.ConfigurazioneConnessione;
 
 public class GetTransazioneRequest {
 
 	private UUID idTransazione;
 	private ConfigurazioneConnessione configurazioneConnessione;
-	
+	private String soggettoReferente;
+	private ErogazioneFruizioneEnum erogazioneFruizione;
+
 	public UUID getIdTransazione() {
 		return idTransazione;
 	}
@@ -39,5 +42,17 @@ public class GetTransazioneRequest {
 	}
 	public void setConfigurazioneConnessione(ConfigurazioneConnessione configurazioneConnessione) {
 		this.configurazioneConnessione = configurazioneConnessione;
+	}
+	public String getSoggettoReferente() {
+		return soggettoReferente;
+	}
+	public void setSoggettoReferente(String soggettoReferente) {
+		this.soggettoReferente = soggettoReferente;
+	}
+	public ErogazioneFruizioneEnum getErogazioneFruizione() {
+		return erogazioneFruizione;
+	}
+	public void setErogazioneFruizione(ErogazioneFruizioneEnum erogazioneFruizione) {
+		this.erogazioneFruizione = erogazioneFruizione;
 	}
 }

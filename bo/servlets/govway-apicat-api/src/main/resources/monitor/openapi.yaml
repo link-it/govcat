@@ -1463,14 +1463,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PagedModelItemTransazione'
-  /{ambiente}/diagnostica/{id_transazione}:
+  /{ambiente}/erogazioni/{soggetto}/diagnostica/{id_transazione}:
     get:
       parameters:
         - $ref: '#/components/parameters/Ambiente'
+        - $ref: '#/components/parameters/Soggetto'
         - $ref: '#/components/parameters/IdTransazione'
       tags:
         - Transazioni
-      summary: Dettaglio della transazione
+      summary: Dettaglio della transazione relativa a erogazioni
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transazione'
+  /{ambiente}/fruizioni/{soggetto}/diagnostica/{id_transazione}:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/Ambiente'
+        - $ref: '#/components/parameters/Soggetto'
+        - $ref: '#/components/parameters/IdTransazione'
+      tags:
+        - Transazioni
+      summary: Dettaglio della transazione relativa a fruizioni
       responses:
         '200':
           description: OK

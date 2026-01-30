@@ -274,24 +274,60 @@ public class TransazioniController implements TransazioniApi {
 	}
 	
 	@Override
-	public ResponseEntity<Transazione> ambienteDiagnosticaIdTransazioneGet(AmbienteEnum ambiente, UUID idTransazione) {
+	public ResponseEntity<Transazione> ambienteErogazioniSoggettoDiagnosticaIdTransazioneGet(AmbienteEnum ambiente, String soggetto, UUID idTransazione) {
 		try {
-			this.logger.info("Invocazione in corso ..."); 
-			
+			this.logger.info("Invocazione in corso ...");
+
 			this.authorize();
-			
-			this.logger.debug("Autorizzazione completata con successo");     
+
+			this.logger.debug("Autorizzazione completata con successo");
 
 			GetTransazioneRequest request = new GetTransazioneRequest();
 
 			request.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
 			request.setIdTransazione(idTransazione);
-			
+			request.setSoggettoReferente(this.filtriUtils.getSoggettoNome(soggetto));
+			request.setErogazioneFruizione(ErogazioneFruizioneEnum.EROGAZIONE);
+
 			Transazione transazione = this.client.getTransazione(request).getTransazione();
 
 			fill(transazione);
 			this.logger.debug("Invocazione completata con successo");
-			
+
+			return ResponseEntity.ok(transazione);
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500, Map.of(), e);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Transazione> ambienteFruizioniSoggettoDiagnosticaIdTransazioneGet(AmbienteEnum ambiente, String soggetto, UUID idTransazione) {
+		try {
+			this.logger.info("Invocazione in corso ...");
+
+			this.authorize();
+
+			this.logger.debug("Autorizzazione completata con successo");
+
+			GetTransazioneRequest request = new GetTransazioneRequest();
+
+			request.setConfigurazioneConnessione(getConfigurazioneConnessione(ambiente));
+			request.setIdTransazione(idTransazione);
+			request.setSoggettoReferente(this.filtriUtils.getSoggettoNome(soggetto));
+			request.setErogazioneFruizione(ErogazioneFruizioneEnum.FRUIZIONE);
+
+			Transazione transazione = this.client.getTransazione(request).getTransazione();
+
+			fill(transazione);
+			this.logger.debug("Invocazione completata con successo");
+
 			return ResponseEntity.ok(transazione);
 
 		}
