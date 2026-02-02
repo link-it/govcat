@@ -42,7 +42,6 @@ export class NavigationService {
    * @param queryParams Query params opzionali
    */
   navigateWithEvent(event: MouseEvent | undefined, route: any[], queryParams?: any): void {
-    console.log('NavigationService.navigateWithEvent', { event, route, queryParams });
     if (this.shouldOpenInNewTab(event)) {
       event?.preventDefault();
       event?.stopPropagation();
