@@ -80,10 +80,6 @@ public class RegistrazioneController implements RegistrazioneApi {
     @Value("${firstlogin.verification.max.sends:5}")
     private int maxSendAttempts;
 
-    private static final String MESSAGGIO_INFORMATIVO =
-        "Per completare la registrazione su GovCat, conferma il tuo indirizzo email. " +
-        "Puoi utilizzare l'email associata al tuo account o specificarne una diversa (es. email aziendale).";
-
     @Override
     public ResponseEntity<org.govway.catalogo.servlets.model.StatoRegistrazione> getStatoRegistrazione() {
         try {
@@ -161,10 +157,13 @@ public class RegistrazioneController implements RegistrazioneApi {
             // L'utente conferma l'email dal JWT senza verifica
             // Questo path è usato quando l'utente NON vuole modificare l'email
 
-            return this.registrazioneService.runTransaction(() -> {
-                // Completa direttamente la registrazione con l'email dal JWT
-                String emailToUse = idm.getEmail();
+            // Verifica che l'email sia presente nei dati IDM
+            String emailToUse = idm.getEmail();
+            if (emailToUse == null || emailToUse.trim().isEmpty()) {
+                throw new BadRequestException(ErrorCode.REG_400_NO_EMAIL_JWT);
+            }
 
+            return this.registrazioneService.runTransaction(() -> {
                 return completaRegistrazioneInternal(principal, emailToUse, idm);
             });
 
@@ -473,7 +472,6 @@ public class RegistrazioneController implements RegistrazioneApi {
         org.govway.catalogo.servlets.model.StatoRegistrazione result =
             new org.govway.catalogo.servlets.model.StatoRegistrazione();
         result.setStato(stato);
-        result.setMessaggioInformativo(MESSAGGIO_INFORMATIVO);
 
         if (reg != null) {
             result.setEmailJwt(reg.getEmailJwt());

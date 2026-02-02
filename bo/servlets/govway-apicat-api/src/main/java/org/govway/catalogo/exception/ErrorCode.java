@@ -405,7 +405,10 @@ public enum ErrorCode {
     REG_410_EXPIRED("Codice di verifica scaduto"),
 
     /** Principal già associato ad altro utente */
-    REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente");
+    REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
+
+    /** Email non presente nei dati di autenticazione (JWT) */
+    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione");
 
     // ==================== ATTRIBUTI E METODI ====================
 

@@ -6645,9 +6645,6 @@ components:
           $ref: "#/components/schemas/String255"
         principal:
           $ref: "#/components/schemas/String255"
-        messaggio_informativo:
-          type: "string"
-          description: "Testo template fisso da mostrare"
         tentativi_registrazione:
           type: "integer"
           description: "Numero tentativi di registrazione effettuati"
