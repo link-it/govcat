@@ -1172,6 +1172,34 @@
 					"404": "Organizzazione [{{idOrganizzazione}}] non trovata",
 					"409": "Organizzazione [{{nome}}] già esistente"
 				},
+				"REG": {
+					"400": {
+						"NOT": {
+							"ENABLED": "Funzionalità di verifica email non abilitata",
+							"VERIFIED": "Email non ancora verificata"
+						},
+						"NO": {
+							"REGISTRATION": "Nessuna registrazione in corso",
+							"CODE": "Nessun codice di verifica inviato",
+							"EMAIL": {
+								"JWT": "Email non presente nei dati di autenticazione"
+							}
+						}
+					},
+					"409": {
+						"PRINCIPAL": {
+							"EXISTS": "Principal già associato a un altro utente"
+						}
+					},
+					"410": {
+						"EXPIRED": "Codice di verifica scaduto"
+					},
+					"429": {
+						"MAX": {
+							"SENDS": "Superato il numero massimo di tentativi di invio codice"
+						}
+					}
+				},
 				"SOG": {
 					"404": "Soggetto [{{idSoggetto}}] non trovato",
 					"409": "Soggetto [{{nome}}] già esistente"
@@ -1441,6 +1469,7 @@
 			"BUTTON": {
 				"ConfermaEProcedi": "Conferma e procedi",
 				"ModificaEmail": "Modifica email",
+				"InserisciEmail": "Inserisci email",
 				"InviaCodice": "Invia codice di verifica",
 				"Verifica": "Verifica codice",
 				"ReinviaCodice": "Reinvia codice",
@@ -1450,6 +1479,8 @@
 			"MESSAGE": {
 				"ConfermaEmailDesc": "Abbiamo recuperato i tuoi dati dal sistema di autenticazione. Verifica che siano corretti.",
 				"ConfermaEmailInfo": "Confermando i dati, utilizzeremo questa email per le comunicazioni.",
+				"EmailMancante": "L'indirizzo email non e' stato fornito dal sistema di autenticazione. Per completare la registrazione e' necessario inserire un indirizzo email valido.",
+				"EmailNonDisponibile": "Non disponibile",
 				"ModificaEmailDesc": "Inserisci la nuova email che desideri utilizzare per le comunicazioni.",
 				"InvieremoCodiceSMS": "Ti invieremo un codice di verifica alla nuova email.",
 				"VerificaCodiceDesc": "Abbiamo inviato un codice di verifica a:",

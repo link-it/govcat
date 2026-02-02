@@ -3,6 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject, Subscription, timer, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 
+import { TranslateService } from '@ngx-translate/core';
+
 import { ApiClient } from './api.client';
 import {
   StatoRegistrazione,
@@ -26,7 +28,10 @@ export class RegistrazioneService implements OnDestroy {
   private countdownSubscription?: Subscription;
   private scadenzaDefault = 300; // 5 minuti in secondi
 
-  constructor(private http: ApiClient) {}
+  constructor(
+    private http: ApiClient,
+    private translate: TranslateService
+  ) {}
 
   ngOnDestroy(): void {
     this.stopCountdown();
@@ -158,29 +163,43 @@ export class RegistrazioneService implements OnDestroy {
 
   // Error handling
 
-  private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'Errore sconosciuto';
+  private handleError = (error: HttpErrorResponse): Observable<never> => {
+    let errorMessage = this.translate.instant('APP.MESSAGE.ERROR.Default');
 
     if (error.error instanceof ErrorEvent) {
       // Errore client-side
       errorMessage = error.error.message;
     } else {
-      // Errore server-side
-      switch (error.status) {
-        case 400:
-          errorMessage = error.error?.detail || 'Richiesta non valida';
-          break;
-        case 409:
-          errorMessage = error.error?.detail || 'Conflitto: email già in uso';
-          break;
-        case 410:
-          errorMessage = 'Codice scaduto. Richiedi un nuovo codice.';
-          break;
-        case 429:
-          errorMessage = 'Troppi tentativi. Riprova più tardi.';
-          break;
-        default:
-          errorMessage = error.error?.detail || `Errore ${error.status}: ${error.message}`;
+      // Errore server-side - prova a tradurre il codice di errore dal campo detail
+      if (error.error?.detail) {
+        const code = error.error.detail;
+        // Prova a tradurre il codice (es: REG.400.NO.EMAIL.JWT -> APP.MESSAGE.ERROR.REG.400.NO.EMAIL.JWT)
+        const translated = this.translate.instant(`APP.MESSAGE.ERROR.${code}`);
+        // Se la traduzione esiste (non ritorna la chiave stessa), usala
+        if (translated !== `APP.MESSAGE.ERROR.${code}`) {
+          errorMessage = translated;
+        } else {
+          // Altrimenti usa il detail così com'è
+          errorMessage = code;
+        }
+      } else {
+        // Fallback per status code senza detail
+        switch (error.status) {
+          case 400:
+            errorMessage = this.translate.instant('APP.MESSAGE.ERROR.GEN.400');
+            break;
+          case 409:
+            errorMessage = this.translate.instant('APP.MESSAGE.ERROR.GEN.409');
+            break;
+          case 410:
+            errorMessage = this.translate.instant('APP.MESSAGE.ERROR.REG.410.EXPIRED');
+            break;
+          case 429:
+            errorMessage = this.translate.instant('APP.MESSAGE.ERROR.REG.429.MAX.SENDS');
+            break;
+          default:
+            errorMessage = `${this.translate.instant('APP.MESSAGE.ERROR.Default')} (${error.status})`;
+        }
       }
     }
 

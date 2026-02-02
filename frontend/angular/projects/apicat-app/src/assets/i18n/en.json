@@ -1172,6 +1172,34 @@
 					"404": "Organization [{{idOrganizzazione}}] not found",
 					"409": "Organization [{{nome}}] already exists"
 				},
+				"REG": {
+					"400": {
+						"NOT": {
+							"ENABLED": "Email verification feature not enabled",
+							"VERIFIED": "Email not yet verified"
+						},
+						"NO": {
+							"REGISTRATION": "No registration in progress",
+							"CODE": "No verification code sent",
+							"EMAIL": {
+								"JWT": "Email not present in authentication data"
+							}
+						}
+					},
+					"409": {
+						"PRINCIPAL": {
+							"EXISTS": "Principal already associated with another user"
+						}
+					},
+					"410": {
+						"EXPIRED": "Verification code expired"
+					},
+					"429": {
+						"MAX": {
+							"SENDS": "Maximum number of code send attempts exceeded"
+						}
+					}
+				},
 				"SOG": {
 					"404": "Subject [{{idSoggetto}}] not found",
 					"409": "Subject [{{nome}}] already exists"
@@ -1441,6 +1469,7 @@
 			"BUTTON": {
 				"ConfermaEProcedi": "Confirm and proceed",
 				"ModificaEmail": "Change email",
+				"InserisciEmail": "Enter email",
 				"InviaCodice": "Send verification code",
 				"Verifica": "Verify code",
 				"ReinviaCodice": "Resend code",
@@ -1450,6 +1479,8 @@
 			"MESSAGE": {
 				"ConfermaEmailDesc": "We have retrieved your data from the authentication system. Please verify it is correct.",
 				"ConfermaEmailInfo": "By confirming, we will use this email for communications.",
+				"EmailMancante": "The email address was not provided by the authentication system. To complete registration, you need to enter a valid email address.",
+				"EmailNonDisponibile": "Not available",
 				"ModificaEmailDesc": "Enter the new email address you wish to use for communications.",
 				"InvieremoCodiceSMS": "We will send a verification code to your new email.",
 				"VerificaCodiceDesc": "We have sent a verification code to:",
