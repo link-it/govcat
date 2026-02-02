@@ -145,6 +145,74 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /profilo/email/invia-codice:
+    post:
+      tags:
+      - "Utenti"
+      description: "Invia il codice di verifica alla nuova email specificata per la modifica email profilo"
+      operationId: "inviaCodiceCambioEmail"
+      requestBody:
+        description: "Nuova email da verificare"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CambioEmailRequest"
+      responses:
+        "200":
+          description: "Codice inviato con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodiceInviato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profilo/email/verifica-codice:
+    post:
+      tags:
+      - "Utenti"
+      description: "Verifica il codice inserito e applica la modifica email se corretto"
+      operationId: "verificaCodiceCambioEmail"
+      requestBody:
+        description: "Codice di verifica"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerificaCodiceRequest"
+      responses:
+        "200":
+          description: "Risultato della verifica"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoCambioEmail"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "410":
+          description: "Codice scaduto"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /registrazione/stato:
     get:
       tags:
@@ -6524,6 +6592,9 @@ components:
         firstlogin_verifica_email_abilitata:
           type: "boolean"
           description: "Se true, abilita il flusso di verifica email al primo login"
+        profilo_modifica_email_richiede_verifica:
+          type: "boolean"
+          description: "Se true, la modifica dell'email del profilo richiede verifica via codice"
     ConfigurazioneTipiDistribuzione:
       type: "string"
       enum:
@@ -6642,6 +6713,30 @@ components:
       enum:
         - nuovo_utente
         - principal_aggiornato
+    CambioEmailRequest:
+      type: "object"
+      required:
+        - nuova_email
+      properties:
+        nuova_email:
+          type: "string"
+          format: "email"
+          maxLength: 255
+          description: "Nuova email da verificare"
+    RisultatoCambioEmail:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          type: "boolean"
+          description: "true se la verifica è andata a buon fine e l'email è stata aggiornata"
+        tentativi_rimanenti:
+          type: "integer"
+          description: "Numero di tentativi rimanenti per verificare il codice"
+        messaggio:
+          type: "string"
+          description: "Messaggio informativo sul risultato"
     ItemMessaggio:
       type: object
       required:

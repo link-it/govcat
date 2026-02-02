@@ -45,17 +45,20 @@ public class EmailVerificationService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
-    @Value("${firstlogin.verification.code.length:6}")
+    @Value("${email.verification.code.length:6}")
     private int codeLength;
 
-    @Value("${firstlogin.verification.code.duration.minutes:5}")
+    @Value("${email.verification.code.duration.minutes:5}")
     private int codeDurationMinutes;
 
-    @Value("${firstlogin.verification.mail.from:noreply@govcat.it}")
+    @Value("${email.verification.mail.from:noreply@govcat.it}")
     private String mailFrom;
 
     @Value("${firstlogin.verification.mail.subject:GovCat - Codice di verifica email}")
-    private String mailSubject;
+    private String firstloginMailSubject;
+
+    @Value("${profilo.email.verification.mail.subject:GovCat - Conferma modifica email}")
+    private String profiloMailSubject;
 
     /**
      * Genera un codice alfanumerico casuale.
@@ -124,7 +127,7 @@ public class EmailVerificationService {
     }
 
     /**
-     * Invia email con il codice di verifica.
+     * Invia email con il codice di verifica per la registrazione (primo login).
      *
      * @param toEmail indirizzo email destinatario
      * @param code codice di verifica
@@ -133,6 +136,26 @@ public class EmailVerificationService {
      * @throws IllegalStateException se il mail sender non è configurato
      */
     public void sendVerificationEmail(String toEmail, String code, String nome, String cognome) {
+        sendEmail(toEmail, firstloginMailSubject, buildRegistrationEmailBody(code, nome, cognome));
+    }
+
+    /**
+     * Invia email con il codice di verifica per la modifica email profilo.
+     *
+     * @param toEmail indirizzo email destinatario (nuova email da verificare)
+     * @param code codice di verifica
+     * @param nome nome dell'utente
+     * @param cognome cognome dell'utente
+     * @throws IllegalStateException se il mail sender non è configurato
+     */
+    public void sendEmailChangeVerification(String toEmail, String code, String nome, String cognome) {
+        sendEmail(toEmail, profiloMailSubject, buildEmailChangeBody(code, nome, cognome));
+    }
+
+    /**
+     * Metodo interno per l'invio email.
+     */
+    private void sendEmail(String toEmail, String subject, String body) {
         if (mailSender == null) {
             logger.error("JavaMailSender non configurato. Impossibile inviare email di verifica.");
             throw new IllegalStateException("Servizio email non configurato");
@@ -143,8 +166,8 @@ public class EmailVerificationService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(mailFrom);
         message.setTo(toEmail);
-        message.setSubject(mailSubject);
-        message.setText(buildEmailBody(code, nome, cognome));
+        message.setSubject(subject);
+        message.setText(body);
 
         try {
             mailSender.send(message);
@@ -156,20 +179,31 @@ public class EmailVerificationService {
     }
 
     /**
-     * Costruisce il corpo dell'email di verifica.
-     *
-     * @param code codice di verifica
-     * @param nome nome dell'utente
-     * @param cognome cognome dell'utente
-     * @return testo dell'email
+     * Costruisce il corpo dell'email di verifica per la registrazione.
      */
-    private String buildEmailBody(String code, String nome, String cognome) {
+    private String buildRegistrationEmailBody(String code, String nome, String cognome) {
         return String.format(
             "Gentile %s %s,\n\n" +
             "Per completare la registrazione su GovCat, inserisci il seguente codice di verifica:\n\n" +
             "    %s\n\n" +
             "Il codice è valido per %d minuti.\n\n" +
             "Se non hai richiesto questa registrazione, ignora questa email.\n\n" +
+            "Cordiali saluti,\n" +
+            "Il team GovCat",
+            nome, cognome, code, codeDurationMinutes
+        );
+    }
+
+    /**
+     * Costruisce il corpo dell'email di verifica per la modifica email.
+     */
+    private String buildEmailChangeBody(String code, String nome, String cognome) {
+        return String.format(
+            "Gentile %s %s,\n\n" +
+            "Per confermare la modifica del tuo indirizzo email su GovCat, inserisci il seguente codice di verifica:\n\n" +
+            "    %s\n\n" +
+            "Il codice è valido per %d minuti.\n\n" +
+            "Se non hai richiesto questa modifica, ignora questa email e il tuo indirizzo email non sarà modificato.\n\n" +
             "Cordiali saluti,\n" +
             "Il team GovCat",
             nome, cognome, code, codeDurationMinutes

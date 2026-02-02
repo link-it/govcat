@@ -42,6 +42,9 @@ import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.ClasseUtenteService;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.services.EmailUpdateVerificationService;
+import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity;
+import org.govway.catalogo.service.EmailVerificationService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
@@ -53,6 +56,7 @@ import org.govway.catalogo.servlets.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -92,10 +96,22 @@ public class UtentiController implements UtentiApi {
 
 	@Autowired
 	private Configurazione configurazione;
-	
+
 	@Autowired
 	private RequestUtils requestUtils;
-	
+
+	@Autowired
+	private EmailUpdateVerificationService emailUpdateVerificationService;
+
+	@Autowired
+	private EmailVerificationService emailVerificationService;
+
+	@Value("${profilo.email.verification.max.attempts:3}")
+	private int maxVerificationAttempts;
+
+	@Value("${profilo.email.verification.max.sends:5}")
+	private int maxSendAttempts;
+
 	private Logger logger = LoggerFactory.getLogger(UtentiController.class);
 
 	@Override
@@ -587,6 +603,143 @@ public class UtentiController implements UtentiApi {
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<CodiceInviato> inviaCodiceCambioEmail(CambioEmailRequest cambioEmailRequest) {
+		try {
+			this.logger.info("inviaCodiceCambioEmail: Invocazione in corso...");
+
+			// Verifica che la feature sia abilitata
+			checkProfiloEmailVerificaAbilitata();
+
+			InfoProfilo current = this.requestUtils.getPrincipal(false);
+			if (current == null || current.utente == null) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
+			}
+
+			UtenteEntity utente = current.utente;
+			String nuovaEmail = cambioEmailRequest.getNuovaEmail();
+
+			return this.service.runTransaction(() -> {
+				// Trova o crea una richiesta di verifica
+				EmailUpdateVerificationEntity verification =
+					this.emailUpdateVerificationService.findOrCreateVerification(utente, nuovaEmail);
+
+				// Verifica numero massimo invii
+				if (verification.getTentativiInvio() >= maxSendAttempts) {
+					throw new BadRequestException(ErrorCode.REG_429_MAX_SENDS);
+				}
+
+				// Genera e salva il codice
+				String codice = this.emailVerificationService.generateVerificationCode();
+				java.util.Date scadenza = this.emailVerificationService.calculateExpirationTime();
+
+				this.emailUpdateVerificationService.saveCodiceVerifica(verification, codice, scadenza);
+
+				// Invia email alla nuova email
+				this.emailVerificationService.sendEmailChangeVerification(
+					nuovaEmail, codice, utente.getNome(), utente.getCognome());
+
+				CodiceInviato response = new CodiceInviato();
+				response.setMessaggio("Codice di verifica inviato a " + nuovaEmail);
+				response.setScadenzaSecondi(this.emailVerificationService.getCodeDurationMinutes() * 60);
+
+				this.logger.info("inviaCodiceCambioEmail: Codice inviato a {}", nuovaEmail);
+				return ResponseEntity.ok(response);
+			});
+
+		} catch (RuntimeException e) {
+			this.logger.error("inviaCodiceCambioEmail terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		} catch (Throwable e) {
+			this.logger.error("inviaCodiceCambioEmail terminata con errore: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<RisultatoCambioEmail> verificaCodiceCambioEmail(VerificaCodiceRequest verificaCodiceRequest) {
+		try {
+			this.logger.info("verificaCodiceCambioEmail: Invocazione in corso...");
+
+			// Verifica che la feature sia abilitata
+			checkProfiloEmailVerificaAbilitata();
+
+			InfoProfilo current = this.requestUtils.getPrincipal(false);
+			if (current == null || current.utente == null) {
+				throw new NotAuthorizedException(ErrorCode.AUT_403);
+			}
+
+			UtenteEntity utente = current.utente;
+			String codiceInserito = verificaCodiceRequest.getCodice();
+
+			return this.service.runTransaction(() -> {
+				// Trova la verifica pendente
+				EmailUpdateVerificationEntity verification =
+					this.emailUpdateVerificationService.findPendingVerification(utente)
+						.orElseThrow(() -> new BadRequestException(ErrorCode.REG_400_NO_CODE));
+
+				// Verifica scadenza
+				if (this.emailVerificationService.isCodeExpired(verification.getCodiceVerificaScadenza())) {
+					this.emailUpdateVerificationService.markAsExpired(verification);
+					RisultatoCambioEmail response = new RisultatoCambioEmail();
+					response.setEsito(false);
+					response.setMessaggio("Codice scaduto. Richiedi un nuovo codice.");
+					response.setTentativiRimanenti(0);
+					return ResponseEntity.status(410).body(response);
+				}
+
+				// Incrementa tentativi
+				this.emailUpdateVerificationService.incrementTentativiVerifica(verification);
+
+				int tentativiRimanenti = maxVerificationAttempts - verification.getTentativiVerifica();
+
+				// Verifica codice
+				boolean isValid = this.emailVerificationService.isCodeValid(
+					codiceInserito, verification.getCodiceVerifica(), verification.getCodiceVerificaScadenza());
+
+				RisultatoCambioEmail response = new RisultatoCambioEmail();
+				response.setEsito(isValid);
+				response.setTentativiRimanenti(Math.max(0, tentativiRimanenti));
+
+				if (isValid) {
+					// Aggiorna l'email dell'utente
+					String nuovaEmail = verification.getNuovaEmail();
+					utente.setEmailAziendale(nuovaEmail);
+					this.service.save(utente);
+
+					// Marca la verifica come completata
+					this.emailUpdateVerificationService.markAsVerified(verification);
+
+					response.setMessaggio("Email aggiornata con successo a " + nuovaEmail);
+					this.logger.info("verificaCodiceCambioEmail: Email aggiornata per utente {}", utente.getIdUtente());
+				} else {
+					if (tentativiRimanenti <= 0) {
+						response.setMessaggio("Codice errato. Tentativi esauriti, richiedi un nuovo codice.");
+					} else {
+						response.setMessaggio("Codice errato. Tentativi rimanenti: " + tentativiRimanenti);
+					}
+					this.logger.warn("verificaCodiceCambioEmail: Codice errato per utente {}", utente.getIdUtente());
+				}
+
+				return ResponseEntity.ok(response);
+			});
+
+		} catch (RuntimeException e) {
+			this.logger.error("verificaCodiceCambioEmail terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		} catch (Throwable e) {
+			this.logger.error("verificaCodiceCambioEmail terminata con errore: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	private void checkProfiloEmailVerificaAbilitata() {
+		if (this.configurazione.getUtente() == null ||
+			!Boolean.TRUE.equals(this.configurazione.getUtente().isProfiloModificaEmailRichiedeVerifica())) {
+			throw new BadRequestException(ErrorCode.REG_400_NOT_ENABLED);
 		}
 	}
 }

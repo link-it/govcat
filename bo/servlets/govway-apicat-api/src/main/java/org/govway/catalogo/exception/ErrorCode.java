@@ -386,8 +386,8 @@ public enum ErrorCode {
 
     // ==================== REGISTRAZIONE ====================
 
-    /** Funzionalità di registrazione non abilitata */
-    REG_400_NOT_ENABLED("Funzionalità di verifica email al primo login non abilitata"),
+    /** Funzionalità di verifica email non abilitata */
+    REG_400_NOT_ENABLED("Funzionalità di verifica email non abilitata"),
 
     /** Nessuna registrazione in corso per questo utente */
     REG_400_NO_REGISTRATION("Nessuna registrazione in corso"),

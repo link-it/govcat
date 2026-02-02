@@ -31,6 +31,7 @@ create sequence seq_tags start with 1 increment by 1;
 create sequence seq_tassonomie start with 1 increment by 1;
 create sequence seq_utenti start with 1 increment by 1;
 create sequence seq_registrazioni_utenti start with 1 increment by 1;
+create sequence seq_email_update_verifications start with 1 increment by 1;
 
     create table adesioni (
        id bigint not null,
@@ -513,6 +514,25 @@ create sequence seq_registrazioni_utenti start with 1 increment by 1;
 
     alter table registrazioni_utenti
        add constraint UK_registrazioni_utenti_principal unique (principal);
+
+    create table email_update_verifications (
+       id bigint not null,
+        id_utente bigint not null,
+        nuova_email varchar(255) not null,
+        codice_verifica varchar(10),
+        codice_verifica_scadenza timestamp,
+        tentativi_verifica integer default 0,
+        tentativi_invio integer default 0,
+        stato varchar(50) not null,
+        data_creazione timestamp not null,
+        data_ultimo_tentativo timestamp,
+        primary key (id)
+    );
+
+    alter table email_update_verifications
+       add constraint fk_email_update_utente
+       foreign key (id_utente)
+       references utenti;
 
     alter table organizations 
        add constraint UK_p9pbw3flq9hkay8hdx3ypsldy unique (name);

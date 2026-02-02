@@ -8,9 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.govway.catalogo.InfoProfilo;
@@ -22,10 +24,23 @@ import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
+import org.govway.catalogo.core.dao.repositories.EmailUpdateVerificationRepository;
+import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity;
+import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity.StatoVerifica;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.CambioEmailRequest;
+import org.govway.catalogo.servlets.model.CodiceInviato;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneNotifiche;
+import org.govway.catalogo.servlets.model.ConfigurazioneUtente;
+import org.govway.catalogo.servlets.model.RisultatoCambioEmail;
+import org.govway.catalogo.servlets.model.VerificaCodiceRequest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.govway.catalogo.servlets.model.ItemUtente;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
@@ -96,6 +111,15 @@ public class UtentiTest {
 
     @Autowired
     private OrganizzazioneService organizzazioneService;
+
+    @Autowired
+    private EmailUpdateVerificationRepository emailUpdateVerificationRepository;
+
+    @Autowired
+    private Configurazione configurazione;
+
+    @MockBean
+    private JavaMailSender mailSender;
 
     private static final String UTENTE_GESTORE = "gestore";
 
@@ -976,6 +1000,222 @@ public class UtentiTest {
     	});
 
         assertEquals("AUT.403", exception.getMessage());
+    }
+
+    // ==================== Test Verifica Email Modifica Profilo ====================
+
+    private UtenteEntity setupUtentePerTestEmailVerification(String principal) {
+        // Crea organizzazione
+        ResponseEntity<Organizzazione> responseOrg = organizzazioniController.createOrganizzazione(
+            CommonUtils.getOrganizzazioneCreate());
+
+        // Crea utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrg.getBody().getIdOrganizzazione());
+        utenteCreate.setPrincipal(principal);
+        utenteCreate.setEmailAziendale("originale@test.com");
+
+        controller.createUtente(utenteCreate);
+        return this.utenteService.findByPrincipal(principal).get();
+    }
+
+    private void abilitaVerificaEmailProfilo(boolean abilitata) {
+        if (this.configurazione.getUtente() == null) {
+            this.configurazione.setUtente(new ConfigurazioneUtente());
+        }
+        this.configurazione.getUtente().setProfiloModificaEmailRichiedeVerifica(abilitata);
+    }
+
+    @Test
+    void testInviaCodiceCambioEmail_Success() {
+        abilitaVerificaEmailProfilo(true);
+        UtenteEntity utente = setupUtentePerTestEmailVerification("test.email.invio");
+        CommonUtils.getSessionUtente(utente.getPrincipal(), securityContext, authentication, utenteService);
+
+        CambioEmailRequest request = new CambioEmailRequest();
+        request.setNuovaEmail("nuova@test.com");
+
+        ResponseEntity<CodiceInviato> response = controller.inviaCodiceCambioEmail(request);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody().getMessaggio());
+        assertTrue(response.getBody().getScadenzaSecondi() > 0);
+
+        // Verifica che la verifica sia stata salvata nel database
+        Optional<EmailUpdateVerificationEntity> verification =
+            emailUpdateVerificationRepository.findByUtenteAndStato(utente, StatoVerifica.CODE_SENT);
+        assertTrue(verification.isPresent());
+        assertEquals("nuova@test.com", verification.get().getNuovaEmail());
+    }
+
+    @Test
+    void testInviaCodiceCambioEmail_FeatureDisabilitata() {
+        abilitaVerificaEmailProfilo(false);
+        UtenteEntity utente = setupUtentePerTestEmailVerification("test.email.disabled");
+        CommonUtils.getSessionUtente(utente.getPrincipal(), securityContext, authentication, utenteService);
+
+        CambioEmailRequest request = new CambioEmailRequest();
+        request.setNuovaEmail("nuova@test.com");
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            controller.inviaCodiceCambioEmail(request);
+        });
+
+        assertEquals("REG.400.NOT.ENABLED", exception.getMessage());
+    }
+
+    @Test
+    void testInviaCodiceCambioEmail_UtenteNonAutenticato() {
+        abilitaVerificaEmailProfilo(true);
+        this.tearDown();
+
+        CambioEmailRequest request = new CambioEmailRequest();
+        request.setNuovaEmail("nuova@test.com");
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.inviaCodiceCambioEmail(request);
+        });
+
+        assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    void testVerificaCodiceCambioEmail_CodiceCorretto() {
+        abilitaVerificaEmailProfilo(true);
+        UtenteEntity utente = setupUtentePerTestEmailVerification("test.verifica.ok");
+        CommonUtils.getSessionUtente(utente.getPrincipal(), securityContext, authentication, utenteService);
+
+        // Crea una verifica con codice valido
+        EmailUpdateVerificationEntity verification = new EmailUpdateVerificationEntity();
+        verification.setUtente(utente);
+        verification.setNuovaEmail("nuova.verificata@test.com");
+        verification.setCodiceVerifica("ABC123");
+        verification.setCodiceVerificaScadenza(new Date(System.currentTimeMillis() + 300000));
+        verification.setStato(StatoVerifica.CODE_SENT);
+        verification.setTentativiVerifica(0);
+        verification.setTentativiInvio(1);
+        verification.setDataCreazione(new Date());
+        emailUpdateVerificationRepository.save(verification);
+
+        VerificaCodiceRequest request = new VerificaCodiceRequest();
+        request.setCodice("ABC123");
+
+        ResponseEntity<RisultatoCambioEmail> response = controller.verificaCodiceCambioEmail(request);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isEsito());
+
+        // Verifica che l'email dell'utente sia stata aggiornata
+        UtenteEntity utenteAggiornato = this.utenteService.findByPrincipal("test.verifica.ok").get();
+        assertEquals("nuova.verificata@test.com", utenteAggiornato.getEmailAziendale());
+    }
+
+    @Test
+    void testVerificaCodiceCambioEmail_CodiceErrato() {
+        abilitaVerificaEmailProfilo(true);
+        UtenteEntity utente = setupUtentePerTestEmailVerification("test.verifica.errato");
+        CommonUtils.getSessionUtente(utente.getPrincipal(), securityContext, authentication, utenteService);
+
+        // Crea una verifica con codice valido
+        EmailUpdateVerificationEntity verification = new EmailUpdateVerificationEntity();
+        verification.setUtente(utente);
+        verification.setNuovaEmail("nuova@test.com");
+        verification.setCodiceVerifica("ABC123");
+        verification.setCodiceVerificaScadenza(new Date(System.currentTimeMillis() + 300000));
+        verification.setStato(StatoVerifica.CODE_SENT);
+        verification.setTentativiVerifica(0);
+        verification.setTentativiInvio(1);
+        verification.setDataCreazione(new Date());
+        emailUpdateVerificationRepository.save(verification);
+
+        VerificaCodiceRequest request = new VerificaCodiceRequest();
+        request.setCodice("WRONG1");
+
+        ResponseEntity<RisultatoCambioEmail> response = controller.verificaCodiceCambioEmail(request);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.getBody().isEsito());
+        assertTrue(response.getBody().getMessaggio().contains("Codice errato"));
+    }
+
+    @Test
+    void testVerificaCodiceCambioEmail_CodiceScaduto() {
+        abilitaVerificaEmailProfilo(true);
+        UtenteEntity utente = setupUtentePerTestEmailVerification("test.verifica.scaduto");
+        CommonUtils.getSessionUtente(utente.getPrincipal(), securityContext, authentication, utenteService);
+
+        // Crea una verifica con codice scaduto
+        EmailUpdateVerificationEntity verification = new EmailUpdateVerificationEntity();
+        verification.setUtente(utente);
+        verification.setNuovaEmail("nuova@test.com");
+        verification.setCodiceVerifica("ABC123");
+        verification.setCodiceVerificaScadenza(new Date(System.currentTimeMillis() - 300000)); // Scaduto
+        verification.setStato(StatoVerifica.CODE_SENT);
+        verification.setTentativiVerifica(0);
+        verification.setTentativiInvio(1);
+        verification.setDataCreazione(new Date());
+        emailUpdateVerificationRepository.save(verification);
+
+        VerificaCodiceRequest request = new VerificaCodiceRequest();
+        request.setCodice("ABC123");
+
+        ResponseEntity<RisultatoCambioEmail> response = controller.verificaCodiceCambioEmail(request);
+
+        assertNotNull(response.getBody());
+        assertEquals(410, response.getStatusCode().value());
+        assertFalse(response.getBody().isEsito());
+    }
+
+    @Test
+    void testVerificaCodiceCambioEmail_NessunCodiceInviato() {
+        abilitaVerificaEmailProfilo(true);
+        UtenteEntity utente = setupUtentePerTestEmailVerification("test.verifica.nocode");
+        CommonUtils.getSessionUtente(utente.getPrincipal(), securityContext, authentication, utenteService);
+
+        VerificaCodiceRequest request = new VerificaCodiceRequest();
+        request.setCodice("ABC123");
+
+        BadRequestException exception = assertThrows(BadRequestException.class, () -> {
+            controller.verificaCodiceCambioEmail(request);
+        });
+
+        assertEquals("REG.400.NO.CODE", exception.getMessage());
+    }
+
+    @Test
+    void testFlussoCompleto_InvioEVerificaCodice() {
+        abilitaVerificaEmailProfilo(true);
+        UtenteEntity utente = setupUtentePerTestEmailVerification("test.flusso.completo");
+        CommonUtils.getSessionUtente(utente.getPrincipal(), securityContext, authentication, utenteService);
+
+        // Step 1: Invia codice
+        CambioEmailRequest invioRequest = new CambioEmailRequest();
+        invioRequest.setNuovaEmail("nuova.completo@test.com");
+
+        ResponseEntity<CodiceInviato> invioResponse = controller.inviaCodiceCambioEmail(invioRequest);
+        assertEquals(HttpStatus.OK, invioResponse.getStatusCode());
+
+        // Recupera il codice dal database
+        Optional<EmailUpdateVerificationEntity> verification =
+            emailUpdateVerificationRepository.findByUtenteAndStato(utente, StatoVerifica.CODE_SENT);
+        assertTrue(verification.isPresent());
+        String codice = verification.get().getCodiceVerifica();
+
+        // Step 2: Verifica codice
+        VerificaCodiceRequest verificaRequest = new VerificaCodiceRequest();
+        verificaRequest.setCodice(codice);
+
+        ResponseEntity<RisultatoCambioEmail> verificaResponse = controller.verificaCodiceCambioEmail(verificaRequest);
+
+        assertEquals(HttpStatus.OK, verificaResponse.getStatusCode());
+        assertTrue(verificaResponse.getBody().isEsito());
+
+        // Verifica finale: l'email dell'utente deve essere aggiornata
+        UtenteEntity utenteAggiornato = this.utenteService.findByPrincipal("test.flusso.completo").get();
+        assertEquals("nuova.completo@test.com", utenteAggiornato.getEmailAziendale());
     }
 }
 
