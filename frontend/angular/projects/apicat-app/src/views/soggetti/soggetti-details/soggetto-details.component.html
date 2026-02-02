@@ -27,9 +27,8 @@
     <ng-template [appHasPermission]="'soggetti'" [action]="'edit'">
       <div class="nav-controls align-self-center d-flex">
 
-        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2 supports-new-tab"
+        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon mr-2"
           [routerLink]="['verifiche']"
-          [appOpenInNewTab]="[id, 'verifiche']"
           *ngIf="_updateMapper | mapper:_hasVerifica">
           {{ 'APP.USERS.BUTTON.Check' | translate }}
         </button>

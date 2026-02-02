@@ -637,6 +637,25 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.navigationService.navigateWithEvent(mouseEvent, route);
     }
 
+    _onOpenInNewTab(event: any) {
+        const data = this.navigationService.extractData(event);
+        const route = this.showPresentation
+            ? [this.model, data.idServizio, 'view']
+            : [this.model, data.idServizio];
+        this.navigationService.openInNewTab(route);
+    }
+
+    _onOpenInNewTabGroup(event: any) {
+        const data = this.navigationService.extractData(event);
+        // Solo per i servizi, non per i gruppi
+        if (data.type === 'servizio') {
+            const route = this.showPresentation
+                ? [this.model, data.id, 'view']
+                : [this.model, data.id];
+            this.navigationService.openInNewTab(route);
+        }
+    }
+
     _onEditGroup(event: any, param: any) {
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();

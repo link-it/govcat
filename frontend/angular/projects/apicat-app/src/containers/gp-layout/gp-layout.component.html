@@ -71,6 +71,10 @@
                                             <span class="nav-item-name">{{ _item.label + '' | translate }}</span>
                                             <span class="gl-badge badge badge-pill badge-info text-dark sm count" *ngIf="_item.counter && _counters[_item.counter]">{{ _counters[_item.counter] || 0 }}</span>
                                             <span class="gl-badge text-info" *ngIf="_item.counter && _counters[_item.counter] && _sideBarCollapsed"><i class="bi bi-record-fill"></i></span>
+                                            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                                                *ngIf="_enableOpenInNewTab && _item.url && !_sideBarCollapsed"
+                                                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                                                (click)="_openMenuInNewTab($event, _item)"></span>
                                         </a>
                                         <ul class="sidebar-sub-level-items">
                                             <li class="fly-out-top-item" [appRouterLinkMatch]="{ 'active': _item.path + '' }">
@@ -88,6 +92,10 @@
                                                         </span>
                                                         <span class="">{{ _subItem.label + '' | translate }}</span>
                                                         <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter" *ngIf="false">0</span>
+                                                        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                                                            *ngIf="_enableOpenInNewTab && _subItem.url"
+                                                            [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                                                            (click)="_openMenuInNewTab($event, _subItem)"></span>
                                                     </a>
                                                 </li>
                                             </ng-container>
@@ -131,13 +139,11 @@
                     </ul>
                 </div>
                 <div class="toggle-area">
-                    <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" role="button" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
-                        <!-- <i class="bi" [class.bi-chevron-double-right]="_sideBarCollapsed" [class.bi-chevron-double-left]="!_sideBarCollapsed"></i> -->
+                    <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
                         <span class="material-icons-outlined">{{ (_sideBarCollapsed) ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
                         <span class="collapse-text gp-ml-3">{{ 'APP.BUTTON.CollapseSidebar' | translate }}</span>
                     </a>
                     <button name="button" type="button" class="close-nav-button position-relative" (click)="__closeSideBar()" title="[v.{{ version }}]">
-                        <!-- <i class="bi bi-x-lg"></i> -->
                         <span class="material-icons-outlined">close</span>
                         <span class="collapse-text gl-ml-3">{{ 'APP.BUTTON.CloseSidebar' | translate }}</span>
                     </button>
@@ -169,7 +175,6 @@
         <!-- /assets/pages/footer-small.html -->
     </div>
 </footer>
-<!-- <app-spinner *ngIf="_spin"></app-spinner> -->
 <linkit-multi-snackbar></linkit-multi-snackbar>
 <div #watermark class="staging-box d-flex align-items-center justify-content-center" *ngIf="_config.AppConfig?.Watermark && _config.AppConfig?.WatermarkText">
     <span class="text-truncate">{{ _config.AppConfig?.WatermarkText }}</span>

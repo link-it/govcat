@@ -317,6 +317,12 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     }
   }
 
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const route = [this.model, data.id];
+    this.navigationService.openInNewTab(route);
+  }
+
   _onCloseEdit() {
     this._isEdit = false;
   }

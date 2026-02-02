@@ -353,6 +353,30 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
     }
   }
 
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+
+    const _notificaId = data.id_notifica;
+    const _messageId = data.entita.id_entita;
+    const _servizio = data.entita.servizio;
+    const _adesione = data.entita.adesione;
+    const _tipoUrl = (data.tipo.tipo === NotificationType.Comunicazione) ? `/comunicazioni?` : '?';
+
+    const _useId: boolean = true;
+    const _notificationB64 = btoa(encodeURI(JSON.stringify(data)));
+
+    let _url = '';
+    if (_servizio) {
+      _url = `/servizi/${_servizio.id_servizio}${_tipoUrl}`;
+      _url += _useId ? `notificationId=${_notificaId}&messageid=${_messageId}` : `notification=${_notificationB64}`;
+    } else {
+      _url = `/adesioni/${_adesione.id_adesione}${_tipoUrl}`;
+      _url += _useId ? `notificationId=${_notificaId}&messageid=${_messageId}` : `notification=${_notificationB64}`;
+    }
+
+    window.open(_url, '_blank');
+  }
+
   markNotification(elem: any, stato: string, refresh: boolean = false) {
     const _body = {
       stato: stato

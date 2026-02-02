@@ -5,6 +5,9 @@
  * Classi disponibili:
  * - .supports-new-tab: base, mostra icona dopo il contenuto su hover
  * - .supports-new-tab.no-icon: solo cursore, nessuna icona (per bottoni con icona propria)
+ *
+ * Icona iniettata dalla direttiva:
+ * - .open-new-tab-icon: icona cliccabile che apre sempre in nuova scheda
  */
 
 // Classe base per elementi che supportano apertura in nuova scheda
@@ -12,33 +15,46 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  cursor: pointer; // Default: pointer
+  cursor: pointer;
+}
 
-  // Icona che appare su hover (allineata a destra)
-  // Usa display:none di default per non occupare spazio
-  &::after {
-    content: '\F1C5'; // Bootstrap Icons: box-arrow-up-right
-    font-family: 'bootstrap-icons';
-    font-size: 0.7em;
-    margin-left: auto;
-    padding-left: 0.5em;
-    display: none;
-    color: currentColor;
-    opacity: 0.5;
-  }
-
-  &:hover::after {
-    display: inline-flex;
+// Variante senza icona - per bottoni che hanno già un'icona propria
+.supports-new-tab.no-icon {
+  // Nasconde l'icona iniettata dalla direttiva
+  .open-new-tab-icon {
+    display: none !important;
   }
 }
 
-// Variante senza icona - SEMPRE nasconde l'icona (massima specificità)
-.supports-new-tab.no-icon::after,
-.supports-new-tab.no-icon:hover::after,
-body.modifier-key-pressed .supports-new-tab.no-icon::after,
-body.modifier-key-pressed .supports-new-tab.no-icon:hover::after {
-  display: none !important;
-  content: none !important;
+// Stili per l'icona iniettata dalla direttiva OpenInNewTab
+.open-new-tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75em;
+  margin-left: 0.4em;
+  padding: 0.15em 0.25em;
+  border-radius: 3px;
+  color: currentColor;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+
+  &:hover {
+    opacity: 1 !important;
+    background-color: var(--open-new-tab-hover-bg, #e0e0e0);
+    color: var(--open-new-tab-hover-color, #333) !important;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// Mostra l'icona su hover dell'elemento parent
+[appOpenInNewTab]:hover > .open-new-tab-icon,
+.supports-new-tab:hover > .open-new-tab-icon {
+  opacity: 0.6;
 }
 
 // Quando Ctrl/Cmd è premuto, il body riceve questa classe via JS
@@ -48,16 +64,17 @@ body.modifier-key-pressed {
     cursor: alias !important;
   }
 
-  // Icona blu al 100% solo su hover (solo per elementi CON icona)
-  .supports-new-tab:not(.no-icon):hover::after {
-    display: inline !important;
+  // Icona completamente visibile e in evidenza
+  .supports-new-tab:hover .open-new-tab-icon,
+  *:hover > .open-new-tab-icon {
     opacity: 1 !important;
-    color: var(--link-hover-color, #0d6efd) !important;
+    visibility: visible !important;
+    color: var(--bs-primary, #0d6efd) !important;
   }
 
   // Per la variante no-icon, mostra un feedback visivo con outline solo su hover
   .supports-new-tab.no-icon:hover {
-    outline: 2px dashed var(--link-hover-color, #0d6efd) !important;
+    outline: 2px dashed var(--bs-primary, #0d6efd) !important;
     outline-offset: 2px !important;
   }
 }
@@ -69,4 +86,109 @@ body.modifier-key-pressed {
 
 .breadcrumbs-list > li > a.supports-new-tab {
   overflow: visible !important;
+}
+
+// Stili specifici per contesti diversi
+// Liste (item-row)
+ui-item-row,
+ui-item-row-mobile,
+.ui-card {
+  .open-new-tab-icon {
+    font-size: 0.85em;
+  }
+
+  // Mostra l'icona quando si fa hover sul testo primario (link)
+  .primary-text {
+    display: inline-flex;
+    align-items: center;
+
+    &:hover .open-new-tab-icon {
+      opacity: 0.6;
+    }
+
+    .open-new-tab-icon:hover {
+      opacity: 1 !important;
+      background-color: var(--open-new-tab-hover-bg, #e0e0e0);
+      color: var(--open-new-tab-hover-color, #333) !important;
+    }
+  }
+}
+
+// Card components (lnk-card, servizi-group-list-card)
+lnk-card,
+app-servizi-group-list-card {
+  .card-title,
+  .group-list-card-title {
+    display: inline-flex;
+    align-items: center;
+
+    .open-new-tab-icon {
+      font-size: 0.75em;
+      opacity: 0;
+    }
+
+    &:hover .open-new-tab-icon {
+      opacity: 0.6;
+    }
+
+    .open-new-tab-icon:hover {
+      opacity: 1 !important;
+      background-color: var(--open-new-tab-hover-bg, #e0e0e0);
+      color: var(--open-new-tab-hover-color, #333) !important;
+    }
+  }
+}
+
+// Bottoni
+button,
+.btn {
+  .open-new-tab-icon {
+    font-size: 0.8em;
+    margin-left: 0.5em;
+  }
+}
+
+// Dropdown menu items
+.dropdown-item {
+  .open-new-tab-icon {
+    margin-left: auto;
+    padding-left: 0.5em;
+  }
+}
+
+// Sidebar menu items
+.nav-sidebar,
+.sidebar-top-level-items,
+.sidebar-sub-level-items {
+  a.supports-new-tab,
+  a.gl-link {
+    display: flex;
+    align-items: center;
+
+    .open-new-tab-icon {
+      margin-left: auto;
+      font-size: 0.75em;
+      opacity: 0;
+      transition: opacity 0.15s ease-in-out, background-color 0.15s ease-in-out;
+
+      &:hover {
+        opacity: 1 !important;
+        background-color: var(--open-new-tab-hover-bg, #e0e0e0);
+        color: var(--open-new-tab-hover-color, #333) !important;
+        border-radius: 3px;
+        padding: 0.15em 0.25em;
+      }
+    }
+
+    &:hover .open-new-tab-icon {
+      opacity: 0.6;
+    }
+  }
+}
+
+// Sidebar collapsed: nascondi l'icona
+.sidebar-collapsed-desktop {
+  .open-new-tab-icon {
+    display: none !important;
+  }
 }

@@ -131,6 +131,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     apiConfig: any = null;
 
     appConfig: any;
+    enableOpenInNewTab: boolean = false;
 
     _spin: boolean = true;
     _downloading: boolean = false;
@@ -218,6 +219,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
         this._showReferents = this.appConfig?.AppConfig?.Services?.showReferents !== false;
+        this.enableOpenInNewTab = this.appConfig?.AppConfig?.Layout?.enableOpenInNewTab ?? false;
         const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv?.api) ? _srv.api.profili : [];
         this._proprieta_custom = (_srv?.api) ? _srv.api.proprieta_custom : [];
@@ -600,6 +602,27 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _gotoAdesioni(event?: MouseEvent) {
         const route = ['servizi', this.id, 'adesioni'];
         this.navigationService.navigateWithEvent(event, route);
+    }
+
+    _openJoinServizioInNewTab(event: MouseEvent) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        const route = ['servizi', this.id, 'adesioni', 'new', 'edit'];
+        this.navigationService.openInNewTab(route);
+    }
+
+    _openAdesioneInNewTab(event: MouseEvent) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.openInNewTab(route);
+    }
+
+    _openAdesioniInNewTab(event: MouseEvent) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.openInNewTab(route);
     }
 
     get isComponente() {

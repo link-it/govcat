@@ -100,11 +100,12 @@
 
       <div class="row">
         <div class="col-12">
-          <ui-item-row class="border-bottom" *ngFor="let item of taxonomies"
+          <ui-item-row class="border-bottom" *ngFor="let item of taxonomies; trackBy: trackBySelectFn;"
             [data]="item"
             [config]="taxonomiesConfig"
             [hasLink]="true"
-            (itemClick)="_onEdit($event, item)">
+            (itemClick)="_onEdit($event, item)"
+            (openInNewTab)="_onOpenInNewTab($event)">
           </ui-item-row>
         </div>
       </div>

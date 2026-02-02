@@ -47,10 +47,12 @@
       [attr.title]="_primaryText" *ngIf="_primaryText"
       (click)="__simpleClick($event)"
       (auxclick)="__simpleClick($event)"
-    >{{ _primaryText }}</h5>
+    >{{ _primaryText }}<span class="open-new-tab-icon bi bi-box-arrow-up-right"
+          *ngIf="enableOpenInNewTab && data.tipo !== 'gruppo'"
+          [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+          (click)="__openInNewTab($event)"></span></h5>
     <p class="card-text"><span *ngIf="_secondaryText">{{ _secondaryText }}</span></p>
     <p *ngIf="_metadata">{{ _metadata }}</p>
-    <!-- <div class="btn btn-primary" (click)="__simpleClick($event)">{{ _readMore }}</div> -->
     <ui-data-type class="me-2" *ngIf="data.stato"
       [data]="data"
       [elem]="{ field: 'stato', type: 'label', options: 'status' }"

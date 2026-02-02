@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ConfigService } from '@linkit/components';
 
 @Component({
   selector: 'lnk-card',
@@ -51,11 +52,13 @@ export class LnkCardComponent implements OnInit {
 
   @Output() editSelection: EventEmitter<any> = new EventEmitter();
   @Output() simpleClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   _logoText: string = '';
+  enableOpenInNewTab: boolean = false;
 
   constructor(
-    // public utilsLib: UtilsLib
+    private configService: ConfigService
   ) { }
 
   ngOnInit() {
@@ -64,6 +67,9 @@ export class LnkCardComponent implements OnInit {
       this._backColor = '#f1f1f1';
     }
     this._textColor = '#111111'; // this.utilsLib.contrast(this._backColor);
+
+    const appConfig = this.configService.getAppConfig();
+    this.enableOpenInNewTab = appConfig?.Layout?.enableOpenInNewTab ?? false;
   }
 
   __cardClick(event: MouseEvent) {
@@ -94,5 +100,11 @@ export class LnkCardComponent implements OnInit {
         this.simpleClick.emit(event);
       }
     }
+  }
+
+  __openInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this.data, event });
   }
 }

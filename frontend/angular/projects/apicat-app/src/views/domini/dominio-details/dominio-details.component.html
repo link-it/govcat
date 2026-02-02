@@ -27,9 +27,8 @@
     <ng-template [appHasPermission]="'domini'" [action]="'edit'">
       <div class="nav-controls">
         <div class="position-relative me-2" *ngIf="!_spin && !_isEdit">
-          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon supports-new-tab"
-            [routerLink]="['referenti']"
-            [appOpenInNewTab]="[id, 'referenti']">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon"
+            [routerLink]="['referenti']">
             {{ 'APP.DOMINI.TITLE.ShowReferents' | translate }}
           </button>
         </div>

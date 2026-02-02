@@ -287,6 +287,12 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.navigationService.navigateWithEvent(mouseEvent, route);
   }
 
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const route = [this.model, data.id];
+    this.navigationService.openInNewTab(route);
+  }
+
   _onNew() {
     this.router.navigate([this.model, 'new']);
   }

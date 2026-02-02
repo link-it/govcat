@@ -291,6 +291,12 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
     }
   }
 
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const route = [this.model, data.source.id_client];
+    this.navigationService.openInNewTab(route);
+  }
+
   _onCloseEdit() {
     this._isEdit = false;
   }

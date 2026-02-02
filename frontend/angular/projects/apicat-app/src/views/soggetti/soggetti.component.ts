@@ -264,6 +264,12 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
     }
   }
 
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const route = [this.model, data.source.id_soggetto];
+    this.navigationService.openInNewTab(route);
+  }
+
   _onCloseEdit() {
     this._isEdit = false;
   }

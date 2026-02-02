@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ConfigService } from '@linkit/components';
 import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 
 @Component({
@@ -45,10 +46,15 @@ export class ServiziGroupListCardComponent implements OnInit {
   @Input() groupLabel: string = 'Group';
 
   @Output() simpleClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   logoText: string = '';
+  enableOpenInNewTab: boolean = false;
 
-  constructor(private utilsLib: UtilsLib) { }
+  constructor(
+    private utilsLib: UtilsLib,
+    private configService: ConfigService
+  ) { }
 
   ngOnInit() {
     this.logoText = this.primaryText.slice(0, this.numberCharLogoText);
@@ -56,6 +62,9 @@ export class ServiziGroupListCardComponent implements OnInit {
       this.backColor = '#f1f1f1';
     }
     this.textColor = this.utilsLib.contrast(this.backColor);
+
+    const appConfig = this.configService.getAppConfig();
+    this.enableOpenInNewTab = appConfig?.Layout?.enableOpenInNewTab ?? false;
   }
 
   onCardClick(event: MouseEvent) {
@@ -66,5 +75,11 @@ export class ServiziGroupListCardComponent implements OnInit {
     if (this.enabledImageLink) {
       this.simpleClick.emit({ data: this.data, event });
     }
+  }
+
+  onOpenInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this.data, event });
   }
 }

@@ -37,7 +37,10 @@
           [class.supports-new-tab]="data.tipo !== 'gruppo'"
           [attr.title]="primaryText"
           *ngIf="primaryText">
-        {{ primaryText }}
+        {{ primaryText }}<span class="open-new-tab-icon bi bi-box-arrow-up-right"
+              *ngIf="enableOpenInNewTab && data.tipo !== 'gruppo'"
+              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+              (click)="onOpenInNewTab($event)"></span>
       </h5>
       <p class="group-list-card-text" *ngIf="secondaryText">{{ secondaryText }}</p>
       <p class="group-list-card-metadata" *ngIf="metadata">{{ metadata }}</p>

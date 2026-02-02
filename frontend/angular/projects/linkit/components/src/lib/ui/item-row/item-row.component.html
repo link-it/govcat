@@ -31,11 +31,15 @@
   [actionText]="actionText"
   [actionTooltip]="actionTooltip"
   [rowClick]="rowClick"
+  [linkRoute]="linkRoute"
   [hostBackground]="hostBackground"
   [primaryClass]="primaryClass"
   [isAnonymous]="isAnonymous"
+  [enableOpenInNewTab]="enableOpenInNewTab"
+  [openInNewTabTooltip]="openInNewTabTooltip"
   (itemClick)="itemClick.emit($event)"
-  (actionClick)="actionClick.emit($event)">
+  (actionClick)="actionClick.emit($event)"
+  (openInNewTab)="openInNewTab.emit($event)">
 </ui-item-row-mobile>
 
 <!-- Desktop version -->
@@ -61,6 +65,10 @@
                 </ui-item-type>
               </ng-container>
             </a>
+            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                  *ngIf="enableOpenInNewTab && hasLink && linkRoute"
+                  [title]="openInNewTabTooltip"
+                  (click)="__openInNewTab($event)"></span>
           </div>
         </div>
         <div class="meta-data">

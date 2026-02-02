@@ -47,12 +47,16 @@ export class ItemRowMobileComponent implements OnInit, AfterViewInit {
   @Input() actionText: string = 'download';
   @Input() actionTooltip: string = 'download';
   @Input() rowClick: boolean = false;
+  @Input() linkRoute: boolean = true;
   @Input() hostBackground: string = '#ffffff';
   @Input() primaryClass: string = '';
   @Input() isAnonymous: boolean = false;
+  @Input() enableOpenInNewTab: boolean = false;
+  @Input() openInNewTabTooltip: string = '';
 
   @Output() itemClick: EventEmitter<any> = new EventEmitter();
   @Output() actionClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   _dummyText: string = 'DUMMY TEXT';
 
@@ -102,6 +106,12 @@ export class ItemRowMobileComponent implements OnInit, AfterViewInit {
     event.stopImmediatePropagation();
     event.preventDefault();
     this.actionClick.emit(this._data);
+  }
+
+  __openInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this._data, event });
   }
 
   _showEmpty(field: any) {

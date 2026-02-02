@@ -579,6 +579,23 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     }
   }
 
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const source = data.source || data;
+    const baseUrl = this.router.url.split('?')[0];
+
+    if (this._useEditWizard) {
+      const params = (source.stato.includes('pubblicato_produzione')) ? [source.id_adesione, 'view'] : [source.id_adesione];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
+    } else if (this._useViewRoute) {
+      const params = [source.id_adesione, 'view'];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
+    } else {
+      const params = [source.id_adesione];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
+    }
+  }
+
   _onCloseEdit() {
     this._isEdit = false;
   }

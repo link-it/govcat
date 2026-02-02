@@ -56,6 +56,7 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
 
   @Output() itemClick: EventEmitter<any> = new EventEmitter();
   @Output() actionClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   _dummyText: string = 'DUMMY TEXT';
 
@@ -69,6 +70,9 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   _tooltipDelay: number = 300;
 
   desktop: boolean = false;
+
+  enableOpenInNewTab: boolean = false;
+  openInNewTabTooltip: string = '';
 
   constructor(
     private element: ElementRef,
@@ -84,6 +88,11 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.desktop = (window.innerWidth >= 768);
+
+    // Legge la configurazione per abilitare/disabilitare l'icona "apri in nuova scheda"
+    const appConfig = this.configService.getAppConfig();
+    this.enableOpenInNewTab = appConfig?.Layout?.enableOpenInNewTab ?? false;
+    this.openInNewTabTooltip = this.translate.instant('APP.TOOLTIP.OpenInNewTab');
 
     document.documentElement.style.setProperty('--item-row-background-color', this.hostBackground);
 
@@ -121,6 +130,12 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     event.stopImmediatePropagation();
     event.preventDefault();
     this.actionClick.emit(this._data);
+  }
+
+  __openInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this._data, event });
   }
 
   _showEmpty(field: any) {

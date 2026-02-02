@@ -36,6 +36,10 @@
             [config]="_config">
           </ui-item-type>
         </ng-container>
+        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+              *ngIf="enableOpenInNewTab && hasLink && linkRoute"
+              [title]="openInNewTabTooltip"
+              (click)="__openInNewTab($event)"></span>
       </div>
 
       <!-- Metadata labels directly under primary text -->
