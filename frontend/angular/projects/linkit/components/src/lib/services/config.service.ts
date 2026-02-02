@@ -75,18 +75,18 @@ export class ConfigService {
           }
           const useDiscoveryDocument = !!_oauthConfig.Issuer;
 
-            if (_oauthConfig.Issuer) {
-              cfg.issuer = _oauthConfig.Issuer;
-            } else {
-              // Configurazione manuale degli endpoint (senza discovery document):
-              cfg.loginUrl = (_oauthConfig.LoginUrl || '');
-              cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
-              cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
-              cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
-              cfg.revocationEndpoint = (_oauthConfig.RevocationEndpoint || '');
-              cfg.skipIssuerCheck = true;
-              cfg.strictDiscoveryDocumentValidation = false;
-            }
+          if (_oauthConfig.Issuer) {
+            cfg.issuer = _oauthConfig.Issuer;
+          } else {
+            // Configurazione manuale degli endpoint (senza discovery document):
+            cfg.loginUrl = (_oauthConfig.LoginUrl || '');
+            cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
+            cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
+            cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
+            cfg.revocationEndpoint = (_oauthConfig.RevocationEndpoint || '');
+            cfg.skipIssuerCheck = true;
+            cfg.strictDiscoveryDocumentValidation = false;
+          }
           if (_oauthConfig.Issuer && !_oauthConfig.StrictDiscoveryDocumentValidation) {
             cfg.strictDiscoveryDocumentValidation = _oauthConfig.StrictDiscoveryDocumentValidation;
           }
@@ -128,16 +128,11 @@ export class ConfigService {
                 }
               }
             });
-            } else {
-              Tools.LoginAccess();
-              resolve();
-            }
           } else {
-            // OAUTH non configurato
+            // BackdoorOAuth è true
             Tools.LoginAccess();
             resolve();
           }
-
         });
     });
   }
