@@ -26,7 +26,7 @@
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls align-self-center d-flex">
       <div role="group" class="gl-w-full btn-group- me-2" *ngIf="!_isEdit && !_spin">
-        <button aria-label="Show categories" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_onCategory()">
+        <button aria-label="Show categories" type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_onCategory($event)">
           <span class="text-nowrap">{{ 'APP.BUTTON.Categories' | translate }}</span>
         </button>
       </div>

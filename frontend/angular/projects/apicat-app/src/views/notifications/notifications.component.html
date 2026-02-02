@@ -128,7 +128,8 @@
                   [config]="notificationsConfig"
                   [hasLink]="true"
                   [hostBackground]="'transparent'"
-                  (itemClick)="_onEdit($event, element)">
+                  (itemClick)="_onEdit($event, element)"
+                  (openInNewTab)="_onOpenInNewTab($event)">
                 </ui-item-row>
                 <!-- <div class="d-flex flex-column flex-sm-row align-items-center px-3"> -->
                 <div class="notification-list-item-actions d-none position-absolute top-0 bottom-0 end-0 mr-2 d-flex align-items-center">

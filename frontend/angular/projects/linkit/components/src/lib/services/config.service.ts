@@ -56,20 +56,24 @@ export class ConfigService {
 
           // OAUTH2
           const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS?.OAUTH;
-          if (_oauthConfig) {
-            const cfg: any = {
-              redirectUri: (_oauthConfig.RedirectUri || ''),
-              postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
-              clientId: (_oauthConfig.ClientId || ''),
-              responseType: (_oauthConfig.ResponseType || 'code'),
-              scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
-              requireHttps: false,
-              showDebugInformation: false
-            };
-            if (_oauthConfig.DummyClientSecret) {
-              cfg.dummyClientSecret = _oauthConfig.DummyClientSecret;
-            }
-            const useDiscoveryDocument = !!_oauthConfig.Issuer;
+          if (!_oauthConfig) {
+            Tools.LoginAccess();
+            resolve();
+            return;
+          }
+          const cfg: any = {
+            redirectUri: (_oauthConfig.RedirectUri || ''),
+            postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
+            clientId: (_oauthConfig.ClientId || ''),
+            responseType: (_oauthConfig.ResponseType || 'code'),
+            scope: (_oauthConfig.Scope || 'openid profile email offline_access'),
+            requireHttps: false,
+            showDebugInformation: false
+          };
+          if (_oauthConfig.DummyClientSecret) {
+            cfg.dummyClientSecret = _oauthConfig.DummyClientSecret;
+          }
+          const useDiscoveryDocument = !!_oauthConfig.Issuer;
 
             if (_oauthConfig.Issuer) {
               cfg.issuer = _oauthConfig.Issuer;

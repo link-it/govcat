@@ -48,7 +48,9 @@
                                             <div class="gl-new-dropdown-inner">
                                                 <div class="gl-new-dropdown-contents" *ngFor="let menu of link.submenu">
                                                     <li class="gl-new-dropdown-item" *ngIf="menu.show">
-                                                        <button role="menuitem" type="button" class="dropdown-item" [routerLink]="[menu.route]" [relativeTo]="route">
+                                                        <button role="menuitem" type="button" class="dropdown-item"
+                                                            [routerLink]="[menu.route]"
+                                                            [relativeTo]="route">
                                                             <div class="gl-new-dropdown-item-text-wrapper">
                                                                 <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
                                                             </div>

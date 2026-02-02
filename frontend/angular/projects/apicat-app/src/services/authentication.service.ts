@@ -673,6 +673,9 @@ export class AuthenticationService {
   canMonitoraggio(grant: string[] = []) {
     const _grant = [ ...grant ];
     const _monitoraggio = this._getConfigModule('monitoraggio');
+    if (!_monitoraggio) {
+      return false;
+    }
     const _ruoliAbilitati = _monitoraggio.ruoli_abilitati;
     if ((_.indexOf(grant, 'referente_tecnico') !== -1) && (_.indexOf(grant, 'referente') === -1)) {
       _grant.push('referente');

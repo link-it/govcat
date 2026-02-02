@@ -37,6 +37,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 import { SearchBarFormComponent } from '@linkit/components';
 
 import { EventType } from '@linkit/components';
+import { NavigationService } from '@app/services/navigation.service';
 import { Page} from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
@@ -188,7 +189,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     private apiService: OpenAPIService,
     private utils: UtilService,
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService
+    private modalService: BsModalService,
+    private navigationService: NavigationService
   ) {
 
     this.route.data.subscribe((data) => {
@@ -532,20 +534,65 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       if (this.searchBarForm) {
         this.searchBarForm._pinLastSearch();
       }
-      
+
+      // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+      const mouseEvent = this.navigationService.extractEvent(event);
+      const data = this.navigationService.extractData(param) || param;
+      const source = data.source || data;
+
       if (this._useEditWizard) {
-        const params = (param.source.stato.includes('pubblicato_produzione')) ? [param.source.id_adesione, 'view'] : [param.source.id_adesione];
-        this.router.navigate(params, { relativeTo: this.route });
+        const params = (source.stato.includes('pubblicato_produzione')) ? [source.id_adesione, 'view'] : [source.id_adesione];
+        if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
+          mouseEvent?.preventDefault();
+          mouseEvent?.stopPropagation();
+          const baseUrl = this.router.url.split('?')[0];
+          this.navigationService.openInNewTab([baseUrl, ...params]);
+        } else {
+          this.router.navigate(params, { relativeTo: this.route });
+        }
       } else {
         if (this._useViewRoute) {
-            this.router.navigate([param.source.id_adesione, 'view'], { relativeTo: this.route });
+          const params = [source.id_adesione, 'view'];
+          if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
+            mouseEvent?.preventDefault();
+            mouseEvent?.stopPropagation();
+            const baseUrl = this.router.url.split('?')[0];
+            this.navigationService.openInNewTab([baseUrl, ...params]);
+          } else {
+            this.router.navigate(params, { relativeTo: this.route });
+          }
         } else {
-          this.router.navigate([param.source.id_adesione], { relativeTo: this.route });
+          const params = [source.id_adesione];
+          if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
+            mouseEvent?.preventDefault();
+            mouseEvent?.stopPropagation();
+            const baseUrl = this.router.url.split('?')[0];
+            this.navigationService.openInNewTab([baseUrl, ...params]);
+          } else {
+            this.router.navigate(params, { relativeTo: this.route });
+          }
         }
       }
     } else {
       this._isEdit = true;
       this._editCurrent = param;
+    }
+  }
+
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const source = data.source || data;
+    const baseUrl = this.router.url.split('?')[0];
+
+    if (this._useEditWizard) {
+      const params = (source.stato.includes('pubblicato_produzione')) ? [source.id_adesione, 'view'] : [source.id_adesione];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
+    } else if (this._useViewRoute) {
+      const params = [source.id_adesione, 'view'];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
+    } else {
+      const params = [source.id_adesione];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
     }
   }
 

@@ -210,7 +210,8 @@
             [data]="item"
             [config]="clientsConfig"
             [hasLink]="true"
-            (itemClick)="_onEdit($event, item)">
+            (itemClick)="_onEdit($event, item)"
+            (openInNewTab)="_onOpenInNewTab($event)">
           </ui-item-row>
         </div>
       </div>
