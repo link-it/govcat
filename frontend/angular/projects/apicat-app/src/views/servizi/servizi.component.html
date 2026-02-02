@@ -408,6 +408,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
+                                (openInNewTab)="_onOpenInNewTabGroup($event)"
                             ></lnk-card>
                         </div>
                     </div>
@@ -419,7 +420,7 @@
                     >
                         <div class="masonry-item mb-3" ngxMasonryItem *ngFor="let element of groups; trackBy: _trackBy;">
                             <lnk-card class="extended" class=""
-                                [primaryText]="element.primaryText" 
+                                [primaryText]="element.primaryText"
                                 [secondaryText]="element.secondaryText"
                                 [image]="element.logo"
                                 [showImage]="_showImage"
@@ -436,6 +437,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
+                                (openInNewTab)="_onOpenInNewTabGroup($event)"
                             ></lnk-card>
                         </div>
                     </ngx-masonry>
@@ -462,7 +464,8 @@
                         [showGroupIcon]="showGroupIcon"
                         [showGroupLabel]="showGroupLabel"
                         [groupLabel]="'APP.LABEL.Group' | translate"
-                        (simpleClick)="_onEditGroup($event, element)">
+                        (simpleClick)="_onEditGroup($event, element)"
+                        (openInNewTab)="_onOpenInNewTabGroup($event)">
                     </app-servizi-group-list-card>
                 </div>
             </div>
@@ -488,6 +491,7 @@
                                             [hostBackground]="'transparent'"
                                             [isAnonymous]="_updateMapper | mapper:_isAnonymousMapper"
                                             (itemClick)="_onEdit($event, element)"
+                                            (openInNewTab)="_onOpenInNewTab($event)"
                                         ></ui-item-row>
                                     </div>
                                 </div>

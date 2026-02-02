@@ -55,7 +55,12 @@ export class ConfigService {
           Tools.SetThemeColors(_theme || null);
 
           // OAUTH2
-          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
+          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS?.OAUTH;
+          if (!_oauthConfig) {
+            Tools.LoginAccess();
+            resolve();
+            return;
+          }
           const cfg: any = {
             redirectUri: (_oauthConfig.RedirectUri || ''),
             postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),

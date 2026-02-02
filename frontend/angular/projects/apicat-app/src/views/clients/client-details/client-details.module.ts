@@ -26,6 +26,7 @@ import { ComponentsModule } from '@linkit/components';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 import { TrimOnBlurModule } from '@app/directives/trim-on-blur/trim-on-blur.module';
+import { OpenInNewTabModule } from '@app/directives/open-in-new-tab/open-in-new-tab.module';
 import { WorkflowModule } from '@app/components/workflow/workflow.module';
 import { ErrorViewModule } from '@app/components/error-view/error-view.module';
 
@@ -43,6 +44,7 @@ import { ClientDetailsRoutingModule } from './client-details-routing.module';
     ClientDetailsRoutingModule,
     MarkAsteriskModule,
     TrimOnBlurModule,
+    OpenInNewTabModule,
     WorkflowModule,
     ErrorViewModule
   ],
