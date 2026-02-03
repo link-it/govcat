@@ -58,6 +58,13 @@ public class EmailUpdateVerificationEntity {
         EXPIRED
     }
 
+    public enum TipoEmail {
+        /** Email personale dell'utente */
+        EMAIL,
+        /** Email aziendale dell'utente */
+        EMAIL_AZIENDALE
+    }
+
     @Id
     @Column(name = "id")
     @GeneratedValue(generator = "seq_email_update_verifications", strategy = GenerationType.SEQUENCE)
@@ -72,6 +79,11 @@ public class EmailUpdateVerificationEntity {
     /** Nuova email da verificare */
     @Column(name = "nuova_email", nullable = false, length = 255)
     private String nuovaEmail;
+
+    /** Tipo di email da aggiornare (email personale o aziendale) */
+    @Column(name = "tipo_email", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private TipoEmail tipoEmail;
 
     /** Codice alfanumerico di verifica email */
     @Column(name = "codice_verifica", length = 10)

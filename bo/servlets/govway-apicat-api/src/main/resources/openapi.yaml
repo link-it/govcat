@@ -6712,14 +6712,18 @@ components:
         - principal_aggiornato
     CambioEmailRequest:
       type: "object"
-      required:
-        - nuova_email
+      description: "Richiesta di cambio email. Almeno uno tra email e email_aziendale deve essere specificato."
       properties:
-        nuova_email:
+        email:
           type: "string"
           format: "email"
           maxLength: 255
-          description: "Nuova email da verificare"
+          description: "Nuova email personale da verificare (opzionale)"
+        email_aziendale:
+          type: "string"
+          format: "email"
+          maxLength: 255
+          description: "Nuova email aziendale da verificare (opzionale)"
     RisultatoCambioEmail:
       type: "object"
       required:

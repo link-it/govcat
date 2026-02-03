@@ -130,6 +130,9 @@ public enum ErrorCode {
     /** Utente già esistente */
     UT_403("Utente non abilitato"),
 
+    /** Modifica email non consentita tramite updateProfilo quando verifica è abilitata */
+    UT_403_EMAIL_CHANGE("Modifica email non consentita. Utilizzare il flusso di verifica email"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */

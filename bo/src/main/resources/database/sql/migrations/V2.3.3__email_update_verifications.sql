@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS email_update_verifications (
     id BIGINT NOT NULL,
     id_utente BIGINT NOT NULL,
     nuova_email VARCHAR(255) NOT NULL,
+    tipo_email VARCHAR(20) NOT NULL,
     codice_verifica VARCHAR(10),
     codice_verifica_scadenza TIMESTAMP,
     tentativi_verifica INTEGER DEFAULT 0,
@@ -19,7 +20,8 @@ CREATE TABLE IF NOT EXISTS email_update_verifications (
     data_ultimo_tentativo TIMESTAMP,
     PRIMARY KEY (id),
     CONSTRAINT fk_email_update_utente FOREIGN KEY (id_utente) REFERENCES utenti(id),
-    CONSTRAINT chk_email_update_stato CHECK (stato IN ('PENDING', 'CODE_SENT', 'VERIFIED', 'EXPIRED'))
+    CONSTRAINT chk_email_update_stato CHECK (stato IN ('PENDING', 'CODE_SENT', 'VERIFIED', 'EXPIRED')),
+    CONSTRAINT chk_email_update_tipo CHECK (tipo_email IN ('EMAIL', 'EMAIL_AZIENDALE'))
 );
 
 -- Index on id_utente for quick lookup by user
