@@ -22,8 +22,13 @@
  * API per la verifica dell'email durante la modifica del profilo utente
  */
 
+/**
+ * Request per invia-codice: il payload è dinamico
+ * { email: "..." } oppure { email_aziendale: "..." }
+ */
 export interface InviaCodiceEmailProfiloRequest {
-  nuova_email: string;
+  email?: string;
+  email_aziendale?: string;
 }
 
 export interface InviaCodiceEmailProfiloResponse {

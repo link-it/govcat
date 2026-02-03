@@ -214,27 +214,27 @@
                                         </p>
                                         <p class="mb-1" style="font-size: .77rem;">Web Design</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
                                         <div class="progress rounded mb-2" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         </div>
@@ -247,27 +247,27 @@
                                         </p>
                                         <p class="mb-1" style="font-size: .77rem;">Web Design</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
                                         <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
                                         <div class="progress rounded mb-2" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
+                                            <div class="progress-bar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
                                             aria-valuemax="100"></div>
                                         </div>
                                         </div>
@@ -343,18 +343,33 @@
                                         ></lnk-form-field>
                                     </div>
                                     <div class="col-6">
-                                        <lnk-form-field
-                                            name="email"
-                                            [label]="'APP.USERS.LABEL.Email' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.email"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
+                                        <ng-container *ngIf="!verificaEmailAbilitata">
+                                            <lnk-form-field
+                                                name="email"
+                                                [label]="'APP.USERS.LABEL.Email' | translate"
+                                                [isEdit]="isEdit"
+                                                [formGroup]="formGroup"
+                                                [value]="profile?.email"
+                                                [inline]="false"
+                                                [singleColumn]="true"
+                                                [plainText]="true"
+                                                [options]="optionsForm"
+                                                [labelAlignRight]="false"
+                                            ></lnk-form-field>
+                                        </ng-container>
+                                        <ng-container *ngIf="verificaEmailAbilitata">
+                                            <div class="form-group mb-3">
+                                                <label for="email" class="form-label">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
+                                                <div class="input-group">
+                                                    <input type="email" class="form-control" formControlName="email" readonly>
+                                                    <button *ngIf="isEdit" class="btn btn-sm btn-primary" type="button"
+                                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
+                                                        (click)="openEmailModificationDialog('email')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </ng-container>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -373,42 +388,34 @@
                                         ></lnk-form-field>
                                     </div>
                                     <div class="col-6">
-                                        <lnk-form-field
-                                            name="email_aziendale"
-                                            [label]="'APP.USERS.LABEL.CorporateEmail' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.email_aziendale"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
+                                        <ng-container *ngIf="!verificaEmailAbilitata">
+                                            <lnk-form-field
+                                                name="email_aziendale"
+                                                [label]="'APP.USERS.LABEL.CorporateEmail' | translate"
+                                                [isEdit]="isEdit"
+                                                [formGroup]="formGroup"
+                                                [value]="profile?.email_aziendale"
+                                                [inline]="false"
+                                                [singleColumn]="true"
+                                                [plainText]="true"
+                                                [options]="optionsForm"
+                                                [labelAlignRight]="false"
+                                            ></lnk-form-field>
+                                        </ng-container>
+                                        <ng-container *ngIf="verificaEmailAbilitata">
+                                            <div class="form-group mb-3">
+                                                <label for="email_aziendale" class="form-label">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }} *</label>
+                                                <div class="input-group">
+                                                    <input type="email" class="form-control" formControlName="email_aziendale" readonly>
+                                                    <button *ngIf="isEdit" class="btn btn-sm btn-primary" type="button"
+                                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
+                                                        (click)="openEmailModificationDialog('email_aziendale')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </ng-container>
                                     </div>
-                                </div>
-                                <!-- <div class="row">
-                                    <div class="col-12">
-                                        <lnk-form-field
-                                            type="textarea"
-                                            name="note"
-                                            [label]="'APP.USERS.LABEL.Note' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.note"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
-                                    </div>
-                                </div> -->
-
-                                <!-- Avviso verifica email -->
-                                <div class="alert alert-info d-flex align-items-center mt-3" *ngIf="showEmailVerificationWarning">
-                                    <i class="bi bi-info-circle-fill me-2"></i>
-                                    <span>{{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.VerificationRequired' | translate }}</span>
                                 </div>
 
                                 <div class="settings-content">

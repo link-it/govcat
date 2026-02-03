@@ -60,9 +60,11 @@ export class ProfileEmailVerificationService implements OnDestroy {
   /**
    * POST /api/v1/profilo/email/invia-codice
    * Invia il codice OTP alla nuova email
+   * @param fieldName Nome del campo: 'email' o 'email_aziendale'
+   * @param nuovaEmail Nuova email da verificare
    */
-  inviaCodice(nuovaEmail: string): Observable<InviaCodiceEmailProfiloResponse> {
-    const body: InviaCodiceEmailProfiloRequest = { nuova_email: nuovaEmail };
+  inviaCodice(fieldName: 'email' | 'email_aziendale', nuovaEmail: string): Observable<InviaCodiceEmailProfiloResponse> {
+    const body: Record<string, string> = { [fieldName]: nuovaEmail };
     return this.http.post<InviaCodiceEmailProfiloResponse>(`${this.BASE_PATH}/invia-codice`, body).pipe(
       tap(response => {
         const scadenza = response.scadenza_secondi || this.scadenzaDefault;

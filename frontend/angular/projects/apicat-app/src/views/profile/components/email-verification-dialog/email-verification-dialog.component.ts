@@ -27,6 +27,8 @@ import { ProfileEmailVerificationService } from '@app/services/profile-email-ver
 export interface EmailVerificationDialogResult {
   verified: boolean;
   verifiedEmail?: string;
+  fieldName?: 'email' | 'email_aziendale';
+  clearEmail?: boolean; // true se l'utente vuole rimuovere l'email (solo per campo 'email')
 }
 
 @Component({
@@ -39,7 +41,8 @@ export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
 
   // Input data (set by BsModalService.show initialState)
   currentEmail: string = '';
-  newEmail: string = '';
+  fieldName: 'email' | 'email_aziendale' = 'email';
+  fieldLabel: string = '';
 
   // State
   step: 'send' | 'verify' = 'send';
@@ -71,7 +74,14 @@ export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Per 'email' (personale) il campo non è obbligatorio (può essere rimosso)
+    // Per 'email_aziendale' il campo è obbligatorio
+    const emailValidators = this.fieldName === 'email_aziendale'
+      ? [Validators.required, Validators.email]
+      : [Validators.email]; // Solo validazione formato, non required
+
     this.form = this.fb.group({
+      newEmail: ['', emailValidators],
       codice: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
     });
 
@@ -98,10 +108,21 @@ export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
   }
 
   onSendCode(): void {
+    const newEmailValue = this.form.get('newEmail')?.value?.trim() || '';
+
+    // Se email vuota e campo è 'email' (personale), rimuovi senza verifica
+    if (!newEmailValue && this.fieldName === 'email') {
+      this.onClearEmail();
+      return;
+    }
+
+    // Altrimenti richiedi verifica OTP
+    if (!newEmailValue || this.form.get('newEmail')?.invalid) return;
+
     this.loading = true;
     this.error = '';
 
-    this.verificationService.inviaCodice(this.newEmail).subscribe({
+    this.verificationService.inviaCodice(this.fieldName, newEmailValue).subscribe({
       next: (response) => {
         this.loading = false;
         this.step = 'verify';
@@ -113,10 +134,20 @@ export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Rimuove l'email personale senza verifica OTP
+   * (solo per campo 'email', non per 'email_aziendale')
+   */
+  onClearEmail(): void {
+    this.result = { verified: false, clearEmail: true, fieldName: this.fieldName };
+    this.bsModalRef.hide();
+  }
+
   onVerify(): void {
-    if (this.form.invalid) return;
+    if (this.form.get('codice')?.invalid) return;
 
     const codice = this.form.get('codice')?.value?.toUpperCase();
+    const newEmailValue = this.form.get('newEmail')?.value;
     this.loading = true;
     this.error = '';
 
@@ -124,7 +155,7 @@ export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.loading = false;
         if (response.esito) {
-          this.result = { verified: true, verifiedEmail: this.newEmail };
+          this.result = { verified: true, verifiedEmail: newEmailValue, fieldName: this.fieldName };
           this.bsModalRef.hide();
         } else {
           this.error = response.messaggio || 'APP.PROFILE.EMAIL_VERIFICATION.ERROR.InvalidCode';
@@ -150,6 +181,21 @@ export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
 
   get codiceControl() {
     return this.form.get('codice');
+  }
+
+  get newEmailControl() {
+    return this.form.get('newEmail');
+  }
+
+  // L'email personale può essere rimossa (campo non obbligatorio)
+  get canClearEmail(): boolean {
+    return this.fieldName === 'email';
+  }
+
+  // Verifica se il campo newEmail è vuoto
+  get isNewEmailEmpty(): boolean {
+    const value = this.form.get('newEmail')?.value?.trim() || '';
+    return value === '';
   }
 
   // Gestione input: trasforma in uppercase e permette solo alfanumerici

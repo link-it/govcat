@@ -21,6 +21,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { TranslateService } from '@ngx-translate/core';
 
 import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -107,20 +108,12 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   _formSettingsSettings!: FormGroup;
 
-  // Email originali per rilevare modifiche
-  originalEmail: string = '';
-  originalEmailAziendale: string = '';
-
-  // Flag per mostrare avviso verifica email
-  emailModificata: boolean = false;
-
   // Modal ref per la verifica email
   private modalRef?: BsModalRef;
 
-  // Getter per verificare se mostrare l'avviso di verifica email
-  get showEmailVerificationWarning(): boolean {
-    const verificaAbilitata = Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
-    return verificaAbilitata && this.emailModificata;
+  // Getter per verificare se la verifica email è abilitata
+  get verificaEmailAbilitata(): boolean {
+    return Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
   }
 
   constructor(
@@ -131,7 +124,8 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     public apiService: OpenAPIService,
     public authenticationService: AuthenticationService,
     private readonly utils: UtilService,
-    private readonly modalService: BsModalService
+    private readonly modalService: BsModalService,
+    private readonly translate: TranslateService
   ) {
     this.config = this.configService.getConfiguration();
   }
@@ -202,68 +196,40 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   }
 
   initForm() {
+    // Se verifica email abilitata, i campi email sono disabilitati
+    const emailDisabled = this.verificaEmailAbilitata;
+
     this.formGroup = this.fb.group({
         principal: [{value: '', disabled: true}, [Validators.required]],
         nome: ['', [Validators.required]],
         cognome: ['', [Validators.required]],
         telefono: ['', []],
-        email: ['', [Validators.email]],
+        email: [{value: '', disabled: emailDisabled}, [Validators.email]],
         telefono_aziendale: ['', [Validators.required]],
-        email_aziendale: ['', [Validators.required, Validators.email]],
+        email_aziendale: [{value: '', disabled: emailDisabled}, [Validators.required, Validators.email]],
         note: ['', []],
     });
 
     this.formGroup.patchValue(this.profile);
-
-    // Memorizza email originali per rilevare modifiche
-    this.originalEmail = this.profile?.email || '';
-    this.originalEmailAziendale = this.profile?.email_aziendale || '';
-    this.emailModificata = false;
-
-    // Sottoscrivi ai cambiamenti dei campi email per mostrare avviso
-    this.formGroup.get('email')?.valueChanges.subscribe(value => {
-      this.checkEmailModificata();
-    });
-    this.formGroup.get('email_aziendale')?.valueChanges.subscribe(value => {
-      this.checkEmailModificata();
-    });
-  }
-
-  private checkEmailModificata(): void {
-    const currentEmail = this.formGroup.get('email')?.value || '';
-    const currentEmailAziendale = this.formGroup.get('email_aziendale')?.value || '';
-    this.emailModificata = (currentEmail !== this.originalEmail) || (currentEmailAziendale !== this.originalEmailAziendale);
   }
 
   submitProfile(formValue: any) {
     if (this.isEdit && this.formGroup.valid) {
-      // Verifica se la verifica email e' abilitata
-      const verificaAbilitata = Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
-
-      // Rileva se email e' cambiata
-      const newEmail = formValue.email || '';
-      const newEmailAziendale = formValue.email_aziendale || '';
-      const emailChanged = newEmail !== this.originalEmail;
-      const emailAziendaleChanged = newEmailAziendale !== this.originalEmailAziendale;
-
-      // Se verifica abilitata e una delle email e' cambiata, apri dialog
-      if (verificaAbilitata && (emailChanged || emailAziendaleChanged)) {
-        // Determina quale email verificare (priorita' a email_aziendale se cambiata)
-        const emailToVerify = emailAziendaleChanged ? newEmailAziendale : newEmail;
-        const currentEmail = emailAziendaleChanged ? this.originalEmailAziendale : this.originalEmail;
-
-        this.openEmailVerificationDialog(currentEmail, emailToVerify, formValue);
-      } else {
-        // Nessuna verifica necessaria, procedi con l'update
-        this.onUpdateProfile(this.profile.id_utente, formValue);
-      }
+      // Procedi con l'update del profilo
+      // Nota: le email sono gestite separatamente quando verifica è abilitata
+      this.onUpdateProfile(this.profile.id_utente, formValue);
     }
   }
 
-  openEmailVerificationDialog(currentEmail: string, newEmail: string, formValue: any): void {
+  /**
+   * Apre il dialog per modificare un campo email con verifica OTP
+   */
+  openEmailModificationDialog(fieldName: 'email' | 'email_aziendale'): void {
+    const currentEmail = this.profile?.[fieldName] || '';
+
     const initialState = {
       currentEmail: currentEmail,
-      newEmail: newEmail
+      fieldName: fieldName
     };
 
     this.modalRef = this.modalService.show(EmailVerificationDialogComponent, {
@@ -276,22 +242,62 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     // Sottoscrivi all'evento di chiusura del modal
     this.modalRef.onHidden?.subscribe(() => {
       const result: EmailVerificationDialogResult = this.modalRef?.content?.result;
-      if (result?.verified) {
-        // Verifica completata con successo, procedi con l'update
-        this.onUpdateProfile(this.profile.id_utente, formValue);
+      if (result?.verified && result?.verifiedEmail && result?.fieldName) {
+        // Verifica completata con successo
+        // Aggiorna il formGroup con la nuova email
+        this.formGroup.get(result.fieldName)?.setValue(result.verifiedEmail);
+        // Aggiorna anche il profilo locale
+        this.profile[result.fieldName] = result.verifiedEmail;
+        Tools.showMessage(this.translate.instant('APP.MESSAGE.EmailModified'), 'success');
+      } else if (result?.clearEmail && result?.fieldName === 'email') {
+        // Rimozione email personale senza verifica OTP
+        this.clearPersonalEmail();
       }
-      // Se non verificato, non fare nulla (l'utente rimane in edit mode)
+    });
+  }
+
+  /**
+   * Rimuove l'email personale chiamando direttamente PUT /profilo
+   * Il payload deve contenere tutti i campi incluso email_aziendale
+   */
+  private clearPersonalEmail(): void {
+    const formValue = this.formGroup.getRawValue();
+    const body = {
+      nome: formValue.nome,
+      cognome: formValue.cognome,
+      telefono: formValue.telefono || null,
+      telefono_aziendale: formValue.telefono_aziendale,
+      email: null, // Rimuovi email personale
+      email_aziendale: formValue.email_aziendale || this.profile?.email_aziendale,
+      note: formValue.note || null
+    };
+
+    this.apiService.putElement('profilo', null, body).subscribe({
+      next: (response: any) => {
+        // Aggiorna il formGroup con email vuota
+        this.formGroup.get('email')?.setValue('');
+        // Aggiorna anche il profilo locale
+        this.profile.email = null;
+        Tools.showMessage(this.translate.instant('APP.MESSAGE.EmailRemoved'), 'success');
+      },
+      error: (error: any) => {
+        this.error = true;
+        this.errorMsg = this.utils.GetErrorMsg(error);
+      }
     });
   }
 
   prepareBodyUpdate(body: any) {
-    const _body = { 
+    // Il payload include sempre tutti i campi, incluse le email.
+    // Il BE verificherà che le email non siano state modificate se la verifica è abilitata
+    // e restituirà errore UT_403_EMAIL_CHANGE in caso di incongruenza.
+    const _body: any = {
       nome: body.nome,
       cognome: body.cognome,
       telefono: body.telefono || null,
-      email: body.email || null,
       telefono_aziendale: body.telefono_aziendale,
-      email_aziendale: body.email_aziendale,
+      email: body.email || this.profile?.email || null,
+      email_aziendale: body.email_aziendale || this.profile?.email_aziendale,
       note: body.note || null
     };
 
@@ -303,6 +309,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
     this.apiService.putElement('profilo', null, _body).subscribe({
       next: (response: any) => {
+        Tools.showMessage(this.translate.instant('APP.MESSAGE.ProfileSaved'), 'success');
         this.loadProfile();
         this.onCancelEdit();
       },
