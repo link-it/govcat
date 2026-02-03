@@ -18,6 +18,8 @@
 	<properties>
 		<rel-to-parent>../../..</rel-to-parent>
 		<filter-file>${api-filter-file}</filter-file>
+		<!-- Default: OIDC generation enabled -->
+		<oidc.openapi.phase>generate-sources</oidc.openapi.phase>
 	</properties>
 
 	<dependencies>
@@ -619,6 +621,44 @@
 							<generateModelTests>false</generateModelTests>
 						</configuration>
 					</execution>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<id>generate-sources-oidc-server</id>
+						<phase>${oidc.openapi.phase}</phase>
+						<configuration>
+							<inputSpec>
+								${project.basedir}/src/main/resources/oidc/openapi.yaml</inputSpec>
+							<generatorName>spring</generatorName>
+							<configOptions>
+								<booleanGetterPrefix>is</booleanGetterPrefix>
+								<dateLibrary>java8</dateLibrary>
+								<library>spring-boot</library>
+								<sourceFolder>generated-sources/java/</sourceFolder>
+								<apiPackage>
+									org.govway.catalogo.servlets.oidc.server.api</apiPackage>
+								<useBeanValidation>true</useBeanValidation>
+								<performBeanValidation>true</performBeanValidation>
+								<invokerPackage>
+									org.govway.catalogo.servlets.oidc.server.api.impl</invokerPackage>
+								<modelPackage>
+									org.govway.catalogo.servlets.oidc.model</modelPackage>
+								<skipDefaultInterface>true</skipDefaultInterface>
+								<interfaceOnly>true</interfaceOnly>
+								<hateoas>true</hateoas>
+								<useTags>true</useTags>
+                                <useJakartaEe>true</useJakartaEe>
+                                <useSpringBoot3>true</useSpringBoot3>
+								<openApiNullable>false</openApiNullable>
+								<containerDefaultToNull>true</containerDefaultToNull>
+							</configOptions>
+							<output>${project.basedir}/target</output>
+							<generateSupportingFiles>true</generateSupportingFiles>
+							<generateApiTests>false</generateApiTests>
+							<generateModelTests>false</generateModelTests>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 						<plugin>
@@ -698,5 +738,26 @@
                 </plugins>
             </build>
         </profile>
-    </profiles>
+		<!-- Profile to disable OIDC code generation and compilation -->
+		<profile>
+			<id>oidc-disabled</id>
+			<properties>
+				<!-- Skip OIDC OpenAPI generation by setting phase to 'none' -->
+				<oidc.openapi.phase>none</oidc.openapi.phase>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<release>${javaVersion}</release>
+							<excludes>
+								<exclude>**/oidc/**/*.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

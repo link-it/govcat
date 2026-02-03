@@ -118,6 +118,7 @@ import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.monitoraggioutils.IMonitoraggioClient;
 import org.govway.catalogo.monitoraggioutils.IStatisticheClient;
+import org.govway.catalogo.oidc.TokenApiDelegate;
 import org.govway.catalogo.monitoraggioutils.allarmi.AllarmiClient;
 import org.govway.catalogo.monitoraggioutils.transazioni.TransazioneBuilder;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -126,6 +127,8 @@ import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -219,7 +222,7 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		}
 	}
 
-	@Bean(name ="statisticheClientClass") 
+	@Bean(name ="statisticheClientClass")
 	public IStatisticheClient statisticheClientClass() throws Exception {
 		Object obj = Class.forName(this.statisticheClientClass).getDeclaredConstructor().newInstance();
 
@@ -255,6 +258,12 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		return configurazione;
 	}
 
+	@Bean(name ="oidcTokenApiDelegate")
+	@ConditionalOnMissingBean(TokenApiDelegate.class)
+	public TokenApiDelegate oidcTokenApiDelegate() {
+		// Nessuna implementazione configurata: usa l'implementazione di default che lancia eccezioni
+		return new org.govway.catalogo.oidc.DefaultTokenApiImpl();
+	}
 
 	@Bean
 	public NotificheUtils notificheUtils() {
