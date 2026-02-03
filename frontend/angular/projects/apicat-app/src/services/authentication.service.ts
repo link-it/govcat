@@ -27,6 +27,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 
 import * as _ from 'lodash';
+import { a } from '@angular/cdk/portal-directives.d-BoG39gYN';
 
 export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
@@ -271,8 +272,9 @@ export class AuthenticationService {
 
     // Check if there's an access token to revoke (even if expired)
     const hasAccessToken = !!this.oauthService.getAccessToken();
-
+    console.log('Logging out, hasAccessToken:', hasAccessToken);
     if (hasAccessToken) {
+      console.log('revokeTokenAndLogout');
       // Check if revocation endpoint is configured in app config or loaded from discovery document
       const oauthConfig = this.appConfig.AUTH_SETTINGS?.OAUTH;
       const configRevocationEndpoint = oauthConfig?.RevocationEndpoint;
@@ -280,6 +282,7 @@ export class AuthenticationService {
       const discoveryRevocationEndpoint = (this.oauthService as any).revocationEndpoint;
       const revocationEndpoint = configRevocationEndpoint || discoveryRevocationEndpoint;
 
+      console.log('revocationEndpoint', revocationEndpoint);
       if (revocationEndpoint) {
         this.oauthService.revokeTokenAndLogout().catch((error: any) => {
           console.warn('Error revoking token, falling back to logOut:', error);
@@ -287,6 +290,8 @@ export class AuthenticationService {
         });
       } else {
         // No revocation endpoint configured, just logout
+        const logoutUrl = oauthConfig?.LogoutRedirectUri || null;
+        console.log('No revocation endpoint configured, just logout', logoutUrl);
         this.oauthService.logOut(true);
       }
     }
