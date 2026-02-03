@@ -405,6 +405,12 @@
                                     </div>
                                 </div> -->
 
+                                <!-- Avviso verifica email -->
+                                <div class="alert alert-info d-flex align-items-center mt-3" *ngIf="showEmailVerificationWarning">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    <span>{{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.VerificationRequired' | translate }}</span>
+                                </div>
+
                                 <div class="settings-content">
 
                                     <lnk-form-error [message]="errorMsg" *ngIf="isEdit && error"></lnk-form-error>

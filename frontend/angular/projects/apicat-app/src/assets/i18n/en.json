@@ -1172,6 +1172,24 @@
 					"404": "Organization [{{idOrganizzazione}}] not found",
 					"409": "Organization [{{nome}}] already exists"
 				},
+				"PRF": {
+					"400": {
+						"NOT": {
+							"ENABLED": "Email verification feature not enabled for profile modification"
+						},
+						"NO": {
+							"CODE": "No verification code sent"
+						}
+					},
+					"410": {
+						"EXPIRED": "Verification code expired. Request a new code."
+					},
+					"429": {
+						"MAX": {
+							"SENDS": "Maximum number of code send attempts exceeded. Please try again later."
+						}
+					}
+				},
 				"REG": {
 					"400": {
 						"NOT": {
@@ -1446,6 +1464,36 @@
 			"TAB": {
 				"Profile": "Profile",
 				"Settings": "Settings"
+			},
+			"EMAIL_VERIFICATION": {
+				"TITLE": "Verify email change",
+				"MESSAGE": {
+					"ConfirmChange": "You are about to change your email address. To confirm the change, you will need to verify the new email.",
+					"SendCode": "We will send a verification code to the new email.",
+					"CodeSent": "We have sent a verification code to:",
+					"EnterCode": "Enter the code received to complete the verification.",
+					"Verified": "Email verified successfully!",
+					"Expired": "The code has expired. Request a new code.",
+					"ExpiresIn": "Code expires in",
+					"VerificationRequired": "Email change requires verification. Upon saving, a confirmation code will be sent to you."
+				},
+				"LABEL": {
+					"CurrentEmail": "Current email",
+					"NewEmail": "New email",
+					"Code": "Verification code",
+					"AttemptsRemaining": "Attempts remaining"
+				},
+				"BUTTON": {
+					"SendCode": "Send code",
+					"Verify": "Verify",
+					"Resend": "Resend code",
+					"Cancel": "Cancel"
+				},
+				"ERROR": {
+					"CodeLength": "The code must be 6 characters",
+					"InvalidCode": "Invalid code. Please try again.",
+					"MaxAttempts": "Maximum number of attempts reached. Request a new code."
+				}
 			}
 		},
 		"REGISTRAZIONE": {

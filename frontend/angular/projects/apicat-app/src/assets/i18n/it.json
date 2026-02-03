@@ -1172,6 +1172,24 @@
 					"404": "Organizzazione [{{idOrganizzazione}}] non trovata",
 					"409": "Organizzazione [{{nome}}] già esistente"
 				},
+				"PRF": {
+					"400": {
+						"NOT": {
+							"ENABLED": "Funzionalità di verifica email non abilitata per la modifica del profilo"
+						},
+						"NO": {
+							"CODE": "Nessun codice di verifica inviato"
+						}
+					},
+					"410": {
+						"EXPIRED": "Codice di verifica scaduto. Richiedi un nuovo codice."
+					},
+					"429": {
+						"MAX": {
+							"SENDS": "Superato il numero massimo di tentativi di invio codice. Riprova più tardi."
+						}
+					}
+				},
 				"REG": {
 					"400": {
 						"NOT": {
@@ -1446,6 +1464,36 @@
 			"TAB": {
 				"Profile": "Profilo",
 				"Settings": "Impostazioni"
+			},
+			"EMAIL_VERIFICATION": {
+				"TITLE": "Verifica modifica email",
+				"MESSAGE": {
+					"ConfirmChange": "Stai per modificare il tuo indirizzo email. Per confermare la modifica, dovrai verificare la nuova email.",
+					"SendCode": "Ti invieremo un codice di verifica alla nuova email.",
+					"CodeSent": "Abbiamo inviato un codice di verifica a:",
+					"EnterCode": "Inserisci il codice ricevuto per completare la verifica.",
+					"Verified": "Email verificata con successo!",
+					"Expired": "Il codice e' scaduto. Richiedi un nuovo codice.",
+					"ExpiresIn": "Il codice scade tra",
+					"VerificationRequired": "La modifica dell'email richiede una verifica. Al salvataggio ti verra' inviato un codice di conferma."
+				},
+				"LABEL": {
+					"CurrentEmail": "Email attuale",
+					"NewEmail": "Nuova email",
+					"Code": "Codice di verifica",
+					"AttemptsRemaining": "Tentativi rimanenti"
+				},
+				"BUTTON": {
+					"SendCode": "Invia codice",
+					"Verify": "Verifica",
+					"Resend": "Reinvia codice",
+					"Cancel": "Annulla"
+				},
+				"ERROR": {
+					"CodeLength": "Il codice deve essere di 6 caratteri",
+					"InvalidCode": "Codice non valido. Riprova.",
+					"MaxAttempts": "Numero massimo di tentativi raggiunto. Richiedi un nuovo codice."
+				}
 			}
 		},
 		"REGISTRAZIONE": {

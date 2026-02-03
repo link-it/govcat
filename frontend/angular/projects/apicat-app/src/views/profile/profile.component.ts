@@ -16,20 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { ServerSettings } from './server-settings';
+import { EmailVerificationDialogComponent, EmailVerificationDialogResult } from './components/email-verification-dialog/email-verification-dialog.component';
 
 import * as _ from 'lodash';
 
@@ -45,7 +44,7 @@ interface BodySettingsType {
   styleUrls: ['profile.component.scss'],
   standalone: false
 })
-export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy {
+export class ProfileComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ProfileComponent';
   readonly model: string = 'profile';
 
@@ -108,17 +107,31 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
 
   _formSettingsSettings!: FormGroup;
 
+  // Email originali per rilevare modifiche
+  originalEmail: string = '';
+  originalEmailAziendale: string = '';
+
+  // Flag per mostrare avviso verifica email
+  emailModificata: boolean = false;
+
+  // Modal ref per la verifica email
+  private modalRef?: BsModalRef;
+
+  // Getter per verificare se mostrare l'avviso di verifica email
+  get showEmailVerificationWarning(): boolean {
+    const verificaAbilitata = Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
+    return verificaAbilitata && this.emailModificata;
+  }
+
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
+    private readonly router: Router,
     protected fb: FormBuilder,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
     public authenticationService: AuthenticationService,
-    private utils: UtilService
+    private readonly utils: UtilService,
+    private readonly modalService: BsModalService
   ) {
     this.config = this.configService.getConfiguration();
   }
@@ -137,10 +150,6 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
         this.loadProfile();
       }
     );
-  }
-
-  ngOnDestroy() {
-    // this.eventsManagerService.off(EventType.NAVBAR_ACTION);
   }
 
   ngAfterContentChecked(): void {
@@ -205,12 +214,74 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
     });
 
     this.formGroup.patchValue(this.profile);
+
+    // Memorizza email originali per rilevare modifiche
+    this.originalEmail = this.profile?.email || '';
+    this.originalEmailAziendale = this.profile?.email_aziendale || '';
+    this.emailModificata = false;
+
+    // Sottoscrivi ai cambiamenti dei campi email per mostrare avviso
+    this.formGroup.get('email')?.valueChanges.subscribe(value => {
+      this.checkEmailModificata();
+    });
+    this.formGroup.get('email_aziendale')?.valueChanges.subscribe(value => {
+      this.checkEmailModificata();
+    });
+  }
+
+  private checkEmailModificata(): void {
+    const currentEmail = this.formGroup.get('email')?.value || '';
+    const currentEmailAziendale = this.formGroup.get('email_aziendale')?.value || '';
+    this.emailModificata = (currentEmail !== this.originalEmail) || (currentEmailAziendale !== this.originalEmailAziendale);
   }
 
   submitProfile(formValue: any) {
     if (this.isEdit && this.formGroup.valid) {
+      // Verifica se la verifica email e' abilitata
+      const verificaAbilitata = Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
+
+      // Rileva se email e' cambiata
+      const newEmail = formValue.email || '';
+      const newEmailAziendale = formValue.email_aziendale || '';
+      const emailChanged = newEmail !== this.originalEmail;
+      const emailAziendaleChanged = newEmailAziendale !== this.originalEmailAziendale;
+
+      // Se verifica abilitata e una delle email e' cambiata, apri dialog
+      if (verificaAbilitata && (emailChanged || emailAziendaleChanged)) {
+        // Determina quale email verificare (priorita' a email_aziendale se cambiata)
+        const emailToVerify = emailAziendaleChanged ? newEmailAziendale : newEmail;
+        const currentEmail = emailAziendaleChanged ? this.originalEmailAziendale : this.originalEmail;
+
+        this.openEmailVerificationDialog(currentEmail, emailToVerify, formValue);
+      } else {
+        // Nessuna verifica necessaria, procedi con l'update
         this.onUpdateProfile(this.profile.id_utente, formValue);
+      }
     }
+  }
+
+  openEmailVerificationDialog(currentEmail: string, newEmail: string, formValue: any): void {
+    const initialState = {
+      currentEmail: currentEmail,
+      newEmail: newEmail
+    };
+
+    this.modalRef = this.modalService.show(EmailVerificationDialogComponent, {
+      initialState,
+      class: 'modal-md',
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    // Sottoscrivi all'evento di chiusura del modal
+    this.modalRef.onHidden?.subscribe(() => {
+      const result: EmailVerificationDialogResult = this.modalRef?.content?.result;
+      if (result?.verified) {
+        // Verifica completata con successo, procedi con l'update
+        this.onUpdateProfile(this.profile.id_utente, formValue);
+      }
+      // Se non verificato, non fare nulla (l'utente rimane in edit mode)
+    });
   }
 
   prepareBodyUpdate(body: any) {
@@ -298,18 +369,21 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
       Object.keys(data).forEach((key) => {
         let value = '';
         switch (key) {
-          case 'emetti_per_tipi':
+          case 'emetti_per_tipi': {
             const _emetti_per_tipi: any[] = data['emetti_per_tipi'] || [];
             _group[key] = new FormControl(_emetti_per_tipi, []);
             break;
-          case 'emetti_per_entita':
+          }
+          case 'emetti_per_entita': {
             const _emetti_per_entita: any[] = data['emetti_per_entita'] || [];
             _group[key] = new FormControl(_emetti_per_entita, []);
             break;
-          case 'emetti_per_ruoli':
+          }
+          case 'emetti_per_ruoli': {
             const _emetti_per_ruoli: any[] = data['emetti_per_ruoli'] || [];
             _group[key] = new FormControl(_emetti_per_ruoli, []);
             break;
+          }
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, []);
@@ -438,7 +512,6 @@ export class ProfileComponent implements OnInit, AfterContentChecked, OnDestroy 
     if (!this._preventMultiCall) {
       this._preventMultiCall = true;
       const _body = this._prepareBody(body);
-      // if (JSON.stringify(_body) === JSON.stringify(this._serverSettings)) { return; }
 
       this._preventMultiCall = true;
       this.apiService.putElementRelated('utenti', this.profile.id_utente, 'settings/notifiche', _body).subscribe({
