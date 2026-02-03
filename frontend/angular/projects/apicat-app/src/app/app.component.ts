@@ -73,7 +73,7 @@ export class AppComponent implements OnInit {
     private bsLocaleService: BsLocaleService,
     private modifierKeyService: ModifierKeyService,
   ) {
-    // this.consoleToggleService.disableConsoleInProduction();
+    this.consoleToggleService.disableConsoleInProduction();
     // Inizializza il servizio per rilevare Ctrl/Cmd (startListening è chiamato nel costruttore)
     this.modifierKeyService.startListening();
     this._config = this.configService.getConfiguration();
