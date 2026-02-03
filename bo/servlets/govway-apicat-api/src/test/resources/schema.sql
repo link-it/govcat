@@ -519,6 +519,7 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
        id bigint not null,
         id_utente bigint not null,
         nuova_email varchar(255) not null,
+        tipo_email varchar(20) not null,
         codice_verifica varchar(10),
         codice_verifica_scadenza timestamp,
         tentativi_verifica integer default 0,

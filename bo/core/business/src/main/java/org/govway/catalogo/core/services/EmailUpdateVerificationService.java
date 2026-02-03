@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity;
 import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity.StatoVerifica;
+import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity.TipoEmail;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +44,11 @@ public class EmailUpdateVerificationService extends AbstractService {
      *
      * @param utente l'utente che richiede la modifica
      * @param nuovaEmail la nuova email da verificare
+     * @param tipoEmail il tipo di email da aggiornare (EMAIL o EMAIL_AZIENDALE)
      * @return la richiesta di verifica
      */
-    public EmailUpdateVerificationEntity findOrCreateVerification(UtenteEntity utente, String nuovaEmail) {
-        logger.info("Ricerca o creazione verifica email per utente: {}", utente.getIdUtente());
+    public EmailUpdateVerificationEntity findOrCreateVerification(UtenteEntity utente, String nuovaEmail, TipoEmail tipoEmail) {
+        logger.info("Ricerca o creazione verifica email per utente: {}, tipo: {}", utente.getIdUtente(), tipoEmail);
 
         // Cerca una richiesta esistente pendente o con codice inviato
         Optional<EmailUpdateVerificationEntity> existing =
@@ -60,6 +62,7 @@ public class EmailUpdateVerificationService extends AbstractService {
             if (stato == StatoVerifica.PENDING || stato == StatoVerifica.CODE_SENT) {
                 logger.info("Aggiornamento richiesta esistente ID: {}", verification.getId());
                 verification.setNuovaEmail(nuovaEmail);
+                verification.setTipoEmail(tipoEmail);
                 verification.setStato(StatoVerifica.PENDING);
                 verification.setCodiceVerifica(null);
                 verification.setCodiceVerificaScadenza(null);
@@ -71,10 +74,11 @@ public class EmailUpdateVerificationService extends AbstractService {
         }
 
         // Crea nuova richiesta
-        logger.info("Creazione nuova richiesta di verifica email per utente: {}", utente.getIdUtente());
+        logger.info("Creazione nuova richiesta di verifica email per utente: {}, tipo: {}", utente.getIdUtente(), tipoEmail);
         EmailUpdateVerificationEntity verification = new EmailUpdateVerificationEntity();
         verification.setUtente(utente);
         verification.setNuovaEmail(nuovaEmail);
+        verification.setTipoEmail(tipoEmail);
         verification.setStato(StatoVerifica.PENDING);
         verification.setDataCreazione(new Date());
         verification.setDataUltimoTentativo(new Date());
