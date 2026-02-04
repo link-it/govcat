@@ -1243,10 +1243,12 @@ public class ServiziController implements ServiziApi {
 			String versione, List<UUID> idServizi,
 			String q) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
-			this.servizioAuthorization.authorizeExport();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
+				this.servizioAuthorization.authorizeList();
+				boolean anounymous = this.coreAuthorization.isAnounymous();
+
+				this.logger.debug("Autorizzazione completata con successo");
 
 				ServizioSpecification specification = new ServizioSpecification();
 				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
@@ -1256,7 +1258,7 @@ public class ServiziController implements ServiziApi {
 				specification.setIdServizi(idServizi);
 				specification.setNome(Optional.ofNullable(nome));
 				specification.setVersione(Optional.ofNullable(versione));
-				
+
 				if(categoria !=null) {
 					List<UUID> categoriaLst = new ArrayList<>();
 					for(String c: categoria) {
@@ -1273,12 +1275,11 @@ public class ServiziController implements ServiziApi {
 				specification.setTag(tag);
 
 				specification.setStati(stato);
-				
-				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
-				
 
-				boolean admin = this.coreAuthorization.isAdmin();
-				boolean anounymous = this.coreAuthorization.isAnounymous();
+				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
+				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
+
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				Specification<ServizioEntity> specInAttesa = null;
 
@@ -1330,7 +1331,7 @@ public class ServiziController implements ServiziApi {
 						realSpecification,
 						Pageable.unpaged()
 						).toList();
-				
+
 				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll);
 
 				Resource resource = new ByteArrayResource(csv);

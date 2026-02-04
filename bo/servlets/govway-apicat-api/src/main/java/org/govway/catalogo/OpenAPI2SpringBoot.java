@@ -109,6 +109,7 @@ import org.govway.catalogo.authorization.UtenteAuthorization;
 import org.govway.catalogo.cache.CacheConfiguration;
 import org.govway.catalogo.cache.CatalogoCache;
 import org.govway.catalogo.cache.GovwayCache;
+import org.govway.catalogo.controllers.csv.AdesioneCsvBuilder;
 import org.govway.catalogo.controllers.csv.ServizioBuilder;
 import org.govway.catalogo.core.business.utils.ConfigurazioneEService;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
@@ -311,7 +312,12 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     public ServizioBuilder servizioBuilder() {
     	return new ServizioBuilder();
     }
-    
+
+    @Bean
+    public AdesioneCsvBuilder adesioneCsvBuilder() {
+    	return new AdesioneCsvBuilder();
+    }
+
     @Bean
     public ProfiloAssembler profiloAssembler() {
     	return new ProfiloAssembler();

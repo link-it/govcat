@@ -95,6 +95,16 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 		return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	/**
+	 * Handler generico per tutte le eccezioni non gestite.
+	 * Restituisce 500 Internal Server Error per evitare che eccezioni non gestite
+	 * vengano interpretate dalla security filter chain come errori di autenticazione.
+	 */
+	@ExceptionHandler(Exception.class)
+	public final ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
+		return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
 	protected abstract ResponseEntity<Object> toEntity(Exception ex, HttpStatus status);
 	protected abstract ResponseEntity<Object> toEntity(ClientApiException ex);
 

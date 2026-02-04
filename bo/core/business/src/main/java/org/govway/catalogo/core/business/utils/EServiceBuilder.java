@@ -457,9 +457,13 @@ public class EServiceBuilder {
 
 	private String getTecnologia(ApiEntity api, boolean collaudo) {
 		String tecnoString = "";
-		
+
 		PROTOCOLLO protocollo = getProtocollo(api, collaudo);
-		
+
+		if(protocollo == null) {
+			return tecnoString;
+		}
+
 		switch(protocollo) {
 		case WSDL11:
 		case WSDL12: tecnoString = "soap";
@@ -498,6 +502,7 @@ public class EServiceBuilder {
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getUrlInvocazione()))
 		        .orElse(this.configurazione.getTemplateUrlInvocazione());
 		
+		PROTOCOLLO protocollo = getProtocollo(api, collaudo);
 		String url = urlInvocazione
 				.replaceAll("#prefix#", prefix)
 				.replaceAll("#soggetto_interno#", soggettoInterno)
@@ -505,7 +510,7 @@ public class EServiceBuilder {
 				.replaceAll("#nome#", getNome(api, collaudo))
 				.replaceAll("#versione#", api.getVersione() + "")
 				.replaceAll("#tecnologia#", getTecnologia(api, collaudo))
-				.replaceAll("#protocollo#", getProtocollo(api, collaudo).toString());
+				.replaceAll("#protocollo#", protocollo != null ? protocollo.toString() : "");
 
 		while(url.contains("//")) {
 			url = url.replaceAll("//", "/");
@@ -520,11 +525,17 @@ public class EServiceBuilder {
 	private PROTOCOLLO getProtocollo(ApiEntity api, boolean collaudo) {
 
 		if(collaudo) {
-			return api.getCollaudo().getProtocollo();			
+			return Optional.ofNullable(api.getCollaudo())
+					.map(c -> c.getProtocollo())
+					.orElseGet(() -> Optional.ofNullable(api.getProduzione())
+							.map(p -> p.getProtocollo())
+							.orElse(null));
 		} else {
 			return Optional.ofNullable(api.getProduzione())
 					.map(b -> b.getProtocollo())
-					.orElse(getProtocollo(api, true));
+					.orElseGet(() -> Optional.ofNullable(api.getCollaudo())
+							.map(c -> c.getProtocollo())
+							.orElse(null));
 		}
 
 	}

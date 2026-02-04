@@ -3871,6 +3871,46 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni-export:
+    get:
+      tags:
+      - "Adesioni"
+      description: "Export delle adesioni in formato CSV"
+      operationId: "exportAdesioni"
+      parameters:
+      - $ref: "#/components/parameters/stato_query_optional"
+      - $ref: "#/components/parameters/id_soggetto_query_optional"
+      - $ref: "#/components/parameters/id_organizzazione_query_optional"
+      - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
+      - $ref: "#/components/parameters/id_dominio_query_optional"
+      - $ref: "#/components/parameters/id_servizio_query_optional"
+      - $ref: "#/components/parameters/id_logico_query_optional"
+      - $ref: "#/components/parameters/id_client_query_optional"
+      - $ref: "#/components/parameters/richiedente_query_optional"
+      - $ref: "#/components/parameters/in_attesa_query_optional"
+      - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
+      - $ref: "#/components/parameters/id_adesione_query_optional_multi"
+      - $ref: "#/components/parameters/q_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni:
     get:
       tags:
@@ -10180,6 +10220,15 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/IdAdesione"
+    id_adesione_query_optional_multi:
+      name: "id_adesione"
+      in: "query"
+      description: "identificativo dell'adesione"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/IdAdesione"
     page_query_optional:
       name: "page"
       in: "query"

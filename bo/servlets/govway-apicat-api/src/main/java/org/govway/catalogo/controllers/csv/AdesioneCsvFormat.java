@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder
-public abstract class ServizioFormat {
+public abstract class AdesioneCsvFormat {
 
 	@JsonProperty("Soggetto Erogatore")
 	abstract String getErogatore();
@@ -35,15 +35,31 @@ public abstract class ServizioFormat {
 	abstract String getTipoApi();
 	@JsonProperty("Modalità Autenticazione")
 	abstract String getAutenticazioneStato();
-	@JsonProperty("Stato Servizio")
-	abstract String getStatoServizio();
+	@JsonProperty("Soggetto Aderente")
+	abstract String getAderente();
+	@JsonProperty("Identificativo Adesione")
+	abstract String getIdAdesione();
+	@JsonProperty("Stato Adesione")
+	abstract String getStatoAdesione();
+	@JsonProperty("Referente Regionale Adesione")
+	abstract String getReferenteRegionaleAdesione();
+	@JsonProperty("Referente Tecnico Adesione")
+	abstract String getReferenteTecnicoAdesione();
+	@JsonProperty("Applicativi Autorizzati (Prod)")
+	abstract String getApplicativiAutorizzatiProduzione();
+	@JsonProperty("Config. Autenticazione (Prod)")
+	abstract String getAutenticazioneValoreProduzione();
+	@JsonProperty("Rate Limiting (Prod)")
+	abstract String getRateLimitingProduzione();
 	@JsonProperty("URL Invocazione (Prod)")
 	abstract String getUrlInvocazioneProduzione();
-	@JsonProperty("Backend URL (Prod)")
-	abstract String getConnettoreProduzione();
+	@JsonProperty("Applicativi Autorizzati (Coll)")
+	abstract String getApplicativiAutorizzatiCollaudo();
+	@JsonProperty("Config. Autenticazione (Coll)")
+	abstract String getAutenticazioneValoreCollaudo();
+	@JsonProperty("Rate Limiting (Coll)")
+	abstract String getRateLimitingCollaudo();
 	@JsonProperty("URL Invocazione (Coll)")
 	abstract String getUrlInvocazioneCollaudo();
-	@JsonProperty("Backend URL (Coll)")
-	abstract String getConnettoreCollaudo();
 
 }
