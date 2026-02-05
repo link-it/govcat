@@ -111,6 +111,7 @@ import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
+import org.govway.catalogo.servlets.model.VisibilitaRichiedenteReferentiEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -560,9 +561,18 @@ public class AdesioniController implements AdesioniApi {
 				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
 					throw new BadRequestException(ErrorCode.ADE_400_STATE, java.util.Map.of("stato", entity.getStato().toString()));
 				}
+
+				// Determina se mostrare richiedente e referenti nel PDF
+				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
+				// Se il valore è "disabled", non mostra
+				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getAdesione().getMostraRichiedente());
+				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getAdesione().getMostraReferenti());
+
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity));
+					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity, mostraRichiedente, mostraReferenti));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);
