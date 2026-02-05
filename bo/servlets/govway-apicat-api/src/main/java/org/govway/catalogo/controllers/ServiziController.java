@@ -144,6 +144,7 @@ import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
+import org.govway.catalogo.servlets.model.VisibilitaRichiedenteReferentiEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1080,15 +1081,23 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ..."); 
-				
+				this.logger.info("Invocazione in corso ...");
+
 				ServizioEntity entity = this.findOne(idServizio);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// Determina se mostrare richiedente e referenti nel PDF
+				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
+				// Se il valore è "disabled", non mostra
+				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraRichiedente());
+				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraReferenti());
 
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity));
+					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity, mostraRichiedente, mostraReferenti));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);

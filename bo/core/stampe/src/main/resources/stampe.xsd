@@ -13,7 +13,7 @@
 			<xsd:element name="organizzazione_aderente" type="xsd:string"/>
 			<xsd:element name="soggetto_aderente" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="id_logico" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="richiedente" type="xsd:string"/>
+			<xsd:element name="richiedente" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="stato" type="xsd:string"/>
 			<xsd:element name="descrizione" type="xsd:string"/>
 			<xsd:element name="data_creazione" type="xsd:string"/>
@@ -21,7 +21,7 @@
 			<xsd:element name="data_stampa" type="xsd:string"/>
 			<xsd:element name="api" type="ApiType"/>
 			<xsd:element name="configs" type="ConfigsType"/>
-			<xsd:element name="referents" type="ReferentsType"/>
+			<xsd:element name="referents" type="ReferentsType" minOccurs="0"/>
 			<xsd:element name="baseUrlCollaudo" type="ApiType"/>
 			<xsd:element name="baseUrlProduzione" type="ApiType"/>
 		</xsd:sequence>
@@ -58,9 +58,9 @@
 			
     <xsd:complexType name="ReferentsType">
 		<xsd:sequence>
-			<xsd:element name="subscription" type="ReferentType"/>
-			<xsd:element name="service" type="ReferentType"/>
-			<xsd:element name="group" type="ReferentType"/>
+			<xsd:element name="subscription" type="ReferentType" minOccurs="0"/>
+			<xsd:element name="service" type="ReferentType" minOccurs="0"/>
+			<xsd:element name="group" type="ReferentType" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 			
@@ -77,7 +77,7 @@
 			
     <xsd:complexType name="ReferentType">
 		<xsd:sequence>
-			<xsd:element name="item" type="ReferentItemType" maxOccurs="unbounded"/>
+			<xsd:element name="item" type="ReferentItemType" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 	</xsd:complexType>
 			
@@ -89,8 +89,10 @@
 			<xsd:element name="logo" type="xsd:string"/>
 			<xsd:element name="titolo" type="xsd:string"/>
 			<xsd:element name="sottotitolo" type="xsd:string"/>
+			<xsd:element name="richiedente" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="scopo" type="ScopoType"/>
 			<xsd:element name="profili" type="ProfiliType"/>
+			<xsd:element name="referents" type="ReferentsType" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 			

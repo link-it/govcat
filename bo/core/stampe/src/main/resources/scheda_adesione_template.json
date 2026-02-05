@@ -276,8 +276,8 @@
       ]
     },
     {
-      "name": "configs_collaudo",
-      "condition": "configs != null && configs.collaudo != null && !configs.collaudo.isEmpty()",
+      "name": "configs_collaudo_DISABLED",
+      "condition": "false",
       "height": 93,
       "elements": [
         {
@@ -292,8 +292,8 @@
       ]
     },
     {
-      "name": "configs_produzione",
-      "condition": "configs != null && configs.produzione != null && !configs.produzione.isEmpty()",
+      "name": "configs_produzione_DISABLED",
+      "condition": "false",
       "height": 93,
       "elements": [
         {
