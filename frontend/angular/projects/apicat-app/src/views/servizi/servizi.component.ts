@@ -220,7 +220,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     hasMultiSelection: boolean = true;
     showSelectAll: boolean = true;
     elementsSelected: any[] = [];
-    _downloading: boolean = true;
+    _downloading: boolean = false;
     uncheckAllInTheMenu: boolean = true;
 
     tipo_servizio: string = TipoServizioEnum.API;
@@ -1265,6 +1265,28 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
         this._downloading = true;
         this.apiService.download(`${this.model}-export`, null, undefined, aux, headers)
+            .subscribe({
+                next: (response: any) => {
+                    let filename: string = Tools.GetFilenameFromHeader(response);
+                    saveAs(response.body, filename);
+                    this._downloading = false;
+                },
+                error: (error: any) => {
+                    this._downloading = false;
+                    if (error.name === 'TimeoutError') {
+                        Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+                    } else {
+                        Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+                    }
+                }
+            });
+    }
+
+    onExportAll() {
+        const headers = new HttpHeaders().set('timeout', '150000');
+
+        this._downloading = true;
+        this.apiService.download(`${this.model}-export`, null, undefined, undefined, headers)
             .subscribe({
                 next: (response: any) => {
                     let filename: string = Tools.GetFilenameFromHeader(response);
