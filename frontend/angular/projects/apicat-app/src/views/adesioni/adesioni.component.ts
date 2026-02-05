@@ -19,7 +19,9 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
+import { HttpHeaders, HttpParams } from '@angular/common/http';
+
+import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -42,6 +44,8 @@ import { Page} from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
+
+declare const saveAs: any;
 
 export enum StatoConfigurazione {
   FALLITA = 'fallita',
@@ -169,11 +173,16 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _useEditWizard: boolean = false;
 
   hasMultiSelection: boolean = false;
+  hasExportSelection: boolean = true;
+  showSelectAll: boolean = true;
   elementsSelected: any[] = [];
   bilkExecutionInProgress: boolean = false;
   uncheckAllInTheMenu: boolean = true;
+  _downloading: boolean = false;
 
-  bulkResponse: any = null
+  bulkResponse: any = null;
+
+  ActionEnum = ActionEnum;
 
   modalReportRef!: BsModalRef;
   
@@ -691,6 +700,19 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this._updateMapper = new Date().getTime().toString();
   }
 
+  selectAll() {
+    this.elementsSelected = this.adesioni.map((element: any) => element.id);
+    const _elements = this.adesioni.map((element: any) => {
+        return { ...element, selected: true };
+    });
+    this.adesioni = [ ..._elements ];
+    this._updateMapper = new Date().getTime().toString();
+  }
+
+  get allSelected(): boolean {
+    return this.adesioni.length > 0 && this.elementsSelected.length === this.adesioni.length;
+  }
+
   onSelect(event: any, element: any) {
     event.stopPropagation();
     const _index = this.elementsSelected.findIndex((item: any) => item === element.id);
@@ -786,5 +808,61 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   closeErrorModal(){
     this.modalReportRef.hide();
+  }
+
+  // Export adesioni
+  get _allElements(): number {
+    return this._paging?.totalElements || 0;
+  }
+
+  onExportAction(event: any) {
+    switch (event.action) {
+      case ActionEnum.SEARCH:
+        this.onExport(ActionEnum.SEARCH);
+        break;
+      case ActionEnum.SELECTION:
+        this.onExport(ActionEnum.SELECTION);
+        break;
+      case ActionEnum.DESELECT_ALL:
+        this.deselectAll();
+        break;
+    }
+  }
+
+  onExport(type: string) {
+    let aux: any;
+    let query: any = null;
+
+    if (type === ActionEnum.SEARCH) {
+      query = { ...this._filterData };
+    } else {
+      query = { id_adesione: [...this.elementsSelected] };
+    }
+
+    if (this.service && this.service.id_servizio) {
+      query.id_servizio = this.service.id_servizio;
+    }
+
+    aux = this.utils._queryToHttpParams(query);
+
+    const headers = new HttpHeaders().set('timeout', '150000');
+
+    this._downloading = true;
+    this.apiService.download(`${this.model}-export`, null, undefined, aux, headers)
+      .subscribe({
+        next: (response: any) => {
+          const filename: string = Tools.GetFilenameFromHeader(response);
+          saveAs(response.body, filename);
+          this._downloading = false;
+        },
+        error: (error: any) => {
+          this._downloading = false;
+          if (error.name === 'TimeoutError') {
+            Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+          } else {
+            Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+          }
+        }
+      });
   }
 }

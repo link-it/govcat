@@ -26,19 +26,13 @@ import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { LocalStorageService } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, LocalStorageService, EventType, BreadcrumbService, SearchBarFormComponent } from '@linkit/components';
 import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { EventType } from '@linkit/components';
-import { BreadcrumbService } from '@linkit/components'
 import { NavigationService } from '@app/services/navigation.service';
 
-import { SearchBarFormComponent } from '@linkit/components'
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
@@ -52,6 +46,8 @@ import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.compon
 import * as _ from 'lodash';
 declare const saveAs: any;
 
+import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
@@ -64,7 +60,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
-    _production: boolean = true; // environment.production;
+    _production: boolean = true;
     
     Tools = Tools;
 
@@ -95,7 +91,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     
     _showTaxonomies: boolean = false;
 
-    _isEdit: boolean = false;
     _editCurrent: any = null;
 
     _hasFilter: boolean = true;
@@ -223,11 +218,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     };
 
     hasMultiSelection: boolean = true;
+    showSelectAll: boolean = true;
     elementsSelected: any[] = [];
     _downloading: boolean = true;
     uncheckAllInTheMenu: boolean = true;
 
     tipo_servizio: string = TipoServizioEnum.API;
+
+    ActionEnum = ActionEnum;
 
     constructor(
         private readonly router: Router,
@@ -711,10 +709,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.breadCrumbService.clearBreadcrumbs();
         this.breadcrumbs = [ ...this.breadcrumbs ];
         this.eventsManagerService.broadcast('UPDATE_BREADCRUMBS', []);
-    }
-
-    _onCloseEdit() {
-        this._isEdit = false;
     }
 
     _onSubmit(form: any) {
@@ -1214,6 +1208,18 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.elements = [ ..._elements ];
     }
 
+    selectAll() {
+        this.elementsSelected = this.elements.map((element: any) => element.idServizio);
+        const _elements = this.elements.map((element: any) => {
+            return { ...element, selected: true };
+        });
+        this.elements = [ ..._elements ];
+    }
+
+    get allSelected(): boolean {
+        return this.elements.length > 0 && this.elementsSelected.length === this.elements.length;
+    }
+
     _onSelect(event: any, element: any) {
         event.stopPropagation();
         const _index = this.elementsSelected.findIndex((item: any) => item === element.idServizio);
@@ -1226,11 +1232,25 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
     }
 
-    _onExport(type: string) {
+    onExportAction(event: any) {
+        switch (event.action) {
+            case ActionEnum.SEARCH:
+                this.onExport(ActionEnum.SEARCH, true);
+                break;
+            case ActionEnum.SELECTION:
+                this.onExport(ActionEnum.SELECTION, true);
+                break;
+            case ActionEnum.DESELECT_ALL:
+                this.deselectAll();
+                break;
+        }
+    }
+
+    onExport(type: string, exportServizi: boolean = false) {
         let aux: any;
         let query = null;
 
-        if (type === 'search') {
+        if (type === ActionEnum.SEARCH) {
             query = { ...this._filterData };
             if (query.id_gruppo_padre_label) {
                 delete query.id_gruppo_padre_label;
