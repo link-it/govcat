@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
@@ -64,7 +64,7 @@ export type GruppiCampi = Record<string, Campo[]>;
     styleUrls: ['servizio-api-details.component.scss'],
     standalone: false
 })
-export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioApiDetailsComponent';
     readonly model: string = 'api';
 
@@ -196,12 +196,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     hideVersions: boolean = false;
 
     constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private formBuilder: FormBuilder,
-        private translate: TranslateService,
-        private modalService: BsModalService,
-        private configService: ConfigService,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
+        private readonly formBuilder: FormBuilder,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
         public tools: Tools,
         public eventsManagerService: EventsManagerService,
         public utilsLib: UtilsLib,
@@ -210,7 +210,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         public authenticationService: AuthenticationService
     ) {
         this.route.data.subscribe((data) => {
-        if (!data.componentBreadcrumbs) return;
+            if (!data.componentBreadcrumbs) return;
             this._componentBreadcrumbs = data.componentBreadcrumbs;
             this._initBreadcrumb();
         });
@@ -226,11 +226,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._adesioniMultiple = _srv ? _srv.adesioni_multiple : false;
         this._richiesteEnabled = this._apiMultiple;
         this._risposteEnabled = this._apiMultiple;
-        this._codiceAssetObbligatorio = (_srv && _srv.api) ? _srv.api.codice_asset_obbligatorio : false;
-        this._specificaObbligatorio = (_srv && _srv.api) ? _srv.api.specifica_obbligatorio : false;
-        this._authTypes = (_srv && _srv.api) ? _srv.api.auth_type : [];
-        this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
-        this._info_gateway_visualizzate = (_srv && _srv.api) ? _srv.api.info_gateway_visualizzate : false;
+        this._codiceAssetObbligatorio = (_srv?.api) ? _srv.api.codice_asset_obbligatorio : false;
+        this._specificaObbligatorio = (_srv?.api) ? _srv.api.specifica_obbligatorio : false;
+        this._authTypes = (_srv?.api) ? _srv.api.auth_type : [];
+        this._profili = (_srv?.api) ? _srv.api.profili : [];
+        this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
         this._pdnd = Tools.Configurazione?.pdnd || null;
     }
 
@@ -249,43 +249,44 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     this.id = params['aid'];
                     this._isDetails = true;
                     this.configService.getConfig('api').subscribe(
-                        (config: any) => {
-                        this.config = config;
-                        this._singleColumn = config.editSingleColumn || false;
-                        this._showAllAttachments = config.showAllAttachments || false;
-                        if (!this.service) {
-                            this._loadAll();
-                        } else {
-                            this._initBreadcrumb();
-                            this._initRuoli();
-                            this._initOtherActionMenu();
-            
-                            if (this.servizioApi) {
-                                this.eventsManagerService.broadcast('INIT_DATA');
+                            (config: any) => {
+                                this.config = config;
+                                this._singleColumn = config.editSingleColumn || false;
+                                this._showAllAttachments = config.showAllAttachments || false;
+                                if (!this.service) {
+                                    this._loadAll();
+                                } else {
+                                    this._initBreadcrumb();
+                                    this._initRuoli();
+                                    this._initOtherActionMenu();
+                    
+                                    if (this.servizioApi) {
+                                        this.eventsManagerService.broadcast('INIT_DATA');
+                                    }
+                                    this._updateMapper = new Date().getTime().toString();
+                                    this._loadServiceApi();
+                                }
                             }
-                            this._updateMapper = new Date().getTime().toString();
-                            this._loadServiceApi();
-                        }
-                        }
-                    );
-                } else {
-                    this.configService.getConfig('api').subscribe(
-                        (config: any) => {
-                            this.config = config;
-                            this._singleColumn = config.editSingleColumn || false;
-                            this._isNew = true;
-                            this._isEdit = true;
+                        );
+                    } else {
+                        this.configService.getConfig('api').subscribe(
+                            (config: any) => {
+                                this.config = config;
+                                this._singleColumn = config.editSingleColumn || false;
+                                this._isNew = true;
+                                this._isEdit = true;
 
-                            if (!this.service) {
-                                this._loadServizio();
+                                if (!this.service) {
+                                    this._loadServizio();
+                                }
+                                this._servizioApiCreate.id_servizio = this.sid;
+                                this._initForm({ ...this._servizioApiCreate });
                             }
-                            this._servizioApiCreate.id_servizio = this.sid;
-                            this._initForm({ ...this._servizioApiCreate });
-                        }
-                    );
+                        );
+                    }
                 }
             }
-        });
+        );
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
             const _srv: any = Tools.Configurazione?.servizio;
@@ -293,16 +294,13 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._adesioniMultiple = _srv ? _srv.adesioni_multiple : false;
             this._richiesteEnabled = this._apiMultiple;
             this._risposteEnabled = this._apiMultiple;
-            this._codiceAssetObbligatorio = (_srv && _srv.api) ? _srv.api.codice_asset_obbligatorio : false;
-            this._specificaObbligatorio = (_srv && _srv.api) ? _srv.api.specifica_obbligatorio : false;
-            this._authTypes = (_srv && _srv.api) ? _srv.api.auth_type : [];
-            this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
-            this._info_gateway_visualizzate = (_srv && _srv.api) ? _srv.api.info_gateway_visualizzate : false;
+            this._codiceAssetObbligatorio = (_srv?.api) ? _srv.api.codice_asset_obbligatorio : false;
+            this._specificaObbligatorio = (_srv?.api) ? _srv.api.specifica_obbligatorio : false;
+            this._authTypes = (_srv?.api) ? _srv.api.auth_type : [];
+            this._profili = (_srv?.api) ? _srv.api.profili : [];
+            this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
             this._pdnd = Tools.Configurazione?.pdnd || null;
         });
-    }
-
-    ngOnDestroy() {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -407,7 +405,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
             this._formGroup = new FormGroup(_group);
 
-            if (this.servizioApi?.configurazione_collaudo && this.servizioApi?.configurazione_collaudo?.protocollo) {
+            if (this.servizioApi?.configurazione_collaudo?.protocollo) {
                 this._formGroup.get('protocollo')?.setValue(this.servizioApi.configurazione_collaudo.protocollo);
             }
         }
@@ -445,7 +443,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 next: (response: any) => {
                     this.id = response.id_api;
                     this.servizioApiResponse = JSON.parse(JSON.stringify(response));
-                    this.servizioApi = response; // new ServizioApi({ ...response });
+                    this.servizioApi = response;
                     this._servizioApi = new ServizioApiCreate({ ...response });
                     this._initBreadcrumb();
                     this._isEdit = false;
@@ -544,7 +542,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                         valore === undefined ||
                         valore === null ||
                         (typeof valore === 'string' && valore.trim() === '') ||
-                        (typeof valore === 'number' && isNaN(valore));
+                        (typeof valore === 'number' && Number.isNaN(valore));
 
                     if (valoreNonValido) return;
 
@@ -573,7 +571,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             (response: any) => {
                 this._isEdit = !this._closeEdit;
                 this.servizioApiResponse = JSON.parse(JSON.stringify(response));
-                this.servizioApi = response; // new ServizioApi({ ...response });
+                this.servizioApi = response;
                 this._servizioApi = new ServizioApiCreate({ ...response });
                 this.id = response.id_api;
                 this.save.emit({ id: this.id, servizioApiapi: response, update: true });
@@ -654,7 +652,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _getGroupNameByLabel(group: any) {
         const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
         }
@@ -677,20 +675,20 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _deleteServiceApi(data: any) {
-        this.apiService.deleteElement(this.model, this.servizioApi?.id_api || null).subscribe(
-            (response) => {
+        this.apiService.deleteElement(this.model, this.servizioApi?.id_api || null).subscribe({
+            next: (response) => {
                 if (this._componentBreadcrumbs) {
                     this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api']);
                 } else {
                     this.router.navigate(['servizi', this.sid, 'api']);
                 }
             },
-            (error) => {
+            error: (error) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._errors = error.error.errori || [];
             }
-        );
+        });
     }
 
     _initRuoli() {
@@ -1215,7 +1213,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _hasControlCustomPropertiesValue(name: string, index: number) {
-        return (this.cfgc(index)[name] && this.cfgc(index)[name].value);
+        return this.cfgc(index)[name]?.value;
     }
 
     // customFormGroup
@@ -1462,10 +1460,26 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
             if (_profile.auth_type.includes('pdnd')) {
                 if (this.servizioApi?.proprieta_custom?.length) {
-                    _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione');
+                    // Cerca nei gruppi con suffisso _identificativo (nuova convenzione)
+                    _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione_identificativo');
                     if (_index !== -1) {
                         const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
                         _hasPDND = _property ? !!_property.valore : false;
+                    }
+                    if (!_hasPDND) {
+                        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDCollaudo_identificativo');
+                        if (_index !== -1) {
+                            const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
+                            _hasPDND = _property ? !!_property.valore : false;
+                        }
+                    }
+                    // Fallback: cerca nei gruppi senza suffisso (vecchia convenzione per retrocompatibilità)
+                    if (!_hasPDND) {
+                        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione');
+                        if (_index !== -1) {
+                            const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
+                            _hasPDND = _property ? !!_property.valore : false;
+                        }
                     }
                     if (!_hasPDND) {
                         _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDCollaudo');
@@ -1525,7 +1539,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _getGroupLabelMapper = (group: any): string => {
         const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
         }
@@ -1546,7 +1560,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _srv: any = Tools.Configurazione?.servizio;
         const profili: Profile[] = _srv.api?.profili.filter((p: any) => profiles.includes(p.codice_interno));
 
-        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
 
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
@@ -1668,7 +1682,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
         const _srv: any = Tools.Configurazione?.servizio;
-        const _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+        const _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
         const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group);
         const _pItem = _group.proprieta.find((item: any) => item.nome === name);
         const _label = _pItem.valori.find((item: any) => item.nome === cod)?.etichetta;
@@ -1749,10 +1763,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             case 'download_service_api':
                 this._downloadServizioApiExport();
                 break;
-            case 'backview':
+            case 'backview': {
                 const url = `/servizi/${this.service.id_servizio}/view`;
                 this.router.navigate([url]);
                 break;
+            }
             default:
                 break;
         }
@@ -1768,7 +1783,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     _nessuno = false
                 }
             });
-            (_nessuno == true) ? console.log('NESSUN CAMPO OBBLIGATORIO') : null;
+            if (_nessuno) {
+                console.log('NESSUN CAMPO OBBLIGATORIO');
+            }
             console.groupEnd();
         }
     }
