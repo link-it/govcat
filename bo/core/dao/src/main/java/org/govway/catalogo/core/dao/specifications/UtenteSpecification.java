@@ -72,11 +72,16 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		
 		if (q.isPresent()) {
 			List<Predicate> predLstQ = new ArrayList<>();
-			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), "%" + q.get().toUpperCase() + "%")); 
-			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + q.get().toUpperCase() + "%")); 
-			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + q.get().toUpperCase() + "%"));
-			predLstQ.add(cb.like(cb.upper(root.join(UtenteEntity_.organizzazione, JoinType.LEFT).get(OrganizzazioneEntity_.nome)), "%" + q.get().toUpperCase() + "%"));
-			
+			String qUpper = q.get().toUpperCase();
+			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.principal)), "%" + qUpper + "%"));
+			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.nome)), "%" + qUpper + "%"));
+			predLstQ.add(cb.like(cb.upper(root.get(UtenteEntity_.cognome)), "%" + qUpper + "%"));
+			predLstQ.add(cb.like(cb.upper(root.join(UtenteEntity_.organizzazione, JoinType.LEFT).get(OrganizzazioneEntity_.nome)), "%" + qUpper + "%"));
+			// Ricerca per nome + cognome combinati (es. "Mario Rossi")
+			predLstQ.add(cb.like(cb.upper(cb.concat(cb.concat(root.get(UtenteEntity_.nome), " "), root.get(UtenteEntity_.cognome))), "%" + qUpper + "%"));
+			// Ricerca per cognome + nome combinati (es. "Rossi Mario")
+			predLstQ.add(cb.like(cb.upper(cb.concat(cb.concat(root.get(UtenteEntity_.cognome), " "), root.get(UtenteEntity_.nome))), "%" + qUpper + "%"));
+
 			predLst.add(cb.or(predLstQ.toArray(new Predicate[] {})));
 		}
 		
