@@ -116,6 +116,11 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     return Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
   }
 
+  // Getter per verificare se mostrare il campo email (default: false = nascosto)
+  get mostraEmail(): boolean {
+    return this.config?.AppConfig?.Profile?.showEmail === true;
+  }
+
   constructor(
     private readonly router: Router,
     protected fb: FormBuilder,

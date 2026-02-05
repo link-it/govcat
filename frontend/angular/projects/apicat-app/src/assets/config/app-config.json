@@ -54,6 +54,10 @@
       "hideVersions": true
     },
 
+    "Profile": {
+      "showEmail": false
+    },
+
     "Scrollbar": {
       "hidden": true,
       "hideOnIdle": true
