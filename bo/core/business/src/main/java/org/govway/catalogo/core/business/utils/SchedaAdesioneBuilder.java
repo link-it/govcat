@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -81,6 +81,10 @@ public class SchedaAdesioneBuilder {
 	private EServiceBuilder serviceBuilder;
 
 	public byte[] getSchedaAdesione(AdesioneEntity adesione) {
+		return getSchedaAdesione(adesione, true, true);
+	}
+
+	public byte[] getSchedaAdesione(AdesioneEntity adesione, boolean mostraRichiedente, boolean mostraReferenti) {
 
 		SchedaAdesione a = new SchedaAdesione();
 
@@ -95,7 +99,6 @@ public class SchedaAdesioneBuilder {
 		}
 
 		a.setIdLogico(adesione.getIdLogico());
-		a.setRichiedente(adesione.getRichiedente().getNome() + " " + adesione.getRichiedente().getCognome());
 		a.setStato(getStato(adesione.getStato()));
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -144,6 +147,18 @@ public class SchedaAdesioneBuilder {
 			    api.getRow().add(modauth);
 			});
 
+		}
+
+		// Aggiungi richiedente se configurato
+		if(mostraRichiedente && adesione.getRichiedente() != null) {
+			String richiedenteValue = adesione.getRichiedente().getNome() + " " + adesione.getRichiedente().getCognome();
+			// Imposta il valore anche nel campo diretto per backward compatibility
+			a.setRichiedente(richiedenteValue);
+			// Aggiungi anche come riga nella tabella per la visualizzazione nel PDF
+			RowType rigaRichiedente = new RowType();
+			rigaRichiedente.setLabel("Richiedente");
+			rigaRichiedente.setValore(richiedenteValue);
+			api.getRow().add(rigaRichiedente);
 		}
 
 		a.setApi(api);
@@ -210,48 +225,59 @@ public class SchedaAdesioneBuilder {
 		configs.getProduzione().add(produzioneConfig);
 		a.setConfigs(configs);
 
+		if(mostraReferenti) {
+			ReferentsType referents = new ReferentsType();
+			boolean hasReferents = false;
 
-		ReferentsType referents = new ReferentsType();
+			// Referenti adesione (subscription)
+			if(!adesione.getReferenti().isEmpty()) {
+				ReferentType subRef = new ReferentType();
 
-		ReferentType subRef = new ReferentType();
+				for(ReferenteAdesioneEntity ref: adesione.getReferenti()) {
 
-		ReferentType servRef = new ReferentType();
-
-		if(!adesione.getReferenti().isEmpty()) {
-
-			for(ReferenteAdesioneEntity ref: adesione.getReferenti()) {
-
-				String tipoRef = null;
-				if(ref.getTipo().equals(TIPO_REFERENTE.REFERENTE)) {
-					tipoRef = "Referente";
-				} else {
-					tipoRef = "Referente tecnico";
-				}
-				ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
-				subRef.getItem().add(gritm);
-			}
-		}
-
-		if(!adesione.getServizio().getReferenti().isEmpty()) {
-
-			for(ReferenteServizioEntity ref: adesione.getServizio().getReferenti()) {
-
-				String tipoRef = null;
-				if(ref.getTipo().equals(TIPO_REFERENTE.REFERENTE)) {
-					tipoRef = "Referente";
-				} else {
-					tipoRef = "Referente tecnico";
+					String tipoRef = null;
+					if(ref.getTipo().equals(TIPO_REFERENTE.REFERENTE)) {
+						tipoRef = "Referente";
+					} else {
+						tipoRef = "Referente tecnico";
+					}
+					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
+					subRef.getItem().add(gritm);
 				}
 
-				ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
-				servRef.getItem().add(gritm);
+				if(!subRef.getItem().isEmpty()) {
+					referents.setSubscription(subRef);
+					hasReferents = true;
+				}
+			}
+
+			// Referenti servizio (service)
+			if(!adesione.getServizio().getReferenti().isEmpty()) {
+				ReferentType servRef = new ReferentType();
+
+				for(ReferenteServizioEntity ref: adesione.getServizio().getReferenti()) {
+
+					String tipoRef = null;
+					if(ref.getTipo().equals(TIPO_REFERENTE.REFERENTE)) {
+						tipoRef = "Referente";
+					} else {
+						tipoRef = "Referente tecnico";
+					}
+
+					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
+					servRef.getItem().add(gritm);
+				}
+
+				if(!servRef.getItem().isEmpty()) {
+					referents.setService(servRef);
+					hasReferents = true;
+				}
+			}
+
+			if(hasReferents) {
+				a.setReferents(referents);
 			}
 		}
-
-		referents.setSubscription(subRef);
-		referents.setService(servRef);
-
-		a.setReferents(referents);
 
 		ApiType apiEC = new ApiType();
 		ApiType apiEP = new ApiType();
@@ -473,15 +499,28 @@ public class SchedaAdesioneBuilder {
 	private ReferentItemType getReferentItem(UtenteEntity referent, String tipo) {
 		ReferentItemType ref = new ReferentItemType();
 
-		ref.setTipoReferente(tipo);
-		ref.setNome(referent.getNome());
-		ref.setCognome(referent.getCognome());
-		ref.setBusinessTelefono(referent.getTelefonoAziendale());
-		ref.setBusinessEmail(referent.getEmailAziendale());
-
-		if(referent.getOrganizzazione()!= null) {
-			ref.setOrganization(referent.getOrganizzazione().getNome());
+		// Issue 137/140: Formato compatto per visualizzazione referenti nel PDF
+		// Ogni referente viene mostrato su una singola riga: "<tipo referente> - <nome> <cognome> - <organizzazione>"
+		// Il codice precedente popolava tutti i campi separatamente, causando una visualizzazione multi-riga
+		StringBuilder sb = new StringBuilder();
+		sb.append(tipo);
+		sb.append(" - ");
+		sb.append(referent.getNome()).append(" ").append(referent.getCognome());
+		if(referent.getOrganizzazione() != null) {
+			sb.append(" - ").append(referent.getOrganizzazione().getNome());
 		}
+		// Usa solo il campo nome per la visualizzazione compatta
+		ref.setNome(sb.toString());
+
+		// Codice originale commentato - visualizzazione multi-riga con tutti i campi separati
+		// ref.setTipoReferente(tipo);
+		// ref.setNome(referent.getNome());
+		// ref.setCognome(referent.getCognome());
+		// ref.setBusinessTelefono(referent.getTelefonoAziendale());
+		// ref.setBusinessEmail(referent.getEmailAziendale());
+		// if(referent.getOrganizzazione()!= null) {
+		// 	ref.setOrganization(referent.getOrganizzazione().getNome());
+		// }
 
 		return ref;
 	}

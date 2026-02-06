@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -164,6 +164,20 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 			}
 			if(c.getStatoPrecedente() != null && c.getStatoPrecedente().getNome().equals(stato)  && compatibile(c.getStatoPrecedente().getRuoliAbilitati(), grant, cambioStato)) {
 				return;
+			}
+			if(c.getStatiUlteriori() != null && !c.getStatiUlteriori().isEmpty()) {
+				for(ConfigurazioneStato ulteriore: c.getStatiUlteriori()) {
+					if(ulteriore.getNome().equals(stato) && compatibile(ulteriore.getRuoliAbilitati(), grant, cambioStato)) {
+						return;
+					}
+				}
+			}
+			if(workflow.getStatoArchiviato() != null && workflow.getStatoArchiviato().equals(stato)) {
+				if(c.getRuoliAbilitatiStatoArchiviato() != null && !c.getRuoliAbilitatiStatoArchiviato().isEmpty()) {
+					if(compatibile(c.getRuoliAbilitatiStatoArchiviato(), grant, cambioStato)) {
+						return;
+					}
+				}
 			}
 		}
 		

@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, Navigation } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -42,17 +60,17 @@ export class LoginComponent implements OnInit {
   OTHER_AUTHS: any[] = [];
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private oauthService: OAuthService,
-    private authenticationService: AuthenticationService,
-    private configService: ConfigService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly oauthService: OAuthService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly configService: ConfigService
   ) {
     this.config = this.configService.getConfiguration();
     this.ANONYMOUS_ACCESS = this.config.AppConfig.ANONYMOUS_ACCESS;
-    this.AUTH_USER = this.config.AppConfig.AUTH_SETTINGS.AUTH_USER;
-    this.OTHER_AUTHS = this.config.AppConfig.AUTH_SETTINGS.OTHER_AUTHS;
+    this.AUTH_USER = this.config.AppConfig.AUTH_SETTINGS?.AUTH_USER || false;
+    this.OTHER_AUTHS = this.config.AppConfig.AUTH_SETTINGS?.OTHER_AUTHS || [];
 
     const _currentNav: Navigation | null = this.router.getCurrentNavigation();
     if (_currentNav?.extras.state) {

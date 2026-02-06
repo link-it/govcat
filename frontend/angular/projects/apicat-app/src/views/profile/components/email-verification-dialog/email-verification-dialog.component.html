@@ -1,0 +1,166 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="modal-header align-items-center">
+  <h5 class="modal-title">{{ 'APP.PROFILE.EMAIL_VERIFICATION.TITLE' | translate }}</h5>
+  <lnk-button [icon]="'bi bi-x-lg'" [onlyIcon]="true" [ariaLabel]="'APP.BUTTON.Close'" [tertiary]="true" (onAction)="onCancel()"></lnk-button>
+</div>
+
+<div class="modal-body">
+  <form [formGroup]="form">
+    <!-- Step 1: Enter new email and send code -->
+    <ng-container *ngIf="step === 'send'">
+      <div class="alert alert-warning mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.ConfirmChange' | translate }}
+      </div>
+
+      <div class="email-info mb-3">
+        <div class="email-row">
+          <span class="email-label">{{ 'APP.PROFILE.EMAIL_VERIFICATION.LABEL.CurrentEmail' | translate }}:</span>
+          <span class="email-value">{{ currentEmail || '-' }}</span>
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="newEmail" class="form-label">
+          {{ 'APP.PROFILE.EMAIL_VERIFICATION.LABEL.NewEmail' | translate }}
+          <span *ngIf="!canClearEmail">*</span>
+        </label>
+        <input
+          type="email"
+          class="form-control"
+          id="newEmail"
+          formControlName="newEmail"
+          [class.is-invalid]="newEmailControl?.invalid && newEmailControl?.touched"
+          [placeholder]="'APP.PROFILE.EMAIL_VERIFICATION.PLACEHOLDER.NewEmail' | translate">
+        <div class="invalid-feedback" *ngIf="newEmailControl?.errors?.['required'] && newEmailControl?.touched">
+          {{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}
+        </div>
+        <div class="invalid-feedback" *ngIf="newEmailControl?.errors?.['email'] && newEmailControl?.touched">
+          {{ 'APP.MESSAGE.VALIDATION.Email' | translate }}
+        </div>
+        <div class="form-text text-muted" *ngIf="canClearEmail">
+          {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.ClearEmailHint' | translate }}
+        </div>
+      </div>
+
+      <div class="alert alert-info" *ngIf="!isNewEmailEmpty">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.SendCode' | translate }}
+      </div>
+    </ng-container>
+
+    <!-- Step 2: Verify Code -->
+    <ng-container *ngIf="step === 'verify'">
+      <div class="alert alert-success mb-3">
+        <i class="bi bi-envelope-check-fill me-2"></i>
+        {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.CodeSent' | translate }}
+        <strong>{{ form.get('newEmail')?.value }}</strong>
+      </div>
+
+      <div class="alert alert-info mb-3">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.EnterCode' | translate }}
+      </div>
+
+      <div class="otp-input-container">
+        <input
+          type="text"
+          class="form-control otp-input"
+          formControlName="codice"
+          maxlength="6"
+          autocomplete="one-time-code"
+          [class.is-invalid]="codiceControl?.invalid && codiceControl?.touched"
+          (input)="onCodiceInput($event)"
+          placeholder="______">
+      </div>
+
+      <div class="text-center text-danger mb-3" *ngIf="codiceControl?.errors?.['minlength'] && codiceControl?.touched">
+        {{ 'APP.PROFILE.EMAIL_VERIFICATION.ERROR.CodeLength' | translate }}
+      </div>
+
+      <!-- Countdown -->
+      <div class="countdown" [class.expired]="isExpired">
+        <ng-container *ngIf="!isExpired">
+          <span class="me-2">{{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.ExpiresIn' | translate }}</span>
+          <span class="countdown-timer">{{ countdownFormatted }}</span>
+        </ng-container>
+        <ng-container *ngIf="isExpired">
+          <span class="text-danger">{{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.Expired' | translate }}</span>
+        </ng-container>
+      </div>
+
+      <!-- Tentativi rimanenti -->
+      <div class="attempts-remaining text-warning text-center mt-2" *ngIf="tentativiRimanenti !== null && tentativiRimanenti > 0">
+        {{ 'APP.PROFILE.EMAIL_VERIFICATION.LABEL.AttemptsRemaining' | translate }}: {{ tentativiRimanenti }}
+      </div>
+      <div class="attempts-remaining text-danger text-center mt-2" *ngIf="tentativiRimanenti !== null && tentativiRimanenti === 0">
+        {{ 'APP.PROFILE.EMAIL_VERIFICATION.ERROR.MaxAttempts' | translate }}
+      </div>
+    </ng-container>
+  </form>
+
+  <!-- Error message -->
+  <div class="alert alert-danger mt-3" *ngIf="error">
+    {{ error | translate }}
+  </div>
+</div>
+
+<div class="modal-footer">
+  <ng-container *ngIf="step === 'send'">
+    <lnk-button
+      [label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
+      [ariaLabel]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
+      [disabled]="loading"
+      (onAction)="onCancel()">
+    </lnk-button>
+    <lnk-button
+      [label]="isNewEmailEmpty && canClearEmail ? 'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.RemoveEmail' : 'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail'"
+      [ariaLabel]="isNewEmailEmpty && canClearEmail ? 'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.RemoveEmail' : 'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail'"
+      [primary]="true"
+      [disabled]="loading || (!canClearEmail && !!newEmailControl?.invalid) || (!!newEmailControl?.invalid && !isNewEmailEmpty)"
+      [spinner]="loading"
+      (onAction)="onSendCode()">
+    </lnk-button>
+  </ng-container>
+
+  <ng-container *ngIf="step === 'verify'">
+    <lnk-button
+      [label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
+      [ariaLabel]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
+      [disabled]="loading"
+      (onAction)="onCancel()">
+    </lnk-button>
+    <lnk-button
+      [label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Resend'"
+      [ariaLabel]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Resend'"
+      [icon]="'bi bi-arrow-repeat'"
+      [disabled]="loading || (!isExpired && tentativiRimanenti !== 0)"
+      (onAction)="onResend()">
+    </lnk-button>
+    <lnk-button
+      [label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Verify'"
+      [ariaLabel]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Verify'"
+      [primary]="true"
+      [disabled]="loading || codiceControl?.invalid || isExpired || tentativiRimanenti === 0"
+      [spinner]="loading"
+      (onAction)="onVerify()">
+    </lnk-button>
+  </ng-container>
+</div>

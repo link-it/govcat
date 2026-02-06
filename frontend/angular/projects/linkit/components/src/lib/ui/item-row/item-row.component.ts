@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnInit, Output } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
@@ -31,12 +49,14 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   @Input() actionText: string = 'download';
   @Input() actionTooltip: string = 'download';
   @Input() rowClick: boolean = false;
+  @Input() linkRoute: boolean = true;
   @Input() hostBackground: string = '#ffffff';
   @Input() primaryClass: string = '';
   @Input() isAnonymous: boolean = false;
 
   @Output() itemClick: EventEmitter<any> = new EventEmitter();
   @Output() actionClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   _dummyText: string = 'DUMMY TEXT';
 
@@ -50,6 +70,9 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   _tooltipDelay: number = 300;
 
   desktop: boolean = false;
+
+  enableOpenInNewTab: boolean = false;
+  openInNewTabTooltip: string = '';
 
   constructor(
     private element: ElementRef,
@@ -65,6 +88,11 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.desktop = (window.innerWidth >= 768);
+
+    // Legge la configurazione per abilitare/disabilitare l'icona "apri in nuova scheda"
+    const appConfig = this.configService.getAppConfig();
+    this.enableOpenInNewTab = appConfig?.Layout?.enableOpenInNewTab ?? false;
+    this.openInNewTabTooltip = this.translate.instant('APP.TOOLTIP.OpenInNewTab');
 
     document.documentElement.style.setProperty('--item-row-background-color', this.hostBackground);
 
@@ -86,15 +114,15 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     return this.sanitized.bypassSecurityTrustHtml(html);
   }
 
-  __itemClick(event: any, activeItem: any) {
+  __itemClick(event: MouseEvent, activeItem: any) {
     if (!this.rowClick) {
-      this.itemClick.emit(this._data);
+      this.itemClick.emit({ data: this._data, event });
     }
   }
 
-  __itemClickRow(event: any, activeItem: any) {
+  __itemClickRow(event: MouseEvent, activeItem: any) {
     if (this.rowClick) {
-      this.itemClick.emit(this._data);
+      this.itemClick.emit({ data: this._data, event });
     }
   }
 
@@ -102,6 +130,12 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     event.stopImmediatePropagation();
     event.preventDefault();
     this.actionClick.emit(this._data);
+  }
+
+  __openInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this._data, event });
   }
 
   _showEmpty(field: any) {

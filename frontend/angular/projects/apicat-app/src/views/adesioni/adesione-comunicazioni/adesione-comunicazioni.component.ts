@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormGroup } from '@angular/forms';
@@ -169,7 +187,7 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
   _initBreadcrumb() {
     const _organizzazione: string = this.adesione ? this.adesione.soggetto.organizzazione.nome : null;
     const _servizio: string = this.adesione?.servizio?.nome;
-    const _versione: string = this.adesione?.servizio?.versione;
+    const _versione: string = this.adesione?.servizio?.versione || null;
     const _view = (localStorage.getItem('ADESIONI_VIEW') === 'TRUE') ? '/view' : '';
 
     let title = this.adesione ? `${_organizzazione} - ${_servizio} v. ${_versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');

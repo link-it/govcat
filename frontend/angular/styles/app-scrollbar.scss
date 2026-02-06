@@ -1,0 +1,133 @@
+// ============================================================================
+// Custom Scrollbar
+// ============================================================================
+
+:root {
+  --scrollbar-color-thumb: rgb(200, 200, 200);
+  --scrollbar-color-thumb-hover: #909090;
+  --scrollbar-color-track: #f1f1f1;
+  --scrollbar-color-track-hover: #e5e5e5;
+  --scrollbar-color-border: #fff;
+  --scrollbar-width: thin;
+  --scrollbar-width-legacy: 0.6rem;
+  --scrollbar-thumb-radius: 8px;
+  --scrollbar-thumb-min-height: 40px;
+}
+
+// Mixin per scrollbar custom
+@mixin scrollbar-custom {
+  &::-webkit-scrollbar {
+    width: var(--scrollbar-width-legacy);
+    height: var(--scrollbar-width-legacy);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-color-thumb);
+    border-radius: var(--scrollbar-thumb-radius);
+    border: 2px solid var(--scrollbar-color-border);
+
+    &:hover {
+      background: var(--scrollbar-color-thumb-hover);
+    }
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: var(--scrollbar-thumb-radius);
+    background: var(--scrollbar-color-track);
+
+    &:hover {
+      background: var(--scrollbar-color-track-hover);
+    }
+  }
+}
+
+// Scrollbar globale
+::-webkit-scrollbar {
+  width: var(--scrollbar-width-legacy);
+  height: var(--scrollbar-width-legacy);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-color-thumb);
+  border-radius: var(--scrollbar-thumb-radius);
+  border: 2px solid var(--scrollbar-color-border);
+
+  &:hover {
+    background: var(--scrollbar-color-thumb-hover);
+  }
+}
+
+::-webkit-scrollbar-track {
+  border-radius: var(--scrollbar-thumb-radius);
+  background: var(--scrollbar-color-track);
+
+  &:hover {
+    background: var(--scrollbar-color-track-hover);
+  }
+}
+
+// Container con scrollbar (eredita stili globali)
+.container-scroller,
+.content-scroller {
+  @include scrollbar-custom;
+}
+
+// Content scroller
+.content-scroller {
+  overflow: scroll;
+}
+
+// ============================================================================
+// Scrollbar Hidden (scrollbar sempre nascosta)
+// Quando il body ha la classe scrollbar-hidden, tutte le scrollbar sono nascoste
+// ============================================================================
+
+body.scrollbar-hidden {
+  &::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  // Firefox
+  scrollbar-width: none;
+  * {
+    scrollbar-width: none;
+  }
+}
+
+// ============================================================================
+// Scrollbar Hide on Idle (visibile solo al passaggio del mouse)
+// Quando il body ha la classe scrollbar-hide-on-idle, tutte le scrollbar
+// sono nascoste e diventano visibili al movimento del mouse
+// ============================================================================
+
+body.scrollbar-hide-on-idle {
+  // Nascondi tutte le scrollbar globali
+  &::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-thumb {
+    background: transparent !important;
+    border-color: transparent !important;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  &::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-track {
+    background: transparent !important;
+    transition: background 0.3s ease;
+  }
+
+  // Mostra scrollbar quando ha la classe .scrollbar-visible
+  &.scrollbar-visible {
+    &::-webkit-scrollbar-thumb,
+    *::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-color-thumb) !important;
+      border-color: var(--scrollbar-color-border) !important;
+    }
+
+    &::-webkit-scrollbar-track,
+    *::-webkit-scrollbar-track {
+      background: var(--scrollbar-color-track) !important;
+    }
+  }
+}

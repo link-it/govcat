@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -92,6 +92,16 @@ public abstract class AbstractControllerAdvisor extends ResponseEntityExceptionH
 
 	@ExceptionHandler({InternalException.class, ServiceException.class})
 	public final ResponseEntity<Object> handleAllInternalExceptions(InternalException ex, WebRequest request) {
+		return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	/**
+	 * Handler generico per tutte le eccezioni non gestite.
+	 * Restituisce 500 Internal Server Error per evitare che eccezioni non gestite
+	 * vengano interpretate dalla security filter chain come errori di autenticazione.
+	 */
+	@ExceptionHandler(Exception.class)
+	public final ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
 		return toEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 

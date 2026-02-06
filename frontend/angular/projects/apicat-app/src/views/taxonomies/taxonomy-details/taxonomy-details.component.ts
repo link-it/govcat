@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -10,6 +28,7 @@ import { Tools } from '@linkit/components';
 import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+import { NavigationService } from '@app/services/navigation.service';
 
 import { Taxonomy } from './taxonomy';
 
@@ -65,7 +84,8 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
     public tools: Tools,
     public eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    public utils: UtilService
+    public utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
@@ -299,7 +319,8 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
     this.router.navigate([event.url]);
   }
 
-  _onCategory() {
-    this.router.navigate([`/${this.model}/${this.id}/categorie`]);
+  _onCategory(event?: MouseEvent) {
+    const route = [this.model, this.id, 'categorie'];
+    this.navigationService.navigateWithEvent(event, route);
   }
 }

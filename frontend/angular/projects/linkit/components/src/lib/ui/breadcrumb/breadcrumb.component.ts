@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 
 import { BreadcrumbService } from './breadcrumb.service';
@@ -63,7 +81,16 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
     }
   }
 
-  _onClick(item: any) {
+  _onClick(event: MouseEvent, item: any) {
+    // Supporto apertura in nuova scheda con Ctrl+Click, Cmd+Click o middle-click
+    const shouldOpenInNewTab = event.ctrlKey || event.metaKey || event.button === 1;
+    if (shouldOpenInNewTab && item.url && item.url !== '' && item.url !== 'root') {
+      event.preventDefault();
+      event.stopPropagation();
+      window.open(item.url, '_blank');
+      return;
+    }
+
     if (item.group) {
       this._onGoupsBreadcrumbs(item);
       this.onClick.emit(item);

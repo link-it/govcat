@@ -1,14 +1,29 @@
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction } from '@linkit/components';
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent } from '@linkit/components';
 import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -16,17 +31,14 @@ import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
 
-import { AllegatoComponent } from '@linkit/components';
-
 import { ServizioApiCreate } from './servizio-api-create';
 
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
+import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 import { Grant } from '@app/model/grant';
-import { EventType } from '@linkit/components';
 
 import * as _ from 'lodash';
-import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 declare const saveAs: any;
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
@@ -52,7 +64,7 @@ export type GruppiCampi = Record<string, Campo[]>;
     styleUrls: ['servizio-api-details.component.scss'],
     standalone: false
 })
-export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioApiDetailsComponent';
     readonly model: string = 'api';
 
@@ -184,12 +196,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     hideVersions: boolean = false;
 
     constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private formBuilder: FormBuilder,
-        private translate: TranslateService,
-        private modalService: BsModalService,
-        private configService: ConfigService,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
+        private readonly formBuilder: FormBuilder,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
         public tools: Tools,
         public eventsManagerService: EventsManagerService,
         public utilsLib: UtilsLib,
@@ -198,7 +210,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         public authenticationService: AuthenticationService
     ) {
         this.route.data.subscribe((data) => {
-        if (!data.componentBreadcrumbs) return;
+            if (!data.componentBreadcrumbs) return;
             this._componentBreadcrumbs = data.componentBreadcrumbs;
             this._initBreadcrumb();
         });
@@ -214,11 +226,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this._adesioniMultiple = _srv ? _srv.adesioni_multiple : false;
         this._richiesteEnabled = this._apiMultiple;
         this._risposteEnabled = this._apiMultiple;
-        this._codiceAssetObbligatorio = (_srv && _srv.api) ? _srv.api.codice_asset_obbligatorio : false;
-        this._specificaObbligatorio = (_srv && _srv.api) ? _srv.api.specifica_obbligatorio : false;
-        this._authTypes = (_srv && _srv.api) ? _srv.api.auth_type : [];
-        this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
-        this._info_gateway_visualizzate = (_srv && _srv.api) ? _srv.api.info_gateway_visualizzate : false;
+        this._codiceAssetObbligatorio = (_srv?.api) ? _srv.api.codice_asset_obbligatorio : false;
+        this._specificaObbligatorio = (_srv?.api) ? _srv.api.specifica_obbligatorio : false;
+        this._authTypes = (_srv?.api) ? _srv.api.auth_type : [];
+        this._profili = (_srv?.api) ? _srv.api.profili : [];
+        this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
         this._pdnd = Tools.Configurazione?.pdnd || null;
     }
 
@@ -237,43 +249,44 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     this.id = params['aid'];
                     this._isDetails = true;
                     this.configService.getConfig('api').subscribe(
-                        (config: any) => {
-                        this.config = config;
-                        this._singleColumn = config.editSingleColumn || false;
-                        this._showAllAttachments = config.showAllAttachments || false;
-                        if (!this.service) {
-                            this._loadAll();
-                        } else {
-                            this._initBreadcrumb();
-                            this._initRuoli();
-                            this._initOtherActionMenu();
-            
-                            if (this.servizioApi) {
-                                this.eventsManagerService.broadcast('INIT_DATA');
+                            (config: any) => {
+                                this.config = config;
+                                this._singleColumn = config.editSingleColumn || false;
+                                this._showAllAttachments = config.showAllAttachments || false;
+                                if (!this.service) {
+                                    this._loadAll();
+                                } else {
+                                    this._initBreadcrumb();
+                                    this._initRuoli();
+                                    this._initOtherActionMenu();
+                    
+                                    if (this.servizioApi) {
+                                        this.eventsManagerService.broadcast('INIT_DATA');
+                                    }
+                                    this._updateMapper = new Date().getTime().toString();
+                                    this._loadServiceApi();
+                                }
                             }
-                            this._updateMapper = new Date().getTime().toString();
-                            this._loadServiceApi();
-                        }
-                        }
-                    );
-                } else {
-                    this.configService.getConfig('api').subscribe(
-                        (config: any) => {
-                            this.config = config;
-                            this._singleColumn = config.editSingleColumn || false;
-                            this._isNew = true;
-                            this._isEdit = true;
+                        );
+                    } else {
+                        this.configService.getConfig('api').subscribe(
+                            (config: any) => {
+                                this.config = config;
+                                this._singleColumn = config.editSingleColumn || false;
+                                this._isNew = true;
+                                this._isEdit = true;
 
-                            if (!this.service) {
-                                this._loadServizio();
+                                if (!this.service) {
+                                    this._loadServizio();
+                                }
+                                this._servizioApiCreate.id_servizio = this.sid;
+                                this._initForm({ ...this._servizioApiCreate });
                             }
-                            this._servizioApiCreate.id_servizio = this.sid;
-                            this._initForm({ ...this._servizioApiCreate });
-                        }
-                    );
+                        );
+                    }
                 }
             }
-        });
+        );
 
         this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
             const _srv: any = Tools.Configurazione?.servizio;
@@ -281,16 +294,13 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             this._adesioniMultiple = _srv ? _srv.adesioni_multiple : false;
             this._richiesteEnabled = this._apiMultiple;
             this._risposteEnabled = this._apiMultiple;
-            this._codiceAssetObbligatorio = (_srv && _srv.api) ? _srv.api.codice_asset_obbligatorio : false;
-            this._specificaObbligatorio = (_srv && _srv.api) ? _srv.api.specifica_obbligatorio : false;
-            this._authTypes = (_srv && _srv.api) ? _srv.api.auth_type : [];
-            this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
-            this._info_gateway_visualizzate = (_srv && _srv.api) ? _srv.api.info_gateway_visualizzate : false;
+            this._codiceAssetObbligatorio = (_srv?.api) ? _srv.api.codice_asset_obbligatorio : false;
+            this._specificaObbligatorio = (_srv?.api) ? _srv.api.specifica_obbligatorio : false;
+            this._authTypes = (_srv?.api) ? _srv.api.auth_type : [];
+            this._profili = (_srv?.api) ? _srv.api.profili : [];
+            this._info_gateway_visualizzate = (_srv?.api) ? _srv.api.info_gateway_visualizzate : false;
             this._pdnd = Tools.Configurazione?.pdnd || null;
         });
-    }
-
-    ngOnDestroy() {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -395,7 +405,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
             this._formGroup = new FormGroup(_group);
 
-            if (this.servizioApi?.configurazione_collaudo && this.servizioApi?.configurazione_collaudo?.protocollo) {
+            if (this.servizioApi?.configurazione_collaudo?.protocollo) {
                 this._formGroup.get('protocollo')?.setValue(this.servizioApi.configurazione_collaudo.protocollo);
             }
         }
@@ -408,9 +418,14 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this._descrittoreCtrl.setValidators([Validators.required]);
             } else {
                 this._descrittoreCtrl.clearValidators();
+                // Se la specifica viene disabilitata e il protocollo è già selezionato,
+                // inizializza l'array di autenticazione
+                const controls = this._formGroup.controls;
+                if (controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
+                    this._setAuthsArrayWithoutSpecification();
+                }
             }
             this._descrittoreCtrl.updateValueAndValidity();
-            // this.__protocolloChange();
             this.__descrittoreChange(null);
         }, 100);
     }
@@ -428,7 +443,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 next: (response: any) => {
                     this.id = response.id_api;
                     this.servizioApiResponse = JSON.parse(JSON.stringify(response));
-                    this.servizioApi = response; // new ServizioApi({ ...response });
+                    this.servizioApi = response;
                     this._servizioApi = new ServizioApiCreate({ ...response });
                     this._initBreadcrumb();
                     this._isEdit = false;
@@ -508,24 +523,41 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
 
         if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
-            _newBody.proprieta_custom = [];
-            Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
-                // Use nome_gruppo from the first item in the group instead of the grouping key
-                const firstItem = this._apiProprietaCustomGrouped[k][0];
-                const _customGrouped: ApiCustomProperty = {
-                    gruppo: firstItem.nome_gruppo,
-                    proprieta: []
-                };
-                this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
-                        _customGrouped.proprieta.push({
-                            nome: kk.nome,
-                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
-                        });
+            // Raggruppa le proprietà per nome_gruppo (non per label_gruppo)
+            // Questo gestisce correttamente il caso in cui proprietà con lo stesso label_gruppo
+            // abbiano diversi nome_gruppo (es: PDNDCollaudo e PDNDCollaudo_identificativo)
+            const risultato: Record<string, { nome: string; valore: string }[]> = {};
+
+            Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
+                this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
+                    // Cerca il valore usando il nome_gruppo specifico della proprietà
+                    const valoriGruppo = body.proprieta_custom?.[campo.nome_gruppo];
+                    if (!valoriGruppo) return;
+
+                    const nome = campo.nome;
+                    const valore = valoriGruppo[nome];
+
+                    // Salta valori non validi
+                    const valoreNonValido =
+                        valore === undefined ||
+                        valore === null ||
+                        (typeof valore === 'string' && valore.trim() === '') ||
+                        (typeof valore === 'number' && Number.isNaN(valore));
+
+                    if (valoreNonValido) return;
+
+                    // Raggruppa per nome_gruppo nel risultato
+                    if (!risultato[campo.nome_gruppo]) {
+                        risultato[campo.nome_gruppo] = [];
                     }
+                    risultato[campo.nome_gruppo].push({ nome, valore });
                 });
-                _newBody.proprieta_custom.push(_customGrouped);
             });
+
+            _newBody.proprieta_custom = Object.entries(risultato).map(([gruppo, proprieta]) => ({
+                gruppo,
+                proprieta
+            }));
         }
 
         return _newBody;
@@ -539,7 +571,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             (response: any) => {
                 this._isEdit = !this._closeEdit;
                 this.servizioApiResponse = JSON.parse(JSON.stringify(response));
-                this.servizioApi = response; // new ServizioApi({ ...response });
+                this.servizioApi = response;
                 this._servizioApi = new ServizioApiCreate({ ...response });
                 this.id = response.id_api;
                 this.save.emit({ id: this.id, servizioApiapi: response, update: true });
@@ -620,7 +652,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _getGroupNameByLabel(group: any) {
         const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
         }
@@ -643,20 +675,20 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _deleteServiceApi(data: any) {
-        this.apiService.deleteElement(this.model, this.servizioApi?.id_api || null).subscribe(
-            (response) => {
+        this.apiService.deleteElement(this.model, this.servizioApi?.id_api || null).subscribe({
+            next: (response) => {
                 if (this._componentBreadcrumbs) {
                     this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api']);
                 } else {
                     this.router.navigate(['servizi', this.sid, 'api']);
                 }
             },
-            (error) => {
+            error: (error) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._errors = error.error.errori || [];
             }
-        );
+        });
     }
 
     _initRuoli() {
@@ -801,13 +833,19 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _versione: string = this.service ? this.service.versione : null;
         const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
         const _api = this.servizioApi;
-        const _titleAPI = _api ? `${_api.nome} v. ${_api.versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+        const _titleAPI = _api
+            ? (this.hideVersions ? _api.nome : `${_api.nome} v. ${_api.versione}`)
+            : (this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New'));
 
-        let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+        let title = this.hideVersions
+            ? (_nome || this.id || '...')
+            : ((_nome && _versione) ? `${_nome} v. ${_versione}` : (this.id || '...'));
         let baseUrl = `/servizi`;
 
         if (this._componentBreadcrumbs) {
-            title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+            title = this.hideVersions
+                ? (_nome || this.id || '...')
+                : ((_nome && _versione) ? `${_nome} v. ${_versione}` : (this.id || '...'));
             baseUrl = `/servizi/${this._componentBreadcrumbs.service.id_servizio}/componenti`;
         }
 
@@ -960,6 +998,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         _mandatoryFields.forEach((field: string) => {
             if (controls[field]) {
                 controls[field].setValidators([Validators.required]);
+                // Forza l'aggiornamento per triggerare statusChanges e aggiornare l'asterisco
+                controls[field].updateValueAndValidity();
             }
         });
 
@@ -970,7 +1010,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 }
             });
         }
-        
+
         this._formGroup.updateValueAndValidity();
     }
 
@@ -978,6 +1018,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.__disableUrlFields(controls);
         controls.authTypes.disable();
         controls.authTypes.clearValidators();
+        controls.authTypes.updateValueAndValidity();
         this._formGroup.updateValueAndValidity();
     }
 
@@ -985,9 +1026,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         controls.url_produzione.setValue(null);
         controls.url_produzione.disable();
         controls.url_produzione.clearValidators();
+        controls.url_produzione.updateValueAndValidity();
         controls.url_collaudo.setValue(null);
         controls.url_collaudo.disable();
         controls.url_collaudo.clearValidators();
+        controls.url_collaudo.updateValueAndValidity();
         this._formGroup.updateValueAndValidity();
     }
 
@@ -1170,7 +1213,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _hasControlCustomPropertiesValue(name: string, index: number) {
-        return (this.cfgc(index)[name] && this.cfgc(index)[name].value);
+        return this.cfgc(index)[name]?.value;
     }
 
     // customFormGroup
@@ -1417,10 +1460,26 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             const _profile = this._profili.find((item: any) => item.codice_interno === auth.profilo);
             if (_profile.auth_type.includes('pdnd')) {
                 if (this.servizioApi?.proprieta_custom?.length) {
-                    _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione');
+                    // Cerca nei gruppi con suffisso _identificativo (nuova convenzione)
+                    _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione_identificativo');
                     if (_index !== -1) {
                         const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
                         _hasPDND = _property ? !!_property.valore : false;
+                    }
+                    if (!_hasPDND) {
+                        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDCollaudo_identificativo');
+                        if (_index !== -1) {
+                            const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
+                            _hasPDND = _property ? !!_property.valore : false;
+                        }
+                    }
+                    // Fallback: cerca nei gruppi senza suffisso (vecchia convenzione per retrocompatibilità)
+                    if (!_hasPDND) {
+                        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDProduzione');
+                        if (_index !== -1) {
+                            const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
+                            _hasPDND = _property ? !!_property.valore : false;
+                        }
                     }
                     if (!_hasPDND) {
                         _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === 'PDNDCollaudo');
@@ -1480,7 +1539,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _getGroupLabelMapper = (group: any): string => {
         const _srv: any = Tools.Configurazione?.servizio;
-        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
         }
@@ -1501,7 +1560,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _srv: any = Tools.Configurazione?.servizio;
         const profili: Profile[] = _srv.api?.profili.filter((p: any) => profiles.includes(p.codice_interno));
 
-        let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
+        let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom.filter((p: any) => p.classe_dato !== 'produzione') : [];
 
         if (!this._isNew){
             _proprietaCustom = _proprietaCustom.filter((p: any) => p.classe_dato !== 'collaudo');
@@ -1623,7 +1682,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
         const _srv: any = Tools.Configurazione?.servizio;
-        const _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+        const _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
         const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group);
         const _pItem = _group.proprieta.find((item: any) => item.nome === name);
         const _label = _pItem.valori.find((item: any) => item.nome === cod)?.etichetta;
@@ -1704,10 +1763,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             case 'download_service_api':
                 this._downloadServizioApiExport();
                 break;
-            case 'backview':
+            case 'backview': {
                 const url = `/servizi/${this.service.id_servizio}/view`;
                 this.router.navigate([url]);
                 break;
+            }
             default:
                 break;
         }
@@ -1723,7 +1783,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     _nessuno = false
                 }
             });
-            (_nessuno == true) ? console.log('NESSUN CAMPO OBBLIGATORIO') : null;
+            if (_nessuno) {
+                console.log('NESSUN CAMPO OBBLIGATORIO');
+            }
             console.groupEnd();
         }
     }

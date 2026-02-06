@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -124,6 +142,8 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
 
   currTab: string = TabType.REFERENTI;
 
+  hideVersions: boolean = false;
+
   TabType = TabType;
 
   constructor(
@@ -145,6 +165,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     });
 
     this.config = this.configService.getConfiguration();
+    this.hideVersions = this.config?.AppConfig?.Services?.hideVersions || false;
 
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
@@ -196,7 +217,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     const _versione: string = this.service ? this.service.versione : null;
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     
-    let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    let title = (_nome && _versione) ? (this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}`) : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     let baseUrl = `/${this.model}`;
 
     if (this._componentBreadcrumbs) {

@@ -1,3 +1,21 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <div class="layout-page login-page">
   <div class="page-wrap">
     <header class="navbar fixed-top navbar-empty" *ngIf="_version == 'v1'">
@@ -148,7 +166,7 @@
                 <div class="gl-px-5" *ngIf="auth.enabled">
                   <button type="button" class="gl-button btn btn-block btn-default" (click)="logidWithUrlAction(auth)">
                     <i class="bi bi-{{ auth.icon }} me-2" *ngIf="auth.icon"></i>
-                    <img class="me-2" width="16" height="16" [src]="'./assets/images/' + auth.image" *ngIf="auth.image && !auth.icon">
+                    <img class="me-2" alt="Logo {{ auth.label | translate }}" width="16" height="16" [src]="'./assets/images/' + auth.image" *ngIf="auth.image && !auth.icon">
                     <span>{{ auth.label | translate }}</span>
                   </button>
                 </div>

@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -17,6 +35,7 @@ import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { EventType } from '@linkit/components';
+import { NavigationService } from '@app/services/navigation.service';
 import { Page} from '../../models/page';
 
 import * as moment from 'moment';
@@ -119,7 +138,8 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService
+    private utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -260,12 +280,21 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
       if (this.searchBarForm) {
         this.searchBarForm._pinLastSearch();
       }
-      
-      this.router.navigate([this.model, param.source.id_client]);
+      // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+      const mouseEvent = this.navigationService.extractEvent(event);
+      const data = this.navigationService.extractData(param) || param;
+      const route = [this.model, data.source.id_client];
+      this.navigationService.navigateWithEvent(mouseEvent, route);
     } else {
       this._isEdit = true;
       this._editCurrent = param;
     }
+  }
+
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const route = [this.model, data.source.id_client];
+    this.navigationService.openInNewTab(route);
   }
 
   _onCloseEdit() {

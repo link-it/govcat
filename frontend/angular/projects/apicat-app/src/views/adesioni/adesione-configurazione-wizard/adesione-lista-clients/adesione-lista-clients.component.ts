@@ -1,16 +1,31 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools } from '@linkit/components';
+import { EventsManagerService, Tools, EventType } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService } from '@linkit/components';
-
-import { EventType } from '@linkit/components';
+import { UtilService, Certificato } from '@app/services/utils.service';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { TipoClientEnum, SelectedClientEnum, StatoConfigurazioneEnum } from '../../adesione-configurazioni/adesione-configurazioni.component';
@@ -18,14 +33,12 @@ import { AmbienteEnum } from '@app/model/ambienteEnum';
 
 import { PeriodEnum, Datispecifici, DatiSpecItem, CommonName, DoubleCert } from '../../adesione-configurazioni/datispecifici';
 
-import { Subscription, expand, map, reduce } from 'rxjs';
+import { expand, map, reduce } from 'rxjs';
 
 declare const saveAs: any;
 import * as _ from 'lodash';
 
-import { CkeckProvider } from '@app/provider/check.provider';
-import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
-import { Certificato } from '@app/services/utils.service';
+import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 
 @Component({
     selector: 'app-adesione-lista-clients',
@@ -63,13 +76,13 @@ export class AdesioneListaClientsComponent implements OnInit {
     debugMandatoryFields: boolean = false;
 
     constructor(
-        private modalService: BsModalService,
-        private translate: TranslateService,
-        private apiService: OpenAPIService,
-        private authenticationService: AuthenticationService,
-        private utils: UtilService,
-        private eventsManagerService: EventsManagerService,
-        private ckeckProvider: CkeckProvider
+        private readonly modalService: BsModalService,
+        private readonly translate: TranslateService,
+        private readonly apiService: OpenAPIService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly utils: UtilService,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly ckeckProvider: CkeckProvider
     ) { }
 
     ngOnInit() {
@@ -103,7 +116,6 @@ export class AdesioneListaClientsComponent implements OnInit {
     private loadAdesioneClients(environment: string, ignoreSpin: boolean = false) {
         const _configGenerale = Tools.Configurazione;
 
-        // this._setErrorMessages(false);
         if (this.id) {
             this.spin = ignoreSpin ? false : true;
             if (!ignoreSpin) { this.adesioneClients = []; }
@@ -188,7 +200,6 @@ export class AdesioneListaClientsComponent implements OnInit {
                     this.spin = false;
                 },
                 error: (error: any) => {
-                    // this._setErrorMessages(true);
                     this.spin = false;
                 }
             });
@@ -200,11 +211,36 @@ export class AdesioneListaClientsComponent implements OnInit {
     }
 
     getSottotipoGroupCompletedMapper = (update: string, tipo: string): number => {
+        // Caso 1: Skip collaudo attivo e ambiente è Collaudo - mostra grigio (non applicabile)
+        if (this.environment === AmbienteEnum.Collaudo && this.adesione?.skip_collaudo) {
+            return 2; // grigio - non applicabile
+        }
+
+        // Caso 2: Siamo in fase di collaudo e ambiente è Produzione - mostra grigio (non ancora applicabile)
+        if (this.environment === AmbienteEnum.Produzione && this._isInCollaudoPhase()) {
+            return 2; // grigio - non ancora applicabile
+        }
+
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
             return this._hasCambioStato() ? 0 : 1;
         }
+    }
+
+    /**
+     * Verifica se l'adesione è nella fase di collaudo (cioè non ancora passata alla produzione)
+     */
+    _isInCollaudoPhase(): boolean {
+        const collaudoStates = [
+            'bozza',
+            'richiesto_collaudo',
+            'autorizzato_collaudo',
+            'in_configurazione_collaudo',
+            'in_configurazione_automatica_collaudo',
+            'in_configurazione_manuale_collaudo'
+        ];
+        return !this.adesione?.skip_collaudo && collaudoStates.includes(this.adesione?.stato);
     }
 
     isSottotipoGroupCompletedMapper = (update: string, tipo: string): boolean => {
@@ -446,7 +482,6 @@ export class AdesioneListaClientsComponent implements OnInit {
                 error: (error: any) => {
                     this._error = true;
                     this._errorMsg = this.utils.GetErrorMsg(error);
-                    // this.closeModal();
                 }
             });
         }
@@ -684,7 +719,6 @@ export class AdesioneListaClientsComponent implements OnInit {
             if (this._generalConfig.adesione.visualizza_elenco_client_esistenti) {
                 this._loadClientsRiuso(auth_type, organizzazione, ambiente, true);
             } else {
-                // this._arr_clients_riuso.unshift({'nome': this.translate.instant('APP.ADESIONI.LABEL.ScegliCredenziali'), 'id_client': ''});
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.NuoveCredenziali'), 'id_client': SelectedClientEnum.NuovoCliente});
                 this._arr_clients_riuso.push({'nome': this.translate.instant('APP.ADESIONI.LABEL.UsaClientEsistente'), 'id_client': SelectedClientEnum.UsaClientEsistente});
                 if (this.authenticationService.isGestore()) {
@@ -843,7 +877,9 @@ export class AdesioneListaClientsComponent implements OnInit {
     onChangeTipoCertificato(event: any) {
         const controls = this._editFormGroupClients.controls;
 
-        (Object.keys(controls).length > 0) ? this._resetUploadCertificateComponents(controls) : null;
+        if (Object.keys(controls).length > 0) {
+            this._resetUploadCertificateComponents(controls);
+        }
 
         if (event) {
             switch (event.nome) {
@@ -1368,7 +1404,9 @@ export class AdesioneListaClientsComponent implements OnInit {
     onChangeTipoCertificatoFirma(event: any) {
         const controls = this._editFormGroupClients.controls;
 
-        (Object.keys(controls).length > 0) ? this._resetUploadCertificateComponentsFirma(controls) : null;
+        if (Object.keys(controls).length > 0) {
+            this._resetUploadCertificateComponentsFirma(controls);
+        }
         
         if (event) {
             switch (event.nome) {
@@ -1472,11 +1510,9 @@ export class AdesioneListaClientsComponent implements OnInit {
     }
 
     _downloadAllegato(data: any) {
-        // const _data = data.source;
         this._downloading = true;
 
         let _ambiente: string = this.environment;
-        // this._collaudo ? _ambiente = 'collaudo' : _ambiente = 'produzione';
         
         const _partial = `${_ambiente}/client/${data.uuid}/download`;
         this.apiService.download(this.model, this.id, _partial).subscribe({
@@ -1728,11 +1764,11 @@ export class AdesioneListaClientsComponent implements OnInit {
         // se NON è presente id_client ==> devo registrare un nuovo client
 
             const id_adesione: string = this.adesione.id_adesione;
-            const ambiente: string = this.environment; // this._collaudo ? 'collaudo' : 'produzione';
+            const ambiente: string = this.environment;
             const profilo: string = this._codice_interno_profilo;
             const path: string = `${ambiente}` + '/client/' + `${profilo}`;
             
-            _payload.ambiente = this.environment; // this._collaudo ? 'collaudo' : 'produzione';
+            _payload.ambiente = this.environment;
             _payload.nome = _nome;
             _payload.dati_specifici = _datiSpecifici;
             

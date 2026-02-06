@@ -1,0 +1,36 @@
+<div class="step-content">
+  <div class="success-icon">
+    <i class="bi bi-check-circle-fill"></i>
+  </div>
+
+  <div class="welcome-message">
+    <h2>{{ 'APP.REGISTRAZIONE.TITLE.Benvenuto' | translate }}{{ nome ? ', ' + nome : '' }}!</h2>
+    <p>{{ 'APP.REGISTRAZIONE.MESSAGE.RegistrazioneCompletata' | translate }}</p>
+    <p class="text-muted">{{ 'APP.REGISTRAZIONE.MESSAGE.CosaFare' | translate }}</p>
+  </div>
+
+  <ul class="list-unstyled mt-4 mb-4 text-start">
+    <li class="d-flex align-items-start mb-3">
+      <i class="bi bi-search text-primary me-3 mt-1"></i>
+      <span>{{ 'APP.REGISTRAZIONE.MESSAGE.PuoiEsplorare' | translate }}</span>
+    </li>
+    <li class="d-flex align-items-start mb-3">
+      <i class="bi bi-plus-circle text-primary me-3 mt-1"></i>
+      <span>{{ 'APP.REGISTRAZIONE.MESSAGE.PuoiRichiedere' | translate }}</span>
+    </li>
+    <li class="d-flex align-items-start mb-3">
+      <i class="bi bi-bell text-primary me-3 mt-1"></i>
+      <span>{{ 'APP.REGISTRAZIONE.MESSAGE.RiceveraiNotifiche' | translate }}</span>
+    </li>
+  </ul>
+
+  <div class="actions">
+    <lnk-button
+      [label]="'APP.REGISTRAZIONE.BUTTON.VaiAlCatalogo'"
+      [icon]="'bi bi-grid-3x3-gap'"
+      [primary]="true"
+      [otherClass]="'w-100'"
+      (onAction)="onVaiAlCatalogo()">
+    </lnk-button>
+  </div>
+</div>

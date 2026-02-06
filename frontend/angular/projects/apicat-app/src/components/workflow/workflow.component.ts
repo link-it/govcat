@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 import { Grant } from '@app/model/grant';
@@ -12,12 +30,12 @@ import { AuthenticationService } from '@app/services/authentication.service';
 })
 export class WorkflowComponent implements OnInit {
 
-  @Input('data') data: any = null;
-  @Input('module') module: string = '';
-  @Input('grant') grant: Grant | null = null;
-  @Input('config') config: any = null;
-  @Input('workflow') workflow: any = null;
-  @Input('showStatus') showStatus: boolean = false;
+  @Input() data: any = null;
+  @Input() module: string = '';
+  @Input() grant: Grant | null = null;
+  @Input() config: any = null;
+  @Input() workflow: any = null;
+  @Input() showStatus: boolean = false;
 
   @Output() action: EventEmitter<any> = new EventEmitter();
   
@@ -31,7 +49,7 @@ export class WorkflowComponent implements OnInit {
       ruoli_abilitati: []
     };
 
-  constructor(private authenticationService: AuthenticationService) { }
+  constructor(private readonly authenticationService: AuthenticationService) { }
 
   ngOnInit() {
     this._currentStatus = this.data.stato;
@@ -56,6 +74,10 @@ export class WorkflowComponent implements OnInit {
     return this.authenticationService.isGestore(this.grant?.ruoli);
   }
 
+  canArchiviare() {
+    return this.authenticationService.canArchiviare(this.module, this.data.stato, this.grant?.ruoli);
+  }
+
   _isActionEnabledMapper = (type: string, statusName: string = ''): boolean => {
     return this.authenticationService.canChangeStatus(this.module, this.data.stato, type, this.grant?.ruoli, statusName);
   }
@@ -64,11 +86,16 @@ export class WorkflowComponent implements OnInit {
     return this.authenticationService.isGestore(this.grant?.ruoli);
   }
 
+  _canArchiviareMapper = (): boolean => {
+    return this.authenticationService.canArchiviare(this.module, this.data.stato, this.grant?.ruoli);
+  }
+
   _hasActions() {
     if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
     const _statoPrecedetene: boolean = this.authenticationService.canChangeStatus(this.module, this.data.stato, 'stato_precedente', this.grant?.ruoli);
     const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus(this.module, this.data.stato, 'stato_successivo', this.grant?.ruoli);
     const _statiUlteriori: boolean = this.authenticationService.canChangeStatus(this.module, this.data.stato, 'stati_ulteriori', this.grant?.ruoli);
-    return (_statoPrecedetene || _statoSuccessivo || _statiUlteriori);
+    const _canArchiviare: boolean = this.authenticationService.canArchiviare(this.module, this.data.stato, this.grant?.ruoli);
+    return (_statoPrecedetene || _statoSuccessivo || _statiUlteriori || _canArchiviare);
   }
 }

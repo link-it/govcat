@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -44,6 +44,7 @@ import org.govway.catalogo.assembler.ItemMessaggioAdesioneAssembler;
 import org.govway.catalogo.assembler.ReferenteAdesioneAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.AdesioneAuthorization;
+import org.govway.catalogo.controllers.csv.AdesioneCsvBuilder;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
@@ -110,12 +111,14 @@ import org.govway.catalogo.servlets.model.StatoConfigurazioneAutomaticaEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.TipoComunicazione;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
+import org.govway.catalogo.servlets.model.VisibilitaRichiedenteReferentiEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -182,7 +185,10 @@ public class AdesioniController implements AdesioniApi {
 	private NotificaService notificaService;   
 
 	@Autowired
-	private EntityManager entityManager;   
+	private EntityManager entityManager;
+
+	@Autowired
+	private AdesioneCsvBuilder adesioneCsvBuilder;
 
 	@Override
 	public ResponseEntity<Adesione> createAdesione(AdesioneCreate adesioneCreate) {
@@ -555,9 +561,18 @@ public class AdesioniController implements AdesioniApi {
 				if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(entity.getStato())) {
 					throw new BadRequestException(ErrorCode.ADE_400_STATE, java.util.Map.of("stato", entity.getStato().toString()));
 				}
+
+				// Determina se mostrare richiedente e referenti nel PDF
+				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
+				// Se il valore è "disabled", non mostra
+				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getAdesione().getMostraRichiedente());
+				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getAdesione().getMostraReferenti());
+
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity));
+					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity, mostraRichiedente, mostraReferenti));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);
@@ -785,6 +800,78 @@ public class AdesioniController implements AdesioniApi {
 			throw new InternalException(ErrorCode.SYS_500);
 		}
 
+	}
+
+	@Override
+	public ResponseEntity<Resource> exportAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
+			UUID idDominio, UUID idServizio, String idLogico, UUID idClient, UUID richiedente, Boolean inAttesa,
+			StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, List<UUID> idAdesioni, String q) {
+		try {
+			this.logger.info("Invocazione in corso ...");
+			this.authorization.authorizeList();
+			this.logger.debug("Autorizzazione completata con successo");
+
+			return this.service.runTransaction( () -> {
+
+				AdesioneSpecification specification = new AdesioneSpecification();
+				specification.setStatoConfigurazione(Optional.ofNullable(statoConfigurazioneAutomatica).map(s -> {
+					switch(s) {
+					case FALLITA: return STATO_CONFIGURAZIONE.FALLITA;
+					case IN_CODA: return STATO_CONFIGURAZIONE.IN_CODA;
+					case KO: return STATO_CONFIGURAZIONE.KO;
+					case OK: return STATO_CONFIGURAZIONE.OK;
+					case RETRY: return STATO_CONFIGURAZIONE.RETRY;
+					}
+					return null;
+				}));
+				specification.setQ(Optional.ofNullable(q));
+				specification.setGruppo(Optional.ofNullable(idGruppo));
+				specification.setDominio(Optional.ofNullable(idDominio));
+				specification.setClient(Optional.ofNullable(idClient));
+
+				if (idAdesioni != null && !idAdesioni.isEmpty()) {
+					specification.setIdAdesioni(idAdesioni);
+				}
+
+				specification.setIdLogico(Optional.ofNullable(idLogico));
+				specification.setIdSoggetto(Optional.ofNullable(idSoggettoAderente));
+				specification.setIdOrganizzazione(Optional.ofNullable(idOrganizzazioneAderente));
+				specification.setIdRichiedente(Optional.ofNullable(richiedente));
+				specification.setIdServizio(Optional.ofNullable(idServizio));
+
+				// Coordinatore e gestore possono esportare tutte le adesioni
+				// I referenti possono esportare solo le adesioni dei propri servizi
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
+				boolean isWhiteListed = this.coreAuthorization.isWhiteListed();
+
+				if(!admin && !isWhiteListed) {
+					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
+				}
+
+				specification.setStati(stato);
+
+				List<AdesioneEntity> findAll = this.service.findAll(
+						specification,
+						Pageable.unpaged()
+						).toList();
+
+				byte[] csv = this.adesioneCsvBuilder.getCSV(findAll);
+
+				Resource resource = new ByteArrayResource(csv);
+				this.logger.info("Invocazione completata con successo");
+				return ResponseEntity.status(HttpStatus.OK)
+						.header("Content-Disposition", "attachment; filename=adesioni.csv")
+						.body(resource);
+
+			});
+		} catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 
 	@Override

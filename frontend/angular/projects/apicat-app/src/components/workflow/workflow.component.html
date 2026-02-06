@@ -1,3 +1,21 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
   <button aria-haspopup="true" aria-expanded="false" type="button" [tooltip]="(showStatus ? 'APP.TOOLTIP.ChangeStatus' : '') | translate" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="workflow_actions" [style.background-color]="showStatus ? _configStatus.background : ''" [style.color]="showStatus ? _configStatus.color : ''" [disabled]="!_hasActions()">
     <i class="bi bi-node-plus"></i>
@@ -5,7 +23,7 @@
     <span class="ms-2 d-none d-md-block" *ngIf="!showStatus">{{ 'APP.BUTTON.ChangeStatus' | translate }}</span>
     <i class="bi bi-chevron-down ms-2"></i>
   </button>
-  <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+  <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
     <div class="gl-new-dropdown-inner">
       <div class="gl-new-dropdown-contents" *ngIf="_currentStatus !== _statoArchiviato.nome">
         <ng-container *ngIf="_cambioStato.stato_precedente">
@@ -22,7 +40,7 @@
         </ng-container>
         <ng-container *ngIf="_cambioStato.stato_successivo">
           <li class="gl-new-dropdown-divider" *ngIf="_cambioStato.stato_precedente">
-            <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+            <hr class="dropdown-divider">
           </li>
           <li class="gl-new-dropdown-item">
             <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _cambioStato.stato_successivo);" [disabled]="!('stato_successivo' | mapper:_isActionEnabledMapper)">
@@ -37,7 +55,7 @@
         </ng-container>
         <ng-container *ngIf="_cambioStato.stati_ulteriori.length">
           <li class="gl-new-dropdown-divider">
-            <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+            <hr class="dropdown-divider">
           </li>
           <li class="gl-new-dropdown-item" *ngFor="let status of _cambioStato.stati_ulteriori">
             <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', status);" [disabled]="!('stati_ulteriori' | mapper:_isActionEnabledMapper:status.nome)">
@@ -51,21 +69,24 @@
             </button>
           </li>
         </ng-container>
-        <ng-container *ngIf="isGestore()">
-          <li class="gl-new-dropdown-divider">
-            <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
-          </li>
-          <li class="gl-new-dropdown-item archiviato">
-            <button role="menuitem" type="button" class="dropdown-item" (click)="onAction('change', _statoArchiviato);" [disabled]="!('' | mapper:_isGestoreMapper)">
-              <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
-                <i class="bi bi-archive"></i>
-              </div>
-              <div class="gl-new-dropdown-item-text-wrapper">
-                <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + _statoArchiviato.nome | translate }}</p>
-              </div>
-            </button>
-          </li>
-        </ng-container>
+        <li class="gl-new-dropdown-divider">
+          <hr class="dropdown-divider">
+        </li>
+        <li class="gl-new-dropdown-item archiviato d-flex align-items-center">
+          <button role="menuitem" type="button" class="dropdown-item"
+                  (click)="onAction('change', _statoArchiviato);"
+                  [disabled]="!canArchiviare()">
+            <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+              <i class="bi bi-archive"></i>
+            </div>
+            <div class="gl-new-dropdown-item-text-wrapper">
+              <p class="gl-new-dropdown-item-text-primary">{{ 'APP.WORKFLOW.MENU.' + _statoArchiviato.nome | translate }}</p>
+            </div>
+          </button>
+          <i *ngIf="!canArchiviare()"
+            class="bi bi-info-circle text-muted me-2"
+            [tooltip]="'APP.TOOLTIP.CannotArchive' | translate"></i>
+        </li>
       </div>
       <div class="gl-new-dropdown-contents" *ngIf="_currentStatus === _statoArchiviato.nome">
         <li class="gl-new-dropdown-item archiviato">

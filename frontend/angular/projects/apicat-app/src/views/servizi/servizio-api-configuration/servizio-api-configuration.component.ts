@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -154,6 +172,8 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+  hideVersions: boolean = false;
+
   fieldToGroup = 'label_gruppo'; // nome_gruppo | label_gruppo
 
   constructor(
@@ -174,6 +194,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     });
 
     this.config = this.configService.getConfiguration();
+    this.hideVersions = this.config?.AppConfig?.Services?.hideVersions || false;
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
@@ -307,7 +328,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     const _api = this.servizioApi;
     const _titleAPI = _api ? `${_api.nome} v. ${_api.versione}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
 
-    let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : this.id ? `${this.id}` : '...';
+    let title = (_nome && _versione) ? (this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}`) : this.id ? `${this.id}` : '...';
     let baseUrl = `/servizi`;
 
     if (this._componentBreadcrumbs) {

@@ -1,0 +1,50 @@
+<div class="step-content">
+  <h3 class="step-title">{{ 'APP.REGISTRAZIONE.TITLE.ConfermaEmail' | translate }}</h3>
+  <p class="step-description">{{ 'APP.REGISTRAZIONE.MESSAGE.ConfermaEmailDesc' | translate }}</p>
+
+  <!-- Dati utente dal JWT -->
+  <div class="user-info">
+    <div class="info-row" *ngIf="nome || cognome">
+      <span class="info-label">{{ 'APP.LABEL.FullName' | translate }}</span>
+      <span class="info-value">{{ nome }} {{ cognome }}</span>
+    </div>
+    <div class="info-row" *ngIf="codiceFiscale">
+      <span class="info-label">{{ 'APP.LABEL.CodiceFiscale' | translate }}</span>
+      <span class="info-value">{{ codiceFiscale }}</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">{{ 'APP.LABEL.Email' | translate }}</span>
+      <span class="info-value email-highlight" *ngIf="!isEmailMissing">{{ emailJwt }}</span>
+      <span class="info-value text-muted" *ngIf="isEmailMissing">{{ 'APP.REGISTRAZIONE.MESSAGE.EmailNonDisponibile' | translate }}</span>
+    </div>
+  </div>
+
+  <!-- Messaggio specifico quando l'email non è disponibile -->
+  <div class="alert alert-warning" *ngIf="isEmailMissing">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ 'APP.REGISTRAZIONE.MESSAGE.EmailMancante' | translate }}
+  </div>
+
+  <p class="text-center text-muted small" *ngIf="!isEmailMissing">
+    {{ 'APP.REGISTRAZIONE.MESSAGE.ConfermaEmailInfo' | translate }}
+  </p>
+
+  <div class="actions">
+    <lnk-button
+      *ngIf="!isEmailMissing"
+      [label]="'APP.REGISTRAZIONE.BUTTON.ConfermaEProcedi'"
+      [icon]="'bi bi-check-lg'"
+      [primary]="true"
+      [otherClass]="'w-100'"
+      (onAction)="onConferma()">
+    </lnk-button>
+    <lnk-button
+      [label]="isEmailMissing ? 'APP.REGISTRAZIONE.BUTTON.InserisciEmail' : 'APP.REGISTRAZIONE.BUTTON.ModificaEmail'"
+      [icon]="'bi bi-pencil'"
+      [primary]="isEmailMissing"
+      [secondary]="!isEmailMissing"
+      [otherClass]="'w-100'"
+      (onAction)="onModifica()">
+    </lnk-button>
+  </div>
+</div>

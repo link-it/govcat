@@ -1,4 +1,23 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ConfigService } from '@linkit/components';
 import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 
 @Component({
@@ -27,10 +46,15 @@ export class ServiziGroupListCardComponent implements OnInit {
   @Input() groupLabel: string = 'Group';
 
   @Output() simpleClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   logoText: string = '';
+  enableOpenInNewTab: boolean = false;
 
-  constructor(private utilsLib: UtilsLib) { }
+  constructor(
+    private utilsLib: UtilsLib,
+    private configService: ConfigService
+  ) { }
 
   ngOnInit() {
     this.logoText = this.primaryText.slice(0, this.numberCharLogoText);
@@ -38,15 +62,24 @@ export class ServiziGroupListCardComponent implements OnInit {
       this.backColor = '#f1f1f1';
     }
     this.textColor = this.utilsLib.contrast(this.backColor);
+
+    const appConfig = this.configService.getAppConfig();
+    this.enableOpenInNewTab = appConfig?.Layout?.enableOpenInNewTab ?? false;
   }
 
-  onCardClick(event: any) {
-    this.simpleClick.emit(event);
+  onCardClick(event: MouseEvent) {
+    this.simpleClick.emit({ data: this.data, event });
   }
 
-  onImageClick(event: any) {
+  onImageClick(event: MouseEvent) {
     if (this.enabledImageLink) {
-      this.simpleClick.emit(event);
+      this.simpleClick.emit({ data: this.data, event });
     }
+  }
+
+  onOpenInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this.data, event });
   }
 }

@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -5,10 +23,7 @@ import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/fo
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction } from '@linkit/components';
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { MenuAction, ConfigService, EventsManagerService, Tools, EventType } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -21,9 +36,6 @@ import { ServizioCreate, Soggetto } from './servizioCreate';
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-// import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
-
-import { EventType } from '@linkit/components';
 import { Grant } from '@app/model/grant';
 
 declare const saveAs: any;
@@ -506,7 +518,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     case 'descrizione_sintetica':
                         value = data[key] ? data[key] : null;
                         _group[key] = new FormControl(value, [
-                            // Validators.required,
+                            Validators.required,
                             Validators.maxLength(255)
                         ]);
                         break;
@@ -562,9 +574,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         _group[key] = new FormControl(value, []);
                         break;
                     case 'adesione_disabilitata':
-                        boolValue = data[key] ? data[key] : false;
-                        _group[key] = new FormControl(boolValue, []);
-                        break;
                     case 'fruizione':
                         boolValue = data[key] ? data[key] : false;
                         _group[key] = new FormControl(boolValue, []);
@@ -1160,7 +1169,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _nome: string = this.data ? this.data.nome : 'null';
         const _versione: string = this.data ? this.data.versione : null;
 
-        let title = (_nome && _versione) ? `${_nome} v. ${_versione}` : (this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New'));
+        let title = '';
+        if (_nome && _versione) {            
+            title = this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}` ;
+        } else {
+            title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+        }
         let baseUrl = `/${this.model}`;
 
         if (this._componentBreadcrumbs) {
@@ -1183,7 +1197,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _editService() {
-        // this._initForm({ ...this._data });
         this._isEdit = true;
         this._changeEdit(this._isEdit);
         this.__resetError();

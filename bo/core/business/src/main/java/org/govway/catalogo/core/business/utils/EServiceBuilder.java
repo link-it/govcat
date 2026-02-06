@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -43,10 +43,16 @@ import org.govway.catalogo.core.orm.entity.ApiEntity.RUOLO;
 import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.SoggettoEntity;
+import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.stampe.StampePdf;
 import org.govway.catalogo.stampe.model.EService;
+import org.govway.catalogo.stampe.model.ReferentItemType;
+import org.govway.catalogo.stampe.model.ReferentType;
+import org.govway.catalogo.stampe.model.ReferentsType;
 import org.govway.catalogo.stampe.model.EtichetteProfiliType;
 import org.govway.catalogo.stampe.model.EtichetteScopoType;
 import org.govway.catalogo.stampe.model.ProfiliType;
@@ -75,10 +81,14 @@ public class EServiceBuilder {
 	private ConfigurazioneEService configurazione;
 
 	public byte[] getEService(ServizioEntity servizio) throws Exception {
+		return getEService(servizio, true, true);
+	}
+
+	public byte[] getEService(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
 		if(servizio.is_package()) {
-			return getEServicePackage(servizio);
+			return getEServicePackage(servizio, mostraRichiedente, mostraReferenti);
 		} else {
-			return getEServiceServizio(servizio);
+			return getEServiceServizio(servizio, mostraRichiedente, mostraReferenti);
 		}
 	}
 
@@ -88,22 +98,22 @@ public class EServiceBuilder {
         this.addDocumentFilesApi(api.getAllegati(), "", map);
 
         DocumentoEntity specifica = config.getSpecifica();
-        
+
         if(specifica!=null) {
                 map.put(specifica.getFilename(), specifica.getRawData());
         }
-        
+
         return this.mapToZip(map);
 
 	}
 
-	private byte[] getEServiceServizio(ServizioEntity servizio) throws Exception {
+	private byte[] getEServiceServizio(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
 		Map<String, byte[]> map = new HashMap<>();
-		populateEServiceServizio(servizio, map, "");
+		populateEServiceServizio(servizio, map, "", mostraRichiedente, mostraReferenti);
 		return this.mapToZip(map);
 	}
-	
-	private void populateEServiceServizio(ServizioEntity servizio, Map<String, byte[]> map, String prefix) throws Exception {
+
+	private void populateEServiceServizio(ServizioEntity servizio, Map<String, byte[]> map, String prefix, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
 		this.addDocumentFilesServizio(servizio.getAllegati(), prefix, map);
 
 		if(servizio.getApi().isEmpty()) {
@@ -111,17 +121,17 @@ public class EServiceBuilder {
 		}
 
 		for(ApiEntity api: servizio.getApi()) {
-			map.putAll(this.getApiFiles(api, api.getNome()+"_"+api.getVersione() + "/" + prefix, true));
+			map.putAll(this.getApiFiles(api, api.getNome()+"_"+api.getVersione() + "/" + prefix, true, mostraRichiedente, mostraReferenti));
 		}
 	}
-	
-	private byte[] getEServicePackage(ServizioEntity servizio) throws Exception {
+
+	private byte[] getEServicePackage(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
 		Map<String, byte[]> map = new HashMap<>();
 
 		this.addDocumentFilesServizio(servizio.getAllegati(), servizio.getNome()+"_v"+servizio.getVersione() + "/", map);
 
 		for(PackageServizioEntity componente: servizio.getComponenti()) {
-			populateEServiceServizio(componente.getServizio(), map, componente.getServizio().getNome() + "_" + componente.getServizio().getVersione());
+			populateEServiceServizio(componente.getServizio(), map, componente.getServizio().getNome() + "_" + componente.getServizio().getVersione(), mostraRichiedente, mostraReferenti);
 		}
 		return this.mapToZip(map);
 	}
@@ -245,31 +255,35 @@ public class EServiceBuilder {
     }
 
 	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo) {
+		return getApiFiles(api, prefix, collaudo, true, true);
+	}
+
+	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo, boolean mostraRichiedente, boolean mostraReferenti) {
 		Map<String, byte[]> map = new HashMap<String, byte[]>();
-		
+
 		DocumentoEntity specificaCollaudo = api.getCollaudo().getSpecifica();
 		DocumentoEntity specificaProduzione = Optional.ofNullable(api.getProduzione()).map(s -> s.getSpecifica()).orElse(null);
 
 		if(specificaCollaudo!=null) {
 			map.put(getPrefixFolder(org.govway.catalogo.core.orm.entity.AllegatoApiEntity.TIPOLOGIA.SPECIFICA_COLLAUDO, prefix)+specificaCollaudo.getFilename(), specificaCollaudo.getRawData());
 		}
-		
+
 		if(specificaProduzione!=null) {
 			map.put(getPrefixFolder(org.govway.catalogo.core.orm.entity.AllegatoApiEntity.TIPOLOGIA.SPECIFICA_PRODUZIONE, prefix)+specificaProduzione.getFilename(), specificaProduzione.getRawData());
 		}
-		
+
 		this.addDocumentFilesApi(api.getAllegati(), prefix, map);
-		
+
 		if(api.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
-			
+
 			EService eser = new EService();
-			
+
 			if(this.configurazione.getPdfLogo()!=null) {
 				eser.setLogo(this.configurazione.getPdfLogo());
 			}
 			eser.setTitolo("Descrittore eService");
 			eser.setSottotitolo(api.getNome());
-	
+
 			ScopoType tabscopo = new ScopoType();
 	
 			EtichetteScopoType etichette = new EtichetteScopoType();
@@ -318,7 +332,16 @@ public class EServiceBuilder {
 			String valoreProduzione = this.getUrlInvocazione(api, false);
 			rigaBaseurlProd.setValore(valoreProduzione);
 			righeLst.add(rigaBaseurlProd);
-	
+
+			// Aggiungi richiedente se configurato
+			if(mostraRichiedente && api.getServizio() != null && api.getServizio().getRichiedente() != null) {
+				RigaScopoType rigaRichiedente = new RigaScopoType();
+				rigaRichiedente.setDato("Richiedente");
+				UtenteEntity richiedente = api.getServizio().getRichiedente();
+				rigaRichiedente.setValore(richiedente.getNome() + " " + richiedente.getCognome());
+				righeLst.add(rigaRichiedente);
+			}
+
 			RigheScopoType righe = new RigheScopoType();
 			righe.getRiga().addAll(righeLst);
 			
@@ -361,10 +384,32 @@ public class EServiceBuilder {
 				RigheProfiliType righeP = new RigheProfiliType();
 				righeP.getRiga().addAll(righeProfilo);
 				profilo.setRighe(righeP);
-		
+
 				eser.setProfili(profilo);
 			}
-	
+
+			// Aggiungi referenti del servizio se configurato
+			if(mostraReferenti && api.getServizio() != null && !api.getServizio().getReferenti().isEmpty()) {
+				ReferentType servRef = new ReferentType();
+
+				for(ReferenteServizioEntity ref: api.getServizio().getReferenti()) {
+					String tipoRef = null;
+					if(ref.getTipo().equals(TIPO_REFERENTE.REFERENTE)) {
+						tipoRef = "Referente";
+					} else {
+						tipoRef = "Referente tecnico";
+					}
+					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
+					servRef.getItem().add(gritm);
+				}
+
+				if(!servRef.getItem().isEmpty()) {
+					ReferentsType referents = new ReferentsType();
+					referents.setService(servRef);
+					eser.setReferents(referents);
+				}
+			}
+
 			try {
 				map.put(prefix+"eService-"+api.getNome()+"-"+api.getVersione()+".pdf", StampePdf.getInstance().creaEServicePDF(logger,eser));
 			} catch(IOException e) {
@@ -457,9 +502,13 @@ public class EServiceBuilder {
 
 	private String getTecnologia(ApiEntity api, boolean collaudo) {
 		String tecnoString = "";
-		
+
 		PROTOCOLLO protocollo = getProtocollo(api, collaudo);
-		
+
+		if(protocollo == null) {
+			return tecnoString;
+		}
+
 		switch(protocollo) {
 		case WSDL11:
 		case WSDL12: tecnoString = "soap";
@@ -498,6 +547,7 @@ public class EServiceBuilder {
 		        .or(() -> Optional.ofNullable(api.getServizio().getDominio().getSoggettoReferente().getUrlInvocazione()))
 		        .orElse(this.configurazione.getTemplateUrlInvocazione());
 		
+		PROTOCOLLO protocollo = getProtocollo(api, collaudo);
 		String url = urlInvocazione
 				.replaceAll("#prefix#", prefix)
 				.replaceAll("#soggetto_interno#", soggettoInterno)
@@ -505,7 +555,7 @@ public class EServiceBuilder {
 				.replaceAll("#nome#", getNome(api, collaudo))
 				.replaceAll("#versione#", api.getVersione() + "")
 				.replaceAll("#tecnologia#", getTecnologia(api, collaudo))
-				.replaceAll("#protocollo#", getProtocollo(api, collaudo).toString());
+				.replaceAll("#protocollo#", protocollo != null ? protocollo.toString() : "");
 
 		while(url.contains("//")) {
 			url = url.replaceAll("//", "/");
@@ -520,11 +570,17 @@ public class EServiceBuilder {
 	private PROTOCOLLO getProtocollo(ApiEntity api, boolean collaudo) {
 
 		if(collaudo) {
-			return api.getCollaudo().getProtocollo();			
+			return Optional.ofNullable(api.getCollaudo())
+					.map(c -> c.getProtocollo())
+					.orElseGet(() -> Optional.ofNullable(api.getProduzione())
+							.map(p -> p.getProtocollo())
+							.orElse(null));
 		} else {
 			return Optional.ofNullable(api.getProduzione())
 					.map(b -> b.getProtocollo())
-					.orElse(getProtocollo(api, true));
+					.orElseGet(() -> Optional.ofNullable(api.getCollaudo())
+							.map(c -> c.getProtocollo())
+							.orElse(null));
 		}
 
 	}
@@ -580,5 +636,33 @@ public class EServiceBuilder {
 		return mapToZip(getApiFiles(api, "", true));
 	}
 
+	private ReferentItemType getReferentItem(UtenteEntity referent, String tipo) {
+		ReferentItemType ref = new ReferentItemType();
+
+		// Issue 137/140: Formato compatto per visualizzazione referenti nel PDF
+		// Ogni referente viene mostrato su una singola riga: "<tipo referente> - <nome> <cognome> - <organizzazione>"
+		// Il codice precedente popolava tutti i campi separatamente, causando una visualizzazione multi-riga
+		StringBuilder sb = new StringBuilder();
+		sb.append(tipo);
+		sb.append(" - ");
+		sb.append(referent.getNome()).append(" ").append(referent.getCognome());
+		if(referent.getOrganizzazione() != null) {
+			sb.append(" - ").append(referent.getOrganizzazione().getNome());
+		}
+		// Usa solo il campo nome per la visualizzazione compatta
+		ref.setNome(sb.toString());
+
+		// Codice originale commentato - visualizzazione multi-riga con tutti i campi separati
+		// ref.setTipoReferente(tipo);
+		// ref.setNome(referent.getNome());
+		// ref.setCognome(referent.getCognome());
+		// ref.setBusinessTelefono(referent.getTelefonoAziendale());
+		// ref.setBusinessEmail(referent.getEmailAziendale());
+		// if(referent.getOrganizzazione()!= null) {
+		// 	ref.setOrganization(referent.getOrganizzazione().getNome());
+		// }
+
+		return ref;
+	}
 
 }

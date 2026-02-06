@@ -1,0 +1,97 @@
+<div class="layout-page registrazione-page">
+  <div class="page-wrap">
+    <div class="container navless-container">
+      <div class="content">
+        <!-- Header con logo e titolo -->
+        <div class="mt-3">
+          <div class="col-sm-12 gl-text-center">
+            <img alt="Logo" class="" [src]="_logo" height="80">
+            <h1 class="my-3 gl-font-size-h2">
+              {{ 'APP.REGISTRAZIONE.TITLE.Registrazione' | translate }}
+            </h1>
+          </div>
+        </div>
+
+        <!-- Alert errore -->
+        <div class="flash-container flash-container-page sticky" *ngIf="error">
+          <div class="flash-alert mb-2">
+            <i class="bi bi-exclamation-triangle s16 me-2"></i>
+            <span>{{ error }}</span>
+            <div class="close-icon-wrapper js-close-icon" (click)="closeAlert()">
+              <i class="bi bi-x-lg"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading spinner -->
+        <div class="gl-w-half gl-xs-w-full gl-ml-auto gl-mr-auto text-center py-5" *ngIf="loading">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">{{ 'APP.LABEL.Loading' | translate }}...</span>
+          </div>
+          <p class="mt-3 text-muted">{{ 'APP.LABEL.Loading' | translate }}...</p>
+        </div>
+
+        <!-- Steps container -->
+        <div class="mb-3" *ngIf="!loading">
+          <div class="gl-w-half gl-xs-w-full gl-ml-auto gl-mr-auto registrazione-container">
+
+            <!-- Step indicatore -->
+            <div class="step-indicator mb-4">
+              <div class="step" [class.active]="currentStep === 'conferma'" [class.completed]="currentStep !== 'conferma'">
+                <span class="step-number">1</span>
+                <span class="step-label">{{ 'APP.REGISTRAZIONE.STEP.Conferma' | translate }}</span>
+              </div>
+              <div class="step-line" [class.completed]="currentStep !== 'conferma'"></div>
+              <div class="step" [class.active]="currentStep === 'modifica' || currentStep === 'verifica'"
+                   [class.completed]="currentStep === 'completato'">
+                <span class="step-number">2</span>
+                <span class="step-label">{{ 'APP.REGISTRAZIONE.STEP.Verifica' | translate }}</span>
+              </div>
+              <div class="step-line" [class.completed]="currentStep === 'completato'"></div>
+              <div class="step" [class.active]="currentStep === 'completato'">
+                <span class="step-number">3</span>
+                <span class="step-label">{{ 'APP.REGISTRAZIONE.STEP.Completato' | translate }}</span>
+              </div>
+            </div>
+
+            <!-- Step: Conferma Email -->
+            <app-step-conferma-email
+              *ngIf="currentStep === 'conferma'"
+              [nome]="nome"
+              [cognome]="cognome"
+              [codiceFiscale]="codiceFiscale"
+              [emailJwt]="emailJwt"
+              (conferma)="onConfermaEmail()"
+              (modifica)="onModificaEmail()">
+            </app-step-conferma-email>
+
+            <!-- Step: Modifica Email -->
+            <app-step-modifica-email
+              *ngIf="currentStep === 'modifica'"
+              [emailCorrente]="emailJwt"
+              (inviaEmail)="onInviaModificaEmail($event)"
+              (annulla)="onTornaAConferma()">
+            </app-step-modifica-email>
+
+            <!-- Step: Verifica Codice -->
+            <app-step-verifica-codice
+              *ngIf="currentStep === 'verifica'"
+              [email]="emailProposta"
+              (verificaCodice)="onVerificaCodice($event)"
+              (reinviaCodice)="onReinviaCodice()"
+              (cambiaEmail)="onCambiaEmail()">
+            </app-step-verifica-codice>
+
+            <!-- Step: Completato -->
+            <app-step-completato
+              *ngIf="currentStep === 'completato'"
+              [nome]="nome"
+              (vaiAlCatalogo)="onVaiAlCatalogo()">
+            </app-step-completato>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

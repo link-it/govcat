@@ -1,29 +1,43 @@
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
+import { HttpHeaders } from '@angular/common/http';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { LocalStorageService } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, LocalStorageService, EventType, BreadcrumbService, SearchBarFormComponent } from '@linkit/components';
 import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { EventType } from '@linkit/components';
-import { BreadcrumbService } from '@linkit/components'
+import { NavigationService } from '@app/services/navigation.service';
 
-import { SearchBarFormComponent } from '@linkit/components'
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, timeout } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
@@ -32,19 +46,21 @@ import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.compon
 import * as _ from 'lodash';
 declare const saveAs: any;
 
+import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
     styleUrls: ['servizi.component.scss'],
     standalone: false
 })
-export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked {
     static readonly Name = 'ServiziComponent';
     readonly model: string = 'servizi';
 
     @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
-    _production: boolean = true; // environment.production;
+    _production: boolean = true;
     
     Tools = Tools;
 
@@ -75,7 +91,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     
     _showTaxonomies: boolean = false;
 
-    _isEdit: boolean = false;
     _editCurrent: any = null;
 
     _hasFilter: boolean = true;
@@ -155,8 +170,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // { label: 'APP.GROUPS.TITLE.Root', url: 'root', type: 'link', iconBs: 'folder' }
     ];
 
-    _col: number = 4;
-
     minLengthTerm = 1;
 
     servizi$!: Observable<any[]>;
@@ -184,7 +197,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     hideVersions: boolean = false;
 
-    _useNewSearchUI : boolean = false;
+    _useNewSearchUI : boolean = true;
 
     numberCharLogoText: number = 2;
     enabledImageLink: boolean = false;
@@ -205,25 +218,29 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     };
 
     hasMultiSelection: boolean = true;
+    showSelectAll: boolean = true;
     elementsSelected: any[] = [];
-    _downloading: boolean = true;
+    _downloading: boolean = false;
     uncheckAllInTheMenu: boolean = true;
 
     tipo_servizio: string = TipoServizioEnum.API;
 
+    ActionEnum = ActionEnum;
+
     constructor(
-        private router: Router,
-        private modalService: BsModalService,
-        private translate: TranslateService,
-        private configService: ConfigService,
+        private readonly router: Router,
+        private readonly modalService: BsModalService,
+        private readonly translate: TranslateService,
+        private readonly configService: ConfigService,
         public tools: Tools,
-        private eventsManagerService: EventsManagerService,
-        private localStorageService: LocalStorageService,
-        private utilsLib: UtilsLib,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly localStorageService: LocalStorageService,
+        private readonly utilsLib: UtilsLib,
         public utils: UtilService,
         public apiService: OpenAPIService,
         public authenticationService: AuthenticationService,
-        private breadCrumbService: BreadcrumbService
+        private breadCrumbService: BreadcrumbService,
+        private navigationService: NavigationService
     ) {
         this.tipo_servizio = (this.router.url === '/servizi') ? TipoServizioEnum.API : TipoServizioEnum.Generico;
 
@@ -247,7 +264,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.colors = this.config.AppConfig.Layout.GroupView.colors || [];
         this.showGroupIcon = this.config.AppConfig.Layout.GroupView.showGroupIcon || false;
         this.showGroupLabel = this.config.AppConfig.Layout.GroupView.showGroupLabel || false;
-        this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
+        this._useNewSearchUI = true;
         this.fullScroll = this.config.AppConfig.Layout.fullScroll || false;
         this._showTaxonomies = servizio?.tassonomie_abilitate || false;
 
@@ -302,11 +319,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     @HostListener('window:resize') _onResize() {
-        this.desktop = (window.innerWidth >= 992);
-        // Force card view on mobile
-        if (!this.desktop && this._groupsViewMode === 'list') {
-            this._groupsViewMode = 'card';
-        }
+        this.__updateGroupsViewMode();
     }
 
     ngOnInit() {
@@ -386,10 +399,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this._createWorkflowStati();
     }
 
-    ngOnDestroy() {}
-
     ngAfterViewInit() {
-        if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+        if (!(this.searchBarForm?._isPinned())) {
             setTimeout(() => {
                 if (this.localStorageService.getItem('PROFILE')) {
                     this.refresh();
@@ -399,6 +410,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     ngAfterContentChecked(): void {
+        this.__updateGroupsViewMode();
+    }
+
+    __updateGroupsViewMode() {
         this.desktop = (window.innerWidth >= 992);
         // Ensure card view on mobile
         if (!this.desktop && this._groupsViewMode === 'list') {
@@ -411,7 +426,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this._groupsView) {
             this.searchBarForm._clearSearch(null);
             this._filterData = null;
-            // this._loadServiziGruppi();
         } else {
             this._resetGroupsBreadcrumbs();
             this._loadServizi(this._filterData);
@@ -467,11 +481,13 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.apiService.getList('servizi_gruppi', aux, url).subscribe({
             next: (response: any) => {
 
-                response ? this._pageGroups = new Page(response.page) : null;
-                response ? this._linksGroups = response._links || null : null;
+                if (response) {
+                    this._pageGroups = new Page(response.page);
+                    this._linksGroups = response._links || null;
+                }
                 this._allElements = this._pageGroups.totalElements || 0;
 
-                if (response && response.content) {
+                if (response?.content) {
                     const _list: any = response.content.map((sg: any) => {
                         const _meta: string[] = [];
                         if (sg.descrizione_sintetica) {
@@ -484,13 +500,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             _visibilita = sg.visibilita ? sg.visibilita : `${sg.dominio.visibilita}`;
                         }
 
+                        const _primaryText = this._getPrimaryText(sg);
+
                         const element = {
                             id: sg.id,
                             type: sg.tipo,
                             nome: sg.nome,
                             editMode: false,
                             source: { ...sg, visibilita: _visibilita },
-                            primaryText: sg.label ? sg.label : (this.hideVersions ? sg.nome : ((sg.nome && sg.versione) ? `${sg.nome} - v.${sg.versione}` : sg.nome)),
+                            primaryText: _primaryText,
                             secondaryText: '', // (sg.descrizione || ''),
                             metadata: _meta.join(', '),
                             logo: sg.immagine ? `${this.api_url}/${_model}/${sg.id}/immagine`: ''
@@ -523,9 +541,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         let aux: any;
         if (!url) { query = { ...query, miei_servizi: this._isMyServices, tipo_servizio: this.tipo_servizio }; }
         if (query) {
-            // const _taxonomiesGroup = query.taxonomiesGroup;
             const _categoriaLabel = query.categoriaLabel;
-            // delete query.taxonomiesGroup;
             delete query.categoriaLabel;
         
             aux = { params: this.utils._queryToHttpParams(query) };
@@ -535,8 +551,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.apiService.getList(this.model, aux, url).subscribe({
             next: (response: any) => {
 
-                response ? this._page = new Page(response.page) : null;
-                response ? this._links = response._links || null : null;
+                if (response) {
+                    this._page = new Page(response.page);
+                    this._links = response._links || null;
+                }
                 this._allElements = this._page.totalElements || 0;
 
                 if (response && response.content) {
@@ -562,8 +580,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             descrizione: service.descrizione || '',
                             stato: service.stato || '',
                             multiplo: service.multi_adesione || false,
-                            primaryText: service.label ? service.label : (this.hideVersions ? service.nome : ((service.nome && service.versione) ? `${service.nome} - v.${service.versione}` : service.nome)),
-                            secondaryText: '', // (service.descrizione || ''),
+                            primaryText: this._getServicePrimaryText(service),
+                            secondaryText: '',
                             metadata: _meta.join(', '),
                             selected: false,
                         };
@@ -591,15 +609,13 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     
     __loadMoreData() {
         if (this._groupsView && !this._filterData) {
-            if (this._linksGroups && this._linksGroups.next && !this._preventMultiCall) {
+            if (this._linksGroups?.next && !this._preventMultiCall) {
                 this._preventMultiCall = true;
                 this._loadServiziGruppi(null, this._linksGroups.next.href);
             }
-        } else {
-            if (this._links && this._links.next && !this._preventMultiCall) {
-                this._preventMultiCall = true;
-                this._loadServizi(null, this._links.next.href);
-            }
+        } else if (this._links?.next && !this._preventMultiCall) {
+            this._preventMultiCall = true;
+            this._loadServizi(null, this._links.next.href);
         }
     }
 
@@ -611,10 +627,31 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();
         }
-        if (this.showPresentation) {
-            this.router.navigate([this.model, param.idServizio, 'view']);
-        } else {
-            this.router.navigate([this.model, param.idServizio]);
+        // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+        const mouseEvent = this.navigationService.extractEvent(event);
+        const data = this.navigationService.extractData(param) || param;
+        const route = this.showPresentation
+            ? [this.model, data.idServizio, 'view']
+            : [this.model, data.idServizio];
+        this.navigationService.navigateWithEvent(mouseEvent, route);
+    }
+
+    _onOpenInNewTab(event: any) {
+        const data = this.navigationService.extractData(event);
+        const route = this.showPresentation
+            ? [this.model, data.idServizio, 'view']
+            : [this.model, data.idServizio];
+        this.navigationService.openInNewTab(route);
+    }
+
+    _onOpenInNewTabGroup(event: any) {
+        const data = this.navigationService.extractData(event);
+        // Solo per i servizi, non per i gruppi
+        if (data.type === 'servizio') {
+            const route = this.showPresentation
+                ? [this.model, data.id, 'view']
+                : [this.model, data.id];
+            this.navigationService.openInNewTab(route);
         }
     }
 
@@ -622,12 +659,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();
         }
-        if (param.type === 'servizio') {
-            if (this.showPresentation) {
-                this.router.navigate([this.model, param.id, 'view']);
-            } else {
-                this.router.navigate([this.model, param.id]);
-            }
+        // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+        const mouseEvent = this.navigationService.extractEvent(event);
+        const data = this.navigationService.extractData(param) || param;
+        if (data.type === 'servizio') {
+            console.log('Navigating to servizio', data);
+            const route = this.showPresentation
+                ? [this.model, data.id, 'view']
+                : [this.model, data.id];
+            this.navigationService.navigateWithEvent(mouseEvent, route);
         } else {
             this._currIdGruppoPadre = param.id;
             this._gruppoPadreNull = false;
@@ -642,9 +682,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _onGoupsBreadcrumbs(group: any) {
         if (group.url !== this._currIdGruppoPadre) {
             const _index = this.groupsBreadcrumbs.findIndex((item: any) => { return item.url === group.url; });
-            // if (_index > 1 ) {
-                this.groupsBreadcrumbs = _.slice(this.groupsBreadcrumbs, 0, _index + 1);
-            // }
+            this.groupsBreadcrumbs = _.slice(this.groupsBreadcrumbs, 0, _index + 1);
             if (group.url === 'root') {
                 this._currIdGruppoPadre = '';
                 this._gruppoPadreNull = true;
@@ -671,10 +709,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.breadCrumbService.clearBreadcrumbs();
         this.breadcrumbs = [ ...this.breadcrumbs ];
         this.eventsManagerService.broadcast('UPDATE_BREADCRUMBS', []);
-    }
-
-    _onCloseEdit() {
-        this._isEdit = false;
     }
 
     _onSubmit(form: any) {
@@ -735,6 +769,32 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         console.log(event);
     }
 
+    _getPrimaryText(sg: any): string {
+        if (sg.label) {
+            return sg.label;
+        }
+        if (this.hideVersions) {
+            return sg.nome;
+        }
+        if (sg.nome && sg.versione) {
+            return `${sg.nome} - v.${sg.versione}`;
+        }
+        return sg.nome;
+    }
+
+    _getServicePrimaryText(service: any): string {
+        if (service.label) {
+            return service.label;
+        }
+        if (this.hideVersions) {
+            return service.nome;
+        }
+        if (service.nome && service.versione) {
+            return `${service.nome} - v.${service.versione}`;
+        }
+        return service.nome;
+    }
+
     _timestampToMoment(value: number) {
         return value ? new Date(value) : null;
     }
@@ -770,14 +830,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         // this._saveSettings();
         this._manualSelected = this._groupsView ? false : true;
         this.refresh();
-    }
-
-    _toggleSearchUI() {
-        this._useNewSearchUI = !this._useNewSearchUI;
-    }
-
-    _toggleCols() {
-        this._col = this._col === 4 ? 6 : 4;
     }
 
     _toggleGroupsViewMode() {
@@ -1156,6 +1208,18 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.elements = [ ..._elements ];
     }
 
+    selectAll() {
+        this.elementsSelected = this.elements.map((element: any) => element.idServizio);
+        const _elements = this.elements.map((element: any) => {
+            return { ...element, selected: true };
+        });
+        this.elements = [ ..._elements ];
+    }
+
+    get allSelected(): boolean {
+        return this.elements.length > 0 && this.elementsSelected.length === this.elements.length;
+    }
+
     _onSelect(event: any, element: any) {
         event.stopPropagation();
         const _index = this.elementsSelected.findIndex((item: any) => item === element.idServizio);
@@ -1168,11 +1232,25 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
     }
 
-    _onExport(type: string) {
+    onExportAction(event: any) {
+        switch (event.action) {
+            case ActionEnum.SEARCH:
+                this.onExport(ActionEnum.SEARCH, true);
+                break;
+            case ActionEnum.SELECTION:
+                this.onExport(ActionEnum.SELECTION, true);
+                break;
+            case ActionEnum.DESELECT_ALL:
+                this.deselectAll();
+                break;
+        }
+    }
+
+    onExport(type: string, exportServizi: boolean = false) {
         let aux: any;
         let query = null;
 
-        if (type === 'search') {
+        if (type === ActionEnum.SEARCH) {
             query = { ...this._filterData };
             if (query.id_gruppo_padre_label) {
                 delete query.id_gruppo_padre_label;
@@ -1182,11 +1260,33 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
         aux = this.utils._queryToHttpParams(query);
 
+        // Imposta timeout di 150 secondi tramite header per l'interceptor
+        const headers = new HttpHeaders().set('timeout', '150000');
+
         this._downloading = true;
-        this.apiService.download(`${this.model}-export`, null, undefined, aux)
-            .pipe(
-                timeout(150000) // timeout di 150 secondi
-            )
+        this.apiService.download(`${this.model}-export`, null, undefined, aux, headers)
+            .subscribe({
+                next: (response: any) => {
+                    let filename: string = Tools.GetFilenameFromHeader(response);
+                    saveAs(response.body, filename);
+                    this._downloading = false;
+                },
+                error: (error: any) => {
+                    this._downloading = false;
+                    if (error.name === 'TimeoutError') {
+                        Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+                    } else {
+                        Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+                    }
+                }
+            });
+    }
+
+    onExportAll() {
+        const headers = new HttpHeaders().set('timeout', '150000');
+
+        this._downloading = true;
+        this.apiService.download(`${this.model}-export`, null, undefined, undefined, headers)
             .subscribe({
                 next: (response: any) => {
                     let filename: string = Tools.GetFilenameFromHeader(response);

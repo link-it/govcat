@@ -1,3 +1,198 @@
+2026-01-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #163
+	Permesso archiviazione servizi per referenti in base alla configurazione workflow
+	- Opzione "Archivia" sempre visibile, disabilitata se utente non autorizzato
+	- Tooltip informativo quando disabilitato
+	Corretto bug: gestione configurazione OAUTH mancante in app-config.json
+
+2026-01-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #167
+	Migliorata gestione icone e colori nel wizard Configura Adesioni
+	- Sezione Collaudo: icona grigia quando skip_collaudo è attivo
+	- Sezione Produzione: icona grigia quando l'adesione è in fase di collaudo
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #164
+	Migliorata visualizzazione PDND Informazioni generali (descrittori e attributi)
+	Aggiunto box "Requisiti di accesso" per raggruppare i tipi di attributi
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Modificata label colonna storico specifica da "Versione" a "Progressivo"
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #162
+	Corretto campo Autenticazione Prevista non visibile quando si disabilita Specifica Interfaccia
+
+2026-01-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #157
+	Corretto salvataggio identificativo eService PDND in creazione API
+	Corretto indicatore asterisco per campi obbligatori url_collaudo e url_produzione
+
+2026-01-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug #155
+	Aggiunta gestione errori per la cancellazione delle API di un servizio con adesioni attive
+	Risolto bug #122
+	Corretta paginazione nella risposta dell'API servizi_gruppi
+	Risolto bug #160
+	Corretta inizializzazione del campo tipoInformazioneReport nelle richieste POST delle statistiche
+	Risolto bug #161
+	Corretta gestione delle eccezioni in RestAuthenticationEntryPoint
+
+2026-01-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #116
+	Aggiunto supporto apertura link in nuova scheda (Ctrl+Click, Cmd+Click, middle-click) su sidebar, breadcrumbs, liste e bottoni di navigazione. Aggiunto feedback visivo con icona e cursore dedicato.
+
+2026-01-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunta gestione visibilità scrollbar configurabile con opzioni hidden e hideOnIdle
+
+2026-01-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunto controllo hideVersions nel breadcrumb dei componenti servizi
+
+2026-01-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #144
+	Risolto bug
+	Aggiornato lodash da 4.17.21 a 4.17.23 per risolvere vulnerabilità CVE-2025-13465
+	Corretto spinner che rimaneva visibile nella ricerca transazioni - Fix #149
+	Aggiunto tooltip informativo per checkbox Masonry nelle impostazioni profilo - Issue #143
+
+2026-01-22  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug #158
+	Aggiunta cancellazione automatica degli allegati di un servizio con allegati al momento della cancellazione di un servizio
+
+2026-01-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #132
+	Migliorata accessibilità pagina di Login
+
+2026-01-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #115
+	Aggiunto flusso first-login con verifica email per utenti OIDC non registrati
+
+2026-01-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità #115
+	Aggiunte API di registrazione per implementare flusso di first-login con verifica dell'indirizzo email
+
+2026-01-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug
+	Sono state risolte le seguenti vulnerabilità relative ai jar di terza parte
+	- CVE-2025-68161: upgrade dipendenza log4j
+	- CVE-2025-66516: upgrade dipendenza tika
+
+2026-01-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug #121
+	Corretta visibilità dei servizi nell'API servizi_gruppi per i richiedenti e referenti delle adesioni
+
+2026-01-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug
+	Risolto warning Angular NG0912 per collisione ID nel componente MultiSnackbarComponent
+
+2026-01-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolti bug #128, #129, #130, #131
+	Risolte diverse segnalazioni di bug nel frontend
+
+2026-01-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiornamento
+	Aggiornato l'anno del copyright a 2021-2026
+
+2026-01-09  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug
+	Aggiunte proprietà nel pom per risolvere errore di dipendenza circolare all'avvio
+
+2026-01-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [ORM]
+	Risolto bug
+	Corretta annotazione JdbcTypeCode per i campi di tipo byte array
+
+2025-12-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #124
+	Corretta visualizzazione del menu delle lingue
+
+2025-12-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunta funzionalità
+	Aggiunta visualizzazione di un header e footer aggiuntivi al layout configurabili
+
+2025-12-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Autenticazione]
+	Risolto bug
+	Corretto flusso OAUTH in assenza di issuer
+
+2025-12-17  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [Autenticazione]
+	Risolto bug
+	Eliminato issuer di default vuoto
+
+2025-12-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Autenticazione]
+	Aggiunta funzionalità
+	Corretto flusso OAUTH e aggiunta gestione "clientSecret" per autorizzazione basic
+
+2025-12-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Autenticazione]
+	Aggiunta funzionalità
+	Aggiunta gestione della configurazione manuale degli endpoint di OAUTH
+
+2025-12-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Autenticazione]
+	Risolto bug
+	Corretta configurazione OAUTH
+
+2025-12-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risolto bug
+	Corretta visibilità dei servizi_gruppi per il ruolo coordinatore
+
 2025-12-01  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo,ReverseProxy]

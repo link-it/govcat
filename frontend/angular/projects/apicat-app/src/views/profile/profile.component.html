@@ -1,3 +1,21 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <div id="route-section" class="">
     <div class="alert-wrapper gp-force-block-formatting-context">
         <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
@@ -63,7 +81,7 @@
                             <div class="col-lg-4">
                                 <div class="card mb-4">
                                     <div class="card-body text-center">
-                                        <img ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
+                                        <img alt="user gravatar" ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
                                         <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
                                         <h6 class="my-3" [title]="profile?.id_utente" *ngIf="false">{{ profile?.principal }}</h6>
                                         <p class="text-muted mb-1" *ngIf="false">
@@ -71,32 +89,6 @@
                                                 {{ profile.ruolo }}
                                             </span>
                                         </p>
-                                    </div>
-                                </div>
-                                <div class="card mb-4 mb-lg-0" *ngIf="false">
-                                    <div class="card-body p-0">
-                                        <ul class="list-group list-group-flush rounded-3">
-                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-globe text-warning"></i>
-                                                <p class="mb-0">https://link.it</p>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-github" style="color: #333333;"></i>
-                                                <p class="mb-0">linkit</p>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-twitter" style="color: #55acee;"></i>
-                                                <p class="mb-0">linkit</p>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-instagram" style="color: #ac2bac;"></i>
-                                                <p class="mb-0">linkit</p>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                                <i class="bi bi-facebook" style="color: #3b5998;"></i>
-                                                <p class="mb-0">linkit</p>
-                                            </li>
-                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -125,16 +117,6 @@
                                                     </div>
                                                 </div>
                                             </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.email">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Email' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.email }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
                                             <li class="list-group-item py-3" *ngIf="profile?.email_aziendale">
                                                 <div class="row">
                                                     <div class="col-sm-3">
@@ -145,115 +127,57 @@
                                                     </div>
                                                 </div>
                                             </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.telefono">
-                                            <div class="row">
-                                                <div class="col-sm-3">
-                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Telefono' | translate }}</p>
+                                            <li class="list-group-item py-3" *ngIf="mostraEmail && profile?.email">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Email' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.email }}</p>
+                                                    </div>
                                                 </div>
-                                                <div class="col-sm-9">
-                                                <p class="text-muted mb-0">{{ profile?.telefono }}</p>
-                                                </div>
-                                            </div>
                                             </li>
                                             <li class="list-group-item py-3" *ngIf="profile?.telefono_aziendale">
-                                            <div class="row">
-                                                <div class="col-sm-3">
-                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.TelefonoAziendale' | translate }}</p>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.TelefonoAziendale' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.telefono_aziendale }}</p>
+                                                    </div>
                                                 </div>
-                                                <div class="col-sm-9">
-                                                <p class="text-muted mb-0">{{ profile?.telefono_aziendale }}</p>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.telefono">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Telefono' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.telefono }}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
                                             </li>
                                             <li class="list-group-item py-3" *ngIf="profile?.mobile">
-                                            <div class="row">
-                                                <div class="col-sm-3">
-                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Mobile' | translate }}</p>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Mobile' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                    <p class="text-muted mb-0">{{ profile?.mobile }}</p>
+                                                    </div>
                                                 </div>
-                                                <div class="col-sm-9">
-                                                <p class="text-muted mb-0">{{ profile?.mobile }}</p>
-                                                </div>
-                                            </div>
                                             </li>
                                             <li class="list-group-item py-3" *ngIf="profile?.address">
-                                            <div class="row">
-                                                <div class="col-sm-3">
-                                                <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Address' | translate }}</p>
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Address' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">{{ profile?.address }}</p>
+                                                    </div>
                                                 </div>
-                                                <div class="col-sm-9">
-                                                <p class="text-muted mb-0">{{ profile?.address }}</p>
-                                                </div>
-                                            </div>
                                             </li>
                                         </ul>
-                                    </div>
-                                </div>
-                                <div class="row" *ngIf="false">
-                                    <div class="col-md-6">
-                                    <div class="card mb-4 mb-md-0">
-                                        <div class="card-body">
-                                        <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project Status
-                                        </p>
-                                        <p class="mb-1" style="font-size: .77rem;">Web Design</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
-                                        <div class="progress rounded mb-2" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                    <div class="card mb-4 mb-md-0">
-                                        <div class="card-body">
-                                        <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project Status
-                                        </p>
-                                        <p class="mb-1" style="font-size: .77rem;">Web Design</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 80%" aria-valuenow="80" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 89%" aria-valuenow="89" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
-                                        <div class="progress rounded" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 55%" aria-valuenow="55" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
-                                        <div class="progress rounded mb-2" style="height: 5px;">
-                                            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="66" aria-valuemin="0"
-                                            aria-valuemax="100"></div>
-                                        </div>
-                                        </div>
-                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -311,32 +235,62 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-6">
-                                        <lnk-form-field
-                                            name="telefono"
-                                            [label]="'APP.USERS.LABEL.Phone' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.telefono"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
+                                        <ng-container *ngIf="!verificaEmailAbilitata">
+                                            <lnk-form-field
+                                                name="email_aziendale"
+                                                [label]="'APP.USERS.LABEL.CorporateEmail' | translate"
+                                                [isEdit]="isEdit"
+                                                [formGroup]="formGroup"
+                                                [value]="profile?.email_aziendale"
+                                                [inline]="false"
+                                                [singleColumn]="true"
+                                                [plainText]="true"
+                                                [options]="optionsForm"
+                                                [labelAlignRight]="false"
+                                            ></lnk-form-field>
+                                        </ng-container>
+                                        <ng-container *ngIf="verificaEmailAbilitata">
+                                            <div class="form-group mb-3">
+                                                <label for="email_aziendale" class="form-label">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }} *</label>
+                                                <div class="input-group">
+                                                    <input type="email" class="form-control" formControlName="email_aziendale" readonly>
+                                                    <button *ngIf="isEdit" class="btn btn-sm btn-primary" type="button"
+                                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
+                                                        (click)="openEmailModificationDialog('email_aziendale')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </ng-container>
                                     </div>
-                                    <div class="col-6">
-                                        <lnk-form-field
-                                            name="email"
-                                            [label]="'APP.USERS.LABEL.Email' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.email"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
+                                    <div class="col-6" *ngIf="mostraEmail">
+                                        <ng-container *ngIf="!verificaEmailAbilitata">
+                                            <lnk-form-field
+                                                name="email"
+                                                [label]="'APP.USERS.LABEL.Email' | translate"
+                                                [isEdit]="isEdit"
+                                                [formGroup]="formGroup"
+                                                [value]="profile?.email"
+                                                [inline]="false"
+                                                [singleColumn]="true"
+                                                [plainText]="true"
+                                                [options]="optionsForm"
+                                                [labelAlignRight]="false"
+                                            ></lnk-form-field>
+                                        </ng-container>
+                                        <ng-container *ngIf="verificaEmailAbilitata">
+                                            <div class="form-group mb-3">
+                                                <label for="email" class="form-label">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
+                                                <div class="input-group">
+                                                    <input type="email" class="form-control" formControlName="email" readonly>
+                                                    <button *ngIf="isEdit" class="btn btn-sm btn-primary" type="button"
+                                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
+                                                        (click)="openEmailModificationDialog('email')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </ng-container>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -356,11 +310,11 @@
                                     </div>
                                     <div class="col-6">
                                         <lnk-form-field
-                                            name="email_aziendale"
-                                            [label]="'APP.USERS.LABEL.CorporateEmail' | translate"
+                                            name="telefono"
+                                            [label]="'APP.USERS.LABEL.Phone' | translate"
                                             [isEdit]="isEdit"
                                             [formGroup]="formGroup"
-                                            [value]="profile?.email_aziendale"
+                                            [value]="profile?.telefono"
                                             [inline]="false"
                                             [singleColumn]="true"
                                             [plainText]="true"
@@ -369,23 +323,6 @@
                                         ></lnk-form-field>
                                     </div>
                                 </div>
-                                <!-- <div class="row">
-                                    <div class="col-12">
-                                        <lnk-form-field
-                                            type="textarea"
-                                            name="note"
-                                            [label]="'APP.USERS.LABEL.Note' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.note"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
-                                    </div>
-                                </div> -->
 
                                 <div class="settings-content">
 
@@ -439,7 +376,10 @@
                                         </div>
                                         <div class="gl-form-checkbox custom-control custom-checkbox">
                                             <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showMasonry" name="servizi_showmasonry" id="servizi_showmasonry" [(ngModel)]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_showmasonry')">
-                                            <label class="custom-control-label" for="servizi_showmasonry"><span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span></label>
+                                            <label class="custom-control-label" for="servizi_showmasonry">
+                                                <span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span>
+                                                <i class="bi bi-info-circle ms-1" [tooltip]="'APP.TOOLTIP.MasonryInfo' | translate" container="body"></i>
+                                            </label>
                                         </div>
                                     </div>
                                 </form>

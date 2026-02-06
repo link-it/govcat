@@ -1,19 +1,29 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, Input, HostBinding } from '@angular/core';
-import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, NavigationStart, Router } from '@angular/router';
-import { BreakpointObserver } from '@angular/cdk/layout';
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
+import { NavigationEnd, Router } from '@angular/router';
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-import { Tools } from '@linkit/components';
-import { ConfigService } from '@linkit/components';
-import { Language } from '@linkit/components';
-import { MenuAction } from '@linkit/components';
-import { EventType } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { LocalStorageService } from '@linkit/components';
-import { BreadcrumbService } from '@linkit/components';
+import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
@@ -125,6 +135,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     _showNotificationsMenu: boolean = false;
     _showNotificationsBar: boolean = true;
     _enablePollingNotifications: boolean = true;
+    _enableOpenInNewTab: boolean = false;
 
     _counters: any = {
         notifications: 0
@@ -137,6 +148,12 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _isAnonymous: boolean = true;
 
+    // Scrollbar options
+    _scrollbarHidden: boolean = false;
+    _scrollbarHideOnIdle: boolean = false;
+    private _scrollbarTimeout: any = null;
+    private _scrollbarHideDelay: number = 1000;
+
     version: string = environment.version;
     build: string = environment.build;
     backInfo: any = null;
@@ -144,20 +161,17 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     modalInfoRef!: BsModalRef;
 
     constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private observer: BreakpointObserver,
-        private translate: TranslateService,
-        private modalService: BsModalService,
-        private oauthService: OAuthService,
-        private configService: ConfigService,
-        private tools: Tools,
-        private eventsManagerService: EventsManagerService,
-        private localStorageService: LocalStorageService,
-        private breadCrumbService: BreadcrumbService,
-        private authenticationService: AuthenticationService,
-        private apiService: OpenAPIService,
-        private notificationsService: NotificationsService,
+        private readonly router: Router,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly oauthService: OAuthService,
+        private readonly configService: ConfigService,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly localStorageService: LocalStorageService,
+        private readonly breadCrumbService: BreadcrumbService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly apiService: OpenAPIService,
+        private readonly notificationsService: NotificationsService,
         public sidebarNavHelper: GpSidebarNavHelper,
     ) {
         this.localStorageService.setItem('PROFILE', false);
@@ -194,18 +208,19 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
         this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
         this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
+        this._enableOpenInNewTab = this._config.AppConfig.Layout.enableOpenInNewTab || false;
         this._title = this._config.AppConfig.Layout.Header.title;
         this._api_url = this._config.AppConfig.SITE;
 
         let offset = 0;
         if (this._showSupHeaderBar) {
-            offset += parseInt(this._supHeaderHeight, 10);
+            offset += Number.parseInt(this._supHeaderHeight, 10);
         }
         if (this._showHeaderBar) {
             offset += 48;
         }
         if (this._showFooterBar) {
-            offset += parseInt(this._footerHeight, 10);
+            offset += Number.parseInt(this._footerHeight, 10);
         }
         document.documentElement.style.setProperty('--header-offset', `${offset}px`);
         document.documentElement.style.setProperty('--header-height', this._showHeaderBar ? '48px' : '0px');
@@ -217,7 +232,6 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         document.documentElement.style.setProperty('--footer-expanded-height', this._showFooterBar ? this._footerExpandedHeight : '0px');
         document.documentElement.style.setProperty('--content-wrapper-bottom', this._showFooterBar ? this._footerHeight : '0px');
         
-        // document.documentElement.style.setProperty('--header-height', this._showSupHeaderBar ? '48px' : '0px');
         document.documentElement.style.setProperty('--footer-offset', this._showFooterBar ? '48px' : '0px');
 
         if (Tools.Configurazione) {
@@ -226,6 +240,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
             this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
         }
+
+        // Scrollbar options
+        this._scrollbarHidden = this._config.AppConfig?.Scrollbar?.hidden || false;
+        this._scrollbarHideOnIdle = this._config.AppConfig?.Scrollbar?.hideOnIdle || false;
 
         if (this._showBuild) {
             this.version = `${this.version} (${this.build})`;
@@ -327,8 +345,50 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.oauthService.setupAutomaticSilentRefresh();
         }
 
-        // setTimeout(async () => {}, 200);
         this.loadProfile();
+
+        // Init scrollbar options
+        this._initScrollbarOptions();
+    }
+
+    private _initScrollbarOptions(): void {
+        // Scrollbar completamente nascosta (priorità su hideOnIdle)
+        if (this._scrollbarHidden) {
+            document.body.classList.add('scrollbar-hidden');
+            return;
+        }
+
+        // Scrollbar nascosta quando inattivo
+        if (this._scrollbarHideOnIdle) {
+            document.body.classList.add('scrollbar-hide-on-idle');
+
+            // Bind event handlers
+            this._onMouseMoveHandler = this._onMouseMoveHandler.bind(this);
+            this._onScrollHandler = this._onScrollHandler.bind(this);
+
+            document.addEventListener('mousemove', this._onMouseMoveHandler);
+            document.addEventListener('scroll', this._onScrollHandler, true);
+        }
+    }
+
+    private _onMouseMoveHandler(): void {
+        this._showScrollbar();
+    }
+
+    private _onScrollHandler(): void {
+        this._showScrollbar();
+    }
+
+    private _showScrollbar(): void {
+        document.body.classList.add('scrollbar-visible');
+
+        if (this._scrollbarTimeout) {
+            clearTimeout(this._scrollbarTimeout);
+        }
+
+        this._scrollbarTimeout = setTimeout(() => {
+            document.body.classList.remove('scrollbar-visible');
+        }, this._scrollbarHideDelay);
     }
 
     async loadRemoteConfig() {
@@ -362,12 +422,32 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     }
 
     ngOnDestroy() {
+        // Cleanup scrollbar options
+        if (this._scrollbarHidden) {
+            document.body.classList.remove('scrollbar-hidden');
+        }
+        if (this._scrollbarHideOnIdle) {
+            document.removeEventListener('mousemove', this._onMouseMoveHandler);
+            document.removeEventListener('scroll', this._onScrollHandler, true);
+            document.body.classList.remove('scrollbar-hide-on-idle', 'scrollbar-visible');
+            if (this._scrollbarTimeout) {
+                clearTimeout(this._scrollbarTimeout);
+            }
+        }
     }
 
     loadProfile() {
         this._spin = true;
         this.apiService.getList('profilo').subscribe({
             next: (response: any) => {
+                // Controlla se e' richiesta la registrazione (first-login)
+                if (response.stato === 'registrazione_richiesta') {
+                    this.authenticationService.setCurrentSession(response);
+                    this._spin = false;
+                    this.router.navigate(['/auth/registrazione']);
+                    return;
+                }
+
                 this.authenticationService.setCurrentSession(response);
                 this._session = this.authenticationService.reloadSession();
                 if (_.isEmpty(this._session.settings) || !this._session.settings.version) {
@@ -381,7 +461,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
                 this.localStorageService.setItem('PROFILE', true);
                 this.eventsManagerService.broadcast(EventType.PROFILE_UPDATE, { data: this._session });
-                
+
                 this._spin = false;
             },
             error: (error: any) => {
@@ -570,7 +650,30 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         window.dispatchEvent(new Event('resize'));
     }
 
-    _onClickMenu(event: any, item: INavData) {
+    /**
+     * Apre il menu item in una nuova scheda (chiamato dall'icona)
+     */
+    _openMenuInNewTab(event: MouseEvent, item: INavData) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (item.url) {
+            const url = Array.isArray(item.url) ? item.url.join('/') : item.url;
+            window.open(url, '_blank');
+        }
+    }
+
+    _onClickMenu(event: MouseEvent, item: INavData) {
+        // Supporto apertura in nuova scheda con Ctrl+Click, Cmd+Click o middle-click
+        const shouldOpenInNewTab = event.ctrlKey || event.metaKey || event.button === 1;
+        if (shouldOpenInNewTab && item.url) {
+            event.preventDefault();
+            event.stopPropagation();
+            // Gestisce sia url stringa che array di segmenti
+            const url = Array.isArray(item.url) ? item.url.join('/') : item.url;
+            window.open(url, '_blank');
+            return;
+        }
+
         if (item.url === '/servizi') {
             this.breadCrumbService.clearBreadcrumbs();
             this.eventsManagerService.broadcast(EventType.BREADCRUMBS_RESET, { currIdGruppoPadre: '', gruppoPadreNull: true, groupsBreadcrumbs: [] });
@@ -619,13 +722,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     _onContextualMenu(event: any) {
         this._stopPropagation = true;
         event.event.stopPropagation();
-        this.localStorageService.setItem('LOCATION', event.item.url);
-        const url = `${this._api_url}`;
-        // const url = `${this._api_url}${event.item.url}`;
+        // Apre direttamente l'URL del menu item in una nuova scheda
+        // Gestisce sia url stringa che array di segmenti
+        const url = Array.isArray(event.item.url) ? event.item.url.join('/') : event.item.url;
         window.open(url, '_blank');
         setTimeout(() => {
             this._stopPropagation = false;
-        }, 6000);
+        }, 1000);
     }
 
     _onMenuHeaderAction(event: any) {
@@ -653,7 +756,6 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _onMenuAppHeaderAction(event: any) {
         Tools.CurrentApplication = event;
-        // this._title = (Tools.CurrentApplication && Tools.CurrentApplication.menu) ? Tools.CurrentApplication.menu.title : this._config.AppConfig.Layout.Header.title;
         switch (event.menu.action) {
             case 'dashboard':
                 this._contentLimited = false;

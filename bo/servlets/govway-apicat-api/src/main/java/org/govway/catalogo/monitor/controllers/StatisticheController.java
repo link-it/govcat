@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -333,6 +333,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -363,6 +364,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -393,6 +395,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -423,6 +426,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -453,6 +457,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -483,6 +488,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -513,6 +519,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -543,6 +550,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}
@@ -573,6 +581,7 @@ public class StatisticheController implements StatisticheApi {
 
 		getReportRequest.setDataInizio(it.getDataInizio());
 		getReportRequest.setTipoReport(query.getTipoReport());
+		getReportRequest.setTipoInformazioneReport(query.getTipoInformazioneReport());
 
 		return getReportRequest;
 	}

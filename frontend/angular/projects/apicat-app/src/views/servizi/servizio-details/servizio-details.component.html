@@ -1,10 +1,28 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <div id="route-section" class="">
     <div class="top-area container-fluid container-limited limit-container-width px-0">
         <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
         <div class="d-flex flex-grow-1">&nbsp;</div>
         <div class="nav-controls">
             <app-monitor-dropdown *ngIf="data"
-                [showMonitoring]="Tools.Configurazione.servizio.api.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
+                [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
                 [returnWeb]="true"
                 [otherActions]="_showExternalOtherActions ? _otherActions : []"
                 (action)="onActionMonitor($event)"
@@ -30,7 +48,9 @@
                                             <div class="gl-new-dropdown-inner">
                                                 <div class="gl-new-dropdown-contents" *ngFor="let menu of link.submenu">
                                                     <li class="gl-new-dropdown-item" *ngIf="menu.show">
-                                                        <button role="menuitem" type="button" class="dropdown-item" [routerLink]="[menu.route]" [relativeTo]="route">
+                                                        <button role="menuitem" type="button" class="dropdown-item"
+                                                            [routerLink]="[menu.route]"
+                                                            [relativeTo]="route">
                                                             <div class="gl-new-dropdown-item-text-wrapper">
                                                                 <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
                                                             </div>
@@ -495,7 +515,7 @@
                                 <div class="form-group descrizione_sintetica">
                                     <label class="label-bold" for="descrizione_sintetica">{{ 'APP.LABEL.DescrizioneSintetica' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione_sintetica'" *ngIf="_isEdit"></span></label>
                                     <div class="" *ngIf="_isEdit">
-                                        <textarea aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
                                         <p *ngIf="f['descrizione_sintetica'].invalid && (f['descrizione_sintetica'].dirty || f['descrizione_sintetica'].touched)" class="form-text text-danger">
                                             <span *ngIf="f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                             <span *ngIf="f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione_sintetica'].errors['maxlength'].requiredLength } }}</span>
@@ -509,7 +529,7 @@
                                 <div class="form-group descrizione">
                                     <label class="label-bold w-100" for="descrizione">{{ 'APP.LABEL.DocumentazioneTecnica' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'" *ngIf="_isEdit"></span> <span class="btn btn-default btn-sm gl-button btn-default-tertiary float-end" [class.btn-secondary]="_showMarkdownPreview" (click)="_toggleMarkdownPreview()" *ngIf="_isEdit" [class.disabled]="!f['descrizione'].value">{{ (_showMarkdownPreview ? 'APP.BUTTON.Write' : 'APP.BUTTON.Preview') | translate }}</span></label>
                                     <div class="" *ngIf="_isEdit && !_showMarkdownPreview">
-                                        <textarea aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" placeholder="{{ 'APP.PLACEHOLDER.DocumentazioneTecnica' | translate }}" id="descrizione" formControlName="descrizione" rows="8" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" placeholder="{{ 'APP.PLACEHOLDER.DocumentazioneTecnica' | translate }}" id="descrizione" formControlName="descrizione" rows="8" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
                                         <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
                                             <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                             <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
@@ -557,7 +577,7 @@
                                 <div class="form-group termini_ricerca">
                                     <label class="label-bold" for="termini_ricerca">{{ 'APP.LABEL.termini_ricerca' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'termini_ricerca'" *ngIf="_isEdit"></span></label>
                                     <div class="" *ngIf="_isEdit">
-                                        <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('termini_ricerca')" type="text" name="termini_ricerca" id="termini_ricerca" formControlName="termini_ricerca" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
+                                        <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('termini_ricerca')" type="text" name="termini_ricerca" id="termini_ricerca" formControlName="termini_ricerca" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
                                         <p *ngIf="f['termini_ricerca'].invalid && (f['termini_ricerca'].dirty || f['termini_ricerca'].touched)" class="form-text text-danger">
                                             <span *ngIf="f['termini_ricerca'].errors && f['termini_ricerca'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                             <span *ngIf="f['termini_ricerca'].errors && f['termini_ricerca'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['termini_ricerca'].errors['maxlength'].requiredLength } }}</span>
@@ -565,13 +585,13 @@
                                         <ui-input-help field="termini_ricerca" context="SERVICE"></ui-input-help>
                                     </div>
                                     <div class="" *ngIf="!_isEdit">
-                                        <input type="text" readonly class="form-control-plaintext" id="termini_ricerca" [value]="data?.termini_ricerca || '-'">
+                                        <input type="text" readonly class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
                                     </div>
                                 </div>
                                 <div class="form-group note">
                                     <label class="label-bold" for="note">{{ 'APP.LABEL.note' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'note'" *ngIf="_isEdit"></span></label>
                                     <div class="" *ngIf="_isEdit">
-                                        <textarea aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
                                         <p *ngIf="f['note'].invalid && (f['note'].dirty || f['note'].touched)" class="form-text text-danger">
                                             <span *ngIf="f['note'].errors && f['note'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
                                             <span *ngIf="f['note'].errors && f['note'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors['maxlength'].requiredLength } }}</span>

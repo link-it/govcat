@@ -1,3 +1,22 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
 <!-- Mobile version -->
 <ui-item-row-mobile *ngIf="!desktop"
   [data]="_data"
@@ -12,15 +31,19 @@
   [actionText]="actionText"
   [actionTooltip]="actionTooltip"
   [rowClick]="rowClick"
+  [linkRoute]="linkRoute"
   [hostBackground]="hostBackground"
   [primaryClass]="primaryClass"
   [isAnonymous]="isAnonymous"
+  [enableOpenInNewTab]="enableOpenInNewTab"
+  [openInNewTabTooltip]="openInNewTabTooltip"
   (itemClick)="itemClick.emit($event)"
-  (actionClick)="actionClick.emit($event)">
+  (actionClick)="actionClick.emit($event)"
+  (openInNewTab)="openInNewTab.emit($event)">
 </ui-item-row-mobile>
 
 <!-- Desktop version -->
-<div #ir class="d-flex flex-column" *ngIf="desktop" [class.cursor-pointer]="rowClick && hasLink" (click)="__itemClickRow($event, ir)">
+<div #ir class="d-flex flex-column" *ngIf="desktop" [class.cursor-pointer]="rowClick && hasLink" [class]="{ 'supports-new-tab no-icon': rowClick && hasLink && linkRoute }" (click)="__itemClickRow($event, ir)" (auxclick)="__itemClickRow($event, ir)">
   <div class="active-item d-flex flex-grow-1 align-items-center">
     <div class="d-flex align-items-center w-100" [class.flex-wrap]="_itemRowConfig?.wrap">
       <div class="avatar-image" *ngIf="_itemRowConfig?.avatar">
@@ -33,7 +56,7 @@
       <div class="main-info main-content">
         <div class="main-data">
           <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
-            <a href="javascript:void(0);" class="item-row-link" [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" (click)="__itemClick($event, ir)">
+            <a href="javascript:void(0);" class="item-row-link" [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" [class.supports-new-tab]="hasLink && linkRoute" (click)="__itemClick($event, ir)" (auxclick)="__itemClick($event, ir)">
               <ng-container *ngFor="let elem of _itemRowConfig?.primaryText">
                 <ui-item-type *ngIf="_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)"
                   [data]="_data"
@@ -42,6 +65,10 @@
                 </ui-item-type>
               </ng-container>
             </a>
+            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                  *ngIf="enableOpenInNewTab && hasLink && linkRoute"
+                  [title]="openInNewTabTooltip"
+                  (click)="__openInNewTab($event)"></span>
           </div>
         </div>
         <div class="meta-data">

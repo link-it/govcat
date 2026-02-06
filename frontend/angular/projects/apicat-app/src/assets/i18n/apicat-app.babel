@@ -13421,7 +13421,7 @@
 										</translations>
 									</concept_node>
 									<concept_node>
-										<name>EsportSearch</name>
+										<name>ExportSearch</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -13436,7 +13436,7 @@
 										</translations>
 									</concept_node>
 									<concept_node>
-										<name>EsportSelected</name>
+										<name>ExportSelected</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -13451,7 +13451,7 @@
 										</translations>
 									</concept_node>
 									<concept_node>
-										<name>EsportSelectedSubscriptions</name>
+										<name>ExportSelectedSubscriptions</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -13466,7 +13466,7 @@
 										</translations>
 									</concept_node>
 									<concept_node>
-										<name>EsportSelection</name>
+										<name>ExportSelection</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -13481,7 +13481,7 @@
 										</translations>
 									</concept_node>
 									<concept_node>
-										<name>EsportServiceSubscriptions</name>
+										<name>ExportServiceSubscriptions</name>
 										<description/>
 										<comment/>
 										<translations>
@@ -16061,7 +16061,7 @@
 										</children>
 									</folder_node>
 									<concept_node>
-										<name>EsportingFile</name>
+										<name>ExportingFile</name>
 										<description/>
 										<comment/>
 										<translations>

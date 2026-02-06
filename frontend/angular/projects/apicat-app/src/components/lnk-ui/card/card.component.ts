@@ -1,4 +1,23 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ConfigService } from '@linkit/components';
 
 @Component({
   selector: 'lnk-card',
@@ -33,11 +52,13 @@ export class LnkCardComponent implements OnInit {
 
   @Output() editSelection: EventEmitter<any> = new EventEmitter();
   @Output() simpleClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   _logoText: string = '';
+  enableOpenInNewTab: boolean = false;
 
   constructor(
-    // public utilsLib: UtilsLib
+    private configService: ConfigService
   ) { }
 
   ngOnInit() {
@@ -46,18 +67,27 @@ export class LnkCardComponent implements OnInit {
       this._backColor = '#f1f1f1';
     }
     this._textColor = '#111111'; // this.utilsLib.contrast(this._backColor);
+
+    const appConfig = this.configService.getAppConfig();
+    this.enableOpenInNewTab = appConfig?.Layout?.enableOpenInNewTab ?? false;
   }
 
-  __simpleClick(event: any) {
-    if (!this._editMode) {
-      this.simpleClick.emit(event);
+  __cardClick(event: MouseEvent) {
+    if (!this._editMode && this.showGroupLabel) {
+      this.simpleClick.emit({ data: this.data, event });
     }
   }
 
-  __imageClick(event: any) {
+  __simpleClick(event: MouseEvent) {
+    if (!this._editMode) {
+      this.simpleClick.emit({ data: this.data, event });
+    }
+  }
+
+  __imageClick(event: MouseEvent) {
     if (this._enabledImageLink) {
       if (!this._editMode) {
-        this.simpleClick.emit(event);
+        this.simpleClick.emit({ data: this.data, event });
       }
     }
   }
@@ -70,5 +100,11 @@ export class LnkCardComponent implements OnInit {
         this.simpleClick.emit(event);
       }
     }
+  }
+
+  __openInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this.data, event });
   }
 }

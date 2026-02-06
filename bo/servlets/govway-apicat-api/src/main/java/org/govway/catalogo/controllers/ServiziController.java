@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -65,6 +65,7 @@ import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification.TipoMieiServizi;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecificationUtils;
 import org.govway.catalogo.core.dao.specifications.TagSpecification;
+import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity.VISIBILITA;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity;
@@ -75,6 +76,7 @@ import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.NotificaEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
@@ -143,6 +145,7 @@ import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
+import org.govway.catalogo.servlets.model.VisibilitaRichiedenteReferentiEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1095,15 +1098,23 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ..."); 
-				
+				this.logger.info("Invocazione in corso ...");
+
 				ServizioEntity entity = this.findOne(idServizio);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// Determina se mostrare richiedente e referenti nel PDF
+				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
+				// Se il valore è "disabled", non mostra
+				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraRichiedente());
+				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraReferenti());
 
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity));
+					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity, mostraRichiedente, mostraReferenti));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);
@@ -1258,10 +1269,12 @@ public class ServiziController implements ServiziApi {
 			String versione, List<UUID> idServizi,
 			String q) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
-			this.servizioAuthorization.authorizeExport();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
+				this.servizioAuthorization.authorizeList();
+				boolean anounymous = this.coreAuthorization.isAnounymous();
+
+				this.logger.debug("Autorizzazione completata con successo");
 
 				ServizioSpecification specification = new ServizioSpecification();
 				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
@@ -1271,7 +1284,7 @@ public class ServiziController implements ServiziApi {
 				specification.setIdServizi(idServizi);
 				specification.setNome(Optional.ofNullable(nome));
 				specification.setVersione(Optional.ofNullable(versione));
-				
+
 				if(categoria !=null) {
 					List<UUID> categoriaLst = new ArrayList<>();
 					for(String c: categoria) {
@@ -1288,12 +1301,11 @@ public class ServiziController implements ServiziApi {
 				specification.setTag(tag);
 
 				specification.setStati(stato);
-				
-				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
-				
 
-				boolean admin = this.coreAuthorization.isAdmin();
-				boolean anounymous = this.coreAuthorization.isAnounymous();
+				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
+				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
+
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				Specification<ServizioEntity> specInAttesa = null;
 
@@ -1345,7 +1357,7 @@ public class ServiziController implements ServiziApi {
 						realSpecification,
 						Pageable.unpaged()
 						).toList();
-				
+
 				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll);
 
 				Resource resource = new ByteArrayResource(csv);
@@ -1622,12 +1634,20 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
 
 				this.getServizioAuthorization(entity).authorizeDelete(entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 				if (service.isEliminabile(entity)) {
+				    // Cancellazione degli allegati del servizio
+				    AllegatoServizioSpecification spec = new AllegatoServizioSpecification();
+				    spec.setIdServizio(Optional.of(idServizio));
+				    Page<AllegatoServizioEntity> allegati = service.findAllAllegatiServizio(spec, Pageable.unpaged());
+				    for (AllegatoServizioEntity allegato : allegati.getContent()) {
+				        this.service.delete(allegato);
+				    }
+
 				    service.delete(entity);
 				} else {
 				    throw new BadRequestException(ErrorCode.SRV_400_NOT_DELETABLE);
@@ -1718,7 +1738,7 @@ public class ServiziController implements ServiziApi {
 				PagedModelItemServizioGruppo list = new PagedModelItemServizioGruppo();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 				list.add(lst.getLinks());
-				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
+				list.setPage(new PageMetadata().size((long)filtered.size()).number(0L).totalElements((long)filtered.size()).totalPages(1L));
 				this.logger.info("POST pagedmodel");
 
 				this.logger.info("Invocazione completata con successo");
@@ -1839,7 +1859,15 @@ public class ServiziController implements ServiziApi {
 				for(ReferenteDominioEntity referente: servizio.getDominio().getReferenti()) {
 					utentiVisibili.add(referente.getReferente());
 				}
-				
+
+				// Aggiunge anche i referenti e richiedenti delle adesioni al servizio
+				for(AdesioneEntity adesione: servizio.getAdesioni()) {
+					utentiVisibili.add(adesione.getRichiedente());
+					for(ReferenteAdesioneEntity referenteAdesione: adesione.getReferenti()) {
+						utentiVisibili.add(referenteAdesione.getReferente());
+					}
+				}
+
 				contains =  contains || contains(utentiVisibili, utenteSessione);
 
 				if(visibilita.equals(org.govway.catalogo.core.orm.entity.DominioEntity.VISIBILITA.RISERVATO)) {

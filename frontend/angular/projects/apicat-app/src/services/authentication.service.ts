@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
@@ -250,14 +268,28 @@ export class AuthenticationService {
 
   logout() {
     localStorage.removeItem(AUTH_CONST.storageSession);
-    
-    if (this.isAuthLogged()) {
-      this.oauthService.revokeTokenAndLogout();
-      // this.oauthService.logOut(true);
-    }
 
-    // let url = `${this.appConfig.GOVAPI['HOST']}${this.API_LOGOUT}`;
-    // return this.http.get(url);
+    // Check if there's an access token to revoke (even if expired)
+    const hasAccessToken = !!this.oauthService.getAccessToken();
+
+    if (hasAccessToken) {
+      // Check if revocation endpoint is configured in app config or loaded from discovery document
+      const oauthConfig = this.appConfig.AUTH_SETTINGS?.OAUTH;
+      const configRevocationEndpoint = oauthConfig?.RevocationEndpoint;
+      // Also check if loaded from discovery document (when using Issuer)
+      const discoveryRevocationEndpoint = (this.oauthService as any).revocationEndpoint;
+      const revocationEndpoint = configRevocationEndpoint || discoveryRevocationEndpoint;
+
+      if (revocationEndpoint) {
+        this.oauthService.revokeTokenAndLogout().catch((error: any) => {
+          console.warn('Error revoking token, falling back to logOut:', error);
+          this.oauthService.logOut(true);
+        });
+      } else {
+        // No revocation endpoint configured, just logout
+        this.oauthService.logOut(true);
+      }
+    }
   }
 
   setCurrentSession(data: any) {
@@ -534,6 +566,22 @@ export class AuthenticationService {
     return (_intersection.length > 0);
   }
 
+  canArchiviare(module: string, state: string, grant: string[] = []): boolean {
+    // Se è gestore, può sempre archiviare
+    if (this.isGestore(grant)) { return true; }
+
+    // Altrimenti verifica la configurazione
+    const _wfcs = this._getWorkflowCambiStato(module, state);
+    const _ruoliArchiviazione = _wfcs?.ruoli_abilitati_stato_archiviato || [];
+
+    if (_ruoliArchiviazione.length === 0) {
+      return false; // Se non configurato, solo gestore può archiviare
+    }
+
+    const _intersection = _.intersection(grant, _ruoliArchiviazione);
+    return (_intersection.length > 0);
+  }
+
   canJoin(module: string, state: string, usePackage: boolean = false) {
     const _sac = (module === 'adesione') ? this._getConfigModule(module).stati_scheda_adesione : this._getConfigModule(usePackage ? 'package' : module).stati_adesione_consentita;
     return (_.indexOf(_sac, state) !== -1);
@@ -625,6 +673,9 @@ export class AuthenticationService {
   canMonitoraggio(grant: string[] = []) {
     const _grant = [ ...grant ];
     const _monitoraggio = this._getConfigModule('monitoraggio');
+    if (!_monitoraggio) {
+      return false;
+    }
     const _ruoliAbilitati = _monitoraggio.ruoli_abilitati;
     if ((_.indexOf(grant, 'referente_tecnico') !== -1) && (_.indexOf(grant, 'referente') === -1)) {
       _grant.push('referente');

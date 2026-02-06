@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
@@ -29,12 +47,16 @@ export class ItemRowMobileComponent implements OnInit, AfterViewInit {
   @Input() actionText: string = 'download';
   @Input() actionTooltip: string = 'download';
   @Input() rowClick: boolean = false;
+  @Input() linkRoute: boolean = true;
   @Input() hostBackground: string = '#ffffff';
   @Input() primaryClass: string = '';
   @Input() isAnonymous: boolean = false;
+  @Input() enableOpenInNewTab: boolean = false;
+  @Input() openInNewTabTooltip: string = '';
 
   @Output() itemClick: EventEmitter<any> = new EventEmitter();
   @Output() actionClick: EventEmitter<any> = new EventEmitter();
+  @Output() openInNewTab: EventEmitter<any> = new EventEmitter();
 
   _dummyText: string = 'DUMMY TEXT';
 
@@ -76,14 +98,20 @@ export class ItemRowMobileComponent implements OnInit, AfterViewInit {
     return this.sanitized.bypassSecurityTrustHtml(html);
   }
 
-  __itemClick(event: any) {
-    this.itemClick.emit(this._data);
+  __itemClick(event: MouseEvent) {
+    this.itemClick.emit({ data: this._data, event });
   }
 
   __actionlick(event: any) {
     event.stopImmediatePropagation();
     event.preventDefault();
     this.actionClick.emit(this._data);
+  }
+
+  __openInNewTab(event: MouseEvent) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.openInNewTab.emit({ data: this._data, event });
   }
 
   _showEmpty(field: any) {

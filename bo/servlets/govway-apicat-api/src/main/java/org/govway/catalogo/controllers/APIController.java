@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -261,6 +261,10 @@ public class APIController implements ApiApi {
 
 				if(!entity.getErogazioni().isEmpty()) {
 					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString(), "count", String.valueOf(entity.getErogazioni().size())));
+				}
+
+				if(!entity.getServizio().getAdesioni().isEmpty()) {
+					throw new BadRequestException(ErrorCode.API_400_DELETE, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString()));
 				}
 
 				this.service.delete(entity);

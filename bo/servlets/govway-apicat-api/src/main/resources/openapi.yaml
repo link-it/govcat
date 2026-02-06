@@ -145,6 +145,236 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /profilo/email/invia-codice:
+    post:
+      tags:
+      - "Utenti"
+      description: "Invia il codice di verifica alla nuova email specificata per la modifica email profilo"
+      operationId: "inviaCodiceCambioEmail"
+      requestBody:
+        description: "Nuova email da verificare"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CambioEmailRequest"
+      responses:
+        "200":
+          description: "Codice inviato con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodiceInviato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profilo/email/verifica-codice:
+    post:
+      tags:
+      - "Utenti"
+      description: "Verifica il codice inserito e applica la modifica email se corretto"
+      operationId: "verificaCodiceCambioEmail"
+      requestBody:
+        description: "Codice di verifica"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerificaCodiceRequest"
+      responses:
+        "200":
+          description: "Risultato della verifica"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoCambioEmail"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "410":
+          description: "Codice scaduto"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/stato:
+    get:
+      tags:
+      - "Registrazione"
+      description: "Verifica lo stato di registrazione dell'utente corrente. Utilizzato durante il primo login quando firstlogin_verifica_email_abilitata è true."
+      operationId: "getStatoRegistrazione"
+      responses:
+        "200":
+          description: "Stato registrazione restituito con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/conferma-email:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Conferma l'email proveniente dal token JWT senza modificarla"
+      operationId: "confermaEmailJwt"
+      responses:
+        "200":
+          description: "Email confermata, registrazione completata"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/modifica-email:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Modifica l'email proposta per la registrazione"
+      operationId: "modificaEmail"
+      requestBody:
+        description: "Nuova email da utilizzare"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModificaEmailRequest"
+      responses:
+        "200":
+          description: "Email aggiornata, in attesa verifica"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/invia-codice:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Invia il codice di verifica all'email proposta"
+      operationId: "inviaCodiceVerifica"
+      responses:
+        "200":
+          description: "Codice inviato con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodiceInviato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/verifica-codice:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Verifica il codice inserito dall'utente"
+      operationId: "verificaCodice"
+      requestBody:
+        description: "Codice di verifica"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerificaCodiceRequest"
+      responses:
+        "200":
+          description: "Risultato della verifica"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoVerifica"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "410":
+          description: "Codice scaduto"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /registrazione/completa:
+    post:
+      tags:
+      - "Registrazione"
+      description: "Completa il processo di registrazione dopo la verifica email"
+      operationId: "completaRegistrazione"
+      responses:
+        "200":
+          description: "Registrazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoRegistrazione"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "409":
+          $ref: "#/components/responses/409Conflict"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /notifiche:
     get:
       tags:
@@ -3641,6 +3871,46 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni-export:
+    get:
+      tags:
+      - "Adesioni"
+      description: "Export delle adesioni in formato CSV"
+      operationId: "exportAdesioni"
+      parameters:
+      - $ref: "#/components/parameters/stato_query_optional"
+      - $ref: "#/components/parameters/id_soggetto_query_optional"
+      - $ref: "#/components/parameters/id_organizzazione_query_optional"
+      - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
+      - $ref: "#/components/parameters/id_dominio_query_optional"
+      - $ref: "#/components/parameters/id_servizio_query_optional"
+      - $ref: "#/components/parameters/id_logico_query_optional"
+      - $ref: "#/components/parameters/id_client_query_optional"
+      - $ref: "#/components/parameters/richiedente_query_optional"
+      - $ref: "#/components/parameters/in_attesa_query_optional"
+      - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
+      - $ref: "#/components/parameters/id_adesione_query_optional_multi"
+      - $ref: "#/components/parameters/q_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni:
     get:
       tags:
@@ -5552,6 +5822,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneCustomAdesioneProprietaList"
+        mostra_richiedente:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_referenti:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
     ConfigurazioneProfilo:
       type: "object"
       required:
@@ -6106,6 +6380,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VisibilitaAllegatoEnum"
+        mostra_richiedente:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_referenti:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -6119,6 +6397,13 @@ components:
         - collaudo_configurato
         - produzione
         - produzione_configurato
+    VisibilitaRichiedenteReferentiEnum:
+      type: "string"
+      enum:
+        - enabled
+        - onlypdf
+        - disabled
+      default: enabled
     ConfigurazioneRuolo:
       type: "string"
       enum:
@@ -6165,6 +6450,10 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneStato'
+        ruoli_abilitati_stato_archiviato:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneAutomatica:
       type: "object"
       required:
@@ -6355,6 +6644,12 @@ components:
           type: "boolean"
         aggiornamento_idm_abilitato:
           type: "boolean"
+        firstlogin_verifica_email_abilitata:
+          type: "boolean"
+          description: "Se true, abilita il flusso di verifica email al primo login"
+        profilo_modifica_email_richiede_verifica:
+          type: "boolean"
+          description: "Se true, la modifica dell'email del profilo richiede verifica via codice"
     ConfigurazioneTipiDistribuzione:
       type: "string"
       enum:
@@ -6383,6 +6678,121 @@ components:
         - non_configurato
         - abilitato
         - disabilitato
+        - registrazione_richiesta
+    StatoRegistrazione:
+      type: "object"
+      required:
+        - stato
+      properties:
+        stato:
+          $ref: "#/components/schemas/StatoRegistrazioneEnum"
+        email_jwt:
+          type: "string"
+          format: "email"
+          description: "Email proveniente dal token JWT"
+        email_proposta:
+          type: "string"
+          format: "email"
+          description: "Email modificata dall'utente (se diversa)"
+        nome:
+          $ref: "#/components/schemas/String255"
+        cognome:
+          $ref: "#/components/schemas/String255"
+        principal:
+          $ref: "#/components/schemas/String255"
+        tentativi_registrazione:
+          type: "integer"
+          description: "Numero tentativi di registrazione effettuati"
+    StatoRegistrazioneEnum:
+      type: "string"
+      enum:
+        - gia_registrato
+        - in_attesa_conferma
+        - in_attesa_verifica
+        - email_verificata
+        - completato
+    ModificaEmailRequest:
+      type: "object"
+      required:
+        - email
+      properties:
+        email:
+          type: "string"
+          format: "email"
+          maxLength: 255
+    VerificaCodiceRequest:
+      type: "object"
+      required:
+        - codice
+      properties:
+        codice:
+          type: "string"
+          minLength: 1
+          maxLength: 10
+    CodiceInviato:
+      type: "object"
+      properties:
+        messaggio:
+          type: "string"
+        scadenza_secondi:
+          type: "integer"
+          description: "Secondi rimanenti prima della scadenza"
+    RisultatoVerifica:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          type: "boolean"
+        tentativi_rimanenti:
+          type: "integer"
+        messaggio:
+          type: "string"
+    RisultatoRegistrazione:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          $ref: "#/components/schemas/EsitoRegistrazioneEnum"
+        profilo:
+          $ref: "#/components/schemas/Profilo"
+        messaggio:
+          type: "string"
+          description: "Messaggio di benvenuto o informativo"
+    EsitoRegistrazioneEnum:
+      type: "string"
+      enum:
+        - nuovo_utente
+        - principal_aggiornato
+    CambioEmailRequest:
+      type: "object"
+      description: "Richiesta di cambio email. Almeno uno tra email e email_aziendale deve essere specificato."
+      properties:
+        email:
+          type: "string"
+          format: "email"
+          maxLength: 255
+          description: "Nuova email personale da verificare (opzionale)"
+        email_aziendale:
+          type: "string"
+          format: "email"
+          maxLength: 255
+          description: "Nuova email aziendale da verificare (opzionale)"
+    RisultatoCambioEmail:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          type: "boolean"
+          description: "true se la verifica è andata a buon fine e l'email è stata aggiornata"
+        tentativi_rimanenti:
+          type: "integer"
+          description: "Numero di tentativi rimanenti per verificare il codice"
+        messaggio:
+          type: "string"
+          description: "Messaggio informativo sul risultato"
     ItemMessaggio:
       type: object
       required:
@@ -9856,6 +10266,15 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/IdAdesione"
+    id_adesione_query_optional_multi:
+      name: "id_adesione"
+      in: "query"
+      description: "identificativo dell'adesione"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/IdAdesione"
     page_query_optional:
       name: "page"
       in: "query"

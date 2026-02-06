@@ -1,3 +1,21 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <div class="sup-header px-0" *ngIf="_showSupHeaderBar">
     <div class="h-100" [innerHtml]="_headerHtml | safeHtml">
         <!-- /assets/pages/sup-header.html -->
@@ -42,10 +60,10 @@
                             <li class="position-relative" [ngClass]="{ 'js-collapsed-desktop': _sideBarCollapsed && desktop, 'js-expanded-mobile': _sideBarCollapsed && !desktop, 'js-mobile': mobile, 'expanded': (_item.expanded && mobile) || _forceMenuOpen, 'force-menu-open': _forceMenuOpen }" [appRouterLinkMatch]="{ 'active': _item.path + '' }" appFlyOut>
                                 <ng-container [ngSwitch]="sidebarNavHelper.itemType(_item)">
                                     <ng-container *ngSwitchCase="'divider'">
-                                        <a class="divider"></a>
+                                        <a class="divider">&nbsp;</a>
                                     </ng-container>
                                     <ng-container *ngSwitchCase="'title'">
-                                        <a href="javascript: void(0);" class="gl-link cursor-pointer" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
+                                        <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
                                             <span class="nav-icon-container">
                                                 <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_item)">{{ _item.icon}}</span>
                                                 <i class="bi bi-{{ _item.iconBs}}" *ngIf="sidebarNavHelper.hasIconBs(_item)"></i>
@@ -53,6 +71,10 @@
                                             <span class="nav-item-name">{{ _item.label + '' | translate }}</span>
                                             <span class="gl-badge badge badge-pill badge-info text-dark sm count" *ngIf="_item.counter && _counters[_item.counter]">{{ _counters[_item.counter] || 0 }}</span>
                                             <span class="gl-badge text-info" *ngIf="_item.counter && _counters[_item.counter] && _sideBarCollapsed"><i class="bi bi-record-fill"></i></span>
+                                            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                                                *ngIf="_enableOpenInNewTab && _item.url && !_sideBarCollapsed"
+                                                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                                                (click)="_openMenuInNewTab($event, _item)"></span>
                                         </a>
                                         <ul class="sidebar-sub-level-items">
                                             <li class="fly-out-top-item" [appRouterLinkMatch]="{ 'active': _item.path + '' }">
@@ -63,14 +85,17 @@
                                             </li>
                                             <li class="divider fly-out-top-item"></li>
                                             <ng-container *ngFor="let _subItem of _item.children">
-                                                <!-- <li class="text-wrap" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" [contextMenu]="contextualMenuNav" [contextMenuSubject]="_subItem" *ngIf="_subItem | mapper:_showMenu"> -->
-                                                <li class="text-wrap" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
-                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="_onClickMenu($event, _subItem)">
-                                                        <!-- <span class="nav-icon-container">
+                                                <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
+                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" (click)="_onClickMenu($event, _subItem)">
+                                                        <span class="nav-icon-container" *ngIf="false">
                                                             <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
-                                                        </span> -->
+                                                        </span>
                                                         <span class="">{{ _subItem.label + '' | translate }}</span>
-                                                        <!-- <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter">580</span> -->
+                                                        <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter" *ngIf="false">0</span>
+                                                        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                                                            *ngIf="_enableOpenInNewTab && _subItem.url"
+                                                            [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                                                            (click)="_openMenuInNewTab($event, _subItem)"></span>
                                                     </a>
                                                 </li>
                                             </ng-container>
@@ -81,11 +106,6 @@
                         </ng-container>
                     </ng-container>
                 </ul>
-                <!-- <context-menu #contextualMenuNav>
-                    <ng-template contextMenuItem (execute)="_onContextualMenu($event)">
-                        <span class="me-2">{{ 'APP.MENU.OpenInNewWindow' | translate }}</span><i class="bi-box-arrow-up-right"></i>
-                    </ng-template>
-                </context-menu> -->
             </div>
             <div class="d-flex flex-column align-items-start" [class.pt-2]="_showNewsArea && !_sideBarCollapsed" [class.border-top]="(_showAboutMiniBox || _showNewsArea) && !_sideBarCollapsed">
                 <div class="news-area" *ngIf="_showNewsArea && !_sideBarCollapsed">
@@ -119,13 +139,11 @@
                     </ul>
                 </div>
                 <div class="toggle-area">
-                    <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" role="button" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
-                        <!-- <i class="bi" [class.bi-chevron-double-right]="_sideBarCollapsed" [class.bi-chevron-double-left]="!_sideBarCollapsed"></i> -->
+                    <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
                         <span class="material-icons-outlined">{{ (_sideBarCollapsed) ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
                         <span class="collapse-text gp-ml-3">{{ 'APP.BUTTON.CollapseSidebar' | translate }}</span>
                     </a>
                     <button name="button" type="button" class="close-nav-button position-relative" (click)="__closeSideBar()" title="[v.{{ version }}]">
-                        <!-- <i class="bi bi-x-lg"></i> -->
                         <span class="material-icons-outlined">close</span>
                         <span class="collapse-text gl-ml-3">{{ 'APP.BUTTON.CloseSidebar' | translate }}</span>
                     </button>
@@ -157,8 +175,7 @@
         <!-- /assets/pages/footer-small.html -->
     </div>
 </footer>
-<!-- <app-spinner *ngIf="_spin"></app-spinner> -->
-<app-multi-snackbar></app-multi-snackbar>
+<linkit-multi-snackbar></linkit-multi-snackbar>
 <div #watermark class="staging-box d-flex align-items-center justify-content-center" *ngIf="_config.AppConfig?.Watermark && _config.AppConfig?.WatermarkText">
     <span class="text-truncate">{{ _config.AppConfig?.WatermarkText }}</span>
 </div>

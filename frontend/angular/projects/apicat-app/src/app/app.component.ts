@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
@@ -7,6 +25,7 @@ import { Tools } from '@linkit/components';
 import { ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { ConsoleToggleService } from '@services/console-toggle.service';
+import { ModifierKeyService } from '@services/modifier-key.service';
 
 import { environment } from '../environments/environment.prod';
 import { registerLocaleData } from '@angular/common';
@@ -52,8 +71,11 @@ export class AppComponent implements OnInit {
     private apiService: OpenAPIService,
     private consoleToggleService: ConsoleToggleService,
     private bsLocaleService: BsLocaleService,
+    private modifierKeyService: ModifierKeyService,
   ) {
     this.consoleToggleService.disableConsoleInProduction();
+    // Inizializza il servizio per rilevare Ctrl/Cmd (startListening è chiamato nel costruttore)
+    this.modifierKeyService.startListening();
     this._config = this.configService.getConfiguration();
     Tools.Versione = `Ver. ${environment.version}`;
 

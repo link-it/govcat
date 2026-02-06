@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
@@ -37,7 +55,12 @@ export class ConfigService {
           Tools.SetThemeColors(_theme || null);
 
           // OAUTH2
-          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS.OAUTH;
+          const _oauthConfig = this.config.AppConfig.AUTH_SETTINGS?.OAUTH;
+          if (!_oauthConfig) {
+            Tools.LoginAccess();
+            resolve();
+            return;
+          }
           const cfg: any = {
             redirectUri: (_oauthConfig.RedirectUri || ''),
             postLogoutRedirectUri: (_oauthConfig.LogoutRedirectUri || ''),
@@ -60,6 +83,7 @@ export class ConfigService {
             cfg.tokenEndpoint = (_oauthConfig.TokenEndpoint || '');
             cfg.userinfoEndpoint = (_oauthConfig.UserinfoEndpoint || '');
             cfg.logoutUrl = (_oauthConfig.LogoutUrl || '');
+            cfg.revocationEndpoint = (_oauthConfig.RevocationEndpoint || '');
             cfg.skipIssuerCheck = true;
             cfg.strictDiscoveryDocumentValidation = false;
           }
@@ -105,10 +129,10 @@ export class ConfigService {
               }
             });
           } else {
+            // BackdoorOAuth è true
             Tools.LoginAccess();
             resolve();
           }
-
         });
     });
   }

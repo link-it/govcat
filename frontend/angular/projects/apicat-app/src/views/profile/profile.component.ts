@@ -1,23 +1,43 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
+import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { ServerSettings } from './server-settings';
+import { EmailVerificationDialogComponent, EmailVerificationDialogResult } from './components/email-verification-dialog/email-verification-dialog.component';
+
+import * as _ from 'lodash';
 
 interface BodySettingsType {
   emetti_per_tipi?: string[];
   emetti_per_entita?: string[];
   emetti_per_ruoli?: string[];
-}
+};
 
 @Component({
   selector: 'app-profile',
@@ -119,15 +139,29 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     return true;
   }
 
+  // Modal ref per la verifica email
+  private modalRef?: BsModalRef;
+
+  // Getter per verificare se la verifica email è abilitata
+  get verificaEmailAbilitata(): boolean {
+    return Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
+  }
+
+  // Getter per verificare se mostrare il campo email (default: false = nascosto)
+  get mostraEmail(): boolean {
+    return this.config?.AppConfig?.Profile?.showEmail === true;
+  }
+
   constructor(
     private readonly router: Router,
     protected fb: FormBuilder,
     private readonly configService: ConfigService,
     public tools: Tools,
-    private readonly eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
     public authenticationService: AuthenticationService,
-    private readonly utils: UtilService
+    private readonly utils: UtilService,
+    private readonly modalService: BsModalService,
+    private readonly translate: TranslateService
   ) {
     this.config = this.configService.getConfiguration();
   }
@@ -244,14 +278,17 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   }
 
   initForm() {
+    // Se verifica email abilitata, i campi email sono disabilitati
+    const emailDisabled = this.verificaEmailAbilitata;
+
     this.formGroup = this.fb.group({
         principal: [{value: '', disabled: true}, [Validators.required]],
         nome: ['', [Validators.required]],
         cognome: ['', [Validators.required]],
         telefono: ['', []],
-        email: ['', [Validators.email]],
+        email: [{value: '', disabled: emailDisabled}, [Validators.email]],
         telefono_aziendale: ['', [Validators.required]],
-        email_aziendale: ['', [Validators.required, Validators.email]],
+        email_aziendale: [{value: '', disabled: emailDisabled}, [Validators.required, Validators.email]],
         note: ['', []],
     });
 
@@ -260,18 +297,89 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   submitProfile(formValue: any) {
     if (this.isEdit && this.formGroup.valid) {
-        this.onUpdateProfile(this.profile.id_utente, formValue);
+      // Procedi con l'update del profilo
+      // Nota: le email sono gestite separatamente quando verifica è abilitata
+      this.onUpdateProfile(this.profile.id_utente, formValue);
     }
   }
 
+  /**
+   * Apre il dialog per modificare un campo email con verifica OTP
+   */
+  openEmailModificationDialog(fieldName: 'email' | 'email_aziendale'): void {
+    const currentEmail = this.profile?.[fieldName] || '';
+
+    const initialState = {
+      currentEmail: currentEmail,
+      fieldName: fieldName
+    };
+
+    this.modalRef = this.modalService.show(EmailVerificationDialogComponent, {
+      initialState,
+      class: 'modal-md',
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    // Sottoscrivi all'evento di chiusura del modal
+    this.modalRef.onHidden?.subscribe(() => {
+      const result: EmailVerificationDialogResult = this.modalRef?.content?.result;
+      if (result?.verified && result?.verifiedEmail && result?.fieldName) {
+        // Verifica completata con successo
+        // Aggiorna il formGroup con la nuova email
+        this.formGroup.get(result.fieldName)?.setValue(result.verifiedEmail);
+        // Aggiorna anche il profilo locale
+        this.profile[result.fieldName] = result.verifiedEmail;
+        Tools.showMessage(this.translate.instant('APP.MESSAGE.EmailModified'), 'success');
+      } else if (result?.clearEmail && result?.fieldName === 'email') {
+        // Rimozione email personale senza verifica OTP
+        this.clearPersonalEmail();
+      }
+    });
+  }
+
+  /**
+   * Rimuove l'email personale chiamando direttamente PUT /profilo
+   * Il payload deve contenere tutti i campi incluso email_aziendale
+   */
+  private clearPersonalEmail(): void {
+    const formValue = this.formGroup.getRawValue();
+    const body = {
+      nome: formValue.nome,
+      cognome: formValue.cognome,
+      telefono: formValue.telefono || null,
+      telefono_aziendale: formValue.telefono_aziendale,
+      email: null, // Rimuovi email personale
+      email_aziendale: formValue.email_aziendale || this.profile?.email_aziendale,
+      note: formValue.note || null
+    };
+
+    this.apiService.putElement('profilo', null, body).subscribe({
+      next: (response: any) => {
+        // Aggiorna il formGroup con email vuota
+        this.formGroup.get('email')?.setValue('');
+        // Aggiorna anche il profilo locale
+        this.profile.email = null;
+        Tools.showMessage(this.translate.instant('APP.MESSAGE.EmailRemoved'), 'success');
+      },
+      error: (error: any) => {
+        this.error = true;
+        this.errorMsg = this.utils.GetErrorMsg(error);
+      }
+    });
+  }
+
   prepareBodyUpdate(body: any) {
-    const _body = { 
+    // Il payload include sempre tutti i campi, incluse le email.
+    // Il BE verificherà che le email non siano state modificate se la verifica è abilitata
+    // e restituirà errore UT_403_EMAIL_CHANGE in caso di incongruenza.
+    const _body: any = {
       nome: body.nome,
       cognome: body.cognome,
       telefono: body.telefono || null,
-      email: body.email || null,
       telefono_aziendale: body.telefono_aziendale,
-      email_aziendale: body.email_aziendale,
+      email: body.email || this.profile?.email || null,
+      email_aziendale: body.email_aziendale || this.profile?.email_aziendale,
       note: body.note || null
     };
 
@@ -283,6 +391,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
     this.apiService.putElement('profilo', null, _body).subscribe({
       next: (response: any) => {
+        Tools.showMessage(this.translate.instant('APP.MESSAGE.ProfileSaved'), 'success');
         this.loadProfile();
         this.onCancelEdit();
       },

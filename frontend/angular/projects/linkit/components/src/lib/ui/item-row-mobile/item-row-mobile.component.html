@@ -1,4 +1,22 @@
-<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" (click)="__itemClick($event)">
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" [class.supports-new-tab]="hasLink || rowClick" (click)="__itemClick($event)" (auxclick)="__itemClick($event)">
   <!-- Header: Avatar + Primary Text + Action -->
   <div class="mobile-header">
     <div class="mobile-avatar" *ngIf="_itemRowConfig?.avatar">
@@ -18,6 +36,10 @@
             [config]="_config">
           </ui-item-type>
         </ng-container>
+        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+              *ngIf="enableOpenInNewTab && hasLink && linkRoute"
+              [title]="openInNewTabTooltip"
+              (click)="__openInNewTab($event)"></span>
       </div>
 
       <!-- Metadata labels directly under primary text -->

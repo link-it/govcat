@@ -1,3 +1,21 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -13,6 +31,7 @@ import { UtilService } from '@app/services/utils.service';
 
 import { SearchBarFormComponent } from '@linkit/components';
 
+import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
 
 @Component({
@@ -96,7 +115,8 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService
+    private utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -219,7 +239,17 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _onEdit(event: any, param: any) {
-    this.router.navigate([this.model, param.id]);
+    // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+    const mouseEvent = this.navigationService.extractEvent(event);
+    const data = this.navigationService.extractData(param) || param;
+    const route = [this.model, data.id];
+    this.navigationService.navigateWithEvent(mouseEvent, route);
+  }
+
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const route = [this.model, data.id];
+    this.navigationService.openInNewTab(route);
   }
 
   _onNew() {

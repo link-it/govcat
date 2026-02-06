@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -48,6 +48,8 @@ import org.govway.catalogo.core.dao.repositories.SoggettoRepository;
 import org.govway.catalogo.core.dao.repositories.TagRepository;
 import org.govway.catalogo.core.dao.repositories.TassonomiaRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
+import org.govway.catalogo.core.dao.repositories.RegistrazioneUtenteRepository;
+import org.govway.catalogo.core.dao.repositories.EmailUpdateVerificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +109,11 @@ public class AbstractService {
 	protected CategoriaRepository categoriaRepo;
 	@Autowired
 	protected ApiRepository apiRepo;
+	@Autowired
+	protected RegistrazioneUtenteRepository registrazioneUtenteRepo;
+
+	@Autowired
+	protected EmailUpdateVerificationRepository emailUpdateVerificationRepo;
 
 	@Autowired
 	protected JpaTransactionManager txManager;

@@ -1,9 +1,28 @@
+/*
+ * GovCat - GovWay API Catalogue
+ * https://github.com/link-it/govcat
+ *
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3, as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes, PreloadAllModules } from '@angular/router';
 
 import { AuthGuard } from '../guard/auth.guard';
 import { GestoreGuard } from '../guard/gestore.guard';
 import { ForbidAnonymousGuard } from '../guard/forbid-anonymous.guard';
+import { RegistrazioneGuard } from '../guard/registrazione.guard';
 
 import { GpLayoutComponent, SimpleLayoutComponent } from '../containers';
 
@@ -20,6 +39,10 @@ const routes: Routes = [
       {
         path: 'accesso',
         loadChildren: () => import('../views/accesso/accesso.module').then(m => m.AccessoModule)
+      },
+      {
+        path: 'registrazione',
+        loadChildren: () => import('../views/registrazione/registrazione.module').then(m => m.RegistrazioneModule)
       }
     ]
   },
@@ -36,7 +59,7 @@ const routes: Routes = [
   {
     path: '',
     component: GpLayoutComponent,
-    canActivate: [AuthGuard],
+    canActivate: [AuthGuard, RegistrazioneGuard],
     children: [
       {
         path: '_home',

@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -129,6 +129,9 @@ public enum ErrorCode {
 
     /** Utente già esistente */
     UT_403("Utente non abilitato"),
+
+    /** Modifica email non consentita tramite updateProfilo quando verifica è abilitata */
+    UT_403_EMAIL_CHANGE("Modifica email non consentita. Utilizzare il flusso di verifica email"),
 
     // ==================== CLASSI UTENTE ====================
 
@@ -382,7 +385,33 @@ public enum ErrorCode {
     GEN_409_STATE("Conflitto con stato attuale"),
 
     /** Richiesta non valida */
-    GEN_400_REQUEST("Richiesta non valida");
+    GEN_400_REQUEST("Richiesta non valida"),
+
+    // ==================== REGISTRAZIONE ====================
+
+    /** Funzionalità di verifica email non abilitata */
+    REG_400_NOT_ENABLED("Funzionalità di verifica email non abilitata"),
+
+    /** Nessuna registrazione in corso per questo utente */
+    REG_400_NO_REGISTRATION("Nessuna registrazione in corso"),
+
+    /** Nessun codice di verifica inviato */
+    REG_400_NO_CODE("Nessun codice di verifica inviato"),
+
+    /** Email non ancora verificata */
+    REG_400_NOT_VERIFIED("Email non ancora verificata"),
+
+    /** Superato numero massimo tentativi di invio codice */
+    REG_429_MAX_SENDS("Superato il numero massimo di tentativi di invio codice"),
+
+    /** Codice di verifica scaduto */
+    REG_410_EXPIRED("Codice di verifica scaduto"),
+
+    /** Principal già associato ad altro utente */
+    REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
+
+    /** Email non presente nei dati di autenticazione (JWT) */
+    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione");
 
     // ==================== ATTRIBUTI E METODI ====================
 

@@ -1,3 +1,21 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <ng-template [ngIf]="!_isEdit">
   <div id="route-section" class="">
     <div class="breadcrumbs-area">
@@ -16,6 +34,18 @@
         </div>
       </div>
       <div class="nav-controls align-self-center d-flex">
+        <div class="btn-group- me-2" *ngIf="hasExportSelection">
+          <div class="d-inline-block">
+            <app-export-dropdown
+              [title]="'APP.MENU.Subscriptions'"
+              [allElements]="_allElements"
+              [countSelected]="elementsSelected.length"
+              [uncheckAllInTheMenu]="uncheckAllInTheMenu"
+              (action)="onExportAction($event)"
+            ></app-export-dropdown>
+          </div>
+        </div>
+
         <ui-selection-dropdown *ngIf="hasMultiSelection"
           [buttonTitle]="'APP.BUTTON.ChangeStatus'"
           [menuTitle]="'APP.MENU.ChangeStatus' | translate:{ status: _updateMapper | mapper:getLabelStatoAutomaticoMapper }"
@@ -35,8 +65,17 @@
     </div>
     <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
       <div class="row align-items-center">
-        <div class="col-12">
+        <div class="col-12 d-flex align-items-center">
+          <div class="select-all-action row-content-block pl-2 pr-1" *ngIf="showSelectAll && (hasMultiSelection || hasExportSelection) && adesioni.length > 0">
+            <button type="button"
+              class="btn gl-button shadow-0 btn-icon"
+              (click)="allSelected ? deselectAll() : selectAll()"
+              [tooltip]="(allSelected ? 'APP.BUTTON.DeselectAll' : 'APP.BUTTON.SelectAll') | translate" container="body">
+              <i class="bi" [class.bi-check-square]="allSelected" [class.bi-square]="!allSelected"></i>
+            </button>
+          </div>
           <ui-search-bar-form #searchBarForm
+            class="flex-fill"
             [classBlock]="''"
             [placeholder]="'APP.PLACEHOLDER.Search' | translate"
             [showHistory]="showHistory"
@@ -280,9 +319,9 @@
             <ng-container *ngFor="let element of adesioni; trackBy: _trackBy;">
               <div class="px-2 border-bottom">
                 <div class="d-flex flex-column flex-md-row align-md-items-center">
-                  <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection">
+                  <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection || hasExportSelection">
                     <div class="d-flex flex-column flex-sm-row align-self-start align-items-center h-100">
-                      <label class="ps-2 py-2 mb-0 clearfix" *ngIf="hasMultiSelection">
+                      <label class="ps-2 py-2 mb-0 clearfix" *ngIf="hasMultiSelection || hasExportSelection">
                         <input class="float-start js-notification-bulk-action-check-item" type="checkbox" id="element-{{ element.id }}" name="element_ids[]" [value]="element.id" autocomplete="off" [checked]="element.selected" (click)="onSelect($event, element)">
                       </label>
                     </div>
@@ -292,6 +331,7 @@
                       [hasLink]="true"
                       [hostBackground]="'transparent'"
                       (itemClick)="_onEdit($event, element)"
+                      (openInNewTab)="_onOpenInNewTab($event)"
                     ></ui-item-row>
                   </div>
                 </div>
