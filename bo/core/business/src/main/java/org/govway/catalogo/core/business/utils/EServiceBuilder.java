@@ -76,9 +76,12 @@ public class EServiceBuilder {
 	private Logger logger = LoggerFactory.getLogger(EServiceBuilder.class);
 
 	private static char SPLIT_RESOURCES = ',';
-	
+
 	@Autowired
 	private ConfigurazioneEService configurazione;
+
+	@Autowired
+	private StampeLabels stampeLabels;
 
 	public byte[] getEService(ServizioEntity servizio) throws Exception {
 		return getEService(servizio, true, true);
@@ -281,53 +284,53 @@ public class EServiceBuilder {
 			if(this.configurazione.getPdfLogo()!=null) {
 				eser.setLogo(this.configurazione.getPdfLogo());
 			}
-			eser.setTitolo("Descrittore eService");
+			eser.setTitolo(this.stampeLabels.getEservice().getTitolo());
 			eser.setSottotitolo(api.getNome());
 
 			ScopoType tabscopo = new ScopoType();
-	
+
 			EtichetteScopoType etichette = new EtichetteScopoType();
-			
+
 			etichette.setTitolo(Optional.ofNullable(api.getDescrizione()).map(d -> new String(d)).orElse(null));
-			etichette.setDato("Dato");
-			etichette.setValore("Valore");
+			etichette.setDato(this.stampeLabels.getEservice().getLabel().getDato());
+			etichette.setValore(this.stampeLabels.getEservice().getLabel().getValore());
 			tabscopo.setEtichette(etichette);
-			
+
 			List<RigaScopoType> righeLst = new ArrayList<>();
-			
+
 			RigaScopoType rigaNome = new RigaScopoType();
-			rigaNome.setDato("Nome servizio");
+			rigaNome.setDato(this.stampeLabels.getEservice().getLabel().getNomeServizio());
 			rigaNome.setValore(api.getNome());
 			righeLst.add(rigaNome);
-	
+
 			RigaScopoType rigaVersione = new RigaScopoType();
-			rigaVersione.setDato("Versione");
+			rigaVersione.setDato(this.stampeLabels.getEservice().getLabel().getVersione());
 			rigaVersione.setValore(api.getVersione()+"");
 			righeLst.add(rigaVersione);
-	
+
 			RigaScopoType rigaTecnologia = new RigaScopoType();
-			rigaTecnologia.setDato("Tecnologia");
+			rigaTecnologia.setDato(this.stampeLabels.getEservice().getLabel().getTecnologia());
 			String tecnoString = getTecnologia(api, collaudo);
 			rigaTecnologia.setValore(tecnoString);
 			righeLst.add(rigaTecnologia);
-	
+
 			RigaScopoType rigaDescrittore = new RigaScopoType();
-			rigaDescrittore.setDato("Descrittore");
+			rigaDescrittore.setDato(this.stampeLabels.getEservice().getLabel().getDescrittore());
 			if(specificaCollaudo!=null) {
 				rigaDescrittore.setValore(specificaCollaudo.getFilename());
 			}
 			righeLst.add(rigaDescrittore);
-	
+
 			RigaScopoType rigaBaseurlCollaudo = new RigaScopoType();
-			rigaBaseurlCollaudo.setDato("Base URL pubblica (Collaudo)");
-			
+			rigaBaseurlCollaudo.setDato(this.stampeLabels.getEservice().getLabel().getBaseurlCollaudo());
+
 			String valoreCollaudo = this.getUrlInvocazione(api, true);
-					
+
 			rigaBaseurlCollaudo.setValore(valoreCollaudo);
 			righeLst.add(rigaBaseurlCollaudo);
-	
+
 			RigaScopoType rigaBaseurlProd = new RigaScopoType();
-			rigaBaseurlProd.setDato("Base URL pubblica (Produzione)");
+			rigaBaseurlProd.setDato(this.stampeLabels.getEservice().getLabel().getBaseurlProduzione());
 
 			String valoreProduzione = this.getUrlInvocazione(api, false);
 			rigaBaseurlProd.setValore(valoreProduzione);
@@ -344,31 +347,31 @@ public class EServiceBuilder {
 
 			RigheScopoType righe = new RigheScopoType();
 			righe.getRiga().addAll(righeLst);
-			
+
 			tabscopo.setRighe(righe);
 			eser.setScopo(tabscopo);
-			
+
 			List<AuthTypeEntity> authTypeList = api.getAuthType();
-			
+
 			if(authTypeList!=null && !authTypeList.isEmpty()) {
 				ProfiliType profilo = new ProfiliType();
-		
+
 				EtichetteProfiliType etichetteProfilo = new EtichetteProfiliType();
-				
-				etichetteProfilo.setNome("Profilo");
-				etichetteProfilo.setTitolo("Profili di Interoperabilità da utilizzare per le operation/risorse dell'API");
-				etichetteProfilo.setRisorse("Operation/Risorse");
+
+				etichetteProfilo.setNome(this.stampeLabels.getEservice().getProfili().getColonnaProfilo());
+				etichetteProfilo.setTitolo(this.stampeLabels.getEservice().getProfili().getTitolo());
+				etichetteProfilo.setRisorse(this.stampeLabels.getEservice().getProfili().getColonnaOperations());
 				profilo.setEtichette(etichetteProfilo);
-		
+
 				List<RigaProfiliType> righeProfilo = new ArrayList<RigaProfiliType>();
-		
+
 				for(AuthTypeEntity at: authTypeList) {
 					RigaProfiliType rigaProfilo = new RigaProfiliType();
 					rigaProfilo.setNome(getProfiloString(at.getProfilo(), this.configurazione.getProfili()));
-					
+
 					if(authTypeList.size() == 1) {
-						rigaProfilo.setRisorsa("Tutte");
-						rigaProfilo.getRisorse().add("Tutte");
+						rigaProfilo.setRisorsa(this.stampeLabels.getEservice().getProfili().getTutteOperations());
+						rigaProfilo.getRisorse().add(this.stampeLabels.getEservice().getProfili().getTutteOperations());
 					} else {
 						String[] res = new String(at.getResources()).split(SPLIT_RESOURCES +"");
 						rigaProfilo.setRisorsa(String.join(",", res));

@@ -68,17 +68,15 @@ import org.springframework.stereotype.Service;
 public class SchedaAdesioneBuilder {
 
 	private Logger logger = LoggerFactory.getLogger(SchedaAdesioneBuilder.class);
-	
-	public static final String BASE_URL_PUBBLICHE = "BaseURL pubbliche ";
-	public static final String BASE_URL_PUBBLICA = "BaseURL pubblica ";
-	public static final String BASE_URL_LABEL_COLLAUDO = "(Ambiente di Collaudo)";
-	public static final String BASE_URL_LABEL_PRODUZIONE = "(Ambiente di Produzione)";
 
 	@Autowired
 	private ConfigurazioneEService configurazione;
 
 	@Autowired
 	private EServiceBuilder serviceBuilder;
+
+	@Autowired
+	private StampeLabels stampeLabels;
 
 	public byte[] getSchedaAdesione(AdesioneEntity adesione) {
 		return getSchedaAdesione(adesione, true, true);
@@ -88,8 +86,8 @@ public class SchedaAdesioneBuilder {
 
 		SchedaAdesione a = new SchedaAdesione();
 
-		a.setHeader("Scheda adesione");
-		a.setTitolo("Aderente "+adesione.getSoggetto().getOrganizzazione().getNome());
+		a.setHeader(this.stampeLabels.getScheda().getHeader());
+		a.setTitolo(this.stampeLabels.getScheda().getLabel().getAderente() + " " + adesione.getSoggetto().getOrganizzazione().getNome());
 		a.setServizio(adesione.getServizio().getNome());
 		a.setVersioneServizio(adesione.getServizio().getVersione());
 		a.setOrganizzazioneAderente(adesione.getSoggetto().getOrganizzazione().getNome());
@@ -124,18 +122,18 @@ public class SchedaAdesioneBuilder {
 
 			RowType apirow = new RowType();
 			if(apiEntity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
-				apirow.setLabel("API");
+				apirow.setLabel(this.stampeLabels.getScheda().getLabel().getApi());
 			} else {
-				apirow.setLabel("API risposta");
+				apirow.setLabel(this.stampeLabels.getScheda().getLabel().getApiRisposta());
 			}
 			apirow.setValore(apiEntity.getNome() + " v" + apiEntity.getVersione());
 			api.getRow().add(apirow);
 
 			List<AuthTypeEntity> authTypeList = apiEntity.getAuthType();
-			
+
 			authTypeList.stream().findAny().ifPresent(authType -> {
 			    RowType modauth = new RowType();
-			    modauth.setLabel("Modalità di autenticazione");
+			    modauth.setLabel(this.stampeLabels.getScheda().getLabel().getModalitaAutenticazione());
 			    String profilo = authType.getProfilo();
 
 			    if (this.configurazione.getProfili().containsKey(profilo)) {
@@ -168,19 +166,19 @@ public class SchedaAdesioneBuilder {
 		ConfigType produzioneConfig = new ConfigType();
 
 		for(ClientAdesioneEntity client: adesione.getClient()) {
-			
+
 			if(client.getClient()!=null) {
 				ApiType apiConf = new ApiType();
-				
+
 				// riga client
 				RowType row1 = new RowType();
-				row1.setLabel("Client");
+				row1.setLabel(this.stampeLabels.getScheda().getLabel().getClient());
 				row1.setValore(client.getClient().getNome());
 				apiConf.getRow().add(row1);
-				
+
 				// riga profilo
 				RowType row2 = new RowType();
-				row2.setLabel("Profilo");
+				row2.setLabel(this.stampeLabels.getScheda().getLabel().getProfilo());
 				row2.setValore(this.configurazione.getProfili().get(client.getProfilo()));
 				apiConf.getRow().add(row2);
 				
@@ -201,16 +199,16 @@ public class SchedaAdesioneBuilder {
 
 		for(ErogazioneEntity erog: adesione.getErogazioni()) {
 			ApiType apiConf = new ApiType();
-			
+
 			// Erogazione
 			RowType row1 = new RowType();
-			row1.setLabel("Erogazione");
+			row1.setLabel(this.stampeLabels.getScheda().getLabel().getErogazione());
 			row1.setValore(erog.getApi().getNome());
 			apiConf.getRow().add(row1);
-			
+
 			// Base URL
 			RowType row = new RowType();
-			row.setLabel("BaseURL");
+			row.setLabel(this.stampeLabels.getScheda().getLabel().getBaseurl());
 			String url = erog.getUrl();
 			row.setValore(url);
 			apiConf.getRow().add(row);
@@ -234,15 +232,15 @@ public class SchedaAdesioneBuilder {
 				ReferentType subRef = new ReferentType();
 
 				for(ReferenteAdesioneEntity ref: adesione.getReferenti()) {
-
 					String tipoRef = null;
 					if(ref.getTipo().equals(TIPO_REFERENTE.REFERENTE)) {
-						tipoRef = "Referente";
+						tipoRef = this.stampeLabels.getScheda().getLabel().getReferente();
 					} else {
-						tipoRef = "Referente tecnico";
+						tipoRef = this.stampeLabels.getScheda().getLabel().getReferenteTecnico();
 					}
 					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
 					subRef.getItem().add(gritm);
+
 				}
 
 				if(!subRef.getItem().isEmpty()) {
@@ -259,9 +257,9 @@ public class SchedaAdesioneBuilder {
 
 					String tipoRef = null;
 					if(ref.getTipo().equals(TIPO_REFERENTE.REFERENTE)) {
-						tipoRef = "Referente";
+						tipoRef = this.stampeLabels.getScheda().getLabel().getReferente();
 					} else {
-						tipoRef = "Referente tecnico";
+						tipoRef = this.stampeLabels.getScheda().getLabel().getReferenteTecnico();
 					}
 
 					ReferentItemType gritm = getReferentItem(ref.getReferente(), tipoRef);
@@ -303,15 +301,15 @@ public class SchedaAdesioneBuilder {
 		
 		// label titolo tabella
 		if(apiEC.getRow().size() > 1) {
-			apiEC.setTitolo(BASE_URL_PUBBLICHE + BASE_URL_LABEL_COLLAUDO);
+			apiEC.setTitolo(this.stampeLabels.getScheda().getBaseurl().getPubbliche() + " " + this.stampeLabels.getScheda().getBaseurl().getCollaudo());
 		} else {
-			apiEC.setTitolo(BASE_URL_PUBBLICA + BASE_URL_LABEL_COLLAUDO);
+			apiEC.setTitolo(this.stampeLabels.getScheda().getBaseurl().getPubblica() + " " + this.stampeLabels.getScheda().getBaseurl().getCollaudo());
 		}
-		
+
 		if(apiEP.getRow().size() > 1) {
-			apiEP.setTitolo(BASE_URL_PUBBLICHE + BASE_URL_LABEL_PRODUZIONE);
+			apiEP.setTitolo(this.stampeLabels.getScheda().getBaseurl().getPubbliche() + " " + this.stampeLabels.getScheda().getBaseurl().getProduzione());
 		} else {
-			apiEP.setTitolo(BASE_URL_PUBBLICA + BASE_URL_LABEL_PRODUZIONE);
+			apiEP.setTitolo(this.stampeLabels.getScheda().getBaseurl().getPubblica() + " " + this.stampeLabels.getScheda().getBaseurl().getProduzione());
 		}
 		
 		a.setBaseUrlCollaudo(apiEC);
@@ -341,23 +339,23 @@ public class SchedaAdesioneBuilder {
 		if(this.configurazione.getStatiSchedaAdesione()!=null &&
 				this.configurazione.getStatiSchedaAdesione().contains(stato)) {
 			if(stato.equals("bozza")) {
-				return "Bozza";
+				return this.stampeLabels.getScheda().getStato().getBozza();
 			} else if(stato.equals("richiesto_collaudo")) {
-				return "Richiesto in collaudo";
+				return this.stampeLabels.getScheda().getStato().getRichiestoCollaudo();
 			} else if(stato.equals("in_configurazione_collaudo")) {
-				return "In configurazione in collaudo";
+				return this.stampeLabels.getScheda().getStato().getInConfigurazioneCollaudo();
 			} else if(stato.equals("pubblicato_collaudo")) {
-				return "Pubblicato in collaudo";
+				return this.stampeLabels.getScheda().getStato().getPubblicatoCollaudo();
 			} else if(stato.equals("richiesto_produzione")) {
-				return "Richiesto in produzione";
+				return this.stampeLabels.getScheda().getStato().getRichiestoProduzione();
 			} else if(stato.equals("in_configurazione_produzione")) {
-				return "In configurazione in produzione";
+				return this.stampeLabels.getScheda().getStato().getInConfigurazioneProduzione();
 			} else if(stato.equals("pubblicato_produzione")) {
-				return "Pubblicato in produzione";
+				return this.stampeLabels.getScheda().getStato().getPubblicatoProduzione();
 			} else if(stato.equals("pubblicato_produzione_senza_collaudo")) {
-				return "Pubblicato in produzione senza collaudo";
+				return this.stampeLabels.getScheda().getStato().getPubblicatoProduzioneSenzaCollaudo();
 			} else if(stato.equals("archiviato")) {
-				return "Archiviato";
+				return this.stampeLabels.getScheda().getStato().getArchiviato();
 			} else {
 				String statoOut = stato;
 				statoOut = statoOut.replaceAll("_produzione_senza_collaudo", " in produzione senza collaudo")
@@ -382,13 +380,13 @@ public class SchedaAdesioneBuilder {
 		case SIGN_PDND:
 		case HTTP_BASIC:
 		case INDIRIZZO_IP:
-		case NO_DATI: return "Common Name";
+		case NO_DATI: return this.stampeLabels.getScheda().getLabel().getCommonName();
 		case OAUTH_AUTHORIZATION_CODE:
-		case OAUTH_CLIENT_CREDENTIALS: return "Client ID";
+		case OAUTH_CLIENT_CREDENTIALS: return this.stampeLabels.getScheda().getLabel().getClientId();
 		}
 
 		this.logger.debug("Implementare authtype: " + client.getAuthType());
-		
+
 		return null;
 	}
 
@@ -424,8 +422,8 @@ public class SchedaAdesioneBuilder {
 	private String getCNAutenticazioneFirma(Set<EstensioneClientEntity> estensioni) {
 		String cnauth = getCNAutenticazione(estensioni);
 		String cnfirma = getCNFirma(estensioni);
-		
-		return "Autenticazione: " + cnauth + "\n\n" +"Firma: " + cnfirma;
+
+		return this.stampeLabels.getScheda().getLabel().getAutenticazione() + ": " + cnauth + "\n\n" + this.stampeLabels.getScheda().getLabel().getFirma() + ": " + cnfirma;
 	}
 
 	private String getClientId(Set<EstensioneClientEntity> estensioni) {
@@ -444,20 +442,20 @@ public class SchedaAdesioneBuilder {
 	private String getCNAutenticazionePDND(Set<EstensioneClientEntity> estensioni) {
 		String subjectDaClient = getSubjectDaClient(estensioni, CERTIFICATO_AUTENTICAZIONE);
 		String clientId = getClientId(estensioni);
-		return "Autenticazione: " + subjectDaClient + "\n\n" +"Client ID: " + clientId;
+		return this.stampeLabels.getScheda().getLabel().getAutenticazione() + ": " + subjectDaClient + "\n\n" + this.stampeLabels.getScheda().getLabel().getClientId() + ": " + clientId;
 	}
 
 	private String getCNAutenticazioneFirmaPDND(Set<EstensioneClientEntity> estensioni) {
 		String subjectDaClient = getSubjectDaClient(estensioni, CERTIFICATO_AUTENTICAZIONE);
 		String cnfirma = getCNFirma(estensioni);
 		String clientId = getClientId(estensioni);
-		return "Autenticazione: " + subjectDaClient + "\n\n" +"Firma: " + cnfirma + "\n\n" +"Client ID: " + clientId;
+		return this.stampeLabels.getScheda().getLabel().getAutenticazione() + ": " + subjectDaClient + "\n\n" + this.stampeLabels.getScheda().getLabel().getFirma() + ": " + cnfirma + "\n\n" + this.stampeLabels.getScheda().getLabel().getClientId() + ": " + clientId;
 	}
 
 	private String getCNFirmaPDND(Set<EstensioneClientEntity> estensioni) {
 		String cnfirma = getCNFirma(estensioni);
 		String clientId = getClientId(estensioni);
-		return "Firma: " + cnfirma + "\n\n" +"Client ID: " + clientId;
+		return this.stampeLabels.getScheda().getLabel().getFirma() + ": " + cnfirma + "\n\n" + this.stampeLabels.getScheda().getLabel().getClientId() + ": " + clientId;
 	}
 
 	private String getPDND(Set<EstensioneClientEntity> estensioni) {

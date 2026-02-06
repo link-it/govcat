@@ -396,10 +396,45 @@
 
 	</dependencies>
 
-	<build>		
+	<build>
 		<finalName>${api.warName}</finalName>
-		
+
 		<plugins>
+			<!-- Filtering per govcat-stampe.properties con stampe.filter.properties -->
+			<!-- Usa due filter files: prima il default (tutte le label), poi il plugin (override parziale) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven.resources.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>filter-stampe-properties</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<filtering>true</filtering>
+									<includes>
+										<include>govcat-stampe.properties</include>
+									</includes>
+								</resource>
+							</resources>
+							<filters>
+								<!-- Prima il file di default con tutte le label -->
+								<filter>${rel-to-parent}/src/main/plugin/filters/stampe.filter.properties</filter>
+								<!-- Poi il file del plugin che sovrascrive solo le label ridefinite -->
+								<filter>${stampe-filter-file}</filter>
+							</filters>
+							<overwrite>true</overwrite>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>

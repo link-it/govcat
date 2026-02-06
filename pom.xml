@@ -160,10 +160,13 @@
 		<default.plugin>${default.plugin.dir}/plugin</default.plugin>
 		<web-filter-name>web.filter.properties</web-filter-name>
 		<api-filter-name>api.filter.properties</api-filter-name>
+		<stampe-filter-name>stampe.filter.properties</stampe-filter-name>
 		<web-filter-file>
 			${project.build.directory}/plugin/filters/${web-filter-name}</web-filter-file>
 		<api-filter-file>
 			${project.build.directory}/plugin/filters/${api-filter-name}</api-filter-file>
+		<stampe-filter-file>
+			${project.build.directory}/plugin/filters/${stampe-filter-name}</stampe-filter-file>
 		<filter-file>${rel-to-parent}/src/main/resources/empty.filter.properties</filter-file>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
