@@ -604,10 +604,23 @@ public class PdfBoxReportEngine {
                 // Current line is full, start new line
                 if (currentLine.length() > 0) {
                     lines.add(currentLine.toString());
-                    currentLine = new StringBuilder(word);
+                    currentLine = new StringBuilder();
+                }
+
+                // Check if word fits
+                float wordWidth = font.getStringWidth(word) / 1000 * fontSize;
+                if (wordWidth <= maxWidth) {
+                    currentLine.append(word);
                 } else {
-                    // Single word is too long, force it
-                    lines.add(word);
+                    // Word too long, split it
+                    java.util.List<String> wordParts = splitLongWord(word, font, fontSize, maxWidth);
+                    for (int i = 0; i < wordParts.size(); i++) {
+                        if (i < wordParts.size() - 1) {
+                            lines.add(wordParts.get(i));
+                        } else {
+                            currentLine.append(wordParts.get(i));
+                        }
+                    }
                 }
             }
         }
@@ -618,6 +631,76 @@ public class PdfBoxReportEngine {
         }
 
         return lines;
+    }
+
+    /**
+     * Split a long word that doesn't fit in maxWidth.
+     * Prefers splitting after '/' for URL readability, falls back to character split.
+     */
+    private java.util.List<String> splitLongWord(String word, PDFont font, float fontSize, float maxWidth) throws IOException {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+
+        // Try splitting on '/' first (keeps '/' at end of each part)
+        if (word.contains("/")) {
+            String[] segments = word.split("(?<=/)");
+            StringBuilder currentPart = new StringBuilder();
+
+            for (String segment : segments) {
+                String testPart = currentPart.toString() + segment;
+                float testWidth = font.getStringWidth(testPart) / 1000 * fontSize;
+
+                if (testWidth <= maxWidth) {
+                    currentPart.append(segment);
+                } else {
+                    if (currentPart.length() > 0) {
+                        parts.add(currentPart.toString());
+                        currentPart = new StringBuilder();
+                    }
+                    // Check if segment itself fits
+                    float segmentWidth = font.getStringWidth(segment) / 1000 * fontSize;
+                    if (segmentWidth <= maxWidth) {
+                        currentPart.append(segment);
+                    } else {
+                        // Segment too long, split by character
+                        parts.addAll(splitByCharacter(segment, font, fontSize, maxWidth));
+                    }
+                }
+            }
+            if (currentPart.length() > 0) {
+                parts.add(currentPart.toString());
+            }
+        } else {
+            // No slashes, split by character
+            parts.addAll(splitByCharacter(word, font, fontSize, maxWidth));
+        }
+
+        return parts;
+    }
+
+    private java.util.List<String> splitByCharacter(String word, PDFont font, float fontSize, float maxWidth) throws IOException {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        StringBuilder currentPart = new StringBuilder();
+
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            String testPart = currentPart.toString() + c;
+            float testWidth = font.getStringWidth(testPart) / 1000 * fontSize;
+
+            if (testWidth <= maxWidth) {
+                currentPart.append(c);
+            } else {
+                if (currentPart.length() > 0) {
+                    parts.add(currentPart.toString());
+                }
+                currentPart = new StringBuilder();
+                currentPart.append(c);
+            }
+        }
+        if (currentPart.length() > 0) {
+            parts.add(currentPart.toString());
+        }
+
+        return parts;
     }
 
     /**
