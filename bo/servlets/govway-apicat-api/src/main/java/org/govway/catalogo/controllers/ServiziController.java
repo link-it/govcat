@@ -54,6 +54,7 @@ import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.controllers.csv.ServizioBuilder;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
+import org.govway.catalogo.core.business.utils.TargetComunicazioneEnum;
 import org.govway.catalogo.core.dao.specifications.AllegatoServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
@@ -488,7 +489,7 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 
 				ServizioEntity entity = this.service.find(idServizio)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
@@ -496,13 +497,17 @@ public class ServiziController implements ServiziApi {
 
 				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				MessaggioServizioEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
 
 				this.service.save(messaggio);
-				
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio);
+
+				// Determina il target della comunicazione
+				TargetComunicazioneEnum target = toTargetComunicazione(messaggioCreate.getTarget());
+				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
+
+				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
 				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
 
 
@@ -519,6 +524,18 @@ public class ServiziController implements ServiziApi {
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	private TargetComunicazioneEnum toTargetComunicazione(org.govway.catalogo.servlets.model.TargetComunicazioneEnum target) {
+		if (target == null) {
+			return TargetComunicazioneEnum.PUBBLICA;
+		}
+		switch (target) {
+			case PUBBLICA: return TargetComunicazioneEnum.PUBBLICA;
+			case SOLO_REFERENTI: return TargetComunicazioneEnum.SOLO_REFERENTI;
+			case SOLO_ADERENTI: return TargetComunicazioneEnum.SOLO_ADERENTI;
+			default: return TargetComunicazioneEnum.PUBBLICA;
 		}
 	}
 

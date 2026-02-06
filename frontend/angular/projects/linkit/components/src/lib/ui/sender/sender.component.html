@@ -18,14 +18,12 @@
 -->
 <div #msgBar class="message-bar">
   <form class="" [formGroup]="_formGroup" (submit)="__send(_formGroup.value)">
+    <!-- Message input row -->
     <div class="d-flex align-items-center position-relative">
       <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" (click)="__browse($event)" type="button" [tooltip]="'APP.TOOLTIP.AttachFiles' | translate" container="body" placement="right">
         <em class="bi bi-paperclip fs-5"></em>
         <input #browse type="file" hidden (change)="__onChange($event)">
       </button>
-      <!-- <p #msg class="flex-grow-1 border" contenteditable ngfocus (input)="__inputChange($event)" (click)="__onClickText()" (blur)="__onBlur()">
-        {{ _placeholder }}
-      </p> -->
       <div class="flex-grow-1 ">
         <input class="form-control form-control-sm" formControlName="messaggio" [placeholder]="'APP.PLACEHOLDER.TypeMessage' | translate">
       </div>
@@ -38,6 +36,23 @@
         <em class="bi bi-file-earmark"></em>
         <div class="chip-name">{{ _allegato.file }}</div>
         <span class="btn btn-default btn-sm btn-icon" (click)="__chipClick(i)"><em class="bi bi-x-lg"></em></span>
+      </div>
+    </div>
+    <!-- Target selection row -->
+    <div class="d-flex align-items-center mt-2 mx-2 gap-3" *ngIf="showTarget">
+      <div class="d-flex align-items-center">
+        <span class="me-2 small text-muted">{{ 'APP.LABEL.Target' | translate }}:</span>
+        <select class="form-select form-select-sm" formControlName="target" style="width: auto;" aria-label="Target">
+          <option *ngFor="let option of targetOptions" [value]="option.value">
+            {{ option.label | translate }}
+          </option>
+        </select>
+      </div>
+      <div class="form-check mb-0" *ngIf="showIncludiTecnici">
+        <input class="form-check-input" type="checkbox" id="includi_tecnici" formControlName="includi_tecnici">
+        <label class="form-check-label small" for="includi_tecnici">
+          {{ includiTecniciLabel | translate }}
+        </label>
       </div>
     </div>
   </form>

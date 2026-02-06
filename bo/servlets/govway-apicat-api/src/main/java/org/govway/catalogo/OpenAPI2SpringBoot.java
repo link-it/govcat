@@ -115,6 +115,7 @@ import org.govway.catalogo.core.business.utils.ConfigurazioneEService;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
+import org.govway.catalogo.core.business.utils.StampeLabels;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.monitoraggioutils.IMonitoraggioClient;
@@ -154,12 +155,12 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 transactionManagerRef = "transactionManager",
 basePackages = {"org.govway.catalogo.core.dao.repositories"})
 @EnableTransactionManagement
-
 @PropertySources({
-    @PropertySource("classpath:govcat-api.properties" ),
-    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf/govcat-api.properties}", ignoreResourceNotFound = true)
-    }
-)
+    @PropertySource("classpath:govcat-api.properties"),
+    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf/govcat-api.properties}", ignoreResourceNotFound = true),
+    @PropertySource("classpath:govcat-stampe.properties"),
+    @PropertySource(value = "file:${org.govway.api.catalogo.stampe.path:/var/govcat/conf/govcat-stampe.properties}", ignoreResourceNotFound = true)
+})
 public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
  
     @Value("${spring.datasource.jndi-name}")
@@ -700,6 +701,18 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Bean
     public SchedaAdesioneBuilder schedaAdesioneBuilder() {
         return new SchedaAdesioneBuilder();
+    }
+
+    /**
+     * Configurazione delle etichette per i PDF.
+     * Le properties vengono lette automaticamente dal file govcat-stampe.properties
+     * con il prefisso "stampe." (es. stampe.eservice.titolo, stampe.scheda.header).
+     * Spring Boot fa il binding automatico sui setter di StampeLabels.
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "stampe")
+    public StampeLabels stampeLabels() {
+        return new StampeLabels();
     }
 
     @Value("${pdf.logo}")

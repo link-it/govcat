@@ -43,6 +43,9 @@ import org.govway.catalogo.servlets.model.VerificaCodiceRequest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.govway.catalogo.servlets.model.ItemUtente;
+import org.govway.catalogo.servlets.model.RuoloNotifica;
+import org.govway.catalogo.servlets.model.TipoEntitaNotifica;
+import org.govway.catalogo.servlets.model.TipoNotificaEnum;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
@@ -1001,6 +1004,197 @@ public class UtentiTest {
     	});
 
         assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    void testUpdateUtenteSettingsNotificheWithEmailTypes() {
+        // Creazione dell'organizzazione necessaria
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Creazione della configurazione notifiche con tipi email (solo email)
+        ConfigurazioneNotifiche configurazioneNotifiche = new ConfigurazioneNotifiche();
+        configurazioneNotifiche.setEmettiPerTipi(List.of(
+            TipoNotificaEnum.COMUNICAZIONE_EMAIL,
+            TipoNotificaEnum.CAMBIO_STATO_EMAIL
+        ));
+        configurazioneNotifiche.setEmettiPerEntita(List.of(
+            TipoEntitaNotifica.SERVIZIO_EMAIL,
+            TipoEntitaNotifica.ADESIONE_EMAIL
+        ));
+        configurazioneNotifiche.setEmettiPerRuoli(List.of(
+            RuoloNotifica.SERVIZIO_REFERENTE_DOMINIO_EMAIL,
+            RuoloNotifica.ADESIONE_REFERENTE_ADESIONE_EMAIL
+        ));
+
+        // Esecuzione del metodo di aggiornamento
+        ResponseEntity<ConfigurazioneNotifiche> responseUpdate = controller.updateUtenteSettingsNotifiche(responseUtente.getBody().getIdUtente(), configurazioneNotifiche);
+
+        // Asserzioni
+        assertNotNull(responseUpdate.getBody());
+        assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+
+        // Verifica che i tipi email siano stati salvati correttamente
+        assertTrue(responseUpdate.getBody().getEmettiPerTipi().contains(TipoNotificaEnum.COMUNICAZIONE_EMAIL));
+        assertTrue(responseUpdate.getBody().getEmettiPerTipi().contains(TipoNotificaEnum.CAMBIO_STATO_EMAIL));
+        assertTrue(responseUpdate.getBody().getEmettiPerEntita().contains(TipoEntitaNotifica.SERVIZIO_EMAIL));
+        assertTrue(responseUpdate.getBody().getEmettiPerEntita().contains(TipoEntitaNotifica.ADESIONE_EMAIL));
+        assertTrue(responseUpdate.getBody().getEmettiPerRuoli().contains(RuoloNotifica.SERVIZIO_REFERENTE_DOMINIO_EMAIL));
+        assertTrue(responseUpdate.getBody().getEmettiPerRuoli().contains(RuoloNotifica.ADESIONE_REFERENTE_ADESIONE_EMAIL));
+    }
+
+    @Test
+    void testUpdateUtenteSettingsNotificheAllNotifications() {
+        // Creazione dell'organizzazione necessaria
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Creazione della configurazione notifiche con tutti i tipi (push + email)
+        ConfigurazioneNotifiche configurazioneNotifiche = new ConfigurazioneNotifiche();
+        configurazioneNotifiche.setEmettiPerTipi(List.of(
+            TipoNotificaEnum.COMUNICAZIONE,
+            TipoNotificaEnum.CAMBIO_STATO,
+            TipoNotificaEnum.COMUNICAZIONE_EMAIL,
+            TipoNotificaEnum.CAMBIO_STATO_EMAIL
+        ));
+        configurazioneNotifiche.setEmettiPerEntita(List.of(
+            TipoEntitaNotifica.SERVIZIO,
+            TipoEntitaNotifica.ADESIONE,
+            TipoEntitaNotifica.SERVIZIO_EMAIL,
+            TipoEntitaNotifica.ADESIONE_EMAIL
+        ));
+
+        // Esecuzione del metodo di aggiornamento
+        ResponseEntity<ConfigurazioneNotifiche> responseUpdate = controller.updateUtenteSettingsNotifiche(responseUtente.getBody().getIdUtente(), configurazioneNotifiche);
+
+        // Asserzioni
+        assertNotNull(responseUpdate.getBody());
+        assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+        assertEquals(4, responseUpdate.getBody().getEmettiPerTipi().size());
+        assertEquals(4, responseUpdate.getBody().getEmettiPerEntita().size());
+    }
+
+    @Test
+    void testUpdateUtenteSettingsNotifichePushOnly() {
+        // Creazione dell'organizzazione necessaria
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Creazione della configurazione notifiche solo push (senza email)
+        ConfigurazioneNotifiche configurazioneNotifiche = new ConfigurazioneNotifiche();
+        configurazioneNotifiche.setEmettiPerTipi(List.of(
+            TipoNotificaEnum.COMUNICAZIONE,
+            TipoNotificaEnum.CAMBIO_STATO
+        ));
+        configurazioneNotifiche.setEmettiPerEntita(List.of(
+            TipoEntitaNotifica.SERVIZIO,
+            TipoEntitaNotifica.ADESIONE
+        ));
+        configurazioneNotifiche.setEmettiPerRuoli(List.of(
+            RuoloNotifica.SERVIZIO_REFERENTE_DOMINIO,
+            RuoloNotifica.ADESIONE_REFERENTE_ADESIONE
+        ));
+
+        // Esecuzione del metodo di aggiornamento
+        ResponseEntity<ConfigurazioneNotifiche> responseUpdate = controller.updateUtenteSettingsNotifiche(responseUtente.getBody().getIdUtente(), configurazioneNotifiche);
+
+        // Asserzioni
+        assertNotNull(responseUpdate.getBody());
+        assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+
+        // Verifica che solo i tipi push siano presenti (no email)
+        assertFalse(responseUpdate.getBody().getEmettiPerTipi().contains(TipoNotificaEnum.COMUNICAZIONE_EMAIL));
+        assertFalse(responseUpdate.getBody().getEmettiPerTipi().contains(TipoNotificaEnum.CAMBIO_STATO_EMAIL));
+        assertTrue(responseUpdate.getBody().getEmettiPerTipi().contains(TipoNotificaEnum.COMUNICAZIONE));
+        assertTrue(responseUpdate.getBody().getEmettiPerTipi().contains(TipoNotificaEnum.CAMBIO_STATO));
+    }
+
+    @Test
+    void testUpdateUtenteSettingsNotificheDisabled() {
+        // Creazione dell'organizzazione necessaria
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Creazione della configurazione notifiche disabilitate (liste vuote)
+        ConfigurazioneNotifiche configurazioneNotifiche = new ConfigurazioneNotifiche();
+        configurazioneNotifiche.setEmettiPerTipi(List.of());
+        configurazioneNotifiche.setEmettiPerEntita(List.of());
+        configurazioneNotifiche.setEmettiPerRuoli(List.of());
+
+        // Esecuzione del metodo di aggiornamento
+        ResponseEntity<ConfigurazioneNotifiche> responseUpdate = controller.updateUtenteSettingsNotifiche(responseUtente.getBody().getIdUtente(), configurazioneNotifiche);
+
+        // Asserzioni
+        assertNotNull(responseUpdate.getBody());
+        assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+
+        // Verifica che le liste siano vuote (notifiche disabilitate)
+        assertTrue(responseUpdate.getBody().getEmettiPerTipi().isEmpty());
+        assertTrue(responseUpdate.getBody().getEmettiPerEntita().isEmpty());
+        assertTrue(responseUpdate.getBody().getEmettiPerRuoli().isEmpty());
+    }
+
+    @Test
+    void testUpdateUtenteSettingsNotificheAllEmailRoles() {
+        // Creazione dell'organizzazione necessaria
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Creazione della configurazione notifiche con tutti i ruoli email
+        ConfigurazioneNotifiche configurazioneNotifiche = new ConfigurazioneNotifiche();
+        configurazioneNotifiche.setEmettiPerRuoli(List.of(
+            RuoloNotifica.SERVIZIO_REFERENTE_DOMINIO_EMAIL,
+            RuoloNotifica.SERVIZIO_REFERENTE_TECNICO_DOMINIO_EMAIL,
+            RuoloNotifica.SERVIZIO_REFERENTE_SERVIZIO_EMAIL,
+            RuoloNotifica.SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL,
+            RuoloNotifica.SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL,
+            RuoloNotifica.ADESIONE_REFERENTE_DOMINIO_EMAIL,
+            RuoloNotifica.ADESIONE_REFERENTE_TECNICO_DOMINIO_EMAIL,
+            RuoloNotifica.ADESIONE_REFERENTE_SERVIZIO_EMAIL,
+            RuoloNotifica.ADESIONE_REFERENTE_TECNICO_SERVIZIO_EMAIL,
+            RuoloNotifica.ADESIONE_RICHIEDENTE_SERVIZIO_EMAIL,
+            RuoloNotifica.ADESIONE_REFERENTE_ADESIONE_EMAIL,
+            RuoloNotifica.ADESIONE_REFERENTE_TECNICO_ADESIONE_EMAIL,
+            RuoloNotifica.ADESIONE_RICHIEDENTE_ADESIONE_EMAIL
+        ));
+
+        // Esecuzione del metodo di aggiornamento
+        ResponseEntity<ConfigurazioneNotifiche> responseUpdate = controller.updateUtenteSettingsNotifiche(responseUtente.getBody().getIdUtente(), configurazioneNotifiche);
+
+        // Asserzioni
+        assertNotNull(responseUpdate.getBody());
+        assertEquals(HttpStatus.OK, responseUpdate.getStatusCode());
+        assertEquals(13, responseUpdate.getBody().getEmettiPerRuoli().size());
     }
 
     // ==================== Test Verifica Email Modifica Profilo ====================

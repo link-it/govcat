@@ -738,6 +738,7 @@
 			"IdTransazione": "Transaction Id",
 			"Image": "Image",
 			"Index": "Index",
+			"IncludiTecnici": "Include technical referents",
 			"InRicezione": "In reception",
 			"InSpedizione": "In Shipping",
 			"Interface": "Interface",
@@ -898,6 +899,10 @@
 			"Tassonomie": "Taxonomies",
 			"Taxcode": "Taxcode",
 			"Taxonomy": "Taxonomy",
+			"Target": "Recipients",
+			"TargetPubblica": "Public",
+			"TargetSoloReferenti": "Referents only",
+			"TargetSoloAderenti": "Subscribers only",
 			"tempo_medio_risposta": "Average response time",
 			"TempoRisposta": "Response time",
 			"termini_ricerca": "Search Terms",
@@ -1485,6 +1490,10 @@
 			"TYPE": {
 				"CambioStato": "State change",
 				"Comunicazione": "Communication"
+			},
+			"CHANNEL": {
+				"InApp": "In-app",
+				"Email": "Email"
 			}
 		},
 		"ORGANIZATIONS": {

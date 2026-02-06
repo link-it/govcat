@@ -530,7 +530,7 @@ public class APIController implements ApiApi {
 						throw new InternalException(ErrorCode.SYS_500);
 					}
 					return ResponseEntity.status(HttpStatus.OK)
-							.header("Content-Disposition", "attachment; filename="+entity.getSpecifica().getFilename())
+							.header("Content-Disposition", "attachment; filename=servizio.zip")
 							.body(resource);
 				}
 
