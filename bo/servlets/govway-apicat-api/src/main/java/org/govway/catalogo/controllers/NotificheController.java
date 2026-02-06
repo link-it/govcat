@@ -204,6 +204,8 @@ public class NotificheController implements NotificheApi {
 		specification.setTipoEntita(Optional.ofNullable(this.engineAssembler.getTipoEntita(tipoEntitaNotifica)));
 		specification.setTipo(Optional.ofNullable(this.engineAssembler.getTipo(tipoNotifica)));
 		specification.setDestinatario(Optional.of(this.coreAuthorization.getUtenteSessione()));
+		// Esclude le notifiche di tipo email dalla lista visualizzata nella webapp
+		specification.setEscludiEmail(true);
 		return specification;
 	}
 

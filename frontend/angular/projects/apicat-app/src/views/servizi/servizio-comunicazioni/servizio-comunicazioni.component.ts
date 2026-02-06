@@ -393,6 +393,16 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     // new Message
     props.oggetto = `Servizio ${this.service.nome}`;
     props.testo = this._form.messaggio;
+
+    // Target comunicazione (solo per servizi)
+    if (this._form.target) {
+      props.target = this._form.target;
+      // includi_tecnici ha senso solo se target != 'pubblica'
+      if (this._form.target !== 'pubblica') {
+        props.includi_tecnici = this._form.includi_tecnici;
+      }
+    }
+
     const _allegati: any[] = []
     if (this._form.allegati) {
       this._form.allegati.map((item: any) => {

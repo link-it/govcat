@@ -738,6 +738,7 @@
 			"IdTransazione": "Id Transazione",
 			"Image": "Immagine",
 			"Index": "Indice",
+			"IncludiTecnici": "Includi referenti tecnici",
 			"InRicezione": "In Ricezione",
 			"InSpedizione": "In Spedizione",
 			"Interface": "Interfaccia",
@@ -898,6 +899,10 @@
 			"Tassonomie": "Tassonomie",
 			"Taxcode": "Codice fiscale",
 			"Taxonomy": "Tassonomia",
+			"Target": "Destinatari",
+			"TargetPubblica": "Pubblica",
+			"TargetSoloReferenti": "Solo referenti",
+			"TargetSoloAderenti": "Solo aderenti",
 			"tempo_medio_risposta": "Tempo medio risposta",
 			"TempoRisposta": "Tempo risposta",
 			"termini_ricerca": "Termini di ricerca",
@@ -1485,6 +1490,10 @@
 			"TYPE": {
 				"CambioStato": "Cambio stato",
 				"Comunicazione": "Comunicazione"
+			},
+			"CHANNEL": {
+				"InApp": "In-app",
+				"Email": "Email"
 			}
 		},
 		"ORGANIZATIONS": {

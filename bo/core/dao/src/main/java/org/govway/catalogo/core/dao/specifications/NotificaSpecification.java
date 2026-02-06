@@ -59,6 +59,8 @@ public class NotificaSpecification implements Specification<NotificaEntity> {
 	private List<STATO> stati = null;
 	private Optional<UtenteEntity> destinatario = Optional.empty();
 	private Optional<UtenteEntity> mittente = Optional.empty();
+	private boolean escludiEmail = false;
+	private boolean soloEmailNonInviate = false;
 
 	public Optional<String> getQ() {
 		return q;
@@ -169,9 +171,30 @@ public class NotificaSpecification implements Specification<NotificaEntity> {
 		}
 
 		if(this.mittente.isPresent()) {
-			predLst.add(cb.equal(root.get(NotificaEntity_.mittente), this.mittente.get())); 
+			predLst.add(cb.equal(root.get(NotificaEntity_.mittente), this.mittente.get()));
 		}
-		
+
+		// Esclude le notifiche di tipo email (per la webapp che visualizza solo notifiche push)
+		if(this.escludiEmail) {
+			predLst.add(cb.notEqual(root.get(NotificaEntity_.tipo), TIPO.COMUNICAZIONE_EMAIL));
+			predLst.add(cb.notEqual(root.get(NotificaEntity_.tipo), TIPO.CAMBIO_STATO_EMAIL));
+		}
+
+		// Filtra solo email non ancora inviate (per il servizio di invio email)
+		if(this.soloEmailNonInviate) {
+			// Include solo tipi email
+			List<Predicate> tipiEmail = new ArrayList<>();
+			tipiEmail.add(cb.equal(root.get(NotificaEntity_.tipo), TIPO.COMUNICAZIONE_EMAIL));
+			tipiEmail.add(cb.equal(root.get(NotificaEntity_.tipo), TIPO.CAMBIO_STATO_EMAIL));
+			predLst.add(cb.or(tipiEmail.toArray(new Predicate[]{})));
+
+			// Email non ancora inviate (null o false)
+			predLst.add(cb.or(
+				cb.isNull(root.get(NotificaEntity_.emailInviata)),
+				cb.equal(root.get(NotificaEntity_.emailInviata), false)
+			));
+		}
+
 		return predLst;
 	}
 
@@ -213,6 +236,22 @@ public class NotificaSpecification implements Specification<NotificaEntity> {
 
 	public void setStati(List<STATO> stati) {
 		this.stati = stati;
+	}
+
+	public boolean isEscludiEmail() {
+		return escludiEmail;
+	}
+
+	public void setEscludiEmail(boolean escludiEmail) {
+		this.escludiEmail = escludiEmail;
+	}
+
+	public boolean isSoloEmailNonInviate() {
+		return soloEmailNonInviate;
+	}
+
+	public void setSoloEmailNonInviate(boolean soloEmailNonInviate) {
+		this.soloEmailNonInviate = soloEmailNonInviate;
 	}
 
 }

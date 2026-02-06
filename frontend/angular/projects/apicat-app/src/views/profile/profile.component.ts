@@ -82,15 +82,20 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     { label: 'APP.TITLE.Profile', url: '', type: 'title', iconBs: 'person' }
   ];
   
-  _emetti_per_tipi: any[] = [
+  // Opzioni per tipi di notifica (ogni elemento ha versione in-app e _email)
+  _emetti_per_tipi: { label: string; value: string }[] = [
     { label: 'APP.NOTIFICATIONS.TYPE.Comunicazione', value: 'comunicazione' },
     { label: 'APP.NOTIFICATIONS.TYPE.CambioStato', value: 'cambio_stato' }
   ];
-  _emetti_per_entita: any[] = [
+
+  // Opzioni per entità
+  _emetti_per_entita: { label: string; value: string }[] = [
     { label: 'APP.NOTIFICATIONS.ENTITY.Servizio', value: 'servizio' },
     { label: 'APP.NOTIFICATIONS.ENTITY.Adesione', value: 'adesione' }
   ];
-  _emetti_per_ruoli: any[] = [
+
+  // Opzioni per ruoli
+  _emetti_per_ruoli: { label: string; value: string }[] = [
     { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteDominio', value: 'servizio_referente_dominio' },
     { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoDominio', value: 'servizio_referente_tecnico_dominio' },
     { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteServizio', value: 'servizio_referente_servizio' },
@@ -106,7 +111,33 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' },
   ];
 
-  _formSettingsSettings!: FormGroup;
+  _formSettingsSettings: FormGroup = new FormGroup({
+    emetti_per_tipi: new FormControl([], []),
+    emetti_per_entita: new FormControl([], []),
+    emetti_per_ruoli: new FormControl([], []),
+  });
+
+  // DEBUG: impostare a false per nascondere le notifiche al gestore (comportamento finale)
+  _debugShowNotificationsForGestore: boolean = true;
+
+  /**
+   * Verifica se l'utente corrente è un gestore
+   */
+  get isGestore(): boolean {
+    return this.authenticationService.isGestore();
+  }
+
+  /**
+   * Determina se mostrare la sezione impostazioni notifiche.
+   * Il gestore non dovrebbe vedere questa sezione (le notifiche sono sostituite dalla dashboard).
+   * Il flag _debugShowNotificationsForGestore permette di abilitarla temporaneamente per test.
+   */
+  get showNotificationsSettings(): boolean {
+    if (this.isGestore) {
+      return this._debugShowNotificationsForGestore;
+    }
+    return true;
+  }
 
   // Modal ref per la verifica email
   private modalRef?: BsModalRef;
@@ -161,7 +192,12 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
       (response: any) => {
 
         this.profile = response.utente;
-        this.settings = response.settings;
+
+        // I settings UI sono salvati nella sessione locale, non nell'API /profilo
+        // Priorità: sessione locale > API > default
+        const sessionSettings = this.authenticationService.getSettings();
+        const apiSettings = response.settings;
+        this.settings = this._initializeSettings(sessionSettings, apiSettings);
 
         this.initForm();
 
@@ -170,6 +206,47 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         this.spin = false;
       }
     );
+  }
+
+  /**
+   * Inizializza i settings con valori di default se mancanti.
+   * Priorità: sessionSettings > apiSettings > default
+   */
+  private _initializeSettings(sessionSettings: any, apiSettings: any): any {
+    const defaultSettings = {
+      version: '0.1',
+      servizi: {
+        view: 'card',
+        viewBoxed: false,
+        showImage: true,
+        showEmptyImage: false,
+        fillBox: true,
+        showMasonry: false,
+        editSingleColumn: false,
+        showMarkdown: true,
+        showPresentation: true,
+        showTechnicalReferent: false
+      }
+    };
+
+    // Usa sessionSettings se disponibili (priorità più alta)
+    const settings = sessionSettings && Object.keys(sessionSettings).length > 0
+      ? sessionSettings
+      : apiSettings;
+
+    if (!settings || Object.keys(settings).length === 0) {
+      return defaultSettings;
+    }
+
+    // Merge con i default per garantire che servizi esista
+    return {
+      ...defaultSettings,
+      ...settings,
+      servizi: {
+        ...defaultSettings.servizi,
+        ...(settings.servizi || {})
+      }
+    };
   }
 
   _setErrorMessages(error: boolean) {
@@ -341,8 +418,12 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         this.serverSettings = new ServerSettings({ ...response });
         this._initServerForm({ ...this.serverSettings });
       },
-      error: (error: any) => {
-        this._setErrorMessages(true);
+      error: () => {
+        // In caso di errore, inizializza il form con tutto abilitato (default)
+        console.log('loadSettingsNotifications error, using defaults');
+        this._serverSettings = {};
+        this.serverSettings = new ServerSettings({});
+        this._initServerForm({});
       }
     });
   }
@@ -374,148 +455,130 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     });
   }
 
+  /**
+   * Inizializza il form delle impostazioni notifiche.
+   *
+   * Logica:
+   * - {} o sezione undefined = tutto abilitato per quella sezione
+   * - [] = tutto disabilitato per quella sezione
+   * - Array con valori = solo quei valori abilitati
+   * - Ogni elemento ha versione in-app (base) e email (_email suffix)
+   */
   _initServerForm(data: any = null) {
     console.log('_initServerForm', data);
-    if (data) {
-      let _group: any = {};
-      Object.keys(data).forEach((key) => {
-        let value = '';
-        switch (key) {
-          case 'emetti_per_tipi': {
-            const _emetti_per_tipi: any[] = data['emetti_per_tipi'] || [];
-            _group[key] = new FormControl(_emetti_per_tipi, []);
-            break;
-          }
-          case 'emetti_per_entita': {
-            const _emetti_per_entita: any[] = data['emetti_per_entita'] || [];
-            _group[key] = new FormControl(_emetti_per_entita, []);
-            break;
-          }
-          case 'emetti_per_ruoli': {
-            const _emetti_per_ruoli: any[] = data['emetti_per_ruoli'] || [];
-            _group[key] = new FormControl(_emetti_per_ruoli, []);
-            break;
-          }
-          default:
-            value = data[key] ? data[key] : null;
-            _group[key] = new FormControl(value, []);
-            break;
-        }
-      });
-      this._formSettingsSettings = new FormGroup(_group);
 
-      if (data.emetti_per_tipi || data.emetti_per_tipi || data.emetti_per_tipi) {
-        this._formSettingsSettings.get('enable_notifications')?.setValue(true, {emitEvent: false});
-      } else {
-        this._formSettingsSettings.get('enable_notifications')?.setValue(false, {emitEvent: true});
-      }
+    // Determina i valori iniziali per ogni sezione
+    // Se undefined, consideriamo tutto abilitato (tutti i valori possibili)
+    const tipiValues = this._getInitialValues(data?.emetti_per_tipi, this._emetti_per_tipi);
+    const entitaValues = this._getInitialValues(data?.emetti_per_entita, this._emetti_per_entita);
+    const ruoliValues = this._getInitialValues(data?.emetti_per_ruoli, this._emetti_per_ruoli);
 
-      if (data.emetti_per_tipi) {
-        if (data.emetti_per_tipi.length) {
-          this._formSettingsSettings.get('emetti_per_tipi_for_all')?.setValue(null, {emitEvent: false});
-        } else {
-          this._formSettingsSettings.get('emetti_per_tipi_for_all')?.setValue(true, {emitEvent: false});
-        }
-      } else {
-        this._formSettingsSettings.get('emetti_per_tipi_for_all')?.setValue(false, {emitEvent: false});
-      }
-      if (data.emetti_per_entita) {
-        if (data.emetti_per_entita.length) {
-          this._formSettingsSettings.get('emetti_per_entita_for_all')?.setValue(null, {emitEvent: false});
-        } else {
-          this._formSettingsSettings.get('emetti_per_entita_for_all')?.setValue(true, {emitEvent: false});
-        }
-      } else {
-        this._formSettingsSettings.get('emetti_per_entita_for_all')?.setValue(false, {emitEvent: false});
-      }
-      if (data.emetti_per_ruoli) {
-        if (data.emetti_per_ruoli.length) {
-          this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.setValue(null, {emitEvent: false});
-        } else {
-          this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.setValue(true, {emitEvent: false});
-        }
-      } else {
-        this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.setValue(false, {emitEvent: false});
-      }
-      this._formSettingsSettings.updateValueAndValidity();
-    }
+    this._formSettingsSettings = new FormGroup({
+      emetti_per_tipi: new FormControl(tipiValues, []),
+      emetti_per_entita: new FormControl(entitaValues, []),
+      emetti_per_ruoli: new FormControl(ruoliValues, []),
+    });
 
+    this._formSettingsSettings.updateValueAndValidity();
+
+    // Sottoscrizione ai cambiamenti del form
     this._formSettingsSettings.valueChanges.subscribe((body: any) => {
       this._updateServerSettings(body);
     });
-
-    this._formSettingsSettings.get('enable_notifications')?.valueChanges.subscribe((value: any) => {
-      if (value) {
-        this._formSettingsSettings.get('emetti_per_tipi')?.setValue(null, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_tipi')?.enable();
-        this._formSettingsSettings.get('emetti_per_tipi_for_all')?.setValue(true, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_tipi_for_all')?.enable();
-
-        this._formSettingsSettings.get('emetti_per_entita')?.setValue(null, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_entita')?.enable();
-        this._formSettingsSettings.get('emetti_per_entita_for_all')?.setValue(true, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_entita_for_all')?.enable();
-
-        this._formSettingsSettings.get('emetti_per_ruoli')?.setValue(null, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_ruoli')?.enable();
-        this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.setValue(true, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.enable();
-      } else {
-        this._formSettingsSettings.get('emetti_per_tipi')?.setValue([], {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_tipi')?.disable();
-        this._formSettingsSettings.get('emetti_per_tipi_for_all')?.setValue(null, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_tipi_for_all')?.disable();
-
-        this._formSettingsSettings.get('emetti_per_entita')?.setValue([], {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_entita')?.disable();
-        this._formSettingsSettings.get('emetti_per_entita_for_all')?.setValue(null, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_entita_for_all')?.disable();
-
-        this._formSettingsSettings.get('emetti_per_ruoli')?.setValue([], {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_ruoli')?.disable();
-        this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.setValue(null, {emitEvent: false});
-        this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.disable();
-      }
-    });
-    this._formSettingsSettings.get('emetti_per_tipi')?.valueChanges.subscribe((value: any) => {
-      this.__updateFormEmetti('emetti_per_tipi', value, this._emetti_per_tipi.length);
-    });
-    this._formSettingsSettings.get('emetti_per_tipi_for_all')?.valueChanges.subscribe((value: any) => {
-      if (value) {
-        this._formSettingsSettings.get('emetti_per_tipi')?.setValue([], {emitEvent: false});
-      }
-    });
-
-    this._formSettingsSettings.get('emetti_per_entita')?.valueChanges.subscribe((value: any) => {
-      this.__updateFormEmetti('emetti_per_entita', value, this._emetti_per_entita.length);
-    });
-    this._formSettingsSettings.get('emetti_per_entita_for_all')?.valueChanges.subscribe((value: any) => {
-      if (value) {
-        this._formSettingsSettings.get('emetti_per_entita')?.setValue([], {emitEvent: false});
-      }
-    });
-
-    this._formSettingsSettings.get('emetti_per_ruoli')?.valueChanges.subscribe((value: any) => {
-      this.__updateFormEmetti('emetti_per_ruoli', value, this._emetti_per_ruoli.length);
-    });
-    this._formSettingsSettings.get('emetti_per_ruoli_for_all')?.valueChanges.subscribe((value: any) => {
-      if (value) {
-        this._formSettingsSettings.get('emetti_per_ruoli')?.setValue([], {emitEvent: false});
-      }
-    });
   }
 
-  __updateFormEmetti(name: string, value: any, total: number) {
-    const _nameForAll = `${name}_for_all`;
-    if (value && value.length) {
-      this._formSettingsSettings.get(_nameForAll)?.setValue(null, {emitEvent: false});
-      if (value.length === total) {
-        this._formSettingsSettings.get(_nameForAll)?.setValue(true, {emitEvent: false});
-        this._formSettingsSettings.get(name)?.setValue([], {emitEvent: false});
+  /**
+   * Determina i valori iniziali per una sezione.
+   * Se data è undefined → tutto abilitato (ritorna tutti i valori possibili con _email)
+   * Se data è [] → tutto disabilitato (ritorna [])
+   * Altrimenti → ritorna i valori presenti
+   */
+  private _getInitialValues(data: string[] | undefined, options: { value: string }[]): string[] {
+    if (data === undefined) {
+      // Tutto abilitato: genera tutti i valori (base + _email)
+      const allValues: string[] = [];
+      options.forEach(opt => {
+        allValues.push(opt.value);
+        allValues.push(`${opt.value}_email`);
+      });
+      return allValues;
+    }
+    return data || [];
+  }
+
+  /**
+   * Verifica se le notifiche sono globalmente abilitate (almeno un checkbox selezionato)
+   */
+  get notificationsEnabled(): boolean {
+    const tipi = this._formSettingsSettings?.get('emetti_per_tipi')?.value || [];
+    const entita = this._formSettingsSettings?.get('emetti_per_entita')?.value || [];
+    const ruoli = this._formSettingsSettings?.get('emetti_per_ruoli')?.value || [];
+    return tipi.length > 0 || entita.length > 0 || ruoli.length > 0;
+  }
+
+  /**
+   * Abilita o disabilita tutte le notifiche
+   */
+  toggleAllNotifications(enabled: boolean) {
+    if (enabled) {
+      // Abilita tutto: genera tutti i valori possibili per ogni sezione
+      const allTipi = this._getAllValues(this._emetti_per_tipi);
+      const allEntita = this._getAllValues(this._emetti_per_entita);
+      const allRuoli = this._getAllValues(this._emetti_per_ruoli);
+
+      this._formSettingsSettings.patchValue({
+        emetti_per_tipi: allTipi,
+        emetti_per_entita: allEntita,
+        emetti_per_ruoli: allRuoli
+      });
+    } else {
+      // Disabilita tutto: array vuoti
+      this._formSettingsSettings.patchValue({
+        emetti_per_tipi: [],
+        emetti_per_entita: [],
+        emetti_per_ruoli: []
+      });
+    }
+  }
+
+  /**
+   * Genera tutti i valori possibili per una sezione (base + _email)
+   */
+  private _getAllValues(options: { value: string }[]): string[] {
+    const allValues: string[] = [];
+    options.forEach(opt => {
+      allValues.push(opt.value);
+      allValues.push(`${opt.value}_email`);
+    });
+    return allValues;
+  }
+
+  /**
+   * Verifica se un valore è selezionato nell'array del form
+   */
+  isValueSelected(fieldName: string, value: string): boolean {
+    const values = this._formSettingsSettings?.get(fieldName)?.value || [];
+    return values.includes(value);
+  }
+
+  /**
+   * Toggle di un valore nell'array del form
+   */
+  toggleValue(fieldName: string, value: string, checked: boolean) {
+    const control = this._formSettingsSettings.get(fieldName);
+    if (!control) return;
+
+    let values: string[] = [...(control.value || [])];
+
+    if (checked) {
+      if (!values.includes(value)) {
+        values.push(value);
       }
     } else {
-      this._formSettingsSettings.get(_nameForAll)?.setValue(true, {emitEvent: false});
+      values = values.filter(v => v !== value);
     }
+
+    control.setValue(values);
   }
 
   _preventMultiCall: boolean = false;
@@ -525,15 +588,13 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
       this._preventMultiCall = true;
       const _body = this._prepareBody(body);
 
-      this._preventMultiCall = true;
       this.apiService.putElementRelated('utenti', this.profile.id_utente, 'settings/notifiche', _body).subscribe({
         next: (response: any) => {
           console.log('_updateServerSettings', response);
-          this.serverSettings = { ...response };
           this._serverSettings = { ...response };
           this._preventMultiCall = false;
         },
-        error: (error: any) => {
+        error: () => {
           this._setErrorMessages(true);
           this._preventMultiCall = false;
         }
@@ -541,26 +602,44 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     }
   }
 
-  _prepareBody(body: any) {
-    let _body: BodySettingsType = {};
-    const _enable_notifications = body.enable_notifications;
+  /**
+   * Prepara il body per l'API.
+   *
+   * Logica:
+   * - Se tutti i checkbox di una sezione sono selezionati → non inviamo quella sezione (= tutto abilitato)
+   * - Se nessun checkbox è selezionato → inviamo [] (= tutto disabilitato)
+   * - Altrimenti inviamo l'array con i valori selezionati
+   */
+  _prepareBody(body: any): BodySettingsType {
+    const _body: BodySettingsType = {};
 
-    if (_enable_notifications) {
-      if (!body.emetti_per_tipi_for_all && body.emetti_per_tipi) {
-        _body.emetti_per_tipi = [ ...body.emetti_per_tipi ];
-      }
-      if (!body.emetti_per_entita_for_all && body.emetti_per_entita) {
-        _body.emetti_per_entita = [ ...body.emetti_per_entita ];
-      }
-      if (!body.emetti_per_ruoli_for_all && body.emetti_per_ruoli) {
-        _body.emetti_per_ruoli = [ ...body.emetti_per_ruoli ];
-      }
-    } else {
-      _body.emetti_per_tipi = [];
-      _body.emetti_per_entita = [];
-      _body.emetti_per_ruoli = [];
-    }
+    // Per ogni sezione, determina cosa inviare
+    _body.emetti_per_tipi = this._prepareSection(body.emetti_per_tipi, this._emetti_per_tipi);
+    _body.emetti_per_entita = this._prepareSection(body.emetti_per_entita, this._emetti_per_entita);
+    _body.emetti_per_ruoli = this._prepareSection(body.emetti_per_ruoli, this._emetti_per_ruoli);
+
     return _body;
+  }
+
+  /**
+   * Prepara una sezione per l'invio.
+   * Ritorna undefined se tutto abilitato, [] se tutto disabilitato, altrimenti i valori.
+   */
+  private _prepareSection(values: string[] | undefined, options: { value: string }[]): string[] | undefined {
+    if (!values) return [];
+
+    // Calcola tutti i valori possibili (base + _email)
+    const allPossible = options.length * 2;
+
+    if (values.length === 0) {
+      return []; // Tutto disabilitato
+    }
+
+    if (values.length === allPossible) {
+      return undefined; // Tutto abilitato - non inviamo la sezione
+    }
+
+    return values; // Valori specifici
   }
 
   _onSubmit(form: any) {

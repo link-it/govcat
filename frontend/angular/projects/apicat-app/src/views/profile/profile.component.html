@@ -341,7 +341,7 @@
                     </div>
                 </div>
                 <div class="settings" *ngIf="!isProfile">
-                    <div class="container py-5" *ngIf="settings">
+                    <div class="container py-5" *ngIf="settings?.servizi">
                         <div class="row gl-mt-3 js-preferences-form servizi">
                             <div class="col-lg-4">
                                 <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Services' | translate }}</h4>
@@ -388,106 +388,128 @@
                                 <hr>
                             </div>
                         </div>
-                        <div class="row gl-mt-3 js-preferences-form notifiche">
+                        <div class="row gl-mt-3 js-preferences-form notifiche" *ngIf="showNotificationsSettings">
                             <div class="col-lg-4">
                                 <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Notifications' | translate }}</h4>
                                 <p>{{   'APP.SETTINGS.TITLE.Notifications_sub' | translate }}</p>
                             </div>
                             <div class="col-lg-8">
-                                    <form novalidate class="issue-form common-note-form gl-show-field-errors gfm-form" [formGroup]="_formSettingsSettings" (submit)="_onSubmit(_formSettingsSettings.value)">
-                                        <div class="form-group enable_notifications ms-4 mb-5">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" role="switch" id="enable_notifications" name="enable_notifications" formControlName="enable_notifications">
-                                                <label class="form-check-label ms-3" for="enable_notifications">{{ 'APP.SETTINGS.LABEL.EnableNotifications' | translate }}</label>
-                                            </div>
+                                <form novalidate class="issue-form common-note-form gl-show-field-errors gfm-form" [formGroup]="_formSettingsSettings">
+
+                                    <!-- Switch globale abilita/disabilita -->
+                                    <div class="form-group mb-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enable_notifications"
+                                                   [checked]="notificationsEnabled"
+                                                   (change)="toggleAllNotifications($any($event.target).checked)">
+                                            <label class="form-check-label ms-2" for="enable_notifications">
+                                                {{ 'APP.SETTINGS.LABEL.EnableNotifications' | translate }}
+                                            </label>
                                         </div>
-                                        <!-- emetti_per_tipi  -->
-                                        <div class="form-group">
-                                            <label class="label-bold" for="emetti_per_tipi">{{ 'APP.SETTINGS.LABEL.EmettiPerTipi' | translate }}</label>
-                                        </div>
-                                        <div class="px-3 pb-3">
-                                            <div class="gl-form-radio custom-control custom-radio form-check-inline">
-                                                <input class="custom-control-input" type="radio" name="emetti_per_tipi_for_all" id="emetti_per_tipi_for_all_1" [value]="true" formControlName="emetti_per_tipi_for_all">
-                                                <label class="custom-control-label" for="emetti_per_tipi_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
-                                            </div>
-                                            <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
-                                                <input class="custom-control-input" type="radio" name="emetti_per_tipi_for_all" id="emetti_per_tipi_for_all_2" [value]="false" formControlName="emetti_per_tipi_for_all">
-                                                <label class="custom-control-label" for="emetti_per_tipi_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
-                                            </div> -->
-                                        </div>
-                                        <div class="form-group mb-4 pb-1">
-                                            <label class="label-bold ms-3" for="emetti_per_tipi">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
-                                            <div class="ms-3" checkboxArray formControlName="emetti_per_tipi">
-                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_tipi">
-                                                    <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
-                                                    <label class="custom-control-label" [for]="option.value">
-                                                        {{ option.label | translate }}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12">
-                                            <hr>
-                                        </div>
-                                            <!-- emetti_per_entita  -->
-                                        <div class="form-group">
-                                            <label class="label-bold" for="emetti_per_entita">{{ 'APP.SETTINGS.LABEL.EmettiPerEntita' | translate }}</label>
-                                        </div>
-                                        <div class="px-3 pb-3">
-                                            <div class="gl-form-radio custom-control custom-radio form-check-inline">
-                                                <input class="custom-control-input" type="radio" name="emetti_per_entita_for_all" id="emetti_per_entita_for_all_1" [value]="true" formControlName="emetti_per_entita_for_all">
-                                                <label class="custom-control-label" for="emetti_per_entita_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
-                                            </div>
-                                            <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
-                                                <input class="custom-control-input" type="radio" name="emetti_per_entita_for_all" id="emetti_per_entita_for_all_2" [value]="false" formControlName="emetti_per_entita_for_all">
-                                                <label class="custom-control-label" for="emetti_per_entita_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
-                                            </div> -->
-                                        </div>
-                                        <div class="form-group mb-4 pb-1">
-                                            <label class="label-bold ms-3" for="emetti_per_entita">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
-                                            <div class="ms-3" checkboxArray formControlName="emetti_per_entita">
-                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_entita">
-                                                    <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
-                                                    <label class="custom-control-label" [for]="option.value">
-                                                        {{ option.label | translate }}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12">
-                                            <hr>
-                                        </div>
-                                            <!-- emetti_per_ruoli  -->
-                                        <div class="form-group">
-                                            <label class="label-bold" for="emetti_per_ruoli">{{ 'APP.SETTINGS.LABEL.EmettiPerRuoli' | translate }}</label>
-                                        </div>
-                                        <div class="px-3 pb-3">
-                                            <div class="gl-form-radio custom-control custom-radio form-check-inline">
-                                                <input class="custom-control-input" type="radio" name="emetti_per_ruoli_for_all" id="emetti_per_ruoli_for_all_1" [value]="true" formControlName="emetti_per_ruoli_for_all">
-                                                <label class="custom-control-label" for="emetti_per_ruoli_for_all_1">{{ 'APP.SETTINGS.LABEL.ForAll' | translate }}</label>
-                                            </div>
-                                            <!-- <div class="gl-form-radio custom-control custom-radio form-check-inline ms-4">
-                                                <input class="custom-control-input" type="radio" name="emetti_per_ruoli_for_all" id="emetti_per_ruoli_for_all_2" [value]="false" formControlName="emetti_per_ruoli_for_all">
-                                                <label class="custom-control-label" for="emetti_per_ruoli_for_all_2">{{ 'APP.SETTINGS.LABEL.ForNo' | translate }}</label>
-                                            </div> -->
-                                        </div>
-                                        <div class="form-group mb-4 pb-1">
-                                            <label class="label-bold ms-3" for="emetti_per_ruoli">{{ 'APP.SETTINGS.LABEL.Only' | translate }}</label>
-                                            <div class="ms-3" checkboxArray formControlName="emetti_per_ruoli">
-                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngFor="let option of _emetti_per_ruoli">
-                                                    <input class="custom-control-input" type="checkbox" [checkboxArrayKey]="option.value" [id]="option.value">
-                                                    <label class="custom-control-label" [for]="option.value">
-                                                        {{ option.label | translate }}
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="col-sm-12">
+                                    </div>
+
+                                    <hr class="mb-4">
+
+                                    <!-- emetti_per_tipi -->
+                                    <div class="form-group mb-4">
+                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.EmettiPerTipi' | translate }}</label>
+                                        <table class="table table-sm table-borderless mt-2 ms-3">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
+                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr *ngFor="let option of _emetti_per_tipi">
+                                                    <td class="align-middle">{{ option.label | translate }}</td>
+                                                    <td class="text-center align-middle">
+                                                        <input type="checkbox" class="form-check-input m-0"
+                                                               [id]="'tipi_' + option.value + '_inapp'"
+                                                               [checked]="isValueSelected('emetti_per_tipi', option.value)"
+                                                               (change)="toggleValue('emetti_per_tipi', option.value, $any($event.target).checked)">
+                                                    </td>
+                                                    <td class="text-center align-middle">
+                                                        <input type="checkbox" class="form-check-input m-0"
+                                                               [id]="'tipi_' + option.value + '_email'"
+                                                               [checked]="isValueSelected('emetti_per_tipi', option.value + '_email')"
+                                                               (change)="toggleValue('emetti_per_tipi', option.value + '_email', $any($event.target).checked)">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
                                     <hr>
-                                </div>
+
+                                    <!-- emetti_per_entita -->
+                                    <div class="form-group mb-4">
+                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.EmettiPerEntita' | translate }}</label>
+                                        <table class="table table-sm table-borderless mt-2 ms-3">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
+                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr *ngFor="let option of _emetti_per_entita">
+                                                    <td class="align-middle">{{ option.label | translate }}</td>
+                                                    <td class="text-center align-middle">
+                                                        <input type="checkbox" class="form-check-input m-0"
+                                                               [id]="'entita_' + option.value + '_inapp'"
+                                                               [checked]="isValueSelected('emetti_per_entita', option.value)"
+                                                               (change)="toggleValue('emetti_per_entita', option.value, $any($event.target).checked)">
+                                                    </td>
+                                                    <td class="text-center align-middle">
+                                                        <input type="checkbox" class="form-check-input m-0"
+                                                               [id]="'entita_' + option.value + '_email'"
+                                                               [checked]="isValueSelected('emetti_per_entita', option.value + '_email')"
+                                                               (change)="toggleValue('emetti_per_entita', option.value + '_email', $any($event.target).checked)">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- emetti_per_ruoli -->
+                                    <div class="form-group mb-4">
+                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.EmettiPerRuoli' | translate }}</label>
+                                        <table class="table table-sm table-borderless mt-2 ms-3">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
+                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr *ngFor="let option of _emetti_per_ruoli">
+                                                    <td class="align-middle">{{ option.label | translate }}</td>
+                                                    <td class="text-center align-middle">
+                                                        <input type="checkbox" class="form-check-input m-0"
+                                                               [id]="'ruoli_' + option.value + '_inapp'"
+                                                               [checked]="isValueSelected('emetti_per_ruoli', option.value)"
+                                                               (change)="toggleValue('emetti_per_ruoli', option.value, $any($event.target).checked)">
+                                                    </td>
+                                                    <td class="text-center align-middle">
+                                                        <input type="checkbox" class="form-check-input m-0"
+                                                               [id]="'ruoli_' + option.value + '_email'"
+                                                               [checked]="isValueSelected('emetti_per_ruoli', option.value + '_email')"
+                                                               (change)="toggleValue('emetti_per_ruoli', option.value + '_email', $any($event.target).checked)">
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </form>
                             </div>
+                        </div>
                         </div>
                     </div>
                 </div>

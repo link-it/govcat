@@ -8104,11 +8104,15 @@ components:
       enum:
         - servizio
         - adesione
+        - servizio_email
+        - adesione_email
     TipoNotificaEnum:
       type: "string"
       enum:
         - comunicazione
         - cambio_stato
+        - comunicazione_email
+        - cambio_stato_email
     StatoNotifica:
       type: "string"
       enum:
@@ -8131,6 +8135,19 @@ components:
         - adesione_referente_adesione
         - adesione_referente_tecnico_adesione
         - adesione_richiedente_adesione
+        - servizio_referente_dominio_email
+        - servizio_referente_tecnico_dominio_email
+        - servizio_referente_servizio_email
+        - servizio_referente_tecnico_servizio_email
+        - servizio_richiedente_servizio_email
+        - adesione_referente_dominio_email
+        - adesione_referente_tecnico_dominio_email
+        - adesione_referente_servizio_email
+        - adesione_referente_tecnico_servizio_email
+        - adesione_richiedente_servizio_email
+        - adesione_referente_adesione_email
+        - adesione_referente_tecnico_adesione_email
+        - adesione_richiedente_adesione_email
     UpdateNotifica:
       type: "object"
       properties:
@@ -9494,6 +9511,14 @@ components:
           example: "2017-07-21T17:32:28Z"
         url:
           $ref: "#/components/schemas/URL"
+    TargetComunicazioneEnum:
+      type: "string"
+      description: "Target della comunicazione per il servizio"
+      enum:
+        - pubblica
+        - solo_referenti
+        - solo_aderenti
+      default: pubblica
     MessaggioCreate:
       type: object
       required:
@@ -9503,10 +9528,16 @@ components:
           $ref: "#/components/schemas/String255"
         testo:
           $ref: "#/components/schemas/String4000"
+        target:
+          $ref: "#/components/schemas/TargetComunicazioneEnum"
+        includi_tecnici:
+          type: boolean
+          default: true
+          description: "Se true, include anche i referenti tecnici nel target selezionato"
         allegati:
           type: "array"
           items:
-            $ref: '#/components/schemas/AllegatoMessaggioCreate' 
+            $ref: '#/components/schemas/AllegatoMessaggioCreate'
     MessaggioUpdate:
       type: object
       required:
