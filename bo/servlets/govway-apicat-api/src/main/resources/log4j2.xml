@@ -45,13 +45,41 @@
             </Policies>
             <DefaultRolloverStrategy max="5" />
         </RollingFile>
- 
+
+        <RollingFile name="oidc"
+            fileName="${APP_LOG_ROOT}/govcat-oidc${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-oidc${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
+        <RollingFile name="oidc-dump"
+            fileName="${APP_LOG_ROOT}/govcat-oidc-dump${LOG_FILE_SUFFIX}.log"
+            filePattern="${APP_LOG_ROOT}/govcat-oidc-dump${LOG_FILE_SUFFIX}.log.%i">
+            <PatternLayout pattern="${LOG_PATTERN}" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5000KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile>
+
     </Appenders>
     <Loggers>
 
         
         <Logger name="org.govway.catalogo.controllers" level="info" additivity="false">
             <AppenderRef ref="controllers" />
+        </Logger>
+
+        <Logger name="org.govway.catalogo.oidc" level="info" additivity="false">
+            <AppenderRef ref="oidc" />
+        </Logger>
+
+        <Logger name="oidc.dump" level="info" additivity="false">
+            <AppenderRef ref="oidc-dump" />
         </Logger>
 
         <Logger name="org.govway.catalogo" level="info" additivity="false">

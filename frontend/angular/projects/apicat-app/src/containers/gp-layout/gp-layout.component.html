@@ -161,7 +161,7 @@
     </div>
 </div>
 <footer id="footer" class="px-0" [class.expanded]="_expandedFooter" *ngIf="_showFooterBar">
-    <div id="footerExpander" class="footer-expander" (click)="_toggleExpandFooter($event)">
+    <div id="footerExpander" class="footer-expander" (click)="_toggleExpandFooter($event)" *ngIf="_showFooterExpander">
         <i class="bi bi-chevron-compact-down" *ngIf="_expandedFooter"></i>
         <i class="bi bi-chevron-compact-up" *ngIf="!_expandedFooter"></i>
     </div>
