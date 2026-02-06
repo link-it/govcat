@@ -93,6 +93,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Problem'
+  /logout:
+    get:
+      tags:
+        - Token
+      operationId: logout
+      summary: End the user session and redirect
+      description: |
+        OpenID Connect RP-Initiated Logout (Section 5 of OpenID Connect RP-Initiated Logout 1.0).
+        Ends the user session and redirects to the configured post-logout page.
+      parameters:
+        - name: id_token_hint
+          in: query
+          required: false
+          schema:
+            type: string
+          description: ID Token previously issued, used as a hint about the End-User's current authenticated session
+        - name: post_logout_redirect_uri
+          in: query
+          required: false
+          schema:
+            type: string
+          description: URI to which the RP is requesting that the End-User's User Agent be redirected after a logout has been performed
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Opaque value used by the RP to maintain state between the logout request and the callback
+      responses:
+        '302':
+          description: Redirect to post-logout page
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI to redirect to after logout
+        '400':
+          description: Bad Request - Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OAuthError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
 components:
   schemas:
     TokenRequest:

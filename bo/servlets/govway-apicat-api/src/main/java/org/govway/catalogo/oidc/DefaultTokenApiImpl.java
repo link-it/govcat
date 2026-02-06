@@ -61,4 +61,12 @@ public class DefaultTokenApiImpl implements TokenApiDelegate {
             String clientAssertion) {
         throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, OIDC_NOT_CONFIGURED_MESSAGE);
     }
+
+    @Override
+    public ResponseEntity<Void> logout(
+            String idTokenHint,
+            String postLogoutRedirectUri,
+            String state) {
+        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, OIDC_NOT_CONFIGURED_MESSAGE);
+    }
 }

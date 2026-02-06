@@ -71,4 +71,13 @@ public class OidcController implements TokenApi {
                 token, tokenTypeHint, clientId, clientSecret,
                 clientAssertionType, clientAssertion);
     }
+
+    @Override
+    public ResponseEntity<Void> logout(
+            String idTokenHint,
+            String postLogoutRedirectUri,
+            String state) {
+        return this.oidcTokenApiDelegate.logout(
+                idTokenHint, postLogoutRedirectUri, state);
+    }
 }

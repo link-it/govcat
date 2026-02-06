@@ -58,4 +58,12 @@ public interface TokenApiDelegate {
             String clientSecret,
             String clientAssertionType,
             String clientAssertion);
+
+    /**
+     * Termina la sessione utente e restituisce la URI di redirect per il logout.
+     */
+    ResponseEntity<Void> logout(
+            String idTokenHint,
+            String postLogoutRedirectUri,
+            String state);
 }
