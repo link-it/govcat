@@ -33,6 +33,8 @@ import { ServizioDetailsModule } from './servizio-details/servizio-details.modul
 import { ServizioViewModule } from './servizio-view/servizio-view.module';
 import { ServiziGroupListCardComponent } from './components/servizi-group-list-card/servizi-group-list-card.component';
 
+import { ExportDropdwnModule } from '@app/components/lnk-ui/export-dropdown/export-dropdown.module';
+
 @NgModule({
     imports: [
         CommonModule,
@@ -44,7 +46,8 @@ import { ServiziGroupListCardComponent } from './components/servizi-group-list-c
         TassonomiaTokenModule,
         ServiziRoutingModule,
         ServizioDetailsModule,
-        ServizioViewModule
+        ServizioViewModule,
+        ExportDropdwnModule
     ],
     declarations: [
         ServiziComponent,

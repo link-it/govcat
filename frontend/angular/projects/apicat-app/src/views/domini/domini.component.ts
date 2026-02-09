@@ -31,6 +31,7 @@ import { UtilService } from '@app/services/utils.service';
 import { SearchBarFormComponent } from '@linkit/components'
 
 import { EventType } from '@linkit/components';
+import { NavigationService } from '@app/services/navigation.service';
 import { Page} from '../../models/page';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
@@ -125,7 +126,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     public tools: Tools,
     private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService
+    private utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
 
@@ -303,12 +305,22 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     if (this._useRoute) {
       if (this.searchBarForm) {
         this.searchBarForm._pinLastSearch();
-      }      
-      this.router.navigate([this.model, param.id]);
+      }
+      // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+      const mouseEvent = this.navigationService.extractEvent(event);
+      const data = this.navigationService.extractData(param) || param;
+      const route = [this.model, data.id];
+      this.navigationService.navigateWithEvent(mouseEvent, route);
     } else {
       this._isEdit = true;
       this._editCurrent = param;
     }
+  }
+
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const route = [this.model, data.id];
+    this.navigationService.openInNewTab(route);
   }
 
   _onCloseEdit() {

@@ -54,6 +54,7 @@ import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.controllers.csv.ServizioBuilder;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
+import org.govway.catalogo.core.business.utils.TargetComunicazioneEnum;
 import org.govway.catalogo.core.dao.specifications.AllegatoServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
@@ -144,6 +145,7 @@ import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.TipoServizio;
 import org.govway.catalogo.servlets.model.TipologiaAllegatoEnum;
 import org.govway.catalogo.servlets.model.VisibilitaAllegatoEnum;
+import org.govway.catalogo.servlets.model.VisibilitaRichiedenteReferentiEnum;
 import org.govway.catalogo.servlets.model.VisibilitaServizioEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -487,7 +489,7 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 
 				ServizioEntity entity = this.service.find(idServizio)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
@@ -495,13 +497,17 @@ public class ServiziController implements ServiziApi {
 
 				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				MessaggioServizioEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
 
 				this.service.save(messaggio);
-				
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio);
+
+				// Determina il target della comunicazione
+				TargetComunicazioneEnum target = toTargetComunicazione(messaggioCreate.getTarget());
+				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
+
+				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
 				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
 
 
@@ -518,6 +524,18 @@ public class ServiziController implements ServiziApi {
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	private TargetComunicazioneEnum toTargetComunicazione(org.govway.catalogo.servlets.model.TargetComunicazioneEnum target) {
+		if (target == null) {
+			return TargetComunicazioneEnum.PUBBLICA;
+		}
+		switch (target) {
+			case PUBBLICA: return TargetComunicazioneEnum.PUBBLICA;
+			case SOLO_REFERENTI: return TargetComunicazioneEnum.SOLO_REFERENTI;
+			case SOLO_ADERENTI: return TargetComunicazioneEnum.SOLO_ADERENTI;
+			default: return TargetComunicazioneEnum.PUBBLICA;
 		}
 	}
 
@@ -1080,15 +1098,23 @@ public class ServiziController implements ServiziApi {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ..."); 
-				
+				this.logger.info("Invocazione in corso ...");
+
 				ServizioEntity entity = this.findOne(idServizio);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// Determina se mostrare richiedente e referenti nel PDF
+				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
+				// Se il valore è "disabled", non mostra
+				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraRichiedente());
+				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraReferenti());
 
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity));
+					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity, mostraRichiedente, mostraReferenti));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);
@@ -1243,10 +1269,12 @@ public class ServiziController implements ServiziApi {
 			String versione, List<UUID> idServizi,
 			String q) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
-			this.servizioAuthorization.authorizeExport();
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.info("Invocazione in corso ...");
 			return this.service.runTransaction( () -> {
+				this.servizioAuthorization.authorizeList();
+				boolean anounymous = this.coreAuthorization.isAnounymous();
+
+				this.logger.debug("Autorizzazione completata con successo");
 
 				ServizioSpecification specification = new ServizioSpecification();
 				specification.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
@@ -1256,7 +1284,7 @@ public class ServiziController implements ServiziApi {
 				specification.setIdServizi(idServizi);
 				specification.setNome(Optional.ofNullable(nome));
 				specification.setVersione(Optional.ofNullable(versione));
-				
+
 				if(categoria !=null) {
 					List<UUID> categoriaLst = new ArrayList<>();
 					for(String c: categoria) {
@@ -1273,12 +1301,11 @@ public class ServiziController implements ServiziApi {
 				specification.setTag(tag);
 
 				specification.setStati(stato);
-				
-				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
-				
 
-				boolean admin = this.coreAuthorization.isAdmin();
-				boolean anounymous = this.coreAuthorization.isAnounymous();
+				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
+				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
+
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				Specification<ServizioEntity> specInAttesa = null;
 
@@ -1330,7 +1357,7 @@ public class ServiziController implements ServiziApi {
 						realSpecification,
 						Pageable.unpaged()
 						).toList();
-				
+
 				byte[] csv = this.servizioBuilder.getCSVEsteso(findAll);
 
 				Resource resource = new ByteArrayResource(csv);

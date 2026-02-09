@@ -42,7 +42,6 @@ yarn-error.log
 testem.log
 /typings
 read-mic.md
-openapi.yaml
 
 # System Files
 .DS_Store

@@ -163,6 +163,26 @@
         "condition": "rowIndex % 2 != 0",
         "backgroundColor": "#F0F0F0"
       }
+    },
+    "nestedHeader": {
+      "fontRef": "tableHeader",
+      "backgroundColor": "#CCCCCC",
+      "textAlign": "left",
+      "verticalAlign": "middle",
+      "padding": {
+        "top": 8,
+        "right": 10,
+        "bottom": 8,
+        "left": 10
+      },
+      "border": {
+        "width": 0.5,
+        "color": "#000000",
+        "top": true,
+        "right": true,
+        "bottom": true,
+        "left": true
+      }
     }
   },
   "sections": [
@@ -302,6 +322,22 @@
               }
             ]
           }
+        }
+      ]
+    },
+    {
+      "name": "referents_service",
+      "condition": "referents != null && referents.service != null && referents.service.item != null && !referents.service.item.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "nested",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "referents.service.item",
+          "headerLabel": "Referenti Servizio",
+          "headerStyleRef": "nestedHeader"
         }
       ]
     }

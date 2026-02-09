@@ -25,51 +25,25 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder
 public abstract class ServizioFormat {
 
-	@JsonProperty("Erogatore")
+	@JsonProperty("Soggetto Erogatore")
 	abstract String getErogatore();
 	@JsonProperty("Servizio")
 	abstract String getServizio();
-	@JsonProperty("Tipo API")
-	abstract String getTipoApi();
-	@JsonProperty("Aderente")
-	abstract String getAderente();
-	@JsonProperty("Id Adesione")
-	abstract String getIdAdesione();
-	@JsonProperty("Stato")
-	abstract String getStato();
 	@JsonProperty("API")
-	abstract String getImplementazioneAPI();
-	@JsonProperty("Azione/Risorsa")
-	abstract String getAzioneRisorsa();
-	@JsonProperty("URL Invocazione (Collaudo)")
-	abstract String getUrlInvocazioneCollaudo();
-	@JsonProperty("URL Invocazione (Produzione)")
-	abstract String getUrlInvocazioneProduzione();
-	@JsonProperty("Autenticazione (Stato)")
+	abstract String getApi();
+	@JsonProperty("Tipologia API")
+	abstract String getTipoApi();
+	@JsonProperty("Modalità Autenticazione")
 	abstract String getAutenticazioneStato();
-	@JsonProperty("Autenticazione Valore (Collaudo)")
-	abstract String getAutenticazioneValoreCollaudo();
-	@JsonProperty("Autenticazione Valore (Produzione)")
-	abstract String getAutenticazioneValoreProduzione();
-	@JsonProperty("Autenticazione (Applicativi Autorizzati Collaudo)")
-	abstract String getApplicativiAutorizzatiCollaudo();
-	@JsonProperty("Rate Limiting (Collaudo)")
-	abstract String getRateLimitingCollaudo();
-	@JsonProperty("Proprietà (Collaudo)")
-	abstract String getProprietaCollaudo();
-	@JsonProperty("Autenticazione (Applicativi Autorizzati Produzione)")
-	abstract String getApplicativiAutorizzatiProduzione();
-	@JsonProperty("Rate Limiting (Produzione)")
-	abstract String getRateLimitingProduzione();
-	@JsonProperty("Proprietà (Produzione)")
-	abstract String getProprietaProduzione();
-	@JsonProperty("Connettore (Collaudo)")
-	abstract String getConnettoreCollaudo();
-	@JsonProperty("Connettore (Produzione)")
+	@JsonProperty("Stato Servizio")
+	abstract String getStatoServizio();
+	@JsonProperty("URL Invocazione (Prod)")
+	abstract String getUrlInvocazioneProduzione();
+	@JsonProperty("Backend URL (Prod)")
 	abstract String getConnettoreProduzione();
-	@JsonProperty("Referente Regionale Adesione")
-	abstract String getReferenteRegionaleAdesione();
-	@JsonProperty("Referente Tecnico Adesione")
-	abstract String getReferenteTecnicoAdesione();
+	@JsonProperty("URL Invocazione (Coll)")
+	abstract String getUrlInvocazioneCollaudo();
+	@JsonProperty("Backend URL (Coll)")
+	abstract String getConnettoreCollaudo();
 
 }

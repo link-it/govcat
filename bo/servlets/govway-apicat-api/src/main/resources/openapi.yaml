@@ -145,6 +145,74 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /profilo/email/invia-codice:
+    post:
+      tags:
+      - "Utenti"
+      description: "Invia il codice di verifica alla nuova email specificata per la modifica email profilo"
+      operationId: "inviaCodiceCambioEmail"
+      requestBody:
+        description: "Nuova email da verificare"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CambioEmailRequest"
+      responses:
+        "200":
+          description: "Codice inviato con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CodiceInviato"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profilo/email/verifica-codice:
+    post:
+      tags:
+      - "Utenti"
+      description: "Verifica il codice inserito e applica la modifica email se corretto"
+      operationId: "verificaCodiceCambioEmail"
+      requestBody:
+        description: "Codice di verifica"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerificaCodiceRequest"
+      responses:
+        "200":
+          description: "Risultato della verifica"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RisultatoCambioEmail"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "410":
+          description: "Codice scaduto"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /registrazione/stato:
     get:
       tags:
@@ -3803,6 +3871,46 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni-export:
+    get:
+      tags:
+      - "Adesioni"
+      description: "Export delle adesioni in formato CSV"
+      operationId: "exportAdesioni"
+      parameters:
+      - $ref: "#/components/parameters/stato_query_optional"
+      - $ref: "#/components/parameters/id_soggetto_query_optional"
+      - $ref: "#/components/parameters/id_organizzazione_query_optional"
+      - $ref: "#/components/parameters/id_gruppo_padre_query_optional"
+      - $ref: "#/components/parameters/id_dominio_query_optional"
+      - $ref: "#/components/parameters/id_servizio_query_optional"
+      - $ref: "#/components/parameters/id_logico_query_optional"
+      - $ref: "#/components/parameters/id_client_query_optional"
+      - $ref: "#/components/parameters/richiedente_query_optional"
+      - $ref: "#/components/parameters/in_attesa_query_optional"
+      - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
+      - $ref: "#/components/parameters/id_adesione_query_optional_multi"
+      - $ref: "#/components/parameters/q_query_optional"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni:
     get:
       tags:
@@ -5714,6 +5822,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ConfigurazioneCustomAdesioneProprietaList"
+        mostra_richiedente:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_referenti:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
     ConfigurazioneProfilo:
       type: "object"
       required:
@@ -6268,6 +6380,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VisibilitaAllegatoEnum"
+        mostra_richiedente:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_referenti:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -6281,6 +6397,13 @@ components:
         - collaudo_configurato
         - produzione
         - produzione_configurato
+    VisibilitaRichiedenteReferentiEnum:
+      type: "string"
+      enum:
+        - enabled
+        - onlypdf
+        - disabled
+      default: enabled
     ConfigurazioneRuolo:
       type: "string"
       enum:
@@ -6327,6 +6450,10 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneStato'
+        ruoli_abilitati_stato_archiviato:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneAutomatica:
       type: "object"
       required:
@@ -6520,6 +6647,9 @@ components:
         firstlogin_verifica_email_abilitata:
           type: "boolean"
           description: "Se true, abilita il flusso di verifica email al primo login"
+        profilo_modifica_email_richiede_verifica:
+          type: "boolean"
+          description: "Se true, la modifica dell'email del profilo richiede verifica via codice"
     ConfigurazioneTipiDistribuzione:
       type: "string"
       enum:
@@ -6570,9 +6700,6 @@ components:
           $ref: "#/components/schemas/String255"
         principal:
           $ref: "#/components/schemas/String255"
-        messaggio_informativo:
-          type: "string"
-          description: "Testo template fisso da mostrare"
         tentativi_registrazione:
           type: "integer"
           description: "Numero tentativi di registrazione effettuati"
@@ -6638,6 +6765,34 @@ components:
       enum:
         - nuovo_utente
         - principal_aggiornato
+    CambioEmailRequest:
+      type: "object"
+      description: "Richiesta di cambio email. Almeno uno tra email e email_aziendale deve essere specificato."
+      properties:
+        email:
+          type: "string"
+          format: "email"
+          maxLength: 255
+          description: "Nuova email personale da verificare (opzionale)"
+        email_aziendale:
+          type: "string"
+          format: "email"
+          maxLength: 255
+          description: "Nuova email aziendale da verificare (opzionale)"
+    RisultatoCambioEmail:
+      type: "object"
+      required:
+        - esito
+      properties:
+        esito:
+          type: "boolean"
+          description: "true se la verifica è andata a buon fine e l'email è stata aggiornata"
+        tentativi_rimanenti:
+          type: "integer"
+          description: "Numero di tentativi rimanenti per verificare il codice"
+        messaggio:
+          type: "string"
+          description: "Messaggio informativo sul risultato"
     ItemMessaggio:
       type: object
       required:
@@ -7949,11 +8104,15 @@ components:
       enum:
         - servizio
         - adesione
+        - servizio_email
+        - adesione_email
     TipoNotificaEnum:
       type: "string"
       enum:
         - comunicazione
         - cambio_stato
+        - comunicazione_email
+        - cambio_stato_email
     StatoNotifica:
       type: "string"
       enum:
@@ -7976,6 +8135,19 @@ components:
         - adesione_referente_adesione
         - adesione_referente_tecnico_adesione
         - adesione_richiedente_adesione
+        - servizio_referente_dominio_email
+        - servizio_referente_tecnico_dominio_email
+        - servizio_referente_servizio_email
+        - servizio_referente_tecnico_servizio_email
+        - servizio_richiedente_servizio_email
+        - adesione_referente_dominio_email
+        - adesione_referente_tecnico_dominio_email
+        - adesione_referente_servizio_email
+        - adesione_referente_tecnico_servizio_email
+        - adesione_richiedente_servizio_email
+        - adesione_referente_adesione_email
+        - adesione_referente_tecnico_adesione_email
+        - adesione_richiedente_adesione_email
     UpdateNotifica:
       type: "object"
       properties:
@@ -9339,6 +9511,14 @@ components:
           example: "2017-07-21T17:32:28Z"
         url:
           $ref: "#/components/schemas/URL"
+    TargetComunicazioneEnum:
+      type: "string"
+      description: "Target della comunicazione per il servizio"
+      enum:
+        - pubblica
+        - solo_referenti
+        - solo_aderenti
+      default: pubblica
     MessaggioCreate:
       type: object
       required:
@@ -9348,10 +9528,16 @@ components:
           $ref: "#/components/schemas/String255"
         testo:
           $ref: "#/components/schemas/String4000"
+        target:
+          $ref: "#/components/schemas/TargetComunicazioneEnum"
+        includi_tecnici:
+          type: boolean
+          default: true
+          description: "Se true, include anche i referenti tecnici nel target selezionato"
         allegati:
           type: "array"
           items:
-            $ref: '#/components/schemas/AllegatoMessaggioCreate' 
+            $ref: '#/components/schemas/AllegatoMessaggioCreate'
     MessaggioUpdate:
       type: object
       required:
@@ -10080,6 +10266,15 @@ components:
       required: false
       schema:
         $ref: "#/components/schemas/IdAdesione"
+    id_adesione_query_optional_multi:
+      name: "id_adesione"
+      in: "query"
+      description: "identificativo dell'adesione"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/IdAdesione"
     page_query_optional:
       name: "page"
       in: "query"

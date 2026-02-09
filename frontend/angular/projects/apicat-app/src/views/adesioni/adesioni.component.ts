@@ -19,7 +19,9 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
+import { HttpHeaders, HttpParams } from '@angular/common/http';
+
+import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -37,10 +39,13 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 import { SearchBarFormComponent } from '@linkit/components';
 
 import { EventType } from '@linkit/components';
+import { NavigationService } from '@app/services/navigation.service';
 import { Page} from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
+
+declare const saveAs: any;
 
 export enum StatoConfigurazione {
   FALLITA = 'fallita',
@@ -168,11 +173,16 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _useEditWizard: boolean = false;
 
   hasMultiSelection: boolean = false;
+  hasExportSelection: boolean = true;
+  showSelectAll: boolean = true;
   elementsSelected: any[] = [];
   bilkExecutionInProgress: boolean = false;
   uncheckAllInTheMenu: boolean = true;
+  _downloading: boolean = false;
 
-  bulkResponse: any = null
+  bulkResponse: any = null;
+
+  ActionEnum = ActionEnum;
 
   modalReportRef!: BsModalRef;
   
@@ -188,7 +198,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     private apiService: OpenAPIService,
     private utils: UtilService,
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService
+    private modalService: BsModalService,
+    private navigationService: NavigationService
   ) {
 
     this.route.data.subscribe((data) => {
@@ -532,20 +543,65 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       if (this.searchBarForm) {
         this.searchBarForm._pinLastSearch();
       }
-      
+
+      // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+      const mouseEvent = this.navigationService.extractEvent(event);
+      const data = this.navigationService.extractData(param) || param;
+      const source = data.source || data;
+
       if (this._useEditWizard) {
-        const params = (param.source.stato.includes('pubblicato_produzione')) ? [param.source.id_adesione, 'view'] : [param.source.id_adesione];
-        this.router.navigate(params, { relativeTo: this.route });
+        const params = (source.stato.includes('pubblicato_produzione')) ? [source.id_adesione, 'view'] : [source.id_adesione];
+        if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
+          mouseEvent?.preventDefault();
+          mouseEvent?.stopPropagation();
+          const baseUrl = this.router.url.split('?')[0];
+          this.navigationService.openInNewTab([baseUrl, ...params]);
+        } else {
+          this.router.navigate(params, { relativeTo: this.route });
+        }
       } else {
         if (this._useViewRoute) {
-            this.router.navigate([param.source.id_adesione, 'view'], { relativeTo: this.route });
+          const params = [source.id_adesione, 'view'];
+          if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
+            mouseEvent?.preventDefault();
+            mouseEvent?.stopPropagation();
+            const baseUrl = this.router.url.split('?')[0];
+            this.navigationService.openInNewTab([baseUrl, ...params]);
+          } else {
+            this.router.navigate(params, { relativeTo: this.route });
+          }
         } else {
-          this.router.navigate([param.source.id_adesione], { relativeTo: this.route });
+          const params = [source.id_adesione];
+          if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
+            mouseEvent?.preventDefault();
+            mouseEvent?.stopPropagation();
+            const baseUrl = this.router.url.split('?')[0];
+            this.navigationService.openInNewTab([baseUrl, ...params]);
+          } else {
+            this.router.navigate(params, { relativeTo: this.route });
+          }
         }
       }
     } else {
       this._isEdit = true;
       this._editCurrent = param;
+    }
+  }
+
+  _onOpenInNewTab(event: any) {
+    const data = this.navigationService.extractData(event);
+    const source = data.source || data;
+    const baseUrl = this.router.url.split('?')[0];
+
+    if (this._useEditWizard) {
+      const params = (source.stato.includes('pubblicato_produzione')) ? [source.id_adesione, 'view'] : [source.id_adesione];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
+    } else if (this._useViewRoute) {
+      const params = [source.id_adesione, 'view'];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
+    } else {
+      const params = [source.id_adesione];
+      this.navigationService.openInNewTab([baseUrl, ...params]);
     }
   }
 
@@ -644,6 +700,19 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this._updateMapper = new Date().getTime().toString();
   }
 
+  selectAll() {
+    this.elementsSelected = this.adesioni.map((element: any) => element.id);
+    const _elements = this.adesioni.map((element: any) => {
+        return { ...element, selected: true };
+    });
+    this.adesioni = [ ..._elements ];
+    this._updateMapper = new Date().getTime().toString();
+  }
+
+  get allSelected(): boolean {
+    return this.adesioni.length > 0 && this.elementsSelected.length === this.adesioni.length;
+  }
+
   onSelect(event: any, element: any) {
     event.stopPropagation();
     const _index = this.elementsSelected.findIndex((item: any) => item === element.id);
@@ -739,5 +808,61 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   closeErrorModal(){
     this.modalReportRef.hide();
+  }
+
+  // Export adesioni
+  get _allElements(): number {
+    return this._paging?.totalElements || 0;
+  }
+
+  onExportAction(event: any) {
+    switch (event.action) {
+      case ActionEnum.SEARCH:
+        this.onExport(ActionEnum.SEARCH);
+        break;
+      case ActionEnum.SELECTION:
+        this.onExport(ActionEnum.SELECTION);
+        break;
+      case ActionEnum.DESELECT_ALL:
+        this.deselectAll();
+        break;
+    }
+  }
+
+  onExport(type: string) {
+    let aux: any;
+    let query: any = null;
+
+    if (type === ActionEnum.SEARCH) {
+      query = { ...this._filterData };
+    } else {
+      query = { id_adesione: [...this.elementsSelected] };
+    }
+
+    if (this.service && this.service.id_servizio) {
+      query.id_servizio = this.service.id_servizio;
+    }
+
+    aux = this.utils._queryToHttpParams(query);
+
+    const headers = new HttpHeaders().set('timeout', '150000');
+
+    this._downloading = true;
+    this.apiService.download(`${this.model}-export`, null, undefined, aux, headers)
+      .subscribe({
+        next: (response: any) => {
+          const filename: string = Tools.GetFilenameFromHeader(response);
+          saveAs(response.body, filename);
+          this._downloading = false;
+        },
+        error: (error: any) => {
+          this._downloading = false;
+          if (error.name === 'TimeoutError') {
+            Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+          } else {
+            Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+          }
+        }
+      });
   }
 }

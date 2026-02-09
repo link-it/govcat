@@ -16,13 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -84,10 +83,10 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
   hideVersions: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
     public tools: Tools,
     public apiService: OpenAPIService
   ) {
@@ -113,19 +112,20 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
       let _id = params['id'];
       const _cid = params['cid'];
       if (_cid) { _id = _cid; }
-      if (_id) {
-        this.sid = _id;
-        this.id = params['aid'];
-        this.environmentId = params['id_ambiente'] || '';
+        if (_id) {
+          this.sid = _id;
+          this.id = params['aid'];
+          this.environmentId = params['id_ambiente'] || '';
 
-        if (!this.service) {
-          this._loadServizio();
-        } else {
-          this._initBreadcrumb();
-          this._autoSelectTab();
+          if (!this.service) {
+            this._loadServizio();
+          } else {
+            this._initBreadcrumb();
+            this._autoSelectTab();
+          }
         }
       }
-    });
+    );
 
     this.route.queryParams.subscribe(params => {
       this.producerIdCollaudo = params.producerIdCollaudo || '';
@@ -213,14 +213,24 @@ export class ServizioApiPdndInformationsComponent implements OnInit, AfterConten
   }
 
   _getEService(environment: string) {
-    let _environment: string = (environment === 'collaudo') ? 'PDNDCollaudo' : 'PDNDProduzione';
+    const _environmentNew: string = (environment === 'collaudo') ? 'PDNDCollaudo_identificativo' : 'PDNDProduzione_identificativo';
+    const _environmentOld: string = (environment === 'collaudo') ? 'PDNDCollaudo' : 'PDNDProduzione';
     let _eservice: string = '';
     let _index: number = -1;
     if (this.servizioApi?.proprieta_custom?.length) {
-      _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === _environment);
+      // Cerca prima nei gruppi con suffisso _identificativo (nuova convenzione)
+      _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === _environmentNew);
       if (_index !== -1) {
         const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
-        _eservice = _property.valore;
+        _eservice = _property?.valore || '';
+      }
+      // Fallback: cerca nei gruppi senza suffisso (vecchia convenzione per retrocompatibilità)
+      if (!_eservice) {
+        _index = this.servizioApi.proprieta_custom?.findIndex((item: any) => item.gruppo === _environmentOld);
+        if (_index !== -1) {
+          const _property = this.servizioApi.proprieta_custom[_index].proprieta.find((item: any) => item.nome === 'identificativo_eservice_pdnd');
+          _eservice = _property?.valore || '';
+        }
       }
     }
     return _eservice;

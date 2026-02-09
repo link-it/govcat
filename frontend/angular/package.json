@@ -1,10 +1,11 @@
 {
   "name": "apicat-workspace",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "scripts": {
     "ng": "ng",
     "start-apicat": "ng serve apicat-app --port 6200",
     "start-apicat-proxy": "node ./builder.version.mjs --project=apicat-app --develop=true && npm run build-packages && ng serve apicat-app --proxy-config proxy.config.json --port 6200",
+    "start-apicat-baseref": "ng serve apicat-app --configuration=development-baseref",
     "production-apicat": "node ./builder.version.mjs --project=apicat-app && npm run distribution-apicat",
     "distribution-apicat": "npm run build-packages && npm run build-apicat",
     "build-apicat": "ng build apicat-app --configuration production --aot=true --output-hashing none --base-href /apicat-app/",

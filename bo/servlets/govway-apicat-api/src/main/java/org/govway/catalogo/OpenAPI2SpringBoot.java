@@ -109,15 +109,18 @@ import org.govway.catalogo.authorization.UtenteAuthorization;
 import org.govway.catalogo.cache.CacheConfiguration;
 import org.govway.catalogo.cache.CatalogoCache;
 import org.govway.catalogo.cache.GovwayCache;
+import org.govway.catalogo.controllers.csv.AdesioneCsvBuilder;
 import org.govway.catalogo.controllers.csv.ServizioBuilder;
 import org.govway.catalogo.core.business.utils.ConfigurazioneEService;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
+import org.govway.catalogo.core.business.utils.StampeLabels;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.monitoraggioutils.FiltriUtils;
 import org.govway.catalogo.monitoraggioutils.IMonitoraggioClient;
 import org.govway.catalogo.monitoraggioutils.IStatisticheClient;
+import org.govway.catalogo.oidc.TokenApiDelegate;
 import org.govway.catalogo.monitoraggioutils.allarmi.AllarmiClient;
 import org.govway.catalogo.monitoraggioutils.transazioni.TransazioneBuilder;
 import org.govway.catalogo.servlets.model.Configurazione;
@@ -126,6 +129,8 @@ import org.govway.catalogo.servlets.pdnd.client.api.impl.ApiClient;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -153,12 +158,12 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 transactionManagerRef = "transactionManager",
 basePackages = {"org.govway.catalogo.core.dao.repositories"})
 @EnableTransactionManagement
-
 @PropertySources({
-    @PropertySource("classpath:govcat-api.properties" ),
-    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf/govcat-api.properties}", ignoreResourceNotFound = true)
-    }
-)
+    @PropertySource("classpath:govcat-api.properties"),
+    @PropertySource(value = "file:${org.govway.api.catalogo.resource.path:/var/govcat/conf/govcat-api.properties}", ignoreResourceNotFound = true),
+    @PropertySource("classpath:govcat-stampe.properties"),
+    @PropertySource(value = "file:${org.govway.api.catalogo.stampe.path:/var/govcat/conf/govcat-stampe.properties}", ignoreResourceNotFound = true)
+})
 public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
  
     @Value("${spring.datasource.jndi-name}")
@@ -219,7 +224,7 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		}
 	}
 
-	@Bean(name ="statisticheClientClass") 
+	@Bean(name ="statisticheClientClass")
 	public IStatisticheClient statisticheClientClass() throws Exception {
 		Object obj = Class.forName(this.statisticheClientClass).getDeclaredConstructor().newInstance();
 
@@ -255,6 +260,12 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
 		return configurazione;
 	}
 
+	@Bean(name ="oidcTokenApiDelegate")
+	@ConditionalOnMissingBean(TokenApiDelegate.class)
+	public TokenApiDelegate oidcTokenApiDelegate() {
+		// Nessuna implementazione configurata: usa l'implementazione di default che lancia eccezioni
+		return new org.govway.catalogo.oidc.DefaultTokenApiImpl();
+	}
 
 	@Bean
 	public NotificheUtils notificheUtils() {
@@ -311,7 +322,12 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     public ServizioBuilder servizioBuilder() {
     	return new ServizioBuilder();
     }
-    
+
+    @Bean
+    public AdesioneCsvBuilder adesioneCsvBuilder() {
+    	return new AdesioneCsvBuilder();
+    }
+
     @Bean
     public ProfiloAssembler profiloAssembler() {
     	return new ProfiloAssembler();
@@ -694,6 +710,18 @@ public class OpenAPI2SpringBoot extends SpringBootServletInitializer {
     @Bean
     public SchedaAdesioneBuilder schedaAdesioneBuilder() {
         return new SchedaAdesioneBuilder();
+    }
+
+    /**
+     * Configurazione delle etichette per i PDF.
+     * Le properties vengono lette automaticamente dal file govcat-stampe.properties
+     * con il prefisso "stampe." (es. stampe.eservice.titolo, stampe.scheda.header).
+     * Spring Boot fa il binding automatico sui setter di StampeLabels.
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "stampe")
+    public StampeLabels stampeLabels() {
+        return new StampeLabels();
     }
 
     @Value("${pdf.logo}")

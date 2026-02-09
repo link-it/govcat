@@ -21,7 +21,9 @@
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { DEFAULT_TIMEOUT, TimeoutInterceptor } from './timeout.interceptor';
-import { ErrorInterceptor } from './error.interceptor';
+import { ErrorInterceptor, SKIP_AUTH_REFRESH } from './error.interceptor';
+
+export { SKIP_AUTH_REFRESH };
 import { LoaderInterceptor } from './loader.interceptor';
 import { CSRFInterceptor } from './csrf.interceptor';
 // import { AuthDevInterceptor } from './authdev.interceptor';

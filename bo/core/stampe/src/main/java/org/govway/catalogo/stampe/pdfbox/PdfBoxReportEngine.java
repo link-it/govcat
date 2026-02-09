@@ -204,6 +204,16 @@ public class PdfBoxReportEngine {
                     currentY -= 15;
                 }
                 // If table is empty, skip entirely
+            } else if (element instanceof NestedReportConfig) {
+                NestedReportConfig nestedConfig = (NestedReportConfig) element;
+                // Check if nested element has data
+                Object dataValue = getNestedValue(dataModel, nestedConfig.getDataPath());
+                if (dataValue instanceof Collection && !((Collection<?>) dataValue).isEmpty()) {
+                    currentY = renderNestedElement(contentStream, template, nestedConfig, dataModel, currentY);
+                    // Add more spacing after nested elements (15 points)
+                    currentY -= 15;
+                }
+                // If nested data is empty, skip entirely
             }
         }
 
@@ -580,6 +590,11 @@ public class PdfBoxReportEngine {
             return lines;
         }
 
+        // Sanitize text: replace non-breaking spaces (U+00A0) and other special whitespace with regular spaces
+        text = text.replace('\u00A0', ' ')  // Non-breaking space
+                   .replace('\u2007', ' ')  // Figure space
+                   .replace('\u202F', ' '); // Narrow no-break space
+
         // Check if text fits in one line
         float textWidth = font.getStringWidth(text) / 1000 * fontSize;
         if (textWidth <= maxWidth) {
@@ -604,10 +619,23 @@ public class PdfBoxReportEngine {
                 // Current line is full, start new line
                 if (currentLine.length() > 0) {
                     lines.add(currentLine.toString());
-                    currentLine = new StringBuilder(word);
+                    currentLine = new StringBuilder();
+                }
+
+                // Check if word fits
+                float wordWidth = font.getStringWidth(word) / 1000 * fontSize;
+                if (wordWidth <= maxWidth) {
+                    currentLine.append(word);
                 } else {
-                    // Single word is too long, force it
-                    lines.add(word);
+                    // Word too long, split it
+                    java.util.List<String> wordParts = splitLongWord(word, font, fontSize, maxWidth);
+                    for (int i = 0; i < wordParts.size(); i++) {
+                        if (i < wordParts.size() - 1) {
+                            lines.add(wordParts.get(i));
+                        } else {
+                            currentLine.append(wordParts.get(i));
+                        }
+                    }
                 }
             }
         }
@@ -618,6 +646,76 @@ public class PdfBoxReportEngine {
         }
 
         return lines;
+    }
+
+    /**
+     * Split a long word that doesn't fit in maxWidth.
+     * Prefers splitting after '/' for URL readability, falls back to character split.
+     */
+    private java.util.List<String> splitLongWord(String word, PDFont font, float fontSize, float maxWidth) throws IOException {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+
+        // Try splitting on '/' first (keeps '/' at end of each part)
+        if (word.contains("/")) {
+            String[] segments = word.split("(?<=/)");
+            StringBuilder currentPart = new StringBuilder();
+
+            for (String segment : segments) {
+                String testPart = currentPart.toString() + segment;
+                float testWidth = font.getStringWidth(testPart) / 1000 * fontSize;
+
+                if (testWidth <= maxWidth) {
+                    currentPart.append(segment);
+                } else {
+                    if (currentPart.length() > 0) {
+                        parts.add(currentPart.toString());
+                        currentPart = new StringBuilder();
+                    }
+                    // Check if segment itself fits
+                    float segmentWidth = font.getStringWidth(segment) / 1000 * fontSize;
+                    if (segmentWidth <= maxWidth) {
+                        currentPart.append(segment);
+                    } else {
+                        // Segment too long, split by character
+                        parts.addAll(splitByCharacter(segment, font, fontSize, maxWidth));
+                    }
+                }
+            }
+            if (currentPart.length() > 0) {
+                parts.add(currentPart.toString());
+            }
+        } else {
+            // No slashes, split by character
+            parts.addAll(splitByCharacter(word, font, fontSize, maxWidth));
+        }
+
+        return parts;
+    }
+
+    private java.util.List<String> splitByCharacter(String word, PDFont font, float fontSize, float maxWidth) throws IOException {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        StringBuilder currentPart = new StringBuilder();
+
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            String testPart = currentPart.toString() + c;
+            float testWidth = font.getStringWidth(testPart) / 1000 * fontSize;
+
+            if (testWidth <= maxWidth) {
+                currentPart.append(c);
+            } else {
+                if (currentPart.length() > 0) {
+                    parts.add(currentPart.toString());
+                }
+                currentPart = new StringBuilder();
+                currentPart.append(c);
+            }
+        }
+        if (currentPart.length() > 0) {
+            parts.add(currentPart.toString());
+        }
+
+        return parts;
     }
 
     /**
@@ -888,6 +986,124 @@ public class PdfBoxReportEngine {
             currentY = renderTableDataRowInternal(contentStream, template, config, row, rowIndex, startX, currentY);
             rowIndex++;
         }
+
+        return currentY;
+    }
+
+    /**
+     * Render nested element (list of objects as a table with header)
+     */
+    private float renderNestedElement(PDPageContentStream contentStream, ReportTemplate template,
+                                       NestedReportConfig config, Object dataModel, float startY) throws Exception {
+
+        Object dataValue = getNestedValue(dataModel, config.getDataPath());
+        if (!(dataValue instanceof Collection)) {
+            logger.warn("Nested data path does not resolve to a collection: {}", config.getDataPath());
+            return startY;
+        }
+
+        Collection<?> items = (Collection<?>) dataValue;
+        if (items.isEmpty()) {
+            return startY;
+        }
+
+        float startX = template.getPage().getMarginLeft() + config.getX();
+        float currentY = startY;
+        float tableWidth = config.getWidth();
+
+        // Get style for header
+        StyleConfig headerStyle = config.getHeaderStyleRef() != null ?
+            template.getStyles().get(config.getHeaderStyleRef()) : null;
+
+        // Render header label if present
+        if (config.getHeaderLabel() != null && !config.getHeaderLabel().isEmpty()) {
+            float headerHeight = 30; // Default header height
+            renderTableCell(contentStream, template, config.getHeaderLabel(), headerStyle,
+                startX, currentY, tableWidth, headerHeight, false);
+            currentY -= headerHeight;
+        }
+
+        // Get font config for data cells
+        FontConfig fontConfig = headerStyle != null && headerStyle.getFontRef() != null ?
+            template.getFonts().get(headerStyle.getFontRef()) : null;
+        if (fontConfig == null) {
+            fontConfig = new FontConfig();
+        }
+        PDFont font = resolveFont(fontConfig);
+        float fontSize = fontConfig.getSize();
+
+        // Style for data cells - use tableDataCell style
+        StyleConfig dataStyle = template.getStyles().get("tableDataCell");
+
+        // Render each item as rows
+        int rowIndex = 0;
+        for (Object item : items) {
+            // Get all non-null properties and render them
+            currentY = renderNestedItemRows(contentStream, template, item, startX, currentY, tableWidth, dataStyle, font, fontSize, rowIndex);
+            rowIndex++;
+        }
+
+        return currentY;
+    }
+
+    /**
+     * Render a single nested item as multiple rows (one per property)
+     */
+    private float renderNestedItemRows(PDPageContentStream contentStream, ReportTemplate template,
+                                        Object item, float startX, float startY, float tableWidth,
+                                        StyleConfig dataStyle, PDFont font, float fontSize, int itemIndex) throws Exception {
+
+        float currentY = startY;
+        float labelWidth = 145; // Same as other tables
+        float valueWidth = tableWidth - labelWidth;
+        float minRowHeight = 25;
+
+        // Define the properties to display for ReferentItemType
+        // Issue 137/140: "nome" ora contiene il formato compatto del referente, label cambiata da "Nome" a "Dati referente"
+        String[][] properties = {
+            {"tipoReferente", "Tipo"},
+            {"nome", "Dati referente"},
+            {"cognome", "Cognome"},
+            {"businessTelefono", "Telefono"},
+            {"businessEmail", "Email"},
+            {"organization", "Organizzazione"}
+        };
+
+        for (String[] prop : properties) {
+            String propertyName = prop[0];
+            String label = prop[1];
+            Object value = getNestedValue(item, propertyName);
+
+            if (value != null && !value.toString().isEmpty()) {
+                // Calculate row height based on content
+                float paddingLeft = dataStyle != null && dataStyle.getPadding() != null ? dataStyle.getPadding().getLeft() : 10;
+                float paddingRight = dataStyle != null && dataStyle.getPadding() != null ? dataStyle.getPadding().getRight() : 10;
+                float availableWidth = valueWidth - paddingLeft - paddingRight;
+                java.util.List<String> lines = wrapText(value.toString(), font, fontSize, availableWidth);
+                float textHeight = lines.size() * fontSize * 1.2f + 16; // padding top + bottom
+                float rowHeight = Math.max(minRowHeight, textHeight);
+
+                // Determine background color for alternating rows
+                String backgroundColor = null;
+                boolean isAlternate = (itemIndex % 2 != 0);
+                if (isAlternate && dataStyle != null && dataStyle.getConditional() != null) {
+                    backgroundColor = dataStyle.getConditional().getBackgroundColor();
+                }
+
+                // Render label cell
+                renderTableCell(contentStream, template, label, dataStyle,
+                    startX, currentY, labelWidth, rowHeight, isAlternate, backgroundColor);
+
+                // Render value cell
+                renderTableCell(contentStream, template, value.toString(), dataStyle,
+                    startX + labelWidth, currentY, valueWidth, rowHeight, isAlternate, backgroundColor);
+
+                currentY -= rowHeight;
+            }
+        }
+
+        // Add small spacing between items
+        currentY -= 5;
 
         return currentY;
     }
@@ -1196,24 +1412,59 @@ public class PdfBoxReportEngine {
     }
 
     private boolean evaluateCondition(String condition, Object dataModel) {
-        // Simple condition evaluation (for now just check if field is not null)
-        // Format: "fieldName != null" or "fieldName.nestedField != null"
+        // Evaluate complex conditions with multiple && operators
+        // Format: "field1 != null && field2 != null && !field3.isEmpty()"
         try {
-            if (condition.contains("!= null")) {
-                String fieldPath = condition.substring(0, condition.indexOf("!= null")).trim();
-                Object value = getNestedValue(dataModel, fieldPath);
-                return value != null;
+            // Handle literal boolean values
+            if ("false".equalsIgnoreCase(condition.trim())) {
+                return false;
             }
-            if (condition.contains("!= null && !")) {
-                // Complex condition like: "list != null && !list.isEmpty()"
-                String fieldPath = condition.substring(0, condition.indexOf("!= null")).trim();
-                Object value = getNestedValue(dataModel, fieldPath);
-                if (value == null) return false;
-                if (value instanceof Collection) {
-                    return !((Collection<?>) value).isEmpty();
-                }
+            if ("true".equalsIgnoreCase(condition.trim())) {
                 return true;
             }
+
+            // Split by && and evaluate each part
+            String[] parts = condition.split("\\s*&&\\s*");
+
+            for (String part : parts) {
+                part = part.trim();
+
+                if (part.contains("!= null")) {
+                    // Check for "field != null"
+                    String fieldPath = part.substring(0, part.indexOf("!= null")).trim();
+                    Object value = getNestedValue(dataModel, fieldPath);
+                    if (value == null) {
+                        return false;
+                    }
+                } else if (part.startsWith("!") && part.contains(".isEmpty()")) {
+                    // Check for "!field.isEmpty()"
+                    String fieldPath = part.substring(1, part.indexOf(".isEmpty()")).trim();
+                    Object value = getNestedValue(dataModel, fieldPath);
+                    if (value == null) {
+                        return false;
+                    }
+                    if (value instanceof Collection) {
+                        if (((Collection<?>) value).isEmpty()) {
+                            return false;
+                        }
+                    }
+                } else if (part.contains(".isEmpty()") && !part.startsWith("!")) {
+                    // Check for "field.isEmpty()" (should be empty)
+                    String fieldPath = part.substring(0, part.indexOf(".isEmpty()")).trim();
+                    Object value = getNestedValue(dataModel, fieldPath);
+                    if (value == null) {
+                        return true; // null is considered empty
+                    }
+                    if (value instanceof Collection) {
+                        if (!((Collection<?>) value).isEmpty()) {
+                            return false;
+                        }
+                    }
+                }
+                // Other conditions are assumed to be true
+            }
+
+            return true;
         } catch (Exception e) {
             logger.warn("Error evaluating condition: {}", condition, e);
         }

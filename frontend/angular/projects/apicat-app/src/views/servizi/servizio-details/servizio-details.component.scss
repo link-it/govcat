@@ -16,14 +16,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-:host {
-    // font-size: 1.0rem;
-
-    .form-control-plaintext {
-        // font-size: 1.0rem;
-}
-    }
-
 .img-space {
     border: solid 1px #d3d3d3;
     border-radius: 8px;
@@ -36,8 +28,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .markdown-container {
     max-height: 320px;
     overflow-y: auto;
-
-    // &::-webkit-scrollbar-thumb {
-    //     visibility: visible;
-    // }
 }

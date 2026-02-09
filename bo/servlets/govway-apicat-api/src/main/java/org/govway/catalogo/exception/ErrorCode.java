@@ -130,6 +130,9 @@ public enum ErrorCode {
     /** Utente già esistente */
     UT_403("Utente non abilitato"),
 
+    /** Modifica email non consentita tramite updateProfilo quando verifica è abilitata */
+    UT_403_EMAIL_CHANGE("Modifica email non consentita. Utilizzare il flusso di verifica email"),
+
     // ==================== CLASSI UTENTE ====================
 
     /** Classe utente non trovata */
@@ -386,8 +389,8 @@ public enum ErrorCode {
 
     // ==================== REGISTRAZIONE ====================
 
-    /** Funzionalità di registrazione non abilitata */
-    REG_400_NOT_ENABLED("Funzionalità di verifica email al primo login non abilitata"),
+    /** Funzionalità di verifica email non abilitata */
+    REG_400_NOT_ENABLED("Funzionalità di verifica email non abilitata"),
 
     /** Nessuna registrazione in corso per questo utente */
     REG_400_NO_REGISTRATION("Nessuna registrazione in corso"),
@@ -405,7 +408,10 @@ public enum ErrorCode {
     REG_410_EXPIRED("Codice di verifica scaduto"),
 
     /** Principal già associato ad altro utente */
-    REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente");
+    REG_409_PRINCIPAL_EXISTS("Principal già associato a un altro utente"),
+
+    /** Email non presente nei dati di autenticazione (JWT) */
+    REG_400_NO_EMAIL_JWT("Email non presente nei dati di autenticazione");
 
     // ==================== ATTRIBUTI E METODI ====================
 

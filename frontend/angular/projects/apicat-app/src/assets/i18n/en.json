@@ -738,6 +738,7 @@
 			"IdTransazione": "Transaction Id",
 			"Image": "Image",
 			"Index": "Index",
+			"IncludiTecnici": "Include technical referents",
 			"InRicezione": "In reception",
 			"InSpedizione": "In Shipping",
 			"Interface": "Interface",
@@ -823,7 +824,9 @@
 				"ServiceList": "List of Services",
 				"Single": "Single",
 				"Throughput": "Throughput",
-				"VerifiedAttributes": "Verified Attributes"
+				"VerifiedAttributes": "Verified Attributes",
+				"AccessRequirements": "Access Requirements",
+				"NoAttributesRequired": "The provider does not require the possession of attributes to access this API."
 			},
 			"PDNDCollaudo": {
 				"identificativo_eservice_pdnd": "Testing - PDND eService identifier",
@@ -835,6 +838,7 @@
 			},
 			"Principal": "Username",
 			"ProblemDetails": "Problem Details",
+			"Progressive": "Progressive",
 			"produzione": "Interface",
 			"Profilo": "Profile",
 			"profilo_non_configurato": "Incomplete configuration",
@@ -895,6 +899,10 @@
 			"Tassonomie": "Taxonomies",
 			"Taxcode": "Taxcode",
 			"Taxonomy": "Taxonomy",
+			"Target": "Recipients",
+			"TargetPubblica": "Public",
+			"TargetSoloReferenti": "Referents only",
+			"TargetSoloAderenti": "Subscribers only",
 			"tempo_medio_risposta": "Average response time",
 			"TempoRisposta": "Response time",
 			"termini_ricerca": "Search Terms",
@@ -1019,6 +1027,7 @@
 			"ExportSelection": "Export selection",
 			"ExportServiceSubscriptions": "Service Adhesions",
 			"Export": "Export",
+			"ExportAll": "Export all",
 			"ExportCSV": "Export CSV",
 			"ExportPDF": "Export PDF",
 			"Files": "Files",
@@ -1059,13 +1068,22 @@
 			"ChooseFiles": "Choose documents…",
 			"CopiedToClipboard": "Copied to clipboard!",
 			"Empty": "",
+			"ProfileSaved": "Profile saved successfully",
+			"EmailModified": "Email modified successfully",
+			"EmailRemoved": "Email removed successfully",
 			"ERROR": {
 				"ADE": {
+					"400": {
+						"STATE": "Membership state [{{stato}}] not valid for this operation"
+					},
+					"403": {
+						"REFERENT": "Membership referent [{{referente}}] not authorized"
+					},
 					"404": "Membership [{{idAdesione}}] not found",
-					"409": "Membership [{{nome}}] already exists",
-					"400_STATE": "Membership state [{{stato}}] not valid for this operation",
-					"403_REFERENT": "Membership referent [{{referente}}] not authorized",
-					"409_STATE": "Cannot modify membership in state [{{stato}}]"
+					"409": {
+						"DEFAULT": "Membership [{{nome}}] already exists",
+						"STATE": "Cannot modify membership in state [{{stato}}]"
+					}
 				},
 				"API": {
 					"400": {
@@ -1074,20 +1092,28 @@
 						"SPEC": "",
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed"
 					},
-					"404": "API [{{idApi}}] not found",
-					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists",
-					"404_ATTACHMENT": ""
+					"404": {
+						"DEFAULT": "API [{{idApi}}] not found",
+						"ATTACHMENT": ""
+					},
+					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists"
 				},
 				"ApiNoDelete": "The API cannot be deleted in its current state.",
 				"AUT": {
-					"401": "Authentication required",
-					"403": "Access not authorized",
-					"401_SESSION": "Session expired",
-					"401_TOKEN": "Invalid authentication token",
-					"403_ORG_MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
-					"403_ORG_MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization",
-					"403_RESOURCE": "Access denied to resource [{{risorsa}}]",
-					"403_ROLE": "User must have one of the roles [{{ruoli}}] to execute the force"
+					"401": {
+						"DEFAULT": "Authentication required",
+						"SESSION": "Session expired",
+						"TOKEN": "Invalid authentication token"
+					},
+					"403": {
+						"DEFAULT": "Access not authorized",
+						"ORG": {
+							"MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
+							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization"
+						},
+						"RESOURCE": "Access denied to resource [{{risorsa}}]",
+						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force"
+					}
 				},
 				"CAT": {
 					"404": "Category [{{idCategoria}}] not found",
@@ -1113,45 +1139,63 @@
 						"FORMAT": "Document format [{{formato}}] not supported",
 						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]"
 					},
-					"404": "Document [{{idDocumento}}] not found",
-					"500": "Cannot process document: {{errore}}",
-					"404_VERSION": "Document with UUID [{{uuid}}] and version [{{versione}}] not found"
+					"404": {
+						"DEFAULT": "Document [{{idDocumento}}] not found",
+						"VERSION": "Document with UUID [{{uuid}}] and version [{{versione}}] not found"
+					},
+					"500": "Cannot process document: {{errore}}"
 				},
 				"DOM": {
 					"404": "Domain [{{idDominio}}] not found",
 					"409": "Domain [{{nome}}] already exists"
 				},
 				"GEN": {
-					"400": "Bad request",
+					"400": {
+						"DEFAULT": "Bad request",
+						"REQUEST": ""
+					},
 					"404": "Resource not found",
-					"409": "",
-					"500": "Internal server error",
-					"400_REQUEST": "",
-					"409_STATE": ""
+					"409": {
+						"DEFAULT": "",
+						"STATE": ""
+					},
+					"500": "Internal server error"
 				},
 				"GRP": {
 					"404": "Group [{{idGruppo}}] not found",
 					"409": "Group [{{nome}}] already exists",
-					"400_IN_USE": "Cannot delete group [{{nome}}] used in {{numeroUtilizzi}} services"
+					"400": {
+						"IN": {
+							"USE": "Cannot delete group [{{nome}}] used in {{numeroUtilizzi}} services"
+						}
+					}
 				},
 				"INT": {
-					"500": "Internal error: {{errore}}",
+					"500": {
+						"DEFAULT": "Internal error: {{errore}}",
+						"COMMUNICATION": "",
+						"CONFIG": "Configuration error: {{errore}}",
+						"DB": "Database error: {{errore}}",
+						"GOVWAY": "",
+						"PDND": ""
+					},
 					"502": "",
 					"503": "Service temporarily unavailable",
-					"504": "",
-					"500_COMMUNICATION": "",
-					"500_CONFIG": "Configuration error: {{errore}}",
-					"500_DB": "Database error: {{errore}}",
-					"500_GOVWAY": "",
-					"500_PDND": ""
+					"504": ""
 				},
 				"MON": {
-					"404": "Monitoring data not available for service [{{servizio}}]",
-					"400_ALARM_CONFIG": "Invalid alarm configuration: {{dettagli}}",
-					"400_INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid",
-					"404_ALARM": "Alarm [{{idAllarme}}] not found",
-					"404_METRIC": "Metric [{{metrica}}] not found",
-					"404_STATS": "Statistics not available for period [{{periodo}}]"
+					"400": {
+						"ALARM": {
+							"CONFIG": "Invalid alarm configuration: {{dettagli}}"
+						},
+						"INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid"
+					},
+					"404": {
+						"DEFAULT": "Monitoring data not available for service [{{servizio}}]",
+						"ALARM": "Alarm [{{idAllarme}}] not found",
+						"METRIC": "Metric [{{metrica}}] not found",
+						"STATS": "Statistics not available for period [{{periodo}}]"
+					}
 				},
 				"NoAddCategorie": "The category could not be added.",
 				"NoAutomaticStatus": "No automatic status",
@@ -1161,13 +1205,61 @@
 				"NoDeleteReferent": "The referent cannot be deleted.",
 				"NoMessageError": "There are no error messages.",
 				"NTF": {
+					"400": {
+						"RECIPIENT": "Notification recipient [{{destinatario}}] not valid"
+					},
 					"404": "Notification [{{idNotifica}}] not found",
-					"500": "Cannot send notification: {{errore}}",
-					"400_RECIPIENT": "Notification recipient [{{destinatario}}] not valid"
+					"500": "Cannot send notification: {{errore}}"
 				},
 				"ORG": {
 					"404": "Organization [{{idOrganizzazione}}] not found",
 					"409": "Organization [{{nome}}] already exists"
+				},
+				"PRF": {
+					"400": {
+						"NOT": {
+							"ENABLED": "Email verification feature not enabled for profile modification"
+						},
+						"NO": {
+							"CODE": "No verification code sent"
+						}
+					},
+					"410": {
+						"EXPIRED": "Verification code expired. Request a new code."
+					},
+					"429": {
+						"MAX": {
+							"SENDS": "Maximum number of code send attempts exceeded. Please try again later."
+						}
+					}
+				},
+				"REG": {
+					"400": {
+						"NOT": {
+							"ENABLED": "Email verification feature not enabled",
+							"VERIFIED": "Email not yet verified"
+						},
+						"NO": {
+							"REGISTRATION": "No registration in progress",
+							"CODE": "No verification code sent",
+							"EMAIL": {
+								"JWT": "Email not present in authentication data"
+							}
+						}
+					},
+					"409": {
+						"PRINCIPAL": {
+							"EXISTS": "Principal already associated with another user"
+						}
+					},
+					"410": {
+						"EXPIRED": "Verification code expired"
+					},
+					"429": {
+						"MAX": {
+							"SENDS": "Maximum number of code send attempts exceeded"
+						}
+					}
 				},
 				"SOG": {
 					"404": "Subject [{{idSoggetto}}] not found",
@@ -1175,29 +1267,45 @@
 				},
 				"SRV": {
 					"400": {
-						"CATEGORY_NOT_LEAF": "",
-						"NOT_DELETABLE": "",
-						"NOT_REGISTERED": "",
+						"CATEGORY": {
+							"NOT": {
+								"LEAF": ""
+							}
+						},
+						"NOT": {
+							"DELETABLE": "",
+							"REGISTERED": ""
+						},
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed for services"
 					},
 					"403": {
-						"ADD_REFERENT": "",
-						"REMOVE_REFERENT": ""
+						"ADD": {
+							"REFERENT": ""
+						},
+						"REMOVE": {
+							"REFERENT": ""
+						}
 					},
-					"404": "Service [{{idServizio}}] not found",
-					"409": "Service [{{nome}}] already exists",
-					"404_IMAGE": "",
-					"409_CATEGORY": "",
-					"409_GROUP": "",
-					"409_STATE": "Cannot modify service in state [{{stato}}]"
+					"404": {
+						"DEFAULT": "Service [{{idServizio}}] not found",
+						"IMAGE": ""
+					},
+					"409": {
+						"DEFAULT": "Service [{{nome}}] already exists",
+						"CATEGORY": "",
+						"GROUP": "",
+						"STATE": "Cannot modify service in state [{{stato}}]"
+					}
 				},
 				"SYS": {
-					"500": "System error",
+					"500": {
+						"DEFAULT": "System error",
+						"CONFIG": "",
+						"DB": "",
+						"IO": ""
+					},
 					"501": "",
-					"503": "Service unavailable",
-					"500_CONFIG": "",
-					"500_DB": "",
-					"500_IO": ""
+					"503": "Service unavailable"
 				},
 				"TAX": {
 					"404": "Taxonomy [{{idTassonomia}}] not found",
@@ -1213,7 +1321,12 @@
 				"Unprocessable Entity": "Unprocessable Entity",
 				"UT": {
 					"404": "User [{{idUtente}}] not found",
-					"409": "User [{{principal}}] already exists"
+					"409": "User [{{principal}}] already exists",
+					"403": {
+						"EMAIL": {
+							"CHANGE": "Email change not allowed. Please use the email verification flow."
+						}
+					}
 				},
 				"VAL": {
 					"400": {
@@ -1228,15 +1341,23 @@
 						"REQUIRED": "Required field [{{campo}}] missing",
 						"URL": "URL [{{url}}] not valid"
 					},
-					"422": "Semantically invalid request: {{dettagli}}",
-					"422_COMPLEX": "Semantically invalid complex entity update: {{dettagli}}"
+					"422": {
+						"DEFAULT": "Semantically invalid request: {{dettagli}}",
+						"COMPLEX": "Semantically invalid complex entity update: {{dettagli}}"
+					}
 				},
 				"WFL": {
 					"404": "",
-					"400_DATA_MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]",
-					"400_STATE": "",
-					"400_TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed",
-					"403_ACTION": ""
+					"400": {
+						"DATA": {
+							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
+						},
+						"STATE": "",
+						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
+					},
+					"403": {
+						"ACTION": ""
+					}
 				}
 			},
 			"ExportingFile": "Exporting File…",
@@ -1369,6 +1490,10 @@
 			"TYPE": {
 				"CambioStato": "State change",
 				"Comunicazione": "Communication"
+			},
+			"CHANNEL": {
+				"InApp": "In-app",
+				"Email": "Email"
 			}
 		},
 		"ORGANIZATIONS": {
@@ -1415,6 +1540,42 @@
 			"TAB": {
 				"Profile": "Profile",
 				"Settings": "Settings"
+			},
+			"EMAIL_VERIFICATION": {
+				"TITLE": "Modify email",
+				"MESSAGE": {
+					"ConfirmChange": "Enter the new email and confirm the change.",
+					"SendCode": "We will send a verification code to the new email.",
+					"CodeSent": "We have sent a verification code to:",
+					"EnterCode": "Enter the code received to complete the verification.",
+					"Verified": "Email verified successfully!",
+					"Expired": "The code has expired. Request a new code.",
+					"ExpiresIn": "Code expires in",
+					"ClearEmailHint": "Leave empty to remove the email."
+				},
+				"LABEL": {
+					"CurrentEmail": "Current email",
+					"NewEmail": "New email",
+					"Code": "Verification code",
+					"AttemptsRemaining": "Attempts remaining"
+				},
+				"PLACEHOLDER": {
+					"NewEmail": "Enter the new email"
+				},
+				"BUTTON": {
+					"SendCode": "Send code",
+					"ModifyEmail": "Modify email",
+					"ModifyCorporateEmail": "Modify corporate email",
+					"RemoveEmail": "Remove email",
+					"Verify": "Verify",
+					"Resend": "Resend code",
+					"Cancel": "Cancel"
+				},
+				"ERROR": {
+					"CodeLength": "The code must be 6 characters",
+					"InvalidCode": "Invalid code. Please try again.",
+					"MaxAttempts": "Maximum number of attempts reached. Request a new code."
+				}
 			}
 		},
 		"REGISTRAZIONE": {
@@ -1438,6 +1599,7 @@
 			"BUTTON": {
 				"ConfermaEProcedi": "Confirm and proceed",
 				"ModificaEmail": "Change email",
+				"InserisciEmail": "Enter email",
 				"InviaCodice": "Send verification code",
 				"Verifica": "Verify code",
 				"ReinviaCodice": "Resend code",
@@ -1447,6 +1609,8 @@
 			"MESSAGE": {
 				"ConfermaEmailDesc": "We have retrieved your data from the authentication system. Please verify it is correct.",
 				"ConfermaEmailInfo": "By confirming, we will use this email for communications.",
+				"EmailMancante": "The email address was not provided by the authentication system. To complete registration, you need to enter a valid email address.",
+				"EmailNonDisponibile": "Not available",
 				"ModificaEmailDesc": "Enter the new email address you wish to use for communications.",
 				"InvieremoCodiceSMS": "We will send a verification code to your new email.",
 				"VerificaCodiceDesc": "We have sent a verification code to:",
@@ -1837,6 +2001,7 @@
 			"BulkEsitoOk": "Success",
 			"CancelEdit": "Cancel edit",
 			"CancelNew": "Cancel add",
+			"CannotArchive": "You don't have permission to archive. Contact an administrator.",
 			"ChangeStatus": "Change status",
 			"Completed": "Completed",
 			"ComponentsList": "Components list",
@@ -1926,6 +2091,7 @@
 			"Information": "Information",
 			"MasonryInfo": "Dynamic grid layout that arranges cards optimally, automatically adapting to available space",
 			"Modify": "Edit",
+			"OpenInNewTab": "Open in new tab",
 			"Organization": "Organization",
 			"Preview": "Preview",
 			"Remove": "Remove",

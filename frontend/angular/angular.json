@@ -90,6 +90,15 @@
 							"extractLicenses": false,
 							"sourceMap": true,
 							"namedChunks": true
+						},
+						"development-baseref": {
+							"buildOptimizer": false,
+							"optimization": false,
+							"vendorChunk": true,
+							"extractLicenses": false,
+							"sourceMap": true,
+							"namedChunks": true,
+							"baseHref": "/apicat-app/"
 						}
 					},
 					"defaultConfiguration": "production"
@@ -103,6 +112,11 @@
 						},
 						"development": {
 							"buildTarget": "apicat-app:build:development"
+						},
+						"development-baseref": {
+							"buildTarget": "apicat-app:build:development-baseref",
+							"servePath": "/apicat-app/",
+							"proxyConfig": "proxy.config.json"
 						}
 					},
 					"defaultConfiguration": "development",

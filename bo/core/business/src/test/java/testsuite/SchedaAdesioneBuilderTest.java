@@ -3,6 +3,7 @@ package testsuite;
 import org.govway.catalogo.core.business.utils.ConfigurazioneEService;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
+import org.govway.catalogo.core.business.utils.StampeLabels;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity.STATO_CONFIGURAZIONE;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
@@ -53,6 +54,7 @@ public class SchedaAdesioneBuilderTest {
 
     @Mock ConfigurazioneEService configurazione;
     @Mock EServiceBuilder serviceBuilder;
+    @Spy StampeLabels stampeLabels = new StampeLabels();
     @InjectMocks SchedaAdesioneBuilder builder;
 
     AdesioneEntity adesione;

@@ -127,14 +127,14 @@ export class OpenAPIService {
     return this.http.post<any>(_url, body, options);
   }
 
-  download(name: string, id: any, type?: string, params?: HttpParams) {
+  download(name: string, id: any, type?: string, params?: HttpParams, headers?: HttpHeaders) {
     let _url = '';
     if (id) {
       _url = type ? `${this.proxyPath}/${name}/${id}/${type}` : `${this.proxyPath}/${name}/${id}`;
     } else {
       _url = `${this.proxyPath}/${name}`;
     }
-    return this.http.getContentRaw(_url, params);
+    return this.http.getContentRaw(_url, params, headers);
   }
 
   putElementRelated(name: string, id: any, path: string, body: Object | null, options?: IRequestOptions) {

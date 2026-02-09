@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.govway.catalogo</groupId>
 	<artifactId>govcat</artifactId>
-	<version>2.3.2</version>
+	<version>2.3.3</version>
 	<packaging>pom</packaging>
 	<name>govcat</name>
 	<description>progetto govcat</description>
@@ -160,10 +160,13 @@
 		<default.plugin>${default.plugin.dir}/plugin</default.plugin>
 		<web-filter-name>web.filter.properties</web-filter-name>
 		<api-filter-name>api.filter.properties</api-filter-name>
+		<stampe-filter-name>stampe.filter.properties</stampe-filter-name>
 		<web-filter-file>
 			${project.build.directory}/plugin/filters/${web-filter-name}</web-filter-file>
 		<api-filter-file>
 			${project.build.directory}/plugin/filters/${api-filter-name}</api-filter-file>
+		<stampe-filter-file>
+			${project.build.directory}/plugin/filters/${stampe-filter-name}</stampe-filter-file>
 		<filter-file>${rel-to-parent}/src/main/resources/empty.filter.properties</filter-file>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -255,7 +258,7 @@
 		<json-path.version>2.9.0</json-path.version>
 
 		<!-- proxy -->
-		<jetty-proxy.version>11.0.24</jetty-proxy.version>
+		<jetty-proxy.version>11.0.26</jetty-proxy.version>
 
 		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
 		<bouncycastle.version>1.79</bouncycastle.version>

@@ -69,56 +69,20 @@
                 </button>
             </div>
             <div class="btn-group- me-2" *ngIf="hasMultiSelection && !_groupsView">
-                <div class="btn-group- d-inline-block" *ngIf="!_isEdit">
-                    <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="export">
-                        <button type="button" aria-label="Menu esportazione" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" id="export-actions">
-                            <i class="bi bi-download"></i>
-                            <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
-                            <i class="bi bi-chevron-down ms-2"></i>
-                        </button>
-                        <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
-                            <div class="gl-new-dropdown-inner">
-                                <div class="gl-new-dropdown-contents">
-                                    <li class="pt-2 gl-dropdown-item">
-                                        <label class="label-bold gl-px-4! mb-2">{{ 'APP.MENU.ExportServiceSubscriptions' | translate }}</label>
-                                    </li>
-                                    <li class="gl-new-dropdown-item">
-                                        <button role="menuitem" type="button" class="dropdown-item" (click)="_onExport('search')">
-                                            <div class="gl-new-dropdown-item-text-wrapper me-0">
-                                                <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
-                                                    <span>{{ 'APP.MENU.ExportSearch' | translate }}</span>
-                                                    <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ _allElements }}</span>
-                                                </p>
-                                            </div>
-                                        </button>
-                                    </li>
-                                    <li class="gl-new-dropdown-item">
-                                        <button role="menuitem" type="button" class="dropdown-item" (click)="_onExport('selection')" [disabled]="elementsSelected.length === 0">
-                                            <div class="gl-new-dropdown-item-text-wrapper me-0">
-                                                <p class="gl-new-dropdown-item-text-primary d-flex justify-content-between align-items-center">
-                                                    <span>{{ 'APP.MENU.ExportSelected' | translate }}</span>
-                                                    <span class="gl-badge badge badge-pill badge-neutral sm js-assigned-mr-count gl-ml-auto">{{ elementsSelected.length }}</span>
-                                                </p>
-                                            </div>
-                                        </button>
-                                    </li>
-                                    <li class="gl-new-dropdown-divider" *ngIf="elementsSelected.length && uncheckAllInTheMenu">
-                                        <hr aria-orientation="horizontal" class="dropdown-divider">
-                                    </li>
-                                    <li class="gl-new-dropdown-item" *ngIf="elementsSelected.length && uncheckAllInTheMenu">
-                                        <button role="menuitem" type="button" class="dropdown-item" (click)="deselectAll()">
-                                            <div class="gl-new-dropdown-item-text-wrapper me-0">
-                                                <p class="gl-new-dropdown-item-text-primary d-flex justify-content-start">
-                                                    <span>{{ 'APP.MENU.DeselectAll' | translate }}</span>
-                                                </p>
-                                            </div>
-                                        </button>
-                                    </li>
-                                </div>
-                            </div>
-                        </ul>
-                    </div>
+                <div class="d-inline-block">
+                    <app-export-dropdown
+                        [allElements]="_allElements"
+                        [countSelected]="elementsSelected.length"
+                        [uncheckAllInTheMenu]="uncheckAllInTheMenu"
+                        (action)="onExportAction($event)"
+                    ></app-export-dropdown>
                 </div>
+            </div>
+            <div class="btn-group me-2" *ngIf="_groupsView && !_currIdGruppoPadre">
+                <button type="button" class="btn btn-default btn-md gl-button" (click)="onExportAll()" [disabled]="_downloading">
+                    <i class="bi bi-download me-2"></i>
+                    <span>{{ 'APP.MENU.ExportAll' | translate }}</span>
+                </button>
             </div>
             <div class="btn-group" *ngIf="_groupsView && desktop">
                 <button type="button" aria-label="Cambio modalità visualizzazione gruppi" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleGroupsViewMode()" [tooltip]="'Cambia modalità visualizzazione'" [container]="'body'" [delay]="500">
@@ -134,7 +98,7 @@
                 </button>
             </div>
             <div class="btn-group" *ngIf="!(_updateMapper | mapper:_isAnonymousMapper)">
-                <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()" *ngIf="!_isEdit">
+                <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
                     <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.MENU.AddService' | translate }}</span>
                 </button>
             </div>
@@ -142,8 +106,17 @@
     </div>
     <section class="search-bar container-fluid px-0" [class.container-limited]="_contentLimeted" *ngIf="_hasFilter">
         <div class="row align-items-center">
-            <div class="col-12">
+            <div class="col-12 d-flex align-items-center">
+                <div class="select-all-action row-content-block pl-2 pr-1" *ngIf="showSelectAll && hasMultiSelection && elements.length > 0 && !_groupsView">
+                    <button type="button"
+                        class="btn gl-button shadow-0 btn-icon"
+                        (click)="allSelected ? deselectAll() : selectAll()"
+                        [tooltip]="(allSelected ? 'APP.BUTTON.DeselectAll' : 'APP.BUTTON.SelectAll') | translate" container="body">
+                        <i class="bi" [class.bi-check-square]="allSelected" [class.bi-square]="!allSelected"></i>
+                    </button>
+                </div>
                 <ui-search-bar-form #searchBarForm
+                    class="flex-fill"
                     [classBlock]="''"
                     [placeholder]="'APP.PLACEHOLDER.Search' | translate"
                     [showHistory]="showHistory"
@@ -158,28 +131,10 @@
                     [formGroup]="_formGroup"
                     [simple]="false"
                     (onSearch)="_onSearch($event)"
-                    (onSort)="_onSort($event)"
                 >
                     <div form-search class="" [class.search-material-custom]="_useNewSearchUI">
                         <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
                             <fieldset>
-                                <!-- <div class="row mb-1">
-                                <div class="col-2">
-                                    <label class="col-form-label">{{ 'APP.LABEL.Date' | translate }}</label>
-                                </div>
-                                <div class="col-sm-10 col-lg-6">
-                                    <div class="d-flex justify-content-between">
-                                    <div class="flex-fill d-flex">
-                                        <label for="creationDateFrom" class="col-form-label me-3">{{ 'APP.LABEL.From' | translate }}</label>
-                                        <input type="date" class="form-control form-control-sm" id="creationDateFrom" formControlName="creationDateFrom">
-                                    </div>
-                                    <div class="flex-fill d-flex">
-                                        <label for="creationDateTo" class="col-form-label mx-3">{{ 'APP.LABEL.To' | translate }}</label>
-                                        <input type="date" class="form-control form-control-sm" id="creationDateTo" formControlName="creationDateTo">
-                                    </div>
-                                    </div>
-                                </div>
-                                </div> -->
                                 <div class="row mb-1">
                                     <div class="col-sm-2">
                                         <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
@@ -188,7 +143,6 @@
                                         <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
                                     </div>
                                 </div>
-
                                 <div class="row">
                                     <div class="col-sm-12 col-md-6">
                                         <div class="row mb-1">
@@ -408,6 +362,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
+                                (openInNewTab)="_onOpenInNewTabGroup($event)"
                             ></lnk-card>
                         </div>
                     </div>
@@ -419,7 +374,7 @@
                     >
                         <div class="masonry-item mb-3" ngxMasonryItem *ngFor="let element of groups; trackBy: _trackBy;">
                             <lnk-card class="extended" class=""
-                                [primaryText]="element.primaryText" 
+                                [primaryText]="element.primaryText"
                                 [secondaryText]="element.secondaryText"
                                 [image]="element.logo"
                                 [showImage]="_showImage"
@@ -436,6 +391,7 @@
                                 [showGroupLabel]="showGroupLabel"
                                 [groupLabel]="'APP.LABEL.Group' | translate"
                                 (simpleClick)="_onEditGroup($event, element)"
+                                (openInNewTab)="_onOpenInNewTabGroup($event)"
                             ></lnk-card>
                         </div>
                     </ngx-masonry>
@@ -462,7 +418,8 @@
                         [showGroupIcon]="showGroupIcon"
                         [showGroupLabel]="showGroupLabel"
                         [groupLabel]="'APP.LABEL.Group' | translate"
-                        (simpleClick)="_onEditGroup($event, element)">
+                        (simpleClick)="_onEditGroup($event, element)"
+                        (openInNewTab)="_onOpenInNewTabGroup($event)">
                     </app-servizi-group-list-card>
                 </div>
             </div>
@@ -488,6 +445,7 @@
                                             [hostBackground]="'transparent'"
                                             [isAnonymous]="_updateMapper | mapper:_isAnonymousMapper"
                                             (itemClick)="_onEdit($event, element)"
+                                            (openInNewTab)="_onOpenInNewTab($event)"
                                         ></ui-item-row>
                                     </div>
                                 </div>

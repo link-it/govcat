@@ -15,8 +15,18 @@ export class StepConfermaEmailComponent {
   @Output() conferma = new EventEmitter<void>();
   @Output() modifica = new EventEmitter<void>();
 
+  /**
+   * Verifica se l'email JWT è vuota o assente.
+   * In caso di autenticazione ARPA, l'email potrebbe non essere fornita.
+   */
+  get isEmailMissing(): boolean {
+    return !this.emailJwt || this.emailJwt.trim() === '';
+  }
+
   onConferma(): void {
-    this.conferma.emit();
+    if (!this.isEmailMissing) {
+      this.conferma.emit();
+    }
   }
 
   onModifica(): void {

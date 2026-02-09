@@ -66,9 +66,9 @@ public class SecurityEndpointsConfigurer {
                 logger.debug("Modalità accesso anonimo: tutti gli endpoint /api/v1/** sono pubblici");
                 auth.requestMatchers("/api/v1/**").permitAll();
             } else {
-                // Modalità autenticata: solo /profilo è pubblico, il resto richiede autenticazione
-                logger.debug("Modalità autenticata: solo /api/v1/profilo è pubblico");
-                auth.requestMatchers("/api/v1/profilo").permitAll()
+                // Modalità autenticata: solo /profilo e /oidc/v1/token sono pubblici, il resto richiede autenticazione
+                logger.debug("Modalità autenticata: solo /api/v1/profilo e /oidc/v1/* sono pubblici");
+                auth.requestMatchers("/api/v1/profilo", "/oidc/v1/*").permitAll()
                     .anyRequest().authenticated();
             }
         });

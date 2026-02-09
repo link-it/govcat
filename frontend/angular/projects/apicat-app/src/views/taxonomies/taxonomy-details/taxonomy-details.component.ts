@@ -28,6 +28,7 @@ import { Tools } from '@linkit/components';
 import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+import { NavigationService } from '@app/services/navigation.service';
 
 import { Taxonomy } from './taxonomy';
 
@@ -83,7 +84,8 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
     public tools: Tools,
     public eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    public utils: UtilService
+    public utils: UtilService,
+    private navigationService: NavigationService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
@@ -317,7 +319,8 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
     this.router.navigate([event.url]);
   }
 
-  _onCategory() {
-    this.router.navigate([`/${this.model}/${this.id}/categorie`]);
+  _onCategory(event?: MouseEvent) {
+    const route = [this.model, this.id, 'categorie'];
+    this.navigationService.navigateWithEvent(event, route);
   }
 }

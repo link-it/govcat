@@ -19,29 +19,25 @@
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
+import { HttpHeaders } from '@angular/common/http';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { LocalStorageService } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, LocalStorageService, EventType, BreadcrumbService, SearchBarFormComponent } from '@linkit/components';
 import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { EventType } from '@linkit/components';
-import { BreadcrumbService } from '@linkit/components'
+import { NavigationService } from '@app/services/navigation.service';
 
-import { SearchBarFormComponent } from '@linkit/components'
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap, timeout } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
@@ -49,6 +45,8 @@ import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.compon
 
 import * as _ from 'lodash';
 declare const saveAs: any;
+
+import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
 
 @Component({
     selector: 'app-servizi',
@@ -62,7 +60,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     @ViewChild('searchBarForm') searchBarForm!: SearchBarFormComponent;
 
-    _production: boolean = true; // environment.production;
+    _production: boolean = true;
     
     Tools = Tools;
 
@@ -93,7 +91,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     
     _showTaxonomies: boolean = false;
 
-    _isEdit: boolean = false;
     _editCurrent: any = null;
 
     _hasFilter: boolean = true;
@@ -221,11 +218,14 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     };
 
     hasMultiSelection: boolean = true;
+    showSelectAll: boolean = true;
     elementsSelected: any[] = [];
-    _downloading: boolean = true;
+    _downloading: boolean = false;
     uncheckAllInTheMenu: boolean = true;
 
     tipo_servizio: string = TipoServizioEnum.API;
+
+    ActionEnum = ActionEnum;
 
     constructor(
         private readonly router: Router,
@@ -239,7 +239,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         public utils: UtilService,
         public apiService: OpenAPIService,
         public authenticationService: AuthenticationService,
-        private readonly breadCrumbService: BreadcrumbService
+        private breadCrumbService: BreadcrumbService,
+        private navigationService: NavigationService
     ) {
         this.tipo_servizio = (this.router.url === '/servizi') ? TipoServizioEnum.API : TipoServizioEnum.Generico;
 
@@ -626,10 +627,31 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();
         }
-        if (this.showPresentation) {
-            this.router.navigate([this.model, param.idServizio, 'view']);
-        } else {
-            this.router.navigate([this.model, param.idServizio]);
+        // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+        const mouseEvent = this.navigationService.extractEvent(event);
+        const data = this.navigationService.extractData(param) || param;
+        const route = this.showPresentation
+            ? [this.model, data.idServizio, 'view']
+            : [this.model, data.idServizio];
+        this.navigationService.navigateWithEvent(mouseEvent, route);
+    }
+
+    _onOpenInNewTab(event: any) {
+        const data = this.navigationService.extractData(event);
+        const route = this.showPresentation
+            ? [this.model, data.idServizio, 'view']
+            : [this.model, data.idServizio];
+        this.navigationService.openInNewTab(route);
+    }
+
+    _onOpenInNewTabGroup(event: any) {
+        const data = this.navigationService.extractData(event);
+        // Solo per i servizi, non per i gruppi
+        if (data.type === 'servizio') {
+            const route = this.showPresentation
+                ? [this.model, data.id, 'view']
+                : [this.model, data.id];
+            this.navigationService.openInNewTab(route);
         }
     }
 
@@ -637,12 +659,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this.searchBarForm) {
             this.searchBarForm._pinLastSearch();
         }
-        if (param.type === 'servizio') {
-            if (this.showPresentation) {
-                this.router.navigate([this.model, param.id, 'view']);
-            } else {
-                this.router.navigate([this.model, param.id]);
-            }
+        // Supporto per apertura in nuova scheda (Ctrl+Click, Cmd+Click, middle-click)
+        const mouseEvent = this.navigationService.extractEvent(event);
+        const data = this.navigationService.extractData(param) || param;
+        if (data.type === 'servizio') {
+            console.log('Navigating to servizio', data);
+            const route = this.showPresentation
+                ? [this.model, data.id, 'view']
+                : [this.model, data.id];
+            this.navigationService.navigateWithEvent(mouseEvent, route);
         } else {
             this._currIdGruppoPadre = param.id;
             this._gruppoPadreNull = false;
@@ -684,10 +709,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.breadCrumbService.clearBreadcrumbs();
         this.breadcrumbs = [ ...this.breadcrumbs ];
         this.eventsManagerService.broadcast('UPDATE_BREADCRUMBS', []);
-    }
-
-    _onCloseEdit() {
-        this._isEdit = false;
     }
 
     _onSubmit(form: any) {
@@ -1187,6 +1208,18 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.elements = [ ..._elements ];
     }
 
+    selectAll() {
+        this.elementsSelected = this.elements.map((element: any) => element.idServizio);
+        const _elements = this.elements.map((element: any) => {
+            return { ...element, selected: true };
+        });
+        this.elements = [ ..._elements ];
+    }
+
+    get allSelected(): boolean {
+        return this.elements.length > 0 && this.elementsSelected.length === this.elements.length;
+    }
+
     _onSelect(event: any, element: any) {
         event.stopPropagation();
         const _index = this.elementsSelected.findIndex((item: any) => item === element.idServizio);
@@ -1199,11 +1232,25 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
     }
 
-    _onExport(type: string) {
+    onExportAction(event: any) {
+        switch (event.action) {
+            case ActionEnum.SEARCH:
+                this.onExport(ActionEnum.SEARCH, true);
+                break;
+            case ActionEnum.SELECTION:
+                this.onExport(ActionEnum.SELECTION, true);
+                break;
+            case ActionEnum.DESELECT_ALL:
+                this.deselectAll();
+                break;
+        }
+    }
+
+    onExport(type: string, exportServizi: boolean = false) {
         let aux: any;
         let query = null;
 
-        if (type === 'search') {
+        if (type === ActionEnum.SEARCH) {
             query = { ...this._filterData };
             if (query.id_gruppo_padre_label) {
                 delete query.id_gruppo_padre_label;
@@ -1213,11 +1260,33 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         }
         aux = this.utils._queryToHttpParams(query);
 
+        // Imposta timeout di 150 secondi tramite header per l'interceptor
+        const headers = new HttpHeaders().set('timeout', '150000');
+
         this._downloading = true;
-        this.apiService.download(`${this.model}-export`, null, undefined, aux)
-            .pipe(
-                timeout(150000) // timeout di 150 secondi
-            )
+        this.apiService.download(`${this.model}-export`, null, undefined, aux, headers)
+            .subscribe({
+                next: (response: any) => {
+                    let filename: string = Tools.GetFilenameFromHeader(response);
+                    saveAs(response.body, filename);
+                    this._downloading = false;
+                },
+                error: (error: any) => {
+                    this._downloading = false;
+                    if (error.name === 'TimeoutError') {
+                        Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+                    } else {
+                        Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
+                    }
+                }
+            });
+    }
+
+    onExportAll() {
+        const headers = new HttpHeaders().set('timeout', '150000');
+
+        this._downloading = true;
+        this.apiService.download(`${this.model}-export`, null, undefined, undefined, headers)
             .subscribe({
                 next: (response: any) => {
                     let filename: string = Tools.GetFilenameFromHeader(response);

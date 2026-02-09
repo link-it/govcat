@@ -87,17 +87,29 @@
                       </button>
                     </div>
                     <div class="col-12 mt-3" *ngIf="_updateData | mapper:_canJoinMapper">
-                      <button class="btn btn-link btn-md gl-button ms-2-" (click)="_joinServizio()" *ngIf="(!(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isReferenteMapper) && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
+                      <button class="btn btn-link btn-md gl-button ms-2- supports-new-tab" (click)="_joinServizio($event)" (auxclick)="_joinServizio($event)" *ngIf="(!(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isReferenteMapper) && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
                         <i class="bi bi-link me-2"></i>
                         <span>{{ 'APP.BUTTON.JoinService' | translate }}</span>
+                        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                              *ngIf="enableOpenInNewTab"
+                              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                              (click)="_openJoinServizioInNewTab($event)"></span>
                       </button>
-                      <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesioni()" *ngIf="(_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
+                      <button class="btn btn-link btn-md gl-button ms-2- supports-new-tab" (click)="_gotoAdesioni($event)" (auxclick)="_gotoAdesioni($event)" *ngIf="(_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))">
                         <i class="bi bi-display"></i>
                         <span class="ms-2">{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
+                        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                              *ngIf="enableOpenInNewTab"
+                              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                              (click)="_openAdesioniInNewTab($event)"></span>
                       </button>
-                      <button class="btn btn-link btn-md gl-button ms-2-" (click)="_gotoAdesione()" *ngIf="!(_updateData | mapper:_isGestoreMapper) && _hasJoined">
+                      <button class="btn btn-link btn-md gl-button ms-2- supports-new-tab" (click)="_gotoAdesione($event)" (auxclick)="_gotoAdesione($event)" *ngIf="!(_updateData | mapper:_isGestoreMapper) && _hasJoined">
                         <i class="bi bi-display"></i>
                         <span class="ms-2">{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
+                        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                              *ngIf="enableOpenInNewTab"
+                              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                              (click)="_openAdesioneInNewTab($event)"></span>
                       </button>
                     </div>
                   </div>
@@ -181,31 +193,33 @@
                             </h6>
                             <div class="border- border-bottom-0 list-group">
                               <ng-container *ngFor="let api of serviceApiDominio">
-                                <ui-item-row class="border-bottom- list-group-item list-group-item-action p-1"
+                                <ui-item-row class="list-group-item list-group-item-action p-1"
                                   [data]="api"
                                   [config]="apiConfig"
                                   [configRow]="'itemRowView'"
                                   [hasLink]="true"
                                   [rowClick]="true"
                                   [hasAction]="false"
+                                  [linkRoute]="false"
                                   (itemClick)="_onShowApi($event, api)">
                                 </ui-item-row>
                               </ng-container>
                             </div>
                           </div>
                         </ng-container>
-                        <ng-container *ngIf="serviceApiAderente?.length">
+                        <ng-container *ngIf="serviceApiAderente.length">
                           <div class="mb-5">
                             <h6 id="api-erogato_soggetto_aderente" class="text-uppercase text-muted mb-5">{{ ('APP.ROLE.ErogatoSoggettoAderente' | pluralTranslate:(serviceApiAderente.length || 0)) | translate }}</h6>
                             <div class="border- border-bottom-0 list-group">
                               <ng-container *ngFor="let api of serviceApiAderente">
-                                <ui-item-row class="border-bottom- list-group-item list-group-item-action p-1"
+                                <ui-item-row class="list-group-item list-group-item-action p-1"
                                   [data]="api"
                                   [config]="apiConfig"
                                   [configRow]="'itemRowView'"
                                   [hasLink]="true"
                                   [rowClick]="true"
                                   [hasAction]="false"
+                                  [linkRoute]="false"
                                   (itemClick)="_onShowApi($event, api)">
                                 </ui-item-row>
                               </ng-container>

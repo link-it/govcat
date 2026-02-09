@@ -18,30 +18,35 @@
  */
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
+import { ModalModule } from 'ngx-bootstrap/modal';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { AppComponentsModule } from '@app/components/components.module';
 
 import { CheckboxArrayModule } from '@app/directives/checkbox-array/checkbox-array.module';
 
 import { ProfileRoutingModule } from './profile-routing.module';
 import { ProfileComponent } from './profile.component';
+import { EmailVerificationDialogComponent } from './components/email-verification-dialog/email-verification-dialog.component';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     TranslateModule,
-     ComponentsModule,
+    ModalModule.forChild(),
+    ComponentsModule,
     AppComponentsModule,
     CheckboxArrayModule,
     ProfileRoutingModule
   ],
   declarations: [
-    ProfileComponent
+    ProfileComponent,
+    EmailVerificationDialogComponent
   ],
   providers: [],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

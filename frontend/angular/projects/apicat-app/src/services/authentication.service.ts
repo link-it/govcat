@@ -27,6 +27,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 
 import * as _ from 'lodash';
+import { a } from '@angular/cdk/portal-directives.d-BoG39gYN';
 
 export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
@@ -282,7 +283,6 @@ export class AuthenticationService {
 
       if (revocationEndpoint) {
         this.oauthService.revokeTokenAndLogout().catch((error: any) => {
-          console.warn('Error revoking token, falling back to logOut:', error);
           this.oauthService.logOut(true);
         });
       } else {
@@ -566,6 +566,22 @@ export class AuthenticationService {
     return (_intersection.length > 0);
   }
 
+  canArchiviare(module: string, state: string, grant: string[] = []): boolean {
+    // Se è gestore, può sempre archiviare
+    if (this.isGestore(grant)) { return true; }
+
+    // Altrimenti verifica la configurazione
+    const _wfcs = this._getWorkflowCambiStato(module, state);
+    const _ruoliArchiviazione = _wfcs?.ruoli_abilitati_stato_archiviato || [];
+
+    if (_ruoliArchiviazione.length === 0) {
+      return false; // Se non configurato, solo gestore può archiviare
+    }
+
+    const _intersection = _.intersection(grant, _ruoliArchiviazione);
+    return (_intersection.length > 0);
+  }
+
   canJoin(module: string, state: string, usePackage: boolean = false) {
     const _sac = (module === 'adesione') ? this._getConfigModule(module).stati_scheda_adesione : this._getConfigModule(usePackage ? 'package' : module).stati_adesione_consentita;
     return (_.indexOf(_sac, state) !== -1);
@@ -657,6 +673,9 @@ export class AuthenticationService {
   canMonitoraggio(grant: string[] = []) {
     const _grant = [ ...grant ];
     const _monitoraggio = this._getConfigModule('monitoraggio');
+    if (!_monitoraggio) {
+      return false;
+    }
     const _ruoliAbilitati = _monitoraggio.ruoli_abilitati;
     if ((_.indexOf(grant, 'referente_tecnico') !== -1) && (_.indexOf(grant, 'referente') === -1)) {
       _grant.push('referente');

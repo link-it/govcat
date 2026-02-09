@@ -19,13 +19,13 @@
 <div class="group-list-card" [class.group]="data.tipo === 'gruppo'" (click)="onCardClick($event)">
   <div class="group-list-card-image-container" *ngIf="showImage && (image || showEmptyImage)">
     <div tabindex="0"
-         class="group-list-card-image"
-         [class.cursor-pointer]="enabledImageLink"
-         (click)="onImageClick($event)"
-         setBackgroundImage
-         [imageUrl]="{ path: image } | httpImgSrc"
-         [position]="'cover'"
-         [ngStyle]="{ 'background-color': backColor }">
+        class="group-list-card-image"
+        [class.cursor-pointer]="enabledImageLink"
+        (click)="onImageClick($event)"
+        setBackgroundImage
+        [imageUrl]="{ path: image } | httpImgSrc"
+        [position]="'cover'"
+        [ngStyle]="{ 'background-color': backColor }">
       <span class="logo-text text-nowrap" [ngStyle]="{'color': textColor}" *ngIf="!image">{{ logoText }}</span>
     </div>
   </div>
@@ -34,9 +34,13 @@
     <div class="group-list-card-body">
       <h5 tabindex="0"
           class="group-list-card-title text-hover cursor-pointer text-break"
+          [class.supports-new-tab]="data.tipo !== 'gruppo'"
           [attr.title]="primaryText"
           *ngIf="primaryText">
-        {{ primaryText }}
+        {{ primaryText }}<span class="open-new-tab-icon bi bi-box-arrow-up-right"
+              *ngIf="enableOpenInNewTab && data.tipo !== 'gruppo'"
+              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+              (click)="onOpenInNewTab($event)"></span>
       </h5>
       <p class="group-list-card-text" *ngIf="secondaryText">{{ secondaryText }}</p>
       <p class="group-list-card-metadata" *ngIf="metadata">{{ metadata }}</p>

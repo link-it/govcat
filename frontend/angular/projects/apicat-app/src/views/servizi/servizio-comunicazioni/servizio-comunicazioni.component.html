@@ -90,6 +90,7 @@
       <div class="row-content-block sticky-top p-2" style="z-index: 99;" *ngIf="showSender">
         <ui-sender #sender
           [placeholder]="'APP.PLACEHOLDER.TestoMessaggio' | translate"
+          [showTarget]="true"
           (send)="_onSubmitMessage($event)">
         </ui-sender>
       </div>

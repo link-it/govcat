@@ -30,6 +30,7 @@ import { ConfigService, EventsManagerService, MenuAction, EventType, Tools } fro
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { NavigationService } from '@app/services/navigation.service';
 
 import { Grant } from '@app/model/grant';
 
@@ -130,6 +131,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     apiConfig: any = null;
 
     appConfig: any;
+    enableOpenInNewTab: boolean = false;
 
     _spin: boolean = true;
     _downloading: boolean = false;
@@ -211,11 +213,13 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         private readonly eventsManagerService: EventsManagerService,
         private readonly apiService: OpenAPIService,
         private readonly utils: UtilService,
-        private readonly authenticationService: AuthenticationService
+        private readonly authenticationService: AuthenticationService,
+        private readonly navigationService: NavigationService
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
         this._showReferents = this.appConfig?.AppConfig?.Services?.showReferents !== false;
+        this.enableOpenInNewTab = this.appConfig?.AppConfig?.Layout?.enableOpenInNewTab ?? false;
         const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv?.api) ? _srv.api.profili : [];
         this._proprieta_custom = (_srv?.api) ? _srv.api.proprieta_custom : [];
@@ -537,9 +541,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         }
     }
 
-    gotoManagement() {
-        const url = `/servizi/${this.id}`;
-        this.router.navigate([url]);
+    gotoManagement(event?: MouseEvent) {
+        const route = ['servizi', this.id];
+        this.navigationService.navigateWithEvent(event, route);
     }
 
     _getLogoMapper = (bg: boolean = false): string => {
@@ -585,16 +589,40 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         return this._canJoin() && !this.isComponente;
     }
 
-    _joinServizio() {
-        this.router.navigate(['servizi', this.id, 'adesioni', 'new', 'edit'], { queryParams: { web: true } });
+    _joinServizio(event?: MouseEvent) {
+        const route = ['servizi', this.id, 'adesioni', 'new', 'edit'];
+        this.navigationService.navigateWithEvent(event, route, { web: true });
     }
 
-    _gotoAdesione() {
-        this.router.navigate(['servizi', this.id, 'adesioni'], { queryParams: { web: true } });
+    _gotoAdesione(event?: MouseEvent) {
+        const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.navigateWithEvent(event, route, { web: true });
     }
 
-    _gotoAdesioni() {
-        this.router.navigate(['servizi', this.id, 'adesioni']);
+    _gotoAdesioni(event?: MouseEvent) {
+        const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.navigateWithEvent(event, route);
+    }
+
+    _openJoinServizioInNewTab(event: MouseEvent) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        const route = ['servizi', this.id, 'adesioni', 'new', 'edit'];
+        this.navigationService.openInNewTab(route);
+    }
+
+    _openAdesioneInNewTab(event: MouseEvent) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.openInNewTab(route);
+    }
+
+    _openAdesioniInNewTab(event: MouseEvent) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+        const route = ['servizi', this.id, 'adesioni'];
+        this.navigationService.openInNewTab(route);
     }
 
     get isComponente() {
@@ -759,14 +787,15 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
 
     onActionMonitor(event: any) {
+        const mouseEvent = event?.event as MouseEvent | undefined;
         switch (event.action) {
             case 'gestione':
-                this.gotoManagement();
+                this.gotoManagement(mouseEvent);
                 break;
             default:
                 localStorage.setItem('SERVIZI_VIEW', 'TRUE');
-                const url = `/servizi/${this.id}/${event.action}`;
-                this.router.navigate([url]);
+                const route = ['servizi', this.id, event.action];
+                this.navigationService.navigateWithEvent(mouseEvent, route);
                 break;
         }
     }

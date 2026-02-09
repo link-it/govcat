@@ -49,6 +49,7 @@ import org.govway.catalogo.core.dao.repositories.TagRepository;
 import org.govway.catalogo.core.dao.repositories.TassonomiaRepository;
 import org.govway.catalogo.core.dao.repositories.UtenteRepository;
 import org.govway.catalogo.core.dao.repositories.RegistrazioneUtenteRepository;
+import org.govway.catalogo.core.dao.repositories.EmailUpdateVerificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +111,9 @@ public class AbstractService {
 	protected ApiRepository apiRepo;
 	@Autowired
 	protected RegistrazioneUtenteRepository registrazioneUtenteRepo;
+
+	@Autowired
+	protected EmailUpdateVerificationRepository emailUpdateVerificationRepo;
 
 	@Autowired
 	protected JpaTransactionManager txManager;

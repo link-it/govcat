@@ -16,26 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { Tools } from '@linkit/components';
+import { EventsManagerService, EventType } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService } from '@linkit/components';
-
-import { EventType } from '@linkit/components';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 import { StatoConfigurazioneEnum } from '../../adesione-configurazioni/adesione-configurazioni.component';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
 import { Erogazioni } from '../../adesione-configurazioni/erogazioni';
 
-import { CkeckProvider } from '@app/provider/check.provider';
-import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
+import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 
 @Component({
     selector: 'app-adesione-lista-erogazioni',
@@ -43,7 +39,7 @@ import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
     styleUrls: ['./adesione-lista-erogazioni.component.scss'],
     standalone: false
 })
-export class AdesioneListaErogazioniComponent implements OnInit {
+export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
 
     @Input() id: number = 0;
     @Input() adesione: any = null;
@@ -69,12 +65,12 @@ export class AdesioneListaErogazioniComponent implements OnInit {
     updateMapper: string = '';
 
     constructor(
-        private modalService: BsModalService,
-        private apiService: OpenAPIService,
-        private authenticationService: AuthenticationService,
-        private utils: UtilService,
-        private eventsManagerService: EventsManagerService,
-        private ckeckProvider: CkeckProvider
+        private readonly modalService: BsModalService,
+        private readonly apiService: OpenAPIService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly utils: UtilService,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly ckeckProvider: CkeckProvider
     ) { }
 
     ngOnInit() {
@@ -89,7 +85,6 @@ export class AdesioneListaErogazioniComponent implements OnInit {
     }
 
     private loadAdesioneErogazioni(environment: string, ignoreSpin: boolean = false) {
-        // this._setErrorMessages(false);
         if (this.id) {
             this.spin = ignoreSpin ? false : true;
             if (!ignoreSpin) { this.adesioneErogazioni = []; }
@@ -173,7 +168,6 @@ export class AdesioneListaErogazioniComponent implements OnInit {
                     this.spin = false;
                 },
                 error: (error: any) => {
-                    // this._setErrorMessages(true);
                     this.spin = false;
                 }
             });
@@ -185,11 +179,36 @@ export class AdesioneListaErogazioniComponent implements OnInit {
     }
 
     getSottotipoGroupCompletedMapper = (update: string, tipo: string): number => {
+        // Caso 1: Skip collaudo attivo e ambiente è Collaudo - mostra grigio (non applicabile)
+        if (this.environment === AmbienteEnum.Collaudo && this.adesione?.skip_collaudo) {
+            return 2; // grigio - non applicabile
+        }
+
+        // Caso 2: Siamo in fase di collaudo e ambiente è Produzione - mostra grigio (non ancora applicabile)
+        if (this.environment === AmbienteEnum.Produzione && this._isInCollaudoPhase()) {
+            return 2; // grigio - non ancora applicabile
+        }
+
         if (this.isSottotipoGroupCompletedMapper(update, tipo)) {
             return this.nextState?.dati_non_applicabili?.includes(this.environment) ? 2 : 1;
         } else {
             return this._hasCambioStato() ? 0 : 1;
         }
+    }
+
+    /**
+     * Verifica se l'adesione è nella fase di collaudo (cioè non ancora passata alla produzione)
+     */
+    _isInCollaudoPhase(): boolean {
+        const collaudoStates = [
+            'bozza',
+            'richiesto_collaudo',
+            'autorizzato_collaudo',
+            'in_configurazione_collaudo',
+            'in_configurazione_automatica_collaudo',
+            'in_configurazione_manuale_collaudo'
+        ];
+        return !this.adesione?.skip_collaudo && collaudoStates.includes(this.adesione?.stato);
     }
 
     isSottotipoGroupCompletedMapper = (update: string, tipo: string): boolean => {

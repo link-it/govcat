@@ -17,9 +17,10 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <ng-container *ngIf="data">
+    <!-- Service, Organization, Descriptors -->
     <ng-container *ngFor="let view of views; index as i">
         <div class="p-4 m-4 bg-lightest"
-            *ngIf="(data[i].constructor.name === 'Array' && data[i].length > 0) || (data[i].constructor.name === 'Object')">
+            *ngIf="(data[i]?.constructor?.name === 'Array' && data[i].length > 0) || (data[i]?.constructor?.name === 'Object')">
             <h4 class="mb-3" *ngIf="view.title">{{ view.title }}</h4>
 
             <div class="gl-alert gl-alert-danger mt-4 mb-5" *ngIf="data[i].message">
@@ -73,4 +74,50 @@
             </ng-container>
         </div>
     </ng-container>
+
+    <!-- Requisiti di Accesso (Attributes) -->
+    <div class="p-4 m-4 bg-lightest" *ngIf="attributeData.length > 0">
+        <h4 class="mb-3">{{ 'APP.LABEL.PDND.AccessRequirements' | translate }}</h4>
+
+        <!-- No attributes message -->
+        <div class="gl-alert gl-alert-info" *ngIf="!hasAnyAttributes">
+            <p class="mb-0">{{ 'APP.LABEL.PDND.NoAttributesRequired' | translate }}</p>
+        </div>
+
+        <!-- Attribute boxes -->
+        <ng-container *ngIf="hasAnyAttributes">
+            <ng-container *ngFor="let view of attributeViews; index as i">
+                <div class="p-3 mb-3 bg-white rounded"
+                    *ngIf="attributeData[i]?.length > 0">
+                    <h5 class="mb-3" *ngIf="view.title">{{ view.title }}</h5>
+
+                    <div class="gl-alert gl-alert-danger mt-2 mb-3" *ngIf="attributeData[i]?.message">
+                        <p>{{ attributeData[i].message }}</p>
+                        <pre>{{ attributeData[i].error | json }}</pre>
+                    </div>
+
+                    <ng-container *ngIf="!attributeData[i]?.message && view.type === 'list-ui-collapse-row' && view.collapseView">
+                        <ui-collapse-row class="border-bottom bg-white" *ngFor="let item of attributeData[i]; index as j"
+                            [data]="attributeData[i][j].data ? attributeData[i][j].data : attributeData[i][j]" [config]="view.collapseView.configuration"
+                            [enableCollapse]="view.collapseView.collapsed" [hasLink]="true">
+                            <div collapse-content class="px-4 pt-3 pb-3 my-1" *ngIf="view.collapseView?.collapsed || !view.collapseView?.collapsed">
+                                <div class="d-flex flex-row mb-6" *ngIf="!view.hideContent">
+                                    <ui-data-view [data]="attributeData[i][j].data ? attributeData[i][j].data : attributeData[i][j]"
+                                        [details]="view.configuration">
+                                    </ui-data-view>
+                                </div>
+                                <div *ngIf="view.listView">
+                                    <h6 class="mb-3" *ngIf="view.listView?.title">{{ view.listView.title }}</h6>
+                                    <ui-item-row [class.border-bottom]="attributeData[i][j]?.list?.length > 1 && !last"
+                                        *ngFor="let item of attributeData[i][j]?.list;let last = last;" [data]="item"
+                                        [config]="view.listView.configuration" [hasLink]="false">
+                                    </ui-item-row>
+                                </div>
+                            </div>
+                        </ui-collapse-row>
+                    </ng-container>
+                </div>
+            </ng-container>
+        </ng-container>
+    </div>
 </ng-container>

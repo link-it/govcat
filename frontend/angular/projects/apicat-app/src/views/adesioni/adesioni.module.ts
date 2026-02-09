@@ -22,9 +22,10 @@ import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
 import { ErrorViewModule } from '@app/components/error-view/error-view.module';
 import { SelectionDropdownModule } from '@app/components/selection-dropdown/selection-dropdown.module';
+import { ExportDropdwnModule } from '@app/components/lnk-ui/export-dropdown/export-dropdown.module';
 
 import { AdesioniComponent } from './adesioni.component';
 import { AdesioniRoutingModule } from './adesioni-routing.module';
@@ -37,9 +38,10 @@ import { AdesioneConfigurazioneWizardModule } from './adesione-configurazione-wi
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
     ErrorViewModule,
     SelectionDropdownModule,
+    ExportDropdwnModule,
     AdesioniRoutingModule,
     AdesioneDetailsModule,
     AdesioneViewModule,

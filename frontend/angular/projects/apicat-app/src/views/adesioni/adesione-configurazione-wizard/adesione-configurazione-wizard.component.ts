@@ -22,14 +22,10 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-
-import { EventType } from '@linkit/components';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
 
@@ -40,14 +36,11 @@ import { forkJoin, Observable } from 'rxjs';
 import { Grant, RightsEnum } from '@app/model/grant';
 import { AmbienteEnum } from '@app/model/ambienteEnum';
 import { ReferentView, Referent } from '../adesione-view/adesione-view.component';
-import { FieldClass } from '@linkit/components';
-import { MenuAction } from '@linkit/components';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
 
-import { CkeckProvider } from '@app/provider/check.provider';
-import { ClassiEnum, DataStructure } from '@app/provider/check.provider';
+import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
 
 export enum AccordionType {
     GENERAL_INFO = 'accordion-general-info',
@@ -159,16 +152,16 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     };
 
     constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private translate: TranslateService,
-        private modalService: BsModalService,
-        private configService: ConfigService,
-        private eventsManagerService: EventsManagerService,
-        private apiService: OpenAPIService,
-        private authenticationService: AuthenticationService,
-        private utils: UtilService,
-        private ckeckProvider: CkeckProvider,
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly apiService: OpenAPIService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly utils: UtilService,
+        private readonly ckeckProvider: CkeckProvider
     ) {
         this.route.data.subscribe((data) => {
             if (!data.serviceBreadcrumbs) return;
@@ -328,9 +321,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
     _hasCambioStato() {
         if (this.authenticationService.isGestore(this.grant?.ruoli)) { return true; }
-        const _statoPrecedetene: boolean = false; // this.authenticationService.canChangeStatus(this.module, this.data.stato, 'stato_precedente', this.grant?.ruoli);
+        const _statoPrecedetene: boolean = false;
         const _statoSuccessivo: boolean = this.authenticationService.canChangeStatus('adesione', this.adesione.stato, 'stato_successivo', this.grant?.ruoli);
-        const _statiUlteriori: boolean = false; // this.authenticationService.canChangeStatus(this.module, this.data.stato, 'stati_ulteriori', this.grant?.ruoli);
+        const _statiUlteriori: boolean = false;
         return (_statoPrecedetene || _statoSuccessivo || _statiUlteriori);
     }
     
@@ -448,12 +441,40 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     getStatusCompleteMapper = (update: boolean, className: string): number => {
+        // Caso 1: Skip collaudo attivo - la sezione Collaudo deve essere grigia (non applicabile)
+        if (className === AmbienteEnum.Collaudo && this.adesione?.skip_collaudo) {
+            return 2; // grigio - non applicabile
+        }
+
+        // Caso 2: Siamo in fase di collaudo - la sezione Produzione deve essere grigia (non ancora applicabile)
+        if (className === AmbienteEnum.Produzione && this._isInCollaudoPhase()) {
+            return 2; // grigio - non ancora applicabile
+        }
+
         if (this.isCompletedMapper(update, className)) {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(className) ? 2 : 1;
         } else {
             return this._hasCambioStato() ? 0 : 1;
         }
+    }
+
+    /**
+     * Verifica se l'adesione è nella fase di collaudo (cioè non ancora passata alla produzione)
+     * Usato per mostrare la sezione Produzione in grigio quando non è ancora il momento di configurarla
+     */
+    _isInCollaudoPhase(): boolean {
+        const collaudoStates = [
+            'bozza',
+            'richiesto_collaudo',
+            'autorizzato_collaudo',
+            'in_configurazione_collaudo',
+            'in_configurazione_automatica_collaudo',
+            'in_configurazione_manuale_collaudo'
+        ];
+        // Se skip_collaudo è attivo, non siamo nella fase di collaudo
+        // (il flusso salta direttamente alla produzione)
+        return !this.adesione?.skip_collaudo && collaudoStates.includes(this.adesione?.stato);
     }
 
     isCompletedMapper = (update: boolean, className: string): boolean => {
@@ -466,6 +487,16 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     getStatusSottotipoCompleteMapper = (update: boolean, environment: string, tipo: string, identificativo: string): number => {
+        // Caso 1: Skip collaudo attivo e ambiente è Collaudo - mostra grigio (non applicabile)
+        if (environment === AmbienteEnum.Collaudo && this.adesione?.skip_collaudo) {
+            return 2; // grigio - non applicabile
+        }
+
+        // Caso 2: Siamo in fase di collaudo e ambiente è Produzione - mostra grigio (non ancora applicabile)
+        if (environment === AmbienteEnum.Produzione && this._isInCollaudoPhase()) {
+            return 2; // grigio - non ancora applicabile
+        }
+
         if (this.isSottotipoCompletedMapper(update, environment, tipo, identificativo)) {
             const next = this.getNextStateWorkflow();
             return next?.dati_non_applicabili?.includes(environment) ? 2 : 1;
@@ -731,9 +762,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 header?.classList.remove('collapsed');
                 collapse?.classList.add('show');
             }
-
-            // header?.classList.toggle('collapsed');
-            // collapse?.classList.toggle('show');
         }
 
         this.utils.scrollTo(id);
@@ -758,8 +786,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const _partial = `export`;
             this.apiService.download(this.model, this.id, _partial).subscribe({
                 next: (response: any) => {
-                    // const _ext = data.filename.split('/')[1];
-                    // let name: string = `${data.filename}.${_ext}`;
                     let name: string = `SchedaAdesione.pdf`;
                     saveAs(response.body, name);
                     this.downloading = false;
