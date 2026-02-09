@@ -27,6 +27,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 
 import * as _ from 'lodash';
+import { a } from '@angular/cdk/portal-directives.d-BoG39gYN';
 
 export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
@@ -282,7 +283,6 @@ export class AuthenticationService {
 
       if (revocationEndpoint) {
         this.oauthService.revokeTokenAndLogout().catch((error: any) => {
-          console.warn('Error revoking token, falling back to logOut:', error);
           this.oauthService.logOut(true);
         });
       } else {
