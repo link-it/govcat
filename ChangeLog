@@ -1,3 +1,132 @@
+2026-02-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #116
+	Corretto baseHref mancante negli URL aperti in nuova scheda
+
+2026-02-06  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #177
+	Corretto spazio mancante tra gli elementi "ui-item-type"
+	Corretta disabilitazione "Footer Expander"
+
+2026-02-06  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Aggiunte label di default per le stampe
+	Modifiche al descrittore PDF per esternalizzazione label e fix URL troppo lunghe
+	Accorciato il nome file del descrittore
+
+2026-02-06  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [Autenticazione]
+	Aggiunta funzionalità #176
+	Aggiunto endpoint logout al wrapper minimale OIDC
+
+2026-02-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #157
+	Corretto menu PDND sempre disabilitati
+	Aggiunta retrocompatibilità per gruppi con custom properties
+
+2026-02-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #141
+	Migliorata ricerca libera utenti con combinazione di nome e cognome
+
+2026-02-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #137 e #140
+	Aggiunte configurazioni mostra_richiedente e mostra_referenti
+	Aggiunti richiedente e referenti in scheda adesione e descrittore eService PDF
+
+2026-02-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #138
+	Aggiunta funzionalità esportazione adesioni con miglioramenti UI selezione
+	Aggiunto pulsante "Esporta tutto" nella vista gruppi servizi
+
+2026-02-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunta funzionalità
+	Aggiunto campo email configurabile nel form profilo
+
+2026-02-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #102 e #138
+	Refactoring API servizi-export e aggiunta API adesioni-export
+
+2026-02-03  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #139
+	Rework delle API per verifica email di modifica profilo
+	Supporto sia per email personale che aziendale
+
+2026-02-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #139
+	Implementazione verifica email per modifica profilo
+	Refactoring verifica email profilo utente
+
+2026-02-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiunta funzionalità
+	Implementazione refresh token automatico su errore 401
+
+2026-02-03  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità #176
+	Aggiunto OpenAPI per wrapper OIDC lato API
+
+2026-02-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #174
+	Gestione email mancante nel first login e nuovi codici errore registrazione
+
+2026-02-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #174
+	Rimosso messaggio_informativo e migliorati codici errore registrazione
+
+2026-02-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #150
+	Revisione completa stili markdown per documentazione servizio
+
+2026-02-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #116
+	Aggiunta icona cliccabile per apertura in nuova scheda
+	Miglioramenti open-in-new-tab
+
+2026-02-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #139
+	Aggiunte API per processo di verifica email per aggiornamento indirizzo email in profilo
+
+2026-01-30  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #170
+	Aggiunti parametri erogazioni/fruizioni e soggetto alle API di dettaglio transazione
+
 2026-01-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -39,6 +168,10 @@
 	Risolto bug #157
 	Corretto salvataggio identificativo eService PDND in creazione API
 	Corretto indicatore asterisco per campi obbligatori url_collaudo e url_produzione
+
+2026-01-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.2
 
 2026-01-23  Giovanni De Luca <giovanni.deluca@link.it>
 
