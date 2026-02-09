@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
@@ -144,6 +145,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private translate: TranslateService,
     private configService: ConfigService,
     public tools: Tools,
@@ -347,7 +349,9 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
     if (this.navigationService.shouldOpenInNewTab(mouseEvent)) {
       mouseEvent?.preventDefault();
       mouseEvent?.stopPropagation();
-      window.open(_url, '_blank');
+      // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+      const fullUrl = this.location.prepareExternalUrl(_url);
+      window.open(fullUrl, '_blank');
     } else {
       this.router.navigateByUrl(_url);
     }
@@ -374,7 +378,9 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
       _url += _useId ? `notificationId=${_notificaId}&messageid=${_messageId}` : `notification=${_notificationB64}`;
     }
 
-    window.open(_url, '_blank');
+    // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+    const fullUrl = this.location.prepareExternalUrl(_url);
+    window.open(fullUrl, '_blank');
   }
 
   markNotification(elem: any, stato: string, refresh: boolean = false) {

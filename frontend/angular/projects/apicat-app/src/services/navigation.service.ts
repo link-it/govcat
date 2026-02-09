@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 
 /**
@@ -19,7 +20,7 @@ import { Router } from '@angular/router';
 })
 export class NavigationService {
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private location: Location) {}
 
   /**
    * Determina se l'evento indica che si vuole aprire in una nuova scheda.
@@ -53,11 +54,14 @@ export class NavigationService {
 
   /**
    * Apre la route specificata in una nuova scheda.
+   * Usa Location.prepareExternalUrl per includere il baseHref.
    */
   openInNewTab(route: any[], queryParams?: any): void {
     const urlTree = this.router.createUrlTree(route, { queryParams });
     const url = this.router.serializeUrl(urlTree);
-    window.open(url, '_blank');
+    // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+    const fullUrl = this.location.prepareExternalUrl(url);
+    window.open(fullUrl, '_blank');
   }
 
   /**

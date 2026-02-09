@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { NavigationService } from '@app/services/navigation.service';
@@ -275,6 +276,7 @@ export class AdesioneViewComponent implements OnInit {
   
   constructor(
     private router: Router,
+    private location: Location,
     private route: ActivatedRoute,
     private translate: TranslateService,
     private apiService: OpenAPIService,
@@ -421,7 +423,9 @@ export class AdesioneViewComponent implements OnInit {
       // Build absolute URL from relative path
       const urlTree = this.router.createUrlTree(path, { relativeTo: this.route });
       const url = this.router.serializeUrl(urlTree);
-      window.open(url, '_blank');
+      // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+      const fullUrl = this.location.prepareExternalUrl(url);
+      window.open(fullUrl, '_blank');
     } else {
       this.router.navigate(path, { relativeTo: this.route });
     }

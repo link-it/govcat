@@ -1,4 +1,5 @@
 import { Directive, ElementRef, HostListener, Input, OnInit, OnDestroy, Renderer2 } from '@angular/core';
+import { Location } from '@angular/common';
 import { Router } from '@angular/router';
 
 @Directive({
@@ -18,6 +19,7 @@ export class OpenInNewTabDirective implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private location: Location,
     private el: ElementRef,
     private renderer: Renderer2
   ) {}
@@ -73,7 +75,10 @@ export class OpenInNewTabDirective implements OnInit, OnDestroy {
       this.appOpenInNewTab,
       { queryParams: this.queryParams, fragment: this.fragment }
     );
-    window.open(this.router.serializeUrl(urlTree), '_blank');
+    const url = this.router.serializeUrl(urlTree);
+    // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+    const fullUrl = this.location.prepareExternalUrl(url);
+    window.open(fullUrl, '_blank');
   }
 
   @HostListener('click', ['$event'])

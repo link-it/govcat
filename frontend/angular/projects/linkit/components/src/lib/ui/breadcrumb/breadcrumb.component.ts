@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Location } from '@angular/common';
 
 import { BreadcrumbService } from './breadcrumb.service';
 import { EventsManagerService } from '../../services';
@@ -45,7 +46,8 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
 
   constructor(
     private eventsManagerService: EventsManagerService,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private location: Location
   ) {
     this.eventsManagerService.on('UPDATE_BREADCRUMBS', (event: any) => {
       this._updateBreadcrumbs();
@@ -87,7 +89,9 @@ export class BreadcrumbComponent implements OnInit, OnChanges {
     if (shouldOpenInNewTab && item.url && item.url !== '' && item.url !== 'root') {
       event.preventDefault();
       event.stopPropagation();
-      window.open(item.url, '_blank');
+      // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+      const fullUrl = this.location.prepareExternalUrl(item.url);
+      window.open(fullUrl, '_blank');
       return;
     }
 

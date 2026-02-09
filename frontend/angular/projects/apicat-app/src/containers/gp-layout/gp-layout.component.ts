@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
+import { Location } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
@@ -162,6 +163,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     constructor(
         private readonly router: Router,
+        private readonly location: Location,
         private readonly translate: TranslateService,
         private readonly modalService: BsModalService,
         private readonly oauthService: OAuthService,
@@ -658,7 +660,9 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         event.stopPropagation();
         if (item.url) {
             const url = Array.isArray(item.url) ? item.url.join('/') : item.url;
-            window.open(url, '_blank');
+            // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+            const fullUrl = this.location.prepareExternalUrl(url);
+            window.open(fullUrl, '_blank');
         }
     }
 
@@ -670,7 +674,9 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             event.stopPropagation();
             // Gestisce sia url stringa che array di segmenti
             const url = Array.isArray(item.url) ? item.url.join('/') : item.url;
-            window.open(url, '_blank');
+            // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+            const fullUrl = this.location.prepareExternalUrl(url);
+            window.open(fullUrl, '_blank');
             return;
         }
 
@@ -725,7 +731,9 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         // Apre direttamente l'URL del menu item in una nuova scheda
         // Gestisce sia url stringa che array di segmenti
         const url = Array.isArray(event.item.url) ? event.item.url.join('/') : event.item.url;
-        window.open(url, '_blank');
+        // prepareExternalUrl aggiunge il baseHref (es. /apicat-app/) all'URL
+        const fullUrl = this.location.prepareExternalUrl(url);
+        window.open(fullUrl, '_blank');
         setTimeout(() => {
             this._stopPropagation = false;
         }, 1000);
