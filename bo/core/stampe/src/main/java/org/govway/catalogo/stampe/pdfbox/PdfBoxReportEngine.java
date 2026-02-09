@@ -590,6 +590,11 @@ public class PdfBoxReportEngine {
             return lines;
         }
 
+        // Sanitize text: replace non-breaking spaces (U+00A0) and other special whitespace with regular spaces
+        text = text.replace('\u00A0', ' ')  // Non-breaking space
+                   .replace('\u2007', ' ')  // Figure space
+                   .replace('\u202F', ' '); // Narrow no-break space
+
         // Check if text fits in one line
         float textWidth = font.getStringWidth(text) / 1000 * fontSize;
         if (textWidth <= maxWidth) {
