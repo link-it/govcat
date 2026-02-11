@@ -169,7 +169,7 @@ export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
   }
 
   onResend(): void {
-    this.form.reset();
+    this.form.get('codice')?.reset();
     this.error = '';
     this.onSendCode();
   }
