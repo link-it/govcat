@@ -2653,6 +2653,7 @@ components:
         - attributes
         - state
         - serverUrls
+        - isSignalHubEnabled
       properties:
         id:
           description: eservice identifier
@@ -2679,6 +2680,9 @@ components:
           type: array
           items:
             type: string
+        isSignalHubEnabled:
+          description: indicates if the signal hub is enabled for this eservice
+          type: boolean
     EServiceAttributes:
       description: the attributes set associated to the EService
       properties:
