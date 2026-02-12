@@ -23,8 +23,6 @@ public class AdesioneCsv {
 
 	private String erogatore;
 	private String servizio;
-	private String api;
-	private String tipoApi;
 	private String autenticazioneStato;
 	private String aderente;
 	private String idAdesione;
@@ -32,13 +30,7 @@ public class AdesioneCsv {
 	private String referenteRegionaleAdesione;
 	private String referenteTecnicoAdesione;
 	private String applicativiAutorizzatiProduzione;
-	private String autenticazioneValoreProduzione;
-	private String rateLimitingProduzione;
-	private String urlInvocazioneProduzione;
 	private String applicativiAutorizzatiCollaudo;
-	private String autenticazioneValoreCollaudo;
-	private String rateLimitingCollaudo;
-	private String urlInvocazioneCollaudo;
 
 	public String getErogatore() {
 		return erogatore;
@@ -51,18 +43,6 @@ public class AdesioneCsv {
 	}
 	public void setServizio(String servizio) {
 		this.servizio = servizio;
-	}
-	public String getApi() {
-		return api;
-	}
-	public void setApi(String api) {
-		this.api = api;
-	}
-	public String getTipoApi() {
-		return tipoApi;
-	}
-	public void setTipoApi(String tipoApi) {
-		this.tipoApi = tipoApi;
 	}
 	public String getAutenticazioneStato() {
 		return autenticazioneStato;
@@ -106,47 +86,11 @@ public class AdesioneCsv {
 	public void setApplicativiAutorizzatiProduzione(String applicativiAutorizzatiProduzione) {
 		this.applicativiAutorizzatiProduzione = applicativiAutorizzatiProduzione;
 	}
-	public String getAutenticazioneValoreProduzione() {
-		return autenticazioneValoreProduzione;
-	}
-	public void setAutenticazioneValoreProduzione(String autenticazioneValoreProduzione) {
-		this.autenticazioneValoreProduzione = autenticazioneValoreProduzione;
-	}
-	public String getRateLimitingProduzione() {
-		return rateLimitingProduzione;
-	}
-	public void setRateLimitingProduzione(String rateLimitingProduzione) {
-		this.rateLimitingProduzione = rateLimitingProduzione;
-	}
-	public String getUrlInvocazioneProduzione() {
-		return urlInvocazioneProduzione;
-	}
-	public void setUrlInvocazioneProduzione(String urlInvocazioneProduzione) {
-		this.urlInvocazioneProduzione = urlInvocazioneProduzione;
-	}
 	public String getApplicativiAutorizzatiCollaudo() {
 		return applicativiAutorizzatiCollaudo;
 	}
 	public void setApplicativiAutorizzatiCollaudo(String applicativiAutorizzatiCollaudo) {
 		this.applicativiAutorizzatiCollaudo = applicativiAutorizzatiCollaudo;
-	}
-	public String getAutenticazioneValoreCollaudo() {
-		return autenticazioneValoreCollaudo;
-	}
-	public void setAutenticazioneValoreCollaudo(String autenticazioneValoreCollaudo) {
-		this.autenticazioneValoreCollaudo = autenticazioneValoreCollaudo;
-	}
-	public String getRateLimitingCollaudo() {
-		return rateLimitingCollaudo;
-	}
-	public void setRateLimitingCollaudo(String rateLimitingCollaudo) {
-		this.rateLimitingCollaudo = rateLimitingCollaudo;
-	}
-	public String getUrlInvocazioneCollaudo() {
-		return urlInvocazioneCollaudo;
-	}
-	public void setUrlInvocazioneCollaudo(String urlInvocazioneCollaudo) {
-		this.urlInvocazioneCollaudo = urlInvocazioneCollaudo;
 	}
 
 }
