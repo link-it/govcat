@@ -50,7 +50,6 @@
     },
 
     "Services": {
-      "showReferents": true,
       "hideVersions": true
     },
 

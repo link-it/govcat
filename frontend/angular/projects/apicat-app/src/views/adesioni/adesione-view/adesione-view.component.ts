@@ -265,6 +265,9 @@ export class AdesioneViewComponent implements OnInit {
   public apis: ApiView[] = [];
   public clientRowConfig = clientRowConfig;
 
+  _showReferents: boolean = true;
+  _showRichiedente: boolean = true;
+
   private readonly model = 'adesioni';
   private apiUrl: string = '';
   private defaultLogo: string = './assets/images/logo-servizio.png';
@@ -286,6 +289,8 @@ export class AdesioneViewComponent implements OnInit {
   ) {
     const config = this.configService.getConfiguration();
     this.apiUrl = config.AppConfig.GOVAPI.HOST;
+    this._showReferents = Tools.Configurazione?.adesione?.mostra_referenti === 'enabled';
+    this._showRichiedente = Tools.Configurazione?.adesione?.mostra_richiedente === 'enabled';
 
     this.route.data.subscribe((data) => {
       if (!data.serviceBreadcrumbs) return;
@@ -495,6 +500,10 @@ export class AdesioneViewComponent implements OnInit {
   }
 
   private loadReferents() {
+    if (!this._showReferents) {
+      this.referentiLoading = false;
+      return;
+    }
     this.referentiLoading = true;
     forkJoin({
       referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
