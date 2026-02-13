@@ -137,6 +137,16 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
         // { field: 'id_servizio', label: 'APP.LABEL.id_servizio', type: 'text', condition: 'equal', params: { resource: 'servizi', field: 'nome' } },
+        { field: 'profilo', label: 'APP.LABEL.Profilo', type: 'text', condition: 'contain', callBack: (value: any) => {
+            if (Array.isArray(value)) {
+                return value.map((v: string) => {
+                    const p = this.profili.find((item: any) => item.codice_interno === v);
+                    return p ? p.etichetta : v;
+                }).join(', ');
+            }
+            const p = this.profili.find((item: any) => item.codice_interno === value);
+            return p ? p.etichetta : value;
+        }},
         { field: 'tag', label: 'APP.LABEL.tags', type: 'text', condition: 'contain' },
         { field: 'categoria', label: 'APP.LABEL.categoria', type: 'multiple', condition: 'equal', related: 'categoriaLabel' },
         { field: 'categoriaLabel', label: 'APP.LABEL.categoria', type: 'related', condition: 'equal', params: { resource: 'tassonomie', path: 'categorie', field: 'nome' }, options: { hide: true } },
@@ -185,6 +195,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     tags$!: Observable<any[]>;
     tagsInput$ = new Subject<string>();
     tagsLoading: boolean = false;
+
+    profili: any[] = [];
 
     domini$!: Observable<any[]>;
     dominiInput$ = new Subject<string>();
@@ -296,6 +308,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._updateMapper = new Date().getTime().toString();
                 this.hasMultiSelection = this.authenticationService.isGestore();
                 this._getUserSettings();
+                this._initProfili();
                 this._saveSettings();
                 this.refresh(false);
             // }, 500);
@@ -350,6 +363,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 }
 
                 this._getUserSettings();
+                this._initProfili();
 
                 this._initServiziSelect([]);
                 this._initServizioApiSelect([]);
@@ -454,6 +468,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             visibilita: new FormControl(''),
             categoria: new FormControl(''),
             categoriaLabel: new FormControl(''),
+            profilo: new FormControl(''),
             tag: new FormControl(''),
             in_attesa: new FormControl(''),
             miei_servizi: new FormControl(''),
@@ -871,6 +886,13 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     trackBySelectFn(item: any) {
         return item.id_api;
+    }
+
+    _initProfili() {
+        const _srv: any = Tools.Configurazione?.servizio || null;
+        if (_srv) {
+            this.profili = (this.tipo_servizio === TipoServizioEnum.API) ? (_srv.api?.profili || []) : (_srv.generico?.profili || []);
+        }
     }
 
     _initServiziSelect(defaultValue: any[] = []) {

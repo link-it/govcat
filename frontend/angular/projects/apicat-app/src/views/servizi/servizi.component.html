@@ -235,14 +235,35 @@
                                 </div>
                                 <div class="row mb-1">
                                     <div class="col-sm-2">
+                                        <label class="col-form-label col-form-label-fix" for="profilo">{{ 'APP.LABEL.Profilo' | translate }}</label>
+                                    </div>
+                                    <div class="col-sm-10">
+                                        <ng-select (click)="onSelectedSearchDropdwon($event)"
+                                            [items]="profili"
+                                            [multiple]="true"
+                                            bindValue="codice_interno"
+                                            bindLabel="etichetta"
+                                            labelForId="profilo"
+                                            [closeOnSelect]="false"
+                                            formControlName="profilo"
+                                            (close)="onChangeSearchDropdwon($event)"
+                                        >
+                                            <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                                                <input id="profilo-item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.etichetta }}
+                                            </ng-template>
+                                        </ng-select>
+                                    </div>
+                                </div>
+                                <div class="row mb-1">
+                                    <div class="col-sm-2">
                                         <label class="col-form-label col-form-label-fix" for="tag">{{ 'APP.LABEL.tags' | translate }}</label>
                                     </div>
                                     <div class="col-sm-10">
-                                        <ng-select
+                                        <ng-select (click)="onSelectedSearchDropdwon($event)"
                                             [items]="tags$ | async"
                                             [trackByFn]="trackBySelectFn"
                                             [typeahead]="tagsInput$"
-                                            [minTermLength]="minLengthTerm" 
+                                            [minTermLength]="minLengthTerm"
                                             [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                                             [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
                                             [multiple]="true"
@@ -251,6 +272,7 @@
                                             labelForId="tag"
                                             [closeOnSelect]="false"
                                             formControlName="tag"
+                                            (close)="onChangeSearchDropdwon($event)"
                                         >
                                             <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
                                                 <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item }}
