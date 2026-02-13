@@ -2049,6 +2049,7 @@ paths:
       - $ref: "#/components/parameters/stato_query_optional"
       - $ref: "#/components/parameters/categoria_query_optional"
       - $ref: "#/components/parameters/tag_query_optional"
+      - $ref: "#/components/parameters/profilo_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
       - $ref: "#/components/parameters/miei_servizi_query_optional"
       - $ref: "#/components/parameters/adesione_consentita_query_optional"
@@ -10466,6 +10467,15 @@ components:
       name: "tag"
       in: "query"
       description: "identificativo tag"
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/GenericSearchString"
+    profilo_query_optional:
+      name: "profilo"
+      in: "query"
+      description: "codice interno del profilo di autenticazione"
       required: false
       schema:
         type: array

@@ -993,7 +993,7 @@ public class ServiziTest {
         Servizio servizio = this.getServizio();
 
         // Invocazione del metodo listServizi senza filtri
-        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Verifica del successo
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1017,7 +1017,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1044,7 +1044,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1068,7 +1068,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1095,7 +1095,7 @@ public class ServiziTest {
         
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
+            null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, 0, 10, sort
         );
 
         // Verifica del successo
@@ -1118,7 +1118,7 @@ public class ServiziTest {
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
         	// Invocazione del metodo listServizi con filtri
             ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-                null, idDominio, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
+                null, idDominio, null, null, null, null, null, null, null, false, false, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null
             );
 
             // Verifica del successo
@@ -1136,7 +1136,7 @@ public class ServiziTest {
 
         // Invocazione del metodo listServizi con filtri
         ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
-            null, idDominio, null, null, null, null, null, null, false, false, null, nomeServizio, null, null, null, null, null, 0, 10, null
+            null, idDominio, null, null, null, null, null, null, null, false, false, null, nomeServizio, null, null, null, null, null, 0, 10, null
         );
 
         // Verifica del successo
@@ -1156,7 +1156,7 @@ public class ServiziTest {
          //TODO: controllare
         // Test per utente anonimo che richiede servizi in attesa
         Exception exception = assertThrows(BadRequestException.class, () -> {
-            serviziController.listServizi(null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, 0, 10, null);
+            serviziController.listServizi(null, null, null, null, null, null, null, null, null, true, false, null, null, null, null, null, null, null, 0, 10, null);
         });
 
         String expectedMessage = "Utente non registrato, impossibile recuperare servizi in attesa";
@@ -2060,6 +2060,54 @@ public class ServiziTest {
 		assertNotNull(response.getBody());
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("Test Target Default", response.getBody().getOggetto());
+	}
+
+	@Test
+	void testListServiziWithInvalidProfiloFilter() {
+		// Test che verifica che un profilo non valido restituisce BadRequest
+		List<String> profiloNonValido = Arrays.asList("PROFILO_INESISTENTE");
+
+		assertThrows(BadRequestException.class, () -> {
+			serviziController.listServizi(null, null, null, null, null, null, null, null, profiloNonValido, null, null, null, null, null, null, null, null, null, 0, 10, null);
+		});
+	}
+
+	@Test
+	void testListServiziWithValidProfiloFilterNoResults() {
+		// Test con profilo valido ma nessun servizio ha API con quel profilo
+		// Dovrebbe restituire una lista vuota senza errori
+		List<String> profiloValido = Arrays.asList("MODI_P1");
+
+		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
+			null, null, null, null, null, null, null, null, profiloValido, null, null, null, null, null, null, null, null, null, 0, 10, null
+		);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+		// La lista può essere vuota se non ci sono servizi con API associate a quel profilo
+	}
+
+	@Test
+	void testListServiziWithMultipleValidProfiliFilter() {
+		// Test con più profili validi (logica OR)
+		List<String> profiliValidi = Arrays.asList("MODI_P1", "INTERNO_HTTPS");
+
+		ResponseEntity<PagedModelItemServizio> response = serviziController.listServizi(
+			null, null, null, null, null, null, null, null, profiliValidi, null, null, null, null, null, null, null, null, null, 0, 10, null
+		);
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+	}
+
+	@Test
+	void testListServiziWithMixedValidAndInvalidProfiloFilter() {
+		// Test con mix di profili validi e non validi - dovrebbe fallire
+		List<String> profiloMisto = Arrays.asList("MODI_P1", "PROFILO_INESISTENTE");
+
+		assertThrows(BadRequestException.class, () -> {
+			serviziController.listServizi(null, null, null, null, null, null, null, null, profiloMisto, null, null, null, null, null, null, null, null, null, 0, 10, null);
+		});
 	}
 }
 

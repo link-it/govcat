@@ -426,7 +426,7 @@ public class RegistrazioneServizioIntegrationTest {
 
         // Verifica che un utente anonimo non riceva nulla
         assertThrows(NotAuthorizedException.class, () -> {
-        	serviziController.listServizi(null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, 0, 10, null);
+        	serviziController.listServizi(null, null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, 0, 10, null);
         });
     }
     
@@ -632,7 +632,7 @@ public class RegistrazioneServizioIntegrationTest {
         
         List<String> stato = new ArrayList<String>();
         stato.add("autorizzato_collaudo");
-        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //System.out.println("NOME SERVIZIO: " + listServizi.getBody().getContent().get(0).getNome());
         assertEquals(CommonUtils.NOME_SERVIZIO, listServizi.getBody().getContent().get(0).getNome());
         
