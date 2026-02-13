@@ -1137,7 +1137,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi, Boolean adesioneConsentita,String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, Boolean adesioneConsentita,String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			return this.service.runTransaction( () -> {
@@ -1177,8 +1177,20 @@ public class ServiziController implements ServiziApi {
 
 				specification.setTag(tag);
 
+				if(profilo != null && !profilo.isEmpty()) {
+					List<String> profiliValidi = this.configurazione.getServizio().getApi().getProfili().stream()
+							.map(p -> p.getCodiceInterno())
+							.toList();
+					for(String p : profilo) {
+						if(!profiliValidi.contains(p)) {
+							throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+						}
+					}
+					specification.setProfilo(profilo);
+				}
+
 				specification.setStati(stato);
-				
+
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
 				
