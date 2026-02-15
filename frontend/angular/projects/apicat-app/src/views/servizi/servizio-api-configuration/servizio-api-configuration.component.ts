@@ -16,14 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -31,7 +30,7 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 import { Grant, RightsEnum } from '@app/model/grant';
 
 import * as _ from 'lodash';
-import { ApiConfiguration, ApiConfigurationRead, ApiCustomProperty, ApiDefinitionUpdateWithFile, ApiDefinitionUpdateWithReference, ApiReadDetails, ApiUpdateRequest, IHistory, Profile, CustomPropertyDefinition, CustomProperty } from '../servizio-api-details/servizio-api-interfaces';
+import { ApiConfiguration, ApiConfigurationRead, ApiCustomProperty, ApiDefinitionUpdateWithFile, ApiDefinitionUpdateWithReference, ApiReadDetails, ApiUpdateRequest, IHistory, Profile, CustomProperty } from '../servizio-api-details/servizio-api-interfaces';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 declare const saveAs: any;
@@ -177,11 +176,11 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   fieldToGroup = 'label_gruppo'; // nome_gruppo | label_gruppo
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private formBuilder: FormBuilder,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly formBuilder: FormBuilder,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
     public tools: Tools,
     public apiService: OpenAPIService,
     public utils: UtilService,

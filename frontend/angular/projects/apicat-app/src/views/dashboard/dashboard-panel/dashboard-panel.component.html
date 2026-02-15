@@ -1,0 +1,117 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="card dashboard-panel" [ngStyle]="{'border-left': '4px solid ' + borderColor}">
+  <div class="card-header d-flex justify-content-between align-items-center py-2"
+       [ngStyle]="{'background-color': borderColor + '0d'}">
+    <div class="d-flex align-items-center">
+      <i class="bi me-2 fs-5" [ngClass]="icon" [ngStyle]="{'color': borderColor}"></i>
+      <span class="fw-semibold">{{ title | translate }}</span>
+    </div>
+    <span class="badge rounded-pill" [ngStyle]="{'background-color': borderColor, 'color': '#fff'}">{{ totalCount }}</span>
+  </div>
+  <div class="card-body p-0 panel-body-scroll">
+    <div class="text-center py-4" *ngIf="loading">
+      <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': borderColor}"></span>
+    </div>
+
+    <div class="text-center py-4 text-muted small" *ngIf="!loading && items.length === 0">
+      {{ 'APP.DASHBOARD_PENDING.NoResults' | translate }}
+    </div>
+
+    <div class="list-group list-group-flush" *ngIf="!loading && items.length > 0">
+      <!-- Servizi -->
+      <ng-container *ngIf="panelType === 'servizi'">
+        <a *ngFor="let item of items" class="list-group-item list-group-item-action px-3 py-2" (click)="onViewItem(item)">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="text-truncate me-2">
+              <span class="fw-semibold">{{ item.nome }}</span>
+              <small class="text-muted ms-1">v.{{ item.versione }}</small>
+            </div>
+            <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+          </div>
+          <small class="text-muted">{{ formatDate(item.data_ultimo_aggiornamento) }}</small>
+        </a>
+      </ng-container>
+
+      <!-- Adesioni -->
+      <ng-container *ngIf="panelType === 'adesioni'">
+        <a *ngFor="let item of items" class="list-group-item list-group-item-action px-3 py-2" (click)="onViewItem(item)">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="text-truncate me-2">
+              <span class="fw-semibold">{{ item.soggetto?.nome }}</span>
+              <small class="text-muted ms-1">{{ item.servizio?.nome }}</small>
+            </div>
+            <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+          </div>
+          <small class="text-muted">{{ formatDate(item.data_ultimo_aggiornamento) }}</small>
+        </a>
+      </ng-container>
+
+      <!-- Client -->
+      <ng-container *ngIf="panelType === 'client'">
+        <a *ngFor="let item of items" class="list-group-item list-group-item-action px-3 py-2" (click)="onViewItem(item)">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="text-truncate me-2">
+              <span class="fw-semibold">{{ item.nome }}</span>
+              <small class="text-muted ms-1">{{ item.soggetto?.nome }}</small>
+            </div>
+            <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.ambiente)">{{ getStatusLabel(item.ambiente) | translate }}</span>
+          </div>
+          <small class="text-muted">{{ getStatusLabel(item.stato) | translate }}</small>
+        </a>
+      </ng-container>
+
+      <!-- Comunicazioni -->
+      <ng-container *ngIf="panelType === 'comunicazioni'">
+        <a *ngFor="let item of items" class="list-group-item list-group-item-action px-3 py-2" (click)="onViewItem(item)">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="text-truncate me-2">
+              <span class="fw-semibold">{{ item.oggetto }}</span>
+            </div>
+            <small class="text-muted text-nowrap ms-1">{{ formatDate(item.data) }}</small>
+          </div>
+          <small class="text-muted">{{ item.entita?.nome }} ({{ item.entita?.tipo }})</small>
+        </a>
+      </ng-container>
+
+      <!-- Utenti -->
+      <ng-container *ngIf="panelType === 'utenti'">
+        <a *ngFor="let item of items" class="list-group-item list-group-item-action px-3 py-2" (click)="onViewItem(item)">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="text-truncate me-2">
+              <span class="fw-semibold">{{ item.nome }} {{ item.cognome }}</span>
+            </div>
+            <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+          </div>
+          <small class="text-muted">{{ item.email_aziendale }}</small>
+        </a>
+      </ng-container>
+    </div>
+  </div>
+  <div class="card-footer bg-transparent py-2 text-center" *ngIf="!loading && totalCount > 0">
+    <lnk-button
+      [label]="'APP.DASHBOARD_PENDING.ViewAll'"
+      [icon]="'bi bi-arrow-right'"
+      [secondary]="true"
+      [size]="'sm'"
+      [badgeCount]="totalCount"
+      (onAction)="onViewAll()">
+    </lnk-button>
+  </div>
+</div>

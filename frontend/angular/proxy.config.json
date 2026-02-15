@@ -1,18 +1,24 @@
 {
   "/govcat-api/**": {
-    "target": "http://localhost:8888",
+    "target": "http://localhost:9999",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
   "/govcat-api.pdnd/**": {
-    "target": "http://localhost:8888",
+    "target": "http://localhost:9999",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true
   },
   "/govcat-api.monitor/**": {
-    "target": "http://localhost:8888",
+    "target": "http://localhost:9999",
+    "secure": false,
+    "logLevel": "debug",
+    "changeOrigin": true
+  },
+  "/govcat-web-v2-3-infocamere/proxyServlet/**": {
+    "target": "http://localhost:9999",
     "secure": false,
     "logLevel": "debug",
     "changeOrigin": true

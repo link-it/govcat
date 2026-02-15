@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -24,11 +24,12 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { ComponentsModule } from '@linkit/components';
 
-import { AppComponentsModule } from '@app/components/components.module';
+import { MonitoraggioComponent } from './monitoraggio.component';
+import { MonitoraggioRoutingModule } from './monitoraggio-routing.module';
+import { MonitoraggioGroupModule } from './monitoraggio-group/monitoraggio-group.module';
 
-import { DashboardComponent } from './dashboard.component';
-import { DashboardRoutingModule } from './dashboard-routing.module';
-import { DashboardPanelModule } from './dashboard-panel/dashboard-panel.module';
+import { VerificheModule } from '../servizi/verifiche/verifiche.module';
+import { ClientVerificheModule } from '../clients/client-verifiche/client-verifiche.module';
 
 @NgModule({
   imports: [
@@ -36,14 +37,14 @@ import { DashboardPanelModule } from './dashboard-panel/dashboard-panel.module';
     FormsModule,
     TranslateModule,
     ComponentsModule,
-    AppComponentsModule,
-    DashboardRoutingModule,
-    DashboardPanelModule
+    MonitoraggioRoutingModule,
+    MonitoraggioGroupModule,
+    VerificheModule,
+    ClientVerificheModule
   ],
   declarations: [
-    DashboardComponent
+    MonitoraggioComponent
   ],
-  providers: [],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  providers: []
 })
-export class DashboardModule { }
+export class MonitoraggioModule { }

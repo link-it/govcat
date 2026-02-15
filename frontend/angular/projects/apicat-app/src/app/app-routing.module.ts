@@ -66,6 +66,11 @@ const routes: Routes = [
         loadChildren: () => import('../views/home/home.module').then(m => m.HomeModule),
       },
       {
+        path: 'dashboard',
+        canActivate: [ForbidAnonymousGuard],
+        loadChildren: () => import('../views/dashboard/dashboard.module').then(m => m.DashboardModule)
+      },
+      {
         path: 'profile',
         canActivate: [ForbidAnonymousGuard],
         loadChildren: () => import('../views/profile/profile.module').then(m => m.ProfileModule)
@@ -94,9 +99,9 @@ const routes: Routes = [
         loadChildren: () => import('../views/soggetti/soggetti.module').then(m => m.SoggettiModule)
       },
       {
-        path: 'dashboard',
+        path: 'monitoraggio',
         canActivate: [GestoreGuard],
-        loadChildren: () => import('../views/dashboard/dashboard.module').then(m => m.DashboardModule)
+        loadChildren: () => import('../views/monitoraggio/monitoraggio.module').then(m => m.MonitoraggioModule)
       },
       {
         path: 'organizzazioni',

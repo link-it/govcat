@@ -1,0 +1,50 @@
+{
+  "content": [
+    {
+      "uuid": "com-001",
+      "tipo": "richiesta_informazioni",
+      "data": "2026-02-15T09:00:00Z",
+      "oggetto": "Richiesta chiarimenti su API Anagrafe",
+      "stato": "da_leggere",
+      "autore": { "id_utente": "usr-001", "nome": "Mario", "cognome": "Rossi" },
+      "allegati": [],
+      "entita": { "tipo": "servizio", "id": "srv-001", "nome": "Servizio Anagrafe Nazionale" }
+    },
+    {
+      "uuid": "com-002",
+      "tipo": "comunicazione",
+      "data": "2026-02-14T16:00:00Z",
+      "oggetto": "Aggiornamento configurazione adesione",
+      "stato": "da_leggere",
+      "autore": { "id_utente": "usr-002", "nome": "Anna", "cognome": "Bianchi" },
+      "allegati": [],
+      "entita": { "tipo": "adesione", "id": "ade-002", "nome": "Adesione Regione Lazio - FE" }
+    },
+    {
+      "uuid": "com-003",
+      "tipo": "richiesta_informazioni",
+      "data": "2026-02-14T10:30:00Z",
+      "oggetto": "Problemi di connessione al servizio notifiche",
+      "stato": "da_leggere",
+      "autore": { "id_utente": "usr-003", "nome": "Luca", "cognome": "Verdi" },
+      "allegati": [],
+      "entita": { "tipo": "servizio", "id": "srv-003", "nome": "Servizio Notifiche Digitali" }
+    },
+    {
+      "uuid": "com-004",
+      "tipo": "comunicazione",
+      "data": "2026-02-13T14:00:00Z",
+      "oggetto": "Nuova versione API disponibile",
+      "stato": "da_leggere",
+      "autore": { "id_utente": "usr-001", "nome": "Mario", "cognome": "Rossi" },
+      "allegati": [],
+      "entita": { "tipo": "servizio", "id": "srv-001", "nome": "Servizio Anagrafe Nazionale" }
+    }
+  ],
+  "page": {
+    "size": 10,
+    "totalElements": 4,
+    "totalPages": 1,
+    "number": 0
+  }
+}

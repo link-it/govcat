@@ -22,21 +22,21 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
  import { RemoveHostModule } from '@app/directives/remove-host/remove-host.module';
 
-import { DashboardGroupComponent } from './dashboard-group.component';
-import { DashboardCardModule } from '../dashboard-card/dashboard-card.module';
+import { MonitoraggioGroupComponent } from './monitoraggio-group.component';
+import { MonitoraggioCardModule } from '../monitoraggio-card/monitoraggio-card.module';
 
 @NgModule({
   declarations: [
-    DashboardGroupComponent
+    MonitoraggioGroupComponent
   ],
   imports: [
     CommonModule,
     TranslateModule,
      RemoveHostModule,
-    DashboardCardModule
+    MonitoraggioCardModule
   ],
   exports: [
-    DashboardGroupComponent
+    MonitoraggioGroupComponent
   ]
 })
-export class DashboardGroupModule { }
+export class MonitoraggioGroupModule { }

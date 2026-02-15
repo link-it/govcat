@@ -20,21 +20,22 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
-import { ComponentsModule } from '@linkit/components';
 
-import { DashboardCardComponent } from './dashboard-card.component';
+import { AppComponentsModule } from '@app/components/components.module';
+
+import { DashboardPanelComponent } from './dashboard-panel.component';
 
 @NgModule({
   declarations: [
-    DashboardCardComponent
+    DashboardPanelComponent
   ],
   imports: [
     CommonModule,
     TranslateModule,
-    ComponentsModule,
+    AppComponentsModule
   ],
   exports: [
-    DashboardCardComponent
+    DashboardPanelComponent
   ]
 })
-export class DashboardCardModule { }
+export class DashboardPanelModule { }

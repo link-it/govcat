@@ -24,12 +24,12 @@ import { EventsManagerService } from '@linkit/components'
 import { AmbienteEnum } from '../../../model/ambienteEnum';
 
 @Component({
-  selector: 'app-dashboard-card',
-  templateUrl: './dashboard-card.component.html',
-  styleUrls: ['./dashboard-card.component.scss'],
+  selector: 'app-monitoraggio-card',
+  templateUrl: './monitoraggio-card.component.html',
+  styleUrls: ['./monitoraggio-card.component.scss'],
   standalone: false
 })
-export class DashboardCardComponent implements OnInit, OnChanges {
+export class MonitoraggioCardComponent implements OnInit, OnChanges {
   @ViewChild('childComponentTemplate') childComponentTemplate!: TemplateRef<any>;
 
   @Input() environmentId: AmbienteEnum = AmbienteEnum.Collaudo;
@@ -53,14 +53,9 @@ export class DashboardCardComponent implements OnInit, OnChanges {
     const _dashboardRemoteConfig: any = this.authenticationService._getConfigModule('dashboard');
     this._minutesPeriodo1 = _dashboardRemoteConfig.periodi.periodo_1;
     this._minutesPeriodo2 = _dashboardRemoteConfig.periodi.periodo_2;
-
-    // this.eventsManagerService.on(EventType.REFRESH_DATA, (event: any) => {
-    //   this.loadData();
-    // });
   }
 
   ngOnInit(): void {
-    // this.loadData();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -74,7 +69,6 @@ export class DashboardCardComponent implements OnInit, OnChanges {
       _refresh = true;
     }
     if (_refresh) {
-      // this.loadData();
     }
   }
 

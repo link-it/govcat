@@ -17,24 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
-import { DashboardComponent } from './dashboard.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { ComponentsModule } from '@linkit/components';
 
-const routes: Routes = [
-  {
-    path: '',
-    children: [
-      {
-        path: '',
-        component: DashboardComponent
-      }
-    ]
-  }
-];
+import { MonitoraggioCardComponent } from './monitoraggio-card.component';
 
 @NgModule({
-    imports: [RouterModule.forChild(routes)],
-    exports: [RouterModule]
+  declarations: [
+    MonitoraggioCardComponent
+  ],
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ComponentsModule,
+  ],
+  exports: [
+    MonitoraggioCardComponent
+  ]
 })
-export class DashboardRoutingModule {}
+export class MonitoraggioCardModule { }

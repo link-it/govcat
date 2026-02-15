@@ -239,6 +239,7 @@
 			"NewMessage": "Nuovo messaggio",
 			"Preview": "Anteprima",
 			"Production": "Produzione",
+			"Refresh": "Aggiorna",
 			"Remove": "Rimuovi",
 			"RemoveGroup": "Rimuovi gruppo",
 			"Report": "Resoconto",
@@ -355,6 +356,17 @@
 				"GeneralInformations": "Informazioni generali",
 				"GeneralInformations_sub": ""
 			}
+		},
+		"DASHBOARD_PENDING": {
+			"Servizi": "Servizi",
+			"Adesioni": "Adesioni",
+			"Client": "Client",
+			"Comunicazioni": "Comunicazioni",
+			"Utenti": "Utenti",
+			"ViewAll": "Vedi tutti",
+			"NoResults": "Nessuna azione pending",
+			"LastUpdate": "Ultimo aggiornamento",
+			"TotalItems": "{{count}} elementi"
 		},
 		"DASHBOARD": {
 			"certificati": "Certificati",
@@ -1005,7 +1017,7 @@
 			"Clients": "Client",
 			"Communications": "Comunicazioni",
 			"Configurations": "Gestione",
-			"Dashboard": "Monitoraggio",
+			"Dashboard": "Dashboard",
 			"DeleteApi": "Elimina API",
 			"DeleteClient": "Elimina Client",
 			"DeleteFile": "Elimina tracciato...",
@@ -1906,7 +1918,7 @@
 			"Configuration": "Configurazione",
 			"Configurations": "Configurazioni",
 			"Connettivita": "Connettività",
-			"Dashboard": "Monitoraggio",
+			"Dashboard": "Dashboard",
 			"DeleteUserClass": "Elimina la Classe Utente",
 			"Descrizione": "Descrizione",
 			"DocumentazioneTecnica": "Documentazione tecnica",

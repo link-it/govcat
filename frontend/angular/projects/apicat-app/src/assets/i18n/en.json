@@ -239,6 +239,7 @@
 			"NewMessage": "New Message",
 			"Preview": "Preview",
 			"Production": "Production",
+			"Refresh": "Refresh",
 			"Remove": "Remove",
 			"RemoveGroup": "Remove group",
 			"Report": "Report",
@@ -355,6 +356,17 @@
 				"GeneralInformations": "General informations",
 				"GeneralInformations_sub": ""
 			}
+		},
+		"DASHBOARD_PENDING": {
+			"Servizi": "Services",
+			"Adesioni": "Subscriptions",
+			"Client": "Clients",
+			"Comunicazioni": "Communications",
+			"Utenti": "Users",
+			"ViewAll": "View all",
+			"NoResults": "No pending actions",
+			"LastUpdate": "Last update",
+			"TotalItems": "{{count}} items"
 		},
 		"DASHBOARD": {
 			"certificati": "Certificates",
@@ -1005,7 +1017,7 @@
 			"Clients": "Clients",
 			"Communications": "Communications",
 			"Configurations": "Management",
-			"Dashboard": "Monitoring",
+			"Dashboard": "Dashboard",
 			"DeleteApi": "Delete APIs",
 			"DeleteClient": "Delete Client",
 			"DeleteFile": "Delete file …",
@@ -1906,7 +1918,7 @@
 			"Configuration": "Configuration",
 			"Configurations": "Configurations",
 			"Connettivita": "Connectivity",
-			"Dashboard": "Monitoring",
+			"Dashboard": "Dashboard",
 			"DeleteUserClass": "Delete User Class",
 			"Descrizione": "",
 			"DocumentazioneTecnica": "Technical documentation",

@@ -33,7 +33,7 @@ import { AboutDialogComponent } from '@app/components/about-dialog/about-dialog.
 
 import { INavData } from './gp-sidebar-nav';
 import { GpSidebarNavHelper } from './gp-sidebar-nav.helper';
-import { navItemsMainMenu, navItemsAdministratorMenu, navNotificationsMenu } from './_nav';
+import { navItemsDashboardMenu, navItemsMainMenu, navItemsAdministratorMenu, navNotificationsMenu } from './_nav';
 
 import { environment } from '@app/environments/environment';
 
@@ -528,7 +528,11 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     }
 
     initMainMenu() {
-        this.navItems = this.prepareNavigation();
+        this.navItems = [];
+        if (!this.authenticationService.isAnonymous()) {
+            this.navItems = [...navItemsDashboardMenu];
+        }
+        this.navItems = [...this.navItems, ...this.prepareNavigation()];
         if (this.authenticationService.isGestore()) {
             if (this._showNotificationsMenu) {
                 this.navItems = [...this.navItems, ...navNotificationsMenu ];
@@ -900,10 +904,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _showMenu = (menu: any): boolean => {
         let _show: boolean = true;
-        if (menu.path === 'adesioni') {
+        if (menu.path === 'adesioni' || menu.path === 'dashboard') {
             _show = !this._isAnonymous;
         }
-        if (menu.path === 'dashboard') {
+        if (menu.path === 'monitoraggio') {
             _show = this._hasDashboard;
         }
         if (menu.path === 'tassonomie') {
