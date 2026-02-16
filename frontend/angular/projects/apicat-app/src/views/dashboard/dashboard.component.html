@@ -35,10 +35,10 @@
   </div>
   <section class="container-fluid px-0 mt-3">
 
-    <!-- Summary Cards -->
+    <!-- Summary Cards: sempre visibili, fungono da tab quando espanso -->
     <div class="row g-3 mb-4" *ngIf="showSummaryCards">
       <div class="col-sm-6 col-xl" *ngIf="roleConfig.servizi">
-        <div class="summary-card" (click)="onViewAll('servizi')">
+        <div class="summary-card" [class.summary-card-active]="expandedSection === 'servizi'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'servizi'" (click)="onSummaryClick('servizi')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('servizi')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('servizi')"></i></div>
             <div class="summary-card-content">
@@ -49,7 +49,7 @@
         </div>
       </div>
       <div class="col-sm-6 col-xl" *ngIf="roleConfig.adesioni">
-        <div class="summary-card" (click)="onViewAll('adesioni')">
+        <div class="summary-card" [class.summary-card-active]="expandedSection === 'adesioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'adesioni'" (click)="onSummaryClick('adesioni')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('adesioni')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('adesioni')"></i></div>
             <div class="summary-card-content">
@@ -60,7 +60,7 @@
         </div>
       </div>
       <div class="col-sm-6 col-xl" *ngIf="roleConfig.client">
-        <div class="summary-card" (click)="onViewAll('client')">
+        <div class="summary-card" [class.summary-card-active]="expandedSection === 'client'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'client'" (click)="onSummaryClick('client')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('client')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('client')"></i></div>
             <div class="summary-card-content">
@@ -71,7 +71,7 @@
         </div>
       </div>
       <div class="col-sm-6 col-xl" *ngIf="roleConfig.comunicazioni">
-        <div class="summary-card" (click)="onViewAll('comunicazioni')">
+        <div class="summary-card" [class.summary-card-active]="expandedSection === 'comunicazioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'comunicazioni'" (click)="onSummaryClick('comunicazioni')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('comunicazioni')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('comunicazioni')"></i></div>
             <div class="summary-card-content">
@@ -82,7 +82,7 @@
         </div>
       </div>
       <div class="col-sm-6 col-xl" *ngIf="roleConfig.utenti">
-        <div class="summary-card" (click)="onViewAll('utenti')">
+        <div class="summary-card" [class.summary-card-active]="expandedSection === 'utenti'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'utenti'" (click)="onSummaryClick('utenti')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('utenti')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('utenti')"></i></div>
             <div class="summary-card-content">
@@ -94,8 +94,8 @@
       </div>
     </div>
 
-    <!-- Detail Panels -->
-    <div class="row g-3">
+    <!-- Vista Griglia: visibile solo quando nessuna sezione espansa -->
+    <div class="row g-3" *ngIf="!expandedSection">
 
       <!-- Servizi -->
       <div class="col-sm-12 col-xl-6 panel-animated" *ngIf="roleConfig.servizi">
@@ -176,6 +176,149 @@
           (viewAll)="onViewAll($event)"
           (viewItem)="onViewItem($event, 'utenti')">
         </app-dashboard-panel>
+      </div>
+
+    </div>
+
+    <!-- Vista Espansa: visibile quando una sezione e' espansa -->
+    <div class="expanded-view" *ngIf="expandedSection" [ngStyle]="{'border-left': '4px solid ' + getSectionBorderColor(expandedSection)}">
+
+      <!-- Header -->
+      <div class="expanded-header" [ngStyle]="{'background-color': getSectionBorderColor(expandedSection) + '0d'}">
+        <lnk-button
+          [label]="''"
+          [icon]="'bi bi-arrow-left'"
+          [secondary]="true"
+          [size]="'sm'"
+          (onAction)="onCollapseExpanded()">
+        </lnk-button>
+        <i class="bi ms-2 me-2 fs-5" [ngClass]="getSectionIcon(expandedSection)" [ngStyle]="{'color': getSectionBorderColor(expandedSection)}"></i>
+        <span class="fw-semibold">{{ getExpandedSectionTitle() | translate }}</span>
+        <span class="badge rounded-pill ms-2" [ngStyle]="{'background-color': getSectionBorderColor(expandedSection), 'color': '#fff'}">{{ expandedTotal }}</span>
+      </div>
+
+      <!-- Toolbar con search form -->
+      <div class="expanded-toolbar">
+        <ng-container [ngSwitch]="expandedSection">
+          <app-clients-search-form *ngSwitchCase="'client'"
+            (search)="onExpandedSearch($event)">
+          </app-clients-search-form>
+          <app-servizi-search-form *ngSwitchCase="'servizi'"
+            (search)="onExpandedSearch($event)">
+          </app-servizi-search-form>
+          <app-adesioni-search-form *ngSwitchCase="'adesioni'"
+            (search)="onExpandedSearch($event)">
+          </app-adesioni-search-form>
+          <app-utenti-search-form *ngSwitchCase="'utenti'"
+            (search)="onExpandedSearch($event)">
+          </app-utenti-search-form>
+          <app-comunicazioni-search-form *ngSwitchCase="'comunicazioni'"
+            (search)="onExpandedSearch($event)">
+          </app-comunicazioni-search-form>
+        </ng-container>
+      </div>
+
+      <!-- Lista risultati -->
+      <div class="expanded-results"
+        infiniteScroll
+        [infiniteScrollDistance]="2"
+        [infiniteScrollThrottle]="50"
+        (scrolled)="__loadMoreExpandedData()"
+        [scrollWindow]="false">
+
+          <div class="text-center py-4" *ngIf="expandedLoading && expandedItems.length === 0">
+            <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': getSectionBorderColor(expandedSection)}"></span>
+          </div>
+
+          <div class="text-center py-4 text-muted small" *ngIf="!expandedLoading && expandedItems.length === 0">
+            {{ 'APP.DASHBOARD_PENDING.NoResults' | translate }}
+          </div>
+
+          <div class="list-group list-group-flush" *ngIf="expandedItems.length > 0">
+
+            <!-- Servizi items -->
+            <ng-container *ngIf="expandedSection === 'servizi'">
+              <a *ngFor="let item of expandedItems" class="list-group-item list-group-item-action" (click)="onExpandedViewItem(item)">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="text-truncate me-2">
+                    <span class="fw-semibold">{{ item.nome }}</span>
+                    <small class="text-muted ms-1" *ngIf="!hideVersions">v.{{ item.versione }}</small>
+                  </div>
+                  <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+                </div>
+                <small class="text-muted">{{ formatDate(item.data_ultimo_aggiornamento) }}</small>
+              </a>
+            </ng-container>
+
+            <!-- Adesioni items -->
+            <ng-container *ngIf="expandedSection === 'adesioni'">
+              <a *ngFor="let item of expandedItems" class="list-group-item list-group-item-action" (click)="onExpandedViewItem(item)">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="text-truncate me-2">
+                    <span class="fw-semibold">{{ item.soggetto?.nome }}</span>
+                    <small class="text-muted ms-1">{{ item.servizio?.nome }}</small>
+                    <small class="text-muted ms-1" *ngIf="!hideVersions && item.servizio?.versione">v.{{ item.servizio.versione }}</small>
+                  </div>
+                  <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+                </div>
+                <small class="text-muted">{{ formatDate(item.data_ultimo_aggiornamento) }}</small>
+              </a>
+            </ng-container>
+
+            <!-- Client items -->
+            <ng-container *ngIf="expandedSection === 'client'">
+              <a *ngFor="let item of expandedItems" class="list-group-item list-group-item-action" (click)="onExpandedViewItem(item)">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="text-truncate me-2">
+                    <span class="fw-semibold">{{ item.nome }}</span>
+                    <small class="text-muted ms-1">{{ item.soggetto?.nome }}</small>
+                  </div>
+                  <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.ambiente)">{{ getStatusLabel(item.ambiente) | translate }}</span>
+                </div>
+                <small class="text-muted">{{ getStatusLabel(item.stato) | translate }}</small>
+              </a>
+            </ng-container>
+
+            <!-- Comunicazioni items -->
+            <ng-container *ngIf="expandedSection === 'comunicazioni'">
+              <a *ngFor="let item of expandedItems" class="list-group-item list-group-item-action" (click)="onExpandedViewItem(item)">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="text-truncate me-2">
+                    <span class="fw-semibold">{{ item.oggetto }}</span>
+                  </div>
+                  <small class="text-muted text-nowrap ms-1">{{ formatDate(item.data) }}</small>
+                </div>
+                <small class="text-muted">{{ item.entita?.nome }} ({{ item.entita?.tipo }})</small>
+              </a>
+            </ng-container>
+
+            <!-- Utenti items -->
+            <ng-container *ngIf="expandedSection === 'utenti'">
+              <a *ngFor="let item of expandedItems" class="list-group-item list-group-item-action" (click)="onExpandedViewItem(item)">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="text-truncate me-2">
+                    <span class="fw-semibold">{{ item.nome }} {{ item.cognome }}</span>
+                  </div>
+                  <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
+                </div>
+                <small class="text-muted">{{ item.email_aziendale }}</small>
+              </a>
+            </ng-container>
+
+          </div>
+
+          <!-- Loading more spinner -->
+          <div class="text-center py-3" *ngIf="expandedLoading && expandedItems.length > 0">
+            <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': getSectionBorderColor(expandedSection)}"></span>
+          </div>
+
+        </div>
+
+      <!-- Footer -->
+      <div class="expanded-footer" *ngIf="expandedItems.length > 0">
+        <small class="text-muted">
+          {{ expandedItems.length }} / {{ expandedTotal }}
+        </small>
       </div>
 
     </div>

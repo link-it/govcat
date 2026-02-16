@@ -1,0 +1,175 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<section class="search-bar container-fluid px-0">
+  <div class="row align-items-center">
+    <div class="col-12">
+      <ui-search-bar-form #searchBarForm
+        [classBlock]="''"
+        [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+        [showHistory]="false"
+        [historyStore]="historyStore"
+        [showSearch]="true"
+        [searchFields]="searchFields"
+        [useCondition]="false"
+        [showSorting]="false"
+        [formGroup]="_formGroup"
+        [simple]="false"
+        (onSearch)="_onSearch($event)">
+        <div form-search class="search-material-custom">
+          <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+            <fieldset>
+
+              <div class="row mb-1">
+                <div class="col-2">
+                  <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                </div>
+                <div class="col-10">
+                  <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-2">
+                  <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.email' | translate }}</label>
+                </div>
+                <div class="col-10">
+                  <input type="text" class="form-control form-control-sm" id="email" formControlName="email">
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-6">
+                  <div class="row mb-1">
+                    <div class="col-4">
+                      <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Role' | translate }}</label>
+                    </div>
+                    <div class="col-8">
+                      <select class="form-select form-control-sm" id="ruolo" formControlName="ruolo">
+                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                        <option *ngFor="let ruolo of _ruoloArr" [value]="ruolo">
+                          {{ 'APP.USERS.ROLES.' + ruolo | translate }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="row mb-1">
+                    <div class="col-4">
+                      <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Status' | translate }}</label>
+                    </div>
+                    <div class="col-8">
+                      <select class="form-select form-control-sm" id="stato" formControlName="stato">
+                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                        <option *ngFor="let stato of _statoArr" [value]="stato">
+                          {{ 'APP.USERS.STATUS.' + stato | translate }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-2">
+                  <label class="col-form-label col-form-label-fix">{{ 'APP.USERS.LABEL.Principal' | translate }}</label>
+                </div>
+                <div class="col-10">
+                  <input type="text" class="form-control form-control-sm" id="principal" formControlName="principal">
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-2">
+                  <label class="col-form-label col-form-label-fix" for="id_organizzazione">{{ 'APP.LABEL.Organization' | translate }}</label>
+                </div>
+                <div class="col-10">
+                  <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                    [items]="organizzazioni$ | async"
+                    [trackByFn]="trackBySelectFn"
+                    [typeahead]="organizzazioniInput$"
+                    [minTermLength]="minLengthTerm"
+                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                    labelForId="id_organizzazione"
+                    [editableSearchTerm]="true"
+                    bindValue="id_organizzazione"
+                    formControlName="id_organizzazione"
+                    (change)="onChangeSearchDropdwon($event)">
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ item.nome }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                      <div class="fw-bold">{{ item.nome }}</div>
+                    </ng-template>
+                  </ng-select>
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-2">
+                  <label class="col-form-label col-form-label-fix" for="classe_utente">{{ 'APP.LABEL.classi' | translate }}</label>
+                </div>
+                <div class="col-10">
+                  <ng-select (click)="onSelectedSearchDropdwon($event)"
+                    [items]="classiUtente$ | async"
+                    [trackByFn]="trackBySelectFn"
+                    [typeahead]="classiUtenteInput$"
+                    [minTermLength]="minLengthTerm"
+                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                    [multiple]="true"
+                    bindValue="nome"
+                    bindLabel="nome"
+                    labelForId="classe_utente"
+                    [closeOnSelect]="false"
+                    formControlName="classe_utente"
+                    (close)="onChangeSearchDropdwon($event)">
+                    <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                      <input id="classe-item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
+                    </ng-template>
+                  </ng-select>
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-2">
+                  <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.ReferenteTecnico' | translate }}</label>
+                </div>
+                <div class="col-10">
+                  <select class="form-select form-control-sm" id="referente_tecnico" formControlName="referente_tecnico">
+                    <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                    <option *ngFor="let yn of yesNoList" [value]="yn.value">
+                      {{ yn.label | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end pt-4">
+                <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </ui-search-bar-form>
+    </div>
+  </div>
+</section>

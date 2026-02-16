@@ -30,6 +30,12 @@ import { DashboardComponent } from './dashboard.component';
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardPanelModule } from './dashboard-panel/dashboard-panel.module';
 
+import { ClientsSearchFormModule } from './search-forms/clients-search-form/clients-search-form.module';
+import { ServiziSearchFormModule } from './search-forms/servizi-search-form/servizi-search-form.module';
+import { AdesioniSearchFormModule } from './search-forms/adesioni-search-form/adesioni-search-form.module';
+import { UtentiSearchFormModule } from './search-forms/utenti-search-form/utenti-search-form.module';
+import { ComunicazioniSearchFormModule } from './search-forms/comunicazioni-search-form/comunicazioni-search-form.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -38,7 +44,12 @@ import { DashboardPanelModule } from './dashboard-panel/dashboard-panel.module';
     ComponentsModule,
     AppComponentsModule,
     DashboardRoutingModule,
-    DashboardPanelModule
+    DashboardPanelModule,
+    ClientsSearchFormModule,
+    ServiziSearchFormModule,
+    AdesioniSearchFormModule,
+    UtentiSearchFormModule,
+    ComunicazioniSearchFormModule
   ],
   declarations: [
     DashboardComponent

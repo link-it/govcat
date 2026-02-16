@@ -27,22 +27,46 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.25s ease, filter 0.25s ease;
   overflow: hidden;
 
   &:hover {
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
   }
+
+  &.summary-card-active {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.1), inset 0 0 0 3px #fff;
+    filter: brightness(1.08);
+
+    .summary-card-icon {
+      opacity: 0.45;
+    }
+
+    .summary-card-label {
+      opacity: 1;
+    }
+  }
+
+  &.summary-card-dimmed {
+    opacity: 0.55;
+    filter: saturate(0.6);
+
+    &:hover {
+      opacity: 0.8;
+      filter: saturate(0.85);
+    }
+  }
 }
 
 .summary-card-body {
   position: relative;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem;
   display: flex;
   align-items: center;
   color: #fff;
-  min-height: 90px;
+  min-height: 80px;
 }
 
 .summary-card-content {
@@ -66,7 +90,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 .summary-card-icon {
   position: absolute;
-  right: 1.25rem;
+  right: 1rem;
   top: 50%;
   transform: translateY(-50%);
   font-size: 2.5rem;
@@ -93,4 +117,62 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       animation-delay: #{$i * 0.08}s;
     }
   }
+}
+
+// Expanded view
+.expanded-view {
+  animation: fadeInUp 0.3s ease-out;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 290px);
+}
+
+.expanded-header {
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 21, 0.075);
+  border-radius: 8px 8px 0 0;
+  flex-shrink: 0;
+}
+
+.expanded-toolbar {
+  padding: 0;
+  border-bottom: 1px solid rgba(0, 0, 21, 0.075);
+  flex-shrink: 0;
+}
+
+.expanded-results {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
+  .list-group-item {
+    cursor: pointer;
+    border-left: none;
+    border-right: none;
+    border-color: rgba(0, 0, 21, 0.06);
+    font-size: 0.875rem;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: #f0f4f8;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+  }
+}
+
+.expanded-footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid rgba(0, 0, 21, 0.075);
+  text-align: end;
+  border-radius: 0 0 8px 8px;
+  flex-shrink: 0;
 }
