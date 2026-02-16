@@ -26,6 +26,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ComponentsModule } from '@linkit/components';
 
 import { UtentiSearchFormComponent } from './utenti-search-form.component';
+import { FocusTrapDirective } from "ngx-bootstrap/focus-trap";
 
 @NgModule({
   imports: [
@@ -34,8 +35,9 @@ import { UtentiSearchFormComponent } from './utenti-search-form.component';
     ReactiveFormsModule,
     NgSelectModule,
     TranslateModule,
-    ComponentsModule
-  ],
+    ComponentsModule,
+    FocusTrapDirective
+],
   declarations: [
     UtentiSearchFormComponent
   ],

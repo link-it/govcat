@@ -72,10 +72,10 @@ export class ClientsSearchFormComponent implements OnInit {
   minLengthTerm = 1;
 
   constructor(
-    private translate: TranslateService,
-    private configService: ConfigService,
-    private apiService: OpenAPIService,
-    private eventsManagerService: EventsManagerService
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    private readonly apiService: OpenAPIService,
+    private readonly eventsManagerService: EventsManagerService
   ) {
     this._initSearchForm();
   }

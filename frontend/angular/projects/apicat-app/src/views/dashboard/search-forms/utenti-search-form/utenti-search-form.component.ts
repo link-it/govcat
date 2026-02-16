@@ -71,10 +71,10 @@ export class UtentiSearchFormComponent implements OnInit {
   minLengthTerm = 1;
 
   constructor(
-    private translate: TranslateService,
-    private configService: ConfigService,
-    private apiService: OpenAPIService,
-    private utils: UtilService
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    private readonly apiService: OpenAPIService,
+    private readonly utils: UtilService
   ) {
     this.yesNoList.map((item: any) => {
       this._enabledEnum = { ...this._enabledEnum, [item.value]: item.label };

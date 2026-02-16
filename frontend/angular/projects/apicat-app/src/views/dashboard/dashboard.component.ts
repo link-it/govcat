@@ -29,8 +29,6 @@ import { OpenAPIService } from '../../services/openAPI.service';
 import { UtilService } from '../../services/utils.service';
 import { DashboardRoleConfig } from '../../model/dashboard';
 
-import { forkJoin } from 'rxjs';
-
 @Component({
   selector: 'app-dashboard',
   templateUrl: 'dashboard.component.html',
@@ -91,7 +89,7 @@ export class DashboardComponent implements OnInit {
   _expandedPreventMultiCall: boolean = false;
 
   // Section title map
-  private _sectionTitles: { [key: string]: string } = {
+  private readonly _sectionTitles: { [key: string]: string } = {
     servizi: 'APP.DASHBOARD_PENDING.Servizi',
     adesioni: 'APP.DASHBOARD_PENDING.Adesioni',
     client: 'APP.DASHBOARD_PENDING.Client',
@@ -100,7 +98,7 @@ export class DashboardComponent implements OnInit {
   };
 
   // Section API model map
-  private _sectionModels: { [key: string]: string } = {
+  private readonly _sectionModels: { [key: string]: string } = {
     servizi: 'servizi',
     adesioni: 'adesioni',
     client: 'client',
@@ -109,13 +107,13 @@ export class DashboardComponent implements OnInit {
   };
 
   constructor(
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
-    private authenticationService: AuthenticationService,
-    private dashboardService: DashboardService,
-    private apiService: OpenAPIService,
-    private utils: UtilService
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly dashboardService: DashboardService,
+    private readonly apiService: OpenAPIService,
+    private readonly utils: UtilService
   ) {}
 
   ngOnInit() {

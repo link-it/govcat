@@ -101,10 +101,10 @@ export class AdesioniSearchFormComponent implements OnInit {
   minLengthTerm = 1;
 
   constructor(
-    private configService: ConfigService,
-    private apiService: OpenAPIService,
-    private authenticationService: AuthenticationService,
-    private eventsManagerService: EventsManagerService
+    private readonly configService: ConfigService,
+    private readonly apiService: OpenAPIService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly eventsManagerService: EventsManagerService
   ) {
     this._initSearchForm();
   }

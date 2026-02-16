@@ -64,10 +64,6 @@
 
     <div class="settings" *ngIf="servizioApi">
       <div class="settings-content">
-        <!-- <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
-          <span *ngIf="!_errors.length">{{ _errorMsg }}</span>
-          <span *ngIf="_errors.length">{{ 'APP.MESSAGE.ERROR.ApiNoDelete' | translate }}</span>
-        </div> -->
         <div class="edit-form">
           <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form"
             [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
@@ -112,7 +108,7 @@
                         <ui-input-help field="nome_gateway" context="API"></ui-input-help>
                       </div>
                       <div class="" *ngIf="!_isEdit">
-                        <input type="text" readonly class="form-control-plaintext" id="nome_gateway"
+                        <input type="text" readonly class="form-control-plaintext" id="nome_gateway_view"
                           [value]="viewValues.nome_gateway || '-'">
                       </div>
                     </div>
@@ -147,7 +143,7 @@
                         <ui-input-help field="versione_gateway" context="API"></ui-input-help>
                       </div>
                       <div class="" *ngIf="!_isEdit">
-                        <input type="text" readonly class="form-control-plaintext" id="versione_gateway"
+                        <input type="text" readonly class="form-control-plaintext" id="versione_gateway_view"
                           [value]="viewValues.versione_gateway || '-'">
                       </div>
                     </div>
@@ -288,7 +284,7 @@
                         <ui-input-help field="url" context="API"></ui-input-help>
                       </div>
                       <div class="" *ngIf="!_isEdit">
-                        <input type="text" readonly class="form-control-plaintext" id="protocollo"
+                        <input type="text" readonly class="form-control-plaintext" id="url_view"
                           [value]="viewValues.url || '-'">
                       </div>
                     </div>
@@ -383,16 +379,16 @@
                 <div class="row-content-block footer-block" *ngIf="_isEdit">
                   <div class="d-flex justify-content-between">
                     <div class="d-flex gap-md-1">
-                      <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2"
+                      <button type="submit" class="gl-button btn btn-confirm gl-mr-2"
                         [disabled]="_formGroup.invalid || _spin">
                         {{ 'APP.BUTTON.Save' | translate }} <span class="spinner-border spinner-border-sm ms-2"
                           *ngIf="_spin"></span>
                       </button>
-                      <button aria-label="Cancel" type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
+                      <button type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
                         {{ 'APP.BUTTON.Cancel' | translate }}
                       </button>
                     </div>
-                    <button *ngIf="environmentId === 'produzione'" aria-label="Cancel" type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
+                    <button *ngIf="environmentId === 'produzione'" type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
                       {{ 'APP.BUTTON.CopyTestingValues' | translate }}
                     </button>
                   </div>
