@@ -345,6 +345,7 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+
   onExpandedViewItem(item: any) {
     if (!this.expandedSection) return;
     this.onViewItem(item, this.expandedSection);

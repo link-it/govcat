@@ -76,6 +76,8 @@
     [infiniteScrollDistance]="2"
     [infiniteScrollThrottle]="50"
     [scrollWindow]="false"
+    [autoFillScroll]="true"
+    (autoFillNeeded)="_loadMoreData()"
     (scrolled)="_loadMoreData()">
 
     <div [hidden]="showDetails">

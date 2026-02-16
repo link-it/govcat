@@ -111,7 +111,9 @@
     [infiniteScrollDistance]="2"
     [infiniteScrollThrottle]="50"
     (scrolled)="__loadMoreData()"
-    [scrollWindow]="false">
+    [scrollWindow]="false"
+    [autoFillScroll]="true"
+    (autoFillNeeded)="__loadMoreData()">
     <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
 
     <ui-box-message *ngIf="messages.length == 0 && !_spin"

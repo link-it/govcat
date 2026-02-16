@@ -224,7 +224,9 @@
         [infiniteScrollDistance]="2"
         [infiniteScrollThrottle]="50"
         (scrolled)="__loadMoreExpandedData()"
-        [scrollWindow]="false">
+        [scrollWindow]="false"
+        [autoFillScroll]="true"
+        (autoFillNeeded)="__loadMoreExpandedData()">
 
           <div class="text-center py-4" *ngIf="expandedLoading && expandedItems.length === 0">
             <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': getSectionBorderColor(expandedSection)}"></span>

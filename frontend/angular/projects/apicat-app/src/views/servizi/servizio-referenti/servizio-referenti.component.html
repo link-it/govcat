@@ -94,7 +94,9 @@
     [infiniteScrollDistance]="2"
     [infiniteScrollThrottle]="50"
     (scrolled)="__loadMoreData()"
-    [scrollWindow]="false">
+    [scrollWindow]="false"
+    [autoFillScroll]="true"
+    (autoFillNeeded)="__loadMoreData()">
 
     <div class="" [hidden]="currTab !== TabType.REFERENTI">
       <ui-box-message *ngIf="servizioReferenti.length == 0 && (_spin === 0)"

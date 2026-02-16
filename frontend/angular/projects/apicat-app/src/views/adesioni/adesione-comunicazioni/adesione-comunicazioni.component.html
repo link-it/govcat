@@ -79,7 +79,9 @@
       [infiniteScrollDistance]="2"
       [infiniteScrollThrottle]="50"
       (scrolled)="__loadMoreData()"
-      [scrollWindow]="false">
+      [scrollWindow]="false"
+      [autoFillScroll]="true"
+      (autoFillNeeded)="__loadMoreData()">
 
       <div class="row-content-block sticky-top p-2" style="z-index: 99;" *ngIf="showSender">
         <ui-sender #sender

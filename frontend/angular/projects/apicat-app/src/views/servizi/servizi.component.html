@@ -345,7 +345,9 @@
         (scrolled)="__loadMoreData()"
         [infiniteScrollContainer]="fullScroll ? '#page-full-scroll-container' : ''"
         [fromRoot]="fullScroll"
-        [scrollWindow]="false">
+        [scrollWindow]="false"
+        [autoFillScroll]="true"
+        (autoFillNeeded)="__loadMoreData()">
 
         <ui-box-message *ngIf="(elements.length === 0) && (groups.length === 0) && !_spin"
             [size]="64"

@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { AutoFillScrollDirective } from "./auto-fill-scroll.directive";
 import { ClickOutsideDirective } from "./click-outside.directive";
 import { CountUpDirective } from "./count-up.directive";
 import { HtmlAttributesDirective } from "./html-attr.directive";
@@ -26,6 +27,7 @@ import { SetBackgroundImageDirective } from "./set-background-image.directive";
 import { TextUppercaseDirective } from "./uppercase.directive";
 
 export const directives = [
+    AutoFillScrollDirective,
     CountUpDirective,
     ClickOutsideDirective,
     HtmlAttributesDirective,
@@ -37,8 +39,9 @@ export const directives = [
 ]
 
 export {
-    CountUpDirective, 
-    ClickOutsideDirective, 
+    AutoFillScrollDirective,
+    CountUpDirective,
+    ClickOutsideDirective,
     HtmlAttributesDirective,
     TextLowercaseDirective,
     RouterLinkMatchDirective,

@@ -81,6 +81,8 @@
         [infiniteScrollThrottle]="50"
         (scrolled)="__loadMoreData()"
         [scrollWindow]="false"
+        [autoFillScroll]="true"
+        (autoFillNeeded)="__loadMoreData()"
     >
         <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && gruppi.length === 0"></ui-box-spinner>
 
