@@ -107,6 +107,7 @@
           [panelType]="'servizi'"
           [loading]="loadingServizi"
           [borderColor]="getSectionBorderColor('servizi')"
+          [hideVersions]="hideVersions"
           [statusConfig]="serviziStatusConfig"
           (viewAll)="onViewAll($event)"
           (viewItem)="onViewItem($event, 'servizi')">
@@ -123,6 +124,7 @@
           [panelType]="'adesioni'"
           [loading]="loadingAdesioni"
           [borderColor]="getSectionBorderColor('adesioni')"
+          [hideVersions]="hideVersions"
           [statusConfig]="adesioniStatusConfig"
           (viewAll)="onViewAll($event)"
           (viewItem)="onViewItem($event, 'adesioni')">

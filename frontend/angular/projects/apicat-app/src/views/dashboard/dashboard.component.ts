@@ -71,6 +71,7 @@ export class DashboardComponent implements OnInit {
 
   showSummaryCards: boolean = true;
   sectionsConfig: any = {};
+  hideVersions: boolean = false;
 
   serviziStatusConfig: any = {};
   adesioniStatusConfig: any = {};
@@ -92,6 +93,9 @@ export class DashboardComponent implements OnInit {
   }
 
   private _loadConfigs() {
+    const appConfig = this.configService.getConfiguration();
+    this.hideVersions = appConfig?.AppConfig?.Services?.hideVersions || false;
+
     this.configService.getConfig('dashboard').subscribe((config: any) => {
       this.showSummaryCards = config?.showSummaryCards !== false;
       this.sectionsConfig = config?.sections || {};

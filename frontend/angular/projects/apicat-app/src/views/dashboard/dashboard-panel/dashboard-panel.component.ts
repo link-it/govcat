@@ -33,6 +33,7 @@ export class DashboardPanelComponent {
   @Input() panelType: 'servizi' | 'adesioni' | 'client' | 'comunicazioni' | 'utenti' = 'servizi';
   @Input() loading: boolean = false;
   @Input() borderColor: string = '#0d6efd';
+  @Input() hideVersions: boolean = false;
   @Input() statusConfig: { [key: string]: { label: string; background: string; color: string } } = {};
 
   @Output() viewAll: EventEmitter<string> = new EventEmitter();

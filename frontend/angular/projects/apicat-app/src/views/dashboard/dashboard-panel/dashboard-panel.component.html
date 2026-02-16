@@ -41,7 +41,7 @@
           <div class="d-flex justify-content-between align-items-start">
             <div class="text-truncate me-2">
               <span class="fw-semibold">{{ item.nome }}</span>
-              <small class="text-muted ms-1">v.{{ item.versione }}</small>
+              <small class="text-muted ms-1" *ngIf="!hideVersions">v.{{ item.versione }}</small>
             </div>
             <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
           </div>
@@ -56,6 +56,7 @@
             <div class="text-truncate me-2">
               <span class="fw-semibold">{{ item.soggetto?.nome }}</span>
               <small class="text-muted ms-1">{{ item.servizio?.nome }}</small>
+              <small class="text-muted ms-1" *ngIf="!hideVersions && item.servizio?.versione">v.{{ item.servizio.versione }}</small>
             </div>
             <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
           </div>
