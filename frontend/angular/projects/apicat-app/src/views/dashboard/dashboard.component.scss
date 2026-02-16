@@ -127,7 +127,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   background: #fff;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 290px);
+  height: calc(100vh - 290px);
+  overflow: hidden;
 }
 
 .expanded-header {
