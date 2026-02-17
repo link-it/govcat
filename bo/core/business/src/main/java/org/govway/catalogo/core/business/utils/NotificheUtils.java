@@ -248,30 +248,42 @@ public class NotificheUtils {
 	}
 
 	private Boolean isAbilitato(UtenteEntity destinatario, TIPO tipo) {
-		
+
 		List<TIPO> tipi = getTipi(destinatario.getTipiNotificheAbilitate());
-		if(tipi == null) return true;
-		
+		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+
 		return tipi.contains(tipo);
 
 	}
 
 	private Boolean isAbilitato(UtenteEntity destinatario, TIPO_ENTITA tipoEntita) {
-		
+
 		List<TIPO_ENTITA> tipi = getTipiEntita(destinatario.getTipiEntitaNotificheAbilitate());
-		if(tipi == null) return true;
-		
+		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+
 		return tipi.contains(tipoEntita);
 
 	}
 
 	private Boolean isRuoloAbilitato(UtenteEntity destinatario, RuoloNotificaEnum ruolo) {
-		
+
 		List<RuoloNotificaEnum> tipi = this.getRuoli(destinatario.getRuoliNotificheAbilitate());
-		if(tipi == null) return true;
+		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
 
 		return tipi.contains(ruolo);
 
+	}
+
+	/**
+	 * Restituisce il valore di default per le notifiche quando non sono configurate nel DB.
+	 * Per gli utenti con ruolo AMMINISTRATORE (gestore), il default è false (notifiche disabilitate).
+	 * Per tutti gli altri utenti, il default è true (notifiche abilitate).
+	 */
+	private Boolean getDefaultNotificheAbilitate(UtenteEntity utente) {
+		if(utente.getRuolo() != null && utente.getRuolo() == UtenteEntity.Ruolo.AMMINISTRATORE) {
+			return false;
+		}
+		return true;
 	}
 
 	private static final String SEPARATOR = ","; 
