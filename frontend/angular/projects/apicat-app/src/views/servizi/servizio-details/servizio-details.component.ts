@@ -1346,7 +1346,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _onChangeFruizione(event: any) {
-        this._isDominioEsterno = this._formGroup.get('fruizione')?.value || false;
+        this._isDominioEsterno = event.target.checked;
+        if (!this._isDominioEsterno) {
+            this._formGroup.get('id_organizzazione_interna')?.setValue(null);
+            this._formGroup.get('id_soggetto_interno')?.setValue(null);
+        }
         this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
         this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
         this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
