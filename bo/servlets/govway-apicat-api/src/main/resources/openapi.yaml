@@ -145,6 +145,39 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /profilo/organizzazione:
+    put:
+      tags:
+      - "Utenti"
+      description: "Richiesta di cambio organizzazione per l'utente chiamante"
+      operationId: "updateProfiloOrganization"
+      requestBody:
+        description: "Nuova organizzazione richiesta"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfiloOrganizationUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /profilo/email/invia-codice:
     post:
       tags:
@@ -8407,6 +8440,7 @@ components:
         - non_configurato
         - abilitato
         - disabilitato
+        - pending_update
     RuoloUtenteEnum:
       type: "string"
       enum:
@@ -8534,6 +8568,13 @@ components:
           $ref: "#/components/schemas/String255"
         settings:
           type: object
+    ProfiloOrganizationUpdate:
+      type: "object"
+      required:
+        - id_organizzazione
+      properties:
+        id_organizzazione:
+          $ref: "#/components/schemas/IdOrganizzazione"
     ItemUtentePublic:
       type: "object"
       required:
@@ -8658,6 +8699,8 @@ components:
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+        organizzazione_pending:
           $ref: "#/components/schemas/ItemOrganizzazione"
         classi_utente:
           type: "array"

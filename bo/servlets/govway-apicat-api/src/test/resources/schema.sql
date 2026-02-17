@@ -486,6 +486,7 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         tipi_entita_notifiche_abilitate varchar(255),
         tipi_notifiche_abilitate varchar(255),
         id_organizzazione bigint,
+        id_organizzazione_pending bigint,
         primary key (id)
     );
 
@@ -938,9 +939,14 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
        foreign key (id_immagine) 
        references documenti;
 
-    alter table utenti 
-       add constraint FKtk0f93l8dh542beuq067og47g 
-       foreign key (id_organizzazione) 
+    alter table utenti
+       add constraint FKtk0f93l8dh542beuq067og47g
+       foreign key (id_organizzazione)
+       references organizations;
+
+    alter table utenti
+       add constraint FK_utenti_org_pending
+       foreign key (id_organizzazione_pending)
        references organizations;
 
     alter table utenti_classi 

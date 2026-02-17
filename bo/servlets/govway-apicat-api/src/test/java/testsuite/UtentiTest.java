@@ -55,6 +55,7 @@ import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
+import org.govway.catalogo.servlets.model.ProfiloOrganizationUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1538,6 +1539,179 @@ public class UtentiTest {
         // Verifica finale: l'email personale dell'utente deve essere aggiornata
         UtenteEntity utenteAggiornato = this.utenteService.findByPrincipal("test.flusso.personale").get();
         assertEquals("nuova.personale.completo@test.com", utenteAggiornato.getEmail());
+    }
+
+    // ==================== Test Update Profilo Organization ====================
+
+    @Test
+    void testUpdateProfiloOrganization_Success() {
+        // Creazione dell'organizzazione iniziale
+        ResponseEntity<Organizzazione> responseOrganizzazione1 = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione1.getBody());
+
+        // Creazione della nuova organizzazione
+        var orgCreate2 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate2.setNome("Nuova Organizzazione");
+        orgCreate2.setCodiceEnte("NUOVA_ORG");
+        ResponseEntity<Organizzazione> responseOrganizzazione2 = organizzazioniController.createOrganizzazione(orgCreate2);
+        assertNotNull(responseOrganizzazione2.getBody());
+
+        // Creazione dell'utente associato alla prima organizzazione
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Richiesta di cambio organizzazione
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> response = controller.updateProfiloOrganization(request);
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, response.getBody().getStato());
+        assertNotNull(response.getBody().getOrganizzazionePending());
+        assertEquals(responseOrganizzazione2.getBody().getIdOrganizzazione(), response.getBody().getOrganizzazionePending().getIdOrganizzazione());
+        // L'organizzazione attuale deve rimanere invariata
+        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response.getBody().getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_OrganizzazioneNotFound() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Richiesta di cambio a organizzazione inesistente
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(UUID.randomUUID());
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            controller.updateProfiloOrganization(request);
+        });
+
+        assertEquals("ORG.404", exception.getMessage());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_UtenteNonAutenticato() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Logout
+        this.tearDown();
+
+        // Richiesta di cambio organizzazione senza autenticazione
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateProfiloOrganization(request);
+        });
+
+        assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_SovrascriveRichiestaPrecedente() {
+        // Creazione di tre organizzazioni
+        ResponseEntity<Organizzazione> responseOrganizzazione1 = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione1.getBody());
+
+        var orgCreate2 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate2.setNome("Seconda Organizzazione");
+        orgCreate2.setCodiceEnte("ORG_2");
+        ResponseEntity<Organizzazione> responseOrganizzazione2 = organizzazioniController.createOrganizzazione(orgCreate2);
+        assertNotNull(responseOrganizzazione2.getBody());
+
+        var orgCreate3 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate3.setNome("Terza Organizzazione");
+        orgCreate3.setCodiceEnte("ORG_3");
+        ResponseEntity<Organizzazione> responseOrganizzazione3 = organizzazioniController.createOrganizzazione(orgCreate3);
+        assertNotNull(responseOrganizzazione3.getBody());
+
+        // Creazione dell'utente associato alla prima organizzazione
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Prima richiesta di cambio organizzazione
+        ProfiloOrganizationUpdate request1 = new ProfiloOrganizationUpdate();
+        request1.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> response1 = controller.updateProfiloOrganization(request1);
+        assertEquals(responseOrganizzazione2.getBody().getIdOrganizzazione(), response1.getBody().getOrganizzazionePending().getIdOrganizzazione());
+
+        // Seconda richiesta di cambio organizzazione (deve sovrascrivere la prima)
+        ProfiloOrganizationUpdate request2 = new ProfiloOrganizationUpdate();
+        request2.setIdOrganizzazione(responseOrganizzazione3.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> response2 = controller.updateProfiloOrganization(request2);
+
+        // Asserzioni: la seconda richiesta deve aver sovrascritto la prima
+        assertNotNull(response2.getBody());
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, response2.getBody().getStato());
+        assertEquals(responseOrganizzazione3.getBody().getIdOrganizzazione(), response2.getBody().getOrganizzazionePending().getIdOrganizzazione());
+        // L'organizzazione attuale deve rimanere invariata
+        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response2.getBody().getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_UtenteConRuoloReferenteServizio() {
+        // Creazione delle organizzazioni
+        ResponseEntity<Organizzazione> responseOrganizzazione1 = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione1.getBody());
+
+        var orgCreate2 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate2.setNome("Altra Organizzazione");
+        orgCreate2.setCodiceEnte("ALTRA_ORG");
+        ResponseEntity<Organizzazione> responseOrganizzazione2 = organizzazioniController.createOrganizzazione(orgCreate2);
+        assertNotNull(responseOrganizzazione2.getBody());
+
+        // Creazione dell'utente con ruolo REFERENTE_SERVIZIO
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Richiesta di cambio organizzazione
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+
+        // Un utente con ruolo REFERENTE_SERVIZIO deve poter richiedere il cambio organizzazione
+        ResponseEntity<Utente> response = controller.updateProfiloOrganization(request);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, response.getBody().getStato());
     }
 }
 

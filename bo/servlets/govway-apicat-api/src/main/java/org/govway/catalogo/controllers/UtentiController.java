@@ -38,9 +38,11 @@ import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.UtenteAuthorization;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.ClasseUtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.core.services.EmailUpdateVerificationService;
 import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity;
@@ -76,6 +78,9 @@ public class UtentiController implements UtentiApi {
 
 	@Autowired
 	private ClasseUtenteService classeUtenteService;
+
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
 
 	@Autowired
 	private PagedResourcesAssembler<UtenteEntity> pagedResourceAssembler;
@@ -356,6 +361,47 @@ public class UtentiController implements UtentiApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				this.dettaglioAssembler.toEntity(profiloUpdate, entity);
+
+				this.service.save(entity);
+				Utente model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(model);
+			});
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Utente> updateProfiloOrganization(ProfiloOrganizationUpdate profiloOrganizationUpdate) {
+		try {
+			return this.service.runTransaction(() -> {
+
+				this.logger.info("Invocazione in corso ...");
+				InfoProfilo current = this.requestUtils.getPrincipal(false);
+
+				if(current == null || current.utente == null) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
+				}
+
+				UtenteEntity entity = current.utente;
+
+				// Recupera la nuova organizzazione
+				OrganizzazioneEntity nuovaOrg = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazione())
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404));
+
+				// Imposta organizzazione pending e stato
+				entity.setOrganizzazionePending(nuovaOrg);
+				entity.setStato(Stato.PENDING_UPDATE);
 
 				this.service.save(entity);
 				Utente model = this.dettaglioAssembler.toModel(entity);
