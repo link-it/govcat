@@ -2,7 +2,7 @@
  * GovCat - GovWay API Catalogue
  * https://github.com/link-it/govcat
  *
- * Copyright (c) 2021-2025 Link.it srl (https://link.it).
+ * Copyright (c) 2021-2026 Link.it srl (https://link.it).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3, as published by
@@ -19,8 +19,13 @@
  */
 package org.govway.catalogo.core.business.utils;
 
-public enum TargetComunicazioneEnum {
-	PUBBLICA,
-	SOLO_REFERENTI,
-	SOLO_ADERENTI
+/**
+ * Enum per i target delle comunicazioni dei servizi.
+ * Supporta multi-selezione per specificare i destinatari.
+ */
+public enum TargetComunicazioneServizioEnum {
+	REFERENTI_SERVIZIO,
+	REFERENTI_DOMINIO,
+	RICHIEDENTE,
+	ADERENTI
 }

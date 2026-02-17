@@ -58,7 +58,7 @@ import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
-import org.govway.catalogo.servlets.model.TargetComunicazioneEnum;
+import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Gruppo;
@@ -1981,7 +1981,13 @@ public class ServiziTest {
 		MessaggioCreate messaggio = new MessaggioCreate();
 		messaggio.setOggetto("Test Target Pubblica");
 		messaggio.setTesto("Messaggio con target pubblica");
-		messaggio.setTarget(TargetComunicazioneEnum.PUBBLICA);
+		// Tutti i target = comportamento "pubblica"
+		messaggio.setTarget(Arrays.asList(
+			TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO,
+			TargetComunicazioneServizioEnum.REFERENTI_DOMINIO,
+			TargetComunicazioneServizioEnum.RICHIEDENTE,
+			TargetComunicazioneServizioEnum.ADERENTI
+		));
 		messaggio.setIncludiTecnici(true);
 
 		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
@@ -1999,7 +2005,12 @@ public class ServiziTest {
 		MessaggioCreate messaggio = new MessaggioCreate();
 		messaggio.setOggetto("Test Target Solo Referenti");
 		messaggio.setTesto("Messaggio con target solo referenti");
-		messaggio.setTarget(TargetComunicazioneEnum.SOLO_REFERENTI);
+		// Solo referenti = referenti servizio, dominio, richiedente
+		messaggio.setTarget(Arrays.asList(
+			TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO,
+			TargetComunicazioneServizioEnum.REFERENTI_DOMINIO,
+			TargetComunicazioneServizioEnum.RICHIEDENTE
+		));
 		messaggio.setIncludiTecnici(true);
 
 		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
@@ -2017,7 +2028,8 @@ public class ServiziTest {
 		MessaggioCreate messaggio = new MessaggioCreate();
 		messaggio.setOggetto("Test Target Solo Aderenti");
 		messaggio.setTesto("Messaggio con target solo aderenti");
-		messaggio.setTarget(TargetComunicazioneEnum.SOLO_ADERENTI);
+		// Solo aderenti
+		messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.ADERENTI));
 		messaggio.setIncludiTecnici(false);
 
 		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
@@ -2035,7 +2047,12 @@ public class ServiziTest {
 		MessaggioCreate messaggio = new MessaggioCreate();
 		messaggio.setOggetto("Test Solo Referenti Senza Tecnici");
 		messaggio.setTesto("Messaggio con target solo referenti senza tecnici");
-		messaggio.setTarget(TargetComunicazioneEnum.SOLO_REFERENTI);
+		// Solo referenti = referenti servizio, dominio, richiedente
+		messaggio.setTarget(Arrays.asList(
+			TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO,
+			TargetComunicazioneServizioEnum.REFERENTI_DOMINIO,
+			TargetComunicazioneServizioEnum.RICHIEDENTE
+		));
 		messaggio.setIncludiTecnici(false);
 
 		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);

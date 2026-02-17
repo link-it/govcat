@@ -94,24 +94,31 @@ public class NotificheUtils {
 	}
 
 	public List<NotificaEntity> getNotificheMessaggioServizio(MessaggioServizioEntity messaggioServizio) {
-		return getNotificheMessaggioServizio(messaggioServizio, TargetComunicazioneEnum.PUBBLICA, true);
+		// Default: tutti i target
+		Set<TargetComunicazioneServizioEnum> tuttiTarget = new HashSet<>(Arrays.asList(TargetComunicazioneServizioEnum.values()));
+		return getNotificheMessaggioServizio(messaggioServizio, tuttiTarget, true);
 	}
 
-	public List<NotificaEntity> getNotificheMessaggioServizio(MessaggioServizioEntity messaggioServizio, TargetComunicazioneEnum target, boolean includiTecnici) {
+	public List<NotificaEntity> getNotificheMessaggioServizio(MessaggioServizioEntity messaggioServizio, Set<TargetComunicazioneServizioEnum> target, boolean includiTecnici) {
 
 		List<NotificaEntity> notifiche = new ArrayList<>();
 
 		ServizioEntity servizio = messaggioServizio.getServizio();
 		UtenteEntity mittente = messaggioServizio.getUtente();
 
+		// Se target è null o vuoto, usa tutti i target
+		Set<TargetComunicazioneServizioEnum> effectiveTarget = (target == null || target.isEmpty())
+			? new HashSet<>(Arrays.asList(TargetComunicazioneServizioEnum.values()))
+			: target;
+
 		// Notifiche push
-		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE, target, includiTecnici);
+		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE, effectiveTarget, includiTecnici);
 		for(UtenteEntity utente: lstUtentiPush) {
 			notifiche.add(getNotifica(mittente, servizio, null, messaggioServizio.getUuid(), null, messaggioServizio.getOggetto(), messaggioServizio.getTesto(), TIPO.COMUNICAZIONE, TIPO_ENTITA.SERVIZIO, utente));
 		}
 
 		// Notifiche email
-		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE_EMAIL, target, includiTecnici);
+		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE_EMAIL, effectiveTarget, includiTecnici);
 		for(UtenteEntity utente: lstUtentiEmail) {
 			notifiche.add(getNotifica(mittente, servizio, null, messaggioServizio.getUuid(), null, messaggioServizio.getOggetto(), messaggioServizio.getTesto(), TIPO.COMUNICAZIONE_EMAIL, TIPO_ENTITA.SERVIZIO_EMAIL, utente));
 		}
@@ -183,30 +190,35 @@ public class NotificheUtils {
 	}
 	
 	private List<UtenteEntity> getDestinatari(UtenteEntity mittente, ServizioEntity servizio, TIPO tipo) {
-		return getDestinatari(mittente, servizio, tipo, TargetComunicazioneEnum.PUBBLICA, true);
+		// Default: tutti i target
+		Set<TargetComunicazioneServizioEnum> tuttiTarget = new HashSet<>(Arrays.asList(TargetComunicazioneServizioEnum.values()));
+		return getDestinatari(mittente, servizio, tipo, tuttiTarget, true);
 	}
 
-	private List<UtenteEntity> getDestinatari(UtenteEntity mittente, ServizioEntity servizio, TIPO tipo, TargetComunicazioneEnum target, boolean includiTecnici) {
+	private List<UtenteEntity> getDestinatari(UtenteEntity mittente, ServizioEntity servizio, TIPO tipo, Set<TargetComunicazioneServizioEnum> target, boolean includiTecnici) {
 
 		Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari = new HashMap<>();
 
 		// Determina il TIPO_ENTITA in base al TIPO
 		TIPO_ENTITA tipoEntita = isEmailTipo(tipo) ? TIPO_ENTITA.SERVIZIO_EMAIL : TIPO_ENTITA.SERVIZIO;
+		boolean isEmail = isEmailTipo(tipo);
 
-		switch (target) {
-			case PUBBLICA:
-				// Include referenti del servizio + aderenti
-				addDestinatariServizio(destinatari, servizio, includiTecnici, isEmailTipo(tipo));
-				addDestinatariAderenti(destinatari, servizio, includiTecnici, isEmailTipo(tipo));
-				break;
-			case SOLO_REFERENTI:
-				// Include solo referenti del servizio (dominio + servizio + richiedente)
-				addDestinatariServizio(destinatari, servizio, includiTecnici, isEmailTipo(tipo));
-				break;
-			case SOLO_ADERENTI:
-				// Include solo aderenti al servizio
-				addDestinatariAderenti(destinatari, servizio, includiTecnici, isEmailTipo(tipo));
-				break;
+		// Itera su tutti i target selezionati
+		for (TargetComunicazioneServizioEnum t : target) {
+			switch (t) {
+				case REFERENTI_SERVIZIO:
+					addReferentiServizio(destinatari, servizio, includiTecnici, isEmail);
+					break;
+				case REFERENTI_DOMINIO:
+					addReferentiDominio(destinatari, servizio, includiTecnici, isEmail);
+					break;
+				case RICHIEDENTE:
+					addRichiedenteServizio(destinatari, servizio, isEmail);
+					break;
+				case ADERENTI:
+					addDestinatariAderenti(destinatari, servizio, includiTecnici, isEmail);
+					break;
+			}
 		}
 
 		return getDestinatari(mittente, destinatari, tipo, tipoEntita);
@@ -352,30 +364,38 @@ public class NotificheUtils {
 		}
 	}
 
-	private void addDestinatariServizio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio) {
-		addDestinatariServizio(destinatari, servizio, true, false);
+	private void addReferentiServizio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean includiTecnici, boolean isEmail) {
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
+		} else {
+			destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
+		}
 	}
 
-	private void addDestinatariServizio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean includiTecnici, boolean isEmail) {
+	private void addReferentiDominio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean includiTecnici, boolean isEmail) {
 		if (isEmail) {
 			destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_DOMINIO_EMAIL, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
 			if (includiTecnici) {
 				destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_DOMINIO_EMAIL, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
 			}
-			destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			if (includiTecnici) {
-				destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			}
-			destinatari.put(RuoloNotificaEnum.SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL, Arrays.asList(servizio.getRichiedente()));
 		} else {
 			destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_DOMINIO, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
 			if (includiTecnici) {
 				destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_DOMINIO, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
 			}
-			destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			if (includiTecnici) {
-				destinatari.put(RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			}
+		}
+	}
+
+	private void addRichiedenteServizio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean isEmail) {
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL, Arrays.asList(servizio.getRichiedente()));
+		} else {
 			destinatari.put(RuoloNotificaEnum.SERVIZIO_RICHIEDENTE_SERVIZIO, Arrays.asList(servizio.getRichiedente()));
 		}
 	}

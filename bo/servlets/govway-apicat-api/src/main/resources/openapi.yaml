@@ -9512,14 +9512,14 @@ components:
           example: "2017-07-21T17:32:28Z"
         url:
           $ref: "#/components/schemas/URL"
-    TargetComunicazioneEnum:
+    TargetComunicazioneServizioEnum:
       type: "string"
-      description: "Target della comunicazione per il servizio"
+      description: "Target per i destinatari della comunicazione del servizio"
       enum:
-        - pubblica
-        - solo_referenti
-        - solo_aderenti
-      default: pubblica
+        - REFERENTI_SERVIZIO
+        - REFERENTI_DOMINIO
+        - RICHIEDENTE
+        - ADERENTI
     MessaggioCreate:
       type: object
       required:
@@ -9530,7 +9530,10 @@ components:
         testo:
           $ref: "#/components/schemas/String4000"
         target:
-          $ref: "#/components/schemas/TargetComunicazioneEnum"
+          type: "array"
+          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          items:
+            $ref: "#/components/schemas/TargetComunicazioneServizioEnum"
         includi_tecnici:
           type: boolean
           default: true

@@ -54,7 +54,7 @@ import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.controllers.csv.ServizioBuilder;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
-import org.govway.catalogo.core.business.utils.TargetComunicazioneEnum;
+import org.govway.catalogo.core.business.utils.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.core.dao.specifications.AllegatoServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
@@ -503,8 +503,13 @@ public class ServiziController implements ServiziApi {
 
 				this.service.save(messaggio);
 
-				// Determina il target della comunicazione
-				TargetComunicazioneEnum target = toTargetComunicazione(messaggioCreate.getTarget());
+				// Determina i target della comunicazione (multi-selezione)
+				Set<TargetComunicazioneServizioEnum> target = null;
+				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
+					target = messaggioCreate.getTarget().stream()
+						.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
+						.collect(Collectors.toSet());
+				}
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
@@ -524,18 +529,6 @@ public class ServiziController implements ServiziApi {
 		catch(Throwable e) {
 			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
 			throw new InternalException(ErrorCode.SYS_500);
-		}
-	}
-
-	private TargetComunicazioneEnum toTargetComunicazione(org.govway.catalogo.servlets.model.TargetComunicazioneEnum target) {
-		if (target == null) {
-			return TargetComunicazioneEnum.PUBBLICA;
-		}
-		switch (target) {
-			case PUBBLICA: return TargetComunicazioneEnum.PUBBLICA;
-			case SOLO_REFERENTI: return TargetComunicazioneEnum.SOLO_REFERENTI;
-			case SOLO_ADERENTI: return TargetComunicazioneEnum.SOLO_ADERENTI;
-			default: return TargetComunicazioneEnum.PUBBLICA;
 		}
 	}
 
