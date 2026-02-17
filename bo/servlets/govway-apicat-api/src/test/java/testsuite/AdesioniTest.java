@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -95,7 +96,8 @@ import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.ItemAdesione;
 import org.govway.catalogo.servlets.model.ItemComunicazione;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
-import org.govway.catalogo.servlets.model.MessaggioCreate;
+import org.govway.catalogo.servlets.model.MessaggioAdesioneCreate;
+import org.govway.catalogo.servlets.model.TargetComunicazioneAdesioneEnum;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
@@ -563,7 +565,7 @@ public class AdesioniTest {
     	
     	assertNotNull(adesione);
     	
-    	MessaggioCreate messaggio = new MessaggioCreate();
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
     	
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
@@ -626,7 +628,7 @@ public class AdesioniTest {
     	
     	assertNotNull(adesione);
     	
-    	MessaggioCreate messaggio = new MessaggioCreate();
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
     	
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
@@ -663,7 +665,7 @@ public class AdesioniTest {
     	
     	assertNotNull(adesione);
     	
-    	MessaggioCreate messaggio = new MessaggioCreate();
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
     	
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
@@ -700,7 +702,7 @@ public class AdesioniTest {
     	
     	assertNotNull(adesione);
     	
-    	MessaggioCreate messaggio = new MessaggioCreate();
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
     	
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
@@ -728,7 +730,7 @@ public class AdesioniTest {
     	
     	assertNotNull(adesione);
     	
-    	MessaggioCreate messaggio = new MessaggioCreate();
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
     	
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
@@ -757,7 +759,7 @@ public class AdesioniTest {
     	
     	assertNotNull(adesione);
     	
-    	MessaggioCreate messaggio = new MessaggioCreate();
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
     	
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
@@ -768,7 +770,134 @@ public class AdesioniTest {
     		adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
         });
     }
-    
+
+    @Test
+    void testCreateMessaggioAdesioneWithTargetTutti() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	// Creo l'Adesione
+    	Adesione adesione = this.getAdesione();
+
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+    	messaggio.setOggetto("Test Target Tutti");
+    	messaggio.setTesto("Messaggio con tutti i target");
+    	// Tutti i target
+    	messaggio.setTarget(Arrays.asList(
+    		TargetComunicazioneAdesioneEnum.REFERENTI_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.REFERENTI_DOMINIO_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.RICHIEDENTE_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE,
+    		TargetComunicazioneAdesioneEnum.RICHIEDENTE_ADESIONE
+    	));
+    	messaggio.setIncludiTecnici(true);
+
+    	ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+
+    	assertNotNull(response.getBody());
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertEquals("Test Target Tutti", response.getBody().getOggetto());
+    }
+
+    @Test
+    void testCreateMessaggioAdesioneWithTargetSoloReferentiAdesione() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	// Creo l'Adesione
+    	Adesione adesione = this.getAdesione();
+
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+    	messaggio.setOggetto("Test Target Solo Referenti Adesione");
+    	messaggio.setTesto("Messaggio con target solo referenti adesione");
+    	// Solo referenti adesione
+    	messaggio.setTarget(Arrays.asList(
+    		TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE,
+    		TargetComunicazioneAdesioneEnum.RICHIEDENTE_ADESIONE
+    	));
+    	messaggio.setIncludiTecnici(true);
+
+    	ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+
+    	assertNotNull(response.getBody());
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertEquals("Test Target Solo Referenti Adesione", response.getBody().getOggetto());
+    }
+
+    @Test
+    void testCreateMessaggioAdesioneWithTargetSoloReferentiServizio() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	// Creo l'Adesione
+    	Adesione adesione = this.getAdesione();
+
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+    	messaggio.setOggetto("Test Target Solo Referenti Servizio");
+    	messaggio.setTesto("Messaggio con target solo referenti servizio");
+    	// Solo referenti servizio
+    	messaggio.setTarget(Arrays.asList(
+    		TargetComunicazioneAdesioneEnum.REFERENTI_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.REFERENTI_DOMINIO_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.RICHIEDENTE_SERVIZIO
+    	));
+    	messaggio.setIncludiTecnici(false);
+
+    	ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+
+    	assertNotNull(response.getBody());
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertEquals("Test Target Solo Referenti Servizio", response.getBody().getOggetto());
+    }
+
+    @Test
+    void testCreateMessaggioAdesioneWithTargetDefault() {
+    	// Creo il dominio
+    	Dominio dominio = this.getDominio(null);
+    	// Creo un servizio
+    	this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+    	// Creo API
+    	this.getAPI();
+
+    	//per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+    	CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+    	// Creo l'Adesione
+    	Adesione adesione = this.getAdesione();
+
+    	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
+    	messaggio.setOggetto("Test Target Default");
+    	messaggio.setTesto("Messaggio senza target specificato (default tutti)");
+    	// Nessun target specificato = tutti
+
+    	ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
+
+    	assertNotNull(response.getBody());
+    	assertEquals(HttpStatus.OK, response.getStatusCode());
+    	assertEquals("Test Target Default", response.getBody().getOggetto());
+    }
+
     @Test
     void testCreateReferenteAdesioneSuccess() { 
     	// Creo il dominio
@@ -1020,7 +1149,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        MessaggioCreate messaggio = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
         messaggio.setOggetto("Oggetto Test");
         messaggio.setTesto("Testo del messaggio");
         ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
@@ -1051,7 +1180,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        MessaggioCreate messaggio = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
         messaggio.setOggetto("Oggetto Test");
         messaggio.setTesto("Testo del messaggio");
         ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
@@ -1294,12 +1423,12 @@ public class AdesioniTest {
         List<String> sort = new ArrayList<>();
         sort.add("testo,desc");
         
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
         
-        messaggioCreate = new MessaggioCreate();
+        messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -1317,7 +1446,7 @@ public class AdesioniTest {
         List<ItemComunicazione> comunicazioni = response.getBody().getContent();
         assertTrue(comunicazioni.stream().anyMatch(s -> s.getTesto().equals("z Il testo del Messaggio")));
     }
-    
+
     @Test
     void testListComunicazioniAdesioneSortedNameAsc() {
     	Dominio dominio = this.getDominio(null);
@@ -1325,16 +1454,16 @@ public class AdesioniTest {
         this.getAPI();
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
-        
+
         List<String> sort = new ArrayList<>();
         sort.add("testo,asc");
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
-        messaggioCreate = new MessaggioCreate();
+
+        messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -1352,7 +1481,7 @@ public class AdesioniTest {
         List<ItemComunicazione> comunicazioni = response.getBody().getContent();
         assertTrue(comunicazioni.stream().anyMatch(s -> s.getTesto().equals("a Testo del Messaggio")));
     }
-    
+
     @Test
     void testListComunicazioniAdesioneMultiSorted() {
     	Dominio dominio = this.getDominio(null);
@@ -1360,17 +1489,17 @@ public class AdesioniTest {
         this.getAPI();
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
-        
+
         List<String> sort = new ArrayList<>();
         sort.add("testo,asc");
         sort.add("oggetto,asc");
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
-        messaggioCreate = new MessaggioCreate();
+
+        messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -1400,7 +1529,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
     	for(int num = 0; num < numeroTotaleDiElementi; num++) {
-	        MessaggioCreate messaggioCreate = new MessaggioCreate();
+	        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
 	        messaggioCreate.setOggetto("Oggetto di Test"+num);
 	        messaggioCreate.setTesto("a Testo del Messaggio"+num);
 	        adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -1805,16 +1934,16 @@ public class AdesioniTest {
         List<String> sort = new ArrayList<>();
         sort.add("testo,desc");
         
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
         
-        messaggioCreate = new MessaggioCreate();
+        messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+
         // Invocazione del metodo con sort
         ResponseEntity<PagedModelItemMessaggio> response = adesioniController.listMessaggiAdesione(adesione.getIdAdesione(), null, 0, 10, sort);
 
@@ -1828,7 +1957,7 @@ public class AdesioniTest {
         assertTrue(comunicazioni.stream().anyMatch(s -> s.getTesto().equals("a Testo del Messaggio")));
         assertEquals("z Il testo del Messaggio", comunicazioni.get(0).getTesto());
     }
-    
+
     @Test
     void testListMessaggiAdesioneSortedNameAsc() {
     	Dominio dominio = this.getDominio(null);
@@ -1836,20 +1965,20 @@ public class AdesioniTest {
         this.getAPI();
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
-        
+
         List<String> sort = new ArrayList<>();
         sort.add("testo,asc");
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
-        messaggioCreate = new MessaggioCreate();
+
+        messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+
         // Invocazione del metodo con sort
         ResponseEntity<PagedModelItemMessaggio> response = adesioniController.listMessaggiAdesione(adesione.getIdAdesione(), null, 0, 10, sort);
 
@@ -1863,7 +1992,7 @@ public class AdesioniTest {
         assertTrue(comunicazioni.stream().anyMatch(s -> s.getTesto().equals("z Il testo del Messaggio")));
         assertEquals("a Testo del Messaggio", comunicazioni.get(1).getTesto());
     }
-    
+
     @Test
     void testListMessaggiAdesioneMultiSorted() {
     	Dominio dominio = this.getDominio(null);
@@ -1871,17 +2000,17 @@ public class AdesioniTest {
         this.getAPI();
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
-        
+
         List<String> sort = new ArrayList<>();
         sort.add("testo,asc");
         sort.add("oggetto,asc");
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
-        messaggioCreate = new MessaggioCreate();
+
+        messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -1911,7 +2040,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
     	for(int num = 0; num < numeroTotaleDiElementi; num++) {
-	        MessaggioCreate messaggioCreate = new MessaggioCreate();
+	        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
 	        messaggioCreate.setOggetto("Oggetto di Test"+num);
 	        messaggioCreate.setTesto("a Testo del Messaggio"+num);
 	        adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -4459,7 +4588,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -4480,7 +4609,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -4511,7 +4640,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
@@ -4538,7 +4667,7 @@ public class AdesioniTest {
         CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, servizio.getIdServizio());
         Adesione adesione = this.getAdesione();
 
-        MessaggioCreate messaggioCreate = new MessaggioCreate();
+        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);

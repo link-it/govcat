@@ -30,6 +30,7 @@ import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.servlets.model.AllegatoMessaggioCreate;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
+import org.govway.catalogo.servlets.model.MessaggioAdesioneCreate;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.springframework.beans.BeanUtils;
@@ -62,6 +63,22 @@ public class ItemMessaggioAdesioneAssembler extends RepresentationModelAssembler
 	}
 	
 	public MessaggioAdesioneEntity toEntity(MessaggioCreate src, AdesioneEntity adesione) {
+		MessaggioAdesioneEntity entity = new MessaggioAdesioneEntity();
+		BeanUtils.copyProperties(src, entity);
+		entity.setUuid(UUID.randomUUID().toString());
+		entity.setData(new Date());
+		UtenteEntity utenteSessione = coreEngineAssembler.getUtenteSessione();
+		entity.setUtente(utenteSessione);
+		entity.setAdesione(adesione);
+		if(src.getAllegati()!=null) {
+			for(AllegatoMessaggioCreate allegato: src.getAllegati()) {
+				entity.getAllegati().add(allegatoAssembler.toEntity(allegato, utenteSessione));
+			}
+		}
+		return entity;
+	}
+
+	public MessaggioAdesioneEntity toEntity(MessaggioAdesioneCreate src, AdesioneEntity adesione) {
 		MessaggioAdesioneEntity entity = new MessaggioAdesioneEntity();
 		BeanUtils.copyProperties(src, entity);
 		entity.setUuid(UUID.randomUUID().toString());

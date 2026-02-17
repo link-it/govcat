@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,6 +49,7 @@ import org.govway.catalogo.controllers.csv.AdesioneCsvBuilder;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.business.utils.SchedaAdesioneBuilder;
+import org.govway.catalogo.core.business.utils.TargetComunicazioneAdesioneEnum;
 import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioAdesioneSpecification;
 import org.govway.catalogo.core.dao.specifications.ReferenteAdesioneSpecification;
@@ -93,6 +95,7 @@ import org.govway.catalogo.servlets.model.ItemAdesione;
 import org.govway.catalogo.servlets.model.ItemComunicazione;
 import org.govway.catalogo.servlets.model.ItemErogazioneAdesione;
 import org.govway.catalogo.servlets.model.ItemMessaggio;
+import org.govway.catalogo.servlets.model.MessaggioAdesioneCreate;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.MessaggioUpdate;
 import org.govway.catalogo.servlets.model.OkKoEnum;
@@ -313,21 +316,30 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	@Override
-	public ResponseEntity<ItemMessaggio> createMessaggioAdesione(UUID idAdesione, MessaggioCreate messaggioCreate) {
+	public ResponseEntity<ItemMessaggio> createMessaggioAdesione(UUID idAdesione, MessaggioAdesioneCreate messaggioCreate) {
 		try {
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
-				
+				this.logger.info("Invocazione in corso ...");
+
 				AdesioneEntity entity = findOne(idAdesione);
 
 				MessaggioAdesioneEntity messaggio = this.itemMessaggioAssembler.toEntity(messaggioCreate, entity);
 
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				this.service.save(messaggio);
-				
-				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio);
+
+				// Determina i target della comunicazione (multi-selezione)
+				Set<TargetComunicazioneAdesioneEnum> target = null;
+				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
+					target = messaggioCreate.getTarget().stream()
+						.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
+						.collect(Collectors.toSet());
+				}
+				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
+
+				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio, target, includiTecnici);
 				lstNotifiche.stream().forEach(n -> this.notificaService.save(n));
 
 				ItemMessaggio model = this.itemMessaggioAssembler.toModel(messaggio);

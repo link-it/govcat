@@ -4356,7 +4356,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MessaggioCreate"
+              $ref: "#/components/schemas/MessaggioAdesioneCreate"
         required: true
       responses:
         "201":
@@ -9520,6 +9520,15 @@ components:
         - REFERENTI_DOMINIO
         - RICHIEDENTE
         - ADERENTI
+    TargetComunicazioneAdesioneEnum:
+      type: "string"
+      description: "Target per i destinatari della comunicazione dell'adesione"
+      enum:
+        - REFERENTI_SERVIZIO
+        - REFERENTI_DOMINIO_SERVIZIO
+        - RICHIEDENTE_SERVIZIO
+        - REFERENTI_ADESIONE
+        - RICHIEDENTE_ADESIONE
     MessaggioCreate:
       type: object
       required:
@@ -9534,6 +9543,28 @@ components:
           description: "Lista dei target per i destinatari. Se non specificato, include tutti."
           items:
             $ref: "#/components/schemas/TargetComunicazioneServizioEnum"
+        includi_tecnici:
+          type: boolean
+          default: true
+          description: "Se true, include anche i referenti tecnici nel target selezionato"
+        allegati:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/AllegatoMessaggioCreate'
+    MessaggioAdesioneCreate:
+      type: object
+      required:
+        - oggetto
+      properties:
+        oggetto:
+          $ref: "#/components/schemas/String255"
+        testo:
+          $ref: "#/components/schemas/String4000"
+        target:
+          type: "array"
+          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          items:
+            $ref: "#/components/schemas/TargetComunicazioneAdesioneEnum"
         includi_tecnici:
           type: boolean
           default: true

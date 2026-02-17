@@ -167,20 +167,31 @@ public class NotificheUtils {
 	}
 
 	public List<NotificaEntity> getNotificheMessaggioAdesione(MessaggioAdesioneEntity messaggioAdesione) {
+		// Default: tutti i target
+		Set<TargetComunicazioneAdesioneEnum> tuttiTarget = new HashSet<>(Arrays.asList(TargetComunicazioneAdesioneEnum.values()));
+		return getNotificheMessaggioAdesione(messaggioAdesione, tuttiTarget, true);
+	}
+
+	public List<NotificaEntity> getNotificheMessaggioAdesione(MessaggioAdesioneEntity messaggioAdesione, Set<TargetComunicazioneAdesioneEnum> target, boolean includiTecnici) {
 
 		List<NotificaEntity> notifiche = new ArrayList<>();
 
 		AdesioneEntity adesione = messaggioAdesione.getAdesione();
 		UtenteEntity mittente = messaggioAdesione.getUtente();
 
+		// Se target è null o vuoto, usa tutti i target
+		Set<TargetComunicazioneAdesioneEnum> effectiveTarget = (target == null || target.isEmpty())
+			? new HashSet<>(Arrays.asList(TargetComunicazioneAdesioneEnum.values()))
+			: target;
+
 		// Notifiche push
-		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE);
+		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE, effectiveTarget, includiTecnici);
 		for(UtenteEntity utente: lstUtentiPush) {
 			notifiche.add(getNotifica(mittente, null, adesione, messaggioAdesione.getUuid(), null, messaggioAdesione.getOggetto(), messaggioAdesione.getTesto(), TIPO.COMUNICAZIONE, TIPO_ENTITA.ADESIONE, utente));
 		}
 
 		// Notifiche email
-		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE_EMAIL);
+		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE_EMAIL, effectiveTarget, includiTecnici);
 		for(UtenteEntity utente: lstUtentiEmail) {
 			notifiche.add(getNotifica(mittente, null, adesione, messaggioAdesione.getUuid(), null, messaggioAdesione.getOggetto(), messaggioAdesione.getTesto(), TIPO.COMUNICAZIONE_EMAIL, TIPO_ENTITA.ADESIONE_EMAIL, utente));
 		}
@@ -333,16 +344,39 @@ public class NotificheUtils {
 	}
 
 	private List<UtenteEntity> getDestinatari(UtenteEntity mittente, AdesioneEntity adesione, TIPO tipo) {
+		// Default: tutti i target
+		Set<TargetComunicazioneAdesioneEnum> tuttiTarget = new HashSet<>(Arrays.asList(TargetComunicazioneAdesioneEnum.values()));
+		return getDestinatari(mittente, adesione, tipo, tuttiTarget, true);
+	}
+
+	private List<UtenteEntity> getDestinatari(UtenteEntity mittente, AdesioneEntity adesione, TIPO tipo, Set<TargetComunicazioneAdesioneEnum> target, boolean includiTecnici) {
 		Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari = new HashMap<>();
 
 		boolean isEmail = isEmailTipo(tipo);
 		TIPO_ENTITA tipoEntita = isEmail ? TIPO_ENTITA.ADESIONE_EMAIL : TIPO_ENTITA.ADESIONE;
 
-		addDestinatariAdesione(adesione, destinatari, isEmail);
-
 		ServizioEntity servizio = adesione.getServizio();
 
-		addDestinatariAdesioneServizio(destinatari, servizio, isEmail);
+		// Itera su tutti i target selezionati
+		for (TargetComunicazioneAdesioneEnum t : target) {
+			switch (t) {
+				case REFERENTI_SERVIZIO:
+					addReferentiServizioAdesione(destinatari, servizio, includiTecnici, isEmail);
+					break;
+				case REFERENTI_DOMINIO_SERVIZIO:
+					addReferentiDominioServizioAdesione(destinatari, servizio, includiTecnici, isEmail);
+					break;
+				case RICHIEDENTE_SERVIZIO:
+					addRichiedenteServizioAdesione(destinatari, servizio, isEmail);
+					break;
+				case REFERENTI_ADESIONE:
+					addReferentiAdesione(destinatari, adesione, includiTecnici, isEmail);
+					break;
+				case RICHIEDENTE_ADESIONE:
+					addRichiedenteAdesione(destinatari, adesione, isEmail);
+					break;
+			}
+		}
 
 		return getDestinatari(mittente, destinatari, tipo, tipoEntita);
 
@@ -471,23 +505,63 @@ public class NotificheUtils {
 		}
 	}
 
-	private void addDestinatariAdesioneServizio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio) {
-		addDestinatariAdesioneServizio(destinatari, servizio, false);
+	// Metodi helper per target comunicazioni adesioni
+
+	private void addReferentiServizioAdesione(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean includiTecnici, boolean isEmail) {
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
+		} else {
+			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
+		}
 	}
 
-	private void addDestinatariAdesioneServizio(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean isEmail) {
+	private void addReferentiDominioServizioAdesione(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean includiTecnici, boolean isEmail) {
 		if (isEmail) {
 			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_DOMINIO_EMAIL, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_DOMINIO_EMAIL, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_SERVIZIO_EMAIL, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_SERVIZIO_EMAIL, Arrays.asList(servizio.getRichiedente()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_DOMINIO_EMAIL, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
 		} else {
 			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_DOMINIO, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_DOMINIO, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
-			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_SERVIZIO, servizio.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_DOMINIO, servizio.getDominio().getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
+		}
+	}
+
+	private void addRichiedenteServizioAdesione(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, ServizioEntity servizio, boolean isEmail) {
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_SERVIZIO_EMAIL, Arrays.asList(servizio.getRichiedente()));
+		} else {
 			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_SERVIZIO, Arrays.asList(servizio.getRichiedente()));
+		}
+	}
+
+	private void addReferentiAdesione(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, AdesioneEntity adesione, boolean includiTecnici, boolean isEmail) {
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_ADESIONE_EMAIL, adesione.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_ADESIONE_EMAIL, adesione.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
+		} else {
+			destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_ADESIONE, adesione.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			if (includiTecnici) {
+				destinatari.put(RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_ADESIONE, adesione.getReferenti().stream().filter(r -> r.getTipo().equals(TIPO_REFERENTE.REFERENTE_TECNICO)).map(r -> r.getReferente()).collect(Collectors.toList()));
+			}
+		}
+	}
+
+	private void addRichiedenteAdesione(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, AdesioneEntity adesione, boolean isEmail) {
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE_EMAIL, Arrays.asList(adesione.getRichiedente()));
+		} else {
+			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE, Arrays.asList(adesione.getRichiedente()));
 		}
 	}
 
