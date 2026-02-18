@@ -105,6 +105,10 @@ public class UtenteService extends AbstractService {
 		this.utenteRepo.save(utente);
 	}
 
+	public void saveAndFlush(UtenteEntity utente) {
+		this.utenteRepo.saveAndFlush(utente);
+	}
+
 	public boolean existsByKey(UUID idUtente) {
 		return this.utenteRepo.findOne(filterByKey(idUtente)).isPresent();
 	}

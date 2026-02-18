@@ -362,8 +362,8 @@ public class UtentiController implements UtentiApi {
 					entity.setStato(Stato.DISABILITATO);
 					entity.setOrganizzazionePending(null);
 
-					// Salva entrambi
-					this.service.save(entity);
+					// Salva entrambi (flush per liberare il principal prima di inserire il nuovo utente)
+					this.service.saveAndFlush(entity);
 					this.service.save(nuovoUtente);
 
 					Utente model = this.dettaglioAssembler.toModel(nuovoUtente);
