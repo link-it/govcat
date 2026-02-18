@@ -165,12 +165,12 @@ public abstract class AbstractRequestUtils implements RequestUtils {
                 if (p.utente == null) {
                     throw new NotAuthorizedException(ErrorCode.UT_404);
                 }
-                if (!p.utente.getStato().equals(Stato.ABILITATO)) {
+                if (!isStatoOperativo(p.utente.getStato())) {
                     throw new NotAuthorizedException(ErrorCode.UT_403);
                 }
             }
             if (configurazione.getUtente().isAggiornamentoIdmAbilitato() && p.utente != null
-                    && p.utente.getStato().equals(Stato.ABILITATO)) {
+                    && isStatoOperativo(p.utente.getStato())) {
                 // updateContact(p.utente); //TODO
             }
 
@@ -280,6 +280,15 @@ public abstract class AbstractRequestUtils implements RequestUtils {
     // ========================================================================
     // Metodi privati/protetti di utilità
     // ========================================================================
+
+    /**
+     * Verifica se lo stato utente è operativo (può utilizzare l'applicativo).
+     * PENDING_UPDATE è considerato operativo perché l'utente deve poter continuare
+     * a lavorare mentre attende l'approvazione del cambio organizzazione.
+     */
+    private boolean isStatoOperativo(Stato stato) {
+        return stato == Stato.ABILITATO || stato == Stato.PENDING_UPDATE;
+    }
 
     private OrganizzazioneEntity getOrganizzazioneDB() {
         String orgUntrimmed = this.getOrganization();

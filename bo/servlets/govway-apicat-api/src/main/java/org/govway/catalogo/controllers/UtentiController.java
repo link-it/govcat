@@ -310,16 +310,75 @@ public class UtentiController implements UtentiApi {
 	public ResponseEntity<Utente> updateUtente(UUID idUtente, UtenteUpdate utenteUpdate) {
 		try {
 			return this.service.runTransaction( () -> {
-				
-				this.logger.info("Invocazione in corso ...");     
+
+				this.logger.info("Invocazione in corso ...");
 				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// Validazione per approvazione cambio organizzazione
+				boolean wasInPendingUpdate = entity.getStato().equals(Stato.PENDING_UPDATE);
+				UUID pendingOrgId = null;
+				if (wasInPendingUpdate) {
+					// Verifica che l'organizzazione inviata corrisponda a quella pending
+					if (entity.getOrganizzazionePending() == null) {
+						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+					}
+					pendingOrgId = UUID.fromString(entity.getOrganizzazionePending().getIdOrganizzazione());
+					if (utenteUpdate.getIdOrganizzazione() == null || !utenteUpdate.getIdOrganizzazione().equals(pendingOrgId)) {
+						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+					}
+				}
+
+				// Gestione approvazione cambio organizzazione
+				if (wasInPendingUpdate && entity.getOrganizzazione() != null) {
+					// Caso 1: Utente con organizzazione esistente -> crea nuovo utente, archivia vecchio
+					String originalPrincipal = entity.getPrincipal();
+
+					// Costruisci UtenteCreate dai dati di UtenteUpdate
+					UtenteCreate utenteCreate = new UtenteCreate();
+					utenteCreate.setPrincipal(originalPrincipal);
+					utenteCreate.setNome(utenteUpdate.getNome());
+					utenteCreate.setCognome(utenteUpdate.getCognome());
+					utenteCreate.setTelefono(utenteUpdate.getTelefono());
+					utenteCreate.setEmail(utenteUpdate.getEmail());
+					utenteCreate.setTelefonoAziendale(utenteUpdate.getTelefonoAziendale());
+					utenteCreate.setEmailAziendale(utenteUpdate.getEmailAziendale());
+					utenteCreate.setNote(utenteUpdate.getNote());
+					utenteCreate.setReferenteTecnico(utenteUpdate.isReferenteTecnico());
+					utenteCreate.setRuolo(utenteUpdate.getRuolo());
+					utenteCreate.setClassiUtente(utenteUpdate.getClassiUtente());
+					// Imposta nuova organizzazione e stato ABILITATO (forzato)
+					utenteCreate.setIdOrganizzazione(pendingOrgId);
+					utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+
+					// Crea nuovo utente tramite assembler
+					UtenteEntity nuovoUtente = this.dettaglioAssembler.toEntity(utenteCreate);
+
+					// Archivia utente vecchio: modifica principal e disabilita
+					entity.setPrincipal(originalPrincipal + ".archived." + System.currentTimeMillis());
+					entity.setStato(Stato.DISABILITATO);
+					entity.setOrganizzazionePending(null);
+
+					// Salva entrambi (flush per liberare il principal prima di inserire il nuovo utente)
+					this.service.saveAndFlush(entity);
+					this.service.save(nuovoUtente);
+
+					Utente model = this.dettaglioAssembler.toModel(nuovoUtente);
+					this.logger.info("Invocazione completata con successo - creato nuovo utente per cambio organizzazione");
+					return ResponseEntity.ok(model);
+				}
 
 				this.dettaglioAssembler.toEntity(utenteUpdate, entity);
-	
+
+				// Se era in PENDING_UPDATE senza organizzazione precedente, imposta stato ABILITATO e pulisci organizzazionePending
+				if (wasInPendingUpdate) {
+					entity.setStato(Stato.ABILITATO);
+					entity.setOrganizzazionePending(null);
+				}
+
 				this.service.save(entity);
 				Utente model = this.dettaglioAssembler.toModel(entity);
 
