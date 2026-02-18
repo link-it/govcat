@@ -1541,6 +1541,20 @@
 				"Profile": "Profile",
 				"Settings": "Settings"
 			},
+			"ORGANIZATION": {
+				"ChangeTitle": "Change organization",
+				"ChangeWarning": "The organization assignment request must be approved by an administrator. In the meantime, your account may have limited functionality.",
+				"ChangeWarningWithOrg": "**Warning: this operation is irreversible.** If approved, a **new user** will be created with the same principal and the new organization, while the **current user will be disabled** and will no longer be able to access the application with the current organization. The request must be approved by an administrator.",
+				"ChangeButton": "Request organization change",
+				"PendingLabel": "Requested organization",
+				"PendingMessage": "You have a pending organization change request to: **{{orgName}}**. The request is awaiting administrator approval.",
+				"CurrentLabel": "Current organization",
+				"RequestSent": "Organization change request sent successfully",
+				"ApproveTitle": "Approve organization change",
+				"ApproveWarning": "Do you confirm you want to approve the organization change request? A **new user** will be created with the same principal and the new organization. The **current user will be disabled** and will no longer be able to access the application with the current organization.",
+				"ApproveWarningFirstOrg": "Do you confirm you want to approve the organization assignment request? The user will be associated with the new organization.",
+				"ApproveButton": "Approve"
+			},
 			"EMAIL_VERIFICATION": {
 				"TITLE": "Modify email",
 				"MESSAGE": {
@@ -2190,7 +2204,8 @@
 				"disabilitato": "Not enabled",
 				"Disabled": "Disabled",
 				"Enabled": "Enabled",
-				"non_configurato": "Not configured"
+				"non_configurato": "Not configured",
+				"pending_update": "Pending approval"
 			},
 			"TITLE": {
 				"GeneralInformations": "General informations",

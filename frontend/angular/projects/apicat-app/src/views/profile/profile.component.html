@@ -96,14 +96,32 @@
                                 <div class="card mb-4">
                                     <div class="card-body">
                                         <ul class="list-group list-group-flush">
-                                            <li class="list-group-item py-3" *ngIf="profile?.organizzazione">
+                                            <li class="list-group-item py-3">
                                                 <div class="row">
                                                     <div class="col-sm-3">
                                                         <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Organization' | translate }}</p>
                                                     </div>
                                                     <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.organizzazione?.nome }}</p>
-                                                        <p class="text-muted mb-0" *ngIf="profile?.organizzazione?.descrizione !== profile?.organizzazione?.nome">{{ profile?.organizzazione?.descrizione }}</p>
+                                                        <ng-container *ngIf="profile?.organizzazione; else noOrganizzazione">
+                                                            <p class="text-muted mb-0">{{ profile?.organizzazione?.nome }}</p>
+                                                            <p class="text-muted mb-0" *ngIf="profile?.organizzazione?.descrizione !== profile?.organizzazione?.nome">{{ profile?.organizzazione?.descrizione }}</p>
+                                                        </ng-container>
+                                                        <ng-template #noOrganizzazione>
+                                                            <p class="text-muted mb-0">--</p>
+                                                        </ng-template>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="list-group-item py-3" *ngIf="profile?.organizzazione_pending">
+                                                <div class="row">
+                                                    <div class="col-sm-3">
+                                                        <p class="mb-0">{{ 'APP.PROFILE.ORGANIZATION.PendingLabel' | translate }}</p>
+                                                    </div>
+                                                    <div class="col-sm-9">
+                                                        <p class="text-muted mb-0">
+                                                            {{ profile?.organizzazione_pending?.nome }}
+                                                            <span class="badge bg-warning ms-2">{{ 'APP.USERS.STATUS.pending_update' | translate }}</span>
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </li>
@@ -203,6 +221,55 @@
                                         ></lnk-form-field>
                                     </div>
                                 </div>
+
+                                <!-- Organizzazione change section (outside formGroup) -->
+                                <div class="alert alert-warning mb-4 pb-0" *ngIf="profile?.organizzazione_pending">
+                                    <div class="">
+                                        <div class="d-flex align-items-start">
+                                            <i class="bi bi-info-circle text-warning me-2"></i>
+                                            <span markdown>{{ 'APP.PROFILE.ORGANIZATION.PendingMessage' | translate: { orgName: profile?.organizzazione_pending?.nome } }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3" *ngIf="!profile?.organizzazione_pending">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="organizzazione" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.CurrentLabel' | translate }}</label>
+                                            <ng-select
+                                                [items]="organizzazioni$ | async"
+                                                bindLabel="nome"
+                                                [trackByFn]="trackByFn"
+                                                [minTermLength]="minLengthTerm"
+                                                [loading]="organizzazioniLoading"
+                                                [clearable]="!profile?.organizzazione"
+                                                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                                                [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                                                [typeahead]="organizzazioniInput$"
+                                                [(ngModel)]="selectedOrganizzazione"
+                                                [ngModelOptions]="{standalone: true}"
+                                            >
+                                                <ng-template ng-label-tmp let-item="item">
+                                                    {{ item.nome }}
+                                                </ng-template>
+                                                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                                    <div class="fw-bold">{{ item.nome }}</div>
+                                                </ng-template>
+                                            </ng-select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 d-flex flex-column">
+                                        <span class="form-label">&nbsp;</span>
+                                        <div class="px-2">
+                                            <button type="button" class="btn btn-warning gl-button"
+                                                [disabled]="!selectedOrganizzazione || selectedOrganizzazione?.id_organizzazione === profile?.organizzazione?.id_organizzazione"
+                                                (click)="requestOrganizationChange(selectedOrganizzazione?.id_organizzazione)">
+                                                {{ 'APP.PROFILE.ORGANIZATION.ChangeButton' | translate }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row">
                                     <div class="col-6">
                                         <lnk-form-field

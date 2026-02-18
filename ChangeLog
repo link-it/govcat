@@ -1,3 +1,11 @@
+2026-02-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #168
+	Aggiunta visualizzazione e richiesta cambio organizzazione nel profilo utente
+	Aggiunta gestione approvazione cambio organizzazione nel dettaglio utente (admin)
+	Aggiunto stato pending_update con badge nella lista utenti
+
 2026-02-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
