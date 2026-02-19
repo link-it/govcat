@@ -6545,6 +6545,22 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneCambioStato'
+        stati_dashboard:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneStatoDashboard'
+    ConfigurazioneStatoDashboard:
+      type: "object"
+      required:
+        - ruolo
+        - stati
+      properties:
+        ruolo:
+          $ref: '#/components/schemas/ConfigurazioneRuolo'
+        stati:
+          type: "array"
+          items:
+            type: "string"
     ConfigurazioneAmbienteDefaultDashboard:
       type: "string"
       enum:
