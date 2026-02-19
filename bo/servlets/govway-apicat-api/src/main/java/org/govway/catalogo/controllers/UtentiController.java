@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -577,6 +578,48 @@ public class UtentiController implements UtentiApi {
 				
 				return ResponseEntity.ok(contact);
 			}
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<ProfiloRuoli> getProfiloRuoli() {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione getProfiloRuoli in corso ...");
+
+				InfoProfilo current = this.requestUtils.getPrincipal(false);
+
+				if(current == null || current.utente == null) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
+				}
+
+				UtenteEntity utente = current.utente;
+
+				ProfiloRuoli profiloRuoli = new ProfiloRuoli();
+
+				// Imposta il ruolo utente
+				if (utente.getRuolo() != null) {
+					profiloRuoli.setRuolo(this.engineAssembler.toRuolo(utente.getRuolo()));
+				}
+
+				// Imposta i ruoli di referente
+				Set<String> ruoliStrings = this.service.getRuoliReferente(utente);
+				List<RuoloReferenteEnum> ruoliReferente = ruoliStrings.stream()
+					.map(r -> RuoloReferenteEnum.fromValue(r.toLowerCase()))
+					.collect(Collectors.toList());
+				profiloRuoli.setRuoliReferente(ruoliReferente);
+
+				this.logger.info("Invocazione getProfiloRuoli completata con successo");
+				return ResponseEntity.ok(profiloRuoli);
 			});
 		}
 		catch(RuntimeException e) {

@@ -246,6 +246,27 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /profilo/ruoli:
+    get:
+      tags:
+      - "Utenti"
+      description: "Restituisce il ruolo dell'utente corrente e tutti i ruoli di referente ricoperti (referente dominio, servizio, adesione)"
+      operationId: "getProfiloRuoli"
+      responses:
+        "200":
+          description: "Ruoli dell'utente"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfiloRuoli"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /registrazione/stato:
     get:
       tags:
@@ -8441,6 +8462,28 @@ components:
         - abilitato
         - disabilitato
         - pending_update
+    ProfiloRuoli:
+      type: "object"
+      description: "Ruoli dell'utente corrente"
+      properties:
+        ruolo:
+          $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruoli_referente:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuoloReferenteEnum"
+    RuoloReferenteEnum:
+      type: "string"
+      description: "Ruolo di referente ricoperto dall'utente"
+      enum:
+        - referente_dominio
+        - referente_tecnico_dominio
+        - referente_servizio
+        - referente_tecnico_servizio
+        - referente_adesione
+        - referente_tecnico_adesione
+        - richiedente_servizio
+        - richiedente_adesione
     RuoloUtenteEnum:
       type: "string"
       enum:

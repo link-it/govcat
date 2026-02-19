@@ -19,9 +19,14 @@
  */
 package org.govway.catalogo.core.dao.repositories;
 
+import java.util.List;
+
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 public interface ReferenteAdesioneRepository extends JpaRepositoryImplementation<ReferenteAdesioneEntity, Long> {
+
+	List<ReferenteAdesioneEntity> findByReferente(UtenteEntity referente);
 
 }
