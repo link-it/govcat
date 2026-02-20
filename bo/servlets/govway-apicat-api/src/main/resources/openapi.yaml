@@ -2106,6 +2106,7 @@ paths:
       - $ref: "#/components/parameters/profilo_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
       - $ref: "#/components/parameters/miei_servizi_query_optional"
+      - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/adesione_consentita_query_optional"
       - $ref: "#/components/parameters/nome_query_optional"
       - $ref: "#/components/parameters/versione_query_optional"
@@ -9163,6 +9164,10 @@ components:
           $ref: "#/components/schemas/String255"
         eliminabile:
           type: "boolean"
+        ruoli_referente:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuoloReferenteEnum"
     ServizioCreate:
       type: "object"
       required:
@@ -10578,6 +10583,14 @@ components:
       required: false
       schema:
         type: "boolean"
+    dashboard_query_optional:
+      name: "dashboard"
+      in: "query"
+      description: "Filtra i servizi in base agli stati gestibili dall'utente tramite dashboard"
+      required: false
+      schema:
+        type: "boolean"
+        default: false
     adesione_consentita_query_optional:
       name: "adesione_consentita"
       in: "query"
