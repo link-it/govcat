@@ -77,6 +77,7 @@ export class DashboardComponent implements OnInit {
   serviziStatusConfig: any = {};
   adesioniStatusConfig: any = {};
   clientStatusConfig: any = {};
+  comunicazioniStatusConfig: any = {};
   utentiStatusConfig: any = {};
 
   // Expanded view state
@@ -117,24 +118,26 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this._initRoleConfig();
     this._loadConfigs();
-    this._loadData();
   }
 
   private _loadConfigs() {
     const appConfig = this.configService.getConfiguration();
     this.hideVersions = appConfig?.AppConfig?.Services?.hideVersions || false;
 
+    // Dashboard config deve essere caricato prima di _initRoleConfig/_loadData
     this.configService.getConfig('dashboard').subscribe((config: any) => {
       this.showSummaryCards = config?.showSummaryCards !== false;
       this.sectionsConfig = config?.sections || {};
+      this._initRoleConfig();
     });
     this.configService.getConfig('servizi').subscribe((config: any) => {
       this.serviziStatusConfig = config?.options?.status?.values || {};
+      this._updateComunicazioniStatusConfig();
     });
     this.configService.getConfig('adesioni').subscribe((config: any) => {
       this.adesioniStatusConfig = config?.options?.status?.values || {};
+      this._updateComunicazioniStatusConfig();
     });
     this.configService.getConfig('client').subscribe((config: any) => {
       const status = config?.options?.status?.values || {};
@@ -177,9 +180,14 @@ export class DashboardComponent implements OnInit {
       case 'servizi': return this.serviziStatusConfig;
       case 'adesioni': return this.adesioniStatusConfig;
       case 'client': return this.clientStatusConfig;
+      case 'comunicazioni': return this.comunicazioniStatusConfig;
       case 'utenti': return this.utentiStatusConfig;
       default: return {};
     }
+  }
+
+  private _updateComunicazioniStatusConfig() {
+    this.comunicazioniStatusConfig = { ...this.serviziStatusConfig, ...this.adesioniStatusConfig };
   }
 
   getStatusStyle(stato: string): { [key: string]: string } {
@@ -204,7 +212,28 @@ export class DashboardComponent implements OnInit {
   private _initRoleConfig() {
     const user: any = this.authenticationService.getUser();
     const ruolo = user?.ruolo || '';
-    this.roleConfig = this.dashboardService.getRoleConfig(ruolo);
+
+    // Per gestore/coordinatore: config immediata, non serve GET /profilo/ruoli
+    if (ruolo === 'gestore' || ruolo === 'coordinatore') {
+      this.roleConfig = this.dashboardService.computeRoleConfig(ruolo, []);
+      this._loadData();
+      return;
+    }
+
+    // Per referente: prima fetch ruoli, poi config, poi dati
+    this.dashboardService.getRuoliProfilo().subscribe({
+      next: (profilo) => {
+        this.roleConfig = this.dashboardService.computeRoleConfig(
+          profilo.ruolo, profilo.ruoli_referente || []
+        );
+        this._loadData();
+      },
+      error: () => {
+        // Fallback: solo comunicazioni
+        this.roleConfig = this.dashboardService.computeRoleConfig(ruolo, []);
+        this._loadData();
+      }
+    });
   }
 
   private _loadData() {

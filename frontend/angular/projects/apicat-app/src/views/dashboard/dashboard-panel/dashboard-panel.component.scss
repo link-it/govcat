@@ -39,6 +39,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       height: 176px;
       overflow-y: auto;
       flex: 0 0 auto;
+
+      .empty-state {
+        height: 100%;
+      }
     }
 
     .list-group-item {

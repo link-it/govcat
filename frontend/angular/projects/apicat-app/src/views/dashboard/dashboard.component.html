@@ -157,6 +157,7 @@
           [panelType]="'comunicazioni'"
           [loading]="loadingComunicazioni"
           [borderColor]="getSectionBorderColor('comunicazioni')"
+          [statusConfig]="comunicazioniStatusConfig"
           (viewAll)="onViewAll($event)"
           (viewItem)="onViewItem($event, 'comunicazioni')">
         </app-dashboard-panel>
@@ -232,8 +233,9 @@
             <span class="spinner-border spinner-border-sm" [ngStyle]="{'color': getSectionBorderColor(expandedSection)}"></span>
           </div>
 
-          <div class="text-center py-4 text-muted small" *ngIf="!expandedLoading && expandedItems.length === 0">
-            {{ 'APP.DASHBOARD_PENDING.NoResults' | translate }}
+          <div class="d-flex flex-column align-items-center justify-content-center py-5" *ngIf="!expandedLoading && expandedItems.length === 0">
+            <i class="bi bi-check-circle fs-1 text-success mb-2"></i>
+            <span class="fw-semibold">{{ 'APP.DASHBOARD_PENDING.NoResults' | translate }}</span>
           </div>
 
           <div class="list-group list-group-flush" *ngIf="expandedItems.length > 0">
@@ -286,11 +288,14 @@
               <a *ngFor="let item of expandedItems" class="list-group-item list-group-item-action" (click)="onExpandedViewItem(item)">
                 <div class="d-flex justify-content-between align-items-start">
                   <div class="text-truncate me-2">
-                    <span class="fw-semibold">{{ item.oggetto }}</span>
+                    <span class="fw-semibold">{{ item.entita?.servizio?.nome || item.entita?.tipo_entita_padre }}</span>
                   </div>
                   <small class="text-muted text-nowrap ms-1">{{ formatDate(item.data) }}</small>
                 </div>
-                <small class="text-muted">{{ item.entita?.nome }} ({{ item.entita?.tipo }})</small>
+                <div class="d-flex align-items-center gap-1 mt-1">
+                  <small class="text-muted">{{ ('APP.TOOLTIP.TYPE.' + item.tipo?.tipo) | translate }}</small>
+                  <span class="badge text-nowrap" *ngIf="item.tipo?.stato" [ngStyle]="getStatusStyle(item.tipo.stato)">{{ getStatusLabel(item.tipo.stato) | translate }}</span>
+                </div>
               </a>
             </ng-container>
 

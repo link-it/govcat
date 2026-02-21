@@ -55,15 +55,17 @@ export interface DashboardItemClient {
 }
 
 export interface DashboardItemComunicazione {
-  uuid: string;
-  tipo: string;
+  id_notifica: string;
+  stato: string;
+  mittente: { id_utente: string; nome: string; cognome: string };
+  entita: {
+    id_entita: string;
+    servizio?: { id_servizio: string; nome: string; versione: string; stato: string };
+    adesione?: any;
+    tipo_entita_padre: string;
+  };
+  tipo: { tipo: string; stato?: string };
   data: string;
-  oggetto: string;
-  stato?: string;
-  testo?: string;
-  autore: { id_utente: string; nome: string; cognome: string };
-  allegati?: any[];
-  entita: { tipo: 'servizio' | 'adesione'; id: string; nome: string };
 }
 
 export interface DashboardItemUtente {
@@ -88,3 +90,9 @@ export interface DashboardRoleConfig {
   comunicazioni: boolean;
   utenti: boolean;
 }
+
+export interface ProfiloRuoli {
+  ruolo: string;               // 'gestore' | 'coordinatore' | 'referente'
+  ruoli_referente: string[];   // es. ['referente_dominio', 'referente_servizio']
+}
+
