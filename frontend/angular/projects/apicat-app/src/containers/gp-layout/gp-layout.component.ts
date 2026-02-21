@@ -530,7 +530,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     initMainMenu() {
         this.navItems = [];
         if (!this.authenticationService.isAnonymous()) {
-            this.navItems = [...navItemsDashboardMenu];
+            const ruolo = this.authenticationService.getRole();
+            if (ruolo === 'gestore' || ruolo === 'coordinatore' || ruolo === 'referente') {
+                this.navItems = [...navItemsDashboardMenu];
+            }
         }
         this.navItems = [...this.navItems, ...this.prepareNavigation()];
         if (this.authenticationService.isGestore()) {

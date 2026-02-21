@@ -22,6 +22,7 @@ import { RouterModule, Routes, PreloadAllModules } from '@angular/router';
 import { AuthGuard } from '../guard/auth.guard';
 import { GestoreGuard } from '../guard/gestore.guard';
 import { ForbidAnonymousGuard } from '../guard/forbid-anonymous.guard';
+import { DashboardGuard } from '../guard/dashboard.guard';
 import { RegistrazioneGuard } from '../guard/registrazione.guard';
 
 import { GpLayoutComponent, SimpleLayoutComponent } from '../containers';
@@ -67,7 +68,7 @@ const routes: Routes = [
       },
       {
         path: 'dashboard',
-        canActivate: [ForbidAnonymousGuard],
+        canActivate: [DashboardGuard],
         loadChildren: () => import('../views/dashboard/dashboard.module').then(m => m.DashboardModule)
       },
       {

@@ -43,6 +43,7 @@ import { NotificationsService } from '@services/notifications.service';
 import { AuthGuard } from '../guard';
 import { GestoreGuard } from '@app/guard/gestore.guard';
 import { ForbidAnonymousGuard } from '@app/guard/forbid-anonymous.guard';
+import { DashboardGuard } from '@app/guard/dashboard.guard';
 import { CategorieGuard } from '@app/guard/categorie.guard';
 import { MonitoraggioGuard } from '@app/guard/monitoraggio.guard';
 import { RegistrazioneGuard } from '@app/guard/registrazione.guard';
@@ -144,6 +145,7 @@ export function storageFactory() : OAuthStorage {
     AuthGuard,
     GestoreGuard,
     ForbidAnonymousGuard,
+    DashboardGuard,
     CategorieGuard,
     MonitoraggioGuard,
     RegistrazioneGuard,
