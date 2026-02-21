@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,9 +39,11 @@ import org.govway.catalogo.assembler.UtenteItemAssembler;
 import org.govway.catalogo.authorization.UtenteAuthorization;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Stato;
 import org.govway.catalogo.core.services.ClasseUtenteService;
+import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.core.services.EmailUpdateVerificationService;
 import org.govway.catalogo.core.orm.entity.EmailUpdateVerificationEntity;
@@ -76,6 +79,9 @@ public class UtentiController implements UtentiApi {
 
 	@Autowired
 	private ClasseUtenteService classeUtenteService;
+
+	@Autowired
+	private OrganizzazioneService organizzazioneService;
 
 	@Autowired
 	private PagedResourcesAssembler<UtenteEntity> pagedResourceAssembler;
@@ -305,16 +311,75 @@ public class UtentiController implements UtentiApi {
 	public ResponseEntity<Utente> updateUtente(UUID idUtente, UtenteUpdate utenteUpdate) {
 		try {
 			return this.service.runTransaction( () -> {
-				
-				this.logger.info("Invocazione in corso ...");     
+
+				this.logger.info("Invocazione in corso ...");
 				UtenteEntity entity = this.service.find(idUtente)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, Map.of("idUtente", idUtente.toString())));
 
 				this.authorization.authorizeUpdate(utenteUpdate, entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
+
+				// Validazione per approvazione cambio organizzazione
+				boolean wasInPendingUpdate = entity.getStato().equals(Stato.PENDING_UPDATE);
+				UUID pendingOrgId = null;
+				if (wasInPendingUpdate) {
+					// Verifica che l'organizzazione inviata corrisponda a quella pending
+					if (entity.getOrganizzazionePending() == null) {
+						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+					}
+					pendingOrgId = UUID.fromString(entity.getOrganizzazionePending().getIdOrganizzazione());
+					if (utenteUpdate.getIdOrganizzazione() == null || !utenteUpdate.getIdOrganizzazione().equals(pendingOrgId)) {
+						throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+					}
+				}
+
+				// Gestione approvazione cambio organizzazione
+				if (wasInPendingUpdate && entity.getOrganizzazione() != null) {
+					// Caso 1: Utente con organizzazione esistente -> crea nuovo utente, archivia vecchio
+					String originalPrincipal = entity.getPrincipal();
+
+					// Costruisci UtenteCreate dai dati di UtenteUpdate
+					UtenteCreate utenteCreate = new UtenteCreate();
+					utenteCreate.setPrincipal(originalPrincipal);
+					utenteCreate.setNome(utenteUpdate.getNome());
+					utenteCreate.setCognome(utenteUpdate.getCognome());
+					utenteCreate.setTelefono(utenteUpdate.getTelefono());
+					utenteCreate.setEmail(utenteUpdate.getEmail());
+					utenteCreate.setTelefonoAziendale(utenteUpdate.getTelefonoAziendale());
+					utenteCreate.setEmailAziendale(utenteUpdate.getEmailAziendale());
+					utenteCreate.setNote(utenteUpdate.getNote());
+					utenteCreate.setReferenteTecnico(utenteUpdate.isReferenteTecnico());
+					utenteCreate.setRuolo(utenteUpdate.getRuolo());
+					utenteCreate.setClassiUtente(utenteUpdate.getClassiUtente());
+					// Imposta nuova organizzazione e stato ABILITATO (forzato)
+					utenteCreate.setIdOrganizzazione(pendingOrgId);
+					utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+
+					// Crea nuovo utente tramite assembler
+					UtenteEntity nuovoUtente = this.dettaglioAssembler.toEntity(utenteCreate);
+
+					// Archivia utente vecchio: modifica principal e disabilita
+					entity.setPrincipal(originalPrincipal + ".archived." + System.currentTimeMillis());
+					entity.setStato(Stato.DISABILITATO);
+					entity.setOrganizzazionePending(null);
+
+					// Salva entrambi (flush per liberare il principal prima di inserire il nuovo utente)
+					this.service.saveAndFlush(entity);
+					this.service.save(nuovoUtente);
+
+					Utente model = this.dettaglioAssembler.toModel(nuovoUtente);
+					this.logger.info("Invocazione completata con successo - creato nuovo utente per cambio organizzazione");
+					return ResponseEntity.ok(model);
+				}
 
 				this.dettaglioAssembler.toEntity(utenteUpdate, entity);
-	
+
+				// Se era in PENDING_UPDATE senza organizzazione precedente, imposta stato ABILITATO e pulisci organizzazionePending
+				if (wasInPendingUpdate) {
+					entity.setStato(Stato.ABILITATO);
+					entity.setOrganizzazionePending(null);
+				}
+
 				this.service.save(entity);
 				Utente model = this.dettaglioAssembler.toModel(entity);
 
@@ -356,6 +421,47 @@ public class UtentiController implements UtentiApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				this.dettaglioAssembler.toEntity(profiloUpdate, entity);
+
+				this.service.save(entity);
+				Utente model = this.dettaglioAssembler.toModel(entity);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(model);
+			});
+
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<Utente> updateProfiloOrganization(ProfiloOrganizationUpdate profiloOrganizationUpdate) {
+		try {
+			return this.service.runTransaction(() -> {
+
+				this.logger.info("Invocazione in corso ...");
+				InfoProfilo current = this.requestUtils.getPrincipal(false);
+
+				if(current == null || current.utente == null) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
+				}
+
+				UtenteEntity entity = current.utente;
+
+				// Recupera la nuova organizzazione
+				OrganizzazioneEntity nuovaOrg = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazione())
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404));
+
+				// Imposta organizzazione pending e stato
+				entity.setOrganizzazionePending(nuovaOrg);
+				entity.setStato(Stato.PENDING_UPDATE);
 
 				this.service.save(entity);
 				Utente model = this.dettaglioAssembler.toModel(entity);
@@ -472,6 +578,48 @@ public class UtentiController implements UtentiApi {
 				
 				return ResponseEntity.ok(contact);
 			}
+			});
+		}
+		catch(RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
+			throw e;
+		}
+		catch(Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " +e.getMessage(),e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
+	}
+
+	@Override
+	public ResponseEntity<ProfiloRuoli> getProfiloRuoli() {
+		try {
+			return this.service.runTransaction(() -> {
+				this.logger.info("Invocazione getProfiloRuoli in corso ...");
+
+				InfoProfilo current = this.requestUtils.getPrincipal(false);
+
+				if(current == null || current.utente == null) {
+					throw new NotAuthorizedException(ErrorCode.AUT_403);
+				}
+
+				UtenteEntity utente = current.utente;
+
+				ProfiloRuoli profiloRuoli = new ProfiloRuoli();
+
+				// Imposta il ruolo utente
+				if (utente.getRuolo() != null) {
+					profiloRuoli.setRuolo(this.engineAssembler.toRuolo(utente.getRuolo()));
+				}
+
+				// Imposta i ruoli di referente
+				Set<String> ruoliStrings = this.service.getRuoliReferente(utente);
+				List<RuoloReferenteEnum> ruoliReferente = ruoliStrings.stream()
+					.map(r -> RuoloReferenteEnum.fromValue(r.toLowerCase()))
+					.collect(Collectors.toList());
+				profiloRuoli.setRuoliReferente(ruoliReferente);
+
+				this.logger.info("Invocazione getProfiloRuoli completata con successo");
+				return ResponseEntity.ok(profiloRuoli);
 			});
 		}
 		catch(RuntimeException e) {

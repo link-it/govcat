@@ -51,7 +51,7 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "utenti")
 public class UtenteEntity {
 	
-	public enum Stato {DISABILITATO, NON_CONFIGURATO, ABILITATO}
+	public enum Stato {DISABILITATO, NON_CONFIGURATO, ABILITATO, PENDING_UPDATE}
 	public enum Ruolo {AMMINISTRATORE, COORDINATORE, REFERENTE_SERVIZIO}
 
     @Id
@@ -79,7 +79,11 @@ public class UtenteEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_organizzazione", referencedColumnName = "id")
 	private OrganizzazioneEntity organizzazione;
-	
+
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_organizzazione_pending", referencedColumnName = "id")
+	private OrganizzazioneEntity organizzazionePending;
+
     @Column(nullable=false)
 	private String nome;
     

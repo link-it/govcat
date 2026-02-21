@@ -34,6 +34,7 @@ import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.AllegatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioServizioEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
@@ -234,5 +235,12 @@ public class ServizioService extends AbstractService {
 	    return !(haAdesioni || haApi || haPackageSubServizi);
 	}
 
-	
+	public List<ReferenteDominioEntity> findReferentiDominioByUtente(UtenteEntity utente) {
+		return this.referenteDominioRepo.findByReferente(utente);
+	}
+
+	public List<ReferenteServizioEntity> findReferentiServizioByUtente(UtenteEntity utente) {
+		return this.referenteServizioRepo.findByReferente(utente);
+	}
+
 }

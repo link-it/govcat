@@ -23,7 +23,10 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools, ConfigService } from '@linkit/components';
+import { concat, Observable, of, Subject, throwError } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+
+import { Tools, ConfigService, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -142,6 +145,20 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   // Modal ref per la verifica email
   private modalRef?: BsModalRef;
 
+  // Organizzazioni typeahead
+  organizzazioni$!: Observable<any[]>;
+  organizzazioniInput$ = new Subject<string>();
+  organizzazioniLoading: boolean = false;
+  selectedOrganizzazione: any = null;
+  minLengthTerm = 1;
+
+  // Modal ref per la conferma cambio organizzazione
+  private _modalConfirmRef!: BsModalRef;
+
+  get isPendingUpdate(): boolean {
+    return this.profile?.stato === 'pending_update';
+  }
+
   // Getter per verificare se la verifica email è abilitata
   get verificaEmailAbilitata(): boolean {
     return Tools.Configurazione?.utente?.profilo_modifica_email_richiede_verifica === true;
@@ -200,6 +217,10 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         this.settings = this._initializeSettings(sessionSettings, apiSettings);
 
         this.initForm();
+
+        const defaultOrg = this.profile?.organizzazione ? [this.profile.organizzazione] : [];
+        this.selectedOrganizzazione = this.profile?.organizzazione || null;
+        this._initOrganizzazioniSelect(defaultOrg);
 
         this.loadSettingsNotifications();
 
@@ -274,6 +295,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     this.isEdit = false;
     this.error = false;
     this.errorMsg = '';
+    this.selectedOrganizzazione = this.profile?.organizzazione || null;
     this.initForm();
   }
 
@@ -644,6 +666,84 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   _onSubmit(form: any) {
     this._updateServerSettings(form);
+  }
+
+  _initOrganizzazioniSelect(defaultValue: any[] = []) {
+    this.organizzazioni$ = concat(
+      of(defaultValue),
+      this.organizzazioniInput$.pipe(
+        filter(res => {
+          return res !== null && res.length >= this.minLengthTerm
+        }),
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.organizzazioniLoading = true),
+        switchMap((term: any) => {
+          return this.getOrganizzazioni(term).pipe(
+            catchError(() => of([])),
+            tap(() => this.organizzazioniLoading = false)
+          )
+        })
+      )
+    );
+  }
+
+  getOrganizzazioni(term: string | null = null): Observable<any> {
+    const _options: any = { params: { q: term } };
+    return this.apiService.getList('organizzazioni', _options)
+      .pipe(map(resp => {
+        if (resp.Error) {
+          throwError(resp.Error);
+        } else {
+          const _items = resp.content.map((item: any) => {
+            return item;
+          });
+          return _items;
+        }
+      })
+      );
+  }
+
+  trackByFn(item: any) {
+    return item.id_organizzazione;
+  }
+
+  requestOrganizationChange(selectedOrgId: string) {
+    const hasCurrentOrg = !!this.profile?.organizzazione;
+    const warningKey = hasCurrentOrg
+      ? 'APP.PROFILE.ORGANIZATION.ChangeWarningWithOrg'
+      : 'APP.PROFILE.ORGANIZATION.ChangeWarning';
+    const initialState = {
+      title: this.translate.instant('APP.PROFILE.ORGANIZATION.ChangeTitle'),
+      messages: [
+        this.translate.instant(warningKey)
+      ],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+      confirmColor: 'danger'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          this.apiService.putElement('profilo/organizzazione', null, { id_organizzazione: selectedOrgId }).subscribe({
+            next: (response: any) => {
+              Tools.showMessage(this.translate.instant('APP.PROFILE.ORGANIZATION.RequestSent'), 'success');
+              this.loadProfile();
+              this.onCancelEdit();
+            },
+            error: (error: any) => {
+              this.error = true;
+              this.errorMsg = this.utils.GetErrorMsg(error);
+            }
+          });
+        }
+      }
+    );
   }
 
   onAvatarError(event: any) {

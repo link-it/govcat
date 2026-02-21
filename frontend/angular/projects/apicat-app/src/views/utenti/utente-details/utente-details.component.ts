@@ -23,15 +23,10 @@ import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/fo
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { FieldClass } from '@linkit/components';
 import { CustomValidators } from '@linkit/validators';
-
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Utente, Ruolo, Stato } from './utente';
 
@@ -132,7 +127,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   ngOnInit() {
     this._statoArr = Object.values(Stato);
-    this._ruoloArr = Object.values(Ruolo); // [ 'nessun_ruolo','referente_servizio', 'gestore' ];
+    this._ruoloArr = Object.values(Ruolo);
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -148,7 +143,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._isNew = true;
         this._isEdit = true;
 
-        this._statoArr = Object.values(Stato).slice(1);
+        this._statoArr = Object.values(Stato).filter(s => s !== Stato.NON_CONFIGURATO && s !== Stato.PENDING_UPDATE);
 
         this._initBreadcrumb();
 
@@ -256,10 +251,14 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._formGroup.updateValueAndValidity();
       } 
 
-      if (this._utente.stato === Stato.NON_CONFIGURATO) {
-        this._statoArr = Object.values(Stato);
+      if (this._utente.stato === Stato.PENDING_UPDATE) {
+        this._statoArr = [Stato.PENDING_UPDATE];
+        this._formGroup.get('stato')?.disable();
+        this._formGroup.get('id_organizzazione')?.disable();
+      } else if (this._utente.stato === Stato.NON_CONFIGURATO) {
+        this._statoArr = Object.values(Stato).filter(s => s !== Stato.PENDING_UPDATE);
       } else {
-        this._statoArr = Object.values(Stato).slice(1);
+        this._statoArr = Object.values(Stato).filter(s => s !== Stato.NON_CONFIGURATO && s !== Stato.PENDING_UPDATE);
       }
     }
   }
@@ -270,8 +269,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     
     const _body = this._prapareData(body);
 
-    this.apiService.saveElement(this.model, _body).subscribe(
-      (response: any) => {
+    this.apiService.saveElement(this.model, _body).subscribe({
+      next: (response: any) => {
         this.utente = new Utente({ ...response });
         this._utente = new Utente({ ...response });
         this.id = this.utente.id_utente;
@@ -293,13 +292,13 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this.save.emit({ id: this.id, utente: response, update: false });
         this.router.navigate([this.model, this.id], { replaceUrl: true });
       },
-      (error: any) => {
+      error: (error: any) => {
         this._error = true;
         console.log('__onSave error', error);
         this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
-    );
+    });
   }
 
   __onUpdate(id: number, body: any) {
@@ -308,8 +307,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
     const _body = this._prapareData(body);
 
-    this.apiService.putElement(this.model, id, _body).subscribe(
-      (response: any) => {
+    this.apiService.putElement(this.model, id, _body).subscribe({
+      next: (response: any) => {
         this._isEdit = !this._closeEdit;
         this.utente = new Utente({ ...response });
         this._utente = new Utente({ ...response });
@@ -319,13 +318,12 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._spin = false;
         this.save.emit({ id: this.id, utente: response, update: true });
       },
-      (error: any) => {
+      error: (error: any) => {
         this._error = true;
         this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
-    );
-    
+    });
   }
 
   _prapareData(body: any) {
@@ -346,10 +344,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _onSubmit(form: any, close: boolean = true) {
     if (this._isEdit && this._formGroup.valid) {
       this._closeEdit = close;
+      const rawForm = this._formGroup.getRawValue();
       if (this._isNew) {
-        this.__onSave(form);
+        this.__onSave(rawForm);
       } else {
-        this.__onUpdate(this.utente.id_utente, form);
+        this.__onUpdate(this.utente.id_utente, rawForm);
       }
     }
   }
@@ -372,16 +371,15 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElement(this.model, this.utente.id_utente).subscribe(
-            (response) => {
+          this.apiService.deleteElement(this.model, this.utente.id_utente).subscribe({
+            next: (response: any) => {
               this.router.navigate([this.model]);
-              // this.save.emit({ id: this.id, utente: response, update: false });
             },
-            (error) => {
+            error: (error: any) => {
               this._error = true;
               this._errorMsg = this.utils.GetErrorMsg(error);
             }
-          );
+          });
         }
       }
     );
@@ -397,7 +395,6 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
           this.utente.ruolo = this._checkRuolo(response);
           this._utente.ruolo = this._checkRuolo(response);
-          // this._utente.ruolo = response?.ruolo || Ruolo.NESSUN_RUOLO;
           
           const aux: any = {
             id_classe_utente: this.utente.classi_utente?.id_classe_utente || null,
@@ -570,6 +567,70 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _compareClassiFn(item: any, selected: any) {
     return item.id_classe_utente === selected.id_classe_utente;
+  }
+
+  approveOrganizationChange() {
+    const hasCurrentOrg = !!this.utente?.organizzazione;
+    const warningKey = hasCurrentOrg
+      ? 'APP.PROFILE.ORGANIZATION.ApproveWarning'
+      : 'APP.PROFILE.ORGANIZATION.ApproveWarningFirstOrg';
+    const initialState = {
+      title: this.translate.instant('APP.PROFILE.ORGANIZATION.ApproveTitle'),
+      messages: [
+        this.translate.instant(warningKey)
+      ],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.PROFILE.ORGANIZATION.ApproveButton'),
+      confirmColor: hasCurrentOrg ? 'danger' : 'confirm'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          this._error = false;
+          this._errorMsg = '';
+
+          const formValues = this._formGroup.getRawValue();
+          const _body: any = {
+            ...formValues,
+            id_organizzazione: this.utente.organizzazione_pending?.id_organizzazione,
+            organizzazione_pending: null,
+            ruolo: (formValues.ruolo == Ruolo.NESSUN_RUOLO) ? null : formValues.ruolo
+          };
+          delete _body.organizzazione;
+
+          const body = this.utils._removeEmpty(_body);
+
+          this._spin = true;
+          this.apiService.putElement(this.model, this.utente.id_utente, body).subscribe({
+            next: (response: any) => {
+              this.utente = new Utente({ ...response });
+              this._utente = new Utente({ ...response });
+              this.utente.ruolo = this._checkRuolo(response);
+              this._utente.ruolo = this._checkRuolo(response);
+              this._initForm({ ...this._utente });
+              const aux_org: any = {
+                id_organizzazione: this.utente?.id_organizzazione || null,
+                nome: this.utente?.organizzazione?.nome || null
+              };
+              this._initOrganizzazioniSelect([aux_org]);
+              this._spin = false;
+              this._isEdit = false;
+              this.save.emit({ id: this.id, utente: response, update: true });
+            },
+            error: (error: any) => {
+              this._error = true;
+              this._errorMsg = this.utils.GetErrorMsg(error);
+              this._spin = false;
+            }
+          });
+        }
+      }
+    );
   }
 
   _changeRuolo(event: Event|null = null) {

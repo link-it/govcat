@@ -117,7 +117,7 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
 				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
 		
-		if(!utente.getStato().equals(Stato.ABILITATO)) {
+		if(!utente.getStato().equals(Stato.ABILITATO) && !utente.getStato().equals(Stato.PENDING_UPDATE)) {
 			throw new BadRequestException(ErrorCode.UT_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 

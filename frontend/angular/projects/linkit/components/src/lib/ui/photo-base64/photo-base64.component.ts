@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { SafeUrl } from '@angular/platform-browser';
 
 import * as _ from 'lodash';
@@ -27,7 +27,7 @@ import * as _ from 'lodash';
   styleUrls: ['./photo-base64.component.scss'],
   standalone: false
 })
-export class PhotoBase64Component implements OnInit, OnChanges {
+export class PhotoBase64Component implements OnChanges {
 
   @Input() placeHolder: string = '';
   @Input() boxWidth: string = '175px';
@@ -45,21 +45,17 @@ export class PhotoBase64Component implements OnInit, OnChanges {
 
   constructor() { }
 
-  ngOnInit() {
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.imageSaved && changes.imageSaved.currentValue && this.isImageSaved) {
+    if (changes.imageSaved?.currentValue && this.isImageSaved) {
       this.cardImageBase64 = changes.imageSaved.currentValue;
     }
   }
 
   fileChangeEvent(fileInput: any) {
     this.imageError = null;
-    if (fileInput.target.files && fileInput.target.files[0]) {
+    if (fileInput.target.files?.[0]) {
       // Size Filter Bytes
       const max_size = this.maxSize; // /* The size of the file in bytes. */
-      20971520
       const allowed_types = this.fileTypes;
       const max_height = 15200;
       const max_width = 25600;

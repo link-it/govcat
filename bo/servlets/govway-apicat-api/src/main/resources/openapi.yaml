@@ -145,6 +145,39 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /profilo/organizzazione:
+    put:
+      tags:
+      - "Utenti"
+      description: "Richiesta di cambio organizzazione per l'utente chiamante"
+      operationId: "updateProfiloOrganization"
+      requestBody:
+        description: "Nuova organizzazione richiesta"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfiloOrganizationUpdate'
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Utente"
+        "400":
+          $ref: "#/components/responses/400BadRequest"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /profilo/email/invia-codice:
     post:
       tags:
@@ -209,6 +242,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
+  /profilo/ruoli:
+    get:
+      tags:
+      - "Utenti"
+      description: "Restituisce il ruolo dell'utente corrente e tutti i ruoli di referente ricoperti (referente dominio, servizio, adesione)"
+      operationId: "getProfiloRuoli"
+      responses:
+        "200":
+          description: "Ruoli dell'utente"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfiloRuoli"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
         "503":
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
@@ -2052,6 +2106,7 @@ paths:
       - $ref: "#/components/parameters/profilo_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
       - $ref: "#/components/parameters/miei_servizi_query_optional"
+      - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/adesione_consentita_query_optional"
       - $ref: "#/components/parameters/nome_query_optional"
       - $ref: "#/components/parameters/versione_query_optional"
@@ -4356,7 +4411,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MessaggioCreate"
+              $ref: "#/components/schemas/MessaggioAdesioneCreate"
         required: true
       responses:
         "201":
@@ -6491,6 +6546,22 @@ components:
           type: "array"
           items:
             $ref: '#/components/schemas/ConfigurazioneCambioStato'
+        stati_dashboard:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneStatoDashboard'
+    ConfigurazioneStatoDashboard:
+      type: "object"
+      required:
+        - ruolo
+        - stati
+      properties:
+        ruolo:
+          $ref: '#/components/schemas/ConfigurazioneRuolo'
+        stati:
+          type: "array"
+          items:
+            type: "string"
     ConfigurazioneAmbienteDefaultDashboard:
       type: "string"
       enum:
@@ -8407,6 +8478,29 @@ components:
         - non_configurato
         - abilitato
         - disabilitato
+        - pending_update
+    ProfiloRuoli:
+      type: "object"
+      description: "Ruoli dell'utente corrente"
+      properties:
+        ruolo:
+          $ref: "#/components/schemas/RuoloUtenteEnum"
+        ruoli_referente:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuoloReferenteEnum"
+    RuoloReferenteEnum:
+      type: "string"
+      description: "Ruolo di referente ricoperto dall'utente"
+      enum:
+        - referente_dominio
+        - referente_tecnico_dominio
+        - referente_servizio
+        - referente_tecnico_servizio
+        - referente_adesione
+        - referente_tecnico_adesione
+        - richiedente_servizio
+        - richiedente_adesione
     RuoloUtenteEnum:
       type: "string"
       enum:
@@ -8534,6 +8628,13 @@ components:
           $ref: "#/components/schemas/String255"
         settings:
           type: object
+    ProfiloOrganizationUpdate:
+      type: "object"
+      required:
+        - id_organizzazione
+      properties:
+        id_organizzazione:
+          $ref: "#/components/schemas/IdOrganizzazione"
     ItemUtentePublic:
       type: "object"
       required:
@@ -8658,6 +8759,8 @@ components:
         abilitato_domini_esterni:
           type: 'boolean'
         organizzazione:
+          $ref: "#/components/schemas/ItemOrganizzazione"
+        organizzazione_pending:
           $ref: "#/components/schemas/ItemOrganizzazione"
         classi_utente:
           type: "array"
@@ -9061,6 +9164,10 @@ components:
           $ref: "#/components/schemas/String255"
         eliminabile:
           type: "boolean"
+        ruoli_referente:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuoloReferenteEnum"
     ServizioCreate:
       type: "object"
       required:
@@ -9512,14 +9619,23 @@ components:
           example: "2017-07-21T17:32:28Z"
         url:
           $ref: "#/components/schemas/URL"
-    TargetComunicazioneEnum:
+    TargetComunicazioneServizioEnum:
       type: "string"
-      description: "Target della comunicazione per il servizio"
+      description: "Target per i destinatari della comunicazione del servizio"
       enum:
-        - pubblica
-        - solo_referenti
-        - solo_aderenti
-      default: pubblica
+        - REFERENTI_SERVIZIO
+        - REFERENTI_DOMINIO
+        - RICHIEDENTE
+        - ADERENTI
+    TargetComunicazioneAdesioneEnum:
+      type: "string"
+      description: "Target per i destinatari della comunicazione dell'adesione"
+      enum:
+        - REFERENTI_SERVIZIO
+        - REFERENTI_DOMINIO_SERVIZIO
+        - RICHIEDENTE_SERVIZIO
+        - REFERENTI_ADESIONE
+        - RICHIEDENTE_ADESIONE
     MessaggioCreate:
       type: object
       required:
@@ -9530,7 +9646,32 @@ components:
         testo:
           $ref: "#/components/schemas/String4000"
         target:
-          $ref: "#/components/schemas/TargetComunicazioneEnum"
+          type: "array"
+          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          items:
+            $ref: "#/components/schemas/TargetComunicazioneServizioEnum"
+        includi_tecnici:
+          type: boolean
+          default: true
+          description: "Se true, include anche i referenti tecnici nel target selezionato"
+        allegati:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/AllegatoMessaggioCreate'
+    MessaggioAdesioneCreate:
+      type: object
+      required:
+        - oggetto
+      properties:
+        oggetto:
+          $ref: "#/components/schemas/String255"
+        testo:
+          $ref: "#/components/schemas/String4000"
+        target:
+          type: "array"
+          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          items:
+            $ref: "#/components/schemas/TargetComunicazioneAdesioneEnum"
         includi_tecnici:
           type: boolean
           default: true
@@ -10442,6 +10583,14 @@ components:
       required: false
       schema:
         type: "boolean"
+    dashboard_query_optional:
+      name: "dashboard"
+      in: "query"
+      description: "Filtra i servizi in base agli stati gestibili dall'utente tramite dashboard"
+      required: false
+      schema:
+        type: "boolean"
+        default: false
     adesione_consentita_query_optional:
       name: "adesione_consentita"
       in: "query"

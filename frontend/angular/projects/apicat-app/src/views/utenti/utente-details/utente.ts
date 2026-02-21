@@ -37,7 +37,8 @@ export enum Ruolo {
 export enum Stato {
   NON_CONFIGURATO = 'non_configurato',
   ABILITATO = 'abilitato',
-  DISABILITATO = 'disabilitato'
+  DISABILITATO = 'disabilitato',
+  PENDING_UPDATE = 'pending_update'
 }
 
 export class Utente {
@@ -58,6 +59,7 @@ export class Utente {
   id_organizzazione: string | null = null;
   // classi_utente: Array<any> = [];
   organizzazione: Organizzazione | null = null;
+  organizzazione_pending: Organizzazione | null = null;
   classi_utente: ClassiUtente | null = null;
   referente_tecnico: boolean = false;
 

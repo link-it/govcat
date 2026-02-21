@@ -32,6 +32,8 @@ import { ProfileRoutingModule } from './profile-routing.module';
 import { ProfileComponent } from './profile.component';
 import { EmailVerificationDialogComponent } from './components/email-verification-dialog/email-verification-dialog.component';
 
+import { MarkdownModule } from 'ngx-markdown';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -42,7 +44,8 @@ import { EmailVerificationDialogComponent } from './components/email-verificatio
     ComponentsModule,
     AppComponentsModule,
     CheckboxArrayModule,
-    ProfileRoutingModule
+    ProfileRoutingModule,
+    MarkdownModule
   ],
   declarations: [
     ProfileComponent,

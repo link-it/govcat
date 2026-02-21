@@ -17,16 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package org.govway.catalogo.core.dao.repositories;
+package org.govway.catalogo.core.business.utils;
 
-import java.util.List;
-
-import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
-import org.govway.catalogo.core.orm.entity.UtenteEntity;
-import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
-
-public interface ReferenteDominioRepository extends JpaRepositoryImplementation<ReferenteDominioEntity, Long> {
-
-	List<ReferenteDominioEntity> findByReferente(UtenteEntity referente);
-
+/**
+ * Enum per i target delle comunicazioni dei servizi.
+ * Supporta multi-selezione per specificare i destinatari.
+ */
+public enum TargetComunicazioneServizioEnum {
+	REFERENTI_SERVIZIO,
+	REFERENTI_DOMINIO,
+	RICHIEDENTE,
+	ADERENTI
 }

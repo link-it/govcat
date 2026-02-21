@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -244,18 +245,32 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 
 	public List<TipoEntitaNotifica> getTipiEntitaNotificheAbilitate(UtenteEntity utente) {
 		List<TIPO_ENTITA> lst = this.notificheUtils.getTipiEntita(utente.getTipiEntitaNotificheAbilitate());
-		if(lst == null) return null;
+		if(lst == null) return getDefaultNotificheAbilitateForApi(utente) ? null : new ArrayList<>();
 		return lst.stream().map(e -> this.getTipoEntitaNotifica(e)).collect(Collectors.toList());
 	}
-	
+
 	public List<TipoNotificaEnum> getTipiNotificheAbilitate(UtenteEntity utente) {
 		List<TIPO> lst = this.notificheUtils.getTipi(utente.getTipiNotificheAbilitate());
-		if(lst == null) return null;
+		if(lst == null) return getDefaultNotificheAbilitateForApi(utente) ? null : new ArrayList<>();
 		return lst.stream().map(e -> this.getTipoNotificaEnum(e)).collect(Collectors.toList());
 	}
-	
+
 	public List<RuoloNotifica> getTagNotificheAbilitate(UtenteEntity utente) {
-		return this.getRuoliNotifica(utente.getRuoliNotificheAbilitate());
+		List<RuoloNotifica> lst = this.getRuoliNotifica(utente.getRuoliNotificheAbilitate());
+		if(lst == null) return getDefaultNotificheAbilitateForApi(utente) ? null : new ArrayList<>();
+		return lst;
+	}
+
+	/**
+	 * Restituisce il valore di default per le notifiche quando non sono configurate nel DB.
+	 * Per gli utenti con ruolo AMMINISTRATORE (gestore), il default è false (notifiche disabilitate, lista vuota per il FE).
+	 * Per tutti gli altri utenti, il default è true (notifiche abilitate, null per il FE).
+	 */
+	private boolean getDefaultNotificheAbilitateForApi(UtenteEntity utente) {
+		if(utente.getRuolo() != null && utente.getRuolo() == UtenteEntity.Ruolo.AMMINISTRATORE) {
+			return false;
+		}
+		return true;
 	}
 
 	public String getTipiEntitaNotificheAbilitate(List<TipoEntitaNotifica> lst) {

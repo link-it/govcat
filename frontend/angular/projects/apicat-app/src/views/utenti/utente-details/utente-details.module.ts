@@ -23,6 +23,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { ComponentsModule } from '@linkit/components';
+import { AppComponentsModule } from '@app/components/components.module';
 import { HasPermissionModule } from '@app/directives/has-permission/has-permission.module';
 import { MarkAsteriskModule } from '@app/directives/mark-asterisk/mark-asterisk.module';
 import { TrimOnBlurModule } from '@app/directives/trim-on-blur/trim-on-blur.module';
@@ -37,6 +38,7 @@ import { UtenteDetailsRoutingModule } from './utente-details-routing.module';
     ReactiveFormsModule,
     TranslateModule,
     ComponentsModule,
+    AppComponentsModule,
     HasPermissionModule,
     UtenteDetailsRoutingModule,
     MarkAsteriskModule,

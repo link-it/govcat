@@ -1553,6 +1553,20 @@
 				"Profile": "Profilo",
 				"Settings": "Impostazioni"
 			},
+			"ORGANIZATION": {
+				"ChangeTitle": "Cambio organizzazione",
+				"ChangeWarning": "La richiesta di assegnazione organizzazione dovra' essere approvata da un amministratore. Nel frattempo, il tuo account potrebbe avere funzionalita' limitate.",
+				"ChangeWarningWithOrg": "**Attenzione: questa operazione e' irreversibile.** In caso di approvazione, verra' creato un **nuovo utente** con lo stesso principal e la nuova organizzazione, mentre **l'utente attuale verra' disabilitato** e non potra' piu' accedere all'applicativo con l'organizzazione corrente. La richiesta dovra' essere approvata da un amministratore.",
+				"ChangeButton": "Richiedi cambio organizzazione",
+				"PendingLabel": "Organizzazione richiesta",
+				"PendingMessage": "Hai una richiesta di cambio organizzazione in corso verso: **{{orgName}}**. La richiesta e' in attesa di approvazione da parte di un amministratore.",
+				"CurrentLabel": "Organizzazione attuale",
+				"RequestSent": "Richiesta di cambio organizzazione inviata con successo",
+				"ApproveTitle": "Approva cambio organizzazione",
+				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? Verra' creato un **nuovo utente** con lo stesso principal e la nuova organizzazione. **L'utente attuale verra' disabilitato** e non potra' piu' accedere all'applicativo con l'organizzazione corrente.",
+				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verra' associato alla nuova organizzazione.",
+				"ApproveButton": "Approva"
+			},
 			"EMAIL_VERIFICATION": {
 				"TITLE": "Modifica email",
 				"MESSAGE": {
@@ -2202,7 +2216,8 @@
 				"disabilitato": "Disabilitato",
 				"Disabled": "Disabilitato",
 				"Enabled": "Abilitato",
-				"non_configurato": "Non configurato"
+				"non_configurato": "Non configurato",
+				"pending_update": "In attesa di approvazione"
 			},
 			"TITLE": {
 				"GeneralInformations": "Informazioni generali",

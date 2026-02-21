@@ -229,7 +229,8 @@
                         (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
                         [required]="_specificaObbligatorio || this._hasSpecifica"
                         [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
-                        [maxUpload]="null" [maxUpload]="null"></ui-allegato>
+                        [maxUpload]="null"
+                      ></ui-allegato>
                       <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
                     </ng-container>
                   </div>
@@ -330,7 +331,6 @@
                                         [required]="!!_hasRequiredValidator(cp.nome)"
                                         (resetControl)="_onFileChange(cfg().controls[cp.nome].value)"
                                         (fileChanged)="_onFileChange(cfg().controls[cp.nome].value)"
-                                        [maxUpload]="null"
                                         [maxUpload]="null"
                                     ></ui-allegato>
                                   </ng-container> -->

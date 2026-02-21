@@ -76,9 +76,9 @@ export class AllegatiDialogComponent implements OnInit {
     showLoading: boolean = true;
 
     constructor (
-        private bsModalRef: BsModalRef,
-        private apiService: OpenAPIService,
-        private authenticationService: AuthenticationService
+        private readonly bsModalRef: BsModalRef,
+        private readonly apiService: OpenAPIService,
+        private readonly authenticationService: AuthenticationService
     ) {
         this.tipiVisibilitaAllegato = Tools.Configurazione?.servizio?.visibilita_allegati_consentite.filter((item: string) => {
             if ((item === 'gestore') && !this.authenticationService.isGestore(this.grant?.ruoli)) {
