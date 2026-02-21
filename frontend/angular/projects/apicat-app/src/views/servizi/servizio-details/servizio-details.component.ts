@@ -1379,9 +1379,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _onImageLoaded(event: any) {
         if (event) {
-            var _split = event.split(',');
-            var _type = _split[0].split(';')[0].replace('data:', '');
-            var _content = _split[1];
+            const _split = event.split(',');
+            const _type = _split[0].split(';')[0].replace('data:', '');
+            const _content = _split[1];
 
             const _immagine: any = {
                 content_type: _type,

@@ -139,8 +139,7 @@
             (fileChanged)="__descrittoreChange(_descrittoreCtrl.value)"
             [disabled]="_descrittoreCtrl.disabled"
             [maxUpload]="null"
-            [maxUpload]="null">
-          </ui-allegato>
+          ></ui-allegato>
           <div class="form-group filename">
             <label class="label-bold" for="filename">{{ 'APP.LABEL.filename' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'gruppo'"></span></label>
             <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('filename')" type="text" name="filename" id="filename" formControlName="filename">
