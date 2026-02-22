@@ -97,7 +97,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     { label: 'APP.NOTIFICATIONS.ENTITY.Adesione', value: 'adesione' }
   ];
 
-  // Opzioni per ruoli
+  // Opzioni per ruoli - raggruppati per contesto
   _emetti_per_ruoli: { label: string; value: string }[] = [
     { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteDominio', value: 'servizio_referente_dominio' },
     { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoDominio', value: 'servizio_referente_tecnico_dominio' },
@@ -114,14 +114,34 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' },
   ];
 
+  // Ruoli raggruppati per sotto-sezione collassabile
+  _ruoliServizio: { label: string; value: string }[] = [
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteDominio', value: 'servizio_referente_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoDominio', value: 'servizio_referente_tecnico_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteServizio', value: 'servizio_referente_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoServizio', value: 'servizio_referente_tecnico_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioRichiedenteServizio', value: 'servizio_richiedente_servizio' }
+  ];
+
+  _ruoliAdesione: { label: string; value: string }[] = [
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteDominio', value: 'adesione_referente_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoDominio', value: 'adesione_referente_tecnico_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteServizio', value: 'adesione_referente_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoServizio', value: 'adesione_referente_tecnico_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteServizio', value: 'adesione_richiedente_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteAdesione', value: 'adesione_referente_adesione' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoAdesione', value: 'adesione_referente_tecnico_adesione' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' }
+  ];
+
+  _showRuoliServizio: boolean = false;
+  _showRuoliAdesione: boolean = false;
+
   _formSettingsSettings: FormGroup = new FormGroup({
     emetti_per_tipi: new FormControl([], []),
     emetti_per_entita: new FormControl([], []),
     emetti_per_ruoli: new FormControl([], []),
   });
-
-  // DEBUG: impostare a false per nascondere le notifiche al gestore (comportamento finale)
-  _debugShowNotificationsForGestore: boolean = true;
 
   /**
    * Verifica se l'utente corrente è un gestore
@@ -132,12 +152,12 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   /**
    * Determina se mostrare la sezione impostazioni notifiche.
-   * Il gestore non dovrebbe vedere questa sezione (le notifiche sono sostituite dalla dashboard).
-   * Il flag _debugShowNotificationsForGestore permette di abilitarla temporaneamente per test.
+   * Il gestore non vede questa sezione quando la dashboard è abilitata
+   * (le notifiche sono sostituite dalla dashboard).
    */
   get showNotificationsSettings(): boolean {
-    if (this.isGestore) {
-      return this._debugShowNotificationsForGestore;
+    if (this.isGestore && Tools.Configurazione?.dashboard?.abilitato) {
+      return false;
     }
     return true;
   }

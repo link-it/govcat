@@ -16,8 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { TranslateService } from '@ngx-translate/core';
 
 import { Tools } from '../../services';
 
@@ -42,11 +44,7 @@ export class SenderComponent implements AfterContentChecked {
   @ViewChild('browse', { static: false, read: ElementRef }) _browse!: ElementRef;
 
   @Input() showTarget: boolean = false;
-  @Input() targetOptions: TargetOption[] = [
-    { label: 'APP.LABEL.TargetPubblica', value: 'pubblica' },
-    { label: 'APP.LABEL.TargetSoloReferenti', value: 'solo_referenti' },
-    { label: 'APP.LABEL.TargetSoloAderenti', value: 'solo_aderenti' }
-  ];
+  @Input() targetOptions: TargetOption[] = [];
   @Input() includiTecniciLabel: string = 'APP.LABEL.IncludiTecnici';
 
   @Output() download: EventEmitter<any> = new EventEmitter<any>();
@@ -60,13 +58,16 @@ export class SenderComponent implements AfterContentChecked {
   _placeholder: string = 'Testo del messaggio...';
   _allegati: any[] = [];
   _formValid: boolean = false;
+  _dropdownOpen: boolean = false;
   _formGroup: FormGroup = new FormGroup({});
   _msgCtrl = new FormControl('', Validators.required);
   _allegatiCtrl: FormControl = new FormControl('');
-  _targetCtrl: FormControl = new FormControl('pubblica');
+  _targetCtrl: FormControl = new FormControl([]);
   _includiTecniciCtrl: FormControl = new FormControl(true);
 
-  constructor() {
+  @ViewChild('targetDropdown', { static: false, read: ElementRef }) _targetDropdown!: ElementRef;
+
+  constructor(private translate: TranslateService) {
     this._formGroup = new FormGroup({
       messaggio: this._msgCtrl,
       allegati: this._allegatiCtrl,
@@ -75,8 +76,62 @@ export class SenderComponent implements AfterContentChecked {
     });
   }
 
+  @HostListener('document:click', ['$event'])
+  _onDocumentClick(event: MouseEvent) {
+    if (this._dropdownOpen && this._targetDropdown && !this._targetDropdown.nativeElement.contains(event.target)) {
+      this._dropdownOpen = false;
+    }
+  }
+
+  get targetLabel(): string {
+    if (this.allSelected) {
+      return this.translate.instant('APP.LABEL.TargetTutti');
+    }
+    const selected: string[] = this._targetCtrl.value || [];
+    if (selected.length === 1) {
+      const opt = this.targetOptions.find(o => o.value === selected[0]);
+      return opt ? this.translate.instant(opt.label) : selected[0];
+    }
+    return `${selected.length} ${this.translate.instant('APP.LABEL.Target').toLowerCase()}`;
+  }
+
+  _toggleDropdown() {
+    this._dropdownOpen = !this._dropdownOpen;
+  }
+
   get showIncludiTecnici(): boolean {
-    return this._targetCtrl.value !== 'pubblica';
+    return this._targetCtrl.value && this._targetCtrl.value.length > 0;
+  }
+
+  get allSelected(): boolean {
+    return !this._targetCtrl.value || this._targetCtrl.value.length === 0;
+  }
+
+  isTargetSelected(value: string): boolean {
+    return this._targetCtrl.value && this._targetCtrl.value.includes(value);
+  }
+
+  toggleAll(checked: boolean) {
+    if (checked) {
+      this._targetCtrl.setValue([]);
+    }
+  }
+
+  toggleTarget(value: string, checked: boolean) {
+    let current: string[] = [...(this._targetCtrl.value || [])];
+    if (checked) {
+      if (!current.includes(value)) {
+        current.push(value);
+      }
+      // Se tutti i target sono selezionati, torna a "Tutti" (array vuoto)
+      if (current.length === this.targetOptions.length) {
+        this._targetCtrl.setValue([]);
+        return;
+      }
+    } else {
+      current = current.filter(v => v !== value);
+    }
+    this._targetCtrl.setValue(current);
   }
 
   ngAfterContentChecked() {
@@ -197,5 +252,7 @@ export class SenderComponent implements AfterContentChecked {
     this.__reset();
     this.__resetMsg();
     this.__clearAllegatoCtrl();
+    this._targetCtrl.setValue([]);
+    this._includiTecniciCtrl.setValue(true);
   }
 }

@@ -31,6 +31,7 @@ import { AuthenticationService } from '@services/authentication.service';
 
 import { Page } from '@app/models/page';
 import { Messaggio } from './messaggio';
+import { TargetOption } from '@linkit/components';
 
 declare const saveAs: any;
 import * as moment from 'moment';
@@ -112,6 +113,14 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
   _notificationMessageId: string = '';
 
   _serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
+
+  targetOptionsAdesione: TargetOption[] = [
+    { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+    { label: 'APP.LABEL.TargetReferentiDominioServizio', value: 'REFERENTI_DOMINIO_SERVIZIO' },
+    { label: 'APP.LABEL.TargetRichiedenteServizio', value: 'RICHIEDENTE_SERVIZIO' },
+    { label: 'APP.LABEL.TargetReferentiAdesione', value: 'REFERENTI_ADESIONE' },
+    { label: 'APP.LABEL.TargetRichiedenteAdesione', value: 'RICHIEDENTE_ADESIONE' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -353,6 +362,15 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
     // new Message
     props.oggetto = `Adesione ${this.adesione.nome}`;
     props.testo = this._form.messaggio;
+
+    // Target comunicazione (array di enum)
+    if (this._form.target && this._form.target.length > 0) {
+      props.target = this._form.target;
+      props.includi_tecnici = this._form.includi_tecnici;
+    } else {
+      props.target = null;
+    }
+
     const _allegati: any[] = []
     if (this._form.allegati) {
       this._form.allegati.map((item: any) => {

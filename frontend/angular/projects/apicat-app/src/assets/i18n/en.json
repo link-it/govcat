@@ -912,9 +912,18 @@
 			"Taxcode": "Taxcode",
 			"Taxonomy": "Taxonomy",
 			"Target": "Recipients",
+			"TargetAderenti": "Subscribers",
 			"TargetPubblica": "Public",
-			"TargetSoloReferenti": "Referents only",
+			"TargetReferentiAdesione": "Subscription referents",
+			"TargetReferentiDominio": "Domain referents",
+			"TargetReferentiDominioServizio": "Service domain referents",
+			"TargetReferentiServizio": "Service referents",
+			"TargetRichiedente": "Requester",
+			"TargetRichiedenteAdesione": "Subscription requester",
+			"TargetRichiedenteServizio": "Service requester",
 			"TargetSoloAderenti": "Subscribers only",
+			"TargetSoloReferenti": "Referents only",
+			"TargetTutti": "All",
 			"tempo_medio_risposta": "Average response time",
 			"TempoRisposta": "Response time",
 			"termini_ricerca": "Search Terms",
@@ -1471,6 +1480,10 @@
 			},
 			"ENTITY": {
 				"Adesione": "Membership",
+				"Servizio": "Service"
+			},
+			"GROUP": {
+				"Adesione": "Subscription",
 				"Servizio": "Service"
 			},
 			"STATUS": {

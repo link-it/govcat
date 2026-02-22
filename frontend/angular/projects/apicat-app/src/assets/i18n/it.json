@@ -912,9 +912,18 @@
 			"Taxcode": "Codice fiscale",
 			"Taxonomy": "Tassonomia",
 			"Target": "Destinatari",
+			"TargetAderenti": "Aderenti",
 			"TargetPubblica": "Pubblica",
-			"TargetSoloReferenti": "Solo referenti",
+			"TargetReferentiAdesione": "Referenti adesione",
+			"TargetReferentiDominio": "Referenti dominio",
+			"TargetReferentiDominioServizio": "Referenti dominio servizio",
+			"TargetReferentiServizio": "Referenti servizio",
+			"TargetRichiedente": "Richiedente",
+			"TargetRichiedenteAdesione": "Richiedente adesione",
+			"TargetRichiedenteServizio": "Richiedente servizio",
 			"TargetSoloAderenti": "Solo aderenti",
+			"TargetSoloReferenti": "Solo referenti",
+			"TargetTutti": "Tutti",
 			"tempo_medio_risposta": "Tempo medio risposta",
 			"TempoRisposta": "Tempo risposta",
 			"termini_ricerca": "Termini di ricerca",
@@ -1470,6 +1479,10 @@
 				"Notifications": "Notifiche"
 			},
 			"ENTITY": {
+				"Adesione": "Adesione",
+				"Servizio": "Servizio"
+			},
+			"GROUP": {
 				"Adesione": "Adesione",
 				"Servizio": "Servizio"
 			},

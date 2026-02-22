@@ -22,6 +22,8 @@ export class Messaggio {
 
   oggetto: string = '';
   testo: string = '';
+  target?: string[] | null;
+  includi_tecnici?: boolean;
   allegati?: Array<AllegatoMessaggioCreate>;
 
   constructor(_data?: any) {

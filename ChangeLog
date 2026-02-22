@@ -1,3 +1,12 @@
+2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #105
+	Evolutiva comunicazioni: target da stringa singola ad array di enum
+	SenderComponent: dropdown compatto con checkbox multi-select per selezione destinatari
+	Comunicazioni adesione: aggiunto supporto target (prima assente)
+	Profilo: notifiche nascoste al gestore con dashboard abilitata, ruoli raggruppati in sezioni collassabili
+
 2026-02-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

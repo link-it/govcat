@@ -35,6 +35,7 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 import { Page } from '@app/models/page';
 import { Messaggio } from './messaggio';
 import { Grant } from '@app/model/grant';
+import { TargetOption } from '@linkit/components';
 
 declare const saveAs: any;
 import * as moment from 'moment';
@@ -119,6 +120,13 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
   hideVersions: boolean = false;
+
+  targetOptionsServizio: TargetOption[] = [
+    { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+    { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO' },
+    { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' },
+    { label: 'APP.LABEL.TargetAderenti', value: 'ADERENTI' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -394,13 +402,12 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     props.oggetto = `Servizio ${this.service.nome}`;
     props.testo = this._form.messaggio;
 
-    // Target comunicazione (solo per servizi)
-    if (this._form.target) {
+    // Target comunicazione (array di enum)
+    if (this._form.target && this._form.target.length > 0) {
       props.target = this._form.target;
-      // includi_tecnici ha senso solo se target != 'pubblica'
-      if (this._form.target !== 'pubblica') {
-        props.includi_tecnici = this._form.includi_tecnici;
-      }
+      props.includi_tecnici = this._form.includi_tecnici;
+    } else {
+      props.target = null;
     }
 
     const _allegati: any[] = []

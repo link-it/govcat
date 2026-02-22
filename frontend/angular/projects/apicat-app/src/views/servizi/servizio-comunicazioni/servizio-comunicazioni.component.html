@@ -93,6 +93,7 @@
         <ui-sender #sender
           [placeholder]="'APP.PLACEHOLDER.TestoMessaggio' | translate"
           [showTarget]="true"
+          [targetOptions]="targetOptionsServizio"
           (send)="_onSubmitMessage($event)">
         </ui-sender>
       </div>
