@@ -353,6 +353,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         this._initReferentiSelect([]);
                         this._initReferentiTecniciSelect([]);
                         this._initOrganizzazioniInterneSelect([]);
+                        // In multi-dominio, disabilita i referenti finché non viene selezionato un dominio
+                        if (this._hasMultiDominio) {
+                            this._formGroup.get('referente')?.disable();
+                            this._formGroup.get('referente_tecnico')?.disable();
+                        }
                         // this.loadAnagrafiche();
                         this._isNew = true;
                         this._isEdit = true;
@@ -384,7 +389,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
             this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
             this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
-            this._updateOtherLinks()
+            this._updateOtherLinks();
+            // In creazione con multi-dominio, disabilita i referenti se il dominio non è selezionato
+            if (this._isNew && this._hasMultiDominio && !this.selectedDominio && this._formGroup) {
+                this._formGroup.get('referente')?.disable();
+                this._formGroup.get('referente_tecnico')?.disable();
+                this._initReferentiSelect([]);
+                this._initReferentiTecniciSelect([]);
+            }
         });
     }
 
@@ -948,14 +960,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.referenti$ = concat(
             of(defaultValue),
             this.referentiInput$.pipe(
-                // filter(res => {
-                //   return res !== null && res.length >= this.minLengthTerm
-                // }),
                 startWith(''),
                 distinctUntilChanged(),
                 debounceTime(300),
                 tap(() => this.referentiLoading = true),
                 switchMap((term: any) => {
+                    // In creazione con multi-dominio, non caricare utenti se il dominio non è ancora selezionato
+                    if (this._isNew && this._hasMultiDominio && !this.selectedDominio) {
+                        this.referentiLoading = false;
+                        return of([]);
+                    }
                     return this.getUtenti(term, 'referente_servizio,gestore,coordinatore').pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.referentiLoading = false)
@@ -969,14 +983,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.referentiTecnici$ = concat(
             of(defaultValue),
             this.referentiTecniciInput$.pipe(
-                // filter(res => {
-                //   return res !== null && res.length >= this.minLengthTerm
-                // }),
                 startWith(''),
                 distinctUntilChanged(),
                 debounceTime(300),
                 tap(() => this.referentiTecniciLoading = true),
                 switchMap((term: any) => {
+                    // In creazione con multi-dominio, non caricare utenti se il dominio non è ancora selezionato
+                    if (this._isNew && this._hasMultiDominio && !this.selectedDominio) {
+                        this.referentiTecniciLoading = false;
+                        return of([]);
+                    }
                     return this.getUtenti(term).pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.referentiTecniciLoading = false)
@@ -1297,6 +1313,21 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         // this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
 
         this._enableDisableSkipCollaudo(this.selectedDominio);
+
+        // Re-inizializza le dropdown dei referenti filtrate per la nuova organizzazione
+        if (this._isNew) {
+            this._formGroup.get('referente')?.setValue(null);
+            this._formGroup.get('referente_tecnico')?.setValue(null);
+            if (this.selectedDominio) {
+                this._formGroup.get('referente')?.enable();
+                this._formGroup.get('referente_tecnico')?.enable();
+            } else {
+                this._formGroup.get('referente')?.disable();
+                this._formGroup.get('referente_tecnico')?.disable();
+            }
+            this._initReferentiSelect([]);
+            this._initReferentiTecniciSelect([]);
+        }
     }
 
     _changeStatus(event: any, service: any) {

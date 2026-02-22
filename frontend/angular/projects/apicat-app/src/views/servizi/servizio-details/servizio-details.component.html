@@ -454,7 +454,7 @@
                                             [items]="referenti$ | async"
                                             [trackByFn]="trackByFn"
                                             [typeahead]="referentiInput$"
-                                            [minTermLength]="minLengthTerm" 
+                                            [minTermLength]="minLengthTerm"
                                             [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                                             [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
                                             bindValue="id_utente"
@@ -462,7 +462,6 @@
                                             labelForId="referente"
                                             [editableSearchTerm]="true"
                                             formControlName="referente"
-                                            disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
                                         >
                                             <ng-template ng-label-tmp let-item="item">
                                                 {{ item.nome }} {{ item.cognome }}
@@ -485,7 +484,7 @@
                                             [items]="referentiTecnici$ | async"
                                             [trackByFn]="trackByFn"
                                             [typeahead]="referentiTecniciInput$"
-                                            [minTermLength]="minLengthTerm" 
+                                            [minTermLength]="minLengthTerm"
                                             [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                                             [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
                                             bindValue="id_utente"
@@ -493,7 +492,6 @@
                                             labelForId="referente_tecnico"
                                             [editableSearchTerm]="true"
                                             formControlName="referente_tecnico"
-                                            disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
                                         >
                                             <ng-template ng-label-tmp let-item="item">
                                                 {{ item.nome }} {{ item.cognome }}
