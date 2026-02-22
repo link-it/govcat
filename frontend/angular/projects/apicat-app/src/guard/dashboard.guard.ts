@@ -36,7 +36,7 @@ export class DashboardGuard implements CanActivate {
     }
     const user: any = this.authenticationService.getUser();
     const ruolo = user?.ruolo || '';
-    if (ruolo === 'gestore' || ruolo === 'coordinatore' || ruolo === 'referente') {
+    if (ruolo) {
       return true;
     }
     this.router.navigate(['/servizi']);

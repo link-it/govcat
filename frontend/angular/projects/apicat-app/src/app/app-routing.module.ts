@@ -28,7 +28,7 @@ import { RegistrazioneGuard } from '../guard/registrazione.guard';
 import { GpLayoutComponent, SimpleLayoutComponent } from '../containers';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/servizi', pathMatch: 'full' },
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   {
     path: 'auth',
     component: SimpleLayoutComponent,
