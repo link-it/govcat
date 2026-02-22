@@ -36,6 +36,7 @@ import org.govway.catalogo.assembler.ProfiloAssembler;
 import org.govway.catalogo.assembler.UtenteDettaglioAssembler;
 import org.govway.catalogo.assembler.UtenteEngineAssembler;
 import org.govway.catalogo.assembler.UtenteItemAssembler;
+import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.UtenteAuthorization;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
@@ -96,7 +97,10 @@ public class UtentiController implements UtentiApi {
     private UtenteEngineAssembler engineAssembler;   
 
     @Autowired
-    private UtenteAuthorization authorization;   
+    private UtenteAuthorization authorization;
+
+    @Autowired
+    private CoreAuthorization coreAuthorization;
 
     @Autowired
     private ProfiloAssembler profiloAssembler;   
@@ -237,18 +241,18 @@ public class UtentiController implements UtentiApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemUtente> listUtenti(StatoUtenteEnum stato, UUID idOrganizzazione,
-			List<RuoloUtenteEnumSearch> ruolo, Boolean referenteTecnico, List<UUID> classiUtente, String email, String principal, UUID idUtente, String q, Integer page,
+			List<RuoloUtenteEnumSearch> ruolo, Boolean referenteTecnico, List<UUID> classiUtente, String email, String principal, UUID idUtente, Boolean dashboard, String q, Integer page,
 			Integer size, List<String> sort) {
 		try {
-			
+
 			return this.service.runTransaction( () -> {
-	
-				this.logger.info("Invocazione in corso ...");     
-	
+
+				this.logger.info("Invocazione in corso ...");
+
 				this.authorization.authorizeList();
 
-				this.logger.debug("Autorizzazione completata con successo");     
-	
+				this.logger.debug("Autorizzazione completata con successo");
+
 				UtenteSpecification spec = new UtenteSpecification();
 				spec.setQ(Optional.ofNullable(q));
 				spec.setEmail(Optional.ofNullable(email));
@@ -256,17 +260,17 @@ public class UtentiController implements UtentiApi {
 				spec.setIdUtente(Optional.ofNullable(idUtente).map(u -> u.toString()));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
 				spec.setReferenteTecnico(Optional.ofNullable(referenteTecnico));
-				
+
 				if(classiUtente!=null) {
 					List<ClasseUtenteEntity> entities = new ArrayList<>();
-					
+
 					for(UUID classeUtente: classiUtente) {
 						entities.add(this.classeUtenteService.findByIdClasseUtente(classeUtente)
 								.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
 					}
 					spec.setIdClassiUtente(entities);
 				}
-				
+
 				if(stato != null) {
 					spec.setStato(Optional.of(this.engineAssembler.toEntity(stato)));
 				}
@@ -277,24 +281,34 @@ public class UtentiController implements UtentiApi {
 					}
 				}
 
+				// Gestione filtro dashboard
+				if(dashboard != null && dashboard) {
+					// Il filtro dashboard è utilizzabile solo da GESTORE o COORDINATORE
+					if(!this.coreAuthorization.isAdmin() && !this.coreAuthorization.isCoordinatore()) {
+						throw new NotAuthorizedException(ErrorCode.AUT_403);
+					}
+					// Filtra utenti con stato NON_CONFIGURATO o PENDING_UPDATE
+					spec.setStati(Arrays.asList(Stato.NON_CONFIGURATO, Stato.PENDING_UPDATE));
+				}
+
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort,Arrays.asList("cognome", "nome"));
-	
+
 				Page<UtenteEntity> findAll = this.service.findAll(spec, pageable);
-	        
+
 				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
 
-	
+
 				PagedModel<ItemUtente> lst = pagedResourceAssembler.toModel(findAll, this.itemAssembler, link);
-	
-	
+
+
 				PagedModelItemUtente list = new PagedModelItemUtente();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
-				
+
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(list);
-			});     
+			});
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
