@@ -153,10 +153,11 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
   /**
    * Determina se mostrare la sezione impostazioni notifiche.
    * Il gestore non vede questa sezione quando la dashboard è abilitata
-   * (le notifiche sono sostituite dalla dashboard).
+   * e hideNotificationMenu è true nella configurazione Layout.
    */
   get showNotificationsSettings(): boolean {
-    if (this.isGestore && Tools.Configurazione?.dashboard?.abilitato) {
+    const dashboardConfig = this.config?.AppConfig?.Layout?.dashboard;
+    if (this.isGestore && dashboardConfig?.enabled && dashboardConfig?.hideNotificationMenu) {
       return false;
     }
     return true;

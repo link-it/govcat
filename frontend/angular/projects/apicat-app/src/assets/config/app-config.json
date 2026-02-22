@@ -142,7 +142,11 @@
           "#ffff00"
         ]
       },
-      "showNotificationsMenu": true,
+      "dashboard": {
+        "enabled": true,
+        "hideNotificationMenu": true
+      },
+      "showNotificationsMenu": false,
       "showNotificationsBar": true,
       "enablePollingNotifications": false,
       "showTaxonomies": true,

@@ -487,8 +487,17 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         } else {
             this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
             this._showLanguagesMenu = this._config.AppConfig.Layout.showLanguagesMenu || false;
-            this._showNotificationsMenu = false;
+            this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
             this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
+
+            // Se il gestore ha la dashboard abilitata e hideNotificationMenu e' true, nasconde le notifiche
+            const dashboardConfig = this._config.AppConfig.Layout.dashboard;
+            if (dashboardConfig?.enabled && dashboardConfig?.hideNotificationMenu && this.authenticationService.isGestore()) {
+                this._showNotificationsBar = false;
+                this._showNotificationsMenu = false;
+                this._enablePollingNotifications = false;
+            }
+
             this.notificationsCount$ = this.notificationsService.getNotificationsCount();
             this.loggedIn = (this._session !== null);
             this.login = (this._session !== null);
