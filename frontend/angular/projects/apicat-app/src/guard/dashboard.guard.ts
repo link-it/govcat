@@ -19,6 +19,7 @@
 import { Injectable } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
+import { ConfigService } from '@linkit/components';
 import { AuthenticationService } from '../services/authentication.service';
 
 @Injectable()
@@ -26,10 +27,17 @@ export class DashboardGuard implements CanActivate {
 
   constructor(
     private router: Router,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private configService: ConfigService
   ) {}
 
   canActivate(_route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) {
+    const appConfig = this.configService.getAppConfig();
+    const dashboardEnabled = appConfig?.Layout?.dashboard?.enabled || false;
+    if (!dashboardEnabled) {
+      this.router.navigate(['/servizi']);
+      return false;
+    }
     if (this.authenticationService.isAnonymous()) {
       this.router.navigate(['/servizi']);
       return false;

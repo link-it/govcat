@@ -146,6 +146,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _hasDashboard: boolean = false;
     _showTaxonomies: boolean = false;
+    _dashboardEnabled: boolean = false;
 
     _isAnonymous: boolean = true;
 
@@ -490,9 +491,12 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
             this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
 
-            // Se il gestore ha la dashboard abilitata e hideNotificationMenu e' true, nasconde le notifiche
+            // Salva il flag dashboard.enabled per menu e guard
             const dashboardConfig = this._config.AppConfig.Layout.dashboard;
-            if (dashboardConfig?.enabled && dashboardConfig?.hideNotificationMenu && this.authenticationService.isGestore()) {
+            this._dashboardEnabled = dashboardConfig?.enabled || false;
+
+            // Se il gestore ha la dashboard abilitata e hideNotificationMenu e' true, nasconde le notifiche
+            if (this._dashboardEnabled && dashboardConfig?.hideNotificationMenu && this.authenticationService.isGestore()) {
                 this._showNotificationsBar = false;
                 this._showNotificationsMenu = false;
                 this._enablePollingNotifications = false;
@@ -540,7 +544,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this.navItems = [];
         if (!this.authenticationService.isAnonymous()) {
             const ruolo = this.authenticationService.getRole();
-            if (ruolo) {
+            if (ruolo && this._dashboardEnabled) {
                 this.navItems = [...navItemsDashboardMenu];
             }
         }
@@ -916,8 +920,11 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _showMenu = (menu: any): boolean => {
         let _show: boolean = true;
-        if (menu.path === 'adesioni' || menu.path === 'dashboard') {
+        if (menu.path === 'adesioni') {
             _show = !this._isAnonymous;
+        }
+        if (menu.path === 'dashboard') {
+            _show = !this._isAnonymous && this._dashboardEnabled;
         }
         if (menu.path === 'monitoraggio') {
             _show = this._hasDashboard;
