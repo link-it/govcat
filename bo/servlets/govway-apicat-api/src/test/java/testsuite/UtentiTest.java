@@ -308,7 +308,7 @@ public class UtentiTest {
         utenteCreate2.setPrincipal("second.user");
         controller.createUtente(utenteCreate2);
 
-        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -333,7 +333,7 @@ public class UtentiTest {
         controller.createUtente(utenteCreate2);
 
         // Recupero della lista di utenti con filtri applicati (solo utenti ATTIVI)
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -360,7 +360,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,desc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -393,7 +393,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,asc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -425,7 +425,7 @@ public class UtentiTest {
             controller.createUtente(utenteCreate);
     	}
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
-        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
+        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -450,7 +450,7 @@ public class UtentiTest {
 
         // Verifica che venga lanciata l'eccezione NullPointerException qualora l'utente non fosse loggato
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
         });
 
     }
@@ -461,11 +461,43 @@ public class UtentiTest {
 
         // Tentativo di recuperare la lista di utenti filtrata per una classe utente non esistente
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            controller.listUtenti(null, null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, null, 0, 10, null);
         });
 
         // Asserzioni
         assertEquals("CLS.404", exception.getMessage());
+    }
+
+    @Test
+    void testListUtentiDashboardFilterGestore() {
+        // Creazione dell'organizzazione necessaria
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione di un utente con stato NON_CONFIGURATO
+        UtenteCreate utenteCreate1 = CommonUtils.getUtenteCreate();
+        utenteCreate1.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate1.setStato(StatoUtenteEnum.NON_CONFIGURATO);
+        controller.createUtente(utenteCreate1);
+
+        // Creazione di un utente con stato ABILITATO
+        UtenteCreate utenteCreate2 = CommonUtils.getUtenteCreate();
+        utenteCreate2.setPrincipal("second.user");
+        utenteCreate2.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate2.setStato(StatoUtenteEnum.ABILITATO);
+        controller.createUtente(utenteCreate2);
+
+        // Recupero della lista con dashboard=true (utente gestore)
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, null, null, null, null, null, null, null, true, null, 0, 10, null);
+
+        // Asserzioni
+        assertNotNull(responseList.getBody());
+        assertEquals(HttpStatus.OK, responseList.getStatusCode());
+        // Verifica che vengano restituiti solo utenti con stato NON_CONFIGURATO o PENDING_UPDATE
+        List<ItemUtente> content = responseList.getBody().getContent();
+        for (ItemUtente utente : content) {
+            assertTrue(utente.getStato() == StatoUtenteEnum.NON_CONFIGURATO || utente.getStato() == StatoUtenteEnum.PENDING_UPDATE);
+        }
     }
 
     @Test

@@ -47,6 +47,7 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 	private Optional<String> idUtente = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<Stato> stato = Optional.empty();
+	private List<Stato> stati = null;
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private List<ClasseUtenteEntity> idClassiUtente = null;
 	private Optional<String> email = Optional.empty();
@@ -95,7 +96,11 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 		}
 		
 		if (stato.isPresent()) {
-			predLst.add(cb.equal(root.get(UtenteEntity_.stato), stato.get())); 
+			predLst.add(cb.equal(root.get(UtenteEntity_.stato), stato.get()));
+		}
+
+		if (stati != null && !stati.isEmpty()) {
+			predLst.add(root.get(UtenteEntity_.stato).in(stati));
 		}
 		
 		
@@ -184,6 +189,14 @@ public class UtenteSpecification implements Specification<UtenteEntity> {
 
 	public void setStato(Optional<Stato> stato) {
 		this.stato = stato;
+	}
+
+	public List<Stato> getStati() {
+		return stati;
+	}
+
+	public void setStati(List<Stato> stati) {
+		this.stati = stati;
 	}
 
 	public List<Ruolo> getRuoli() {

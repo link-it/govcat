@@ -1292,6 +1292,7 @@ paths:
       - $ref: "#/components/parameters/email_query_optional"
       - $ref: "#/components/parameters/principal_query_optional"
       - $ref: "#/components/parameters/id_utente_query_optional"
+      - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
