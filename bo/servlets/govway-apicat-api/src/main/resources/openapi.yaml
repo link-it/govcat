@@ -9178,6 +9178,9 @@ components:
           $ref: "#/components/schemas/String255"
         eliminabile:
           type: "boolean"
+        data_ultimo_aggiornamento:
+          type: "string"
+          format: "date-time"
         ruoli_referente:
           type: array
           items:

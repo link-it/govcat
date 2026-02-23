@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.ServiziController;
@@ -60,6 +61,10 @@ public class ServizioItemAssembler extends RepresentationModelAssemblerSupport<S
 		dettaglio.setImmagine(engine.getImmagine(entity));
 		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 		dettaglio.setEliminabile(engine.isEliminabile(entity));
+
+		if(entity.getDataUltimaModifica() != null) {
+			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
+		}
 
 		return dettaglio;
 	}
