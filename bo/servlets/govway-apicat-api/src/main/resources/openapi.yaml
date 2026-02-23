@@ -6450,6 +6450,10 @@ components:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         mostra_referenti:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        max_image_size:
+          type: "integer"
+          description: "Dimensione massima in megabytes per le immagini del servizio"
+          default: 2
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -6710,6 +6714,10 @@ components:
       properties:
         visualizzazione_abilitata:
           type: "boolean"
+        max_image_size:
+          type: "integer"
+          description: "Dimensione massima in megabytes per le immagini del gruppo"
+          default: 2
     ConfigurazioneUtente:
       type: "object"
       required:
