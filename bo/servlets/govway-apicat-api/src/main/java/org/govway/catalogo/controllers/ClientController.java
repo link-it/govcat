@@ -55,6 +55,9 @@ import org.govway.catalogo.servlets.model.PageMetadata;
 import org.govway.catalogo.servlets.model.PagedModelItemClient;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
 import org.govway.catalogo.servlets.model.StatoClientUpdate;
+import org.govway.catalogo.authorization.CoreAuthorization;
+import org.govway.catalogo.servlets.model.Configurazione;
+import org.govway.catalogo.exception.NotAuthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +95,13 @@ public class ClientController implements ClientApi {
 	private ClientEngineAssembler clientEngineAssembler;
 
 	@Autowired
-	private ClientAuthorization authorization;   
+	private ClientAuthorization authorization;
+
+	@Autowired
+	private CoreAuthorization coreAuthorization;
+
+	@Autowired
+	private Configurazione configurazione;
 
 	private Logger logger = LoggerFactory.getLogger(ClientController.class);
 
@@ -196,51 +205,67 @@ public class ClientController implements ClientApi {
 	@Override
 	public ResponseEntity<PagedModelItemClient> listClient(UUID idSoggetto, String nome,
 			UUID idOrganizzazione, AmbienteEnum ambiente, AuthTypeEnum authType, StatoClientEnum stato,
-			UUID idClient, String q, Integer page, Integer size, List<String> sort) {
+			UUID idClient, String q, Boolean dashboard, Integer page, Integer size, List<String> sort) {
 		try {
 
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
-				this.logger.debug("Autorizzazione completata con successo");     
-	
+				this.logger.info("Invocazione in corso ...");
+				this.logger.debug("Autorizzazione completata con successo");
+
 				ClientSpecification spec = new ClientSpecification();
 				spec.setQ(Optional.ofNullable(q));
 				spec.setNome(Optional.ofNullable(nome));
 				spec.setIdClient(Optional.ofNullable(idClient));
 				spec.setIdSoggetto(Optional.ofNullable(idSoggetto));
 				spec.setIdOrganizzazione(Optional.ofNullable(idOrganizzazione));
-				
+
 				if(stato!=null) {
 					spec.setStato(Optional.of(this.clientEngineAssembler.toStatoClient(stato)));
 				}
-				
+
 				if(ambiente != null) {
 					spec.setAmbiente(Optional.of(this.clientEngineAssembler.toAmbiente(ambiente)));
 				}
 
-				
 				if(authType != null) {
 					spec.setAuthType(Optional.of(this.clientEngineAssembler.getAuthType(authType)));
 				}
-				
+
+				// Gestione filtro dashboard
+				if(dashboard != null && dashboard) {
+					// Solo GESTORE può usare il filtro dashboard
+					if(!this.coreAuthorization.isAdmin()) {
+						throw new NotAuthorizedException(ErrorCode.AUT_403);
+					}
+
+					// Filtra client in stato NUOVO
+					spec.setStato(Optional.of(StatoEnum.NUOVO));
+
+					// Filtra client associati ad adesioni negli stati configurati
+					List<String> statiDashboardClient = this.configurazione.getAdesione().getStatiDashboardClient();
+					if(statiDashboardClient != null && !statiDashboardClient.isEmpty()) {
+						spec.setAdesioniStati(statiDashboardClient);
+					}
+				}
+
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
 
 				Page<ClientEntity> findAll = this.service.findAll(spec, pageable);
-	        
+
 				Link link = Link.of(ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString(), IanaLinkRelations.SELF);
 
 				PagedModel<ItemClient> lst = pagedResourceAssembler.toModel(findAll, this.itemAssembler, link);
-	
-	
+
+
 				PagedModelItemClient list = new PagedModelItemClient();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
-				
+
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.ok(list);
-			});     
+			});
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
