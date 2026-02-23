@@ -444,6 +444,7 @@ paths:
       - $ref: "#/components/parameters/id_mittente_query_optional"
       - $ref: "#/components/parameters/id_servizio_query_optional"
       - $ref: "#/components/parameters/id_adesione_query_optional"
+      - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/page_query_optional"
       - $ref: "#/components/parameters/size_query_optional"
       - $ref: "#/components/parameters/sort_query_optional"
@@ -479,6 +480,7 @@ paths:
       - $ref: "#/components/parameters/id_mittente_query_optional"
       - $ref: "#/components/parameters/id_servizio_query_optional"
       - $ref: "#/components/parameters/id_adesione_query_optional"
+      - $ref: "#/components/parameters/dashboard_query_optional"
       responses:
         "200":
           description: "Operazione completata con successo"
@@ -8253,6 +8255,10 @@ components:
         data:
           type: string
           format: date-time
+        ruoli_referente:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuoloReferenteEnum"
     Notifica:
       type: "object"
       properties:

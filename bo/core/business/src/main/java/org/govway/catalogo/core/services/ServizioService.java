@@ -243,4 +243,8 @@ public class ServizioService extends AbstractService {
 		return this.referenteServizioRepo.findByReferente(utente);
 	}
 
+	public List<ServizioEntity> findAllByRichiedente(UtenteEntity utente) {
+		return this.servizioRepo.findByRichiedente(utente.getId());
+	}
+
 }

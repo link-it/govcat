@@ -469,7 +469,7 @@ public class RegistrazioneServizioIntegrationTest {
 
         serviziController.getGrantServizio(idServizio);
 
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
         notifiche.getBody().getContent();
 
         ResponseEntity<PagedModelItemMessaggio> messaggi = serviziController.listMessaggiServizio(idServizio, null, 0, 10, null);
@@ -565,7 +565,7 @@ public class RegistrazioneServizioIntegrationTest {
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
         
         //verificare la presenza della notifica del cambio di stato da parte del referente servizio
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, TipoNotificaEnum.CAMBIO_STATO, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, TipoNotificaEnum.CAMBIO_STATO, null, null, null, null, idServizio, null, null, 0, 10, null);
         notifiche.getBody().getContent();
         
         //scaricare il descrittore dal dettaglio della API

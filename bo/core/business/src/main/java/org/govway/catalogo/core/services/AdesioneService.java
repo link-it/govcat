@@ -163,4 +163,8 @@ public class AdesioneService extends AbstractService {
 		return this.referenteServizioRepo.findByReferente(utente);
 	}
 
+	public List<AdesioneEntity> findAllByRichiedente(UtenteEntity utente) {
+		return this.adesioneRepo.findByRichiedente(utente.getId());
+	}
+
 }
