@@ -1466,7 +1466,10 @@
 				"Range": "L'importo deve avere un valore compreso tra {{min}} e {{max}}",
 				"Taxcode": "Codice fiscale errato",
 				"TaxcodeVat": "Codice fiscale o partita IVA errati",
-				"Uuid": "Inserisci una UUID valida"
+				"Uuid": "Inserisci una UUID valida",
+				"MaxFileSize": "Dimensione massima consentita: {{size}} MB",
+				"OnlyImages": "Sono consentiti solo file di tipo: {{types}}",
+				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px"
 			}
 		},
 		"NOTIFICATIONS": {

@@ -1466,7 +1466,10 @@
 				"Range": "The amount must have a value between {{min}} and {{max}}",
 				"Taxcode": "Wrong taxcode",
 				"TaxcodeVat": "Wrong taxcode or VAT number",
-				"Uuid": "Insert valid UUID"
+				"Uuid": "Insert valid UUID",
+				"MaxFileSize": "Maximum size allowed: {{size}} MB",
+				"OnlyImages": "Only files of type are allowed: {{types}}",
+				"MaxDimensions": "Maximum dimensions allowed: {{width}}x{{height}} px"
 			}
 		},
 		"NOTIFICATIONS": {

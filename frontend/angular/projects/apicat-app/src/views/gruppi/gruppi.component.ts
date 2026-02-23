@@ -132,6 +132,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
     apiUrl: string = '';
     _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _maxImageSize: number = (Tools.Configurazione?.gruppo?.max_image_size || 2) * 1024 * 1024;
 
     _modalEditRef!: BsModalRef;
     _modalConfirmRef!: BsModalRef;

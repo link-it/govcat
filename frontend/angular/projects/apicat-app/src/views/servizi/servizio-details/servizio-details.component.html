@@ -170,7 +170,7 @@
                                                 <app-photo-base64
                                                     [boxWidth]="'250px'"
                                                     [boxHeight]="'auto'"
-                                                    [maxSize]="20971520"
+                                                    [maxSize]="_maxImageSize"
                                                     [placeHolder]="_imagePlaceHolder"
                                                     [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"
                                                     [isImageSaved]="data?.immagine"

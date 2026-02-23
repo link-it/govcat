@@ -96,6 +96,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     apiUrl: string = '';
     _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _maxImageSize: number = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
 
     domini$!: Observable<any[]>;
     dominiInput$ = new Subject<string>();

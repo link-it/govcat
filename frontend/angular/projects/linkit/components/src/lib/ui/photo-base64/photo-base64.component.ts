@@ -19,6 +19,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { SafeUrl } from '@angular/platform-browser';
 
+import { TranslateService } from '@ngx-translate/core';
 import * as _ from 'lodash';
 
 @Component({
@@ -43,7 +44,7 @@ export class PhotoBase64Component implements OnChanges {
   imageError!: string | null;
   cardImageBase64!: string | null;
 
-  constructor() { }
+  constructor(private translate: TranslateService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.imageSaved?.currentValue && this.isImageSaved) {
@@ -61,12 +62,14 @@ export class PhotoBase64Component implements OnChanges {
       const max_width = 25600;
 
       if (fileInput.target.files[0].size > max_size) {
-        this.imageError = 'Maximum size allowed is ' + max_size / 1000 + 'Mb';
+        const sizeMB = Math.round(max_size / (1024 * 1024) * 100) / 100;
+        this.imageError = this.translate.instant('APP.MESSAGE.VALIDATION.MaxFileSize', { size: sizeMB });
         return false;
       }
 
       if (!_.includes(allowed_types, fileInput.target.files[0].type)) {
-        this.imageError = 'Only Images are allowed ( JPG | PNG )';
+        const types = allowed_types.map((t: string) => t.split('/').pop()!.toUpperCase()).join(', ');
+        this.imageError = this.translate.instant('APP.MESSAGE.VALIDATION.OnlyImages', { types });
         return false;
       }
       const reader = new FileReader();
@@ -78,12 +81,7 @@ export class PhotoBase64Component implements OnChanges {
           const img_width = rs.currentTarget['width'];
 
           if (img_height > max_height && img_width > max_width) {
-            this.imageError =
-              'Maximum dimentions allowed ' +
-              max_height +
-              '*' +
-              max_width +
-              'px';
+            this.imageError = this.translate.instant('APP.MESSAGE.VALIDATION.MaxDimensions', { width: max_width, height: max_height });
             return false;
           } else {
             const imgBase64Path = e.target.result;

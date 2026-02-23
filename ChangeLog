@@ -1,3 +1,10 @@
+2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #184
+	Aggiunto limite configurabile alle dimensioni delle immagini caricate per gruppi e servizi
+	Corretti e tradotti (i18n) i messaggi di errore del componente photo-base64
+
 2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
