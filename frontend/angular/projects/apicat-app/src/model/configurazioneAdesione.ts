@@ -31,10 +31,11 @@
 import { WorkflowProduzioneSenzaCollaudoEnum } from './workflowProduzioneSenzaCollaudoEnum';
 
 
-export interface ConfigurazioneAdesione { 
+export interface ConfigurazioneAdesione {
     scelta_libera_organizzazione: boolean;
     riuso_client_obbligatorio: boolean;
     workflow_produzione_senza_collaudo: WorkflowProduzioneSenzaCollaudoEnum;
+    stati_dashboard_client?: string[];
 }
 export namespace ConfigurazioneAdesione {
 }

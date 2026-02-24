@@ -84,15 +84,22 @@ export class DashboardService {
     return Array.isArray(statiPerRuolo) && statiPerRuolo.length > 0;
   }
 
+  private _hasStatiDashboardClient(): boolean {
+    const stati = Tools.Configurazione?.adesione?.stati_dashboard_client;
+    return Array.isArray(stati) && stati.length > 0;
+  }
+
   computeRoleConfig(ruolo: string, ruoliReferente: string[]): DashboardRoleConfig {
+    const clientVisible = this._hasStatiDashboardClient();
+
     // Gestore: tutto visibile
     if (ruolo === 'gestore') {
       return { servizi: true, adesioni: true, client: true, comunicazioni: true, utenti: true };
     }
 
-    // Coordinatore: tutto tranne client
+    // Coordinatore: tutto tranne client (client visibile se configurato)
     if (ruolo === 'coordinatore') {
-      return { servizi: true, adesioni: true, client: false, comunicazioni: true, utenti: true };
+      return { servizi: true, adesioni: true, client: clientVisible, comunicazioni: true, utenti: true };
     }
 
     // Referente: dipende da ruoliReferente e configurazione stati_dashboard
@@ -109,7 +116,7 @@ export class DashboardService {
     return {
       servizi: serviziVisible,
       adesioni: adesioniVisible,
-      client: false,
+      client: clientVisible,
       comunicazioni: true,
       utenti: false
     };

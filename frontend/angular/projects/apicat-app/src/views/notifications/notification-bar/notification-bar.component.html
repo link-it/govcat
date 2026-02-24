@@ -23,8 +23,14 @@
   <div class="d-flex justify-content-between notification-read" *ngIf="_notification">
     <button class="js-notifications-back-to-inbox btn btn-default btn-sm gl-button mr-2" (click)="onBack()">
       <i class="bi bi-arrow-left"></i>
-      <span class="d-md-none ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Notifications' | translate }}</span>
-      <span class="d-none d-md-inline ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.BackNotifications' | translate }}</span>
+      <ng-container *ngIf="!_fromDashboard">
+        <span class="d-md-none ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Notifications' | translate }}</span>
+        <span class="d-none d-md-inline ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.BackNotifications' | translate }}</span>
+      </ng-container>
+      <ng-container *ngIf="_fromDashboard">
+        <span class="d-md-none ms-1">{{ 'APP.TITLE.Dashboard' | translate }}</span>
+        <span class="d-none d-md-inline ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.BackDashboard' | translate }}</span>
+      </ng-container>
     </button>
 
     <div class="align-items-center list-style-none d-none d-md-flex">

@@ -397,9 +397,25 @@ export class DashboardComponent implements OnInit {
           this.router.navigate(['/client', item.id_client]);
         }
         break;
-      case 'comunicazioni':
-        this.router.navigate(['/notifications']);
+      case 'comunicazioni': {
+        const notificaId = item.id_notifica;
+        const messageId = item.entita?.id_entita;
+        const servizio = item.entita?.servizio;
+        const adesione = item.entita?.adesione;
+        const tipoUrl = (item.tipo?.tipo === 'comunicazione') ? '/comunicazioni?' : '?';
+
+        let url = '';
+        if (servizio) {
+          url = `/servizi/${servizio.id_servizio}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard`;
+        } else if (adesione) {
+          url = `/adesioni/${adesione.id_adesione}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard`;
+        } else {
+          this.router.navigate(['/notifications']);
+          break;
+        }
+        this.router.navigateByUrl(url);
         break;
+      }
       case 'utenti':
         if (item.id_utente) {
           this.router.navigate(['/utenti', item.id_utente]);
