@@ -26,7 +26,8 @@ export const navItemsDashboardMenu: INavData[] = [
     url: '/dashboard',
     iconBs: 'speedometer2',
     permission: 'DASHBOARD_PENDING',
-    attributes: { disabled: false }
+    attributes: { disabled: false },
+    counter: 'dashboard'
   }
 ];
 

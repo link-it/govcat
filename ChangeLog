@@ -1,3 +1,11 @@
+2026-02-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Aggiunto badge counter sulla voce menu Dashboard con polling periodico (30s)
+	Il counter mostra il totale delle azioni pending visibili per il ruolo utente
+	Aggiunto DEFAULT_DASHBOARD_TIMER in app-config.json
+
 2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

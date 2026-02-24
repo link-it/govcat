@@ -18,10 +18,12 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject, forkJoin, of, timer } from 'rxjs';
+import { catchError, map, retry, share, switchMap, takeUntil } from 'rxjs/operators';
 
 import { Tools } from '@linkit/components';
 
+import { AuthenticationService } from './authentication.service';
 import { OpenAPIService } from './openAPI.service';
 import {
   DashboardPagedResponse,
@@ -37,8 +39,12 @@ import {
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
 
+  private _dashboardCount$: Observable<number> | null = null;
+  private _stopPolling = new Subject<void>();
+
   constructor(
-    private apiService: OpenAPIService
+    private apiService: OpenAPIService,
+    private authenticationService: AuthenticationService
   ) {}
 
   /**
@@ -143,5 +149,83 @@ export class DashboardService {
 
   getUtenti(): Observable<DashboardPagedResponse<DashboardItemUtente>> {
     return this.apiService.getList('utenti', this._dashboardOptions());
+  }
+
+  getDashboardCount(timerMs: number): Observable<number> {
+    if (!this._dashboardCount$) {
+      this._dashboardCount$ = this._resolveRoleConfig().pipe(
+        switchMap(roleConfig => {
+          return timer(1, timerMs).pipe(
+            switchMap(() => this._fetchTotalCount(roleConfig)),
+            retry(3),
+            catchError(() => of(0)),
+            share(),
+            takeUntil(this._stopPolling)
+          );
+        })
+      );
+    }
+    return this._dashboardCount$;
+  }
+
+  stopDashboardPolling(): void {
+    this._stopPolling.next();
+    this._dashboardCount$ = null;
+  }
+
+  private _resolveRoleConfig(): Observable<DashboardRoleConfig> {
+    const user: any = this.authenticationService.getUser();
+    const ruolo = user?.ruolo || '';
+
+    if (ruolo === 'gestore' || ruolo === 'coordinatore') {
+      return of(this.computeRoleConfig(ruolo, []));
+    }
+
+    return this.getRuoliProfilo().pipe(
+      map(profilo => this.computeRoleConfig(profilo.ruolo, profilo.ruoli_referente || [])),
+      catchError(() => of(this.computeRoleConfig(ruolo, [])))
+    );
+  }
+
+  private _fetchTotalCount(roleConfig: DashboardRoleConfig): Observable<number> {
+    const countOptions: any = {
+      params: new HttpParams().set('dashboard', 'true').set('size', '0')
+    };
+
+    const calls: Observable<number>[] = [];
+
+    if (roleConfig.servizi) {
+      calls.push(this.apiService.getList('servizi', countOptions).pipe(
+        map((r: any) => r?.page?.totalElements || 0), catchError(() => of(0))
+      ));
+    }
+    if (roleConfig.adesioni) {
+      calls.push(this.apiService.getList('adesioni', countOptions).pipe(
+        map((r: any) => r?.page?.totalElements || 0), catchError(() => of(0))
+      ));
+    }
+    if (roleConfig.client) {
+      calls.push(this.apiService.getList('client', countOptions).pipe(
+        map((r: any) => r?.page?.totalElements || 0), catchError(() => of(0))
+      ));
+    }
+    if (roleConfig.comunicazioni) {
+      calls.push(this.apiService.getList('notifiche', countOptions).pipe(
+        map((r: any) => r?.page?.totalElements || 0), catchError(() => of(0))
+      ));
+    }
+    if (roleConfig.utenti) {
+      calls.push(this.apiService.getList('utenti', countOptions).pipe(
+        map((r: any) => r?.page?.totalElements || 0), catchError(() => of(0))
+      ));
+    }
+
+    if (calls.length === 0) {
+      return of(0);
+    }
+
+    return forkJoin(calls).pipe(
+      map(counts => counts.reduce((sum, c) => sum + c, 0))
+    );
   }
 }

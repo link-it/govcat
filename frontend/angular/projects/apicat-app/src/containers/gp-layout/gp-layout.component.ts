@@ -27,6 +27,7 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
+import { DashboardService } from '@services/dashboard.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
 
 import { AboutDialogComponent } from '@app/components/about-dialog/about-dialog.component';
@@ -139,7 +140,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     _enableOpenInNewTab: boolean = false;
 
     _counters: any = {
-        notifications: 0
+        notifications: 0,
+        dashboard: 0
     };
 
     notificationsCount$!: Observable<NotificationsCount>;
@@ -175,6 +177,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         private readonly authenticationService: AuthenticationService,
         private readonly apiService: OpenAPIService,
         private readonly notificationsService: NotificationsService,
+        private readonly dashboardService: DashboardService,
         public sidebarNavHelper: GpSidebarNavHelper,
     ) {
         this.localStorageService.setItem('PROFILE', false);
@@ -515,6 +518,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.notificationsCount$.pipe(
                 // tap(() => console.log('data received'))
             ).subscribe(val => this._counters.notifications = val.count);
+        }
+        if (this._dashboardEnabled) {
+            const dashboardTimer = this._config.AppConfig.DEFAULT_DASHBOARD_TIMER
+                || this._config.AppConfig.DEFAULT_NOTIFICATIONS_TIMER
+                || 30000;
+            this.dashboardService.getDashboardCount(dashboardTimer)
+                .subscribe(val => this._counters.dashboard = val);
         }
     }
 
