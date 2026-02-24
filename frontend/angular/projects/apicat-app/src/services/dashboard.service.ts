@@ -42,27 +42,21 @@ export class DashboardService {
   ) {}
 
   /**
-   * Mappa ruoli_referente al ruolo dashboard usato in stati_dashboard.
-   * Priorità: referente_dominio > referente_servizio/referente_adesione > ruoli tecnici > richiedente
+   * Mappa ruoli_referente al ruolo dashboard (ConfigurazioneRuolo enum).
+   * Valori possibili: richiedente, referente, referente_superiore, gestore
+   * Priorità: referente_dominio > referente_servizio/adesione/tecnici > richiedente
    */
   private _mapRuoliReferenteToDashboardRole(ruoliReferente: string[]): string | null {
     if (!ruoliReferente || ruoliReferente.length === 0) return null;
 
-    // Priorità più alta: referente_dominio
-    if (ruoliReferente.includes('referente_dominio')) {
+    // referente_dominio o referente_tecnico_dominio → referente_superiore
+    if (ruoliReferente.includes('referente_dominio') || ruoliReferente.includes('referente_tecnico_dominio')) {
       return 'referente_superiore';
     }
-    // referente_tecnico_dominio (senza referente_dominio)
-    if (ruoliReferente.includes('referente_tecnico_dominio')) {
-      return 'referente_tecnico';
-    }
-    // Referente servizio o adesione
-    if (ruoliReferente.includes('referente_servizio') || ruoliReferente.includes('referente_adesione')) {
+    // Referente o referente tecnico di servizio/adesione → referente
+    if (ruoliReferente.includes('referente_servizio') || ruoliReferente.includes('referente_adesione') ||
+        ruoliReferente.includes('referente_tecnico_servizio') || ruoliReferente.includes('referente_tecnico_adesione')) {
       return 'referente';
-    }
-    // Ruoli tecnici di servizio o adesione
-    if (ruoliReferente.includes('referente_tecnico_servizio') || ruoliReferente.includes('referente_tecnico_adesione')) {
-      return 'referente_tecnico';
     }
     // Richiedente
     if (ruoliReferente.includes('richiedente_servizio') || ruoliReferente.includes('richiedente_adesione')) {
@@ -74,14 +68,15 @@ export class DashboardService {
 
   /**
    * Verifica se una sezione ha stati configurati in stati_dashboard per il ruolo specificato.
+   * stati_dashboard è un array di { ruolo: string, stati: string[] }
    */
   private _hasStatiDashboard(configSection: string, dashboardRole: string): boolean {
     const workflow = Tools.Configurazione?.[configSection]?.workflow;
     const statiDashboard = workflow?.stati_dashboard;
-    if (!statiDashboard) return false;
+    if (!Array.isArray(statiDashboard)) return false;
 
-    const statiPerRuolo = statiDashboard[dashboardRole];
-    return Array.isArray(statiPerRuolo) && statiPerRuolo.length > 0;
+    const entry = statiDashboard.find((s: any) => s.ruolo === dashboardRole);
+    return Array.isArray(entry?.stati) && entry.stati.length > 0;
   }
 
   private _hasStatiDashboardClient(): boolean {
@@ -90,16 +85,14 @@ export class DashboardService {
   }
 
   computeRoleConfig(ruolo: string, ruoliReferente: string[]): DashboardRoleConfig {
-    const clientVisible = this._hasStatiDashboardClient();
-
     // Gestore: tutto visibile
     if (ruolo === 'gestore') {
       return { servizi: true, adesioni: true, client: true, comunicazioni: true, utenti: true };
     }
 
-    // Coordinatore: tutto tranne client (client visibile se configurato)
+    // Coordinatore: tutto tranne client e utenti
     if (ruolo === 'coordinatore') {
-      return { servizi: true, adesioni: true, client: clientVisible, comunicazioni: true, utenti: true };
+      return { servizi: true, adesioni: true, client: false, comunicazioni: true, utenti: true };
     }
 
     // Referente: dipende da ruoliReferente e configurazione stati_dashboard
@@ -112,6 +105,8 @@ export class DashboardService {
 
     const serviziVisible = this._hasStatiDashboard('servizio', dashboardRole);
     const adesioniVisible = this._hasStatiDashboard('adesione', dashboardRole);
+    // Client visibile solo per referente_superiore (dominio) se stati_dashboard_client è configurato
+    const clientVisible = dashboardRole === 'referente_superiore' && this._hasStatiDashboardClient();
 
     return {
       servizi: serviziVisible,

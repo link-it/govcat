@@ -1,9 +1,32 @@
 2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Migliorata funzionalità #86
+	Aggiunto campo ruoli_referente ai DTO servizi, adesioni e comunicazioni con badge visivi
+	Aggiunto indicatore letto/non letto per comunicazioni (pallino blu, bold, sfondo)
+	Navigazione comunicazioni: click apre il dettaglio servizio/adesione con notification-bar
+	Notification-bar: pulsante "Torna" context-aware (dashboard o notifiche)
+	Aggiunto stati_dashboard_client a ConfigurazioneAdesione per visibilità pannello client
+	Corretto parsing stati_dashboard (array di {ruolo, stati}, non oggetto)
+	Corretta mappatura ruoli referente a ConfigurazioneRuolo (rimosso referente_tecnico inesistente)
+	Corretto pannello client: visibile solo per referente_superiore con stati_dashboard_client configurato
+
+2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Implementata funzionalità #184
 	Aggiunto limite configurabile alle dimensioni delle immagini caricate per gruppi e servizi
 	Corretti e tradotti (i18n) i messaggi di errore del componente photo-base64
+
+2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Rimossi mock JSON, tutti gli endpoint ora usano le API reali con ?dashboard=true
+	Visibilità pannelli dinamica basata su configurazione stati_dashboard e ruoli_referente
+	Aggiunto DashboardGuard per accesso dashboard a qualsiasi utente con ruolo
+	Rotta /dashboard come default dell'applicazione (era /servizi)
+	Aggiornato formato DashboardItemComunicazione al DTO reale dell'API notifiche
 
 2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -31,6 +54,20 @@
 	Risolto bug #180
 	Corretta visibilità dropdown organizzazione/soggetto interno in creazione servizio Fruizione
 	Aggiunto reset dei valori delle dropdown alla deselezione del checkbox Fruizione
+
+2026-02-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #86
+	Nuova Dashboard Azioni Pending accessibile a tutti gli utenti autenticati con ruolo
+	Summary cards colorate con conteggio per sezione (servizi, adesioni, client, comunicazioni, utenti)
+	Pannelli dettaglio con lista scrollabile, badge stati colorati e pulsante "Vedi tutti"
+	Espansione card a vista piena con barra di ricerca, filtri inline e infinite scroll
+	Creati 5 componenti search-form riutilizzabili per la ricerca nelle sezioni espanse
+	Visibilità pannelli configurata per ruolo tramite DashboardService
+	Rinominata vecchia dashboard di monitoraggio in "Monitoraggio" (path /monitoraggio)
+	Nuova direttiva autoFillScroll per auto-caricamento pagine su schermi grandi
+	Supporto hideVersions per nascondere versioni nei pannelli servizi e adesioni
 
 2026-02-09  Giovanni De Luca <giovanni.deluca@link.it>
 
