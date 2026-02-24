@@ -2,6 +2,12 @@
 
 	* [Frontend]
 	Migliorata funzionalità #86
+	Rimosso filtro per stato dai search form della vista espansa servizi e adesioni (ridondante in contesto dashboard)
+
+2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
 	Aggiunto campo ruoli_referente ai DTO servizi, adesioni e comunicazioni con badge visivi
 	Aggiunto indicatore letto/non letto per comunicazioni (pallino blu, bold, sfondo)
 	Navigazione comunicazioni: click apre il dettaglio servizio/adesione con notification-bar

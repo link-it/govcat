@@ -52,8 +52,6 @@ export class ServiziSearchFormComponent implements OnInit {
 
     _formGroup: FormGroup = new FormGroup({});
 
-    _statiServizioEnum: any = {};
-
     _tipiVisibilitaServizio: {value: string, label: string}[] = [
         ...Tools.TipiVisibilitaServizio
     ];
@@ -61,7 +59,6 @@ export class ServiziSearchFormComponent implements OnInit {
 
     searchFields: any[] = [
         { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'text', condition: 'like' },
-        { field: 'stato', label: 'APP.LABEL.stato', type: 'enum', condition: 'equal', enumValues: {} },
         { field: 'visibilita', label: 'APP.LABEL.visibilita', type: 'enum', condition: 'equal', enumValues: { ...Tools.VisibilitaServizioEnum } },
         { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome', urlParam: '?id_dominio=' } },
         { field: 'id_api', label: 'APP.LABEL.id_api', type: 'text', condition: 'equal', params: { resource: 'api', field: '{nome} v.{versione} ({servizio.dominio.nome})' } },
@@ -83,9 +80,6 @@ export class ServiziSearchFormComponent implements OnInit {
     ];
 
     useCondition: boolean = false;
-
-    _workflowStati: any[] = Tools.Configurazione ? Tools.Configurazione.servizio.stati_adesione_consentita : [];
-    _workflowStatiFiltered: any[] = [];
 
     _showTaxonomies: boolean = false;
 
@@ -139,7 +133,6 @@ export class ServiziSearchFormComponent implements OnInit {
         }
 
         this._initSearchForm();
-        this._createWorkflowStati();
         this._initProfili();
 
         this._initServizioApiSelect([]);
@@ -150,7 +143,6 @@ export class ServiziSearchFormComponent implements OnInit {
     _initSearchForm() {
         this._formGroup = new FormGroup({
             q: new FormControl(''),
-            stato: new FormControl(''),
             type: new FormControl(''),
             referente: new FormControl(''),
             id_dominio: new FormControl(''),
@@ -167,26 +159,6 @@ export class ServiziSearchFormComponent implements OnInit {
             id_gruppo_padre: new FormControl(''),
             id_gruppo_padre_label: new FormControl(''),
         });
-    }
-
-    _createWorkflowStati() {
-        const _configServizio = Tools.Configurazione?.servizio;
-        if (_configServizio) {
-            this._workflowStati = this._isAnonymous() ? _configServizio.stati_adesione_consentita : _configServizio.workflow.stati;
-            this._workflowStatiFiltered = [];
-            this._workflowStati.forEach((element: string, index: number) => {
-                if (element === 'archiviato' && !this._isGestore()) { return; }
-                this._workflowStatiFiltered.push({ value: element, label: element });
-            });
-
-            this._statiServizioEnum = Object.fromEntries(this._workflowStatiFiltered.map(item => [item.label, `APP.WORKFLOW.STATUS.${item.value}`])) as {
-                [key: string]: string;
-            };
-            const _index = this.searchFields.findIndex((s: any) => s.field === 'stato');
-            if (_index > -1) {
-                this.searchFields[_index].enumValues = { ...this._statiServizioEnum };
-            }
-        }
     }
 
     _initProfili() {

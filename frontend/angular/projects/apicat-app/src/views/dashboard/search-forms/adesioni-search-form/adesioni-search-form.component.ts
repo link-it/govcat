@@ -19,7 +19,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
-import { ConfigService, Tools, SearchBarFormComponent, EventsManagerService, EventType } from '@linkit/components';
+import { ConfigService, Tools, SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
@@ -62,11 +62,8 @@ export class AdesioniSearchFormComponent implements OnInit {
     return item;
   });
 
-  _workflowStati: any[] = Tools.Configurazione?.adesione.workflow.stati || [];
-
   searchFields: any[] = [
     { field: 'q', label: 'APP.ADESIONI.LABEL.Name', type: 'string', condition: 'like' },
-    { field: 'stato', label: 'APP.LABEL.Status', type: 'enum', condition: 'equal', enumValues: Tools.StatiAdesioneEnum },
     { field: 'id_dominio', label: 'APP.LABEL.id_dominio', type: 'text', condition: 'equal', params: { resource: 'domini', field: 'nome' } },
     { field: 'id_servizio', label: 'APP.ADESIONI.LABEL.Service', type: 'text', condition: 'equal', params: { resource: 'servizi', field: '{nome} v.{versione}' } },
     { field: 'id_organizzazione', label: 'APP.ADESIONI.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' } },
@@ -103,8 +100,7 @@ export class AdesioniSearchFormComponent implements OnInit {
   constructor(
     private readonly configService: ConfigService,
     private readonly apiService: OpenAPIService,
-    private readonly authenticationService: AuthenticationService,
-    private readonly eventsManagerService: EventsManagerService
+    private readonly authenticationService: AuthenticationService
   ) {
     this._initSearchForm();
   }
@@ -114,10 +110,6 @@ export class AdesioniSearchFormComponent implements OnInit {
     this._initServiziSelect([]);
     this._initOrganizzazioniSelect([]);
     this._initClientsSelect([]);
-
-    this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
-      this._workflowStati = Tools.Configurazione?.adesione.workflow.stati || [];
-    });
   }
 
   get isGestore(): boolean {
@@ -132,7 +124,6 @@ export class AdesioniSearchFormComponent implements OnInit {
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
       q: new UntypedFormControl(''),
-      stato: new UntypedFormControl(''),
       id_dominio: new UntypedFormControl(null),
       id_servizio: new UntypedFormControl(null),
       id_organizzazione: new UntypedFormControl(null),
