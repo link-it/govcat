@@ -37,9 +37,11 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
+import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.AuthTypeHttpBasic;
 import org.govway.catalogo.servlets.model.AuthTypeHttps;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsPdnd;
@@ -60,6 +62,7 @@ import org.govway.catalogo.servlets.model.ItemClientAdesione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 
 public class AdesioneCsvBuilder {
 
@@ -74,7 +77,13 @@ public class AdesioneCsvBuilder {
 	@Autowired
 	private Configurazione configurazione;
 
+	private List<Pair<String, String>> custom;
+
 	public AdesioneCsvBuilder() {
+		this.custom = new ArrayList<>();
+		this.custom.add(Pair.of("finalita", "purposeId"));
+		this.custom.add(Pair.of("nome_eservice_pdnd", "nome eService PDND"));
+		this.custom.add(Pair.of("versione_eservice_pdnd", "versione eService PDND"));
 	}
 
 	private Collection<AdesioneCsv> toListEntries(AdesioneEntity adesione) {
@@ -133,6 +142,11 @@ public class AdesioneCsvBuilder {
 			if(hasCollaudo) {
 				a.setRateLimitingCollaudo(getRateLimitingValore(adesione, api, AmbienteEnum.COLLAUDO));
 
+				String proprietaCollaudo = getProprieta(adesione, api, AmbienteEnum.COLLAUDO);
+				if(proprietaCollaudo != null) {
+					a.setProprietaCollaudo(proprietaCollaudo);
+				}
+
 				ClientAdesioneEntity cCollaudo = getClient(adesione, api, AmbienteEnum.COLLAUDO);
 				if(cCollaudo != null) {
 					a.setAutenticazioneStato(this.eServiceBuilder.getProfiloString(cCollaudo.getProfilo()));
@@ -149,6 +163,11 @@ public class AdesioneCsvBuilder {
 
 			if(hasProduzione) {
 				a.setRateLimitingProduzione(getRateLimitingValore(adesione, api, AmbienteEnum.PRODUZIONE));
+
+				String proprietaProduzione = getProprieta(adesione, api, AmbienteEnum.PRODUZIONE);
+				if(proprietaProduzione != null) {
+					a.setProprietaProduzione(proprietaProduzione);
+				}
 
 				ClientAdesioneEntity cProduzione = getClient(adesione, api, AmbienteEnum.PRODUZIONE);
 				if(cProduzione != null) {
@@ -239,6 +258,50 @@ public class AdesioneCsvBuilder {
 				.filter(e -> e.getAmbiente().equals(ambiente) && e.getNome().equals(nome) && api.equals(e.getApi()))
 				.findAny()
 				.orElse(new EstensioneAdesioneEntity())
+				.getValore();
+	}
+
+	private String getProprieta(AdesioneEntity adesione, ApiEntity api, AmbienteEnum ambiente) {
+		StringBuilder proprieta = new StringBuilder();
+
+		for(Pair<String, String> c: this.custom) {
+			String prop = getEstensioneAdesioneValore(adesione, api, ambiente, c.getFirst());
+
+			if(prop == null || prop.isEmpty()) {
+				List<String> gruppi = this.configurazione.getServizio().getApi().getProprietaCustom().stream()
+						.filter(p -> {
+							if(ambiente.equals(AmbienteEnum.COLLAUDO)) {
+								return p.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO)
+										|| p.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO);
+							} else {
+								return p.getClasseDato().equals(ConfigurazioneClasseDato.PRODUZIONE)
+										|| p.getClasseDato().equals(ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO);
+							}
+						}).map(p -> p.getNomeGruppo()).collect(Collectors.toList());
+
+				prop = getEstensioneAPIValore(api, gruppi, c.getFirst());
+			}
+
+			if(prop != null && !prop.isEmpty()) {
+				if(proprieta.length() > 0) {
+					proprieta.append("\n");
+				}
+				proprieta.append(c.getSecond()).append(": ").append(prop);
+			}
+		}
+
+		if(proprieta.length() > 0) {
+			return proprieta.toString();
+		} else {
+			return null;
+		}
+	}
+
+	private String getEstensioneAPIValore(ApiEntity api, List<String> gruppi, String nome) {
+		return api.getEstensioni().stream()
+				.filter(e -> gruppi.contains(e.getGruppo()) && e.getNome().equals(nome))
+				.findAny()
+				.orElse(new EstensioneApiEntity())
 				.getValore();
 	}
 

@@ -34,10 +34,12 @@ public class AdesioneCsv {
 	private String applicativiAutorizzatiProduzione;
 	private String autenticazioneValoreProduzione;
 	private String rateLimitingProduzione;
+	private String proprietaProduzione;
 	private String urlInvocazioneProduzione;
 	private String applicativiAutorizzatiCollaudo;
 	private String autenticazioneValoreCollaudo;
 	private String rateLimitingCollaudo;
+	private String proprietaCollaudo;
 	private String urlInvocazioneCollaudo;
 
 	public String getErogatore() {
@@ -141,6 +143,18 @@ public class AdesioneCsv {
 	}
 	public void setRateLimitingCollaudo(String rateLimitingCollaudo) {
 		this.rateLimitingCollaudo = rateLimitingCollaudo;
+	}
+	public String getProprietaCollaudo() {
+		return proprietaCollaudo;
+	}
+	public void setProprietaCollaudo(String proprietaCollaudo) {
+		this.proprietaCollaudo = proprietaCollaudo;
+	}
+	public String getProprietaProduzione() {
+		return proprietaProduzione;
+	}
+	public void setProprietaProduzione(String proprietaProduzione) {
+		this.proprietaProduzione = proprietaProduzione;
 	}
 	public String getUrlInvocazioneCollaudo() {
 		return urlInvocazioneCollaudo;

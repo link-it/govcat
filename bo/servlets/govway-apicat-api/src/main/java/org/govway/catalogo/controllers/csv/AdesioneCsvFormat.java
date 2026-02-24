@@ -51,6 +51,8 @@ public abstract class AdesioneCsvFormat {
 	abstract String getAutenticazioneValoreProduzione();
 	@JsonProperty("Rate Limiting (Prod)")
 	abstract String getRateLimitingProduzione();
+	@JsonProperty("Proprietà (Prod)")
+	abstract String getProprietaProduzione();
 	@JsonProperty("URL Invocazione (Prod)")
 	abstract String getUrlInvocazioneProduzione();
 	@JsonProperty("Applicativi Autorizzati (Coll)")
@@ -59,6 +61,8 @@ public abstract class AdesioneCsvFormat {
 	abstract String getAutenticazioneValoreCollaudo();
 	@JsonProperty("Rate Limiting (Coll)")
 	abstract String getRateLimitingCollaudo();
+	@JsonProperty("Proprietà (Coll)")
+	abstract String getProprietaCollaudo();
 	@JsonProperty("URL Invocazione (Coll)")
 	abstract String getUrlInvocazioneCollaudo();
 
