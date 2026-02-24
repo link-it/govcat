@@ -283,9 +283,9 @@
                     <span class="fw-semibold">{{ item.nome }}</span>
                     <small class="text-muted ms-1">{{ item.soggetto?.nome }}</small>
                   </div>
-                  <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.ambiente)">{{ getStatusLabel(item.ambiente) | translate }}</span>
+                  <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.stato)">{{ getStatusLabel(item.stato) | translate }}</span>
                 </div>
-                <small class="text-muted">{{ getStatusLabel(item.stato) | translate }}</small>
+                <span class="badge text-nowrap" [ngStyle]="getStatusStyle(item.ambiente)">{{ getStatusLabel(item.ambiente) | translate }}</span>
               </a>
             </ng-container>
 

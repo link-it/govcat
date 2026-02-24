@@ -10,6 +10,7 @@
 	Corretto parsing stati_dashboard (array di {ruolo, stati}, non oggetto)
 	Corretta mappatura ruoli referente a ConfigurazioneRuolo (rimosso referente_tecnico inesistente)
 	Corretto pannello client: visibile solo per referente_superiore con stati_dashboard_client configurato
+	Pannello client: invertiti stato e ambiente, entrambi visualizzati come badge
 
 2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
