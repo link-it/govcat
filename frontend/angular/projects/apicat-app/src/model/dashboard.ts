@@ -28,6 +28,7 @@ export interface DashboardItemServizio {
   multi_adesione: boolean;
   data_creazione: string;
   data_ultimo_aggiornamento: string;
+  ruoli_referente?: string[];
 }
 
 export interface DashboardItemAdesione {
@@ -42,6 +43,7 @@ export interface DashboardItemAdesione {
   data_creazione: string;
   data_ultimo_aggiornamento: string;
   utente_creazione: { id_utente: string; nome: string; cognome: string };
+  ruoli_referente?: string[];
 }
 
 export interface DashboardItemClient {
@@ -66,6 +68,7 @@ export interface DashboardItemComunicazione {
   };
   tipo: { tipo: string; stato?: string };
   data: string;
+  ruoli_referente?: string[];
 }
 
 export interface DashboardItemUtente {

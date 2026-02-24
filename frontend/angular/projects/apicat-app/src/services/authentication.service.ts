@@ -19,15 +19,11 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { EventType } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { Tools, EventType, ConfigService, EventsManagerService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { PermessiService } from '@services/permessi.service';
 
 import * as _ from 'lodash';
-import { a } from '@angular/cdk/portal-directives.d-BoG39gYN';
 
 export const AUTH_CONST: any = {
   storageSession: 'GWAC_SESSION'
@@ -226,11 +222,11 @@ export class AuthenticationService {
   API_LOGOUT: string = '/logout';
 
   constructor(
-    private http: HttpClient,
+    private readonly http: HttpClient,
     public configService: ConfigService,
-    private eventsManagerService: EventsManagerService,
-    private oauthService: OAuthService,
-    private permessiService: PermessiService
+    private readonly eventsManagerService: EventsManagerService,
+    private readonly oauthService: OAuthService,
+    private readonly permessiService: PermessiService
   ) {
     this.config = this.configService.getConfiguration();
     this.appConfig = this.configService.getAppConfig();
@@ -243,9 +239,6 @@ export class AuthenticationService {
     }
 
     this.reloadSession();
-  }
-
-  ngOnInit(): void {
   }
 
   login(username: string, password: string) {

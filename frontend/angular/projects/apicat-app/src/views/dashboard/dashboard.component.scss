@@ -168,6 +168,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       font-weight: 500;
     }
   }
+
+  .badge-ruolo {
+    font-size: 0.65rem;
+    font-weight: 500;
+    padding: 0.15em 0.4em;
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #ced4da;
+  }
+
+  .unread-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+  }
+
+  .comunicazione-non-letta {
+    background-color: #f0f4ff;
+  }
 }
 
 .expanded-footer {

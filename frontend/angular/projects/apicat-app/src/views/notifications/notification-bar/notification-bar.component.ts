@@ -19,11 +19,12 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from "@angular/core";
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { TranslateService } from "@ngx-translate/core";
+import { ConfigService } from '@linkit/components';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { AuthenticationService } from '@app/services/authentication.service';
 
-import { NotificationState, NotificationType, NotificationEntityType } from '../notifications'
+import { NotificationState } from '../notifications'
 
 @Component({
   selector: 'app-notification-bar',
@@ -41,16 +42,34 @@ export class NotificationBarComponent implements OnInit, OnChanges {
   @Output() close: EventEmitter<any> = new EventEmitter();
 
   _notification: any = null;
+  _fromDashboard: boolean = false;
 
   NotificationState = NotificationState;
 
   constructor(
-    private router: Router,
-    private translate: TranslateService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly configService: ConfigService,
+    private readonly authenticationService: AuthenticationService,
     public apiService: OpenAPIService,
   ) { }
 
-  ngOnInit() { }
+  ngOnInit() {
+    this.route.queryParams.subscribe((params) => {
+      if (params['from'] === 'dashboard') {
+        this._fromDashboard = true;
+      }
+    });
+
+    // Gestore con notifiche nascoste dalla dashboard: torna sempre alla dashboard
+    if (this.authenticationService.isGestore()) {
+      const appConfig = this.configService.getConfiguration();
+      const dashboardConfig = appConfig?.AppConfig?.Layout?.dashboard;
+      if (dashboardConfig?.enabled && dashboardConfig?.hideNotificationMenu) {
+        this._fromDashboard = true;
+      }
+    }
+  }
   
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.notificationId.currentValue) {
@@ -82,7 +101,6 @@ export class NotificationBarComponent implements OnInit, OnChanges {
   }
 
   markNotification(stato: string, back: boolean = false) {
-    // console.log('markNotification', stato);
     const _body = {
       stato: stato
     }
@@ -102,7 +120,7 @@ export class NotificationBarComponent implements OnInit, OnChanges {
   }
 
   onBack() {
-    this.router.navigate(['/notifications']);
+    this.router.navigate([this._fromDashboard ? '/dashboard' : '/notifications']);
   }
 
   onClose() {

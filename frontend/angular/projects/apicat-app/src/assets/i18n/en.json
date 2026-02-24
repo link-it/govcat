@@ -366,7 +366,17 @@
 			"ViewAll": "View all",
 			"NoResults": "No pending actions",
 			"LastUpdate": "Last update",
-			"TotalItems": "{{count}} items"
+			"TotalItems": "{{count}} items",
+			"RUOLO": {
+				"referente_dominio": "Domain ref.",
+				"referente_tecnico_dominio": "Domain tech ref.",
+				"referente_servizio": "Service ref.",
+				"referente_tecnico_servizio": "Service tech ref.",
+				"referente_adesione": "Subscription ref.",
+				"referente_tecnico_adesione": "Subscription tech ref.",
+				"richiedente_servizio": "Service requester",
+				"richiedente_adesione": "Subscription requester"
+			}
 		},
 		"DASHBOARD": {
 			"certificati": "Certificates",
@@ -1475,6 +1485,7 @@
 		"NOTIFICATIONS": {
 			"BUTTON": {
 				"Archive": "Archive",
+				"BackDashboard": "Back to dashboard",
 				"BackNotifications": "Back to notifications",
 				"Done": "Done",
 				"MarkAsRead": "Mark as read",

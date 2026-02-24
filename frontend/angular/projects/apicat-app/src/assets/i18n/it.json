@@ -366,7 +366,17 @@
 			"ViewAll": "Vedi tutti",
 			"NoResults": "Nessuna azione pending",
 			"LastUpdate": "Ultimo aggiornamento",
-			"TotalItems": "{{count}} elementi"
+			"TotalItems": "{{count}} elementi",
+			"RUOLO": {
+				"referente_dominio": "Ref. dominio",
+				"referente_tecnico_dominio": "Ref. tecnico dominio",
+				"referente_servizio": "Ref. servizio",
+				"referente_tecnico_servizio": "Ref. tecnico servizio",
+				"referente_adesione": "Ref. adesione",
+				"referente_tecnico_adesione": "Ref. tecnico adesione",
+				"richiedente_servizio": "Richiedente servizio",
+				"richiedente_adesione": "Richiedente adesione"
+			}
 		},
 		"DASHBOARD": {
 			"certificati": "Certificati",
@@ -1475,6 +1485,7 @@
 		"NOTIFICATIONS": {
 			"BUTTON": {
 				"Archive": "Archivia",
+				"BackDashboard": "Torna alla dashboard",
 				"BackNotifications": "Torna alle notifiche",
 				"Done": "Fatto",
 				"MarkAsRead": "Segna come letto",
