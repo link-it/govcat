@@ -171,6 +171,8 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+  _fromDashboard: boolean = false;
+
   hideVersions: boolean = false;
 
   fieldToGroup = 'label_gruppo'; // nome_gruppo | label_gruppo
@@ -197,6 +199,13 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     const _state = this.router.getCurrentNavigation()?.extras.state;
     this.service = _state?.service || null;
     this._grant = _state?.grant;
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -349,6 +358,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
     if (this._componentBreadcrumbs) {
       this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+    }
+
+    if (this._fromDashboard && !this._componentBreadcrumbs) {
+      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
     }
   }
 
@@ -554,7 +567,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   onActionMonitor(event: any) {

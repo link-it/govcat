@@ -86,6 +86,8 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
 
   breadcrumbs: any[] = [];
 
+  _fromDashboard: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -98,6 +100,13 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
     this.config = this.configService.getConfiguration();
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -149,11 +158,19 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
   }
 
   _initBreadcrumb() {
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Services', url: this.model, type: 'link', iconBs: 'grid-3x3-gap' },
-      { label: `${this.id}`, url: `/${this.model}/${this.id}`, type: 'link' },
-      { label: 'APP.SERVICES.TITLE.Messages', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${this.id}`, url: `/${this.model}/${this.id}`, type: 'link' },
+        { label: 'APP.SERVICES.TITLE.Messages', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Services', url: this.model, type: 'link', iconBs: 'grid-3x3-gap' },
+        { label: `${this.id}`, url: `/${this.model}/${this.id}`, type: 'link' },
+        { label: 'APP.SERVICES.TITLE.Messages', url: ``, type: 'link' }
+      ];
+    }
   }
 
   _setErrorCommunications(error: boolean) {
@@ -276,7 +293,7 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

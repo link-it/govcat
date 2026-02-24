@@ -537,7 +537,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     onBreadcrumb(event: any) {
         if (this._useRoute) {
-            this.router.navigate([event.url]);
+            this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
         }
     }
 

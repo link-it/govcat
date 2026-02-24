@@ -384,17 +384,17 @@ export class DashboardComponent implements OnInit {
     switch (panelType) {
       case 'servizi':
         if (item.id_servizio) {
-          this.router.navigate(['/servizi', item.id_servizio]);
+          this.router.navigate(['/servizi', item.id_servizio], { queryParams: { from: 'dashboard' } });
         }
         break;
       case 'adesioni':
         if (item.id_adesione) {
-          this.router.navigate(['/adesioni', item.id_adesione]);
+          this.router.navigate(['/adesioni', item.id_adesione], { queryParams: { from: 'dashboard' } });
         }
         break;
       case 'client':
         if (item.id_client) {
-          this.router.navigate(['/client', item.id_client]);
+          this.router.navigate(['/client', item.id_client], { queryParams: { from: 'dashboard' } });
         }
         break;
       case 'comunicazioni': {
@@ -418,7 +418,7 @@ export class DashboardComponent implements OnInit {
       }
       case 'utenti':
         if (item.id_utente) {
-          this.router.navigate(['/utenti', item.id_utente]);
+          this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard' } });
         }
         break;
     }

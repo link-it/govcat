@@ -251,8 +251,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         public utils: UtilService,
         public apiService: OpenAPIService,
         public authenticationService: AuthenticationService,
-        private breadCrumbService: BreadcrumbService,
-        private navigationService: NavigationService
+        private readonly breadCrumbService: BreadcrumbService,
+        private readonly navigationService: NavigationService
     ) {
         this.tipo_servizio = (this.router.url === '/servizi') ? TipoServizioEnum.API : TipoServizioEnum.Generico;
 

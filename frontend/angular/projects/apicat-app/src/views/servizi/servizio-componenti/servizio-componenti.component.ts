@@ -126,6 +126,8 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
 
   api_url: string = '';
 
+  _fromDashboard: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -146,6 +148,13 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
     this._grant = _state?.grant;
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -189,11 +198,19 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
   _initBreadcrumb() {
     const _title = this.service ? this.service.nome + ' v. ' + this.service.versione : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
-      { label: `${_title}`, url: `/${this.model}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.SERVICES.TITLE.ServiceComponents', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${_title}`, url: `/${this.model}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.SERVICES.TITLE.ServiceComponents', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
+        { label: `${_title}`, url: `/${this.model}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.SERVICES.TITLE.ServiceComponents', url: ``, type: 'link' }
+      ];
+    }
   }
 
   _setErrorMessages(error: boolean) {
@@ -316,7 +333,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
   }
 
   _onEdit(event: any, param: any) {
-    this.router.navigate(['servizi', this.service.id_servizio, 'componenti', param.idServizio]);
+    this.router.navigate(['servizi', this.service.id_servizio, 'componenti', param.idServizio], { queryParamsHandling: 'preserve' });
   }
 
   _onSubmit(form: any) {
@@ -344,7 +361,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

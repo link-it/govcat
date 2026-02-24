@@ -189,6 +189,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+    _fromDashboard: boolean = false;
+
     debugMandatoryFields: boolean = false;
 
     showHistory: boolean = false;
@@ -220,6 +222,13 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _state = this.router.getCurrentNavigation()?.extras.state;
         this.service = _state?.service || null;
         this._grant = _state?.grant;
+
+        this.route.queryParams.subscribe((val) => {
+            if (val.from === 'dashboard') {
+                this._fromDashboard = true;
+                this._initBreadcrumb();
+            }
+        });
 
         const _srv: any = Tools.Configurazione?.servizio;
         this._apiMultiple = _srv ? _srv.api_multiple : false;
@@ -450,7 +459,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     this._isNew = false;
                     this._spin--;
                     this.save.emit({ id: this.id, api: response, update: false });
-                    this.router.navigate(['servizi', this.sid, this.model, this.id], { replaceUrl: true });
+                    this.router.navigate(['servizi', this.sid, this.model, this.id], { replaceUrl: true, queryParamsHandling: 'preserve' });
                 },
                 error: (error: any) => {
                     this._spin--;
@@ -678,9 +687,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.apiService.deleteElement(this.model, this.servizioApi?.id_api || null).subscribe({
             next: (response) => {
                 if (this._componentBreadcrumbs) {
-                    this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api']);
+                    this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api'], { queryParamsHandling: 'preserve' });
                 } else {
-                    this.router.navigate(['servizi', this.sid, 'api']);
+                    this.router.navigate(['servizi', this.sid, 'api'], { queryParamsHandling: 'preserve' });
                 }
             },
             error: (error) => {
@@ -863,8 +872,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if(this._componentBreadcrumbs){
             this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
         }
+
+        if (this._fromDashboard && !this._componentBreadcrumbs) {
+            this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
+        }
     }
-    
+
     _editServizioApi() {
         this._initForm({ ...this._servizioApi });
         this._initData();
@@ -895,9 +908,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (this._isNew) {
             if (this._useRoute) {
                 if (this._componentBreadcrumbs) {
-                    this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api']);
+                    this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api'], { queryParamsHandling: 'preserve' });
                 } else {
-                    this.router.navigate(['servizi', this.sid, 'api']);
+                    this.router.navigate(['servizi', this.sid, 'api'], { queryParamsHandling: 'preserve' });
                 }
             } else {
                 this.close.emit({ id: this.id, servizioApi: null });
@@ -913,7 +926,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     onBreadcrumb(event: any) {
         if (this._useRoute) {
-            this.router.navigate([event.url]);
+            this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
         } else {
             this._onClose();
         }
@@ -1691,7 +1704,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _showAllegati() {
-        this.router.navigate(['allegati'], { relativeTo: this.route });
+        this.router.navigate(['allegati'], { relativeTo: this.route, queryParamsHandling: 'preserve' });
     }
 
     _showPDNDConfiguration() {
@@ -1699,12 +1712,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         if (this._componentBreadcrumbs) {
             this.router.navigate(
                 ['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api', this.id, 'pdnd-configuration'],
-                { queryParams: _queryParams }
+                { queryParams: _queryParams, queryParamsHandling: 'merge' }
             );
             } else {
             this.router.navigate(
                 ['servizi', this.sid, 'api', this.id, 'pdnd-configuration'],
-                { queryParams: _queryParams }
+                { queryParams: _queryParams, queryParamsHandling: 'merge' }
             );
         }
     }
@@ -1721,12 +1734,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             if (this._componentBreadcrumbs) {
                 this.router.navigate(
                     ['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api', this.id, 'subscribers'],
-                    { queryParams: _queryParams }
+                    { queryParams: _queryParams, queryParamsHandling: 'merge' }
                 );
             } else {
                 this.router.navigate(
                     ['servizi', this.sid, 'api', this.id, 'subscribers'],
-                    { queryParams: _queryParams }
+                    { queryParams: _queryParams, queryParamsHandling: 'merge' }
                 );
             }
         }
@@ -1744,12 +1757,12 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             if (this._componentBreadcrumbs) {
                 this.router.navigate(
                     ['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.sid, 'api', this.id, 'pdnd-informations'],
-                    { queryParams: _queryParams }
+                    { queryParams: _queryParams, queryParamsHandling: 'merge' }
                 );
             } else {
                 this.router.navigate(
                     ['servizi', this.sid, 'api', this.id, 'pdnd-informations'],
-                    { queryParams: _queryParams }
+                    { queryParams: _queryParams, queryParamsHandling: 'merge' }
                 );
             }
         }
@@ -1791,11 +1804,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _goToProductionConfiguration(){
-        this.router.navigate(['servizi', this.sid, 'api', this.id, 'configuration', 'produzione']);
+        this.router.navigate(['servizi', this.sid, 'api', this.id, 'configuration', 'produzione'], { queryParamsHandling: 'preserve' });
     }
 
     _goToTestingConfiguration(){
-        this.router.navigate(['servizi', this.sid, 'api', this.id, 'configuration', 'collaudo']);
+        this.router.navigate(['servizi', this.sid, 'api', this.id, 'configuration', 'collaudo'], { queryParamsHandling: 'preserve' });
     }
 
     getFieldsStatus(): string[] {

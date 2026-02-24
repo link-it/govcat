@@ -132,6 +132,8 @@ export class ServizioApiAllegatiComponent implements OnInit, AfterContentChecked
 
   _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+  _fromDashboard: boolean = false;
+
   hideVersions: boolean = false;
 
   modalAttachmentsRef!: BsModalRef;
@@ -170,6 +172,13 @@ export class ServizioApiAllegatiComponent implements OnInit, AfterContentChecked
     });
   
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -257,6 +266,10 @@ export class ServizioApiAllegatiComponent implements OnInit, AfterContentChecked
 
     if(this._componentBreadcrumbs){
       this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+    }
+
+    if (this._fromDashboard && !this._componentBreadcrumbs) {
+      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
     }
 
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, (event: any) => {
@@ -440,7 +453,7 @@ export class ServizioApiAllegatiComponent implements OnInit, AfterContentChecked
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

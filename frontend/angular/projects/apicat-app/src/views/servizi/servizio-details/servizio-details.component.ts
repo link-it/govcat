@@ -279,6 +279,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+    _fromDashboard: boolean = false;
+
     hideVersions: boolean = false;
 
     constructor(
@@ -368,10 +370,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             }
         });
 
-        this.route.queryParams.subscribe((val) => { 
+        this.route.queryParams.subscribe((val) => {
             this._notification = null;
             this._notificationId = '';
             this._notificationMessageId = '';
+            if (val.from === 'dashboard') {
+                this._fromDashboard = true;
+                this._initBreadcrumb();
+            }
             if (val.notificationId && val.messageid) {
                 this._notificationId = val.notificationId;
                 this._notificationMessageId = val.messageid;
@@ -495,7 +501,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     onLinkClick(item: any) {
         // [routerLink]="[link.route]" [state]="{ service: data, grant: _grant }" [relativeTo]="route"
-        this.router.navigate([item.route], { state: { service: this.data, grant: this._grant }, relativeTo: this.route });
+        this.router.navigate([item.route], { state: { service: this.data, grant: this._grant }, relativeTo: this.route, queryParamsHandling: 'preserve' });
     }
 
     get f(): { [key: string]: AbstractControl } {
@@ -1187,7 +1193,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _versione: string = this.data ? this.data.versione : null;
 
         let title = '';
-        if (_nome && _versione) {            
+        if (_nome && _versione) {
             title = this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}` ;
         } else {
             title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
@@ -1203,13 +1209,20 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _mainTooltip = this._componentBreadcrumbs ? 'APP.TOOLTIP.ComponentsList' : '';
         const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
-        this.breadcrumbs = [
-            { label: _mainLabel, url: `${baseUrl}`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
-            { label: title, url: ``, type: 'link' },
-        ];
+        if (this._fromDashboard && !this._componentBreadcrumbs) {
+            this.breadcrumbs = [
+                { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+                { label: title, url: ``, type: 'link' },
+            ];
+        } else {
+            this.breadcrumbs = [
+                { label: _mainLabel, url: `${baseUrl}`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
+                { label: title, url: ``, type: 'link' },
+            ];
 
-        if(this._componentBreadcrumbs){
-            this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+            if(this._componentBreadcrumbs){
+                this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+            }
         }
     }
 
@@ -1269,7 +1282,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     onBreadcrumb(event: any) {
         if (this._useRoute) {
-            this.router.navigate([event.url], { relativeTo: this.route });
+            this.router.navigate([event.url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
         } else {
             this._onClose();
         }
@@ -1520,7 +1533,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 break;
             default:
                 url = `/servizi/${this.data.id_servizio}/${event.action}`;
-                this.router.navigate([url], { relativeTo: this.route });
+                this.router.navigate([url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
                 break;
         }
     }

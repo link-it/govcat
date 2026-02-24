@@ -133,6 +133,8 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
+  _fromDashboard: boolean = false;
+
   hideVersions: boolean = false;
 
   constructor(
@@ -161,6 +163,13 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
     this._grant = _state?.grant;
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -216,14 +225,22 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
     const _mainTooltip = this._componentBreadcrumbs ? 'APP.TOOLTIP.ComponentsList' : '';
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
-    this.breadcrumbs = [
-      { label: _mainLabel, url: `${baseUrl}/`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
-      { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.TITLE.ServiceGroups', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard && !this._componentBreadcrumbs) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.ServiceGroups', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: _mainLabel, url: `${baseUrl}/`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
+        { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.ServiceGroups', url: ``, type: 'link' }
+      ];
 
-    if(this._componentBreadcrumbs){
-      this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      if(this._componentBreadcrumbs){
+        this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      }
     }
   }
 
@@ -371,7 +388,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

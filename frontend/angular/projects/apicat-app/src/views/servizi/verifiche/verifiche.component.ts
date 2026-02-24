@@ -140,6 +140,8 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
 
   _twoCol: boolean = false;
 
+  _fromDashboard: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -156,6 +158,13 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
     this.service = _state?.service || null;
 
     this.api_url = this.config.AppConfig.GOVAPI.HOST;
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -222,11 +231,19 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
     const _title = this.service ? this.service.nome + ' v. ' + this.service.versione : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
-      { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.TITLE.Checks', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.Checks', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
+        { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.Checks', url: ``, type: 'link' }
+      ];
+    }
   }
 
   _setErrorMessages(error: boolean) {
@@ -321,7 +338,7 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _showCollaudo() {

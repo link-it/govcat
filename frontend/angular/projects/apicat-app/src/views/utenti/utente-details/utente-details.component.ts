@@ -109,6 +109,8 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   organizzazioniLoading: boolean = false;
   selectedOrganizzazione: any;
 
+  _fromDashboard: boolean = false;
+
   minLengthTerm = 1;
 
   constructor(
@@ -152,6 +154,13 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         this._initOrganizzazioniSelect([]);
         this._initForm({ ...this._utente });
         this._spin = false;
+      }
+    });
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
       }
     });
   }
@@ -427,11 +436,18 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _initBreadcrumb() {
     const _title = this.utente ? `${this.utente.nome} ${this.utente.cognome}` : this.translate.instant('APP.TITLE.New');
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
-      { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },
-      { label: `${_title}`, url: '', type: 'title' }
-    ];
+    if (this._fromDashboard) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${_title}`, url: '', type: 'title' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
+        { label: 'APP.TITLE.Users', url: '/utenti', type: 'link' },
+        { label: `${_title}`, url: '', type: 'title' }
+      ];
+    }
   }
 
   _clickTab(tab: string) {
@@ -471,7 +487,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url]);
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
     } else {
       this._onClose();
     }

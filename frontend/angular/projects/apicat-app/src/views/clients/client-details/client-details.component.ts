@@ -204,6 +204,8 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     {'value': PeriodEnum.Minuti, 'label': 'APP.LABEL.Minuto'}
   ];
 
+  _fromDashboard: boolean = false;
+
   debugMandatoryFields: boolean = false;
 
   constructor(
@@ -242,13 +244,20 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       } else {
         this._isNew = true;
         this._isEdit = true;
-        
+
         this._initBreadcrumb();
         this._initSoggettiSelect([]);
         this._initOrganizzazioniSelect([]);
         this._initForm({ ...this._client });
-        
+
         this._spin = false;
+      }
+    });
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
       }
     });
 
@@ -1034,11 +1043,18 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   _initBreadcrumb() {
     const _title = this.client ? `${this.client.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
-      { label: 'APP.TITLE.Client', url: '/client', type: 'link' },
-      { label: `${_title}`, url: '', type: 'title' }
-    ];
+    if (this._fromDashboard) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${_title}`, url: '', type: 'title' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
+        { label: 'APP.TITLE.Client', url: '/client', type: 'link' },
+        { label: `${_title}`, url: '', type: 'title' }
+      ];
+    }
   }
 
   _clickTab(tab: string) {
@@ -1087,7 +1103,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url]);
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
     } else {
       this._onClose();
     }
