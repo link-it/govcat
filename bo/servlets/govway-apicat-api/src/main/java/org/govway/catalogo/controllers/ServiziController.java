@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import jakarta.persistence.EntityManager;
 
 import org.govway.catalogo.ApiV1Controller;
+import org.govway.catalogo.ImageUtils;
 import org.govway.catalogo.assembler.AllegatoServizioAssembler;
 import org.govway.catalogo.assembler.CategoriaServizioItemAssembler;
 import org.govway.catalogo.assembler.DocumentoAllegatoAssembler;
@@ -542,14 +543,21 @@ public class ServiziController implements ServiziApi {
 	public ResponseEntity<Servizio> createServizio(ServizioCreate servizioCreate) {
 		try {
 
+			// Valida e processa l'immagine se presente
+			if (servizioCreate.getImmagine() != null) {
+				servizioCreate.setImmagine(ImageUtils.validateAndProcessImage(
+						servizioCreate.getImmagine(),
+						this.configurazione.getServizio().getMaxImageSize()));
+			}
+
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				this.checkReferenti(entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
 					throw new ConflictException(ErrorCode.SRV_404);
@@ -978,25 +986,33 @@ public class ServiziController implements ServiziApi {
 	public ResponseEntity<Servizio> updateServizio(UUID idServizio, Boolean force,
 			ServizioUpdate servizioUpdate) {
 		try {
+
+			// Valida e processa l'immagine se presente nei dati generici
+			if (servizioUpdate.getDatiGenerici() != null && servizioUpdate.getDatiGenerici().getImmagine() != null) {
+				servizioUpdate.getDatiGenerici().setImmagine(ImageUtils.validateAndProcessImage(
+						servizioUpdate.getDatiGenerici().getImmagine(),
+						this.configurazione.getServizio().getMaxImageSize()));
+			}
+
 			return this.service.runTransaction(() -> {
-				
-				this.logger.info("Invocazione in corso ..."); 
+
+				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
 
 				if(servizioUpdate.getIdentificativo()!= null) {
 					boolean nomeCambiato = !entity.getNome().equals(servizioUpdate.getIdentificativo().getNome());
 					boolean versioneCambiata = !entity.getVersione().equals(servizioUpdate.getIdentificativo().getVersione());
-					
+
 					if(nomeCambiato || versioneCambiata) {
 						if(this.service.existsByNomeVersioneNonArchiviato(servizioUpdate.getIdentificativo().getNome(), servizioUpdate.getIdentificativo().getVersione(), configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
 							throw new ConflictException(ErrorCode.SRV_404);
 						}
-						
+
 					}
 				}
-				
+
 				List<ConfigurazioneClasseDato> lstClassiDato = new ArrayList<>();
 				if(servizioUpdate.getIdentificativo()!=null) {
 					lstClassiDato.add(ConfigurazioneClasseDato.IDENTIFICATIVO);
@@ -1012,9 +1028,9 @@ public class ServiziController implements ServiziApi {
 				if(!isForce(force, grant.getRuoli())) {
 					this.getServizioAuthorization(entity).authorizeModifica(entity, lstClassiDato);
 				}
-				
+
 				this.checkReferenti(entity);
-				
+
 				this.service.save(entity);
 				Servizio model = this.dettaglioAssembler.toModel(entity);
 
