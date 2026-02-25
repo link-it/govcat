@@ -23,8 +23,6 @@ public class AdesioneCsv {
 
 	private String erogatore;
 	private String servizio;
-	private String api;
-	private String tipoApi;
 	private String autenticazioneStato;
 	private String aderente;
 	private String idAdesione;
@@ -35,12 +33,10 @@ public class AdesioneCsv {
 	private String autenticazioneValoreProduzione;
 	private String rateLimitingProduzione;
 	private String proprietaProduzione;
-	private String urlInvocazioneProduzione;
 	private String applicativiAutorizzatiCollaudo;
 	private String autenticazioneValoreCollaudo;
 	private String rateLimitingCollaudo;
 	private String proprietaCollaudo;
-	private String urlInvocazioneCollaudo;
 
 	public String getErogatore() {
 		return erogatore;
@@ -53,18 +49,6 @@ public class AdesioneCsv {
 	}
 	public void setServizio(String servizio) {
 		this.servizio = servizio;
-	}
-	public String getApi() {
-		return api;
-	}
-	public void setApi(String api) {
-		this.api = api;
-	}
-	public String getTipoApi() {
-		return tipoApi;
-	}
-	public void setTipoApi(String tipoApi) {
-		this.tipoApi = tipoApi;
 	}
 	public String getAutenticazioneStato() {
 		return autenticazioneStato;
@@ -120,12 +104,6 @@ public class AdesioneCsv {
 	public void setRateLimitingProduzione(String rateLimitingProduzione) {
 		this.rateLimitingProduzione = rateLimitingProduzione;
 	}
-	public String getUrlInvocazioneProduzione() {
-		return urlInvocazioneProduzione;
-	}
-	public void setUrlInvocazioneProduzione(String urlInvocazioneProduzione) {
-		this.urlInvocazioneProduzione = urlInvocazioneProduzione;
-	}
 	public String getApplicativiAutorizzatiCollaudo() {
 		return applicativiAutorizzatiCollaudo;
 	}
@@ -155,12 +133,6 @@ public class AdesioneCsv {
 	}
 	public void setProprietaProduzione(String proprietaProduzione) {
 		this.proprietaProduzione = proprietaProduzione;
-	}
-	public String getUrlInvocazioneCollaudo() {
-		return urlInvocazioneCollaudo;
-	}
-	public void setUrlInvocazioneCollaudo(String urlInvocazioneCollaudo) {
-		this.urlInvocazioneCollaudo = urlInvocazioneCollaudo;
 	}
 
 }

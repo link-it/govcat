@@ -37,11 +37,9 @@ import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
-import org.govway.catalogo.core.orm.entity.EstensioneApiEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
-import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.AuthTypeHttpBasic;
 import org.govway.catalogo.servlets.model.AuthTypeHttps;
 import org.govway.catalogo.servlets.model.AuthTypeHttpsPdnd;
@@ -86,105 +84,68 @@ public class AdesioneCsvBuilder {
 		this.custom.add(Pair.of("versione_eservice_pdnd", "versione eService PDND"));
 	}
 
-	private Collection<AdesioneCsv> toListEntries(AdesioneEntity adesione) {
-		List<AdesioneCsv> adesioniCSV = new ArrayList<>();
-
+	private AdesioneCsv toListEntries(AdesioneEntity adesione) {
 		this.logger.debug("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato());
 
 		if(!this.configurazione.getAdesione().getStatiSchedaAdesione().contains(adesione.getStato())) {
 			this.logger.debug("Adesione: " + adesione.getIdLogico() + " in stato: " + adesione.getStato()+" non consentito per l'export. Stati consentiti ["+this.configurazione.getAdesione().getStatiSchedaAdesione()+"]");
-			return adesioniCSV;
+			return null;
 		}
 
 		this.logger.debug("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato() +" OK");
 
 		ServizioEntity servizioEntity = adesione.getServizio();
-		Set<ApiEntity> apiLst = servizioEntity.getApi();
-		this.logger.debug("Adesione: " + adesione.getIdLogico() + " api size: " + apiLst.size());
 
 		boolean hasCollaudo = hasCollaudo(adesione.getStato());
 		boolean hasProduzione = hasProduzione(adesione.getStato());
 
-		for(ApiEntity api: apiLst) {
-			this.logger.debug("Adesione: " + adesione.getIdLogico() + " api: " + api.getNome());
-			AdesioneCsv a = new AdesioneCsv();
+		AdesioneCsv a = new AdesioneCsv();
 
-			// Soggetto Erogatore
-			a.setErogatore(servizioEntity.getDominio().getSoggettoReferente().getNome());
+		// Soggetto Erogatore
+		a.setErogatore(servizioEntity.getDominio().getSoggettoReferente().getNome());
 
-			// Servizio
-			a.setServizio(servizioEntity.getNome() + " v" + servizioEntity.getVersione());
+		// Servizio
+		a.setServizio(servizioEntity.getNome() + " v" + servizioEntity.getVersione());
 
-			// API
-			a.setApi(api.getNome() + " v" + api.getVersione());
+		// Soggetto Aderente
+		a.setAderente(adesione.getSoggetto().getOrganizzazione().getNome());
 
-			// Tipologia API
-			a.setTipoApi(api.getCollaudo() != null && api.getCollaudo().getProtocollo() != null
-					&& api.getCollaudo().getProtocollo().toString().contains("WSDL") ? "soap" : "rest");
+		// Identificativo Adesione
+		a.setIdAdesione(adesione.getIdLogico());
 
-			// Soggetto Aderente
-			a.setAderente(adesione.getSoggetto().getOrganizzazione().getNome());
+		// Stato Adesione
+		a.setStatoAdesione(processStato(adesione.getStato()));
 
-			// Identificativo Adesione
-			a.setIdAdesione(adesione.getIdLogico());
+		// Referenti
+		a.setReferenteRegionaleAdesione(getReferentiString(adesione.getReferenti()));
+		a.setReferenteTecnicoAdesione(getReferentiTecniciString(adesione.getReferenti()));
 
-			// Stato Adesione
-			a.setStatoAdesione(processStato(adesione.getStato()));
+		// Autenticazione (Stato) - aggregato da tutti i ClientAdesioneEntity
+		a.setAutenticazioneStato(getAutenticazioneStatoAggregato(adesione));
 
-			// Referenti
-			a.setReferenteRegionaleAdesione(getReferentiString(adesione.getReferenti()));
-			a.setReferenteTecnicoAdesione(getReferentiTecniciString(adesione.getReferenti()));
+		if(hasCollaudo) {
+			// Rate Limiting e Proprietà aggregati da EstensioneAdesioneEntity
+			a.setRateLimitingCollaudo(getRateLimitingValoreAggregato(adesione, AmbienteEnum.COLLAUDO));
+			a.setProprietaCollaudo(getProprietaAggregata(adesione, AmbienteEnum.COLLAUDO));
 
-			// URL Invocazione
-			a.setUrlInvocazioneCollaudo(this.eServiceBuilder.getUrlInvocazione(api, true));
-			a.setUrlInvocazioneProduzione(this.eServiceBuilder.getUrlInvocazione(api, false));
-
-			if(hasCollaudo) {
-				a.setRateLimitingCollaudo(getRateLimitingValore(adesione, api, AmbienteEnum.COLLAUDO));
-
-				String proprietaCollaudo = getProprieta(adesione, api, AmbienteEnum.COLLAUDO);
-				if(proprietaCollaudo != null) {
-					a.setProprietaCollaudo(proprietaCollaudo);
-				}
-
-				ClientAdesioneEntity cCollaudo = getClient(adesione, api, AmbienteEnum.COLLAUDO);
-				if(cCollaudo != null) {
-					a.setAutenticazioneStato(this.eServiceBuilder.getProfiloString(cCollaudo.getProfilo()));
-
-					ItemClientAdesione cCollaudoItem = this.clientAdesioneItemAssembler.toModel(cCollaudo);
-
-					if(cCollaudo.getClient() != null) {
-						a.setAutenticazioneValoreCollaudo(getAutenticazioneValore(cCollaudoItem, cCollaudo.getClient()));
-					}
-
-					a.setApplicativiAutorizzatiCollaudo(cCollaudoItem.getNome());
-				}
-			}
-
-			if(hasProduzione) {
-				a.setRateLimitingProduzione(getRateLimitingValore(adesione, api, AmbienteEnum.PRODUZIONE));
-
-				String proprietaProduzione = getProprieta(adesione, api, AmbienteEnum.PRODUZIONE);
-				if(proprietaProduzione != null) {
-					a.setProprietaProduzione(proprietaProduzione);
-				}
-
-				ClientAdesioneEntity cProduzione = getClient(adesione, api, AmbienteEnum.PRODUZIONE);
-				if(cProduzione != null) {
-					a.setAutenticazioneStato(this.eServiceBuilder.getProfiloString(cProduzione.getProfilo()));
-
-					ItemClientAdesione cProduzioneItem = this.clientAdesioneItemAssembler.toModel(cProduzione);
-					if(cProduzione.getClient() != null) {
-						a.setAutenticazioneValoreProduzione(getAutenticazioneValore(cProduzioneItem, cProduzione.getClient()));
-					}
-					a.setApplicativiAutorizzatiProduzione(cProduzioneItem.getNome());
-				}
-			}
-
-			adesioniCSV.add(a);
+			// Autenticazione Valore e Applicativi Autorizzati aggregati da ClientAdesioneEntity
+			List<ClientAdesioneEntity> clientsCollaudo = getClients(adesione, AmbienteEnum.COLLAUDO);
+			a.setAutenticazioneValoreCollaudo(getAutenticazioneValoreAggregato(clientsCollaudo));
+			a.setApplicativiAutorizzatiCollaudo(getApplicativiAutorizzatiAggregato(clientsCollaudo));
 		}
 
-		return adesioniCSV;
+		if(hasProduzione) {
+			// Rate Limiting e Proprietà aggregati da EstensioneAdesioneEntity
+			a.setRateLimitingProduzione(getRateLimitingValoreAggregato(adesione, AmbienteEnum.PRODUZIONE));
+			a.setProprietaProduzione(getProprietaAggregata(adesione, AmbienteEnum.PRODUZIONE));
+
+			// Autenticazione Valore e Applicativi Autorizzati aggregati da ClientAdesioneEntity
+			List<ClientAdesioneEntity> clientsProduzione = getClients(adesione, AmbienteEnum.PRODUZIONE);
+			a.setAutenticazioneValoreProduzione(getAutenticazioneValoreAggregato(clientsProduzione));
+			a.setApplicativiAutorizzatiProduzione(getApplicativiAutorizzatiAggregato(clientsProduzione));
+		}
+
+		return a;
 	}
 
 	private String processStato(String stato) {
@@ -228,81 +189,136 @@ public class AdesioneCsvBuilder {
 		return stato.contains("produzione");
 	}
 
-	private ClientAdesioneEntity getClient(AdesioneEntity adesione, ApiEntity api, AmbienteEnum ambiente) {
-		List<String> lst = api.getAuthType().stream().map(at -> at.getProfilo()).collect(Collectors.toList());
-
-		for(String p: lst) {
-			Optional<ClientAdesioneEntity> opt = adesione.getClient().stream()
-					.filter(ca -> ca.getProfilo().equals(p) && ca.getAmbiente().equals(ambiente))
-					.findAny();
-			if(opt.isPresent()) {
-				return opt.get();
-			}
-		}
-
-		return null;
+	private List<ClientAdesioneEntity> getClients(AdesioneEntity adesione, AmbienteEnum ambiente) {
+		return adesione.getClient().stream()
+				.filter(ca -> ca.getAmbiente().equals(ambiente))
+				.collect(Collectors.toList());
 	}
 
-	private String getRateLimitingValore(AdesioneEntity adesione, ApiEntity api, AmbienteEnum ambiente) {
-		String quota = getEstensioneAdesioneValore(adesione, api, ambiente, "rate_limiting_quota");
-		String periodo = getEstensioneAdesioneValore(adesione, api, ambiente, "rate_limiting_periodo");
-		if(quota != null && periodo != null) {
-			return quota + " / " + periodo;
-		} else {
+	private String getAutenticazioneStatoAggregato(AdesioneEntity adesione) {
+		Set<String> profili = adesione.getClient().stream()
+				.map(ca -> this.eServiceBuilder.getProfiloString(ca.getProfilo()))
+				.filter(p -> p != null && !p.isEmpty())
+				.collect(Collectors.toCollection(java.util.LinkedHashSet::new));
+
+		if(profili.isEmpty()) {
 			return null;
 		}
+		return String.join("\n", profili);
 	}
 
-	private String getEstensioneAdesioneValore(AdesioneEntity adesione, ApiEntity api, AmbienteEnum ambiente, String nome) {
-		return adesione.getEstensioni().stream()
-				.filter(e -> e.getAmbiente().equals(ambiente) && e.getNome().equals(nome) && api.equals(e.getApi()))
-				.findAny()
-				.orElse(new EstensioneAdesioneEntity())
-				.getValore();
-	}
-
-	private String getProprieta(AdesioneEntity adesione, ApiEntity api, AmbienteEnum ambiente) {
-		StringBuilder proprieta = new StringBuilder();
-
-		for(Pair<String, String> c: this.custom) {
-			String prop = getEstensioneAdesioneValore(adesione, api, ambiente, c.getFirst());
-
-			if(prop == null || prop.isEmpty()) {
-				List<String> gruppi = this.configurazione.getServizio().getApi().getProprietaCustom().stream()
-						.filter(p -> {
-							if(ambiente.equals(AmbienteEnum.COLLAUDO)) {
-								return p.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO)
-										|| p.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO);
-							} else {
-								return p.getClasseDato().equals(ConfigurazioneClasseDato.PRODUZIONE)
-										|| p.getClasseDato().equals(ConfigurazioneClasseDato.PRODUZIONE_CONFIGURATO);
-							}
-						}).map(p -> p.getNomeGruppo()).collect(Collectors.toList());
-
-				prop = getEstensioneAPIValore(api, gruppi, c.getFirst());
-			}
-
-			if(prop != null && !prop.isEmpty()) {
-				if(proprieta.length() > 0) {
-					proprieta.append("\n");
+	private String getAutenticazioneValoreAggregato(List<ClientAdesioneEntity> clients) {
+		List<String> valori = new ArrayList<>();
+		for(ClientAdesioneEntity client: clients) {
+			if(client.getClient() != null) {
+				ItemClientAdesione clientItem = this.clientAdesioneItemAssembler.toModel(client);
+				String valore = getAutenticazioneValore(clientItem, client.getClient());
+				if(valore != null && !valore.isEmpty()) {
+					valori.add(valore);
 				}
-				proprieta.append(c.getSecond()).append(": ").append(prop);
+			}
+		}
+		if(valori.isEmpty()) {
+			return null;
+		}
+		return String.join("\n", valori);
+	}
+
+	private String getApplicativiAutorizzatiAggregato(List<ClientAdesioneEntity> clients) {
+		List<String> nomi = new ArrayList<>();
+		for(ClientAdesioneEntity client: clients) {
+			ItemClientAdesione clientItem = this.clientAdesioneItemAssembler.toModel(client);
+			if(clientItem.getNome() != null && !clientItem.getNome().isEmpty()) {
+				nomi.add(clientItem.getNome());
+			}
+		}
+		if(nomi.isEmpty()) {
+			return null;
+		}
+		return String.join("\n", nomi);
+	}
+
+	private String getRateLimitingValoreAggregato(AdesioneEntity adesione, AmbienteEnum ambiente) {
+		// Filtra le estensioni per rate limiting
+		List<EstensioneAdesioneEntity> estensioniRateLimiting = adesione.getEstensioni().stream()
+				.filter(e -> e.getAmbiente().equals(ambiente) &&
+						(e.getNome().equals("rate_limiting_quota") || e.getNome().equals("rate_limiting_periodo")))
+				.collect(Collectors.toList());
+
+		// Raggruppa le estensioni per API (usando Optional per gestire null)
+		java.util.Map<Optional<ApiEntity>, List<EstensioneAdesioneEntity>> estensioniPerApi = estensioniRateLimiting.stream()
+				.collect(Collectors.groupingBy(e -> Optional.ofNullable(e.getApi()), java.util.LinkedHashMap::new, Collectors.toList()));
+
+		List<String> risultati = new ArrayList<>();
+		for(java.util.Map.Entry<Optional<ApiEntity>, List<EstensioneAdesioneEntity>> entry: estensioniPerApi.entrySet()) {
+			ApiEntity api = entry.getKey().orElse(null);
+			List<EstensioneAdesioneEntity> estensioni = entry.getValue();
+
+			String quota = estensioni.stream()
+					.filter(e -> e.getNome().equals("rate_limiting_quota"))
+					.findFirst()
+					.map(EstensioneAdesioneEntity::getValore)
+					.orElse(null);
+			String periodo = estensioni.stream()
+					.filter(e -> e.getNome().equals("rate_limiting_periodo"))
+					.findFirst()
+					.map(EstensioneAdesioneEntity::getValore)
+					.orElse(null);
+
+			if(quota != null && periodo != null) {
+				String valore = quota + " / " + periodo;
+				if(api != null) {
+					risultati.add(api.getNome() + " v" + api.getVersione() + ": " + valore);
+				} else {
+					risultati.add(valore);
+				}
 			}
 		}
 
-		if(proprieta.length() > 0) {
-			return proprieta.toString();
-		} else {
+		if(risultati.isEmpty()) {
 			return null;
 		}
+		return String.join("\n", risultati);
 	}
 
-	private String getEstensioneAPIValore(ApiEntity api, List<String> gruppi, String nome) {
-		return api.getEstensioni().stream()
-				.filter(e -> gruppi.contains(e.getGruppo()) && e.getNome().equals(nome))
-				.findAny()
-				.orElse(new EstensioneApiEntity())
-				.getValore();
+	private String getProprietaAggregata(AdesioneEntity adesione, AmbienteEnum ambiente) {
+		// Filtra le estensioni per proprietà custom
+		List<EstensioneAdesioneEntity> estensioniProprieta = adesione.getEstensioni().stream()
+				.filter(e -> e.getAmbiente().equals(ambiente) &&
+						this.custom.stream().anyMatch(c -> c.getFirst().equals(e.getNome())))
+				.collect(Collectors.toList());
+
+		// Raggruppa le estensioni per API (usando Optional per gestire null)
+		java.util.Map<Optional<ApiEntity>, List<EstensioneAdesioneEntity>> estensioniPerApi = estensioniProprieta.stream()
+				.collect(Collectors.groupingBy(e -> Optional.ofNullable(e.getApi()), java.util.LinkedHashMap::new, Collectors.toList()));
+
+		List<String> risultati = new ArrayList<>();
+		for(java.util.Map.Entry<Optional<ApiEntity>, List<EstensioneAdesioneEntity>> entry: estensioniPerApi.entrySet()) {
+			ApiEntity api = entry.getKey().orElse(null);
+			List<EstensioneAdesioneEntity> estensioni = entry.getValue();
+
+			for(Pair<String, String> c: this.custom) {
+				String prop = estensioni.stream()
+						.filter(e -> e.getNome().equals(c.getFirst()))
+						.findFirst()
+						.map(EstensioneAdesioneEntity::getValore)
+						.orElse(null);
+
+				if(prop != null && !prop.isEmpty()) {
+					String label = c.getSecond() + ": " + prop;
+					if(api != null) {
+						risultati.add(api.getNome() + " v" + api.getVersione() + ": " + label);
+					} else {
+						risultati.add(label);
+					}
+				}
+			}
+		}
+
+		if(risultati.isEmpty()) {
+			return null;
+		}
+		return String.join("\n", risultati);
 	}
 
 	private String getAutenticazioneValore(ItemClientAdesione client, ClientEntity entity) {
@@ -405,7 +421,10 @@ public class AdesioneCsvBuilder {
 		Collection<AdesioneCsv> adesioniCSV = new ArrayList<>();
 
 		for(AdesioneEntity adesione: adesioni) {
-			adesioniCSV.addAll(toListEntries(adesione));
+			AdesioneCsv csv = toListEntries(adesione);
+			if(csv != null) {
+				adesioniCSV.add(csv);
+			}
 		}
 
 		String csv = "";

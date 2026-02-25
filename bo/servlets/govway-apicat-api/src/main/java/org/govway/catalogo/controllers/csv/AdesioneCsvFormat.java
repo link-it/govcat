@@ -29,10 +29,6 @@ public abstract class AdesioneCsvFormat {
 	abstract String getErogatore();
 	@JsonProperty("Servizio")
 	abstract String getServizio();
-	@JsonProperty("API")
-	abstract String getApi();
-	@JsonProperty("Tipologia API")
-	abstract String getTipoApi();
 	@JsonProperty("Modalità Autenticazione")
 	abstract String getAutenticazioneStato();
 	@JsonProperty("Soggetto Aderente")
@@ -53,8 +49,6 @@ public abstract class AdesioneCsvFormat {
 	abstract String getRateLimitingProduzione();
 	@JsonProperty("Proprietà (Prod)")
 	abstract String getProprietaProduzione();
-	@JsonProperty("URL Invocazione (Prod)")
-	abstract String getUrlInvocazioneProduzione();
 	@JsonProperty("Applicativi Autorizzati (Coll)")
 	abstract String getApplicativiAutorizzatiCollaudo();
 	@JsonProperty("Config. Autenticazione (Coll)")
@@ -63,7 +57,5 @@ public abstract class AdesioneCsvFormat {
 	abstract String getRateLimitingCollaudo();
 	@JsonProperty("Proprietà (Coll)")
 	abstract String getProprietaCollaudo();
-	@JsonProperty("URL Invocazione (Coll)")
-	abstract String getUrlInvocazioneCollaudo();
 
 }
