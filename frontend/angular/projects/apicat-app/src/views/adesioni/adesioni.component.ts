@@ -836,7 +836,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     aux = this.utils._queryToHttpParams(query);
 
-    const headers = new HttpHeaders().set('timeout', '150000');
+    const headers = new HttpHeaders().set('timeout', '300000');
 
     this._downloading = true;
     this.apiService.download(`${this.model}-export`, null, undefined, aux, headers)
