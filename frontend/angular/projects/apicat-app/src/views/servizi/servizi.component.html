@@ -74,6 +74,7 @@
                         [allElements]="_allElements"
                         [countSelected]="elementsSelected.length"
                         [uncheckAllInTheMenu]="uncheckAllInTheMenu"
+                        [disabled]="_downloading"
                         (action)="onExportAction($event)"
                     ></app-export-dropdown>
                 </div>

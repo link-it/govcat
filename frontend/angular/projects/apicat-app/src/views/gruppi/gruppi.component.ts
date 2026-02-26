@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CustomValidators } from '@linkit/validators';
@@ -26,10 +26,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
+import { Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { OpenAPIService } from '@services/openAPI.service';
@@ -69,7 +66,7 @@ interface Immagine {
     styleUrls: ['gruppi.component.scss'],
     standalone: false
 })
-export class GruppiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class GruppiComponent implements OnInit, AfterViewInit, AfterContentChecked {
     static readonly Name = 'GruppiComponent';
     readonly model: string = 'gruppi'; // <<==== parametro di routing per la _loadXXXXX
 
@@ -146,16 +143,14 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     _rootName: string = this.translate.instant('APP.LABEL.RootGroup');
 
     constructor(
-        private route: ActivatedRoute,
-        private router: Router,
-        private modalService: BsModalService,
-        private translate: TranslateService,
-        private configService: ConfigService,
+        private readonly router: Router,
+        private readonly modalService: BsModalService,
+        private readonly translate: TranslateService,
+        private readonly configService: ConfigService,
         public tools: Tools,
-        private eventsManagerService: EventsManagerService,
-        private apiService: OpenAPIService,
-        private utils: UtilService,
-        private authenticationService: AuthenticationService
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService,
+        private readonly authenticationService: AuthenticationService
     ) {
         this.config = this.configService.getConfiguration();
         this.apiUrl = this.config.AppConfig.GOVAPI.HOST;
@@ -176,10 +171,8 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         );
     }
 
-    ngOnDestroy() {}
-
     ngAfterViewInit() {
-        if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+        if (!(this.searchBarForm?._isPinned())) {
             setTimeout(() => {
                 this._loadGruppi();
             }, 100);
@@ -208,7 +201,6 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     _loadGruppi(query: any = null, url: string = '') {
         this._setErrorMessages(false);
         this.clearGroup(null);
-        // if (!url) { this.gruppi = []; }
         
         let aux: any;
         query = { ...query, gruppo_padre_null: true };
@@ -218,8 +210,10 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         this.apiService.getList(this.model, aux, url).subscribe({
             next: (response: any) => {
 
-                response ? this._paging = new Page(response.page) : null;
-                response ? this._links = response._links || null : null;
+                if (response) {
+                    this._paging = new Page(response.page);
+                    this._links = response._links || null;
+                }
 
                 if (response.content) {
                     const _list: any = response.content.map((gruppo: any) => {
@@ -253,7 +247,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     }
 
     __loadMoreData() {
-        if (this._links && this._links.next && !this._preventMultiCall) {
+        if (this._links?.next && !this._preventMultiCall) {
             this._preventMultiCall = true;
             this._loadGruppi(null, this._links.next.href);
         }
@@ -416,7 +410,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     _prepareBodyGruppo(body: any) {
         let _immagine: any = {};
 
-        if (body.immagine && body.immagine.uuid) {
+        if (body.immagine?.uuid) {
             _immagine.tipo_documento = 'uuid';
             _immagine.uuid = body.immagine.uuid;
         } else {
@@ -466,9 +460,9 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
     _onImageLoaded(event: any) {
         if (event) {
-            var _split = event.split(',');
-            var _type = _split[0].split(';')[0].replace('data:', '');
-            var _content = _split[1];
+            const _split = event.split(',');
+            const _type = _split[0].split(';')[0].replace('data:', '');
+            const _content = _split[1];
         
             const _immagine: any = {
                 content_type: _type,

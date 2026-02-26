@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
@@ -26,9 +26,7 @@ import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdo
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, EventType } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -36,9 +34,6 @@ import { AuthenticationService } from '@app/services/authentication.service';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
-import { EventType } from '@linkit/components';
 import { NavigationService } from '@app/services/navigation.service';
 import { Page} from '../../models/page';
 
@@ -61,7 +56,7 @@ export enum StatoConfigurazione {
   styleUrls: ['adesioni.component.scss'],
   standalone: false
 })
-export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'AdesioniComponent';
   readonly model: string = 'adesioni';
 
@@ -189,17 +184,16 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _updateMapper: string = '';
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
-    private tools: Tools,
-    private eventsManagerService: EventsManagerService,
-    private apiService: OpenAPIService,
-    private utils: UtilService,
-    private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
-    private navigationService: NavigationService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    private readonly eventsManagerService: EventsManagerService,
+    private readonly apiService: OpenAPIService,
+    private readonly utils: UtilService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly modalService: BsModalService,
+    private readonly navigationService: NavigationService
   ) {
 
     this.route.data.subscribe((data) => {
@@ -210,7 +204,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     });
 
     this.config = this.configService.getConfiguration();
-    this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
+    this._useNewSearchUI = true;
 
     this._initSearchForm();
   }
@@ -248,10 +242,8 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     });
   }
 
-  ngOnDestroy() {}
-
   ngAfterViewInit() {
-    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+    if (!(this.searchBarForm?._isPinned())) {
       setTimeout(() => {
         if (!this._param_id_servizio) {
           this.refresh();
@@ -275,7 +267,6 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   refresh() {
-    // this.searchBarForm._clearSearch(null);
     this._filterData = {};
     this._loadAdesioni();
   }
@@ -316,7 +307,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     if (query)  aux = { params: this.utils._queryToHttpParams(query) };
 
-    if (this.service && this.service.id_servizio){
+    if (this.service?.id_servizio){
       aux.params = aux.params.set('id_servizio', this.service.id_servizio.toString() || '');
     }
     
@@ -324,8 +315,10 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this.apiService.getList(this.model, aux, url).subscribe({
       next: (response: any) => {
 
-        response ? this._paging = new Page(response.page) : null;
-        response ? this._links = response._links || null : null;
+        if (response) {
+          this._paging = new Page(response.page);
+          this._links = response._links || null;
+        }
 
         if (response && response.content) {
           const _list: any = response.content.map((adesione: any) => {
@@ -348,7 +341,6 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
         this._setErrorMessages(true);
         this._preventMultiCall = false;
         this._spin = false;
-        // Tools.OnError(error);
       }
     });
   }
@@ -462,7 +454,6 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   getData(model: string, term: any = null, params: any = {}, sort: string = 'id', sort_direction: string = 'desc'): Observable<any> {
-    // let _options: any = { params: { limit: 100, sort: sort, sort_direction: 'asc' } };
     let _options: any = { params: params };
     if (term) {
       if (typeof term === 'string' ) {
@@ -520,7 +511,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
+    if (this._links?.next && !this._preventMultiCall) {
         this._preventMultiCall = true;
         this._loadAdesioni(null, this._links.next.href);
     }
@@ -839,7 +830,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       query = { id_adesione: [...this.elementsSelected] };
     }
 
-    if (this.service && this.service.id_servizio) {
+    if (this.service?.id_servizio) {
       query.id_servizio = this.service.id_servizio;
     }
 
