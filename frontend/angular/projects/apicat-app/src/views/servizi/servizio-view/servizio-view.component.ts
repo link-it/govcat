@@ -420,7 +420,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             this.apiService.getList('api', aux)
                 .pipe(
                     catchError((err) => {
-                        return of({ items: [] });
+                        return of({ content: [] });
                     })
                 )
         );
@@ -430,7 +430,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             this.apiService.getList('api', aux)
                 .pipe(
                     catchError((err) => {
-                        return of({ items: [] });
+                        return of({ content: [] });
                     })
                 )
         );

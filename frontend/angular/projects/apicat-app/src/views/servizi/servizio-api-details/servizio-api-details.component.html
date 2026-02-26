@@ -37,22 +37,22 @@
 
         <div class="nav-controls align-self-center d-flex">
             <ng-container *ngIf="!_isEdit">
-            <div role="group" class="btn-group- ms-1" *ngIf="!_spin && !_isNew && _isPDND">
+            <div class="btn-group- ms-1" *ngIf="!_spin && !_isNew && _isPDND">
                 <div class="dropdown b-dropdown gl-new-dropdown btn-group me-2" id="actions">
                     <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                         <span>{{ 'APP.SERVICES.TITLE.PDND' | translate }}</span> <i class="bi bi-chevron-down ms-2"></i>
                     </button>
-                    <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                    <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
                         <div class="gl-new-dropdown-inner">
                             <div class="gl-new-dropdown-contents">
-                                <li role="presentation" class="gl-new-dropdown-item">
+                                <li class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item" (click)="_showGeneralInformationsPDND()" [disabled]="!(_updateMapper | mapper:_canShowPDNDActionsMapper)">
                                         <div class="gl-new-dropdown-item-text-wrapper">
                                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDGeneralInformations' | translate }}</p>
                                         </div>
                                     </button>
                                 </li>
-                                <li role="presentation" class="gl-new-dropdown-item">
+                                <li class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item" (click)="_showPDND()" [disabled]="!(_updateMapper | mapper:_canShowPDNDActionsMapper)">
                                         <div class="gl-new-dropdown-item-text-wrapper">
                                             <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SERVICES.MENU.PDNDUsers' | translate }}</p>
@@ -85,15 +85,15 @@
                 </button>
             </div>
 
-            <div role="group" class="btn-group- ms-1" *ngIf="!_isEdit && !_spin && _showExternalOtherActions">
-                <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
+            <div class="btn-group- ms-1" *ngIf="!_isEdit && !_spin && _showExternalOtherActions">
+                <div class="dropdown b-dropdown gl-new-dropdown btn-group">
                     <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
-                    <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                    <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
                         <div class="gl-new-dropdown-inner">
                             <div class="gl-new-dropdown-contents">
-                                <li role="presentation" class="gl-new-dropdown-item">
+                                <li class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item" (click)="_downloadServizioApiExport()" [disabled]="!(_updateMapper | mapper:_canJoinMapper)">
                                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                                             <i class="bi bi-download"></i>
@@ -103,10 +103,10 @@
                                         </div>
                                     </button>
                                 </li>
-                                <li role="presentation" class="gl-new-dropdown-divider">
-                                    <hr role="separator" aria-orientation="horizontal" class="dropdown-divider">
+                                <li class="gl-new-dropdown-divider">
+                                    <hr aria-orientation="horizontal" class="dropdown-divider">
                                 </li>
-                                <li role="presentation" class="gl-new-dropdown-item">
+                                <li class="gl-new-dropdown-item">
                                     <button role="menuitem" type="button" class="dropdown-item" (click)="_confirmDelection()" [disabled]="!(_updateMapper | mapper:_canAddMapper)">
                                         <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                                             <i class="bi bi-trash text-danger"></i>
@@ -123,7 +123,7 @@
             </div>
 
             </ng-container>
-            <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+            <div class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
                 <button aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
                     <i class="bi bi-x-lg"></i>
                 </button>
@@ -353,8 +353,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="col-6" *ngIf="f['authTypes'].value.length > 1 || (_customAuth || _customAuthOrig)">
-                                                                <!-- <pre class="overflow-auto" style="height: 200px;">{{ _risorseSelected | json }}</pre> -->
-                                                                <label class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'" *ngIf="_isEdit"></span> <span class="float-end" (click)="_changeResources(authIndex)" *ngIf="_isEdit && ('resources' | mapper:_canEditFieldMapper)"><i class="bi bi-pencil"></i></span></label>
+                                                                <label for="risorse" class="label-bold w-100">{{ 'APP.LABEL.Risorse' | translate }} <span appMarkAsterisk [formGroup]="afg(authIndex)" [controlName]="'resources'" *ngIf="_isEdit"></span> <span class="float-end" (click)="_changeResources(authIndex)" *ngIf="_isEdit && ('resources' | mapper:_canEditFieldMapper)"><i class="bi bi-pencil"></i></span></label>
                                                                 <select class="form-select" formControlName="resources" multiple size="5" readonly>
                                                                     <option class="bg-transparent" *ngFor="let r of _geControlResourcest(authIndex)" [value]="r" disabled>{{ r }}</option>
                                                                 </select>
@@ -441,14 +440,18 @@
                         </div>
 
                         <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
-                            {{ _errorMsg }}
+                            <span *ngIf="!_errors.length">{{ _errorMsg }}</span>
+                            <ui-error-view *ngIf="_errors.length"
+                                [errTitle]="'Errori'"
+                                [errors]="_errors"
+                            ></ui-error-view>
                         </div>
 
                         <div class="row-content-block footer-block" *ngIf="_isEdit">
-                            <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+                            <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
                                 {{ 'APP.BUTTON.Save' | translate }} <span class="spinner-border spinner-border-sm ms-2" *ngIf="_spin"></span>
                             </button>
-                            <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                            <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
                                 {{ 'APP.BUTTON.Cancel' | translate }}
                             </button>
                         </div>

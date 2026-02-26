@@ -31,6 +31,7 @@ import { ServiceFiltersModule } from '@app/pipes/service-filters.module';
 import { MonitorDropdwnModule } from '../components/monitor-dropdown/monitor-dropdown.module';
 
 import { ModalChoicesModule } from '@app/components/modal-choices/modal-choices.module';
+import { ErrorViewModule } from '@app/components/error-view/error-view.module';
 
 import { ServizioApiDetailsComponent } from './servizio-api-details.component';
 import { ServizioApiDetailsRoutingModule } from './servizio-api-details-routing.module';
@@ -48,6 +49,7 @@ import { ServizioApiDetailsRoutingModule } from './servizio-api-details-routing.
         // BackWebModule,
         MonitorDropdwnModule,
         ModalChoicesModule,
+        ErrorViewModule,
         ServizioApiDetailsRoutingModule
     ],
     declarations: [
