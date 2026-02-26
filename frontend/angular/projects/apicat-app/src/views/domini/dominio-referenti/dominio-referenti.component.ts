@@ -242,9 +242,9 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
             });
             this.dominioreferenti = (url) ? [...this.dominioreferenti, ..._list] : [..._list];
             this._preventMultiCall = false;
-            this._spin = false;
           }
           Tools.ScrollTo(0);
+          this._spin = false;
         },
         error: (error: any) => {
           this._setErrorMessages(true);

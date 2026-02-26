@@ -1,6 +1,21 @@
 2026-02-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue #189
+	Mostrare errori strutturati (VAL.422.COMPLEX) nella modifica API: aggiunto
+	supporto <ui-error-view> in servizio-api-details con import ErrorViewModule.
+	Fix freeze browser in servizio-referenti e dominio-referenti:
+	- AutoFillScrollDirective: MutationObserver creato fuori dalla Angular zone
+	  (NgZone.runOutsideAngular) per evitare loop infinito CD → DOM mutation → MO callback.
+	- dominio-referenti: spostato _spin=false fuori dal blocco if(response.content).
+	- servizio-referenti: corretto reset lista errato in _loadDominioReferenti
+	  (servizioReferenti → dominioReferenti).
+	Fix servizio-view: corretto catchError che restituiva {items:[]} invece di {content:[]}.
+	Fix ConfigService.getConfig: cambiato check cache da truthy a !== undefined.
+
+2026-02-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue #184
 	Aggiunte chiavi i18n per nuovi codici di errore immagini (IMG.400.FORMAT, IMG.400.SIZE, IMG.500)
 	nelle traduzioni italiano e inglese.
