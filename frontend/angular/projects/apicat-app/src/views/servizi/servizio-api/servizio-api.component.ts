@@ -274,7 +274,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   _loadServiceApi(dominio: boolean, query: any = null, url: string = '') {
     this._setErrorApi(false);
     if (this.id) {
-      if (!url) { this.serviceApi = []; }
+      if (!url) { this.serviceApi = []; this._links = null; }
 
       let aux: any;
       let _query: any = { ...query, id_servizio: this.id, sort: `id,asc` };

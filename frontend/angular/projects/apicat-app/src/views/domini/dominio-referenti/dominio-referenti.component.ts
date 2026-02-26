@@ -216,7 +216,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
       
       this._spin = true;
 
-      if (!url) { this.dominioreferenti = []; }
+      if (!url) { this.dominioreferenti = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
         next: (response: any) => {
           response ? this._paging = new Page(response.page) : null;

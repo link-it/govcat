@@ -298,7 +298,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   _loadAdesioni(query: any = null, url: string = '') {
     this._setErrorMessages(false);
 
-    if (!url) { this.adesioni = []; }
+    if (!url) { this.adesioni = []; this._links = null; }
     
     let aux = {
       params: new HttpParams()

@@ -267,7 +267,7 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
     this._setErrorApi(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.serviceallegati = []; }
+      if (!url) { this.serviceallegati = []; this._links = null; }
       let aux: any = { params: this.utils._queryToHttpParams({ ...query, tipologia_allegato: TipologiaAllegatoEnum.Specifica }) };
       this.apiService.getDetails(this.model, this.id, 'allegati', aux).subscribe({
         next: (response: any) => {

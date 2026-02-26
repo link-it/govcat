@@ -264,7 +264,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
     this._setErrorMessages(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.servizioComponenti = []; }  
+      if (!url) { this.servizioComponenti = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'componenti').subscribe({
         next: (response: any) => {
 

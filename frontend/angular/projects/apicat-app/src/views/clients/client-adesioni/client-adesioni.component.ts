@@ -214,7 +214,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
 
     if (this.id) {
       
-      if (!url) { this.clientadesioni = []; }
+      if (!url) { this.clientadesioni = []; this._links = null; }
       const _options: any = { params: { id_client: this.id } };
       this.apiService.getList('adesioni', _options).subscribe({
         next: (response: any) => {

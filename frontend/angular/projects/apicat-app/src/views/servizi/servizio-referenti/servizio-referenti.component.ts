@@ -314,7 +314,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     this._setErrorMessages(false);
     if (this.id) {
       this._spin++;
-      if (!url) { this.servizioReferenti = []; }  
+      if (!url) { this.servizioReferenti = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
         next: (response: any) => {
 
@@ -358,7 +358,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     this._setErrorMessages(false);
     if (this.service && this.service.dominio.id_dominio) {
       this._spin++;
-      if (!url) { this.servizioReferenti = []; }  
+      if (!url) { this.servizioReferenti = []; this._linksDomain = null; }
       this.apiService.getDetails('domini', this.service.dominio.id_dominio, 'referenti').subscribe({
         next: (response: any) => {
 

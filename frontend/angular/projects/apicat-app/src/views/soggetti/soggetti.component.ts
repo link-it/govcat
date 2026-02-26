@@ -198,8 +198,9 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
     let aux:any = null;
     this._setErrorMessages(false);
 
-    if (!url) { 
+    if (!url) {
       this.soggetti = [];
+      this._links = null;
       const sort: any = { sort: `${this.sortField},${this.sortDirection}` }
       query = { ...query, ...sort };
       aux = { params: this.utils._queryToHttpParams(query) };

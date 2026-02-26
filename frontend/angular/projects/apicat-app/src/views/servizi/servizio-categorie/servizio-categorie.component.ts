@@ -254,7 +254,7 @@ export class ServizioCategorieComponent implements OnInit, AfterContentChecked {
     this._setErrorMessages(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.servizioCategorie = []; }  
+      if (!url) { this.servizioCategorie = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'categorie').subscribe({
         next: (response: any) => {
 

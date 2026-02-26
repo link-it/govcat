@@ -253,7 +253,7 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
     this._setErrorCommunications(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.adesioneCommunications = []; }
+      if (!url) { this.adesioneCommunications = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'comunicazioni').subscribe({
         next: (response: any) => {
 

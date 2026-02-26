@@ -148,8 +148,9 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
     let aux: any;
     this._setErrorMessages(false);
     
-    if (!url) { 
+    if (!url) {
       this.taxonomies = [];
+      this._links = null;
       const sort: any = { sort: `${this.sortField},${this.sortDirection}` }
       query = { ...query, ...sort };
       aux = { params: this.utils._queryToHttpParams(query) };

@@ -298,7 +298,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
     this._setErrorMessages(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.servizioGruppi = []; }  
+      if (!url) { this.servizioGruppi = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'gruppi').subscribe({
         next: (response: any) => {
 

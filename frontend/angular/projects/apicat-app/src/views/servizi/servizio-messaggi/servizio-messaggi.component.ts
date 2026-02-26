@@ -213,7 +213,7 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
   _loadServizioMessaggi(query: any = null, url: string = '') {
     this._setErrorCommunications(false);
     if (this.id) {
-      if (!url) { this.servicecommunications = []; }
+      if (!url) { this.servicecommunications = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'messaggi').subscribe({
         next: (response: any) => {
 

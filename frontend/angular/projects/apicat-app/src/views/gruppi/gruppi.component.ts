@@ -201,6 +201,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     _loadGruppi(query: any = null, url: string = '') {
         this._setErrorMessages(false);
         this.clearGroup(null);
+        if (!url) { this._links = null; }
         
         let aux: any;
         query = { ...query, gruppo_padre_null: true };

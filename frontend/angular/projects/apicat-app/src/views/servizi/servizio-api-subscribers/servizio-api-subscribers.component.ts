@@ -348,7 +348,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
     if (!this.eserviceId || !this.producerId) { return; }
     if (this.id) {
       this._spin = true;
-      if (!url) { this.servizioapisubscribers = []; }  
+      if (!url) { this.servizioapisubscribers = []; this._links = null; }
       let aux: any;
       if (!url) {
         query = { ...query, eserviceId: this.eserviceId, producerId: this.producerId };
