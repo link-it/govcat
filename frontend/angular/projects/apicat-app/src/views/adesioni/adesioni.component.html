@@ -41,6 +41,7 @@
               [allElements]="_allElements"
               [countSelected]="elementsSelected.length"
               [uncheckAllInTheMenu]="uncheckAllInTheMenu"
+              [disabled]="_downloading"
               (action)="onExportAction($event)"
             ></app-export-dropdown>
           </div>
@@ -215,9 +216,6 @@
                             </ng-template>
                             <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
                               <div class="fw-bold">{{ item.nome }}</div>
-                              <!-- <div class="">
-                                <span class="small text-muted">{{ item.id_organizzazione }}</span>
-                              </div> -->
                             </ng-template>
                           </ng-select>
                         </div>
@@ -278,9 +276,6 @@
                         </ng-template>
                         <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
                           <div class="fw-bold">{{ item.nome }}</div>
-                          <!-- <div class="">
-                            <span class="small text-muted">{{ item.id_client }}</span>
-                          </div> -->
                         </ng-template>
                       </ng-select>
                     </div>

@@ -3,7 +3,9 @@
 	* [Frontend]
 	Issue #184
 	Aggiunte chiavi i18n per nuovi codici di errore immagini (IMG.400.FORMAT, IMG.400.SIZE, IMG.500)
-	nelle traduzioni italiano e inglese
+	nelle traduzioni italiano e inglese.
+	Disabilita bottone export durante il download e chiudi dropdown dopo selezione azione.
+	Refactoring minore su adesioni e gruppi component. Aggiunto scrollbar-gutter stable.
 
 2026-02-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
