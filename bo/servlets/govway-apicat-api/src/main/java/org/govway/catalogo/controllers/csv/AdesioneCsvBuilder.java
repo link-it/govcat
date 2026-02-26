@@ -24,39 +24,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.govway.catalogo.assembler.CertificateUtils;
-import org.govway.catalogo.assembler.ClientAdesioneItemAssembler;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
+import org.govway.catalogo.assembler.CertificateUtils;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
 import org.govway.catalogo.core.orm.entity.ApiEntity;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
+import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
+import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
-import org.govway.catalogo.servlets.model.AuthTypeHttpBasic;
-import org.govway.catalogo.servlets.model.AuthTypeHttps;
-import org.govway.catalogo.servlets.model.AuthTypeHttpsPdnd;
-import org.govway.catalogo.servlets.model.AuthTypeHttpsPdndSign;
-import org.govway.catalogo.servlets.model.AuthTypeHttpsSign;
-import org.govway.catalogo.servlets.model.AuthTypeOAuthAuthorizationCode;
-import org.govway.catalogo.servlets.model.AuthTypeOAuthClientCredentials;
-import org.govway.catalogo.servlets.model.AuthTypePdnd;
-import org.govway.catalogo.servlets.model.AuthTypeSign;
-import org.govway.catalogo.servlets.model.AuthTypeSignPdnd;
-import org.govway.catalogo.servlets.model.CertificatoClient;
-import org.govway.catalogo.servlets.model.CertificatoClientFornito;
-import org.govway.catalogo.servlets.model.CertificatoClientRichiestoCn;
-import org.govway.catalogo.servlets.model.CertificatoClientRichiestoCsr;
 import org.govway.catalogo.servlets.model.Configurazione;
-import org.govway.catalogo.servlets.model.Documento;
-import org.govway.catalogo.servlets.model.ItemClientAdesione;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,9 +55,6 @@ public class AdesioneCsvBuilder {
 	private Logger logger = LoggerFactory.getLogger(AdesioneCsvBuilder.class);
 
 	@Autowired
-	private ClientAdesioneItemAssembler clientAdesioneItemAssembler;
-
-	@Autowired
 	private EServiceBuilder eServiceBuilder;
 
 	@Autowired
@@ -77,11 +62,33 @@ public class AdesioneCsvBuilder {
 
 	private List<Pair<String, String>> custom;
 
+	// Caches per sessione di export (popolate in getCSV, svuotate alla fine)
+	private Map<String, String> profiloStringCache;
+	private Map<Long, ServizioEntity> servizioCache;
+	// Cache per le estensioni dei client (evita lazy loading ripetuto)
+	private Map<Long, Set<EstensioneClientEntity>> clientEstensioniCache;
+	// Cache per i subject dei certificati X.509 (evita di parsare più volte lo stesso certificato)
+	private Map<String, String> certificatoSubjectCache;
+
 	public AdesioneCsvBuilder() {
 		this.custom = new ArrayList<>();
 		this.custom.add(Pair.of("finalita", "purposeId"));
 		this.custom.add(Pair.of("nome_eservice_pdnd", "nome eService PDND"));
 		this.custom.add(Pair.of("versione_eservice_pdnd", "versione eService PDND"));
+	}
+
+	private void initCaches() {
+		this.profiloStringCache = new ConcurrentHashMap<>();
+		this.servizioCache = new ConcurrentHashMap<>();
+		this.clientEstensioniCache = new ConcurrentHashMap<>();
+		this.certificatoSubjectCache = new ConcurrentHashMap<>();
+	}
+
+	private void clearCaches() {
+		if (this.profiloStringCache != null) this.profiloStringCache.clear();
+		if (this.servizioCache != null) this.servizioCache.clear();
+		if (this.clientEstensioniCache != null) this.clientEstensioniCache.clear();
+		if (this.certificatoSubjectCache != null) this.certificatoSubjectCache.clear();
 	}
 
 	private AdesioneCsv toListEntries(AdesioneEntity adesione) {
@@ -94,7 +101,7 @@ public class AdesioneCsvBuilder {
 
 		this.logger.debug("Adesione: " + adesione.getIdLogico() + " stato: " + adesione.getStato() +" OK");
 
-		ServizioEntity servizioEntity = adesione.getServizio();
+		ServizioEntity servizioEntity = getCachedServizio(adesione);
 
 		boolean hasCollaudo = hasCollaudo(adesione.getStato());
 		boolean hasProduzione = hasProduzione(adesione.getStato());
@@ -195,9 +202,58 @@ public class AdesioneCsvBuilder {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Versione cached di adesione.getServizio() per evitare di eseguire
+	 * la query LAZY ogni volta per adesioni che condividono lo stesso servizio.
+	 */
+	private ServizioEntity getCachedServizio(AdesioneEntity adesione) {
+		// getId() su un proxy Hibernate non lo inizializza
+		Long servizioId = adesione.getServizio().getId();
+		return this.servizioCache.computeIfAbsent(servizioId,
+				id -> adesione.getServizio());
+	}
+
+	/**
+	 * Versione cached di eServiceBuilder.getProfiloString() per evitare
+	 * di accedere alla configurazione più volte per lo stesso profilo.
+	 */
+	private String getCachedProfiloString(String profiloKey) {
+		if (profiloKey == null) return null;
+		return this.profiloStringCache.computeIfAbsent(profiloKey,
+				key -> this.eServiceBuilder.getProfiloString(key));
+	}
+
+	/**
+	 * Versione cached delle estensioni del client per evitare lazy loading ripetuto.
+	 */
+	private Set<EstensioneClientEntity> getCachedClientEstensioni(ClientEntity client) {
+		if (client == null) return java.util.Collections.emptySet();
+		return this.clientEstensioniCache.computeIfAbsent(client.getId(),
+				id -> client.getEstensioni());
+	}
+
+	/**
+	 * Estrae il valore per una proprietà specifica dalle estensioni del client.
+	 */
+	private String getEstensioneValore(Set<EstensioneClientEntity> estensioni, String propertyName) {
+		return estensioni.stream()
+				.filter(e -> e.getNome().equals(propertyName))
+				.findFirst()
+				.map(EstensioneClientEntity::getValore)
+				.orElse(null);
+	}
+
+	/**
+	 * Verifica se esiste una proprietà specifica nelle estensioni del client.
+	 */
+	private boolean existsEstensione(Set<EstensioneClientEntity> estensioni, String propertyName) {
+		return estensioni.stream()
+				.anyMatch(e -> e.getNome().equals(propertyName));
+	}
+
 	private String getAutenticazioneStatoAggregato(AdesioneEntity adesione) {
 		Set<String> profili = adesione.getClient().stream()
-				.map(ca -> this.eServiceBuilder.getProfiloString(ca.getProfilo()))
+				.map(ca -> getCachedProfiloString(ca.getProfilo()))
 				.filter(p -> p != null && !p.isEmpty())
 				.collect(Collectors.toCollection(java.util.LinkedHashSet::new));
 
@@ -209,10 +265,10 @@ public class AdesioneCsvBuilder {
 
 	private String getAutenticazioneValoreAggregato(List<ClientAdesioneEntity> clients) {
 		List<String> valori = new ArrayList<>();
-		for(ClientAdesioneEntity client: clients) {
-			if(client.getClient() != null) {
-				ItemClientAdesione clientItem = this.clientAdesioneItemAssembler.toModel(client);
-				String valore = getAutenticazioneValore(clientItem, client.getClient());
+		for(ClientAdesioneEntity clientAdesione: clients) {
+			ClientEntity client = clientAdesione.getClient();
+			if(client != null) {
+				String valore = getAutenticazioneValoreDiretto(client);
 				if(valore != null && !valore.isEmpty()) {
 					valori.add(valore);
 				}
@@ -226,10 +282,10 @@ public class AdesioneCsvBuilder {
 
 	private String getApplicativiAutorizzatiAggregato(List<ClientAdesioneEntity> clients) {
 		List<String> nomi = new ArrayList<>();
-		for(ClientAdesioneEntity client: clients) {
-			ItemClientAdesione clientItem = this.clientAdesioneItemAssembler.toModel(client);
-			if(clientItem.getNome() != null && !clientItem.getNome().isEmpty()) {
-				nomi.add(clientItem.getNome());
+		for(ClientAdesioneEntity clientAdesione: clients) {
+			ClientEntity client = clientAdesione.getClient();
+			if(client != null && client.getNome() != null && !client.getNome().isEmpty()) {
+				nomi.add(client.getNome());
 			}
 		}
 		if(nomi.isEmpty()) {
@@ -321,86 +377,132 @@ public class AdesioneCsvBuilder {
 		return String.join("\n", risultati);
 	}
 
-	private String getAutenticazioneValore(ItemClientAdesione client, ClientEntity entity) {
-		switch(client.getDatiSpecifici().getAuthType()) {
-		case HTTPS: return getInfo((AuthTypeHttps)client.getDatiSpecifici(), entity);
-		case HTTPS_SIGN: return getInfo((AuthTypeHttpsSign)client.getDatiSpecifici(), entity);
-		case SIGN: return getInfo((AuthTypeSign)client.getDatiSpecifici(), entity);
-		case HTTPS_PDND: return getInfo((AuthTypeHttpsPdnd)client.getDatiSpecifici(), entity);
-		case HTTPS_PDND_SIGN: return getInfo((AuthTypeHttpsPdndSign)client.getDatiSpecifici(), entity);
-		case PDND: return getInfo((AuthTypePdnd)client.getDatiSpecifici());
-		case SIGN_PDND: return getInfo((AuthTypeSignPdnd)client.getDatiSpecifici(), entity);
-		case HTTP_BASIC: return getInfo((AuthTypeHttpBasic)client.getDatiSpecifici());
-		case INDIRIZZO_IP: return null;
-		case NO_DATI: return null;
-		case OAUTH_AUTHORIZATION_CODE: return getInfo((AuthTypeOAuthAuthorizationCode)client.getDatiSpecifici());
-		case OAUTH_CLIENT_CREDENTIALS: return getInfo((AuthTypeOAuthClientCredentials)client.getDatiSpecifici());
+	// Costanti per i nomi delle proprietà nelle estensioni client
+	private static final String CLIENT_ID_PROPERTY = "client_id";
+	private static final String USERNAME_PROPERTY = "username";
+	private static final String AUTENTICAZIONE_CN_PROPERTY = "autenticazione_CN";
+	private static final String FIRMA_CN_PROPERTY = "firma_CN";
+	private static final String AUTENTICAZIONE_CERTIFICATO_PROPERTY = "autenticazione_CERTIFICATO";
+	private static final String FIRMA_CERTIFICATO_PROPERTY = "firma_CERTIFICATO";
+
+	/**
+	 * Estrae il valore di autenticazione direttamente dalle estensioni del client,
+	 * senza usare l'assembler e senza caricare i BLOB dei certificati.
+	 * Per i certificati, mostra il CN se disponibile, altrimenti "presente".
+	 */
+	private String getAutenticazioneValoreDiretto(ClientEntity client) {
+		AuthType authType = client.getAuthType();
+		if (authType == null) {
+			return null;
 		}
 
-		return null;
-	}
+		Set<EstensioneClientEntity> estensioni = getCachedClientEstensioni(client);
 
-	private String getInfo(AuthTypeOAuthClientCredentials datiSpecifici) {
-		return "client_id:" + datiSpecifici.getClientId();
-	}
+		switch(authType) {
+		case HTTPS:
+			return "certificato autenticazione: " + getCertificatoInfo(estensioni, "autenticazione");
 
-	private String getInfo(AuthTypeOAuthAuthorizationCode datiSpecifici) {
-		return "client_id:" + datiSpecifici.getClientId();
-	}
+		case HTTPS_SIGN:
+			return "certificato autenticazione: " + getCertificatoInfo(estensioni, "autenticazione") +
+				   " certificato firma: " + getCertificatoInfo(estensioni, "firma");
 
-	private String getInfo(AuthTypeHttpBasic datiSpecifici) {
-		return "username: " + datiSpecifici.getUsername();
-	}
+		case SIGN:
+			return "certificato firma: " + getCertificatoInfo(estensioni, "firma");
 
-	private String getInfo(AuthTypeSignPdnd datiSpecifici, ClientEntity client) {
-		return "certificato firma: " + getInfoFromCertificato(datiSpecifici.getCertificatoFirma(), client) + " " + "client_id:" + datiSpecifici.getClientId();
-	}
+		case HTTPS_PDND:
+			return "certificato autenticazione: " + getCertificatoInfo(estensioni, "autenticazione") +
+				   " client_id: " + getEstensioneValore(estensioni, CLIENT_ID_PROPERTY);
 
-	private String getInfoFromCertificato(CertificatoClient certificatoFirma, ClientEntity client) {
-		switch(certificatoFirma.getTipoCertificato()) {
-		case FORNITO: return getSubject(((CertificatoClientFornito)certificatoFirma).getCertificato(), client);
-		case RICHIESTO_CN: return getSubject(((CertificatoClientRichiestoCn)certificatoFirma).getCertificato(), client);
-		case RICHIESTO_CSR: return getSubject(((CertificatoClientRichiestoCsr)certificatoFirma).getCertificato(), client);
-		}
-		return null;
-	}
+		case HTTPS_PDND_SIGN:
+			return "certificato autenticazione: " + getCertificatoInfo(estensioni, "autenticazione") +
+				   " certificato firma: " + getCertificatoInfo(estensioni, "firma") +
+				   " client_id: " + getEstensioneValore(estensioni, CLIENT_ID_PROPERTY);
 
-	private String getSubject(Documento documento, ClientEntity client) {
-		if(documento != null) {
-			try {
-				return CertificateUtils.getSubject(client, documento.getUuid().toString());
-			} catch(Exception e) {
-				this.logger.error("Errore nella ricerca del certificato: " + e.getMessage());
-				return null;
-			}
-		} else {
-			this.logger.error("Nessun certificato trovato");
+		case PDND:
+			return "client_id: " + getEstensioneValore(estensioni, CLIENT_ID_PROPERTY);
+
+		case SIGN_PDND:
+			return "certificato firma: " + getCertificatoInfo(estensioni, "firma") +
+				   " client_id: " + getEstensioneValore(estensioni, CLIENT_ID_PROPERTY);
+
+		case HTTP_BASIC:
+			return "username: " + getEstensioneValore(estensioni, USERNAME_PROPERTY);
+
+		case OAUTH_AUTHORIZATION_CODE:
+		case OAUTH_CLIENT_CREDENTIALS:
+			return "client_id: " + getEstensioneValore(estensioni, CLIENT_ID_PROPERTY);
+
+		case INDIRIZZO_IP:
+		case NO_DATI:
+		default:
 			return null;
 		}
 	}
 
-	private String getInfo(AuthTypePdnd datiSpecifici) {
-		return "client_id:" + datiSpecifici.getClientId();
+	/**
+	 * Ottiene informazioni sul certificato, estraendo il subject dal certificato X.509.
+	 * Usa una cache per evitare di parsare più volte lo stesso certificato.
+	 */
+	private String getCertificatoInfo(Set<EstensioneClientEntity> estensioni, String prefix) {
+		String cnProperty = prefix + "_CN";
+		String certProperty = prefix + "_CERTIFICATO";
+
+		// Prima verifica se esiste un CN (certificato richiesto via CN)
+		String cn = getEstensioneValore(estensioni, cnProperty);
+		if (cn != null && !cn.isEmpty()) {
+			// Se c'è anche il certificato, parsalo per estrarre il subject completo
+			DocumentoEntity documento = getDocumentoEstensione(estensioni, certProperty);
+			if (documento != null) {
+				String subject = getCachedCertificatoSubject(documento);
+				if (subject != null) {
+					return subject;
+				}
+			}
+			// Altrimenti ritorna il CN
+			return cn;
+		}
+
+		// Verifica se esiste il certificato (tipo FORNITO o CSR)
+		DocumentoEntity documento = getDocumentoEstensione(estensioni, certProperty);
+		if (documento != null) {
+			String subject = getCachedCertificatoSubject(documento);
+			if (subject != null) {
+				return subject;
+			}
+			return "presente";
+		}
+
+		return "non configurato";
 	}
 
-	private String getInfo(AuthTypeHttpsPdndSign datiSpecifici, ClientEntity client) {
-		return "certificato autenticazione: " + getInfoFromCertificato(datiSpecifici.getCertificatoAutenticazione(), client) + " " + "certificato firma: " + getInfoFromCertificato(datiSpecifici.getCertificatoFirma(), client) + " " + "client_id:" + datiSpecifici.getClientId();
+	/**
+	 * Ottiene il documento da un'estensione, se presente.
+	 */
+	private DocumentoEntity getDocumentoEstensione(Set<EstensioneClientEntity> estensioni, String propertyName) {
+		return estensioni.stream()
+				.filter(e -> e.getNome().equals(propertyName) && e.getDocumento() != null)
+				.findFirst()
+				.map(EstensioneClientEntity::getDocumento)
+				.orElse(null);
 	}
 
-	private String getInfo(AuthTypeHttpsPdnd datiSpecifici, ClientEntity client) {
-		return "certificato autenticazione: " + getInfoFromCertificato(datiSpecifici.getCertificatoAutenticazione(), client) + " " + "client_id:" + datiSpecifici.getClientId();
-	}
+	/**
+	 * Ottiene il subject del certificato X.509 dalla cache, oppure lo parsa e lo salva in cache.
+	 */
+	private String getCachedCertificatoSubject(DocumentoEntity documento) {
+		if (documento == null || documento.getUuid() == null) {
+			return null;
+		}
 
-	private String getInfo(AuthTypeSign datiSpecifici, ClientEntity client) {
-		return "certificato firma: " + getInfoFromCertificato(datiSpecifici.getCertificatoFirma(), client);
-	}
-
-	private String getInfo(AuthTypeHttpsSign datiSpecifici, ClientEntity client) {
-		return "certificato autenticazione: " + getInfoFromCertificato(datiSpecifici.getCertificatoAutenticazione(), client) + " " + "certificato firma: " + getInfoFromCertificato(datiSpecifici.getCertificatoFirma(), client);
-	}
-
-	private String getInfo(AuthTypeHttps datiSpecifici, ClientEntity client) {
-		return "certificato autenticazione: " + getInfoFromCertificato(datiSpecifici.getCertificatoAutenticazione(), client);
+		String uuid = documento.getUuid();
+		return this.certificatoSubjectCache.computeIfAbsent(uuid, id -> {
+			try {
+				return CertificateUtils.getSubject(documento);
+			} catch (Exception e) {
+				this.logger.error("Errore nel parsing del certificato con UUID [" + uuid + "]: " + e.getMessage());
+				return null;
+			}
+		});
 	}
 
 	private static String getReferentiString(Set<ReferenteAdesioneEntity> referenti) {
@@ -418,33 +520,41 @@ public class AdesioneCsvBuilder {
 	}
 
 	public byte[] getCSV(Collection<AdesioneEntity> adesioni) {
-		Collection<AdesioneCsv> adesioniCSV = new ArrayList<>();
+		// Inizializza le cache per questa sessione di export
+		initCaches();
 
-		for(AdesioneEntity adesione: adesioni) {
-			AdesioneCsv csv = toListEntries(adesione);
-			if(csv != null) {
-				adesioniCSV.add(csv);
-			}
-		}
-
-		String csv = "";
 		try {
-			AdesioneCsvMapper adesioneMapper = new AdesioneCsvMapper();
-			csv = adesioneMapper.writeValues(adesioniCSV);
-			if(csv.isEmpty()) {
-				AdesioneCsv a = new AdesioneCsv();
-				String header = adesioneMapper.writeValues(Arrays.asList(a));
+			Collection<AdesioneCsv> adesioniCSV = new ArrayList<>();
 
-				int indexOfNewLine = header.indexOf('\n');
-
-				return header.substring(0, indexOfNewLine).getBytes();
-			} else {
-				return csv.getBytes();
+			for(AdesioneEntity adesione: adesioni) {
+				AdesioneCsv csv = toListEntries(adesione);
+				if(csv != null) {
+					adesioniCSV.add(csv);
+				}
 			}
-		} catch(IOException e) {
-			logger.error("Errore durante la serializzazione del CSV: " + e.getMessage(), e);
+
+			String csv = "";
+			try {
+				AdesioneCsvMapper adesioneMapper = new AdesioneCsvMapper();
+				csv = adesioneMapper.writeValues(adesioniCSV);
+				if(csv.isEmpty()) {
+					AdesioneCsv a = new AdesioneCsv();
+					String header = adesioneMapper.writeValues(Arrays.asList(a));
+
+					int indexOfNewLine = header.indexOf('\n');
+
+					return header.substring(0, indexOfNewLine).getBytes();
+				} else {
+					return csv.getBytes();
+				}
+			} catch(IOException e) {
+				logger.error("Errore durante la serializzazione del CSV: " + e.getMessage(), e);
+			}
+			return "".getBytes();
+		} finally {
+			// Pulisci le cache alla fine dell'export
+			clearCaches();
 		}
-		return "".getBytes();
 	}
 
 }
