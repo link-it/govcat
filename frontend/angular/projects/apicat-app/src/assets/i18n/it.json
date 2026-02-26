@@ -1201,6 +1201,13 @@
 						}
 					}
 				},
+				"IMG": {
+					"400": {
+						"FORMAT": "Formato immagine non supportato. Sono consentiti solo JPEG e PNG",
+						"SIZE": "Dimensione immagine eccede il limite massimo consentito"
+					},
+					"500": "Impossibile elaborare l'immagine"
+				},
 				"INT": {
 					"500": {
 						"DEFAULT": "",

@@ -1201,6 +1201,13 @@
 						}
 					}
 				},
+				"IMG": {
+					"400": {
+						"FORMAT": "Unsupported image format. Only JPEG and PNG are allowed",
+						"SIZE": "Image size exceeds the maximum allowed limit"
+					},
+					"500": "Unable to process the image"
+				},
 				"INT": {
 					"500": {
 						"DEFAULT": "Internal error: {{errore}}",

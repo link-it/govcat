@@ -1,3 +1,10 @@
+2026-02-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #184
+	Aggiunte chiavi i18n per nuovi codici di errore immagini (IMG.400.FORMAT, IMG.400.SIZE, IMG.500)
+	nelle traduzioni italiano e inglese
+
 2026-02-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
