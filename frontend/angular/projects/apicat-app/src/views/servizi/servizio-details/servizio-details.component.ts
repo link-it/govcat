@@ -1246,8 +1246,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             }
         } else {
             this._data = new Servizio({ ...this.data });
+            this._isDominioDeprecato = this.data.dominio?.deprecato || false;
+            this._isDominioEsterno = this.data.dominio?.soggetto_referente?.organizzazione?.esterna || false;
             this._initForm({ ...this._data });
             this._changeEdit(this._isEdit);
+            this.loadCurrentData();
+            this._enableDisableSkipCollaudo(this.data.dominio);
             this.enableDisableControlPackage();
             this.enableDisableControlAdesioneConsentita();
         }

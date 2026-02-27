@@ -1,6 +1,12 @@
 2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue #191
+	Fix CancelEdit dettaglio servizio: ripristino completo dei dati originali.
+
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue #190
 	Dashboard: nascosta temporaneamente la sezione comunicazioni per il Gestore,
 	Dashboard: footer dei pannelli (griglia e vista espansa) sempre visibile
