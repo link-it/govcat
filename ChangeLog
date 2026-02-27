@@ -2,6 +2,7 @@
 
 	* [Frontend]
 	Issue #191
+	Fix visualizzazione dominio esterno e soggetto nel dettaglio servizio.
 	Fix CancelEdit dettaglio servizio: ripristino completo dei dati originali.
 
 2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>

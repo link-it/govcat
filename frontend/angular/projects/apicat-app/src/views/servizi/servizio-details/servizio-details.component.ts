@@ -879,8 +879,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                 this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
                             } else {
                                 this._data = new Servizio({ ...response });
-                                this._isDominioDeprecato = this.data.dominio.deprecato || false;
-                                this._isDominioEsterno = this.data.dominio.soggetto_referente.organizzazione.esterna || false;
+                                this._isDominioDeprecato = this.data.dominio?.deprecato || false;
+                                this._isDominioEsterno = this.data.fruizione || false;
                                 this._initForm({ ...this._data });
                                 this._spin = false;
                                 this._initBreadcrumb();
@@ -1041,8 +1041,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.richiedente = this.data.utente_richiedente;
         this.utenteUltimaModifica = this.data.utente_ultima_modifica;
 
-        this.getSoggetti(null, true).subscribe(
-            (result) => {
+        this.getSoggetti(null, true).subscribe({
+            next: (result) => {
                 if (result.length === 1) {
                     this._hideSoggettoDropdown = true;
                     this._hideSoggettoInfo = true;
@@ -1057,11 +1057,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._formGroup.updateValueAndValidity();
                 }
             },
-            (error: any) => {
+            error: (error: any) => {
                 Tools.OnError(error);
                 this._spin = false;
             }
-        );
+        });
     }
     
 
@@ -1119,8 +1119,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _checkSoggetto(event: any) {  
         if(event) {
-            this.getSoggetti(null, true).subscribe(
-                (result) => {
+            this.getSoggetti(null, true).subscribe({
+                next: (result) => {
                     const controls = this._formGroup.controls;
                     if (result.length == 1) {
                         this._hideSoggettoDropdown = true;
@@ -1149,9 +1149,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
                     this._formGroup.updateValueAndValidity();
                 },
-                (err) => console.log(err)
-            );
-            
+                error: (err) => console.log(err)
+            });
         } else {
             const controls = this._formGroup.controls;
             controls.id_soggetto_interno.patchValue(null);
@@ -1247,7 +1246,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         } else {
             this._data = new Servizio({ ...this.data });
             this._isDominioDeprecato = this.data.dominio?.deprecato || false;
-            this._isDominioEsterno = this.data.dominio?.soggetto_referente?.organizzazione?.esterna || false;
+            this._isDominioEsterno = this.data.fruizione || false;
             this._initForm({ ...this._data });
             this._changeEdit(this._isEdit);
             this.loadCurrentData();

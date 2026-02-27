@@ -432,7 +432,7 @@
                                             <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_interno'" *ngIf="_isEdit"></span></label>
                                             <select class="form-select" id="id_soggetto_interno" name="id_soggetto_interno" formControlName="id_soggetto_interno" [class.gl-field-error-outline]="_hasControlError('id_soggetto_interno')" (change)="onChangeSelect($event, 'soggetto')">
                                                 <option *ngFor="let el of _elencoSoggetti" [value]="el.id_soggetto">
-                                                {{el.nome}}
+                                                    {{el.nome}}
                                                 </option>
                                             </select>
                                             <p *ngIf="f['id_soggetto_interno'].invalid && (f['id_soggetto_interno'].dirty || f['id_soggetto_interno'].touched)" class="form-text text-danger">
@@ -440,9 +440,9 @@
                                             </p>
                                             <ui-input-help field="id_soggetto_interno" context="SERVICE"></ui-input-help>
                                         </div>
-                                        <div class="" *ngIf="!_isEdit && !_hideSoggettoInfo">
-                                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_interno'" *ngIf="_isEdit"></span></label>
-                                            <input type="text" readonly class="form-control-plaintext" id="id_dominio" [value]="data.soggetto_interno?.nome || '-'">
+                                        <div class="" *ngIf="!_isEdit">
+                                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }}</label>
+                                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_interno?.nome || '-'">
                                         </div>
                                     </div>
                                 </div>
