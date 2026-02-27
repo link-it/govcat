@@ -18,6 +18,7 @@
  */
 import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
 import { Location } from '@angular/common';
+import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
@@ -174,6 +175,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         private readonly authenticationService: AuthenticationService,
         private readonly apiService: OpenAPIService,
         private readonly notificationsService: NotificationsService,
+        private readonly titleService: Title,
         public sidebarNavHelper: GpSidebarNavHelper,
     ) {
         this.localStorageService.setItem('PROFILE', false);
@@ -212,6 +214,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
         this._enableOpenInNewTab = this._config.AppConfig.Layout.enableOpenInNewTab || false;
         this._title = this._config.AppConfig.Layout.Header.title;
+        this.titleService.setTitle(this._title);
         this._api_url = this._config.AppConfig.SITE;
 
         let offset = 0;
@@ -741,6 +744,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _onMenuHeaderAction(event: any) {
         this._title = this._config.AppConfig.Layout.Header.title;
+        this.titleService.setTitle(this._title);
         switch (event.menu.action) {
             case 'login':
                 this.router.navigate(['/auth/login']);
