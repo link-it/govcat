@@ -30,6 +30,7 @@ import org.govway.catalogo.core.services.GruppoService;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.ErrorCode;
+import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.GruppoUpdate;
@@ -76,13 +77,15 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 			dettaglio.setFigli(lst);
 		}
 		
-		dettaglio.setImmagine(engine.getImmagine(entity));
-
 		try {
 
-			if(dettaglio.getImmagine()!=null) {
+			if(entity.getImmagine()!=null) {
 				Link link = WebMvcLinkBuilder.
 						linkTo(Class.forName(GruppiController.class.getName()).getMethod("getImmagineGruppo", UUID.class), dettaglio.getIdGruppo()).withRel("immagine");
+				
+				Documento documento = new Documento();
+				documento.setUuid(UUID.randomUUID());
+				dettaglio.setImmagine(documento);
 				
 				dettaglio.add(link);
 			}

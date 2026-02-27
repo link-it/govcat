@@ -47,6 +47,7 @@ public class DocumentoEntity {
 
 	private String tipo;
 	
+	@Basic(fetch = FetchType.LAZY)
 	@Column( nullable = false, name = "rawdata")
 	@Lob
     @JdbcTypeCode(SqlTypes.LONGVARBINARY)

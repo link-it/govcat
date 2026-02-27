@@ -124,7 +124,9 @@ public class EServiceBuilder {
 		}
 
 		for(ApiEntity api: servizio.getApi()) {
-			map.putAll(this.getApiFiles(api, api.getNome()+"_"+api.getVersione() + "/" + prefix, true, mostraRichiedente, mostraReferenti));
+			String nometrimmed = api.getNome().length() > 50 ? api.getNome().substring(0,50) : api.getNome();
+
+			map.putAll(this.getApiFiles(api, nometrimmed+"_"+api.getVersione() + "/" + prefix, true, mostraRichiedente, mostraReferenti));
 		}
 	}
 
@@ -318,6 +320,8 @@ public class EServiceBuilder {
 			rigaDescrittore.setDato(this.stampeLabels.getEservice().getLabel().getDescrittore());
 			if(specificaCollaudo!=null) {
 				rigaDescrittore.setValore(specificaCollaudo.getFilename());
+			} else {
+				rigaDescrittore.setValore("Descrittore non presente");
 			}
 			righeLst.add(rigaDescrittore);
 
@@ -414,7 +418,8 @@ public class EServiceBuilder {
 			}
 
 			try {
-				map.put(prefix+"eService-"+api.getNome()+"-"+api.getVersione()+".pdf", StampePdf.getInstance().creaEServicePDF(logger,eser));
+				String nometrimmed = api.getNome().length() > 50 ? api.getNome().substring(0,50) : api.getNome();
+				map.put(prefix+"eService-"+nometrimmed+"-"+api.getVersione()+".pdf", StampePdf.getInstance().creaEServicePDF(logger,eser));
 			} catch(IOException e) {
 				this.logger.error("Errore:" + e.getMessage(), e);
 			} catch (JAXBException e) {
