@@ -1,3 +1,11 @@
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolte vulnerabilità di sicurezza nelle dipendenze npm (23 vulnerabilità, 8 high).
+	Aggiornati tramite npm audit fix: minimatch, qs, lodash-es, mermaid, chevrotain.
+	Aggiunti override in package.json per: rollup (4.59.0), tar (7.5.9),
+	ajv (8.18.0), webpack (5.105.3).
+
 2026-02-27  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]

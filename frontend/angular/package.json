@@ -122,6 +122,10 @@
   },
   "overrides": {
     "autoprefixer": "10.4.5",
-    "memfs": "4.17.0"
+    "memfs": "4.17.0",
+    "rollup": "4.59.0",
+    "tar": "7.5.9",
+    "ajv": "8.18.0",
+    "webpack": "5.105.3"
   }
 }
