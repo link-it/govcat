@@ -1265,6 +1265,8 @@
 								${owasp.dir}/suppression/CVE-2025-7962.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2025-15104.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2020-29582.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max
