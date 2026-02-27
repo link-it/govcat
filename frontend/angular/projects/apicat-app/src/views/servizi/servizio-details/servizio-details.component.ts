@@ -34,7 +34,7 @@ import { Servizio } from './servizio';
 import { ServizioCreate, Soggetto } from './servizioCreate';
 
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Grant } from '@app/model/grant';
 
@@ -361,7 +361,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                             this._formGroup.get('referente')?.disable();
                             this._formGroup.get('referente_tecnico')?.disable();
                         }
-                        // this.loadAnagrafiche();
                         this._isNew = true;
                         this._isEdit = true;
                         this._spin = false;
@@ -682,7 +681,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             adesione_disabilitata: body.adesione_disabilitata || false,
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
-            skièp_collaudo: body.skièp_collaudo || false,
+            skip_collaudo: body.skip_collaudo || false,
             fruizione: body.fruizione || false,
         };
 
@@ -699,16 +698,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             _newBody.tags = body.tags;
         }
         _newBody.taxonomies = [];
-        // if (body.tassonomie) {
-        //   Object.keys(body.tassonomie).forEach((key: string) => {
-        //     (body.tassonomie[ key ] || []).forEach((o: any) => {
-        //       _newBody.taxonomies.push({
-        //         taxonomy_id: key,
-        //         category_id: o.idCategoria
-        //       });
-        //     });
-        //   });
-        // }
 
         return _newBody;
     }
@@ -833,7 +822,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     throwError(resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -860,7 +849,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 } else {
                     const _items = resp.content.map((item: any) => {
                         item.nome_completo = `${item.nome} ${item.cognome}`;
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -885,7 +874,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._grant = grant;
                     this.apiService.getDetails(this.model, this.id).subscribe({
                         next: (response: any) => {
-                            this.data = response; // new Servizio({ ...response });
+                            this.data = response;
                             if (!this._canManagement()) {
                                 this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
                             } else {
@@ -897,7 +886,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                 this._initBreadcrumb();
                                 this._updateOtherLinks();
                                 this.loadCurrentData();
-                                // this.loadAnagrafiche();
                                 if (this.data.package) {
                                     this._loadComponenti();
                                 } else {
@@ -1112,7 +1100,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     throwError(resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -1268,10 +1256,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _changeEdit(edit: boolean) {
         if (edit) {
-            // this._formGroup.get('adesione_disabilitata')?.enable();
             this._formGroup.get('multi_adesione')?.enable();
         } else {
-            // this._formGroup.get('adesione_disabilitata')?.disable();
             this._formGroup.get('multi_adesione')?.disable();
         }
     }
@@ -1320,12 +1306,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
 
-        // this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
-        // this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        // this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
-        // this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        // this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
-
         this._enableDisableSkipCollaudo(this.selectedDominio);
 
         // Re-inizializza le dropdown dei referenti filtrate per la nuova organizzazione
@@ -1350,8 +1330,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _body: any = {
             stato: event.status.nome
         };
-        this.apiService.saveElement(_url, _body).subscribe(
-            (response: any) => {
+        this.apiService.saveElement(_url, _body).subscribe({
+            next: (response: any) => {
                 this.data = { ...response };
                 this._data = new Servizio({ ...response });
                 this._changingStatus = false;
@@ -1360,7 +1340,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 Tools.showMessage(_msg, 'success', true);
                 this._updateData = new Date().getTime().toString();
             },
-            (error: any) => {
+            error: (error: any) => {
                 this._changingStatus = false;
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
@@ -1371,7 +1351,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 Tools.showMessage(_msg, 'danger', true);
                 this._updateData = new Date().getTime().toString();
             },
-        );
+        });
     }
 
     _onChangeVisibilita(event: any) {
@@ -1651,18 +1631,18 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _loadComponenti() {
         this.hasComponenti = false;
-        this.apiService.getDetails(this.model, this.id, 'componenti').subscribe(
-            (response: any) => {
+        this.apiService.getDetails(this.model, this.id, 'componenti').subscribe({
+            next: (response: any) => {
                 this.apiComponentiLoading = false;
                 this.hasComponenti = response.content.length > 0;
                 this.enableDisableControlPackage();
                 this._updateOtherLinks();
             },
-            (error: any) => {
+            error: (error: any) => {
                 console.log('_loadComponenti error', error);
                 this.apiComponentiLoading = false;
                 this._updateOtherLinks();
             }
-        )
+        });
     }
 }
