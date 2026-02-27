@@ -145,7 +145,8 @@
       },
       "dashboard": {
         "enabled": true,
-        "hideNotificationMenu": true
+        "hideNotificationMenu": true,
+        "hideNotificationGestore": true
       },
       "showNotificationsMenu": false,
       "showNotificationsBar": true,

@@ -118,8 +118,8 @@
       </ng-container>
     </div>
   </div>
-  <div class="card-footer bg-transparent py-2 text-center" *ngIf="!loading && totalCount > 0">
-    <lnk-button
+  <div class="card-footer bg-transparent py-2 text-center" *ngIf="!loading">
+    <lnk-button *ngIf="totalCount > 0"
       [label]="'APP.DASHBOARD_PENDING.ViewAll'"
       [icon]="'bi bi-arrow-right'"
       [secondary]="true"

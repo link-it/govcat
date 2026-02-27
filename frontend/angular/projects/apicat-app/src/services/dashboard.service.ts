@@ -21,7 +21,7 @@ import { HttpParams } from '@angular/common/http';
 import { Observable, Subject, forkJoin, of, timer } from 'rxjs';
 import { catchError, map, retry, share, switchMap, takeUntil } from 'rxjs/operators';
 
-import { Tools } from '@linkit/components';
+import { ConfigService, Tools } from '@linkit/components';
 
 import { AuthenticationService } from './authentication.service';
 import { OpenAPIService } from './openAPI.service';
@@ -44,7 +44,8 @@ export class DashboardService {
 
   constructor(
     private apiService: OpenAPIService,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private configService: ConfigService
   ) {}
 
   /**
@@ -85,6 +86,11 @@ export class DashboardService {
     return Array.isArray(entry?.stati) && entry.stati.length > 0;
   }
 
+  private _isHideComunicazioniGestore(): boolean {
+    const appConfig = this.configService.getConfiguration();
+    return appConfig?.AppConfig?.Layout?.dashboard?.hideNotificationGestore === true;
+  }
+
   private _hasStatiDashboardClient(): boolean {
     const stati = Tools.Configurazione?.adesione?.stati_dashboard_client;
     return Array.isArray(stati) && stati.length > 0;
@@ -93,7 +99,8 @@ export class DashboardService {
   computeRoleConfig(ruolo: string, ruoliReferente: string[]): DashboardRoleConfig {
     // Gestore: tutto visibile
     if (ruolo === 'gestore') {
-      return { servizi: true, adesioni: true, client: true, comunicazioni: true, utenti: true };
+      const hideCom = this._isHideComunicazioniGestore();
+      return { servizi: true, adesioni: true, client: true, comunicazioni: !hideCom, utenti: true };
     }
 
     // Coordinatore: tutto tranne client e utenti

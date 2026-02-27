@@ -1,3 +1,17 @@
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #190
+	Dashboard: nascosta temporaneamente la sezione comunicazioni per il Gestore,
+	Dashboard: footer dei pannelli (griglia e vista espansa) sempre visibile
+	con altezza minima fissa (41px) anche in assenza di elementi.
+
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #192
+	Fix skip_collaudo nel salvataggio del servizio.
+
 2026-02-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
