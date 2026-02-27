@@ -203,6 +203,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   _serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
+  _fromDashboard: boolean = false;
+
   debugMandatoryFields: boolean = false;
 
   constructor(
@@ -284,6 +286,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._notification = null;
       this._notificationId = '';
       this._notificationMessageId = '';
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
       if (val.notificationId && val.messageid) {
         this._notificationId = val.notificationId;
         this._notificationMessageId = val.messageid;
@@ -300,7 +306,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         this._adesioneCreate.id_servizio = this._id_servizio;
         this._isWeb = val.web || false;
         this._loadServizio(this._id_servizio);
-      } 
+      }
     });
 
     this.eventsManagerService.on(EventType.PROFILE_UPDATE, (action: any) => {
@@ -979,13 +985,20 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-      { label: title, url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard && !this._serviceBreadcrumbs) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: title, url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
+        { label: title, url: ``, type: 'link' }
+      ];
 
-    if(this._serviceBreadcrumbs){
-      this.breadcrumbs.unshift(...this._serviceBreadcrumbs.breadcrumbs);
+      if(this._serviceBreadcrumbs){
+        this.breadcrumbs.unshift(...this._serviceBreadcrumbs.breadcrumbs);
+      }
     }
   }
 
@@ -1177,7 +1190,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url]);
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
     } else {
       this._onClose();
     }

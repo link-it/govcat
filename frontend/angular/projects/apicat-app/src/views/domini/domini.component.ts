@@ -193,7 +193,7 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   _loadDomini(query: any = null, url: string = '') {
     this._setErrorMessages(false);
 
-    if (!url) { this.domini = []; }
+    if (!url) { this.domini = []; this._links = null; }
     
     let aux: any;
     if (query)  aux = { params: this.utils._queryToHttpParams(query) };

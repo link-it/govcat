@@ -335,16 +335,12 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   }
 
   __formatValue(key: string, value: any) {
-    // Validazione parametro key
     if (!key || key.trim() === '') {
-      throw new Error('Parameter "key" is required and cannot be empty');
+      return value;
     }
 
     const _field = this.__getField(key);
-
-    // Validazione del campo
     if (!_field) {
-      console.warn(`Field not found for key: ${key}`);
       return value;
     }
 
@@ -354,7 +350,8 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     } else {
       switch (_field.type) {
         case 'enum':
-          _value = this.translate.instant(_field.enumValues[value]);
+          const _enumKey = _field.enumValues?.[value];
+          _value = _enumKey ? this.translate.instant(_enumKey) : value;
           break;
         case 'boolean':
           _value = value ? this.translate.instant(_field.booleanValues[0]) : this.translate.instant(_field.booleanValues[1]);

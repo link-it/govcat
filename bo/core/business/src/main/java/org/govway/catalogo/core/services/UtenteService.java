@@ -19,7 +19,9 @@
  */
 package org.govway.catalogo.core.services;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.govway.catalogo.core.dao.specifications.AdesioneSpecification;
@@ -27,6 +29,7 @@ import org.govway.catalogo.core.dao.specifications.DominioSpecification;
 import org.govway.catalogo.core.dao.specifications.ServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
+import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -105,6 +108,10 @@ public class UtenteService extends AbstractService {
 		this.utenteRepo.save(utente);
 	}
 
+	public void saveAndFlush(UtenteEntity utente) {
+		this.utenteRepo.saveAndFlush(utente);
+	}
+
 	public boolean existsByKey(UUID idUtente) {
 		return this.utenteRepo.findOne(filterByKey(idUtente)).isPresent();
 	}
@@ -121,6 +128,49 @@ public class UtenteService extends AbstractService {
 		UtenteSpecification utenteFilter = new UtenteSpecification();
 		utenteFilter.setIdUtente(Optional.of(key.toString()));
 		return utenteFilter;
+	}
+
+	public Set<String> getRuoliReferente(UtenteEntity utente) {
+		Set<String> ruoli = new HashSet<>();
+
+		// Cerca referenti dominio
+		for (var ref : this.referenteDominioRepo.findByReferente(utente)) {
+			if (ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
+				ruoli.add("REFERENTE_DOMINIO");
+			} else if (ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+				ruoli.add("REFERENTE_TECNICO_DOMINIO");
+			}
+		}
+
+		// Cerca referenti servizio
+		for (var ref : this.referenteServizioRepo.findByReferente(utente)) {
+			if (ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
+				ruoli.add("REFERENTE_SERVIZIO");
+			} else if (ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+				ruoli.add("REFERENTE_TECNICO_SERVIZIO");
+			}
+		}
+
+		// Cerca referenti adesione
+		for (var ref : this.referenteAdesioneRepo.findByReferente(utente)) {
+			if (ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
+				ruoli.add("REFERENTE_ADESIONE");
+			} else if (ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+				ruoli.add("REFERENTE_TECNICO_ADESIONE");
+			}
+		}
+
+		// Cerca richiedente servizio
+		if (!this.servizioRepo.getServiziByRichiedente(utente.getId()).isEmpty()) {
+			ruoli.add("RICHIEDENTE_SERVIZIO");
+		}
+
+		// Cerca richiedente adesione
+		if (!this.adesioneRepo.getAdesioniByRichiedente(utente.getId()).isEmpty()) {
+			ruoli.add("RICHIEDENTE_ADESIONE");
+		}
+
+		return ruoli;
 	}
 
 }

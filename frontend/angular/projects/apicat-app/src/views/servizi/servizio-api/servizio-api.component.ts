@@ -111,6 +111,8 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
+  _fromDashboard: boolean = false;
+
   _profili: any = null;
 
   hideVersions: boolean = false;
@@ -141,6 +143,13 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     this._profili = (_srv && _srv.api) ? _srv.api.profili : [];
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -202,14 +211,22 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     const _mainTooltip = this._componentBreadcrumbs ? 'APP.TOOLTIP.ComponentsList' : '';
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
-    this.breadcrumbs = [
-      { label: _mainLabel, url: `${baseUrl}`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
-      { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.SERVICES.TITLE.API', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard && !this._componentBreadcrumbs) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.SERVICES.TITLE.API', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: _mainLabel, url: `${baseUrl}`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
+        { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.SERVICES.TITLE.API', url: ``, type: 'link' }
+      ];
 
-    if(this._componentBreadcrumbs){
-      this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      if(this._componentBreadcrumbs){
+        this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      }
     }
   }
 
@@ -257,7 +274,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   _loadServiceApi(dominio: boolean, query: any = null, url: string = '') {
     this._setErrorApi(false);
     if (this.id) {
-      if (!url) { this.serviceApi = []; }
+      if (!url) { this.serviceApi = []; this._links = null; }
 
       let aux: any;
       let _query: any = { ...query, id_servizio: this.id, sort: `id,asc` };
@@ -341,7 +358,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
       if (this._componentBreadcrumbs) {
         this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.service.id_servizio, 'api', 'new']);
       } else {
-        this.router.navigate([`/servizi/${this.id}/api`, 'new'], { relativeTo: this.route });
+        this.router.navigate([`/servizi/${this.id}/api`, 'new'], { relativeTo: this.route, queryParamsHandling: 'preserve' });
       }
     } else {
       this._isEdit = true;
@@ -356,7 +373,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
       if (this._componentBreadcrumbs) {
         this.router.navigate(['servizi', this._componentBreadcrumbs.service.id_servizio, 'componenti', this.service.id_servizio, 'api', param.id]);
       } else {
-        this.router.navigate([`/servizi/${this.id}/api`, param.id]);
+        this.router.navigate([`/servizi/${this.id}/api`, param.id], { queryParamsHandling: 'preserve' });
       }
     } else {
       this._isEdit = true;
@@ -389,7 +406,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

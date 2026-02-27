@@ -1,0 +1,95 @@
+/*
+GovCat - GovWay API Catalogue
+https://github.com/link-it/govcat
+
+Copyright (c) 2021-2026 Link.it srl (https://link.it).
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3, as published by
+the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+:host {
+  .dashboard-panel {
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-header {
+      border-bottom: 1px solid rgba(0, 0, 21, 0.075);
+      border-radius: 8px 8px 0 0;
+      flex-shrink: 0;
+    }
+
+    .panel-body-scroll {
+      // 3 rows ~59px each = 176px
+      height: 176px;
+      overflow-y: auto;
+      flex: 0 0 auto;
+
+      .empty-state {
+        height: 100%;
+      }
+    }
+
+    .list-group-item {
+      cursor: pointer;
+      border-left: none;
+      border-right: none;
+      border-color: rgba(0, 0, 21, 0.06);
+      font-size: 0.875rem;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: #f0f4f8;
+      }
+
+      .badge {
+        font-size: 0.7rem;
+        font-weight: 500;
+      }
+    }
+
+    .card-footer {
+      border-top: 1px solid rgba(0, 0, 21, 0.075);
+      border-radius: 0 0 8px 8px;
+      flex-shrink: 0;
+      min-height: 41px;
+    }
+
+    .badge-ruolo {
+      font-size: 0.65rem;
+      font-weight: 500;
+      padding: 0.15em 0.4em;
+      background-color: #e9ecef;
+      color: #495057;
+      border: 1px solid #ced4da;
+    }
+
+    .unread-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      min-width: 8px;
+      border-radius: 50%;
+      background-color: #0d6efd;
+    }
+
+    .comunicazione-non-letta {
+      background-color: #f0f4ff;
+    }
+  }
+}

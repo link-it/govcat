@@ -285,7 +285,7 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
     this._setErrorMessages(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.adesionereferenti = []; }
+      if (!url) { this.adesionereferenti = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
         next: (response: any) => {
 

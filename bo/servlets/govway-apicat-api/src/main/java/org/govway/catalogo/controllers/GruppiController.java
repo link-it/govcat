@@ -26,6 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.ApiV1Controller;
+import org.govway.catalogo.ImageUtils;
 import org.govway.catalogo.assembler.GruppoDettaglioAssembler;
 import org.govway.catalogo.assembler.GruppoItemAssembler;
 import org.govway.catalogo.authorization.GruppoAuthorization;
@@ -37,6 +38,7 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.api.GruppiApi;
+import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.GruppoUpdate;
@@ -74,26 +76,36 @@ public class GruppiController implements GruppiApi {
     private GruppoItemAssembler itemAssembler;   
 
     @Autowired
-	private GruppoAuthorization authorization;   
-    
+	private GruppoAuthorization authorization;
+
+    @Autowired
+	private Configurazione configurazione;
+
 	private Logger logger = LoggerFactory.getLogger(GruppiController.class);
 
 	@Override
 	public ResponseEntity<Gruppo> createGruppo(GruppoCreate gruppoCreate) {
 		try {
-			
-			this.logger.info("Invocazione in corso ...");     
+
+			this.logger.info("Invocazione in corso ...");
 			this.authorization.authorizeCreate(gruppoCreate);
-			this.logger.debug("Autorizzazione completata con successo"); 
-			
-			return this.service.runTransaction( () -> {    
+			this.logger.debug("Autorizzazione completata con successo");
+
+			// Valida e processa l'immagine se presente
+			if (gruppoCreate.getImmagine() != null) {
+				gruppoCreate.setImmagine(ImageUtils.validateAndProcessImage(
+						gruppoCreate.getImmagine(),
+						this.configurazione.getGruppo().getMaxImageSize()));
+			}
+
+			return this.service.runTransaction( () -> {
 
 				GruppoEntity entity = this.dettaglioAssembler.toEntity(gruppoCreate);
 
 				if(this.service.existsByNome(entity)) {
 					throw new ConflictException(ErrorCode.GRP_409, Map.of("nome", gruppoCreate.getNome()));
 				}
-				
+
 				this.service.save(entity);
 				Gruppo model = this.dettaglioAssembler.toModel(entity);
 
@@ -102,7 +114,7 @@ public class GruppiController implements GruppiApi {
 				return ResponseEntity.ok(model);
 			});
 
-     
+
 		}
 		catch(RuntimeException e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
@@ -113,7 +125,7 @@ public class GruppiController implements GruppiApi {
 			throw new InternalException(ErrorCode.SYS_500);
 		}
 
-		
+
 	}
 
 	@Override
@@ -223,19 +235,27 @@ public class GruppiController implements GruppiApi {
 	@Override
 	public ResponseEntity<Gruppo> updateGruppo(UUID idGruppo, GruppoUpdate gruppoUpdate) {
 		try {
+
+			// Valida e processa l'immagine se presente
+			if (gruppoUpdate.getImmagine() != null) {
+				gruppoUpdate.setImmagine(ImageUtils.validateAndProcessImage(
+						gruppoUpdate.getImmagine(),
+						this.configurazione.getGruppo().getMaxImageSize()));
+			}
+
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				GruppoEntity entity = this.service.find(idGruppo)
 						.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_404, Map.of("idGruppo", idGruppo.toString())));
-				
-				this.authorization.authorizeUpdate(gruppoUpdate, entity);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
 
-	
+				this.authorization.authorizeUpdate(gruppoUpdate, entity);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+
 				this.dettaglioAssembler.toEntity(gruppoUpdate, entity);
-	
+
 				this.service.save(entity);
 				Gruppo model = this.dettaglioAssembler.toModel(entity);
 

@@ -23,7 +23,10 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools, ConfigService } from '@linkit/components';
+import { concat, Observable, of, Subject, throwError } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+
+import { Tools, ConfigService, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -94,7 +97,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     { label: 'APP.NOTIFICATIONS.ENTITY.Adesione', value: 'adesione' }
   ];
 
-  // Opzioni per ruoli
+  // Opzioni per ruoli - raggruppati per contesto
   _emetti_per_ruoli: { label: string; value: string }[] = [
     { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteDominio', value: 'servizio_referente_dominio' },
     { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoDominio', value: 'servizio_referente_tecnico_dominio' },
@@ -111,14 +114,34 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' },
   ];
 
+  // Ruoli raggruppati per sotto-sezione collassabile
+  _ruoliServizio: { label: string; value: string }[] = [
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteDominio', value: 'servizio_referente_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoDominio', value: 'servizio_referente_tecnico_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteServizio', value: 'servizio_referente_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoServizio', value: 'servizio_referente_tecnico_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.ServizioRichiedenteServizio', value: 'servizio_richiedente_servizio' }
+  ];
+
+  _ruoliAdesione: { label: string; value: string }[] = [
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteDominio', value: 'adesione_referente_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoDominio', value: 'adesione_referente_tecnico_dominio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteServizio', value: 'adesione_referente_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoServizio', value: 'adesione_referente_tecnico_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteServizio', value: 'adesione_richiedente_servizio' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteAdesione', value: 'adesione_referente_adesione' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoAdesione', value: 'adesione_referente_tecnico_adesione' },
+    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' }
+  ];
+
+  _showRuoliServizio: boolean = false;
+  _showRuoliAdesione: boolean = false;
+
   _formSettingsSettings: FormGroup = new FormGroup({
     emetti_per_tipi: new FormControl([], []),
     emetti_per_entita: new FormControl([], []),
     emetti_per_ruoli: new FormControl([], []),
   });
-
-  // DEBUG: impostare a false per nascondere le notifiche al gestore (comportamento finale)
-  _debugShowNotificationsForGestore: boolean = true;
 
   /**
    * Verifica se l'utente corrente è un gestore
@@ -129,18 +152,33 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   /**
    * Determina se mostrare la sezione impostazioni notifiche.
-   * Il gestore non dovrebbe vedere questa sezione (le notifiche sono sostituite dalla dashboard).
-   * Il flag _debugShowNotificationsForGestore permette di abilitarla temporaneamente per test.
+   * Il gestore non vede questa sezione quando la dashboard è abilitata
+   * e hideNotificationMenu è true nella configurazione Layout.
    */
   get showNotificationsSettings(): boolean {
-    if (this.isGestore) {
-      return this._debugShowNotificationsForGestore;
+    const dashboardConfig = this.config?.AppConfig?.Layout?.dashboard;
+    if (this.isGestore && dashboardConfig?.enabled && dashboardConfig?.hideNotificationMenu) {
+      return false;
     }
     return true;
   }
 
   // Modal ref per la verifica email
   private modalRef?: BsModalRef;
+
+  // Organizzazioni typeahead
+  organizzazioni$!: Observable<any[]>;
+  organizzazioniInput$ = new Subject<string>();
+  organizzazioniLoading: boolean = false;
+  selectedOrganizzazione: any = null;
+  minLengthTerm = 1;
+
+  // Modal ref per la conferma cambio organizzazione
+  private _modalConfirmRef!: BsModalRef;
+
+  get isPendingUpdate(): boolean {
+    return this.profile?.stato === 'pending_update';
+  }
 
   // Getter per verificare se la verifica email è abilitata
   get verificaEmailAbilitata(): boolean {
@@ -200,6 +238,10 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         this.settings = this._initializeSettings(sessionSettings, apiSettings);
 
         this.initForm();
+
+        const defaultOrg = this.profile?.organizzazione ? [this.profile.organizzazione] : [];
+        this.selectedOrganizzazione = this.profile?.organizzazione || null;
+        this._initOrganizzazioniSelect(defaultOrg);
 
         this.loadSettingsNotifications();
 
@@ -274,6 +316,7 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     this.isEdit = false;
     this.error = false;
     this.errorMsg = '';
+    this.selectedOrganizzazione = this.profile?.organizzazione || null;
     this.initForm();
   }
 
@@ -644,6 +687,84 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   _onSubmit(form: any) {
     this._updateServerSettings(form);
+  }
+
+  _initOrganizzazioniSelect(defaultValue: any[] = []) {
+    this.organizzazioni$ = concat(
+      of(defaultValue),
+      this.organizzazioniInput$.pipe(
+        filter(res => {
+          return res !== null && res.length >= this.minLengthTerm
+        }),
+        distinctUntilChanged(),
+        debounceTime(500),
+        tap(() => this.organizzazioniLoading = true),
+        switchMap((term: any) => {
+          return this.getOrganizzazioni(term).pipe(
+            catchError(() => of([])),
+            tap(() => this.organizzazioniLoading = false)
+          )
+        })
+      )
+    );
+  }
+
+  getOrganizzazioni(term: string | null = null): Observable<any> {
+    const _options: any = { params: { q: term } };
+    return this.apiService.getList('organizzazioni', _options)
+      .pipe(map(resp => {
+        if (resp.Error) {
+          throwError(resp.Error);
+        } else {
+          const _items = resp.content.map((item: any) => {
+            return item;
+          });
+          return _items;
+        }
+      })
+      );
+  }
+
+  trackByFn(item: any) {
+    return item.id_organizzazione;
+  }
+
+  requestOrganizationChange(selectedOrgId: string) {
+    const hasCurrentOrg = !!this.profile?.organizzazione;
+    const warningKey = hasCurrentOrg
+      ? 'APP.PROFILE.ORGANIZATION.ChangeWarningWithOrg'
+      : 'APP.PROFILE.ORGANIZATION.ChangeWarning';
+    const initialState = {
+      title: this.translate.instant('APP.PROFILE.ORGANIZATION.ChangeTitle'),
+      messages: [
+        this.translate.instant(warningKey)
+      ],
+      cancelText: this.translate.instant('APP.BUTTON.Cancel'),
+      confirmText: this.translate.instant('APP.BUTTON.Confirm'),
+      confirmColor: 'danger'
+    };
+
+    this._modalConfirmRef = this.modalService.show(YesnoDialogBsComponent, {
+      ignoreBackdropClick: true,
+      initialState: initialState
+    });
+    this._modalConfirmRef.content.onClose.subscribe(
+      (response: any) => {
+        if (response) {
+          this.apiService.putElement('profilo/organizzazione', null, { id_organizzazione: selectedOrgId }).subscribe({
+            next: (response: any) => {
+              Tools.showMessage(this.translate.instant('APP.PROFILE.ORGANIZATION.RequestSent'), 'success');
+              this.loadProfile();
+              this.onCancelEdit();
+            },
+            error: (error: any) => {
+              this.error = true;
+              this.errorMsg = this.utils.GetErrorMsg(error);
+            }
+          });
+        }
+      }
+    );
   }
 
   onAvatarError(event: any) {

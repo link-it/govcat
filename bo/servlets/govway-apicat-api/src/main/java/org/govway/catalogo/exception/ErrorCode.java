@@ -216,6 +216,17 @@ public enum ErrorCode {
     /** Impossibile elaborare il documento */
     DOC_500("Impossibile elaborare documento"),
 
+    // ==================== IMMAGINI ====================
+
+    /** Formato immagine non supportato (solo JPEG e PNG) */
+    IMG_400_FORMAT("Formato immagine non supportato. Sono consentiti solo JPEG e PNG"),
+
+    /** Dimensione immagine eccede il limite configurato */
+    IMG_400_SIZE("Dimensione immagine eccede il limite massimo consentito"),
+
+    /** Impossibile elaborare l'immagine */
+    IMG_500("Impossibile elaborare l'immagine"),
+
     // ==================== NOTIFICHE ====================
 
     /** Notifica non trovata */

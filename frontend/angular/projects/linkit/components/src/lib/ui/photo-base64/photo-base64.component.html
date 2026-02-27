@@ -21,7 +21,7 @@
     <fieldset class="form-group-">
       <div class="alert alert-danger mb-1" *ngIf="imageError">{{imageError}}</div>
       <div class="custom-file fileInputProfileWrap">
-        <input type="file" (change)="fileChangeEvent($event)" class="fileInputProfile">
+        <input type="file" [accept]="fileTypes.join(',')" (change)="fileChangeEvent($event)" class="fileInputProfile">
         <div class="img-space" [ngStyle]="{'width': boxWidth, 'height': boxHeight}">
           <ng-container *ngIf="isImageSaved; else elseTemplate">
             <img [src]="cardImageBase64" alt="Immagine" />

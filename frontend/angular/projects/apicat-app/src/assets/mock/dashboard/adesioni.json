@@ -1,0 +1,46 @@
+{
+  "content": [
+    {
+      "id_adesione": "ade-001",
+      "soggetto": { "id_soggetto": "sog-001", "nome": "Comune di Roma" },
+      "servizio": { "id_servizio": "srv-001", "nome": "Servizio Anagrafe Nazionale", "versione": "2.1" },
+      "id_logico": "ANPR-ROMA-001",
+      "stato": "richiesto_collaudo",
+      "skip_collaudo": false,
+      "stato_configurazione_automatica": "non_prevista",
+      "data_creazione": "2026-02-10T09:00:00Z",
+      "data_ultimo_aggiornamento": "2026-02-14T16:30:00Z",
+      "utente_creazione": { "id_utente": "usr-001", "nome": "Mario", "cognome": "Rossi" }
+    },
+    {
+      "id_adesione": "ade-002",
+      "soggetto": { "id_soggetto": "sog-002", "nome": "Regione Lazio" },
+      "servizio": { "id_servizio": "srv-002", "nome": "Servizio Fatturazione Elettronica", "versione": "1.0" },
+      "stato": "autorizzato_collaudo",
+      "skip_collaudo": true,
+      "stato_configurazione_automatica": "in_corso",
+      "messaggio_configurazione": "Configurazione automatica in corso...",
+      "data_creazione": "2026-02-12T11:00:00Z",
+      "data_ultimo_aggiornamento": "2026-02-15T08:00:00Z",
+      "utente_creazione": { "id_utente": "usr-002", "nome": "Anna", "cognome": "Bianchi" }
+    },
+    {
+      "id_adesione": "ade-003",
+      "soggetto": { "id_soggetto": "sog-003", "nome": "Ministero dell'Interno" },
+      "servizio": { "id_servizio": "srv-003", "nome": "Servizio Notifiche Digitali", "versione": "3.0" },
+      "id_logico": "NOTIFICHE-MI-001",
+      "stato": "pubblicato_produzione",
+      "skip_collaudo": false,
+      "stato_configurazione_automatica": "non_prevista",
+      "data_creazione": "2026-02-14T14:00:00Z",
+      "data_ultimo_aggiornamento": "2026-02-15T10:15:00Z",
+      "utente_creazione": { "id_utente": "usr-003", "nome": "Luca", "cognome": "Verdi" }
+    }
+  ],
+  "page": {
+    "size": 10,
+    "totalElements": 3,
+    "totalPages": 1,
+    "number": 0
+  }
+}

@@ -11,6 +11,7 @@
     "DEFAULT_TRANSACTION_INTERVAL": 30,
 
     "DEFAULT_NOTIFICATIONS_TIMER": 15000,
+    "DEFAULT_DASHBOARD_TIMER": 30000,
 
     "ANONYMOUS_ACCESS": true,
 
@@ -50,7 +51,6 @@
     },
 
     "Services": {
-      "showReferents": true,
       "hideVersions": true
     },
 
@@ -143,7 +143,12 @@
           "#ffff00"
         ]
       },
-      "showNotificationsMenu": true,
+      "dashboard": {
+        "enabled": true,
+        "hideNotificationMenu": true,
+        "hideNotificationGestore": true
+      },
+      "showNotificationsMenu": false,
       "showNotificationsBar": true,
       "enablePollingNotifications": false,
       "showTaxonomies": true,

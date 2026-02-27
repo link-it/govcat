@@ -12,8 +12,8 @@ import { AuthenticationService } from '../services/authentication.service';
 export class RegistrazioneGuard implements CanActivate {
 
   constructor(
-    private router: Router,
-    private authenticationService: AuthenticationService
+    private readonly router: Router,
+    private readonly authenticationService: AuthenticationService
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {

@@ -23,8 +23,6 @@ public class AdesioneCsv {
 
 	private String erogatore;
 	private String servizio;
-	private String api;
-	private String tipoApi;
 	private String autenticazioneStato;
 	private String aderente;
 	private String idAdesione;
@@ -34,11 +32,11 @@ public class AdesioneCsv {
 	private String applicativiAutorizzatiProduzione;
 	private String autenticazioneValoreProduzione;
 	private String rateLimitingProduzione;
-	private String urlInvocazioneProduzione;
+	private String proprietaProduzione;
 	private String applicativiAutorizzatiCollaudo;
 	private String autenticazioneValoreCollaudo;
 	private String rateLimitingCollaudo;
-	private String urlInvocazioneCollaudo;
+	private String proprietaCollaudo;
 
 	public String getErogatore() {
 		return erogatore;
@@ -51,18 +49,6 @@ public class AdesioneCsv {
 	}
 	public void setServizio(String servizio) {
 		this.servizio = servizio;
-	}
-	public String getApi() {
-		return api;
-	}
-	public void setApi(String api) {
-		this.api = api;
-	}
-	public String getTipoApi() {
-		return tipoApi;
-	}
-	public void setTipoApi(String tipoApi) {
-		this.tipoApi = tipoApi;
 	}
 	public String getAutenticazioneStato() {
 		return autenticazioneStato;
@@ -118,12 +104,6 @@ public class AdesioneCsv {
 	public void setRateLimitingProduzione(String rateLimitingProduzione) {
 		this.rateLimitingProduzione = rateLimitingProduzione;
 	}
-	public String getUrlInvocazioneProduzione() {
-		return urlInvocazioneProduzione;
-	}
-	public void setUrlInvocazioneProduzione(String urlInvocazioneProduzione) {
-		this.urlInvocazioneProduzione = urlInvocazioneProduzione;
-	}
 	public String getApplicativiAutorizzatiCollaudo() {
 		return applicativiAutorizzatiCollaudo;
 	}
@@ -142,11 +122,17 @@ public class AdesioneCsv {
 	public void setRateLimitingCollaudo(String rateLimitingCollaudo) {
 		this.rateLimitingCollaudo = rateLimitingCollaudo;
 	}
-	public String getUrlInvocazioneCollaudo() {
-		return urlInvocazioneCollaudo;
+	public String getProprietaCollaudo() {
+		return proprietaCollaudo;
 	}
-	public void setUrlInvocazioneCollaudo(String urlInvocazioneCollaudo) {
-		this.urlInvocazioneCollaudo = urlInvocazioneCollaudo;
+	public void setProprietaCollaudo(String proprietaCollaudo) {
+		this.proprietaCollaudo = proprietaCollaudo;
+	}
+	public String getProprietaProduzione() {
+		return proprietaProduzione;
+	}
+	public void setProprietaProduzione(String proprietaProduzione) {
+		this.proprietaProduzione = proprietaProduzione;
 	}
 
 }

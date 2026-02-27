@@ -121,6 +121,8 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
 
   _hasFocus: boolean = false;
 
+  _fromDashboard: boolean = false;
+
   environment: string = 'collaudo';
 
   _hasInvocazioneApi: boolean = false;
@@ -147,6 +149,13 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
         this.environment = _currentNav.extras.state.environment || 'collaudo';
       }
     }
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   ngOnInit() {
@@ -302,13 +311,22 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
     const _title = this.service ? this.service.nome + ' v. ' + this.service.versione : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
-    this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
-      { label: 'APP.TITLE.Services', url: '/servizi', type: 'link' },
-      { label: `${_title}`, url: `/servizi/${this.sid}${_view}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/transazioni`, type: 'link', params: { back: true } },
-      { label: `${this.data.id_traccia}`, url: ``, type: 'link' },
-    ];
+    if (this._fromDashboard) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${_title}`, url: `/servizi/${this.sid}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/transazioni`, type: 'link', params: { back: true } },
+        { label: `${this.data.id_traccia}`, url: ``, type: 'link' },
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: '', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
+        { label: 'APP.TITLE.Services', url: '/servizi', type: 'link' },
+        { label: `${_title}`, url: `/servizi/${this.sid}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/transazioni`, type: 'link', params: { back: true } },
+        { label: `${this.data.id_traccia}`, url: ``, type: 'link' },
+      ];
+    }
   }
 
   _initTabs() {
@@ -329,7 +347,7 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { state: event.params || null });
+      this.router.navigate([event.url], { state: event.params || null, queryParamsHandling: 'preserve' });
     }
   }
 

@@ -136,6 +136,8 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
 
   _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+  _fromDashboard: boolean = false;
+
   hideVersions: boolean = false;
 
   constructor(
@@ -161,6 +163,13 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
     this._grant = _state?.grant;
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -231,6 +240,10 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
 
     if(this._componentBreadcrumbs){
       this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+    }
+
+    if (this._fromDashboard && !this._componentBreadcrumbs) {
+      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
     }
   }
 
@@ -335,7 +348,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
     if (!this.eserviceId || !this.producerId) { return; }
     if (this.id) {
       this._spin = true;
-      if (!url) { this.servizioapisubscribers = []; }  
+      if (!url) { this.servizioapisubscribers = []; this._links = null; }
       let aux: any;
       if (!url) {
         query = { ...query, eserviceId: this.eserviceId, producerId: this.producerId };
@@ -408,7 +421,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
@@ -24,18 +24,12 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { FieldClass } from '@linkit/components';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
-
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
@@ -56,7 +50,7 @@ export enum TabType {
   styleUrls: ['servizio-referenti.component.scss'],
   standalone: false
 })
-export class ServizioReferentiComponent implements OnInit, AfterContentChecked, OnDestroy {
+export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioReferentiComponent';
   readonly model: string = 'servizi';
 
@@ -140,6 +134,8 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
+  _fromDashboard: boolean = false;
+
   currTab: string = TabType.REFERENTI;
 
   hideVersions: boolean = false;
@@ -147,14 +143,14 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   TabType = TabType;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private modalService: BsModalService,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly modalService: BsModalService,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
-    public apiService: OpenAPIService,
+    private readonly eventsManagerService: EventsManagerService,
+    public readonly apiService: OpenAPIService,
     public utils: UtilService,
     public authenticationService: AuthenticationService
   ) {
@@ -172,6 +168,13 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     this._grant = _state?.grant;
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -204,10 +207,6 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     });
   }
 
-  ngOnDestroy() {
-    // this.eventsManagerService.off(EventType.NAVBAR_ACTION);
-  }
-
   ngAfterContentChecked(): void {
     this.desktop = (window.innerWidth >= 992);
   }
@@ -229,14 +228,22 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     const _mainTooltip = this._componentBreadcrumbs ? 'APP.TOOLTIP.ComponentsList' : '';
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
-    this.breadcrumbs = [
-      { label: _mainLabel, url: `${baseUrl}/`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
-      { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.TITLE.ServiceReferents', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard && !this._componentBreadcrumbs) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.ServiceReferents', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: _mainLabel, url: `${baseUrl}/`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
+        { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.ServiceReferents', url: ``, type: 'link' }
+      ];
 
-    if(this._componentBreadcrumbs){
-      this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      if(this._componentBreadcrumbs){
+        this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      }
     }
   }
 
@@ -297,14 +304,16 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
     this._setErrorMessages(false);
     if (this.id) {
       this._spin++;
-      if (!url) { this.servizioReferenti = []; }  
+      if (!url) { this.servizioReferenti = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'referenti').subscribe({
         next: (response: any) => {
 
-          response ? this._paging = new Page(response.page) : null;
-          response ? this._links = response._links || null : null;
+          if (response) {
+            this._paging = new Page(response.page);
+            this._links = response._links || null;
+          }
 
-          if (response && response.content) {
+          if (response?.content) {
             const _itemRow = this.referentiConfig.itemRow;
             const _options = this.referentiConfig.options;
             const _list: any = response.content.map((referent: any) => {
@@ -339,16 +348,18 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
 
   _loadDominioReferenti(query: any = null, url: string = '') {
     this._setErrorMessages(false);
-    if (this.service && this.service.dominio.id_dominio) {
+    if (this.service?.dominio.id_dominio) {
       this._spin++;
-      if (!url) { this.servizioReferenti = []; }  
+      if (!url) { this.dominioReferenti = []; this._linksDomain = null; }
       this.apiService.getDetails('domini', this.service.dominio.id_dominio, 'referenti').subscribe({
         next: (response: any) => {
 
-          response ? this._pagingDomain = new Page(response.page) : null;
-          response ? this._linksDomain = response._links || null : null;
+          if (response) {
+            this._pagingDomain = new Page(response.page);
+            this._linksDomain = response._links || null;
+          }
 
-          if (response && response.content) {
+          if (response?.content) {
             const _itemRow = this.referentiConfig.itemRow;
             const _options = this.referentiConfig.options;
             const _list: any = response.content.map((referent: any) => {
@@ -390,12 +401,12 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
 
   __loadMoreData() {
     if (this.currTab === TabType.REFERENTI) {
-      if (this._links && this._links.next && !this._preventMultiCall) {
+      if (this._links?.next && !this._preventMultiCall) {
         this._preventMultiCall = true;
         this._loadServizioReferenti(null, this._links.next.href);
       }
     } else {
-      if (this._linksDomain && this._linksDomain.next && !this._preventMultiCall) {
+      if (this._linksDomain?.next && !this._preventMultiCall) {
         this._preventMultiCall = true;
         this._loadDominioReferenti(null, this._linksDomain.next.href);
       }
@@ -445,7 +456,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {
@@ -526,7 +537,6 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
               },
               error: (error) => {
                 this._error = true;
-                // const _errorDetail = Tools.GetErrorMsg(error);
                 const _message = this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent');
                 Tools.showMessage(_message, 'danger', true);
               }
@@ -613,12 +623,11 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked, 
 
   onActionMonitor(event: any) {
     switch (event.action) {
-      case 'backview':
+      case 'backview': {
         const url = `/servizi/${this.service.id_servizio}/view`;
         this.router.navigate([url]);
         break;
-      default:
-        break;
+      }
     }
   }
 }

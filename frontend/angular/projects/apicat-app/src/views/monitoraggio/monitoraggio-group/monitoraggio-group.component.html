@@ -19,7 +19,7 @@
 <div class="card-group mb-3">
   <ng-container *ngFor="let section of sections">
     <ng-container *ngIf="section.enabled">
-      <app-dashboard-card remove-host
+      <app-monitoraggio-card remove-host
         [environmentId]="environmentId"
         [section]="section"
         [spin]="_spin"
@@ -27,7 +27,7 @@
         [period2]="period2"
         [reduced]="reduced"
         (action)="onAction($event, section)">
-      </app-dashboard-card>
+      </app-monitoraggio-card>
     </ng-container>
   </ng-container>  
 </div>

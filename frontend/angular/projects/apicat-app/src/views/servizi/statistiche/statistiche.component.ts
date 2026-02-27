@@ -223,6 +223,8 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   _error: boolean = false;
   _errorMsg: string = '';
 
+  _fromDashboard: boolean = false;
+
   breadcrumbs: any[] = [
     { label: 'APP.TITLE.Services', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
     { label: '...', url: '', type: 'title' }
@@ -393,6 +395,13 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
 
     this._loadTransactionDetailedOutcomes();
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -441,11 +450,19 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     }
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
-      { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.TITLE.Statistics', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.Statistics', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Services', url: '/servizi', type: 'link', iconBs: 'grid-3x3-gap' },
+        { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.Statistics', url: ``, type: 'link' }
+      ];
+    }
   }
 
   _setErrorMessages(error: boolean) {
@@ -958,7 +975,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

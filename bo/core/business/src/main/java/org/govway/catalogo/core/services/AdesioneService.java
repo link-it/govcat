@@ -30,6 +30,8 @@ import org.govway.catalogo.core.exceptions.NotFoundException;
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.MessaggioAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
+import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.domain.Page;
@@ -149,5 +151,20 @@ public class AdesioneService extends AbstractService {
 		return this.adesioneRepo.findAll(spec, Pageable.unpaged()).stream().anyMatch( s -> !s.getStato().equals(statoArchiviato));
 	}
 
+	public List<ReferenteAdesioneEntity> findReferentiAdesioneByUtente(UtenteEntity utente) {
+		return this.referenteAdesioneRepo.findByReferente(utente);
+	}
+
+	public List<ReferenteDominioEntity> findReferentiDominioByUtente(UtenteEntity utente) {
+		return this.referenteDominioRepo.findByReferente(utente);
+	}
+
+	public List<ReferenteServizioEntity> findReferentiServizioByUtente(UtenteEntity utente) {
+		return this.referenteServizioRepo.findByReferente(utente);
+	}
+
+	public List<AdesioneEntity> findAllByRichiedente(UtenteEntity utente) {
+		return this.adesioneRepo.findByRichiedente(utente.getId());
+	}
 
 }

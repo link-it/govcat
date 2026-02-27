@@ -19,7 +19,9 @@ import org.govway.catalogo.InfoProfilo;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.authorization.UtenteAuthorization;
+import org.govway.catalogo.controllers.DominiController;
 import org.govway.catalogo.controllers.OrganizzazioniController;
+import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.controllers.SoggettiController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.OrganizzazioneService;
@@ -48,13 +50,20 @@ import org.govway.catalogo.servlets.model.TipoEntitaNotifica;
 import org.govway.catalogo.servlets.model.TipoNotificaEnum;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.PagedModelItemUtente;
+import org.govway.catalogo.servlets.model.ProfiloRuoli;
+import org.govway.catalogo.servlets.model.ReferenteCreate;
+import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
+import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
+import org.govway.catalogo.servlets.model.TipoReferenteEnum;
+import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
 import org.govway.catalogo.servlets.model.UtenteUpdate;
+import org.govway.catalogo.servlets.model.ProfiloOrganizationUpdate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,6 +118,12 @@ public class UtentiTest {
 
     @Autowired
     private SoggettiController soggettiController;
+
+    @Autowired
+    private DominiController dominiController;
+
+    @Autowired
+    private ServiziController serviziController;
 
     @Autowired
     private UtenteService utenteService;
@@ -293,7 +308,7 @@ public class UtentiTest {
         utenteCreate2.setPrincipal("second.user");
         controller.createUtente(utenteCreate2);
 
-        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<?> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
 
         assertNotNull(responseList.getBody());
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -318,7 +333,7 @@ public class UtentiTest {
         controller.createUtente(utenteCreate2);
 
         // Recupero della lista di utenti con filtri applicati (solo utenti ATTIVI)
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(StatoUtenteEnum.ABILITATO, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
 
         // Asserzioni
         assertNotNull(responseList.getBody());
@@ -345,7 +360,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,desc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -378,7 +393,7 @@ public class UtentiTest {
         List<String> sort = new ArrayList<>();
         sort.add("principal,asc");
         
-        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, sort);
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, sort);
         
         // Verifica del successo
         assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -410,7 +425,7 @@ public class UtentiTest {
             controller.createUtente(utenteCreate);
     	}
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
-        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
+        	ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, responseList.getStatusCode());
@@ -435,7 +450,7 @@ public class UtentiTest {
 
         // Verifica che venga lanciata l'eccezione NullPointerException qualora l'utente non fosse loggato
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
-            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, responseOrganizzazione.getBody().getIdOrganizzazione(), null, null, null, null, null, null, null, null, 0, 10, null);
         });
 
     }
@@ -446,11 +461,43 @@ public class UtentiTest {
 
         // Tentativo di recuperare la lista di utenti filtrata per una classe utente non esistente
         NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-            controller.listUtenti(null, null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, 0, 10, null);
+            controller.listUtenti(null, null, null, null, List.of(idClasseUtenteNonEsistente), null, null, null, null, null, 0, 10, null);
         });
 
         // Asserzioni
         assertEquals("CLS.404", exception.getMessage());
+    }
+
+    @Test
+    void testListUtentiDashboardFilterGestore() {
+        // Creazione dell'organizzazione necessaria
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione di un utente con stato NON_CONFIGURATO
+        UtenteCreate utenteCreate1 = CommonUtils.getUtenteCreate();
+        utenteCreate1.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate1.setStato(StatoUtenteEnum.NON_CONFIGURATO);
+        controller.createUtente(utenteCreate1);
+
+        // Creazione di un utente con stato ABILITATO
+        UtenteCreate utenteCreate2 = CommonUtils.getUtenteCreate();
+        utenteCreate2.setPrincipal("second.user");
+        utenteCreate2.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate2.setStato(StatoUtenteEnum.ABILITATO);
+        controller.createUtente(utenteCreate2);
+
+        // Recupero della lista con dashboard=true (utente gestore)
+        ResponseEntity<PagedModelItemUtente> responseList = controller.listUtenti(null, null, null, null, null, null, null, null, true, null, 0, 10, null);
+
+        // Asserzioni
+        assertNotNull(responseList.getBody());
+        assertEquals(HttpStatus.OK, responseList.getStatusCode());
+        // Verifica che vengano restituiti solo utenti con stato NON_CONFIGURATO o PENDING_UPDATE
+        List<ItemUtente> content = responseList.getBody().getContent();
+        for (ItemUtente utente : content) {
+            assertTrue(utente.getStato() == StatoUtenteEnum.NON_CONFIGURATO || utente.getStato() == StatoUtenteEnum.PENDING_UPDATE);
+        }
     }
 
     @Test
@@ -1538,6 +1585,524 @@ public class UtentiTest {
         // Verifica finale: l'email personale dell'utente deve essere aggiornata
         UtenteEntity utenteAggiornato = this.utenteService.findByPrincipal("test.flusso.personale").get();
         assertEquals("nuova.personale.completo@test.com", utenteAggiornato.getEmail());
+    }
+
+    // ==================== Test Update Profilo Organization ====================
+
+    @Test
+    void testUpdateProfiloOrganization_Success() {
+        // Creazione dell'organizzazione iniziale
+        ResponseEntity<Organizzazione> responseOrganizzazione1 = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione1.getBody());
+
+        // Creazione della nuova organizzazione
+        var orgCreate2 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate2.setNome("Nuova Organizzazione");
+        orgCreate2.setCodiceEnte("NUOVA_ORG");
+        ResponseEntity<Organizzazione> responseOrganizzazione2 = organizzazioniController.createOrganizzazione(orgCreate2);
+        assertNotNull(responseOrganizzazione2.getBody());
+
+        // Creazione dell'utente associato alla prima organizzazione
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Richiesta di cambio organizzazione
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> response = controller.updateProfiloOrganization(request);
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, response.getBody().getStato());
+        assertNotNull(response.getBody().getOrganizzazionePending());
+        assertEquals(responseOrganizzazione2.getBody().getIdOrganizzazione(), response.getBody().getOrganizzazionePending().getIdOrganizzazione());
+        // L'organizzazione attuale deve rimanere invariata
+        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response.getBody().getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_OrganizzazioneNotFound() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Richiesta di cambio a organizzazione inesistente
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(UUID.randomUUID());
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            controller.updateProfiloOrganization(request);
+        });
+
+        assertEquals("ORG.404", exception.getMessage());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_UtenteNonAutenticato() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Logout
+        this.tearDown();
+
+        // Richiesta di cambio organizzazione senza autenticazione
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.updateProfiloOrganization(request);
+        });
+
+        assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_SovrascriveRichiestaPrecedente() {
+        // Creazione di tre organizzazioni
+        ResponseEntity<Organizzazione> responseOrganizzazione1 = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione1.getBody());
+
+        var orgCreate2 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate2.setNome("Seconda Organizzazione");
+        orgCreate2.setCodiceEnte("ORG_2");
+        ResponseEntity<Organizzazione> responseOrganizzazione2 = organizzazioniController.createOrganizzazione(orgCreate2);
+        assertNotNull(responseOrganizzazione2.getBody());
+
+        var orgCreate3 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate3.setNome("Terza Organizzazione");
+        orgCreate3.setCodiceEnte("ORG_3");
+        ResponseEntity<Organizzazione> responseOrganizzazione3 = organizzazioniController.createOrganizzazione(orgCreate3);
+        assertNotNull(responseOrganizzazione3.getBody());
+
+        // Creazione dell'utente associato alla prima organizzazione
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Prima richiesta di cambio organizzazione
+        ProfiloOrganizationUpdate request1 = new ProfiloOrganizationUpdate();
+        request1.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> response1 = controller.updateProfiloOrganization(request1);
+        assertEquals(responseOrganizzazione2.getBody().getIdOrganizzazione(), response1.getBody().getOrganizzazionePending().getIdOrganizzazione());
+
+        // Seconda richiesta di cambio organizzazione (deve sovrascrivere la prima)
+        ProfiloOrganizationUpdate request2 = new ProfiloOrganizationUpdate();
+        request2.setIdOrganizzazione(responseOrganizzazione3.getBody().getIdOrganizzazione());
+
+        ResponseEntity<Utente> response2 = controller.updateProfiloOrganization(request2);
+
+        // Asserzioni: la seconda richiesta deve aver sovrascritto la prima
+        assertNotNull(response2.getBody());
+        assertEquals(HttpStatus.OK, response2.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, response2.getBody().getStato());
+        assertEquals(responseOrganizzazione3.getBody().getIdOrganizzazione(), response2.getBody().getOrganizzazionePending().getIdOrganizzazione());
+        // L'organizzazione attuale deve rimanere invariata
+        assertEquals(responseOrganizzazione1.getBody().getIdOrganizzazione(), response2.getBody().getOrganizzazione().getIdOrganizzazione());
+    }
+
+    @Test
+    void testUpdateProfiloOrganization_UtenteConRuoloReferenteServizio() {
+        // Creazione delle organizzazioni
+        ResponseEntity<Organizzazione> responseOrganizzazione1 = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione1.getBody());
+
+        var orgCreate2 = CommonUtils.getOrganizzazioneCreate();
+        orgCreate2.setNome("Altra Organizzazione");
+        orgCreate2.setCodiceEnte("ALTRA_ORG");
+        ResponseEntity<Organizzazione> responseOrganizzazione2 = organizzazioniController.createOrganizzazione(orgCreate2);
+        assertNotNull(responseOrganizzazione2.getBody());
+
+        // Creazione dell'utente con ruolo REFERENTE_SERVIZIO
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione1.getBody().getIdOrganizzazione());
+        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Richiesta di cambio organizzazione
+        ProfiloOrganizationUpdate request = new ProfiloOrganizationUpdate();
+        request.setIdOrganizzazione(responseOrganizzazione2.getBody().getIdOrganizzazione());
+
+        // Un utente con ruolo REFERENTE_SERVIZIO deve poter richiedere il cambio organizzazione
+        ResponseEntity<Utente> response = controller.updateProfiloOrganization(request);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(StatoUtenteEnum.PENDING_UPDATE, response.getBody().getStato());
+    }
+
+    // ==================== Test Get Profilo Ruoli ====================
+
+    @Test
+    void testGetProfiloRuoli_Success_NoRuoliReferente() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente senza ruoli di referente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Chiamata all'API
+        ResponseEntity<ProfiloRuoli> response = controller.getProfiloRuoli();
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // L'utente non ha ruolo definito, quindi ruolo è null
+        // I ruoli di referente devono essere vuoti
+        assertTrue(response.getBody().getRuoliReferente() == null || response.getBody().getRuoliReferente().isEmpty());
+    }
+
+    @Test
+    void testGetProfiloRuoli_Success_ConRuoloUtente() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione dell'utente con ruolo GESTORE
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.GESTORE);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Chiamata all'API
+        ResponseEntity<ProfiloRuoli> response = controller.getProfiloRuoli();
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloUtenteEnum.GESTORE, response.getBody().getRuolo());
+    }
+
+    @Test
+    void testGetProfiloRuoli_Success_ConReferenteDominio() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("soggetto-test-ruoli");
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
+        soggettoCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione del dominio
+        var dominioCreate = CommonUtils.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> responseDominio = dominiController.createDominio(dominioCreate);
+        assertNotNull(responseDominio.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Aggiunge l'utente come referente del dominio
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteCreate.setIdUtente(responseUtente.getBody().getIdUtente());
+        dominiController.createReferenteDominio(responseDominio.getBody().getIdDominio(), referenteCreate);
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Chiamata all'API
+        ResponseEntity<ProfiloRuoli> response = controller.getProfiloRuoli();
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloUtenteEnum.REFERENTE_SERVIZIO, response.getBody().getRuolo());
+        assertNotNull(response.getBody().getRuoliReferente());
+        assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_DOMINIO));
+    }
+
+    @Test
+    void testGetProfiloRuoli_Success_ConReferenteTecnicoDominio() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("soggetto-test-ruoli-tecnico");
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
+        soggettoCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione del dominio
+        var dominioCreate = CommonUtils.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> responseDominio = dominiController.createDominio(dominioCreate);
+        assertNotNull(responseDominio.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setPrincipal("utente-tecnico-dominio");
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Aggiunge l'utente come referente tecnico del dominio
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        referenteCreate.setIdUtente(responseUtente.getBody().getIdUtente());
+        dominiController.createReferenteDominio(responseDominio.getBody().getIdDominio(), referenteCreate);
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Chiamata all'API
+        ResponseEntity<ProfiloRuoli> response = controller.getProfiloRuoli();
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody().getRuoliReferente());
+        assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_TECNICO_DOMINIO));
+    }
+
+    @Test
+    void testGetProfiloRuoli_Success_ConReferenteServizio() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("soggetto-test-servizio");
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
+        soggettoCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione del dominio
+        var dominioCreate = CommonUtils.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> responseDominio = dominiController.createDominio(dominioCreate);
+        assertNotNull(responseDominio.getBody());
+
+        // Creazione dell'utente che sarà il referente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setPrincipal("utente-ref-servizio");
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Creazione del servizio con referente
+        var servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setIdDominio(responseDominio.getBody().getIdDominio());
+        servizioCreate.setIdSoggettoInterno(responseSoggetto.getBody().getIdSoggetto());
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteCreate.setIdUtente(responseUtente.getBody().getIdUtente());
+        servizioCreate.setReferenti(List.of(referenteCreate));
+        ResponseEntity<Servizio> responseServizio = serviziController.createServizio(servizioCreate);
+        assertNotNull(responseServizio.getBody());
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Chiamata all'API
+        ResponseEntity<ProfiloRuoli> response = controller.getProfiloRuoli();
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody().getRuoliReferente());
+        assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_SERVIZIO));
+    }
+
+    @Test
+    void testGetProfiloRuoli_Success_ConRichiedenteServizio() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("soggetto-test-richiedente");
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
+        soggettoCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione del dominio
+        var dominioCreate = CommonUtils.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> responseDominio = dominiController.createDominio(dominioCreate);
+        assertNotNull(responseDominio.getBody());
+
+        // Creazione dell'utente che sarà il richiedente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setPrincipal("utente-richiedente-servizio");
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Configura l'utente come utente loggato per creare il servizio (sarà automaticamente richiedente)
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Creazione del servizio (l'utente loggato diventa richiedente)
+        var servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setIdDominio(responseDominio.getBody().getIdDominio());
+        servizioCreate.setIdSoggettoInterno(responseSoggetto.getBody().getIdSoggetto());
+        ReferenteCreate referenteCreate = new ReferenteCreate();
+        referenteCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteCreate.setIdUtente(responseUtente.getBody().getIdUtente());
+        servizioCreate.setReferenti(List.of(referenteCreate));
+        ResponseEntity<Servizio> responseServizio = serviziController.createServizio(servizioCreate);
+        assertNotNull(responseServizio.getBody());
+
+        // Chiamata all'API
+        ResponseEntity<ProfiloRuoli> response = controller.getProfiloRuoli();
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody().getRuoliReferente());
+        assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO));
+    }
+
+    @Test
+    void testGetProfiloRuoli_UtenteNonAutenticato() {
+        // Logout
+        this.tearDown();
+
+        // Chiamata all'API senza autenticazione
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            controller.getProfiloRuoli();
+        });
+
+        // Asserzioni
+        assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    void testGetProfiloRuoli_Success_MultipleRuoli() {
+        // Creazione dell'organizzazione
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(CommonUtils.getOrganizzazioneCreate());
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto
+        SoggettoCreate soggettoCreate = new SoggettoCreate();
+        soggettoCreate.setNome("soggetto-test-multi");
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        soggettoCreate.setReferente(true);
+        soggettoCreate.setSkipCollaudo(true);
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione del dominio
+        var dominioCreate = CommonUtils.getDominioCreate();
+        dominioCreate.setIdSoggettoReferente(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Dominio> responseDominio = dominiController.createDominio(dominioCreate);
+        assertNotNull(responseDominio.getBody());
+
+        // Creazione dell'utente
+        UtenteCreate utenteCreate = CommonUtils.getUtenteCreate();
+        utenteCreate.setPrincipal("utente-multi-ruoli");
+        utenteCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        utenteCreate.setStato(StatoUtenteEnum.ABILITATO);
+        utenteCreate.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        ResponseEntity<Utente> responseUtente = controller.createUtente(utenteCreate);
+        assertNotNull(responseUtente.getBody());
+
+        // Creazione del servizio con referente
+        var servizioCreate = CommonUtils.getServizioCreate();
+        servizioCreate.setIdDominio(responseDominio.getBody().getIdDominio());
+        servizioCreate.setIdSoggettoInterno(responseSoggetto.getBody().getIdSoggetto());
+        ReferenteCreate referenteServizioCreate = new ReferenteCreate();
+        referenteServizioCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteServizioCreate.setIdUtente(responseUtente.getBody().getIdUtente());
+        servizioCreate.setReferenti(List.of(referenteServizioCreate));
+        ResponseEntity<Servizio> responseServizio = serviziController.createServizio(servizioCreate);
+        assertNotNull(responseServizio.getBody());
+
+        // Aggiunge l'utente come referente del dominio
+        ReferenteCreate referenteDominioCreate = new ReferenteCreate();
+        referenteDominioCreate.setTipo(TipoReferenteEnum.REFERENTE);
+        referenteDominioCreate.setIdUtente(responseUtente.getBody().getIdUtente());
+        dominiController.createReferenteDominio(responseDominio.getBody().getIdDominio(), referenteDominioCreate);
+
+        // Aggiunge l'utente come referente tecnico del servizio
+        ReferenteCreate referenteTecnicoServizioCreate = new ReferenteCreate();
+        referenteTecnicoServizioCreate.setTipo(TipoReferenteEnum.REFERENTE_TECNICO);
+        referenteTecnicoServizioCreate.setIdUtente(responseUtente.getBody().getIdUtente());
+        serviziController.createReferenteServizio(responseServizio.getBody().getIdServizio(), null, referenteTecnicoServizioCreate);
+
+        // Configura l'utente come utente loggato
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Chiamata all'API
+        ResponseEntity<ProfiloRuoli> response = controller.getProfiloRuoli();
+
+        // Asserzioni
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(RuoloUtenteEnum.COORDINATORE, response.getBody().getRuolo());
+        assertNotNull(response.getBody().getRuoliReferente());
+        // Deve avere almeno 2 ruoli (referente dominio e referente tecnico servizio)
+        assertTrue(response.getBody().getRuoliReferente().size() >= 2);
+        assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_DOMINIO));
+        assertTrue(response.getBody().getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_TECNICO_SERVIZIO));
     }
 }
 

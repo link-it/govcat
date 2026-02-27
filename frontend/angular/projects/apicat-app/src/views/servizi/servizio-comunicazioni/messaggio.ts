@@ -18,13 +18,11 @@
  */
 import { AllegatoMessaggioCreate } from '@app/model/allegatoMessaggioCreate';
 
-export type TargetComunicazione = 'pubblica' | 'solo_referenti' | 'solo_aderenti';
-
 export class Messaggio {
 
   oggetto: string = '';
   testo: string = '';
-  target?: TargetComunicazione;
+  target?: string[] | null;
   includi_tecnici?: boolean;
   allegati?: Array<AllegatoMessaggioCreate>;
 

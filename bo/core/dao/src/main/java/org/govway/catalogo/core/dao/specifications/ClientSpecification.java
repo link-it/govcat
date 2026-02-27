@@ -26,10 +26,15 @@ import java.util.UUID;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
+import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
+import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.ClientEntity.StatoEnum;
@@ -51,6 +56,7 @@ public class ClientSpecification implements Specification<ClientEntity> {
 	private Optional<StatoEnum> stato = Optional.empty();
 	private Optional<AmbienteEnum> ambiente = Optional.empty();
 	private Optional<AuthType> authType = Optional.empty();
+	private List<String> adesioniStati = null;
 
 
 	@Override
@@ -99,9 +105,15 @@ public class ClientSpecification implements Specification<ClientEntity> {
 		}
 		
 		if (authType.isPresent()) {
-			predLst.add(cb.equal(root.get(ClientEntity_.authType), authType.get())); 
+			predLst.add(cb.equal(root.get(ClientEntity_.authType), authType.get()));
 		}
-		
+
+		if (adesioniStati != null && !adesioniStati.isEmpty()) {
+			Join<ClientEntity, ClientAdesioneEntity> clientAdesioneJoin = root.join(ClientEntity_.adesioni, JoinType.INNER);
+			predLst.add(clientAdesioneJoin.get(ClientAdesioneEntity_.adesione).get(AdesioneEntity_.stato).in(adesioniStati));
+			query.distinct(true);
+		}
+
 		return predLst;
 	}
 
@@ -167,6 +179,14 @@ public class ClientSpecification implements Specification<ClientEntity> {
 
 	public void setIdOrganizzazione(Optional<UUID> idOrganizzazione) {
 		this.idOrganizzazione = idOrganizzazione;
+	}
+
+	public List<String> getAdesioniStati() {
+		return adesioniStati;
+	}
+
+	public void setAdesioniStati(List<String> adesioniStati) {
+		this.adesioniStati = adesioniStati;
 	}
 
 }

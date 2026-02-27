@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.govway.catalogo.controllers.GruppiController;
 import org.govway.catalogo.core.orm.entity.GruppoEntity;
+import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.ItemGruppo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,11 @@ public class GruppoItemAssembler extends RepresentationModelAssemblerSupport<Gru
 			dettaglio.setFigli(lst.stream().sorted(comp).collect(Collectors.toList()));
 		}
 		
-		dettaglio.setImmagine(engine.getImmagine(entity));
+		if(entity.getImmagine()!=null) {
+			Documento immagine = new Documento();
+			immagine.setUuid(UUID.randomUUID());
+			dettaglio.setImmagine(immagine);
+		}
 		
 		return dettaglio;
 	}

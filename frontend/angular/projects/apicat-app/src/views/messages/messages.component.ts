@@ -175,7 +175,7 @@ export class MessagesComponent implements OnInit, AfterViewInit, AfterContentChe
   _loadMessages(query: any = null, url: string = '') {
     this._setErrorMessages(false);
 
-    if (!url) { this.messages = []; }
+    if (!url) { this.messages = []; this._links = null; }
 
     let aux: any;
     if (query)  aux = { params: this.utils._queryToHttpParams(query) };

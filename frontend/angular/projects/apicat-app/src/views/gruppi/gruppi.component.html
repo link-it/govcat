@@ -81,6 +81,8 @@
         [infiniteScrollThrottle]="50"
         (scrolled)="__loadMoreData()"
         [scrollWindow]="false"
+        [autoFillScroll]="true"
+        (autoFillNeeded)="__loadMoreData()"
     >
         <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && gruppi.length === 0"></ui-box-spinner>
 
@@ -162,7 +164,7 @@
                             <app-photo-base64
                                 [boxWidth]="'160px'"
                                 [boxHeight]="'auto'"
-                                [maxSize]="20971520"
+                                [maxSize]="_maxImageSize"
                                 [placeHolder]="_imagePlaceHolder"
                                 [imageSaved]="{ path: _data | mapper:_getLogoMapper } | httpImgSrc"
                                 [isImageSaved]="_data?.immagine ? true : false"

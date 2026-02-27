@@ -118,14 +118,12 @@ export class ConfigService {
               });
 
             this.oauthService.events.subscribe(event => {
-              if (!(event instanceof OAuthErrorEvent)) {
-                if (event.type === 'session_terminated') {
-                  this._sessionTerminated();
-                }
-              } else {
-                if (event && event.reason) {
+              if (event instanceof OAuthErrorEvent) {
+                if (event?.reason) {
                   console.warn(event.reason);
                 }
+              } else if (event.type === 'session_terminated') {
+                this._sessionTerminated();
               }
             });
           } else {
@@ -205,7 +203,7 @@ export class ConfigService {
   // Get data
 
   getConfig(name: string, suffix: string = '-config') {
-    if (this.CacheConfig[name]) {
+    if (this.CacheConfig[name] !== undefined) {
       let obs = new Observable((subscriber) => {
         subscriber.next(this.CacheConfig[name]);
         subscriber.complete();
@@ -236,7 +234,7 @@ export class ConfigService {
    * @param theme The theme configuration object
    */
   private loadThemeFont(theme: any): void {
-    if (!theme || !theme.FontName) {
+    if (!theme?.FontName) {
       return;
     }
 

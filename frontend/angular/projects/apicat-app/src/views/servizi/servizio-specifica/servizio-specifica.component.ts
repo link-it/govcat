@@ -122,6 +122,8 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
 
   _updateMapper: string = '';
 
+  _fromDashboard: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -140,6 +142,13 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
     this._grant = _state?.grant;
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -198,6 +207,10 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
       { label: `${_title}`, url: `/${this.model}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
       { label: 'APP.SERVICES.TITLE.AllegatiSpecifica', url: ``, type: 'link' }
     ];
+
+    if (this._fromDashboard) {
+      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
+    }
   }
 
   _setErrorApi(error: boolean) {
@@ -254,7 +267,7 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
     this._setErrorApi(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.serviceallegati = []; }
+      if (!url) { this.serviceallegati = []; this._links = null; }
       let aux: any = { params: this.utils._queryToHttpParams({ ...query, tipologia_allegato: TipologiaAllegatoEnum.Specifica }) };
       this.apiService.getDetails(this.model, this.id, 'allegati', aux).subscribe({
         next: (response: any) => {
@@ -341,7 +354,7 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {

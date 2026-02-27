@@ -18,6 +18,19 @@
  */
 import { INavData } from './gp-sidebar-nav';
 
+export const navItemsDashboardMenu: INavData[] = [
+  {
+    title: true,
+    label: 'APP.MENU.Dashboard',
+    path: 'dashboard',
+    url: '/dashboard',
+    iconBs: 'speedometer2',
+    permission: 'DASHBOARD_PENDING',
+    attributes: { disabled: false },
+    counter: 'dashboard'
+  }
+];
+
 export const navItemsMainMenu: INavData[] = [
   {
     title: true,
@@ -79,15 +92,15 @@ export const navItemsAdministratorMenu: INavData[] = [
   {
     title: true,
     label: 'APP.MENU.Configurations',
-    path: 'dashboard|gruppi|domini|client|soggetti|organizzazioni|utenti|classi-utente|pdnd|tassonomie',
+    path: 'monitoraggio|gruppi|domini|client|soggetti|organizzazioni|utenti|classi-utente|pdnd|tassonomie',
     url: '/gruppi',
     iconBs: 'gear',
     permission: 'ADMINISTRATOR',
     children: [
       {
-        label: 'APP.MENU.Dashboard',
-        path: 'dashboard',
-        url: '/dashboard',
+        label: 'APP.MENU.Monitoring',
+        path: 'monitoraggio',
+        url: '/monitoraggio',
         icon: 'dashboard',
         permission: 'DASHBOARD',
         attributes: { disabled: false }

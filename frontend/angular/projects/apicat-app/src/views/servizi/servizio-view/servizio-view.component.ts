@@ -218,7 +218,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     ) {
         this.appConfig = this.configService.getConfiguration();
         this.api_url = this.appConfig.AppConfig.GOVAPI.HOST;
-        this._showReferents = this.appConfig?.AppConfig?.Services?.showReferents !== false;
+        this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.enableOpenInNewTab = this.appConfig?.AppConfig?.Layout?.enableOpenInNewTab ?? false;
         const _srv: any = Tools.Configurazione?.servizio || null;
         this._profili = (_srv?.api) ? _srv.api.profili : [];
@@ -420,7 +420,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             this.apiService.getList('api', aux)
                 .pipe(
                     catchError((err) => {
-                        return of({ items: [] });
+                        return of({ content: [] });
                     })
                 )
         );
@@ -430,7 +430,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
             this.apiService.getList('api', aux)
                 .pipe(
                     catchError((err) => {
-                        return of({ items: [] });
+                        return of({ content: [] });
                     })
                 )
         );
@@ -537,7 +537,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     onBreadcrumb(event: any) {
         if (this._useRoute) {
-            this.router.navigate([event.url]);
+            this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
         }
     }
 

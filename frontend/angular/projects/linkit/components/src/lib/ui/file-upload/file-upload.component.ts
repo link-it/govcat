@@ -19,7 +19,7 @@
 
 // https://github.com/NetanelBasal/ng-file-upload/tree/master/src/app
 
-import { Component, ElementRef, HostListener, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -41,13 +41,14 @@ export class FileUploadComponent implements ControlValueAccessor {
   onTouched!: Function;
   file: File | null = null;
 
-  @HostListener('change', ['$event.target.files']) emitFiles( event: FileList ) {
-    const file = event && event.item(0);
-    this.file = file;
+  @HostListener('change', ['$event']) emitFiles( event: Event ) {
+    const input = event.target as HTMLInputElement;
+    const file = input?.files?.item(0);
+    this.file = file || null;
     this.onChange(file);
   }
 
-  constructor( private host: ElementRef<HTMLInputElement> ) {
+  constructor( private readonly host: ElementRef<HTMLInputElement> ) {
   }
 
   writeValue( value: null ) {

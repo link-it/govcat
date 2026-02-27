@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+
+declare const bootstrap: any;
 
 export enum ActionEnum {
   SEARCH = 'search',
@@ -37,12 +39,13 @@ export class ExportDropdwnComponent implements OnInit, OnChanges {
   @Input() allElements: number = 0;
   @Input() countSelected: number = 0;
   @Input() uncheckAllInTheMenu: boolean = true;
+  @Input() disabled: boolean = false;
 
   @Output() action: EventEmitter<any> = new EventEmitter();
 
   ActionEnum = ActionEnum;
 
-  constructor() {}
+  constructor(private readonly el: ElementRef) {}
 
   ngOnInit() {
     this.initMenu();
@@ -84,6 +87,14 @@ export class ExportDropdwnComponent implements OnInit, OnChanges {
 
   onAction(menu: any) {
     const _action = typeof menu === 'string' ? menu : menu.action;
+    this.closeDropdown();
     this.action.emit({action: _action});
+  }
+
+  private closeDropdown() {
+    const toggle = this.el.nativeElement.querySelector('[data-bs-toggle="dropdown"]');
+    if (toggle) {
+      bootstrap?.Dropdown?.getInstance(toggle)?.hide();
+    }
   }
 }

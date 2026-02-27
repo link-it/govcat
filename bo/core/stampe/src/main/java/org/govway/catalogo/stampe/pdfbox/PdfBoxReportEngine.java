@@ -269,7 +269,6 @@ public class PdfBoxReportEngine {
         // Calculate position - box starts at currentY
         float x = template.getPage().getMarginLeft() + config.getX();
         float boxTop = currentY;
-        float boxBottom = boxTop - config.getHeight();
 
         // Apply padding
         float paddingLeft = 0, paddingTop = 0, paddingBottom = 0, paddingRight = 0;
@@ -280,32 +279,44 @@ public class PdfBoxReportEngine {
             paddingRight = style.getPadding().getRight();
         }
 
+        // Wrap text early to determine effective height
+        float availableWidth = config.getWidth() - paddingLeft - paddingRight;
+        java.util.List<String> lines = wrapText(text, font, fontSize, availableWidth);
+
+        // If stretchWithOverflow, expand height to fit all lines
+        float effectiveHeight = config.getHeight();
+        if (config.isStretchWithOverflow() && lines.size() > 1) {
+            float requiredHeight = lines.size() * fontSize * 1.2f + paddingTop + paddingBottom;
+            if (requiredHeight > effectiveHeight) {
+                effectiveHeight = requiredHeight;
+            }
+        }
+
+        float boxBottom = boxTop - effectiveHeight;
+
         // Draw background
         if (style != null && style.getBackgroundColor() != null) {
             Color bgColor = parseColor(style.getBackgroundColor());
             contentStream.setNonStrokingColor(bgColor);
-            contentStream.addRect(x, boxBottom, config.getWidth(), config.getHeight());
+            contentStream.addRect(x, boxBottom, config.getWidth(), effectiveHeight);
             contentStream.fill();
         }
 
         // Draw borders
         if (style != null && style.getBorder() != null && style.getBorder().getWidth() > 0) {
-            drawBorders(contentStream, style.getBorder(), x, boxBottom, config.getWidth(), config.getHeight());
+            drawBorders(contentStream, style.getBorder(), x, boxBottom, config.getWidth(), effectiveHeight);
         }
 
         // Draw text with wrapping
         Color textColor = parseColor(fontConfig.getColor());
         contentStream.setNonStrokingColor(textColor);
 
-        float availableWidth = config.getWidth() - paddingLeft - paddingRight;
-        java.util.List<String> lines = wrapText(text, font, fontSize, availableWidth);
-
         // Calculate vertical position using proper font metrics
         // Get font metrics for accurate positioning
         float ascent = font.getFontDescriptor().getAscent() / 1000 * fontSize;
         float descent = font.getFontDescriptor().getDescent() / 1000 * fontSize;
 
-        float availableHeight = config.getHeight() - paddingTop - paddingBottom;
+        float availableHeight = effectiveHeight - paddingTop - paddingBottom;
         float totalTextHeight = lines.size() * fontSize * 1.2f;
 
         // Default: middle alignment - center the text block

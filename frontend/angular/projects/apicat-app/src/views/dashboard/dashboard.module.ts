@@ -16,35 +16,45 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { TranslateModule } from '@ngx-translate/core';
 
- import { ComponentsModule } from '@linkit/components';
+import { ComponentsModule } from '@linkit/components';
+
+import { AppComponentsModule } from '@app/components/components.module';
 
 import { DashboardComponent } from './dashboard.component';
 import { DashboardRoutingModule } from './dashboard-routing.module';
-import { DashboardGroupModule } from './dashboard-group/dashboard-group.module';
+import { DashboardPanelModule } from './dashboard-panel/dashboard-panel.module';
 
-import { VerificheModule } from '../servizi/verifiche/verifiche.module';
-import { ClientVerificheModule } from '../clients/client-verifiche/client-verifiche.module';
+import { ClientsSearchFormModule } from './search-forms/clients-search-form/clients-search-form.module';
+import { ServiziSearchFormModule } from './search-forms/servizi-search-form/servizi-search-form.module';
+import { AdesioniSearchFormModule } from './search-forms/adesioni-search-form/adesioni-search-form.module';
+import { UtentiSearchFormModule } from './search-forms/utenti-search-form/utenti-search-form.module';
+import { ComunicazioniSearchFormModule } from './search-forms/comunicazioni-search-form/comunicazioni-search-form.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     TranslateModule,
-     ComponentsModule,
+    ComponentsModule,
+    AppComponentsModule,
     DashboardRoutingModule,
-    DashboardGroupModule,
-    VerificheModule,
-    ClientVerificheModule
+    DashboardPanelModule,
+    ClientsSearchFormModule,
+    ServiziSearchFormModule,
+    AdesioniSearchFormModule,
+    UtentiSearchFormModule,
+    ComunicazioniSearchFormModule
   ],
   declarations: [
     DashboardComponent
   ],
-  providers: []
+  providers: [],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class DashboardModule { }

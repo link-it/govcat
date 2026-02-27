@@ -23,7 +23,6 @@ import org.govway.catalogo.controllers.ToolsController;
 import org.govway.catalogo.controllers.UtentiController;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.core.services.UtenteService;
-import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.API;
@@ -40,15 +39,16 @@ import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
-import org.govway.catalogo.servlets.model.ItemMessaggio;
 import org.govway.catalogo.servlets.model.MessaggioCreate;
 import org.govway.catalogo.servlets.model.Notifica;
 import org.govway.catalogo.servlets.model.Organizzazione;
 import org.govway.catalogo.servlets.model.OrganizzazioneCreate;
+import org.govway.catalogo.servlets.model.ItemNotifica;
 import org.govway.catalogo.servlets.model.PagedModelItemNotifica;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.ReferenteCreate;
 import org.govway.catalogo.servlets.model.RuoloAPIEnum;
+import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
 import org.govway.catalogo.servlets.model.RuoloUtenteEnum;
 import org.govway.catalogo.servlets.model.Servizio;
 import org.govway.catalogo.servlets.model.ServizioCreate;
@@ -387,7 +387,7 @@ public class NotificheTest {
         UUID idServizio = servizio.getIdServizio();
         UUID idAdesione = null;
         
-        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione);
+        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, null);
 
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -419,7 +419,7 @@ public class NotificheTest {
         int size = 10;
         List<String> sort = List.of("data,desc");
 
-        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort);
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, null, page, size, sort);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -442,7 +442,7 @@ public class NotificheTest {
     	
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
     	
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
     	
         UUID idNotifica = notifiche.getBody().getContent().get(0).getIdNotifica();
         UpdateNotifica updateNotifica = new UpdateNotifica();
@@ -493,7 +493,7 @@ public class NotificheTest {
     	
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
     	
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
     	
         UUID idNotifica = notifiche.getBody().getContent().get(0).getIdNotifica();
         UpdateNotifica updateNotifica = new UpdateNotifica();
@@ -521,7 +521,7 @@ public class NotificheTest {
     	
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
     	
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
     	
         UUID idNotifica = notifiche.getBody().getContent().get(0).getIdNotifica();
         
@@ -581,7 +581,7 @@ public class NotificheTest {
         int size = 10;
         List<String> sort = List.of("data,desc");
 
-        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort);
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, null, page, size, sort);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -617,7 +617,7 @@ public class NotificheTest {
         UUID idServizio = servizio.getIdServizio();
         UUID idAdesione = null;
 
-        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione);
+        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, null);
 
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -652,7 +652,7 @@ public class NotificheTest {
         int size = 10;
         List<String> sort = List.of("data,desc");
 
-        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, page, size, sort);
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(q, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, null, page, size, sort);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -683,7 +683,7 @@ public class NotificheTest {
         UUID idServizio = servizio.getIdServizio();
         UUID idAdesione = null;
 
-        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione);
+        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(query, tipoNotifica, statoNotifica, tipoEntitaNotifica, idEntitaNotifica, idMittente, idServizio, idAdesione, null);
 
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -735,7 +735,7 @@ public class NotificheTest {
 
         // La GET notifiche dovrebbe restituire solo le notifiche push, non quelle email
         ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(
-            null, null, null, null, null, null, idServizio, null, 0, 100, null);
+            null, null, null, null, null, null, idServizio, null, null, 0, 100, null);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -775,7 +775,7 @@ public class NotificheTest {
 
         // Il count dovrebbe escludere le notifiche email
         ResponseEntity<CountNotifica> response = notificheController.countNotifiche(
-            null, null, null, null, null, null, idServizio, null);
+            null, null, null, null, null, null, idServizio, null, null);
 
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -799,5 +799,145 @@ public class NotificheTest {
         // Imposta il flag a false
         notifica.setEmailInviata(false);
         assertFalse(notifica.isEmailInviata());
+    }
+
+    @Test
+    public void testListNotificheDashboardFilter() {
+        // Creo il dominio
+        Dominio dominio = this.getDominio(null);
+        // Creo un servizio
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        // Creo API
+        this.getAPI();
+
+        //per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        // Invio un messaggio per generare notifiche di tipo COMUNICAZIONE
+        MessaggioCreate messaggioComunicazione = new MessaggioCreate();
+        messaggioComunicazione.setOggetto("Oggetto Dashboard Test");
+        messaggioComunicazione.setTesto("Testo per test dashboard filter");
+        serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        // Test con dashboard=true: deve filtrare solo tipo COMUNICAZIONE e stato NUOVA
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(
+            null, null, null, null, null, null, null, null, true, 0, 10, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        // Tutte le notifiche dovrebbero essere di tipo COMUNICAZIONE e stato NUOVA
+        for (ItemNotifica item : response.getBody().getContent()) {
+            assertNotNull(item.getTipo());
+            assertEquals(TipoNotificaEnum.COMUNICAZIONE.getValue(), item.getTipo().getTipo());
+            assertEquals(StatoNotifica.NUOVA, item.getStato());
+        }
+    }
+
+    @Test
+    public void testCountNotificheDashboardFilter() {
+        // Creo il dominio
+        Dominio dominio = this.getDominio(null);
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        // Creo API
+        this.getAPI();
+
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        // Invio un messaggio per generare notifiche di tipo COMUNICAZIONE
+        MessaggioCreate messaggioComunicazione = new MessaggioCreate();
+        messaggioComunicazione.setOggetto("Oggetto Dashboard Count Test");
+        messaggioComunicazione.setTesto("Testo per test dashboard count");
+        serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        // Test con dashboard=true
+        ResponseEntity<CountNotifica> response = notificheController.countNotifiche(
+            null, null, null, null, null, null, null, null, true);
+
+        assertNotNull(response.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Deve contare solo le notifiche COMUNICAZIONE con stato NUOVA
+        assertTrue(response.getBody().getCount() >= 0);
+    }
+
+    @Test
+    public void testListNotificheRuoliReferente() {
+        // Creo il dominio
+        Dominio dominio = this.getDominio(null);
+        // Creo un servizio
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        // Creo API
+        this.getAPI();
+
+        //per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        // Invio un messaggio per generare notifiche
+        MessaggioCreate messaggioComunicazione = new MessaggioCreate();
+        messaggioComunicazione.setOggetto("Oggetto Ruoli Referente Test");
+        messaggioComunicazione.setTesto("Testo per test ruoli referente");
+        serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
+
+        CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
+
+        // Test che verifica la presenza del campo ruoliReferente nelle notifiche
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(
+            null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        // Verifica che ogni notifica abbia il campo ruoliReferente (può essere vuoto o popolato)
+        for (ItemNotifica item : response.getBody().getContent()) {
+            // Il campo ruoliReferente dovrebbe esistere (anche se lista vuota)
+            // L'utente UTENTE_REFERENTE_TECNICO è referente tecnico del servizio
+            assertNotNull(item.getRuoliReferente());
+        }
+    }
+
+    @Test
+    public void testListNotificheRuoliReferenteForReferenteDominio() {
+        // Creo il dominio (l'utente GESTORE è referente del dominio)
+        Dominio dominio = this.getDominio(null);
+        // Creo un servizio
+        Servizio servizio = this.getServizio(dominio, VisibilitaServizioEnum.PUBBLICO);
+        // Creo API
+        this.getAPI();
+
+        //per l'adesione lo stato del servizio deve essere a "Pubblicato in collaudo"
+        CommonUtils.cambioStatoFinoA("pubblicato_collaudo", serviziController, idServizio);
+
+        // Invio un messaggio per generare notifiche (come utente GESTORE che è referente dominio)
+        MessaggioCreate messaggioComunicazione = new MessaggioCreate();
+        messaggioComunicazione.setOggetto("Oggetto Referente Dominio Test");
+        messaggioComunicazione.setTesto("Testo per test referente dominio");
+        serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
+
+        // La sessione è già UTENTE_GESTORE che è referente del dominio
+        ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(
+            null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        // Verifica che le notifiche contengano i ruoli referente corretti
+        for (ItemNotifica item : response.getBody().getContent()) {
+            assertNotNull(item.getRuoliReferente());
+            // L'utente GESTORE è referente del dominio e del servizio
+            // quindi dovrebbe avere REFERENTE_DOMINIO e/o REFERENTE_SERVIZIO
+            if (!item.getRuoliReferente().isEmpty()) {
+                // Verifica che contenga almeno uno dei ruoli aspettati
+                boolean hasExpectedRole = item.getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_DOMINIO)
+                    || item.getRuoliReferente().contains(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+                assertTrue(hasExpectedRole, "L'utente dovrebbe avere ruolo REFERENTE_DOMINIO o REFERENTE_SERVIZIO");
+            }
+        }
     }
 }

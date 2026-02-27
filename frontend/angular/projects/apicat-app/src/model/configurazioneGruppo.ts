@@ -30,7 +30,8 @@
  */
 
 
-export interface ConfigurazioneGruppo { 
+export interface ConfigurazioneGruppo {
     visualizzazione_abilitata: boolean;
+    max_image_size?: number;
 }
 

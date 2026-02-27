@@ -34,7 +34,7 @@ import { Servizio } from './servizio';
 import { ServizioCreate, Soggetto } from './servizioCreate';
 
 import { concat, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Grant } from '@app/model/grant';
 
@@ -96,6 +96,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     apiUrl: string = '';
     _imagePlaceHolder: string = './assets/images/logo-placeholder.png';
+    _maxImageSize: number = (Tools.Configurazione?.servizio?.max_image_size || 2) * 1024 * 1024;
 
     domini$!: Observable<any[]>;
     dominiInput$ = new Subject<string>();
@@ -278,6 +279,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
+    _fromDashboard: boolean = false;
+
     hideVersions: boolean = false;
 
     constructor(
@@ -353,7 +356,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                         this._initReferentiSelect([]);
                         this._initReferentiTecniciSelect([]);
                         this._initOrganizzazioniInterneSelect([]);
-                        // this.loadAnagrafiche();
+                        // In multi-dominio, disabilita i referenti finché non viene selezionato un dominio
+                        if (this._hasMultiDominio) {
+                            this._formGroup.get('referente')?.disable();
+                            this._formGroup.get('referente_tecnico')?.disable();
+                        }
                         this._isNew = true;
                         this._isEdit = true;
                         this._spin = false;
@@ -362,10 +369,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             }
         });
 
-        this.route.queryParams.subscribe((val) => { 
+        this.route.queryParams.subscribe((val) => {
             this._notification = null;
             this._notificationId = '';
             this._notificationMessageId = '';
+            if (val.from === 'dashboard') {
+                this._fromDashboard = true;
+                this._initBreadcrumb();
+            }
             if (val.notificationId && val.messageid) {
                 this._notificationId = val.notificationId;
                 this._notificationMessageId = val.messageid;
@@ -384,7 +395,14 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._multiDominioEmail = Tools.Configurazione?.dominio?.multi_dominio?.email || null;
             this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
             this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
-            this._updateOtherLinks()
+            this._updateOtherLinks();
+            // In creazione con multi-dominio, disabilita i referenti se il dominio non è selezionato
+            if (this._isNew && this._hasMultiDominio && !this.selectedDominio && this._formGroup) {
+                this._formGroup.get('referente')?.disable();
+                this._formGroup.get('referente_tecnico')?.disable();
+                this._initReferentiSelect([]);
+                this._initReferentiTecniciSelect([]);
+            }
         });
     }
 
@@ -482,7 +500,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     onLinkClick(item: any) {
         // [routerLink]="[link.route]" [state]="{ service: data, grant: _grant }" [relativeTo]="route"
-        this.router.navigate([item.route], { state: { service: this.data, grant: this._grant }, relativeTo: this.route });
+        this.router.navigate([item.route], { state: { service: this.data, grant: this._grant }, relativeTo: this.route, queryParamsHandling: 'preserve' });
     }
 
     get f(): { [key: string]: AbstractControl } {
@@ -663,7 +681,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             adesione_disabilitata: body.adesione_disabilitata || false,
             id_soggetto_interno: body.id_soggetto_interno || null,
             package: body.package || false,
-            skièp_collaudo: body.skièp_collaudo || false,
+            skip_collaudo: body.skip_collaudo || false,
             fruizione: body.fruizione || false,
         };
 
@@ -680,16 +698,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             _newBody.tags = body.tags;
         }
         _newBody.taxonomies = [];
-        // if (body.tassonomie) {
-        //   Object.keys(body.tassonomie).forEach((key: string) => {
-        //     (body.tassonomie[ key ] || []).forEach((o: any) => {
-        //       _newBody.taxonomies.push({
-        //         taxonomy_id: key,
-        //         category_id: o.idCategoria
-        //       });
-        //     });
-        //   });
-        // }
 
         return _newBody;
     }
@@ -814,7 +822,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     throwError(resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -841,7 +849,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 } else {
                     const _items = resp.content.map((item: any) => {
                         item.nome_completo = `${item.nome} ${item.cognome}`;
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -866,19 +874,18 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._grant = grant;
                     this.apiService.getDetails(this.model, this.id).subscribe({
                         next: (response: any) => {
-                            this.data = response; // new Servizio({ ...response });
+                            this.data = response;
                             if (!this._canManagement()) {
                                 this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
                             } else {
                                 this._data = new Servizio({ ...response });
-                                this._isDominioDeprecato = this.data.dominio.deprecato || false;
-                                this._isDominioEsterno = this.data.dominio.soggetto_referente.organizzazione.esterna || false;
+                                this._isDominioDeprecato = this.data.dominio?.deprecato || false;
+                                this._isDominioEsterno = this.data.fruizione || false;
                                 this._initForm({ ...this._data });
                                 this._spin = false;
                                 this._initBreadcrumb();
                                 this._updateOtherLinks();
                                 this.loadCurrentData();
-                                // this.loadAnagrafiche();
                                 if (this.data.package) {
                                     this._loadComponenti();
                                 } else {
@@ -948,14 +955,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.referenti$ = concat(
             of(defaultValue),
             this.referentiInput$.pipe(
-                // filter(res => {
-                //   return res !== null && res.length >= this.minLengthTerm
-                // }),
                 startWith(''),
                 distinctUntilChanged(),
                 debounceTime(300),
                 tap(() => this.referentiLoading = true),
                 switchMap((term: any) => {
+                    // In creazione con multi-dominio, non caricare utenti se il dominio non è ancora selezionato
+                    if (this._isNew && this._hasMultiDominio && !this.selectedDominio) {
+                        this.referentiLoading = false;
+                        return of([]);
+                    }
                     return this.getUtenti(term, 'referente_servizio,gestore,coordinatore').pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.referentiLoading = false)
@@ -969,14 +978,16 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.referentiTecnici$ = concat(
             of(defaultValue),
             this.referentiTecniciInput$.pipe(
-                // filter(res => {
-                //   return res !== null && res.length >= this.minLengthTerm
-                // }),
                 startWith(''),
                 distinctUntilChanged(),
                 debounceTime(300),
                 tap(() => this.referentiTecniciLoading = true),
                 switchMap((term: any) => {
+                    // In creazione con multi-dominio, non caricare utenti se il dominio non è ancora selezionato
+                    if (this._isNew && this._hasMultiDominio && !this.selectedDominio) {
+                        this.referentiTecniciLoading = false;
+                        return of([]);
+                    }
                     return this.getUtenti(term).pipe(
                         catchError(() => of([])), // empty list on error
                         tap(() => this.referentiTecniciLoading = false)
@@ -1030,8 +1041,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.richiedente = this.data.utente_richiedente;
         this.utenteUltimaModifica = this.data.utente_ultima_modifica;
 
-        this.getSoggetti(null, true).subscribe(
-            (result) => {
+        this.getSoggetti(null, true).subscribe({
+            next: (result) => {
                 if (result.length === 1) {
                     this._hideSoggettoDropdown = true;
                     this._hideSoggettoInfo = true;
@@ -1046,11 +1057,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._formGroup.updateValueAndValidity();
                 }
             },
-            (error: any) => {
+            error: (error: any) => {
                 Tools.OnError(error);
                 this._spin = false;
             }
-        );
+        });
     }
     
 
@@ -1089,7 +1100,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     throwError(resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
-                        // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
+                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -1108,8 +1119,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _checkSoggetto(event: any) {  
         if(event) {
-            this.getSoggetti(null, true).subscribe(
-                (result) => {
+            this.getSoggetti(null, true).subscribe({
+                next: (result) => {
                     const controls = this._formGroup.controls;
                     if (result.length == 1) {
                         this._hideSoggettoDropdown = true;
@@ -1138,9 +1149,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
                     this._formGroup.updateValueAndValidity();
                 },
-                (err) => console.log(err)
-            );
-            
+                error: (err) => console.log(err)
+            });
         } else {
             const controls = this._formGroup.controls;
             controls.id_soggetto_interno.patchValue(null);
@@ -1170,7 +1180,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _versione: string = this.data ? this.data.versione : null;
 
         let title = '';
-        if (_nome && _versione) {            
+        if (_nome && _versione) {
             title = this.hideVersions ? `${_nome}` : `${_nome} v. ${_versione}` ;
         } else {
             title = this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
@@ -1186,13 +1196,20 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _mainTooltip = this._componentBreadcrumbs ? 'APP.TOOLTIP.ComponentsList' : '';
         const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
-        this.breadcrumbs = [
-            { label: _mainLabel, url: `${baseUrl}`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
-            { label: title, url: ``, type: 'link' },
-        ];
+        if (this._fromDashboard && !this._componentBreadcrumbs) {
+            this.breadcrumbs = [
+                { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+                { label: title, url: ``, type: 'link' },
+            ];
+        } else {
+            this.breadcrumbs = [
+                { label: _mainLabel, url: `${baseUrl}`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
+                { label: title, url: ``, type: 'link' },
+            ];
 
-        if(this._componentBreadcrumbs){
-            this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+            if(this._componentBreadcrumbs){
+                this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+            }
         }
     }
 
@@ -1228,8 +1245,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             }
         } else {
             this._data = new Servizio({ ...this.data });
+            this._isDominioDeprecato = this.data.dominio?.deprecato || false;
+            this._isDominioEsterno = this.data.fruizione || false;
             this._initForm({ ...this._data });
             this._changeEdit(this._isEdit);
+            this.loadCurrentData();
+            this._enableDisableSkipCollaudo(this.data.dominio);
             this.enableDisableControlPackage();
             this.enableDisableControlAdesioneConsentita();
         }
@@ -1238,10 +1259,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _changeEdit(edit: boolean) {
         if (edit) {
-            // this._formGroup.get('adesione_disabilitata')?.enable();
             this._formGroup.get('multi_adesione')?.enable();
         } else {
-            // this._formGroup.get('adesione_disabilitata')?.disable();
             this._formGroup.get('multi_adesione')?.disable();
         }
     }
@@ -1252,7 +1271,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     onBreadcrumb(event: any) {
         if (this._useRoute) {
-            this.router.navigate([event.url], { relativeTo: this.route });
+            this.router.navigate([event.url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
         } else {
             this._onClose();
         }
@@ -1290,13 +1309,22 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _onChangeDominio(event: any) {
         this.selectedDominio = event;
 
-        // this._isDominioEsterno = this.selectedDominio?.soggetto_referente?.organizzazione?.esterna || false;
-        // this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        // this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
-        // this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
-        // this._formGroup.get('id_soggetto_interno')?.updateValueAndValidity();
-
         this._enableDisableSkipCollaudo(this.selectedDominio);
+
+        // Re-inizializza le dropdown dei referenti filtrate per la nuova organizzazione
+        if (this._isNew) {
+            this._formGroup.get('referente')?.setValue(null);
+            this._formGroup.get('referente_tecnico')?.setValue(null);
+            if (this.selectedDominio) {
+                this._formGroup.get('referente')?.enable();
+                this._formGroup.get('referente_tecnico')?.enable();
+            } else {
+                this._formGroup.get('referente')?.disable();
+                this._formGroup.get('referente_tecnico')?.disable();
+            }
+            this._initReferentiSelect([]);
+            this._initReferentiTecniciSelect([]);
+        }
     }
 
     _changeStatus(event: any, service: any) {
@@ -1305,8 +1333,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _body: any = {
             stato: event.status.nome
         };
-        this.apiService.saveElement(_url, _body).subscribe(
-            (response: any) => {
+        this.apiService.saveElement(_url, _body).subscribe({
+            next: (response: any) => {
                 this.data = { ...response };
                 this._data = new Servizio({ ...response });
                 this._changingStatus = false;
@@ -1315,7 +1343,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 Tools.showMessage(_msg, 'success', true);
                 this._updateData = new Date().getTime().toString();
             },
-            (error: any) => {
+            error: (error: any) => {
                 this._changingStatus = false;
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
@@ -1326,7 +1354,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 Tools.showMessage(_msg, 'danger', true);
                 this._updateData = new Date().getTime().toString();
             },
-        );
+        });
     }
 
     _onChangeVisibilita(event: any) {
@@ -1346,7 +1374,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _onChangeFruizione(event: any) {
-        this._isDominioEsterno = this._formGroup.get('fruizione')?.value || false;
+        this._isDominioEsterno = event.target.checked;
+        if (!this._isDominioEsterno) {
+            this._formGroup.get('id_organizzazione_interna')?.setValue(null);
+            this._formGroup.get('id_soggetto_interno')?.setValue(null);
+        }
         this._formGroup.get('id_organizzazione_interna')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
         this._formGroup.get('id_organizzazione_interna')?.updateValueAndValidity();
         this._formGroup.get('id_soggetto_interno')?.setValidators(this._isDominioEsterno ? [Validators.required] : null);
@@ -1375,9 +1407,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _onImageLoaded(event: any) {
         if (event) {
-            var _split = event.split(',');
-            var _type = _split[0].split(';')[0].replace('data:', '');
-            var _content = _split[1];
+            const _split = event.split(',');
+            const _type = _split[0].split(';')[0].replace('data:', '');
+            const _content = _split[1];
 
             const _immagine: any = {
                 content_type: _type,
@@ -1484,7 +1516,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 break;
             default:
                 url = `/servizi/${this.data.id_servizio}/${event.action}`;
-                this.router.navigate([url], { relativeTo: this.route });
+                this.router.navigate([url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
                 break;
         }
     }
@@ -1602,18 +1634,18 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _loadComponenti() {
         this.hasComponenti = false;
-        this.apiService.getDetails(this.model, this.id, 'componenti').subscribe(
-            (response: any) => {
+        this.apiService.getDetails(this.model, this.id, 'componenti').subscribe({
+            next: (response: any) => {
                 this.apiComponentiLoading = false;
                 this.hasComponenti = response.content.length > 0;
                 this.enableDisableControlPackage();
                 this._updateOtherLinks();
             },
-            (error: any) => {
+            error: (error: any) => {
                 console.log('_loadComponenti error', error);
                 this.apiComponentiLoading = false;
                 this._updateOtherLinks();
             }
-        )
+        });
     }
 }

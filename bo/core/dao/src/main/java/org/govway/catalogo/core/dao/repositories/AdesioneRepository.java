@@ -48,5 +48,7 @@ public interface AdesioneRepository extends JpaRepositoryImplementation<Adesione
  //   @Query(value = "SELECT a.idAdesione FROM AdesioneEntity a WHERE a.stato IN (?1, ?2)")
  //   public List<AdesioneEntity> getAdesioniByStati(String stato1, String stato2);
 
+    @Query(value = "SELECT a FROM AdesioneEntity a WHERE a.richiedente.id = ?1")
+    public List<AdesioneEntity> findByRichiedente(Long id);
 
 }

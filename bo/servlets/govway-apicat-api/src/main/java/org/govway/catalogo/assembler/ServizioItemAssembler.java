@@ -19,10 +19,12 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
+import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.ItemServizio;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,9 +59,17 @@ public class ServizioItemAssembler extends RepresentationModelAssemblerSupport<S
 		}
 		
 		dettaglio.setVisibilita(engine.toVisibilita(entity.getVisibilita()));
-		dettaglio.setImmagine(engine.getImmagine(entity));
+		if(entity.getImmagine()!=null) {
+			Documento immagine = new Documento();
+			immagine.setUuid(UUID.randomUUID());
+			dettaglio.setImmagine(immagine);
+		}
 		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
 		dettaglio.setEliminabile(engine.isEliminabile(entity));
+
+		if(entity.getDataUltimaModifica() != null) {
+			dettaglio.setDataUltimoAggiornamento(entity.getDataUltimaModifica().toInstant().atOffset(ZoneOffset.UTC));
+		}
 
 		return dettaglio;
 	}

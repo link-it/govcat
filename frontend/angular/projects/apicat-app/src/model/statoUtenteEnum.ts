@@ -30,11 +30,12 @@
  */
 
 
-export type StatoUtenteEnum = 'non_configurato' | 'abilitato' | 'disabilitato';
+export type StatoUtenteEnum = 'non_configurato' | 'abilitato' | 'disabilitato' | 'pending_update';
 
 export const StatoUtenteEnum = {
     NonConfigurato: 'non_configurato' as StatoUtenteEnum,
     Abilitato: 'abilitato' as StatoUtenteEnum,
-    Disabilitato: 'disabilitato' as StatoUtenteEnum
+    Disabilitato: 'disabilitato' as StatoUtenteEnum,
+    PendingUpdate: 'pending_update' as StatoUtenteEnum
 };
 

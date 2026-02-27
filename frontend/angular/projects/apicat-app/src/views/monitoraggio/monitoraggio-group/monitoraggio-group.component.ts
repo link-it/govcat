@@ -27,12 +27,12 @@ import { UtilService } from '@app/services/utils.service';
 import { AmbienteEnum } from '../../../model/ambienteEnum';
 
 @Component({
-  selector: 'app-dashboard-group',
-  templateUrl: './dashboard-group.component.html',
-  styleUrls: ['./dashboard-group.component.scss'],
+  selector: 'app-monitoraggio-group',
+  templateUrl: './monitoraggio-group.component.html',
+  styleUrls: ['./monitoraggio-group.component.scss'],
   standalone: false
 })
-export class DashboardGroupComponent implements OnInit, OnChanges {
+export class MonitoraggioGroupComponent implements OnInit, OnChanges {
 
   @Input() environmentId: AmbienteEnum = AmbienteEnum.Collaudo;
   @Input() type: string = '';

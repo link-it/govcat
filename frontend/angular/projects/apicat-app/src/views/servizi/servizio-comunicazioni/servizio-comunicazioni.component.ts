@@ -35,6 +35,7 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 import { Page } from '@app/models/page';
 import { Messaggio } from './messaggio';
 import { Grant } from '@app/model/grant';
+import { TargetOption } from '@linkit/components';
 
 declare const saveAs: any;
 import * as moment from 'moment';
@@ -118,7 +119,16 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
 
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
+  _fromDashboard: boolean = false;
+
   hideVersions: boolean = false;
+
+  targetOptionsServizio: TargetOption[] = [
+    { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+    { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO' },
+    { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' },
+    { label: 'APP.LABEL.TargetAderenti', value: 'ADERENTI' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -144,6 +154,13 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     this._grant = _state?.grant;
 
     this._initSearchForm();
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
+      }
+    });
   }
 
   @HostListener('window:resize') _onResize() {
@@ -224,14 +241,22 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     const _mainTooltip = this._componentBreadcrumbs ? 'APP.TOOLTIP.ComponentsList' : '';
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
-    this.breadcrumbs = [
-      { label: _mainLabel, url: `${baseUrl}/`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
-      { label: `${title}`, url: `${baseUrl}/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
-      { label: 'APP.TITLE.ServiceCommunications', url: ``, type: 'link' }
-    ];
+    if (this._fromDashboard && !this._componentBreadcrumbs) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: `${title}`, url: `${baseUrl}/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.ServiceCommunications', url: ``, type: 'link' }
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: _mainLabel, url: `${baseUrl}/`, type: 'link', iconBs: _mainIcon, tooltip: _mainTooltip },
+        { label: `${title}`, url: `${baseUrl}/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
+        { label: 'APP.TITLE.ServiceCommunications', url: ``, type: 'link' }
+      ];
 
-    if(this._componentBreadcrumbs){
-      this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      if(this._componentBreadcrumbs){
+        this.breadcrumbs.unshift(...this._componentBreadcrumbs.breadcrumbs);
+      }
     }
   }
 
@@ -284,7 +309,7 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     this._setErrorCommunications(false);
     if (this.id) {
       this._spin = true;
-      if (!url) { this.serviceCommunications = []; }
+      if (!url) { this.serviceCommunications = []; this._links = null; }
       this.apiService.getDetails(this.model, this.id, 'comunicazioni').subscribe({
         next: (response: any) => {
 
@@ -370,7 +395,7 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url]);
+    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
   }
 
   _resetScroll() {
@@ -394,13 +419,12 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     props.oggetto = `Servizio ${this.service.nome}`;
     props.testo = this._form.messaggio;
 
-    // Target comunicazione (solo per servizi)
-    if (this._form.target) {
+    // Target comunicazione (array di enum)
+    if (this._form.target && this._form.target.length > 0) {
       props.target = this._form.target;
-      // includi_tecnici ha senso solo se target != 'pubblica'
-      if (this._form.target !== 'pubblica') {
-        props.includi_tecnici = this._form.includi_tecnici;
-      }
+      props.includi_tecnici = this._form.includi_tecnici;
+    } else {
+      props.target = null;
     }
 
     const _allegati: any[] = []

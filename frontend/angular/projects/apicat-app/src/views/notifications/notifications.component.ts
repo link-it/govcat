@@ -256,7 +256,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
     
     this._setErrorMessages(false);
 
-    if (!url) { this.elements = []; }
+    if (!url) { this.elements = []; this._links = null; }
     
     let aux: any;
     if (this.currentTab === NotificationState.Tutte) {

@@ -19,9 +19,14 @@
  */
 package org.govway.catalogo.core.dao.repositories;
 
+import java.util.List;
+
 import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity;
+import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 
 public interface ReferenteDominioRepository extends JpaRepositoryImplementation<ReferenteDominioEntity, Long> {
+
+	List<ReferenteDominioEntity> findByReferente(UtenteEntity referente);
 
 }

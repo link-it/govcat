@@ -64,8 +64,9 @@ public class ProfiloAssembler extends RepresentationModelAssemblerSupport<Utente
 		case ABILITATO: return StatoProfiloEnum.ABILITATO;
 		case DISABILITATO: return StatoProfiloEnum.DISABILITATO;
 		case NON_CONFIGURATO: return StatoProfiloEnum.NON_CONFIGURATO;
+		case PENDING_UPDATE: return StatoProfiloEnum.ABILITATO; // User continues to operate normally
 		}
-		
+
 		return null;
 	}
 

@@ -1,0 +1,28 @@
+{
+  "content": [
+    {
+      "id_utente": "usr-010",
+      "principal": "giuseppe.neri@example.it",
+      "nome": "Giuseppe",
+      "cognome": "Neri",
+      "telefono_aziendale": "+39 06 1234567",
+      "email_aziendale": "giuseppe.neri@comune.roma.it",
+      "stato": "abilitato"
+    },
+    {
+      "id_utente": "usr-011",
+      "principal": "francesca.gialli@example.it",
+      "nome": "Francesca",
+      "cognome": "Gialli",
+      "telefono_aziendale": "+39 06 7654321",
+      "email_aziendale": "francesca.gialli@regione.lazio.it",
+      "stato": "disabilitato"
+    }
+  ],
+  "page": {
+    "size": 10,
+    "totalElements": 2,
+    "totalPages": 1,
+    "number": 0
+  }
+}

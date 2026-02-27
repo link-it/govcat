@@ -1,3 +1,283 @@
+2026-02-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Aggiunto file di soppressione per falso positivo OWASP CVE-2020-29582.
+
+2026-02-27  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Migliorata generazione nome file per servizi con nomi troppo lunghi (troncamento e divisione in righe).
+	Ottimizzato caricamento immagine: evitata lettura dal DB quando non necessaria.
+	Aggiornato titolo pagina da configurazione app-config.json.
+
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #191
+	Fix visualizzazione dominio esterno e soggetto nel dettaglio servizio.
+	Fix CancelEdit dettaglio servizio: ripristino completo dei dati originali.
+
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #190
+	Dashboard: nascosta temporaneamente la sezione comunicazioni per il Gestore,
+	Dashboard: footer dei pannelli (griglia e vista espansa) sempre visibile
+	con altezza minima fissa (41px) anche in assenza di elementi.
+
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #192
+	Fix skip_collaudo nel salvataggio del servizio.
+
+2026-02-26  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #186
+	Ottimizzato export adesioni tramite caching.
+	Aumentato timeout degli export.
+
+2026-02-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #189
+	Mostrare errori strutturati (VAL.422.COMPLEX) nella modifica API: aggiunto
+	supporto <ui-error-view> in servizio-api-details con import ErrorViewModule.
+	Fix freeze browser in servizio-referenti e dominio-referenti:
+	- AutoFillScrollDirective: MutationObserver creato fuori dalla Angular zone
+	  (NgZone.runOutsideAngular) per evitare loop infinito CD → DOM mutation → MO callback.
+	- dominio-referenti: spostato _spin=false fuori dal blocco if(response.content).
+	- servizio-referenti: corretto reset lista errato in _loadDominioReferenti
+	  (servizioReferenti → dominioReferenti).
+	Fix servizio-view: corretto catchError che restituiva {items:[]} invece di {content:[]}.
+	Fix ConfigService.getConfig: cambiato check cache da truthy a !== undefined.
+
+2026-02-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #184
+	Aggiunte chiavi i18n per nuovi codici di errore immagini (IMG.400.FORMAT, IMG.400.SIZE, IMG.500)
+	nelle traduzioni italiano e inglese.
+	Disabilita bottone export durante il download e chiudi dropdown dopo selezione azione.
+	Refactoring minore su adesioni e gruppi component. Aggiunto scrollbar-gutter stable.
+	Fix race condition direttiva autoFillScroll: reset _links prima di ogni nuova ricerca
+	per evitare richieste spurie di loadmore con parametri di paginazione stale.
+	Applicato a tutti i componenti con infinite scroll (22 componenti).
+
+2026-02-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #186
+	Ottimizzato export adesioni preservando colonne Autenticazione ed estensioni.
+
+2026-02-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #185
+	Migliorata gestione immagini caricate per gruppi e servizi:
+	controlli su tipo e dimensione con resize automatico prima della persistenza sul DB.
+
+2026-02-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Breadcrumb "Dashboard" propagato in tutte le sotto-rotte dei servizi e nei dettagli
+	di adesioni, client e utenti. Preservazione del parametro ?from=dashboard nei link
+	del breadcrumb e nelle navigazioni interne.
+
+2026-02-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Aggiunto badge counter sulla voce menu Dashboard con polling periodico (30s)
+	Il counter mostra il totale delle azioni pending visibili per il ruolo utente
+	Aggiunto DEFAULT_DASHBOARD_TIMER in app-config.json
+
+2026-02-24  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #186
+	Aggiunte colonne Proprietà all'export CSV delle adesioni.
+
+2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Rimosso filtro per stato dai search form della vista espansa servizi e adesioni (ridondante in contesto dashboard)
+
+2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Aggiunto campo ruoli_referente ai DTO servizi, adesioni e comunicazioni con badge visivi
+	Aggiunto indicatore letto/non letto per comunicazioni (pallino blu, bold, sfondo)
+	Navigazione comunicazioni: click apre il dettaglio servizio/adesione con notification-bar
+	Notification-bar: pulsante "Torna" context-aware (dashboard o notifiche)
+	Aggiunto stati_dashboard_client a ConfigurazioneAdesione per visibilità pannello client
+	Corretto parsing stati_dashboard (array di {ruolo, stati}, non oggetto)
+	Corretta mappatura ruoli referente a ConfigurazioneRuolo (rimosso referente_tecnico inesistente)
+	Corretto pannello client: visibile solo per referente_superiore con stati_dashboard_client configurato
+	Pannello client: invertiti stato e ambiente, entrambi visualizzati come badge
+
+2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #184
+	Aggiunto limite configurabile alle dimensioni delle immagini caricate per gruppi e servizi
+	Corretti e tradotti (i18n) i messaggi di errore del componente photo-base64
+
+2026-02-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #185
+	Aggiunta configurazione max_image_size per gruppo e servizio in configurazione.json.
+
+2026-02-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto campo data_ultimo_aggiornamento a ItemServizio.
+	Aggiunto filtro dashboard alle API /notifiche e /client.
+
+2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Rimossi mock JSON, tutti gli endpoint ora usano le API reali con ?dashboard=true
+	Visibilità pannelli dinamica basata su configurazione stati_dashboard e ruoli_referente
+	Aggiunto DashboardGuard per accesso dashboard a qualsiasi utente con ruolo
+	Rotta /dashboard come default dell'applicazione (era /servizi)
+	Aggiornato formato DashboardItemComunicazione al DTO reale dell'API notifiche
+
+2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #183
+	Dropdown referente e referente tecnico filtrate per organizzazione in creazione servizio.
+
+2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #105
+	Evolutiva comunicazioni: target da stringa singola ad array di enum
+	SenderComponent: dropdown compatto con checkbox multi-select per selezione destinatari
+	Comunicazioni adesione: aggiunto supporto target (prima assente)
+	Profilo: ruoli raggruppati in sezioni collassabili, notifiche nascoste al gestore con dashboard abilitata
+	Aggiunta configurazione Layout.dashboard (enabled, hideNotificationMenu) in app-config.json
+	Header: nasconde menu/pulsante notifiche per il gestore quando dashboard abilitata e hideNotificationMenu attivo
+	Bugfix: showNotificationsMenu nel layout ora legge correttamente dal config (era hardcoded a false)
+
+2026-02-22  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto filtro dashboard alle API /utenti e /adesioni.
+
+2026-02-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Dashboard evolutiva: endpoint reali, ruoli dinamici, formato notifiche.
+	Accesso dashboard limitato a utenti con ruolo.
+
+2026-02-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto filtro dashboard all'API /servizi.
+
+2026-02-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto stati_dashboard a configurazione.json.
+	Aggiunta API /profilo/ruoli.
+
+2026-02-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #168
+	Aggiunta visualizzazione e richiesta cambio organizzazione nel profilo utente
+	Aggiunta gestione approvazione cambio organizzazione nel dettaglio utente (admin)
+	Aggiunto stato pending_update con badge nella lista utenti
+
+2026-02-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #168
+	Modificata API updateUtente per supportare il nuovo flusso di approvazione organizzazione.
+	Migliorata patch SQL e risolti bug di constraint violation.
+
+2026-02-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #168
+	Aggiunta nuova API e stato utente per aggiornamento organizzazione da profilo.
+
+2026-02-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #105
+	Aggiunto target comunicazioni per adesioni.
+	Refactoring target comunicazioni servizio.
+	Modificato default notifiche per ruolo gestore.
+
+2026-02-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #180
+	Corretta visibilità dropdown organizzazione/soggetto interno in creazione servizio Fruizione
+	Aggiunto reset dei valori delle dropdown alla deselezione del checkbox Fruizione
+
+2026-02-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Implementata funzionalità #86
+	Nuova Dashboard Azioni Pending accessibile a tutti gli utenti autenticati con ruolo
+	Summary cards colorate con conteggio per sezione (servizi, adesioni, client, comunicazioni, utenti)
+	Pannelli dettaglio con lista scrollabile, badge stati colorati e pulsante "Vedi tutti"
+	Espansione card a vista piena con barra di ricerca, filtri inline e infinite scroll
+	Creati 5 componenti search-form riutilizzabili per la ricerca nelle sezioni espanse
+	Visibilità pannelli configurata per ruolo tramite DashboardService
+	Rinominata vecchia dashboard di monitoraggio in "Monitoraggio" (path /monitoraggio)
+	Nuova direttiva autoFillScroll per auto-caricamento pagine su schermi grandi
+	Supporto hideVersions per nascondere versioni nei pannelli servizi e adesioni
+
+2026-02-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #142
+	Aggiunto filtro di ricerca per Profilo nella lista servizi.
+
+2026-02-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #179
+	Sostituiti i check showReferents da app-config con mostra_referenti e mostra_richiedente
+	dalla configurazione remota.
+	Fix z-index footerbar.
+
+2026-02-13  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #142
+	Aggiunta ricerca per profilo nell'API listServizi con relativi test.
+
+2026-02-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Migliorate prestazioni export adesioni.
+
+2026-02-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #139
+	Corretto reinvio codice verifica email nel profilo che azzerava l'email per il reinvio.
+
 2026-02-09  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.3.3
@@ -432,29 +712,29 @@
 2025-11-04  Giovanni Bussu <giovanni.bussu@link.it>
 
 	* [Autenticazione]
-	Aggiunto supporto a OpenID Connect per un’autenticazione più sicura e standardizzata.
+	Aggiunto supporto a OpenID Connect per un'autenticazione più sicura e standardizzata.
 
-2025-11-04  Giovanni Bussu <giovanni.bussu@link.it
+2025-11-04  Giovanni Bussu <giovanni.bussu@link.it>
 
 	* [ModalitàPubblica]
-	Introdotta la modalità pubblica in sola lettura, che consente la consultazione dei dati senza autenticazione 
+	Introdotta la modalità pubblica in sola lettura, che consente la consultazione dei dati senza autenticazione
 	e senza possibilità di modifica o inserimento.
 
 2025-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [InterfacciaUtente]
-	Aggiunto link diretto all’informativa sulla privacy.
-	Introdotto supporto all’internazionalizzazione (multi-lingua).
+	Aggiunto link diretto all'informativa sulla privacy.
+	Introdotto supporto all'internazionalizzazione (multi-lingua).
 	Migliorata la compatibilità con dispositivi mobili.
 	Aggiunta nuova visualizzazione a lista per servizi e gruppi.
 	Estese le possibilità di personalizzazione del tema grafico.
-	Aggiunta l’opzione per nascondere i referenti quando non necessario.
+	Aggiunta l'opzione per nascondere i referenti quando non necessario.
 	Introdotto il supporto a diversi formati di versione dei servizi.
 
 2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [StackTecnologico]
-	Aggiornato lo stack tecnologico a Java 21, Spring 6 e Spring Boot 3.3.0, 
+	Aggiornato lo stack tecnologico a Java 21, Spring 6 e Spring Boot 3.3.0,
 	con supporto al deploy su Tomcat 11 per migliori prestazioni e manutenibilità.
 
 2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
@@ -463,7 +743,7 @@
 	Risolto Bug #1721
 	Corretta la ricerca dei servizi per gruppo per garantire il corretto ritorno dei risultati associati.
 	Risolto Bug #1722
-	Corretta la creazione dell’adesione a partire dal servizio tramite il tasto “Aderisci al servizio”.
+	Corretta la creazione dell'adesione a partire dal servizio tramite il tasto "Aderisci al servizio".
 
 2025-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

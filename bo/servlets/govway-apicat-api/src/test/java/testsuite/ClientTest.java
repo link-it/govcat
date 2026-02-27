@@ -432,7 +432,7 @@ public class ClientTest {
 
         ResponseEntity<PagedModelItemClient> response = clientController.listClient(
             responseSoggetto.getBody().getIdSoggetto(),
-            null, null, null, null, null, null, null, 0, 10, List.of("nome"));
+            null, null, null, null, null, null, null, null, 0, 10, List.of("nome"));
 
         assertNotNull(response.getBody());
         assertFalse(response.getBody().getContent().isEmpty());
@@ -442,7 +442,7 @@ public class ClientTest {
     @Test
     public void testListClientEmpty() {
         ResponseEntity<PagedModelItemClient> response = clientController.listClient(
-            UUID.randomUUID(), null, null, null, null, null, null, null, 0, 10, List.of("nome"));
+            UUID.randomUUID(), null, null, null, null, null, null, null, null, 0, 10, List.of("nome"));
 
         assertNotNull(response.getBody());
         assertTrue(response.getBody().getContent().isEmpty());
@@ -466,7 +466,7 @@ public class ClientTest {
         clientController.createClient(clientCreate);
 
         ResponseEntity<PagedModelItemClient> response = clientController.listClient(
-            responseSoggetto.getBody().getIdSoggetto(), "NomeClient", null, null, null, null, null, null, 0, 10, List.of("nome"));
+            responseSoggetto.getBody().getIdSoggetto(), "NomeClient", null, null, null, null, null, null, null, 0, 10, List.of("nome"));
 
         assertNotNull(response.getBody());
         assertFalse(response.getBody().getContent().isEmpty());
@@ -505,6 +505,7 @@ public class ClientTest {
             StatoClientEnum.NUOVO,
             responseClient.getBody().getIdClient(),
             null,
+            null,
             0,
             10,
             List.of("nome")
@@ -528,6 +529,7 @@ public class ClientTest {
             null,
             null,
             StatoClientEnum.NUOVO,
+            null,
             null,
             null,
             0,
@@ -682,6 +684,137 @@ public class ClientTest {
         NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
         	clientController.createClient(clientCreate);
     	});
+
+        assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    public void testListClientDashboardFilterGestoreSuccess() {
+        // Creazione dell'organizzazione necessaria
+        OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(organizzazioneCreate);
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto associato all'organizzazione
+        SoggettoCreate soggettoCreate = CommonUtils.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione del client (stato NUOVO di default)
+        ClientCreate clientCreate = CommonUtils.getClientCreate();
+        clientCreate.setIdSoggetto(responseSoggetto.getBody().getIdSoggetto());
+        ResponseEntity<Client> responseClient = clientController.createClient(clientCreate);
+        assertNotNull(responseClient.getBody());
+        assertEquals(StatoClientEnum.NUOVO, responseClient.getBody().getStato());
+
+        // L'utente gestore è già configurato nel setUp() - test con dashboard=true
+        ResponseEntity<PagedModelItemClient> responseList = clientController.listClient(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            true, // dashboard=true
+            0,
+            10,
+            List.of("nome")
+        );
+
+        // Asserzioni - la chiamata deve avere successo
+        assertNotNull(responseList.getBody());
+        assertEquals(HttpStatus.OK, responseList.getStatusCode());
+    }
+
+    @Test
+    public void testListClientDashboardFilterNonGestoreNotAuthorized() {
+        // Creazione dell'organizzazione necessaria
+        OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(organizzazioneCreate);
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto associato all'organizzazione
+        SoggettoCreate soggettoCreate = CommonUtils.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione di un utente COORDINATORE (non GESTORE)
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.COORDINATORE);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("coordinatore_test_dashboard");
+
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+
+        // Cambia la sessione all'utente coordinatore
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Test con dashboard=true - deve fallire con NotAuthorizedException
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            clientController.listClient(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true, // dashboard=true
+                0,
+                10,
+                List.of("nome")
+            );
+        });
+
+        assertEquals("AUT.403", exception.getMessage());
+    }
+
+    @Test
+    public void testListClientDashboardFilterReferenteServizioNotAuthorized() {
+        // Creazione dell'organizzazione necessaria
+        OrganizzazioneCreate organizzazioneCreate = CommonUtils.getOrganizzazioneCreate();
+        ResponseEntity<Organizzazione> responseOrganizzazione = organizzazioniController.createOrganizzazione(organizzazioneCreate);
+        assertNotNull(responseOrganizzazione.getBody());
+
+        // Creazione del soggetto associato all'organizzazione
+        SoggettoCreate soggettoCreate = CommonUtils.getSoggettoCreate();
+        soggettoCreate.setIdOrganizzazione(responseOrganizzazione.getBody().getIdOrganizzazione());
+        ResponseEntity<Soggetto> responseSoggetto = soggettiController.createSoggetto(soggettoCreate);
+        assertNotNull(responseSoggetto.getBody());
+
+        // Creazione di un utente REFERENTE_SERVIZIO (non GESTORE)
+        UtenteCreate utente = CommonUtils.getUtenteCreate();
+        utente.setRuolo(RuoloUtenteEnum.REFERENTE_SERVIZIO);
+        utente.setReferenteTecnico(false);
+        utente.setPrincipal("referente_test_dashboard");
+
+        ResponseEntity<Utente> responseUtente = utentiController.createUtente(utente);
+
+        // Cambia la sessione all'utente referente
+        CommonUtils.getSessionUtente(responseUtente.getBody().getPrincipal(), securityContext, authentication, utenteService);
+
+        // Test con dashboard=true - deve fallire con NotAuthorizedException
+        NotAuthorizedException exception = assertThrows(NotAuthorizedException.class, () -> {
+            clientController.listClient(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                true, // dashboard=true
+                0,
+                10,
+                List.of("nome")
+            );
+        });
 
         assertEquals("AUT.403", exception.getMessage());
     }

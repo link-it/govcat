@@ -90,7 +90,11 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		if(entity.getOrganizzazione()!=null) {
 			dettaglio.setOrganizzazione(organizzazioneItemAssembler.toModel(entity.getOrganizzazione()));
 		}
-		
+
+		if(entity.getOrganizzazionePending()!=null) {
+			dettaglio.setOrganizzazionePending(organizzazioneItemAssembler.toModel(entity.getOrganizzazionePending()));
+		}
+
 		if(entity.getRuolo()!=null) {
 			dettaglio.setRuolo(utenteEngineAssembler.toRuolo(entity.getRuolo()));
 		}

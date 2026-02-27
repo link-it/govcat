@@ -426,7 +426,7 @@ public class RegistrazioneServizioIntegrationTest {
 
         // Verifica che un utente anonimo non riceva nulla
         assertThrows(NotAuthorizedException.class, () -> {
-        	serviziController.listServizi(null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, 0, 10, null);
+        	serviziController.listServizi(null, null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, null, 0, 10, null);
         });
     }
     
@@ -469,7 +469,7 @@ public class RegistrazioneServizioIntegrationTest {
 
         serviziController.getGrantServizio(idServizio);
 
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
         notifiche.getBody().getContent();
 
         ResponseEntity<PagedModelItemMessaggio> messaggi = serviziController.listMessaggiServizio(idServizio, null, 0, 10, null);
@@ -565,7 +565,7 @@ public class RegistrazioneServizioIntegrationTest {
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_DOMINIO, securityContext, authentication, utenteService);
         
         //verificare la presenza della notifica del cambio di stato da parte del referente servizio
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, TipoNotificaEnum.CAMBIO_STATO, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, TipoNotificaEnum.CAMBIO_STATO, null, null, null, null, idServizio, null, null, 0, 10, null);
         notifiche.getBody().getContent();
         
         //scaricare il descrittore dal dettaglio della API
@@ -632,7 +632,7 @@ public class RegistrazioneServizioIntegrationTest {
         
         List<String> stato = new ArrayList<String>();
         stato.add("autorizzato_collaudo");
-        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //System.out.println("NOME SERVIZIO: " + listServizi.getBody().getContent().get(0).getNome());
         assertEquals(CommonUtils.NOME_SERVIZIO, listServizi.getBody().getContent().get(0).getNome());
         

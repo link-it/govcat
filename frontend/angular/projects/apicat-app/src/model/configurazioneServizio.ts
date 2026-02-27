@@ -31,9 +31,10 @@
 import { ConfigurazioneApi } from './configurazioneApi';
 
 
-export interface ConfigurazioneServizio { 
+export interface ConfigurazioneServizio {
     api_multiple: boolean;
     adesioni_multiple: boolean;
     api: ConfigurazioneApi;
+    max_image_size?: number;
 }
 

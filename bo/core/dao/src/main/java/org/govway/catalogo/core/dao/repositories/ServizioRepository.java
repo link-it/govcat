@@ -37,5 +37,7 @@ public interface ServizioRepository extends JpaRepositoryImplementation<Servizio
     @Query(value = "SELECT s.idServizio FROM ServizioEntity s join s.dominio d join d.referenti r join r.referente u WHERE u.id = ?1 AND r.tipo = ?2 ")
     public List<String> getServiziByReferenteDominio(Long id, TIPO_REFERENTE tipo);
 
-    
+    @Query(value = "SELECT s FROM ServizioEntity s WHERE s.richiedente.id = ?1")
+    public List<ServizioEntity> findByRichiedente(Long id);
+
 }

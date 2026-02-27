@@ -18,25 +18,29 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
+import { NgSelectModule } from '@ng-select/ng-select';
 import { TranslateModule } from '@ngx-translate/core';
- import { RemoveHostModule } from '@app/directives/remove-host/remove-host.module';
 
-import { DashboardGroupComponent } from './dashboard-group.component';
-import { DashboardCardModule } from '../dashboard-card/dashboard-card.module';
+import { ComponentsModule } from '@linkit/components';
+import { AppComponentsModule } from '@app/components/components.module';
+import { TassonomiaTokenModule } from '@app/components/token/tassonomia-token.module';
+
+import { ServiziSearchFormComponent } from './servizi-search-form.component';
 
 @NgModule({
-  declarations: [
-    DashboardGroupComponent
-  ],
   imports: [
     CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgSelectModule,
     TranslateModule,
-     RemoveHostModule,
-    DashboardCardModule
+    ComponentsModule,
+    AppComponentsModule,
+    TassonomiaTokenModule
   ],
-  exports: [
-    DashboardGroupComponent
-  ]
+  declarations: [ServiziSearchFormComponent],
+  exports: [ServiziSearchFormComponent]
 })
-export class DashboardGroupModule { }
+export class ServiziSearchFormModule { }

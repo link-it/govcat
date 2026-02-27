@@ -47,6 +47,7 @@ import org.govway.catalogo.exception.RichiestaNonValidaSemanticamenteException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.DatiGenericiServizioUpdate;
+import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.IdentificativoServizioUpdate;
@@ -120,7 +121,6 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		dettaglio.setPackage(entity.is_package());
 
-		dettaglio.setImmagine(engine.getImmagine(entity));
 		dettaglio.setVincolaSkipCollaudo(isVincolaSkipCollaudo(entity));
 		
 		dettaglio.setIdServizio(UUID.fromString(entity.getIdServizio()));
@@ -153,10 +153,13 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		
 		try {
 
-			if(dettaglio.getImmagine()!=null) {
+			if(entity.getImmagine()!=null) {
 				Link link = WebMvcLinkBuilder.
 						linkTo(Class.forName(ServiziController.class.getName()).getMethod("getImmagineServizio", UUID.class), dettaglio.getIdServizio()).withRel("immagine");
-				
+
+				Documento documento = new Documento();
+				documento.setUuid(UUID.randomUUID());
+				dettaglio.setImmagine(documento);
 				dettaglio.add(link);
 			}
 		} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {

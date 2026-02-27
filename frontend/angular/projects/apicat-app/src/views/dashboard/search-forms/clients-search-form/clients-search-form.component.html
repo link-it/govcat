@@ -1,0 +1,158 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<section class="search-bar container-fluid px-0">
+  <div class="row align-items-center">
+    <div class="col-12">
+      <ui-search-bar-form #searchBarForm
+        [classBlock]="''"
+        [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+        [showHistory]="false"
+        [historyStore]="historyStore"
+        [showSearch]="true"
+        [searchFields]="searchFields"
+        [useCondition]="false"
+        [showSorting]="false"
+        [formGroup]="_formGroup"
+        [simple]="false"
+        (onSearch)="_onSearch($event)">
+        <div form-search class="search-material-custom">
+          <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+            <fieldset>
+
+              <div class="row mb-1">
+                <div class="col-sm-2">
+                  <label class="col-form-label col-form-label-fix" for="q">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                </div>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-sm-2">
+                  <label class="col-form-label col-form-label-fix" for="stato">{{ 'APP.LABEL.Status' | translate }}</label>
+                </div>
+                <div class="col-sm-10">
+                  <select class="form-select form-control-sm" id="stato" formControlName="stato">
+                    <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                    <option *ngFor="let stato of _statiClient" [value]="stato.value">
+                      {{ 'APP.CLIENT.STATUS.' + stato.label | translate }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <div class="row mb-1">
+                    <div class="col-sm-4">
+                      <label class="col-form-label col-form-label-fix" for="auth_type">{{ 'APP.CLIENT.LABEL.Auth_type' | translate }}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-select form-control-sm" id="auth_type" formControlName="auth_type">
+                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                        <option *ngFor="let at of _authTypeEnum" [value]="at">
+                          {{ 'APP.CLIENT.AUTH_TYPE.' + at | translate }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <div class="row mb-1">
+                    <div class="col-sm-4">
+                      <label class="col-form-label col-form-label-fix" for="ambiente">{{ 'APP.CLIENT.LABEL.Ambient' | translate }}</label>
+                    </div>
+                    <div class="col-sm-8">
+                      <select class="form-select form-control-sm" id="ambiente" formControlName="ambiente">
+                        <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                        <option *ngFor="let el of _ambienteEnum" [value]="el">
+                          {{ 'APP.CLIENT.LABEL.' + el | translate }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-sm-2">
+                  <label class="col-form-label col-form-label-fix" for="id_organizzazione">{{ 'APP.ADESIONI.LABEL.Organization' | translate }}</label>
+                </div>
+                <div class="col-sm-10">
+                  <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                    [items]="organizzazioni$ | async"
+                    [trackByFn]="trackBySelectFn"
+                    [typeahead]="organizzazioniInput$"
+                    [minTermLength]="minLengthTerm"
+                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                    labelForId="id_organizzazione"
+                    [editableSearchTerm]="true"
+                    bindValue="id_organizzazione"
+                    formControlName="id_organizzazione"
+                    (change)="onChangeSearchDropdwon($event, 'organizzazione')">
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ item.nome }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                      <div class="fw-bold">{{ item.nome }}</div>
+                    </ng-template>
+                  </ng-select>
+                </div>
+              </div>
+
+              <div class="row mb-1">
+                <div class="col-sm-2">
+                  <label class="col-form-label col-form-label-fix" for="id_soggetto">{{ 'APP.CLIENT.LABEL.Subject' | translate }}</label>
+                </div>
+                <div class="col-sm-10">
+                  <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                    [items]="soggetti$ | async"
+                    [trackByFn]="trackBySelectFn"
+                    [typeahead]="soggettiInput$"
+                    [minTermLength]="minLengthTerm"
+                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                    labelForId="id_soggetto"
+                    [editableSearchTerm]="true"
+                    bindValue="id_soggetto"
+                    formControlName="id_soggetto"
+                    (change)="onChangeSearchDropdwon($event, 'soggetto')">
+                    <ng-template ng-label-tmp let-item="item">
+                      {{ item.nome }}
+                    </ng-template>
+                    <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                      <div class="fw-bold">{{ item.nome }}</div>
+                    </ng-template>
+                  </ng-select>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end pt-4">
+                <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </ui-search-bar-form>
+    </div>
+  </div>
+</section>

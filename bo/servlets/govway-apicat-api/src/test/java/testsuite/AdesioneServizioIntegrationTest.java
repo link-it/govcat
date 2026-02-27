@@ -665,7 +665,7 @@ public class AdesioneServizioIntegrationTest {
 
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
 
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
         List<ItemNotifica> listNotifiche = notifiche.getBody().getContent();
         assertEquals(UTENTE_ADERENTE, listNotifiche.get(0).getMittente().getNome());
 
@@ -764,7 +764,7 @@ public class AdesioneServizioIntegrationTest {
     private void testReferenteServizio() {
     	CommonUtils.getSessionUtente(UTENTE_REFERENTE_SERVIZIO, securityContext, authentication, utenteService);
 
-        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, 0, 10, null);
+        ResponseEntity<PagedModelItemNotifica> notifiche = notificheController.listNotifiche(null, null, null, null, null, null, idServizio, null, null, 0, 10, null);
         List<ItemNotifica> listNotifiche = notifiche.getBody().getContent();
         assertTrue(listNotifiche.stream().anyMatch(v -> v.getMittente().getNome().equals(UTENTE_ADERENTE)));
 

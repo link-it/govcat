@@ -34,6 +34,7 @@ import jakarta.persistence.criteria.Root;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity_;
 import org.govway.catalogo.core.orm.entity.ApiEntity_;
+import org.govway.catalogo.core.orm.entity.AuthTypeEntity_;
 import org.govway.catalogo.core.orm.entity.CategoriaEntity_;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity;
 import org.govway.catalogo.core.orm.entity.ClasseUtenteEntity_;
@@ -77,6 +78,7 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 	private List<String> stati = null;
 	private List<String> statiAderibili = new ArrayList<>();
 	private List<String> tag = null;
+	private List<String> profilo = null;
 	private Set<ClasseUtenteEntity> classi = null;
 	private Set<ClasseUtenteEntity> classiDominio = null;
 	
@@ -232,15 +234,27 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 		if(tag != null && !tag.isEmpty()) {
 
 			ArrayList<Predicate> preds2 = new ArrayList<>();
-			
+
 			for(String t: tag) {
 				preds2.add(cb.literal(t).in(root.join(ServizioEntity_.tags, JoinType.LEFT).get(TagEntity_.tag)));
 			}
-			
+
 			predLst.add(cb.and(preds2.toArray(new Predicate[]{})));
 
 		}
-		
+
+		if(profilo != null && !profilo.isEmpty()) {
+
+			ArrayList<Predicate> preds2 = new ArrayList<>();
+
+			for(String p: profilo) {
+				preds2.add(cb.literal(p).in(root.join(ServizioEntity_.api, JoinType.LEFT).join(ApiEntity_.authType, JoinType.LEFT).get(AuthTypeEntity_.profilo)));
+			}
+
+			predLst.add(cb.or(preds2.toArray(new Predicate[]{})));
+
+		}
+
 		if(classi != null) {
 			if(!classi.isEmpty()) {
 				predLst.add(root.join(ServizioEntity_.classi, JoinType.LEFT).in(classi));
@@ -372,6 +386,14 @@ public class ServizioSpecification implements Specification<ServizioEntity> {
 
 	public void setTag(List<String> tag) {
 		this.tag = tag;
+	}
+
+	public List<String> getProfilo() {
+		return profilo;
+	}
+
+	public void setProfilo(List<String> profilo) {
+		this.profilo = profilo;
 	}
 
 	public Set<ClasseUtenteEntity> getClassi() {

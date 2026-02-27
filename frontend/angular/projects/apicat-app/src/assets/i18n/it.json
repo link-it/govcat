@@ -239,6 +239,7 @@
 			"NewMessage": "Nuovo messaggio",
 			"Preview": "Anteprima",
 			"Production": "Produzione",
+			"Refresh": "Aggiorna",
 			"Remove": "Rimuovi",
 			"RemoveGroup": "Rimuovi gruppo",
 			"Report": "Resoconto",
@@ -354,6 +355,27 @@
 			"TITLE": {
 				"GeneralInformations": "Informazioni generali",
 				"GeneralInformations_sub": ""
+			}
+		},
+		"DASHBOARD_PENDING": {
+			"Servizi": "Servizi",
+			"Adesioni": "Adesioni",
+			"Client": "Client",
+			"Comunicazioni": "Comunicazioni",
+			"Utenti": "Utenti",
+			"ViewAll": "Vedi tutti",
+			"NoResults": "Nessuna azione pending",
+			"LastUpdate": "Ultimo aggiornamento",
+			"TotalItems": "{{count}} elementi",
+			"RUOLO": {
+				"referente_dominio": "Ref. dominio",
+				"referente_tecnico_dominio": "Ref. tecnico dominio",
+				"referente_servizio": "Ref. servizio",
+				"referente_tecnico_servizio": "Ref. tecnico servizio",
+				"referente_adesione": "Ref. adesione",
+				"referente_tecnico_adesione": "Ref. tecnico adesione",
+				"richiedente_servizio": "Richiedente servizio",
+				"richiedente_adesione": "Richiedente adesione"
 			}
 		},
 		"DASHBOARD": {
@@ -900,9 +922,18 @@
 			"Taxcode": "Codice fiscale",
 			"Taxonomy": "Tassonomia",
 			"Target": "Destinatari",
+			"TargetAderenti": "Aderenti",
 			"TargetPubblica": "Pubblica",
-			"TargetSoloReferenti": "Solo referenti",
+			"TargetReferentiAdesione": "Referenti adesione",
+			"TargetReferentiDominio": "Referenti dominio",
+			"TargetReferentiDominioServizio": "Referenti dominio servizio",
+			"TargetReferentiServizio": "Referenti servizio",
+			"TargetRichiedente": "Richiedente",
+			"TargetRichiedenteAdesione": "Richiedente adesione",
+			"TargetRichiedenteServizio": "Richiedente servizio",
 			"TargetSoloAderenti": "Solo aderenti",
+			"TargetSoloReferenti": "Solo referenti",
+			"TargetTutti": "Tutti",
 			"tempo_medio_risposta": "Tempo medio risposta",
 			"TempoRisposta": "Tempo risposta",
 			"termini_ricerca": "Termini di ricerca",
@@ -1005,7 +1036,7 @@
 			"Clients": "Client",
 			"Communications": "Comunicazioni",
 			"Configurations": "Gestione",
-			"Dashboard": "Monitoraggio",
+			"Dashboard": "Dashboard",
 			"DeleteApi": "Elimina API",
 			"DeleteClient": "Elimina Client",
 			"DeleteFile": "Elimina tracciato...",
@@ -1169,6 +1200,13 @@
 							"USE": "Impossibile eliminare gruppo [{{nome}}] utilizzato in {{numeroUtilizzi}} servizi"
 						}
 					}
+				},
+				"IMG": {
+					"400": {
+						"FORMAT": "Formato immagine non supportato. Sono consentiti solo JPEG e PNG",
+						"SIZE": "Dimensione immagine eccede il limite massimo consentito"
+					},
+					"500": "Impossibile elaborare l'immagine"
 				},
 				"INT": {
 					"500": {
@@ -1445,12 +1483,16 @@
 				"Range": "L'importo deve avere un valore compreso tra {{min}} e {{max}}",
 				"Taxcode": "Codice fiscale errato",
 				"TaxcodeVat": "Codice fiscale o partita IVA errati",
-				"Uuid": "Inserisci una UUID valida"
+				"Uuid": "Inserisci una UUID valida",
+				"MaxFileSize": "Dimensione massima consentita: {{size}} MB",
+				"OnlyImages": "Sono consentiti solo file di tipo: {{types}}",
+				"MaxDimensions": "Dimensioni massime consentite: {{width}}x{{height}} px"
 			}
 		},
 		"NOTIFICATIONS": {
 			"BUTTON": {
 				"Archive": "Archivia",
+				"BackDashboard": "Torna alla dashboard",
 				"BackNotifications": "Torna alle notifiche",
 				"Done": "Fatto",
 				"MarkAsRead": "Segna come letto",
@@ -1458,6 +1500,10 @@
 				"Notifications": "Notifiche"
 			},
 			"ENTITY": {
+				"Adesione": "Adesione",
+				"Servizio": "Servizio"
+			},
+			"GROUP": {
 				"Adesione": "Adesione",
 				"Servizio": "Servizio"
 			},
@@ -1540,6 +1586,20 @@
 			"TAB": {
 				"Profile": "Profilo",
 				"Settings": "Impostazioni"
+			},
+			"ORGANIZATION": {
+				"ChangeTitle": "Cambio organizzazione",
+				"ChangeWarning": "La richiesta di assegnazione organizzazione dovra' essere approvata da un amministratore. Nel frattempo, il tuo account potrebbe avere funzionalita' limitate.",
+				"ChangeWarningWithOrg": "**Attenzione: questa operazione e' irreversibile.** In caso di approvazione, verra' creato un **nuovo utente** con lo stesso principal e la nuova organizzazione, mentre **l'utente attuale verra' disabilitato** e non potra' piu' accedere all'applicativo con l'organizzazione corrente. La richiesta dovra' essere approvata da un amministratore.",
+				"ChangeButton": "Richiedi cambio organizzazione",
+				"PendingLabel": "Organizzazione richiesta",
+				"PendingMessage": "Hai una richiesta di cambio organizzazione in corso verso: **{{orgName}}**. La richiesta e' in attesa di approvazione da parte di un amministratore.",
+				"CurrentLabel": "Organizzazione attuale",
+				"RequestSent": "Richiesta di cambio organizzazione inviata con successo",
+				"ApproveTitle": "Approva cambio organizzazione",
+				"ApproveWarning": "Confermi di voler approvare la richiesta di cambio organizzazione? Verra' creato un **nuovo utente** con lo stesso principal e la nuova organizzazione. **L'utente attuale verra' disabilitato** e non potra' piu' accedere all'applicativo con l'organizzazione corrente.",
+				"ApproveWarningFirstOrg": "Confermi di voler approvare la richiesta di assegnazione organizzazione? L'utente verra' associato alla nuova organizzazione.",
+				"ApproveButton": "Approva"
 			},
 			"EMAIL_VERIFICATION": {
 				"TITLE": "Modifica email",
@@ -1906,7 +1966,7 @@
 			"Configuration": "Configurazione",
 			"Configurations": "Configurazioni",
 			"Connettivita": "Connettività",
-			"Dashboard": "Monitoraggio",
+			"Dashboard": "Dashboard",
 			"DeleteUserClass": "Elimina la Classe Utente",
 			"Descrizione": "Descrizione",
 			"DocumentazioneTecnica": "Documentazione tecnica",
@@ -2190,7 +2250,8 @@
 				"disabilitato": "Disabilitato",
 				"Disabled": "Disabilitato",
 				"Enabled": "Abilitato",
-				"non_configurato": "Non configurato"
+				"non_configurato": "Non configurato",
+				"pending_update": "In attesa di approvazione"
 			},
 			"TITLE": {
 				"GeneralInformations": "Informazioni generali",

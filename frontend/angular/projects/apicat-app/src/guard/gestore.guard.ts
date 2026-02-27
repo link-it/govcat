@@ -43,7 +43,7 @@ export class GestoreGuard implements CanActivate {
       this.router.navigate(['/servizi']);
       return false;  
     }
-    if (state.url === '/dashboard') {
+    if (state.url === '/monitoraggio') {
       const _dashboardRemoteConfig: any = this.authenticationService._getConfigModule('dashboard');
       const _hasDashboard = _dashboardRemoteConfig.abilitato || false;
       if (_hasDashboard) {

@@ -1,0 +1,27 @@
+{
+  "content": [
+    {
+      "id_client": "cli-001",
+      "soggetto": { "id_soggetto": "sog-001", "nome": "Comune di Roma" },
+      "ambiente": "collaudo",
+      "nome": "Client ANPR Roma",
+      "stato": "nuovo",
+      "indirizzo_ip": "10.0.1.100",
+      "descrizione": "Client per accesso ANPR in ambiente di collaudo"
+    },
+    {
+      "id_client": "cli-002",
+      "soggetto": { "id_soggetto": "sog-002", "nome": "Regione Lazio" },
+      "ambiente": "produzione",
+      "nome": "Client FE Lazio",
+      "stato": "configurato",
+      "descrizione": "Client fatturazione elettronica Regione Lazio"
+    }
+  ],
+  "page": {
+    "size": 10,
+    "totalElements": 2,
+    "totalPages": 1,
+    "number": 0
+  }
+}

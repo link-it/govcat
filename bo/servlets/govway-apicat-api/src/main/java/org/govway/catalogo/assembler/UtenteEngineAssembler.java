@@ -44,6 +44,7 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		case ABILITATO: return Stato.ABILITATO;
 		case DISABILITATO: return Stato.DISABILITATO;
 		case NON_CONFIGURATO: return Stato.NON_CONFIGURATO;
+		case PENDING_UPDATE: return Stato.PENDING_UPDATE;
 		}
 		return null;
 	}
@@ -53,6 +54,7 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		case ABILITATO: return StatoUtenteEnum.ABILITATO;
 		case DISABILITATO: return StatoUtenteEnum.DISABILITATO;
 		case NON_CONFIGURATO: return StatoUtenteEnum.NON_CONFIGURATO;
+		case PENDING_UPDATE: return StatoUtenteEnum.PENDING_UPDATE;
 		}
 		return null;
 	}

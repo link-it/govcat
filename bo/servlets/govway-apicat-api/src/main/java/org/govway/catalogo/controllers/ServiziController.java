@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import jakarta.persistence.EntityManager;
 
 import org.govway.catalogo.ApiV1Controller;
+import org.govway.catalogo.ImageUtils;
 import org.govway.catalogo.assembler.AllegatoServizioAssembler;
 import org.govway.catalogo.assembler.CategoriaServizioItemAssembler;
 import org.govway.catalogo.assembler.DocumentoAllegatoAssembler;
@@ -54,7 +55,7 @@ import org.govway.catalogo.authorization.ServizioAuthorization;
 import org.govway.catalogo.controllers.csv.ServizioBuilder;
 import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.NotificheUtils;
-import org.govway.catalogo.core.business.utils.TargetComunicazioneEnum;
+import org.govway.catalogo.core.business.utils.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.core.dao.specifications.AllegatoServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.MessaggioServizioSpecification;
 import org.govway.catalogo.core.dao.specifications.OrganizzazioneSpecification;
@@ -93,6 +94,7 @@ import org.govway.catalogo.core.services.OrganizzazioneService;
 import org.govway.catalogo.core.services.ServizioService;
 import org.govway.catalogo.core.services.TagService;
 import org.govway.catalogo.core.services.TassonomiaService;
+import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.InternalException;
@@ -111,6 +113,8 @@ import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneCambioStato;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneRuolo;
+import org.govway.catalogo.servlets.model.ConfigurazioneStatoDashboard;
+import org.govway.catalogo.servlets.model.RuoloReferenteEnum;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.ItemCategoriaServizio;
@@ -258,7 +262,10 @@ public class ServiziController implements ServiziApi {
 	private NotificaService notificaService;   
 
 	@Autowired
-	private TassonomiaService tassonomiaService;   
+	private TassonomiaService tassonomiaService;
+
+	@Autowired
+	private UtenteService utenteService;
 
 	@Autowired
 	private EntityManager entityManager;   
@@ -503,8 +510,13 @@ public class ServiziController implements ServiziApi {
 
 				this.service.save(messaggio);
 
-				// Determina il target della comunicazione
-				TargetComunicazioneEnum target = toTargetComunicazione(messaggioCreate.getTarget());
+				// Determina i target della comunicazione (multi-selezione)
+				Set<TargetComunicazioneServizioEnum> target = null;
+				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
+					target = messaggioCreate.getTarget().stream()
+						.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
+						.collect(Collectors.toSet());
+				}
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
@@ -527,30 +539,25 @@ public class ServiziController implements ServiziApi {
 		}
 	}
 
-	private TargetComunicazioneEnum toTargetComunicazione(org.govway.catalogo.servlets.model.TargetComunicazioneEnum target) {
-		if (target == null) {
-			return TargetComunicazioneEnum.PUBBLICA;
-		}
-		switch (target) {
-			case PUBBLICA: return TargetComunicazioneEnum.PUBBLICA;
-			case SOLO_REFERENTI: return TargetComunicazioneEnum.SOLO_REFERENTI;
-			case SOLO_ADERENTI: return TargetComunicazioneEnum.SOLO_ADERENTI;
-			default: return TargetComunicazioneEnum.PUBBLICA;
-		}
-	}
-
 	@Override
 	public ResponseEntity<Servizio> createServizio(ServizioCreate servizioCreate) {
 		try {
 
+			// Valida e processa l'immagine se presente
+			if (servizioCreate.getImmagine() != null) {
+				servizioCreate.setImmagine(ImageUtils.validateAndProcessImage(
+						servizioCreate.getImmagine(),
+						this.configurazione.getServizio().getMaxImageSize()));
+			}
+
 			return this.service.runTransaction( () -> {
 
-				this.logger.info("Invocazione in corso ...");     
+				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.dettaglioAssembler.toEntity(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeCreate(servizioCreate);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.IDENTIFICATIVO));
 				this.checkReferenti(entity);
-				this.logger.debug("Autorizzazione completata con successo");     
+				this.logger.debug("Autorizzazione completata con successo");
 
 				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
 					throw new ConflictException(ErrorCode.SRV_404);
@@ -979,25 +986,33 @@ public class ServiziController implements ServiziApi {
 	public ResponseEntity<Servizio> updateServizio(UUID idServizio, Boolean force,
 			ServizioUpdate servizioUpdate) {
 		try {
+
+			// Valida e processa l'immagine se presente nei dati generici
+			if (servizioUpdate.getDatiGenerici() != null && servizioUpdate.getDatiGenerici().getImmagine() != null) {
+				servizioUpdate.getDatiGenerici().setImmagine(ImageUtils.validateAndProcessImage(
+						servizioUpdate.getDatiGenerici().getImmagine(),
+						this.configurazione.getServizio().getMaxImageSize()));
+			}
+
 			return this.service.runTransaction(() -> {
-				
-				this.logger.info("Invocazione in corso ..."); 
+
+				this.logger.info("Invocazione in corso ...");
 				ServizioEntity entity = this.findOne(idServizio);
-				
-				this.logger.debug("Autorizzazione completata con successo");     
+
+				this.logger.debug("Autorizzazione completata con successo");
 
 				if(servizioUpdate.getIdentificativo()!= null) {
 					boolean nomeCambiato = !entity.getNome().equals(servizioUpdate.getIdentificativo().getNome());
 					boolean versioneCambiata = !entity.getVersione().equals(servizioUpdate.getIdentificativo().getVersione());
-					
+
 					if(nomeCambiato || versioneCambiata) {
 						if(this.service.existsByNomeVersioneNonArchiviato(servizioUpdate.getIdentificativo().getNome(), servizioUpdate.getIdentificativo().getVersione(), configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
 							throw new ConflictException(ErrorCode.SRV_404);
 						}
-						
+
 					}
 				}
-				
+
 				List<ConfigurazioneClasseDato> lstClassiDato = new ArrayList<>();
 				if(servizioUpdate.getIdentificativo()!=null) {
 					lstClassiDato.add(ConfigurazioneClasseDato.IDENTIFICATIVO);
@@ -1013,9 +1028,9 @@ public class ServiziController implements ServiziApi {
 				if(!isForce(force, grant.getRuoli())) {
 					this.getServizioAuthorization(entity).authorizeModifica(entity, lstClassiDato);
 				}
-				
+
 				this.checkReferenti(entity);
-				
+
 				this.service.save(entity);
 				Servizio model = this.dettaglioAssembler.toModel(entity);
 
@@ -1137,7 +1152,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, Boolean inAttesa, Boolean mieiServizi, Boolean adesioneConsentita,String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			return this.service.runTransaction( () -> {
@@ -1177,8 +1192,20 @@ public class ServiziController implements ServiziApi {
 
 				specification.setTag(tag);
 
+				if(profilo != null && !profilo.isEmpty()) {
+					List<String> profiliValidi = this.configurazione.getServizio().getApi().getProfili().stream()
+							.map(p -> p.getCodiceInterno())
+							.toList();
+					for(String p : profilo) {
+						if(!profiliValidi.contains(p)) {
+							throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+						}
+					}
+					specification.setProfilo(profilo);
+				}
+
 				specification.setStati(stato);
-				
+
 				specification.setAderibili(Optional.ofNullable(adesioneConsentita));
 				specification.setUtenteAdmin(Optional.of(this.coreAuthorization.isAdmin()));
 				
@@ -1226,6 +1253,64 @@ public class ServiziController implements ServiziApi {
 					} else {
 						throw new BadRequestException(ErrorCode.SRV_400_NOT_REGISTERED);
 					}
+				} else if(dashboard != null && dashboard) {
+					if(!anounymous) {
+						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
+
+						// Gestione dashboard in base al ruolo
+						if(this.coreAuthorization.isAdmin()) {
+							// Gestore: filtra per stati del ruolo "gestore"
+							List<String> statiGestore = getStatiDashboard(ConfigurazioneRuolo.GESTORE);
+							if(!statiGestore.isEmpty()) {
+								realSpecification = specification.and(ServizioSpecificationUtils.byStati(statiGestore));
+							} else {
+								realSpecification = specification;
+							}
+						} else if(this.coreAuthorization.isCoordinatore()) {
+							// Coordinatore: usa ruolo "referente_superiore"
+							List<String> statiCoordinatore = getStatiDashboard(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
+							if(!statiCoordinatore.isEmpty()) {
+								realSpecification = specification.and(ServizioSpecificationUtils.byStati(statiCoordinatore));
+							} else {
+								realSpecification = specification;
+							}
+						} else {
+							// Altri utenti: verifica ruoli tramite getRuoliReferente
+							Set<String> ruoliUtente = this.utenteService.getRuoliReferente(utente);
+
+							List<String> statiReferenteSuperiore = getStatiDashboard(ConfigurazioneRuolo.REFERENTE_SUPERIORE);
+							List<String> statiReferente = getStatiDashboard(ConfigurazioneRuolo.REFERENTE);
+
+							Specification<ServizioEntity> specDashboard = null;
+
+							// Se referente di dominio -> servizi con quel dominio negli stati "referente_superiore"
+							if(ruoliUtente.contains("REFERENTE_DOMINIO") && !statiReferenteSuperiore.isEmpty()) {
+								Specification<ServizioEntity> specRefDominio = ServizioSpecificationUtils.byReferenteDominio(utente)
+										.and(ServizioSpecificationUtils.byStati(statiReferenteSuperiore));
+								specDashboard = specRefDominio;
+							}
+
+							// Se referente di servizio -> servizi dove è referente negli stati "referente"
+							if(ruoliUtente.contains("REFERENTE_SERVIZIO") && !statiReferente.isEmpty()) {
+								Specification<ServizioEntity> specRefServizio = ServizioSpecificationUtils.byReferenteServizio(utente)
+										.and(ServizioSpecificationUtils.byStati(statiReferente));
+								if(specDashboard != null) {
+									specDashboard = specDashboard.or(specRefServizio);
+								} else {
+									specDashboard = specRefServizio;
+								}
+							}
+
+							if(specDashboard != null) {
+								realSpecification = specification.and(specDashboard);
+							} else {
+								// Nessun ruolo rilevante, nessun risultato
+								realSpecification = specification.and((root, query, cb) -> cb.disjunction());
+							}
+						}
+					} else {
+						throw new BadRequestException(ErrorCode.SRV_400_NOT_REGISTERED);
+					}
 				} else {
 					realSpecification = specification;
 				}
@@ -1243,6 +1328,42 @@ public class ServiziController implements ServiziApi {
 
 				PagedModelItemServizio list = new PagedModelItemServizio();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
+
+				// Popola ruoli_referente se dashboard=true
+				if(dashboard != null && dashboard && !anounymous) {
+					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
+
+					// Calcola i set di domini e servizi per cui l'utente è referente
+					Set<Long> dominiReferente = new HashSet<>();
+					Set<Long> serviziReferente = new HashSet<>();
+
+					for(var ref : this.service.findReferentiDominioByUtente(utente)) {
+						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
+							dominiReferente.add(ref.getDominio().getId());
+						}
+					}
+					for(var ref : this.service.findReferentiServizioByUtente(utente)) {
+						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
+							serviziReferente.add(ref.getServizio().getId());
+						}
+					}
+
+					// Mappa per l'associazione servizio -> entity
+					Map<String, ServizioEntity> servizioEntityMap = new java.util.HashMap<>();
+					for(ServizioEntity se : findAll.getContent()) {
+						servizioEntityMap.put(se.getIdServizio(), se);
+					}
+
+					// Aggiorna i ruoli_referente per ogni ItemServizio
+					for(ItemServizio item : list.getContent()) {
+						ServizioEntity se = servizioEntityMap.get(item.getIdServizio().toString());
+						if(se != null) {
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, serviziReferente);
+							item.setRuoliReferente(ruoli);
+						}
+					}
+				}
+
 				list.add(lst.getLinks());
 				list.setPage(new PageMetadata().size((long)findAll.getSize()).number((long)findAll.getNumber()).totalElements(findAll.getTotalElements()).totalPages((long)findAll.getTotalPages()));
 
@@ -1413,6 +1534,35 @@ public class ServiziController implements ServiziApi {
 			}
 		}
 		return cambi;
+	}
+
+	private List<String> getStatiDashboard(ConfigurazioneRuolo ruolo) {
+		List<ConfigurazioneStatoDashboard> statiDashboard = this.configurazione.getServizio().getWorkflow().getStatiDashboard();
+		if (statiDashboard != null) {
+			for (ConfigurazioneStatoDashboard sd : statiDashboard) {
+				if (sd.getRuolo() != null && sd.getRuolo().equals(ruolo)) {
+					return sd.getStati() != null ? sd.getStati() : new ArrayList<>();
+				}
+			}
+		}
+		return new ArrayList<>();
+	}
+
+	private List<RuoloReferenteEnum> calcolaRuoliReferente(ServizioEntity servizio, UtenteEntity utente,
+			Set<Long> dominiReferente, Set<Long> serviziReferente) {
+		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
+
+		// Verifica se l'utente è referente del dominio del servizio
+		if (servizio.getDominio() != null && dominiReferente.contains(servizio.getDominio().getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+		}
+
+		// Verifica se l'utente è referente del servizio
+		if (serviziReferente.contains(servizio.getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+		}
+
+		return ruoli;
 	}
 
 	@Override

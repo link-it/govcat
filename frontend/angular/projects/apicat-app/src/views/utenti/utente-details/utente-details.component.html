@@ -56,10 +56,17 @@
             </div>
           </div>
         </ng-template> -->
-        <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-          <button aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
-            <i class="bi bi-x-lg"></i>
-          </button>
+        <div class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+          <lnk-button
+            [label]="'APP.BUTTON.Cancel'"
+            [ariaLabel]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"
+            [icon]="'bi bi-x-lg'"
+            [onlyIcon]="true"
+            [tertiary]="true"
+            [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"
+            [otherClass]="'ms-2'"
+            (onAction)="_onCancelEdit()"
+          ></lnk-button>
         </div>
       </div>
     </ng-template>
@@ -186,6 +193,31 @@
                 </div>
               </div>
 
+            </div>
+
+            <div class="row" *ngIf="utente?.organizzazione_pending">
+              <div class="col-6"></div>
+              <div class="col-6">
+                <div class="form-group">
+                  <label class="label-bold" for="organizzazione_pending">{{ 'APP.PROFILE.ORGANIZATION.PendingLabel' | translate }}</label>
+                  <div class="d-flex align-items-center">
+                    <input type="text" readonly class="form-control-plaintext" id="organizzazione_pending" [value]="utente.organizzazione_pending?.nome || '--'">
+                    <ui-data-type class="ms-2"
+                      [data]="utente"
+                      [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                      [config]="config">
+                    </ui-data-type>
+                    <lnk-button *ngIf="_isEdit"
+                      [label]="'APP.PROFILE.ORGANIZATION.ApproveButton'"
+                      [ariaLabel]="'APP.PROFILE.ORGANIZATION.ApproveButton'"
+                      [icon]="'bi bi-check-lg'"
+                      [primary]="true"
+                      [otherClass]="'ms-2'"
+                      (onAction)="approveOrganizationChange()"
+                    ></lnk-button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="row telefono email">
@@ -393,12 +425,20 @@
             </div>
 
             <div class="row-content-block footer-block" *ngIf="_isEdit">
-              <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
-                {{ 'APP.BUTTON.Save' | translate }}
-              </button>
-              <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-                {{ 'APP.BUTTON.Cancel' | translate }}
-              </button>
+              <lnk-button
+                [label]="'APP.BUTTON.Save'"
+                [ariaLabel]="'APP.BUTTON.Save'"
+                [type]="'submit'"
+                [primary]="true"
+                [disabled]="_formGroup.invalid || _spin"
+                [otherClass]="'gl-mr-2'"
+              ></lnk-button>
+              <lnk-button
+                [label]="'APP.BUTTON.Cancel'"
+                [ariaLabel]="'APP.BUTTON.Cancel'"
+                [tertiary]="true"
+                (onAction)="_onCancelEdit()"
+              ></lnk-button>
             </div>
           </form>
         </div>

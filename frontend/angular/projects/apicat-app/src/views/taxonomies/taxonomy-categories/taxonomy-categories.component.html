@@ -76,7 +76,9 @@
     [infiniteScrollDistance]="2"
     [infiniteScrollThrottle]="50"
     (scrolled)="__loadMoreData()"
-    [scrollWindow]="false">
+    [scrollWindow]="false"
+    [autoFillScroll]="true"
+    (autoFillNeeded)="__loadMoreData()">
 
     <ui-box-message *ngIf="categories.length == 0 && !_spin"
       [size]="64"

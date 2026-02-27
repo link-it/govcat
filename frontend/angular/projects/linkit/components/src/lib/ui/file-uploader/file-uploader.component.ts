@@ -61,10 +61,10 @@ export class FileUploaderComponent {
 
   handleInputChange(e: any) {
     console.log("input change")
-    var file = e.dataTransfer ? e.dataTransfer.files[0] : e.target.files[0];
+    const file = e.dataTransfer ? e.dataTransfer.files[0] : e.target.files[0];
 
-    var pattern = /image-*/;
-    var reader = new FileReader();
+    const pattern = /image-*/;
+    const reader = new FileReader();
 
     if (!file.type.match(pattern)) {
       alert('invalid format');
@@ -79,7 +79,7 @@ export class FileUploaderComponent {
 
   _handleReaderLoaded(e: any) {
     console.log("_handleReaderLoaded")
-    var reader = e.target;
+    const reader = e.target;
     this.imageSrc = reader.result;
     this.loaded = true;
   }

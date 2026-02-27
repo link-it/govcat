@@ -18,6 +18,7 @@
  */
 import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
 import { Location } from '@angular/common';
+import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
@@ -27,13 +28,14 @@ import { OAuthService } from 'angular-oauth2-oidc';
 import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
+import { DashboardService } from '@services/dashboard.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
 
 import { AboutDialogComponent } from '@app/components/about-dialog/about-dialog.component';
 
 import { INavData } from './gp-sidebar-nav';
 import { GpSidebarNavHelper } from './gp-sidebar-nav.helper';
-import { navItemsMainMenu, navItemsAdministratorMenu, navNotificationsMenu } from './_nav';
+import { navItemsDashboardMenu, navItemsMainMenu, navItemsAdministratorMenu, navNotificationsMenu } from './_nav';
 
 import { environment } from '@app/environments/environment';
 
@@ -139,13 +141,15 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     _enableOpenInNewTab: boolean = false;
 
     _counters: any = {
-        notifications: 0
+        notifications: 0,
+        dashboard: 0
     };
 
     notificationsCount$!: Observable<NotificationsCount>;
 
     _hasDashboard: boolean = false;
     _showTaxonomies: boolean = false;
+    _dashboardEnabled: boolean = false;
 
     _isAnonymous: boolean = true;
 
@@ -174,6 +178,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         private readonly authenticationService: AuthenticationService,
         private readonly apiService: OpenAPIService,
         private readonly notificationsService: NotificationsService,
+        private readonly dashboardService: DashboardService,
+        private readonly titleService: Title,
         public sidebarNavHelper: GpSidebarNavHelper,
     ) {
         this.localStorageService.setItem('PROFILE', false);
@@ -212,6 +218,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
         this._enableOpenInNewTab = this._config.AppConfig.Layout.enableOpenInNewTab || false;
         this._title = this._config.AppConfig.Layout.Header.title;
+        this.titleService.setTitle(this._title);
         this._api_url = this._config.AppConfig.SITE;
 
         let offset = 0;
@@ -487,8 +494,20 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         } else {
             this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
             this._showLanguagesMenu = this._config.AppConfig.Layout.showLanguagesMenu || false;
-            this._showNotificationsMenu = false;
+            this._showNotificationsMenu = this._config.AppConfig.Layout.showNotificationsMenu || false;
             this._showNotificationsBar = this._config.AppConfig.Layout.showNotificationsBar || false;
+
+            // Salva il flag dashboard.enabled per menu e guard
+            const dashboardConfig = this._config.AppConfig.Layout.dashboard;
+            this._dashboardEnabled = dashboardConfig?.enabled || false;
+
+            // Se il gestore ha la dashboard abilitata e hideNotificationMenu e' true, nasconde le notifiche
+            if (this._dashboardEnabled && dashboardConfig?.hideNotificationMenu && this.authenticationService.isGestore()) {
+                this._showNotificationsBar = false;
+                this._showNotificationsMenu = false;
+                this._enablePollingNotifications = false;
+            }
+
             this.notificationsCount$ = this.notificationsService.getNotificationsCount();
             this.loggedIn = (this._session !== null);
             this.login = (this._session !== null);
@@ -502,6 +521,13 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this.notificationsCount$.pipe(
                 // tap(() => console.log('data received'))
             ).subscribe(val => this._counters.notifications = val.count);
+        }
+        if (this._dashboardEnabled) {
+            const dashboardTimer = this._config.AppConfig.DEFAULT_DASHBOARD_TIMER
+                || this._config.AppConfig.DEFAULT_NOTIFICATIONS_TIMER
+                || 30000;
+            this.dashboardService.getDashboardCount(dashboardTimer)
+                .subscribe(val => this._counters.dashboard = val);
         }
     }
 
@@ -528,7 +554,14 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
     }
 
     initMainMenu() {
-        this.navItems = this.prepareNavigation();
+        this.navItems = [];
+        if (!this.authenticationService.isAnonymous()) {
+            const ruolo = this.authenticationService.getRole();
+            if (ruolo && this._dashboardEnabled) {
+                this.navItems = [...navItemsDashboardMenu];
+            }
+        }
+        this.navItems = [...this.navItems, ...this.prepareNavigation()];
         if (this.authenticationService.isGestore()) {
             if (this._showNotificationsMenu) {
                 this.navItems = [...this.navItems, ...navNotificationsMenu ];
@@ -741,6 +774,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _onMenuHeaderAction(event: any) {
         this._title = this._config.AppConfig.Layout.Header.title;
+        this.titleService.setTitle(this._title);
         switch (event.menu.action) {
             case 'login':
                 this.router.navigate(['/auth/login']);
@@ -904,6 +938,9 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             _show = !this._isAnonymous;
         }
         if (menu.path === 'dashboard') {
+            _show = !this._isAnonymous && this._dashboardEnabled;
+        }
+        if (menu.path === 'monitoraggio') {
             _show = this._hasDashboard;
         }
         if (menu.path === 'tassonomie') {

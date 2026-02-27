@@ -46,6 +46,7 @@ export interface Utente {
     stato: StatoUtenteEnum;
     ruolo?: RuoloUtenteEnum;
     organizzazione?: Organizzazione;
+    organizzazione_pending?: Organizzazione;
     classi_utente?: Array<string>;
 }
 export namespace Utente {
