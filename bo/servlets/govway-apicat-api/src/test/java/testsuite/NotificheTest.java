@@ -785,20 +785,28 @@ public class NotificheTest {
     }
 
     @Test
-    public void testEmailInviataFlag() {
-        // Test per verificare che il flag emailInviata funzioni correttamente
+    public void testStatoNotificaEmail() {
+        // Test per verificare che lo stato notifica email funzioni correttamente
         NotificaEntity notifica = new NotificaEntity();
 
-        // Inizialmente il flag dovrebbe essere false
-        assertFalse(notifica.isEmailInviata());
+        // Inizialmente lo stato dovrebbe essere null
+        assertNull(notifica.getStatoNotificaEmail());
 
-        // Imposta il flag a true
-        notifica.setEmailInviata(true);
-        assertTrue(notifica.isEmailInviata());
+        // Imposta lo stato a DA_INVIARE
+        notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.DA_INVIARE);
+        assertEquals(NotificaEntity.STATO_EMAIL.DA_INVIARE, notifica.getStatoNotificaEmail());
 
-        // Imposta il flag a false
-        notifica.setEmailInviata(false);
-        assertFalse(notifica.isEmailInviata());
+        // Imposta lo stato a INVIATA
+        notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.INVIATA);
+        assertEquals(NotificaEntity.STATO_EMAIL.INVIATA, notifica.getStatoNotificaEmail());
+
+        // Imposta lo stato a ERRORE
+        notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.ERRORE);
+        assertEquals(NotificaEntity.STATO_EMAIL.ERRORE, notifica.getStatoNotificaEmail());
+
+        // Imposta lo stato a NON_RICHIESTA
+        notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.NON_RICHIESTA);
+        assertEquals(NotificaEntity.STATO_EMAIL.NON_RICHIESTA, notifica.getStatoNotificaEmail());
     }
 
     @Test

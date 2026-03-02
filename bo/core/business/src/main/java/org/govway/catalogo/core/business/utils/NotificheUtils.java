@@ -571,7 +571,7 @@ public class NotificheUtils {
 		notifica.setData(new Date());
 		notifica.setServizio(servizio);
 		notifica.setAdesione(adesione);
-		
+
 		notifica.setIdEntita(idEntita);
 		notifica.setIdNotifica(UUID.randomUUID().toString());
 		notifica.setStato(STATO.NUOVA);
@@ -581,6 +581,14 @@ public class NotificheUtils {
 		notifica.setInfoOggetto(oggetto);
 		notifica.setInfoMessaggio(messaggio);
 		notifica.setDestinatario(destinatario);
+
+		// Imposta stato email in base al tipo di notifica
+		if (tipo == TIPO.COMUNICAZIONE_EMAIL || tipo == TIPO.CAMBIO_STATO_EMAIL) {
+			notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.DA_INVIARE);
+		} else {
+			notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.NON_RICHIESTA);
+		}
+
 		return notifica;
 	}
 }

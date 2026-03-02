@@ -45,6 +45,7 @@ public class NotificaEntity {
 	public enum TIPO {COMUNICAZIONE, CAMBIO_STATO, COMUNICAZIONE_EMAIL, CAMBIO_STATO_EMAIL}
 	public enum TIPO_ENTITA {SERVIZIO, ADESIONE, SERVIZIO_EMAIL, ADESIONE_EMAIL}
 	public enum STATO {NUOVA,LETTA,ARCHIVIATA}
+	public enum STATO_EMAIL {NON_RICHIESTA, DA_INVIARE, INVIATA, ERRORE}
 	
 	@Id
     @Column(name = "id")
@@ -99,6 +100,13 @@ public class NotificaEntity {
 
 	private String ruoli;
 
-	@Column(name = "email_inviata", nullable = false)
-	private boolean emailInviata;
+	@Column(name = "stato_notifica_email", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private STATO_EMAIL statoNotificaEmail;
+
+	@Column(name = "timestamp_invio_email")
+	private Date timestampInvioEmail;
+
+	@Column(name = "email_destinatario")
+	private String emailDestinatario;
 }
