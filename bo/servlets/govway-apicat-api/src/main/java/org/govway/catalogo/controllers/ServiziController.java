@@ -1119,17 +1119,19 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.debug("Autorizzazione completata con successo");
 
-				// Determina se mostrare richiedente e referenti nel PDF
+				// Determina se mostrare richiedente, referenti e versione nel PDF
 				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
 				// Se il valore è "disabled", non mostra
 				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getServizio().getMostraRichiedente());
 				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getServizio().getMostraReferenti());
+				boolean mostraVersione = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraVersione());
 
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity, mostraRichiedente, mostraReferenti));
+					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity, mostraRichiedente, mostraReferenti, mostraVersione));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);

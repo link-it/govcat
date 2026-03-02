@@ -84,14 +84,18 @@ public class EServiceBuilder {
 	private StampeLabels stampeLabels;
 
 	public byte[] getEService(ServizioEntity servizio) throws Exception {
-		return getEService(servizio, true, true);
+		return getEService(servizio, true, true, true);
 	}
 
 	public byte[] getEService(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
+		return getEService(servizio, mostraRichiedente, mostraReferenti, true);
+	}
+
+	public byte[] getEService(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti, boolean mostraVersione) throws Exception {
 		if(servizio.is_package()) {
-			return getEServicePackage(servizio, mostraRichiedente, mostraReferenti);
+			return getEServicePackage(servizio, mostraRichiedente, mostraReferenti, mostraVersione);
 		} else {
-			return getEServiceServizio(servizio, mostraRichiedente, mostraReferenti);
+			return getEServiceServizio(servizio, mostraRichiedente, mostraReferenti, mostraVersione);
 		}
 	}
 
@@ -110,13 +114,13 @@ public class EServiceBuilder {
 
 	}
 
-	private byte[] getEServiceServizio(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
+	private byte[] getEServiceServizio(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti, boolean mostraVersione) throws Exception {
 		Map<String, byte[]> map = new HashMap<>();
-		populateEServiceServizio(servizio, map, "", mostraRichiedente, mostraReferenti);
+		populateEServiceServizio(servizio, map, "", mostraRichiedente, mostraReferenti, mostraVersione);
 		return this.mapToZip(map);
 	}
 
-	private void populateEServiceServizio(ServizioEntity servizio, Map<String, byte[]> map, String prefix, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
+	private void populateEServiceServizio(ServizioEntity servizio, Map<String, byte[]> map, String prefix, boolean mostraRichiedente, boolean mostraReferenti, boolean mostraVersione) throws Exception {
 		this.addDocumentFilesServizio(servizio.getAllegati(), prefix, map);
 
 		if(servizio.getApi().isEmpty()) {
@@ -126,17 +130,17 @@ public class EServiceBuilder {
 		for(ApiEntity api: servizio.getApi()) {
 			String nometrimmed = api.getNome().length() > 50 ? api.getNome().substring(0,50) : api.getNome();
 
-			map.putAll(this.getApiFiles(api, nometrimmed+"_"+api.getVersione() + "/" + prefix, true, mostraRichiedente, mostraReferenti));
+			map.putAll(this.getApiFiles(api, nometrimmed+"_"+api.getVersione() + "/" + prefix, true, mostraRichiedente, mostraReferenti, mostraVersione));
 		}
 	}
 
-	private byte[] getEServicePackage(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti) throws Exception {
+	private byte[] getEServicePackage(ServizioEntity servizio, boolean mostraRichiedente, boolean mostraReferenti, boolean mostraVersione) throws Exception {
 		Map<String, byte[]> map = new HashMap<>();
 
 		this.addDocumentFilesServizio(servizio.getAllegati(), servizio.getNome()+"_v"+servizio.getVersione() + "/", map);
 
 		for(PackageServizioEntity componente: servizio.getComponenti()) {
-			populateEServiceServizio(componente.getServizio(), map, componente.getServizio().getNome() + "_" + componente.getServizio().getVersione(), mostraRichiedente, mostraReferenti);
+			populateEServiceServizio(componente.getServizio(), map, componente.getServizio().getNome() + "_" + componente.getServizio().getVersione(), mostraRichiedente, mostraReferenti, mostraVersione);
 		}
 		return this.mapToZip(map);
 	}
@@ -260,10 +264,14 @@ public class EServiceBuilder {
     }
 
 	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo) {
-		return getApiFiles(api, prefix, collaudo, true, true);
+		return getApiFiles(api, prefix, collaudo, true, true, true);
 	}
 
 	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo, boolean mostraRichiedente, boolean mostraReferenti) {
+		return getApiFiles(api, prefix, collaudo, mostraRichiedente, mostraReferenti, true);
+	}
+
+	public Map<String, byte[]> getApiFiles(ApiEntity api, String prefix, boolean collaudo, boolean mostraRichiedente, boolean mostraReferenti, boolean mostraVersione) {
 		Map<String, byte[]> map = new HashMap<String, byte[]>();
 
 		DocumentoEntity specificaCollaudo = api.getCollaudo().getSpecifica();
@@ -305,10 +313,13 @@ public class EServiceBuilder {
 			rigaNome.setValore(api.getNome());
 			righeLst.add(rigaNome);
 
-			RigaScopoType rigaVersione = new RigaScopoType();
-			rigaVersione.setDato(this.stampeLabels.getEservice().getLabel().getVersione());
-			rigaVersione.setValore(api.getVersione()+"");
-			righeLst.add(rigaVersione);
+			// Aggiungi versione se configurato
+			if(mostraVersione) {
+				RigaScopoType rigaVersione = new RigaScopoType();
+				rigaVersione.setDato(this.stampeLabels.getEservice().getLabel().getVersione());
+				rigaVersione.setValore(api.getVersione()+"");
+				righeLst.add(rigaVersione);
+			}
 
 			RigaScopoType rigaTecnologia = new RigaScopoType();
 			rigaTecnologia.setDato(this.stampeLabels.getEservice().getLabel().getTecnologia());
