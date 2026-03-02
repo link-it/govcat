@@ -119,6 +119,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
 }
 
+// Container scroller come flex column per adattare l'expanded view
+:host ::ng-deep .container-scroller {
+  display: flex;
+  flex-direction: column;
+}
+
 // Expanded view
 .expanded-view {
   animation: fadeInUp 0.3s ease-out;
@@ -127,7 +133,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   background: #fff;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 290px);
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
