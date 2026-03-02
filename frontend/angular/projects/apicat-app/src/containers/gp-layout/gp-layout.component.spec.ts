@@ -471,6 +471,59 @@ describe('GpLayoutComponent', () => {
     });
   });
 
+  describe('mostra_versione remote config', () => {
+    it('should set hideVersions=false when mostra_versione is enabled', () => {
+      // Re-create with mostra_versione in servizio config
+      mockAuthenticationService._getConfigModule = vi.fn((module: string) => {
+        if (module === 'dashboard') return { abilitato: false };
+        if (module === 'servizio') return { tassonomie_abilitate: false, mostra_versione: 'enabled', api: { abilitato: true, auth_type: [] }, generico: { abilitato: false } };
+        if (module === 'monitoraggio') return { abilitato: false };
+        return {};
+      });
+      component = new GpLayoutComponent(
+        mockRouter as any, mockLocation as any, mockTranslate as any,
+        mockModalService as any, mockOauthService as any, mockConfigService as any,
+        mockEventsManagerService as any, mockLocalStorageService as any,
+        mockBreadCrumbService as any, mockAuthenticationService as any,
+        mockApiService as any, mockNotificationsService as any,
+        mockDashboardService as any, mockSidebarNavHelper as any
+      );
+      expect((mockConfig.AppConfig as any).Services?.hideVersions).toBe(false);
+    });
+
+    it('should set hideVersions=true when mostra_versione is not enabled', () => {
+      mockAuthenticationService._getConfigModule = vi.fn((module: string) => {
+        if (module === 'dashboard') return { abilitato: false };
+        if (module === 'servizio') return { tassonomie_abilitate: false, mostra_versione: 'disabled', api: { abilitato: true, auth_type: [] }, generico: { abilitato: false } };
+        if (module === 'monitoraggio') return { abilitato: false };
+        return {};
+      });
+      component = new GpLayoutComponent(
+        mockRouter as any, mockLocation as any, mockTranslate as any,
+        mockModalService as any, mockOauthService as any, mockConfigService as any,
+        mockEventsManagerService as any, mockLocalStorageService as any,
+        mockBreadCrumbService as any, mockAuthenticationService as any,
+        mockApiService as any, mockNotificationsService as any,
+        mockDashboardService as any, mockSidebarNavHelper as any
+      );
+      expect((mockConfig.AppConfig as any).Services?.hideVersions).toBe(true);
+    });
+
+    it('should not set hideVersions when mostra_versione is absent', () => {
+      // Default mock has no mostra_versione - Services should not be created
+      delete (mockConfig.AppConfig as any).Services;
+      component = new GpLayoutComponent(
+        mockRouter as any, mockLocation as any, mockTranslate as any,
+        mockModalService as any, mockOauthService as any, mockConfigService as any,
+        mockEventsManagerService as any, mockLocalStorageService as any,
+        mockBreadCrumbService as any, mockAuthenticationService as any,
+        mockApiService as any, mockNotificationsService as any,
+        mockDashboardService as any, mockSidebarNavHelper as any
+      );
+      expect((mockConfig.AppConfig as any).Services).toBeUndefined();
+    });
+  });
+
   describe('ngOnDestroy', () => {
     it('should not throw', () => {
       expect(() => component.ngOnDestroy()).not.toThrow();

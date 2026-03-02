@@ -200,17 +200,11 @@ Lingue supportate dall'applicazione e lingua di default.
 - **HistoryCount**: Numero di ricerche recenti da memorizzare nella cronologia
 - **newLayout**: Abilita il nuovo layout per la ricerca
 
-#### 2.8 Services - Configurazione Servizi
+#### 2.8 Services - Configurazione Servizi (rimossa)
 
-```json
-"Services": {
-  "showReferents": true,
-  "hideVersions": false
-}
-```
+La sezione `Services` e' stata rimossa dal file di configurazione locale. Le proprietà sono ora controllate dalla configurazione remota (`/configurazione`):
 
-- **showReferents**: Mostra i referenti dei servizi nel catalogo
-- **hideVersions**: Nasconde le versioni sia nelle liste che nei dettagli dei servizi e delle API
+- ~~hideVersions~~: Rimosso. Ora derivato da `mostra_versione` nella sezione `servizio` della configurazione remota. Il valore `"enabled"` corrisponde a `hideVersions = false` (versioni visibili), qualsiasi altro valore corrisponde a `hideVersions = true` (versioni nascoste).
 
 #### 2.9 Layout - Configurazione Interfaccia
 
@@ -285,7 +279,6 @@ Lingue supportate dall'applicazione e lingua di default.
 "enablePollingNotifications": false,
 "showTaxonomies": true,
 "showCommunicationsMenu": true,
-"showVersion": false,
 "showBuild": false,
 "showAbout": true,
 "showAboutMiniBox": false,
@@ -299,8 +292,8 @@ Lingue supportate dall'applicazione e lingua di default.
 - **enablePollingNotifications**: Abilita il polling automatico delle notifiche
 - **showTaxonomies**: Mostra le tassonomie nel catalogo
 - **showCommunicationsMenu**: Mostra il menu comunicazioni
-- **showVersion**: Mostra il numero di versione nell'interfaccia
 - **showBuild**: Mostra il numero di build nell'interfaccia
+- **showVersion**: Mostra la versione dell'applicazione nella sidebar
 - **showAbout**: Mostra il link "Informazioni su"
 - **showAboutMiniBox**: Mostra il box informazioni in versione compatta
 - **showNewsArea**: Mostra l'area notizie
@@ -560,6 +553,7 @@ Per aggiungere un nuovo font personalizzato:
 3. **Copia i file font** nella directory creata
 
 4. **Crea il file CSS** in `assets/fonts/css/nome-font.css`:
+
    ```css
    @font-face {
      font-family: 'Nome Font';
@@ -571,6 +565,7 @@ Per aggiungere un nuovo font personalizzato:
    ```
 
 5. **Aggiungi il font in app-config.json**:
+
    ```json
    "Fonts": [
      {
@@ -582,6 +577,7 @@ Per aggiungere un nuovo font personalizzato:
    ```
 
 6. **Associa il font a un tema** (opzionale):
+
    ```json
    {
      "Name": "tema-personalizzato",

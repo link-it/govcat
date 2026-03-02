@@ -263,6 +263,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this._hasDashboard = _dashboardRemoteConfig.abilitato || false;
             const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
             this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
+            if (_servizioRemoteConfig?.mostra_versione) {
+                this._config.AppConfig.Services = this._config.AppConfig.Services || {};
+                this._config.AppConfig.Services.hideVersions = _servizioRemoteConfig.mostra_versione !== 'enabled';
+            }
         }
 
         // Scrollbar options
@@ -425,6 +429,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this._hasDashboard = _dashboardRemoteConfig.abilitato || false;
             const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
             this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
+            if (_servizioRemoteConfig?.mostra_versione) {
+                this._config.AppConfig.Services = this._config.AppConfig.Services || {};
+                this._config.AppConfig.Services.hideVersions = _servizioRemoteConfig.mostra_versione !== 'enabled';
+            }
 
             console.log('2 - GpLayout Configurazione loaded');
         } catch (error) {
