@@ -61,7 +61,7 @@ public class ServizioItemAssembler extends RepresentationModelAssemblerSupport<S
 		dettaglio.setVisibilita(engine.toVisibilita(entity.getVisibilita()));
 		if(entity.getImmagine()!=null) {
 			Documento immagine = new Documento();
-			immagine.setUuid(UUID.randomUUID());
+			immagine.setUuid(UUID.fromString(entity.getImmagine().getUuid()));
 			dettaglio.setImmagine(immagine);
 		}
 		dettaglio.setAdesioneDisabilitata(entity.isAdesioneDisabilitata());
