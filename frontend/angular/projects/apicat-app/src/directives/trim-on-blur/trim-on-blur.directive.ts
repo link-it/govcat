@@ -38,7 +38,7 @@ import { NgControl } from '@angular/forms';
  */
 @Directive({
   selector: '[appTrimOnBlur]',
-  standalone: false
+  standalone: true
 })
 export class TrimOnBlurDirective {
   @Input('appTrimOnBlur') isEnabled: boolean | '' = true;

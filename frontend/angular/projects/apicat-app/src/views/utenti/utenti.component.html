@@ -42,128 +42,126 @@
       </div>
     </div>
   </div>
-  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
-    <div class="row align-items-center">
-      <div class="col-12">
-        <ui-search-bar-form #searchBarForm
-          [classBlock]="''"
-          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
-          [showHistory]="showHistory"
-          [historyStore]="model"
-          [showSearch]="showSearch"
-          [searchFields]="searchFields"
-          [useCondition]="useCondition"
-          [showSorting]="showSorting"
-          [sortField]="sortField"
-          [sortDirection]="sortDirection"
-          [sortFields]="sortFields"
-          [formGroup]="_formGroup"
-          (onSearch)="_onSearch($event)"
-          (onSort)="_onSort($event)">
-          <div form-search [class.search-material-custom]="_useNewSearchUI">
-            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
-              <fieldset>
-
-                <div class="row mb-1">
-                  <div class="col-2">
-                    <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+  @if (_hasFilter) {
+    <section class="search-bar container-fluid px-0">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <ui-search-bar-form #searchBarForm
+            [classBlock]="''"
+            [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+            [showHistory]="showHistory"
+            [historyStore]="model"
+            [showSearch]="showSearch"
+            [searchFields]="searchFields"
+            [useCondition]="useCondition"
+            [showSorting]="showSorting"
+            [sortField]="sortField"
+            [sortDirection]="sortDirection"
+            [sortFields]="sortFields"
+            [formGroup]="_formGroup"
+            (onSearch)="_onSearch($event)"
+            (onSort)="_onSort($event)">
+            <div form-search [class.search-material-custom]="_useNewSearchUI">
+              <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+                <fieldset>
+                  <div class="row mb-1">
+                    <div class="col-2">
+                      <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                    </div>
+                    <div class="col-10">
+                      <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                    </div>
                   </div>
-                  <div class="col-10">
-                    <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                  <div class="row mb-1">
+                    <div class="col-2">
+                      <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.email' | translate }}</label>
+                    </div>
+                    <div class="col-10">
+                      <input type="text" class="form-control form-control-sm" id="email" formControlName="email">
+                    </div>
                   </div>
-                </div>
-
-                <div class="row mb-1">
-                  <div class="col-2">
-                    <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.email' | translate }}</label>
-                  </div>
-                  <div class="col-10">
-                    <input type="text" class="form-control form-control-sm" id="email" formControlName="email">
-                  </div>
-                </div>
-
-                <div class="row">
-                  <div class="col-6">
-                    <div class="row mb-1">
-                      <div class="col-4">
-                        <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Role' | translate }}</label>
+                  <div class="row">
+                    <div class="col-6">
+                      <div class="row mb-1">
+                        <div class="col-4">
+                          <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Role' | translate }}</label>
+                        </div>
+                        <div class="col-8">
+                          <select class="form-select form-control-sm" id="ruolo" formControlName="ruolo">
+                            <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                            @for (ruolo of _ruoloArr; track ruolo) {
+                              <option [value]="ruolo">
+                                {{ 'APP.USERS.ROLES.' + ruolo | translate }}
+                              </option>
+                            }
+                          </select>
+                        </div>
                       </div>
-                      <div class="col-8">
-                        <select class="form-select form-control-sm" id="ruolo" formControlName="ruolo">
-                          <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                          <option *ngFor="let ruolo of _ruoloArr" [value]="ruolo">
-                            {{ 'APP.USERS.ROLES.' + ruolo | translate }}
-                          </option>
-                        </select>
+                    </div>
+                    <div class="col-6">
+                      <div class="row mb-1">
+                        <div class="col-4">
+                          <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Status' | translate }}</label>
+                        </div>
+                        <div class="col-8">
+                          <select class="form-select form-control-sm" id="stato" formControlName="stato">
+                            <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                            @for (stato of _statoArr; track stato) {
+                              <option [value]="stato">
+                                {{ 'APP.USERS.STATUS.' + stato | translate }}
+                              </option>
+                            }
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col-6">
-                    <div class="row mb-1">
-                      <div class="col-4">
-                        <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Status' | translate }}</label>
-                      </div>
-                      <div class="col-8">
-                        <select class="form-select form-control-sm" id="stato" formControlName="stato">
-                          <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                          <option *ngFor="let stato of _statoArr" [value]="stato">
-                            {{ 'APP.USERS.STATUS.' + stato | translate }}
-                          </option>
-                        </select>
-                      </div>
+                  <div class="row mb-1">
+                    <div class="col-2">
+                      <label class="col-form-label col-form-label-fix">{{ 'APP.USERS.LABEL.Principal' | translate }}</label>
+                    </div>
+                    <div class="col-10">
+                      <input type="text" class="form-control form-control-sm" id="principal" formControlName="principal">
                     </div>
                   </div>
-                </div>
+                  <div class="row mb-1">
+                    <div class="col-2">
+                      <label class="col-form-label col-form-label-fix" for="id_organizzazione">{{ 'APP.LABEL.Organization' | translate }}</label>
+                    </div>
+                    <div class="col-10">
+                      <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                        [items]="(organizzazioni$ | async) || []"
 
-                <div class="row mb-1">
-                  <div class="col-2">
-                    <label class="col-form-label col-form-label-fix">{{ 'APP.USERS.LABEL.Principal' | translate }}</label>
-                  </div>
-                  <div class="col-10">
-                    <input type="text" class="form-control form-control-sm" id="principal" formControlName="principal">
-                  </div>
-                </div>
-
-                <div class="row mb-1">
-                  <div class="col-2">
-                    <label class="col-form-label col-form-label-fix" for="id_organizzazione">{{ 'APP.LABEL.Organization' | translate }}</label>
-                  </div>
-                  <div class="col-10">
-                    <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                      [items]="organizzazioni$ | async"
-                      [trackByFn]="trackBySelectFn"
-                      [typeahead]="organizzazioniInput$"
-                      [minTermLength]="minLengthTerm" 
-                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                      labelForId="id_organizzazione"
-                      [editableSearchTerm]="true"
-                      bindValue="id_organizzazione"
-                      formControlName="id_organizzazione"
-                      (change)="onChangeSearchDropdwon($event)">
-                      <ng-template ng-label-tmp let-item="item">
-                        {{ item.nome }}
-                      </ng-template>
-                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                        <div class="fw-bold">{{ item.nome }}</div>
-                        <!-- <div class="">
+                        [typeahead]="organizzazioniInput$"
+                        [minTermLength]="minLengthTerm"
+                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                        labelForId="id_organizzazione"
+                        [editableSearchTerm]="true"
+                        bindValue="id_organizzazione"
+                        formControlName="id_organizzazione"
+                        (change)="onChangeSearchDropdwon($event)">
+                        <ng-template ng-label-tmp let-item="item">
+                          {{ item.nome }}
+                        </ng-template>
+                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                          <div class="fw-bold">{{ item.nome }}</div>
+                          <!-- <div class="">
                           <span class="small text-muted">{{ item.id_organizzazione }}</span>
                         </div> -->
                       </ng-template>
                     </ng-select>
                   </div>
                 </div>
-
                 <div class="row mb-1">
                   <div class="col-2">
                     <label class="col-form-label col-form-label-fix" for="classe_utente">{{ 'APP.LABEL.classi' | translate }}</label>
                   </div>
                   <div class="col-10">
                     <ng-select
-                      [items]="classiUtente$ | async"
-                      [trackByFn]="trackBySelectFn"
+                      [items]="(classiUtente$ | async) || []"
                       [typeahead]="classiUtenteInput$"
-                      [minTermLength]="minLengthTerm" 
+                      [minTermLength]="minLengthTerm"
                       [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                       [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
                       [multiple]="true"
@@ -178,7 +176,6 @@
                     </ng-select>
                   </div>
                 </div>
-
                 <div class="row">
                   <div class="col-sm-12 col-md-6">
                     <div class="row mb-1">
@@ -188,18 +185,23 @@
                       <div class="col-sm-8">
                         <select class="form-select form-control-sm" id="referente_tecnico" formControlName="referente_tecnico">
                           <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                          <option *ngFor="let stato of yesNoList" [value]="stato.value">{{ stato.label | translate }}</option>
+                          @for (stato of yesNoList; track stato) {
+                            <option [value]="stato.value">{{ stato.label | translate }}</option>
+                          }
                         </select>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
-                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
-                  <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
-                </div>
-                <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
+                @if (_useNewSearchUI) {
+                  <div class="d-flex justify-content-end pt-4">
+                    <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                    <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
+                  </div>
+                }
+                @if (!_useNewSearchUI) {
+                  <button type="submit" class="d-none">hidden submit</button>
+                }
               </fieldset>
             </form>
           </div>
@@ -207,57 +209,64 @@
       </div>
     </div>
   </section>
-  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
-    infiniteScroll
-    [infiniteScrollDistance]="2"
-    [infiniteScrollThrottle]="50"
-    (scrolled)="__loadMoreData()"
-    [scrollWindow]="false"
-    [autoFillScroll]="true"
-    (autoFillNeeded)="__loadMoreData()">
-    <div class="row">
-      <ui-box-message *ngIf="utenti.length == 0 && !_spin"
+}
+<section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+  infiniteScroll
+  [infiniteScrollDistance]="2"
+  [infiniteScrollThrottle]="50"
+  (scrolled)="__loadMoreData()"
+  [scrollWindow]="false"
+  [autoFillScroll]="true"
+  (autoFillNeeded)="__loadMoreData()">
+  <div class="row">
+    @if (utenti.length == 0 && !_spin) {
+      <ui-box-message
         [size]="64"
         [icon]="'report_problem'"
         [image]="'./assets/images/illustrations/utenti.svg'"
         [message]="_message | translate"
         [subMessage]="_messageHelp | translate">
       </ui-box-message>
+    }
 
-      <!-- <ui-box-message *ngIf="!_spin"
-        [size]="64"
-        [icon]="'report_problem'"
-        [image]="'./assets/images/illustrations/utenti.svg'"
-        [message]="_messageUnimplemented | translate">
-      </ui-box-message> -->
+    <!-- <ui-box-message *ngIf="!_spin"
+    [size]="64"
+    [icon]="'report_problem'"
+    [image]="'./assets/images/illustrations/utenti.svg'"
+    [message]="_messageUnimplemented | translate">
+  </ui-box-message> -->
 
-      <!--
-      <div class="col-12">
-        <ui-simple-item class="border-bottom" *ngFor="let org of utenti"
-          [primaryText]="org.primaryText"
-          [secondaryText]="org.secondaryText"
-          [metadata]="org.metadata"
-          [secondaryMetadata]="org.secondaryMetadata"
+  <!--
+  <div class="col-12">
+    <ui-simple-item class="border-bottom" *ngFor="let org of utenti"
+      [primaryText]="org.primaryText"
+      [secondaryText]="org.secondaryText"
+      [metadata]="org.metadata"
+      [secondaryMetadata]="org.secondaryMetadata"
+      [hasLink]="true"
+      (simpleClick)="_onEdit($event, org)">
+    </ui-simple-item>
+  </div>
+  -->
+
+  <div class="row">
+    <div class="col-12">
+      @for (item of utenti; track item.id || $index) {
+        <ui-item-row class="border-bottom"
+          [data]="item"
+          [config]="utentiConfig"
           [hasLink]="true"
-          (simpleClick)="_onEdit($event, org)">
-        </ui-simple-item>
-      </div>
-      -->
-
-      <div class="row">
-        <div class="col-12">
-          <ui-item-row class="border-bottom" *ngFor="let item of utenti; trackBy: _trackBy;"
-            [data]="item"
-            [config]="utentiConfig"
-            [hasLink]="true"
-            (itemClick)="_onEdit($event, item)"
-            (openInNewTab)="_onOpenInNewTab($event)">
-          </ui-item-row>
-        </div>
-      </div>
-
-      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
-
+          (itemClick)="_onEdit($event, item)"
+          (openInNewTab)="_onOpenInNewTab($event)">
+        </ui-item-row>
+      }
     </div>
-  </section>
+  </div>
+
+  @if (_spin) {
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+  }
+
+</div>
+</section>
 </div>

@@ -16,13 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+
+import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 @Component({
     selector: 'lnk-button',
     templateUrl: './button.component.html',
     styleUrls: ['./button.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TranslateModule, TooltipModule]
 })
 export class LnkButtonComponent implements OnInit {
 

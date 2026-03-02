@@ -16,166 +16,226 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div class="sup-header px-0" *ngIf="_showSupHeaderBar">
+@if (_showSupHeaderBar) {
+  <div class="sup-header px-0">
     <div class="h-100" [innerHtml]="_headerHtml | safeHtml">
-        <!-- /assets/pages/sup-header.html -->
+      <!-- /assets/pages/sup-header.html -->
     </div>
-</div>
-<header class="navbar navbar-gitlab navbar-expand-sm js-navbar" [class.has-sub-header]="_showSupHeaderBar" *ngIf="_showHeaderBar">
+  </div>
+}
+@if (_showHeaderBar) {
+  <header class="navbar navbar-gitlab navbar-expand-sm js-navbar" [class.has-sub-header]="_showSupHeaderBar">
     <div class="container-fluid">
-        <div class="header-container w-100">
-            <div class="" *ngIf="_spin"><span class="spinner-border spinner-border-sm text-white"></span></div>
-            <app-head-bar *ngIf="!_spin"
-                [title]="_applicationTitle"
-                [logo]="_config.AppConfig.Layout.Header.logo"
-                [anonymous]="_isAnonymous"
-                [loggedIn]="loggedIn"
-                [login]="login"
-                [loginLabel]="loginLabel"
-                [username]="username"
-                [showUsername]="_showUsername"
-                [menu-action-list]="_menuActions"
-                [menu-app-action-list]="_menuAppActions"
-                [language-list]="_languages"
-                [show-language-menu]="_showLanguagesMenu"
-                [show-notifications]="_showNotificationsBar"
-                [icon-notifications]="'inbox'"
-                [notifications-counter]="_counters['notifications']"
-                [current-language]="_language"
-                (on-change-language)="_onChangeLanguage($event)"
-                (on-menu-action)="_onMenuHeaderAction($event)"
-                (on-menu-app-action)="_onMenuAppHeaderAction($event)"
-            ></app-head-bar>
-        </div>
+      <div class="header-container w-100">
+        @if (_spin) {
+          <div class=""><span class="spinner-border spinner-border-sm text-white"></span></div>
+        }
+        @if (!_spin) {
+          <app-head-bar
+            [title]="_applicationTitle"
+            [logo]="_config.AppConfig.Layout.Header.logo"
+            [anonymous]="_isAnonymous"
+            [loggedIn]="loggedIn"
+            [login]="login"
+            [loginLabel]="loginLabel"
+            [username]="username"
+            [showUsername]="_showUsername"
+            [menu-action-list]="_menuActions"
+            [menu-app-action-list]="_menuAppActions"
+            [language-list]="_languages"
+            [show-language-menu]="_showLanguagesMenu"
+            [show-notifications]="_showNotificationsBar"
+            [icon-notifications]="'inbox'"
+            [notifications-counter]="_counters['notifications']"
+            [current-language]="_language"
+            (on-change-language)="_onChangeLanguage($event)"
+            (on-menu-action)="_onMenuHeaderAction($event)"
+            (on-menu-app-action)="_onMenuAppHeaderAction($event)"
+          ></app-head-bar>
+        }
+      </div>
     </div>
-</header>
+  </header>
+}
 <div id="page-full-scroll-container" class="layout-page hide-when-top-nav-responsive-open" [ngClass]="{ 'page-with-contextual-sidebar': (_contentLimited || !_notSideBar) && !_isAnonymous, 'page-with-contextual-sidebar-reduced': _sideBarCollapsed && !_isAnonymous && !mobile, 'page-with-icon-sidebar': _sideBarCollapsed && desktop && (_contentLimited && !_notSideBar) }">
-    <aside class="nav-sidebar" [ngClass]="{ 'sidebar-collapsed-desktop': _sideBarCollapsed && desktop, 'sidebar-expanded-mobile': !_sideBarCollapsed && !desktop && !mobile || _openSideBar  }" *ngIf="(_contentLimited || !_notSideBar) &&!_isAnonymous">
-        <div class="d-flex flex-column align-items-start h-100">
-            <div class="nav-sidebar-inner-scroll">
-                <div class="w-100 text-center mt-3" *ngIf="_spin"><span class="spinner-border spinner-border-sm text-muted"></span></div>
-                <ul class="sidebar-top-level-items" *ngIf="!_spin">
-                    <ng-container *ngFor="let _item of navItems">
-                        <ng-container *ngIf="_item | mapper:_showMenu">
-                            <li class="position-relative" [ngClass]="{ 'js-collapsed-desktop': _sideBarCollapsed && desktop, 'js-expanded-mobile': _sideBarCollapsed && !desktop, 'js-mobile': mobile, 'expanded': (_item.expanded && mobile) || _forceMenuOpen, 'force-menu-open': _forceMenuOpen }" [appRouterLinkMatch]="{ 'active': _item.path + '' }" appFlyOut>
-                                <ng-container [ngSwitch]="sidebarNavHelper.itemType(_item)">
-                                    <ng-container *ngSwitchCase="'divider'">
-                                        <a class="divider">&nbsp;</a>
-                                    </ng-container>
-                                    <ng-container *ngSwitchCase="'title'">
-                                        <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
-                                            <span class="nav-icon-container">
-                                                <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_item)">{{ _item.icon}}</span>
-                                                <i class="bi bi-{{ _item.iconBs}}" *ngIf="sidebarNavHelper.hasIconBs(_item)"></i>
-                                            </span>
-                                            <span class="nav-item-name">{{ _item.label + '' | translate }}</span>
-                                            <span class="gl-badge badge badge-pill badge-info text-dark sm count" *ngIf="_item.counter && _counters[_item.counter]">{{ _counters[_item.counter] || 0 }}</span>
-                                            <span class="gl-badge text-info" *ngIf="_item.counter && _counters[_item.counter] && _sideBarCollapsed"><i class="bi bi-record-fill"></i></span>
-                                            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-                                                *ngIf="_enableOpenInNewTab && _item.url && !_sideBarCollapsed"
-                                                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                                                (click)="_openMenuInNewTab($event, _item)"></span>
-                                        </a>
-                                        <ul class="sidebar-sub-level-items">
-                                            <li class="fly-out-top-item" [appRouterLinkMatch]="{ 'active': _item.path + '' }">
-                                                <span class="fly-out-top-item-container">
-                                                    <strong class="fly-out-top-item-name">{{ _item.label + '' | translate }}</strong>
-                                                    <span class="gl-badge badge badge-pill badge-info sm count fly-out-badge merge_counter js-merge-counter" *ngIf="_item.counter && _counters[_item.counter]">{{ _counters[_item.counter] || 0 }}</span>
-                                                </span>
-                                            </li>
-                                            <li class="divider fly-out-top-item"></li>
-                                            <ng-container *ngFor="let _subItem of _item.children">
-                                                <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }" *ngIf="_subItem | mapper:_showMenu">
-                                                    <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" (click)="_onClickMenu($event, _subItem)">
-                                                        <span class="nav-icon-container" *ngIf="false">
-                                                            <span class="material-icons-outlined" *ngIf="sidebarNavHelper.hasIcon(_subItem)">{{ _subItem.icon}}</span>
-                                                        </span>
-                                                        <span class="">{{ _subItem.label + '' | translate }}</span>
-                                                        <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter" *ngIf="false">0</span>
-                                                        <span class="open-new-tab-icon bi bi-box-arrow-up-right"
-                                                            *ngIf="_enableOpenInNewTab && _subItem.url"
-                                                            [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                                                            (click)="_openMenuInNewTab($event, _subItem)"></span>
-                                                    </a>
-                                                </li>
-                                            </ng-container>
-                                        </ul>
-                                    </ng-container>
-                                </ng-container>
-                            </li>
-                        </ng-container>
-                    </ng-container>
-                </ul>
-            </div>
-            <div class="d-flex flex-column align-items-start" [class.pt-2]="_showNewsArea && !_sideBarCollapsed" [class.border-top]="(_showAboutMiniBox || _showNewsArea) && !_sideBarCollapsed">
-                <div class="news-area" *ngIf="_showNewsArea && !_sideBarCollapsed">
-                    <app-news-box
-                        [title]="'Message title'"
-                        [content]="'Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur exercitationem dolorum molestiae ullam perferendis.'"
-                        [showClose]="false"
-                        [showBottonLink]="false"
-                        [link]="'www.link.it'"
-                        [buttonText]="'APP.BUTTON.Go' | translate"
-                    ></app-news-box>
-                </div>
-                <div class="about-area" *ngIf="_showAboutMiniBox && !_sideBarCollapsed">
-                    <app-about-mini-box></app-about-mini-box>
-                </div>
-                <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed" *ngIf="_showVersion">
-                    <ul class="sidebar-top-level-items mb-0">
-                        <li class="" appFlyOut>
-                            <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="showInfo()">
-                                <span class="nav-icon-container" *ngIf="_showAbout || _sideBarCollapsed" [title]="('APP.LABEL.Version' | translate) + ' ' + version"><i class="bi bi-info-circle"></i></span>
-                                <span class="nav-item-name version-text" *ngIf="!_sideBarCollapsed">{{ 'v.' | translate }} {{ version }}</span>
-                            </a>
-                            <ul class="sidebar-sub-level-items">
-                                <li class="fly-out-top-item">
-                                    <span class="fly-out-top-item-container">
-                                        <strong class="fly-out-top-item-name">{{ 'v.' | translate }} {{ version }}</strong>
+  @if ((_contentLimited || !_notSideBar) &&!_isAnonymous) {
+    <aside class="nav-sidebar" [ngClass]="{ 'sidebar-collapsed-desktop': _sideBarCollapsed && desktop, 'sidebar-expanded-mobile': !_sideBarCollapsed && !desktop && !mobile || _openSideBar  }">
+      <div class="d-flex flex-column align-items-start h-100">
+        <div class="nav-sidebar-inner-scroll">
+          @if (_spin) {
+            <div class="w-100 text-center mt-3"><span class="spinner-border spinner-border-sm text-muted"></span></div>
+          }
+          @if (!_spin) {
+            <ul class="sidebar-top-level-items">
+              @for (_item of navItems; track $index) {
+                @if (_item | mapper:_showMenu) {
+                  <li class="position-relative" [ngClass]="{ 'js-collapsed-desktop': _sideBarCollapsed && desktop, 'js-expanded-mobile': _sideBarCollapsed && !desktop, 'js-mobile': mobile, 'expanded': (_item.expanded && mobile) || _forceMenuOpen, 'force-menu-open': _forceMenuOpen }" [appRouterLinkMatch]="{ 'active': _item.path + '' }" appFlyOut>
+                    @switch (sidebarNavHelper.itemType(_item)) {
+                      @case ('divider') {
+                        <a class="divider">&nbsp;</a>
+                      }
+                      @case ('title') {
+                        <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" [class.has-sub-items]="_item?.children?.length" (click)="_onClickMenu($event, _item)">
+                          <span class="nav-icon-container">
+                            @if (sidebarNavHelper.hasIcon(_item)) {
+                              <span class="material-icons-outlined">{{ _item.icon}}</span>
+                            }
+                            @if (sidebarNavHelper.hasIconBs(_item)) {
+                              <i class="bi bi-{{ _item.iconBs}}"></i>
+                            }
+                          </span>
+                          <span class="nav-item-name">{{ _item.label + '' | translate }}</span>
+                          @if (_item.counter && _counters[_item.counter]) {
+                            <span class="gl-badge badge badge-pill badge-info text-dark sm count">{{ _counters[_item.counter] || 0 }}</span>
+                          }
+                          @if (_item.counter && _counters[_item.counter] && _sideBarCollapsed) {
+                            <span class="gl-badge text-info"><i class="bi bi-record-fill"></i></span>
+                          }
+                          @if (_enableOpenInNewTab && _item.url && !_sideBarCollapsed) {
+                            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                            (click)="_openMenuInNewTab($event, _item)"></span>
+                          }
+                        </a>
+                        <ul class="sidebar-sub-level-items">
+                          <li class="fly-out-top-item" [appRouterLinkMatch]="{ 'active': _item.path + '' }">
+                            <span class="fly-out-top-item-container">
+                              <strong class="fly-out-top-item-name">{{ _item.label + '' | translate }}</strong>
+                              @if (_item.counter && _counters[_item.counter]) {
+                                <span class="gl-badge badge badge-pill badge-info sm count fly-out-badge merge_counter js-merge-counter">{{ _counters[_item.counter] || 0 }}</span>
+                              }
+                            </span>
+                          </li>
+                          <li class="divider fly-out-top-item"></li>
+                          @for (_subItem of _item.children; track $index) {
+                            @if (_subItem | mapper:_showMenu) {
+                              <li class="" [appRouterLinkMatch]="{ 'active': _subItem.path + '' }">
+                                <a href="javascript: void(0);" class="gl-link cursor-pointer supports-new-tab" (click)="_onClickMenu($event, _subItem)">
+                                  @if (false) {
+                                    <span class="nav-icon-container">
+                                      @if (sidebarNavHelper.hasIcon(_subItem)) {
+                                        <span class="material-icons-outlined">{{ _subItem.icon}}</span>
+                                      }
                                     </span>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </div>
-                <div class="toggle-area">
-                    <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
-                        <span class="material-icons-outlined">{{ (_sideBarCollapsed) ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
-                        <span class="collapse-text gp-ml-3">{{ 'APP.BUTTON.CollapseSidebar' | translate }}</span>
-                    </a>
-                    <button name="button" type="button" class="close-nav-button position-relative" (click)="__closeSideBar()" title="[v.{{ version }}]">
-                        <span class="material-icons-outlined">close</span>
-                        <span class="collapse-text gl-ml-3">{{ 'APP.BUTTON.CloseSidebar' | translate }}</span>
-                    </button>
-                </div>
+                                  }
+                                  <span class="">{{ _subItem.label + '' | translate }}</span>
+                                  @if (false) {
+                                    <span class="gl-badge badge rounded-pill badge-info text-dark sm count issue_counter">0</span>
+                                  }
+                                  @if (_enableOpenInNewTab && _subItem.url) {
+                                    <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                                      [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                                    (click)="_openMenuInNewTab($event, _subItem)"></span>
+                                  }
+                                </a>
+                              </li>
+                            }
+                          }
+                        </ul>
+                      }
+                    }
+                  </li>
+                }
+              }
+            </ul>
+          }
+        </div>
+        <div class="d-flex flex-column align-items-start" [class.pt-2]="_showNewsArea && !_sideBarCollapsed" [class.border-top]="(_showAboutMiniBox || _showNewsArea) && !_sideBarCollapsed">
+          @if (_showNewsArea && !_sideBarCollapsed) {
+            <div class="news-area">
+              <app-news-box
+                [title]="'Message title'"
+                [content]="'Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur exercitationem dolorum molestiae ullam perferendis.'"
+                [showClose]="false"
+                [showBottonLink]="false"
+                [link]="'www.link.it'"
+                [buttonText]="'APP.BUTTON.Go' | translate"
+              ></app-news-box>
             </div>
+          }
+          @if (_showAboutMiniBox && !_sideBarCollapsed) {
+            <div class="about-area">
+              <app-about-mini-box></app-about-mini-box>
+            </div>
+          }
+          @if (_showVersion) {
+            <div class="version-area d-flex pb-1" [class.justify-content-end]="!_sideBarCollapsed" [class.justify-content-center]="_sideBarCollapsed">
+              <ul class="sidebar-top-level-items mb-0">
+                <li class="" appFlyOut>
+                  <a href="javascript: void(0);" class="gl-link cursor-pointer" (click)="showInfo()">
+                    @if (_showAbout || _sideBarCollapsed) {
+                      <span class="nav-icon-container" [title]="('APP.LABEL.Version' | translate) + ' ' + version"><i class="bi bi-info-circle"></i></span>
+                    }
+                    @if (!_sideBarCollapsed) {
+                      <span class="nav-item-name version-text">{{ 'v.' | translate }} {{ version }}</span>
+                    }
+                  </a>
+                  <ul class="sidebar-sub-level-items">
+                    <li class="fly-out-top-item">
+                      <span class="fly-out-top-item-container">
+                        <strong class="fly-out-top-item-name">{{ 'v.' | translate }} {{ version }}</strong>
+                      </span>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          }
+          <div class="toggle-area">
+            <a href="javascript: void(0);" class="toggle-sidebar-button js-toggle-sidebar qa-toggle-sidebar rspec-toggle-sidebar position-relative" title="Toggle sidebar [v.{{ version }}]" type="button" (click)="__toggelCollapse()">
+              <span class="material-icons-outlined">{{ (_sideBarCollapsed) ? 'keyboard_double_arrow_right' : 'keyboard_double_arrow_left' }}</span>
+              <span class="collapse-text gp-ml-3">{{ 'APP.BUTTON.CollapseSidebar' | translate }}</span>
+            </a>
+            <button name="button" type="button" class="close-nav-button position-relative" (click)="__closeSideBar()" title="[v.{{ version }}]">
+              <span class="material-icons-outlined">close</span>
+              <span class="collapse-text gl-ml-3">{{ 'APP.BUTTON.CloseSidebar' | translate }}</span>
+            </button>
+          </div>
         </div>
+      </div>
     </aside>
-    <div class="content-wrapper" [ngClass]="{'content-wrapper-margin': _contentLimited || _notSideBar}">
-        <div class="mobile-overlay" [class.mobile-nav-open]="_openSideBar" (click)="__closeSideBar()" *ngIf="_contentLimited"></div>
-        <div class="container-fluid" [ngClass]="{'container-limited': _contentLimited, 'container-limited-max': !_contentLimited, 'px-md-4 px-sm-2': !_contentLimited, 'py-0': !_contentLimited}">
-            <main id="main-content" tabindex="-1" class="content">
-                <router-outlet></router-outlet>
-            </main>
-        </div>
+  }
+  <div class="content-wrapper" [ngClass]="{'content-wrapper-margin': _contentLimited || _notSideBar}">
+    @if (_contentLimited) {
+      <div class="mobile-overlay" [class.mobile-nav-open]="_openSideBar" (click)="__closeSideBar()"></div>
+    }
+    <div class="container-fluid" [ngClass]="{'container-limited': _contentLimited, 'container-limited-max': !_contentLimited, 'px-md-4 px-sm-2': !_contentLimited, 'py-0': !_contentLimited}">
+      <main id="main-content" tabindex="-1" class="content">
+        <router-outlet></router-outlet>
+      </main>
     </div>
+  </div>
 </div>
-<footer id="footer" class="px-0" [class.expanded]="_expandedFooter" *ngIf="_showFooterBar">
-    <div id="footerExpander" class="footer-expander" (click)="_toggleExpandFooter($event)" *ngIf="_showFooterExpander">
-        <i class="bi bi-chevron-compact-down" *ngIf="_expandedFooter"></i>
-        <i class="bi bi-chevron-compact-up" *ngIf="!_expandedFooter"></i>
-    </div>
+@if (_showFooterBar) {
+  <footer id="footer" class="px-0" [class.expanded]="_expandedFooter">
+    @if (_showFooterExpander) {
+      <div id="footerExpander" class="footer-expander" (click)="_toggleExpandFooter($event)">
+        @if (_expandedFooter) {
+          <i class="bi bi-chevron-compact-down"></i>
+        }
+        @if (!_expandedFooter) {
+          <i class="bi bi-chevron-compact-up"></i>
+        }
+      </div>
+    }
     <div id="footerExpanderClose" class="footer-expander-alt" (click)="_toggleExpandFooter($event)">
-        <i class="bi bi-x-lg"></i>
+      <i class="bi bi-x-lg"></i>
     </div>
-    <div class="h-100" [innerHtml]="_footerHtml | safeHtml" *ngIf="_expandedFooter">
+    @if (_expandedFooter) {
+      <div class="h-100" [innerHtml]="_footerHtml | safeHtml">
         <!-- /assets/pages/footer.html -->
-    </div>
-    <div class="h-100" [innerHtml]="_footerSmallHtml | safeHtml" *ngIf="!_expandedFooter">
+      </div>
+    }
+    @if (!_expandedFooter) {
+      <div class="h-100" [innerHtml]="_footerSmallHtml | safeHtml">
         <!-- /assets/pages/footer-small.html -->
-    </div>
-</footer>
+      </div>
+    }
+  </footer>
+}
 <linkit-multi-snackbar></linkit-multi-snackbar>
-<div #watermark class="staging-box d-flex align-items-center justify-content-center" *ngIf="_config.AppConfig?.Watermark && _config.AppConfig?.WatermarkText">
+@if (_config.AppConfig?.Watermark && _config.AppConfig?.WatermarkText) {
+  <div #watermark class="staging-box d-flex align-items-center justify-content-center">
     <span class="text-truncate">{{ _config.AppConfig?.WatermarkText }}</span>
-</div>
+  </div>
+}

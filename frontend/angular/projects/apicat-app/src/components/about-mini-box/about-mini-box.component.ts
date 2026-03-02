@@ -20,13 +20,14 @@ import { Component, OnInit } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
+import { ConfigService, SafeHtmlPipe } from '@linkit/components';
 
 @Component({
   selector: 'app-about-mini-box',
   templateUrl: './about-mini-box.component.html',
   styleUrls: ['./about-mini-box.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [SafeHtmlPipe]
 })
 export class AboutMiniBoxComponent implements OnInit {
 

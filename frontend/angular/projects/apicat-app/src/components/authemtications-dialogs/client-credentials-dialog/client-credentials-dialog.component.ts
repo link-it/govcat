@@ -17,29 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, FormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
 
 import { Subject } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from '@linkit/components';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { COMPONENTS_IMPORTS, ConfigService } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import { jwtDecode } from "jwt-decode";
-import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from 'projects/linkit/components/src/lib/interceptors/error.interceptor';
+import { DISABLE_GLOBAL_EXCEPTION_HANDLING } from '@app/lib/interceptors/error.interceptor';
 
 
 @Component({
     selector: 'app-client-credentials-dialog',
     templateUrl: './client-credentials-dialog.component.html',
     styleUrls: ['./client-credentials-dialog.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS, ...APP_COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
 export class ClientCredentialsDialogComponent implements OnInit {
 
@@ -49,7 +53,7 @@ export class ClientCredentialsDialogComponent implements OnInit {
     tokenPolicy: any = null;
     debug: boolean = false;
 
-    onClose!: Subject<any>;
+    onClose: Subject<any> = new Subject();
 
     _spin: boolean = false;
 
@@ -57,7 +61,14 @@ export class ClientCredentialsDialogComponent implements OnInit {
     _errorObject: any = null;
     _errorMsg: string = '';
 
-    formGroup: FormGroup = new FormGroup({});
+    formGroup: FormGroup = new FormGroup({
+        clientId: new FormControl(null, [Validators.required]),
+        clientSecret: new FormControl(null, [Validators.required]),
+        scope: new FormControl('', []),
+        result: new FormControl('', []),
+        encodedToken: new FormControl('', []),
+        decodedToken: new FormControl('', [])
+    });
 
     _showResult: boolean = false;
     _showMessageClipboard: boolean = false;
@@ -70,14 +81,14 @@ export class ClientCredentialsDialogComponent implements OnInit {
     _keyFileCtrl: FormControl = new FormControl(null, [Validators.required]);
     
     constructor(
-        private http: HttpClient,
-        private clipboard: Clipboard,
+        private readonly http: HttpClient,
+        private readonly clipboard: Clipboard,
         public bsModalRef: BsModalRef,
-        private translate: TranslateService,
-        private authenticationService: AuthenticationService,
-        private configService: ConfigService,
+        private readonly translate: TranslateService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly configService: ConfigService,
         public utils: UtilsLib,
-        private authenticationDialogService: AuthenticationDialogService
+        private readonly authenticationDialogService: AuthenticationDialogService
     ) { }
 
     ngOnInit() {
@@ -97,13 +108,8 @@ export class ClientCredentialsDialogComponent implements OnInit {
 
     initForm() {
         console.log('ClientCredentialsDialogComponent.initForm');
-        this.formGroup = new FormGroup({
-            clientId: new FormControl(null, [Validators.required]),
-            clientSecret: new FormControl(null, [Validators.required]),
-            scope: new FormControl(this._scope, []),
-            result: new FormControl('', []),
-            encodedToken: new FormControl('', []),
-            decodedToken: new FormControl('', [])
+        this.formGroup.patchValue({
+            scope: this._scope,
         });
     }
 

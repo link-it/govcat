@@ -1,0 +1,122 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="header-box ui-item-row">
+  <div #cr class="active-item d-flex flex-grow-1 align-items-center">
+    <div class="collapse-item-header">
+      <div class="d-flex align-items-start">
+        @if (enableCollapse) {
+          <div class="btn btn-default btn-sm gl-button btn-default-tertiary btn-icon button-collapse flex-shrink-0" (click)="__toggle($event, cr)">
+            <em class="bi" [class.bi-chevron-down]="!expanded" [class.bi-chevron-up]="expanded"></em>
+          </div>
+        }
+        <div class="d-flex align-items-center justify-content-between w-100">
+          @if (_itemRowConfig?.avatar) {
+            <div class="avatar-image">
+              <ui-item-type
+                [data]="_data"
+                [elem]="_itemRowConfig?.avatar"
+                [config]="_config">
+              </ui-item-type>
+            </div>
+          }
+          <div class="main-info">
+            <div class="main-data">
+              <div class="primary-text- ms-2 text-break fw-bold-600">
+                <span [class.text-hover]="hasLink" [class.cursor-pointer]="hasLink" (click)="__toggle($event, cr)">
+                  @for (elem of _itemRowConfig?.primaryText; track elem) {
+                    <ui-item-type
+                      [data]="_data"
+                      [elem]="elem"
+                      [config]="_config">
+                    </ui-item-type>
+                  }
+                </span>
+              </div>
+            </div>
+            @if (_itemRowConfig?.metadata) {
+              <div class="meta-data ms-2 mt-2">
+                @if (_itemRowConfig?.metadata?.text.length > 0) {
+                  <div class="d-inline-block text">
+                    @for (elem of _itemRowConfig?.metadata.text; track elem) {
+                      <ui-item-type
+                        [data]="_data"
+                        [elem]="elem"
+                        [config]="_config">
+                      </ui-item-type>
+                    }
+                  </div>
+                }
+                @if (_itemRowConfig?.metadata?.label.length > 0) {
+                  <div class="d-inline-block labels ms-2">
+                    @for (elem of _itemRowConfig?.metadata.label; track elem) {
+                      <ui-item-type
+                        [data]="_data"
+                        [elem]="elem"
+                        [config]="_config">
+                      </ui-item-type>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <div class="meta-info">
+            @if (_itemRowConfig?.secondaryText) {
+              <div class="main-data d-block">
+                @for (elem of _itemRowConfig?.secondaryText; track elem) {
+                  <ui-item-type
+                    [data]="_data"
+                    [elem]="elem"
+                    [config]="_config">
+                  </ui-item-type>
+                }
+              </div>
+            }
+            @if (_itemRowConfig?.secondaryMetadata) {
+              <div class="meta-data mt-1">
+                @for (elem of _itemRowConfig?.secondaryMetadata; track elem) {
+                  <ui-item-type
+                    [data]="_data"
+                    [elem]="elem"
+                    [config]="_config">
+                  </ui-item-type>
+                }
+              </div>
+            }
+          </div>
+        </div>
+        <div class="d-flex align-items-center ms-4">
+          @if (hasAction) {
+            <div class="btn btn-default btn-md gl-button btn-icon button-collapse" [tooltip]="actionTooltip" (click)="__actionClick($event)">
+              <em class="bi bi-{{ iconAction }} {{ iconClass }}"></em>
+              @if (!iconAction) {
+                <span>{{ actionText }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="collapse-item-body" role="region" [class.expanded]="expandedChange|async" [@transition]="expanded"
+  (@transition.done)="__endTransition($event)" (@transition.start)="__startTransition($event)"
+  [attr.aria-labelledby]="'collapse-item-body'">
+  <ng-content select="[collapse-content]"></ng-content>
+</div>

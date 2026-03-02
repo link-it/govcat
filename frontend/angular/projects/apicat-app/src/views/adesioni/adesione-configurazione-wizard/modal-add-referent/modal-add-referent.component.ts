@@ -16,11 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
+
+import { COMPONENTS_IMPORTS } from '@linkit/components';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -32,7 +34,13 @@ import { map, tap } from 'rxjs/operators';
     selector: 'app-modal-add-referent',
     templateUrl: './modal-add-referent.component.html',
     styleUrls: ['./modal-add-referent.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ModalAddReferentComponent implements OnInit {
 
@@ -93,13 +101,9 @@ export class ModalAddReferentComponent implements OnInit {
     }
 
     _hasControlError(name: string) {
-        return (this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
     }
     
-    trackByFn(item: any) {
-        return item.id;
-    }
-
     onChangeTipoReferente(event: any) {
         this.referentiTipo = event.value;
         this.referentiFilter = (this.referentiTipo === 'referente') ? 'referente_servizio,gestore,coordinatore' : '';

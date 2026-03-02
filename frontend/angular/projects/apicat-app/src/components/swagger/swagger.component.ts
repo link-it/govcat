@@ -17,11 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, ElementRef, Input, OnInit, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
 
-import { SwaggerConfigs, SwaggerUIBundle, SwaggerUIStandalonePreset, Spec } from 'swagger-ui-dist';
+import type { SwaggerConfigs, Spec } from 'swagger-ui-dist';
+import SwaggerUIBundle from 'swagger-ui-dist/swagger-ui-bundle';
+import SwaggerUIStandalonePreset from 'swagger-ui-dist/swagger-ui-standalone-preset';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -31,7 +37,8 @@ import { firstValueFrom } from 'rxjs';
   selector: 'ui-swagger',
   templateUrl: './swagger.component.html',
   styleUrls: ['./swagger.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TooltipModule, TranslateModule]
 })
 export class SwaggerComponent implements OnInit {
 

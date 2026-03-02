@@ -17,18 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, FormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
 
 import { Subject } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from '@linkit/components';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { COMPONENTS_IMPORTS, ConfigService } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import * as rs from 'jsrsasign';
@@ -37,7 +40,8 @@ import * as rs from 'jsrsasign';
     selector: 'app-agid-jwt-tracking-evidence-dialog',
     templateUrl: './agid-jwt-tracking-evidence-dialog.component.html',
     styleUrls: ['./agid-jwt-tracking-evidence-dialog.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS, ...APP_COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
 export class AgidJwtTrackingEvidenceDialogComponent implements OnInit {
 
@@ -47,7 +51,7 @@ export class AgidJwtTrackingEvidenceDialogComponent implements OnInit {
     tokenPolicy: any = null;
     debug: boolean = false;
 
-    onClose!: Subject<any>;
+    onClose: Subject<any> = new Subject();
 
     _spin: boolean = false;
     
@@ -55,7 +59,31 @@ export class AgidJwtTrackingEvidenceDialogComponent implements OnInit {
     _errorObject: any = null;
     _errorMsg: string = '';
     
-    formGroup: FormGroup = new FormGroup({});
+    formGroup: FormGroup = new FormGroup({
+        kid: new FormControl('', [Validators.required]),
+        alg: new FormControl('', [Validators.required]),
+        typ: new FormControl({ value: '', disabled: true }, [Validators.required]),
+        clientId: new FormControl('', [Validators.required]),
+
+        audience: new FormControl({ value: '', disabled: true }, [Validators.required]),
+        audience_audit: new FormControl({ value: '', disabled: false }, [Validators.required]),
+
+        purposeId: new FormControl('', [Validators.required]),
+        expiration: new FormControl(0, []),
+
+        userID: new FormControl(null, [Validators.required]),
+        userLocation: new FormControl(null, [Validators.required]),
+        loa: new FormControl('', [Validators.required]),
+
+        key: new FormControl(null, [Validators.required]),
+        keyFile: new FormControl(null, [Validators.required]),
+        keyFormat: new FormControl(null, []),
+
+        result: new FormControl(null, []),
+        unsignedToken: new FormControl(null, []),
+        signedToken: new FormControl(null, []),
+        expiresIn: new FormControl(null, []),
+    });
 
     _showResult: boolean = false;
     _showMessageClipboard: boolean = false;
@@ -74,14 +102,14 @@ export class AgidJwtTrackingEvidenceDialogComponent implements OnInit {
     _keyFileCtrl: FormControl = new FormControl(null, [Validators.required]);
 
     constructor(
-        private http: HttpClient,
-        private clipboard: Clipboard,
+        private readonly http: HttpClient,
+        private readonly clipboard: Clipboard,
         public bsModalRef: BsModalRef,
-        private translate: TranslateService,
-        private authenticationService: AuthenticationService,
-        private configService: ConfigService,
+        private readonly translate: TranslateService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly configService: ConfigService,
         public utils: UtilsLib,
-        private authenticationDialogService: AuthenticationDialogService
+        private readonly authenticationDialogService: AuthenticationDialogService
     ) { }
 
     ngOnInit() {
@@ -106,31 +134,15 @@ export class AgidJwtTrackingEvidenceDialogComponent implements OnInit {
     }
 
     initForm() {
-        this.formGroup = new FormGroup({
-            kid: new FormControl('', [Validators.required]),
-            alg: new FormControl(this._algDefault, [Validators.required]),
-            typ: new FormControl({ value: this._type, disabled: true }, [Validators.required]),
-            clientId: new FormControl('', [Validators.required]),
-
-            audience: new FormControl({ value: this._audience, disabled: true }, [Validators.required]),
-            audience_audit: new FormControl({ value: this._audience_audit, disabled: false }, [Validators.required]),
-
-            purposeId: new FormControl('', [Validators.required]),
-            expiration: new FormControl(this._expiration, []),
-
-            userID: new FormControl(null, [Validators.required]),
-            userLocation: new FormControl(null, [Validators.required]),
-            loa: new FormControl(this._loa, [Validators.required]),
-
-            key: new FormControl(null, [Validators.required]),
-            keyFile: this._keyFileCtrl,
-            keyFormat: new FormControl(null, []),
-
-            result: new FormControl(null, []),
-            unsignedToken: new FormControl(null, []),
-            signedToken: new FormControl(null, []),
-            expiresIn: new FormControl(null, []),
+        this.formGroup.setControl('keyFile', this._keyFileCtrl);
+        this.formGroup.patchValue({
+            alg: this._algDefault,
+            expiration: this._expiration,
+            loa: this._loa,
         });
+        this.formGroup.get('typ')?.setValue(this._type);
+        this.formGroup.get('audience')?.setValue(this._audience);
+        this.formGroup.get('audience_audit')?.setValue(this._audience_audit);
     }
 
     closeModal(data: any = null) {
@@ -207,15 +219,15 @@ export class AgidJwtTrackingEvidenceDialogComponent implements OnInit {
                 // Se è DER, convertilo in PEM prima di passarlo a KEYUTIL.getKey
                 const pemKey = this.authenticationDialogService.buildPEMString(values.key, 'PRIVATE KEY');
                 rsaKey = rs.KEYUTIL.getKey(pemKey);
-            } catch (e) {
+            } catch {
                 try {
                     // Se è DER, convertilo in PEM prima di passarlo a KEYUTIL.getKey
                     const pemKey = this.authenticationDialogService.buildPEMString(values.key, 'RSA PRIVATE KEY');
                     rsaKey = rs.KEYUTIL.getKey(pemKey);
-                } catch (e1) {
+                } catch (error) {
                     this._error = true;
                     this._errorMsg = 'Errore durante la lettura della chiave';
-                    console.error("Errore durante la lettura della chiave: ", e1);
+                    console.error("Errore durante la lettura della chiave: ", error);
                     return;
                 }
             }

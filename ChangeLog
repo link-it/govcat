@@ -1,3 +1,107 @@
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix sidebar e dashboard.
+	- Sidebar: badge counter e icona link sovrapposti nella stessa posizione (nascosto su hover)
+	- Dashboard: aggiunto container-scroller per scroll con breadcrumb sticky
+	- Dashboard: aggiunto APP_COMPONENTS_IMPORTS per pulsante Refresh mancante
+	- Dashboard: altezza expanded view dinamica con flex (adattamento finestra ridotta)
+	- Dashboard: summary card sempre 2 per riga (col-6 invece di col-sm-6)
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix compatibilità Angular 21: trackByFn, FormGroup keys, dialog autenticazione.
+	- Rimossi tutti i trackByFn/trackBySelectFn da ng-select (NG0955 chiavi duplicate con @for interno)
+	- Rinominata chiave FormGroup "organization.taxCode" in "organizationTaxCode" (9 file)
+	- Corretti controlName errati in template (gruppo → tipo/filename, 3 file)
+	- Fix track expression in @for: form-readonly, taxonomies, breadcrumb, gp-layout (NG0956)
+	- Dialog autenticazione: FormControl dichiarati nel field initializer invece che in ngOnInit (6 dialog)
+	- Dialog autenticazione: onClose inizializzato alla dichiarazione, optional chaining per config
+	- Fix _hasControlError: coercizione booleana con !! per evitare NG0100 (26 file)
+	- Aggiornati test unitari relativi (96 file, 292 spec, 3280 test verdi)
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fase 12 Standalone Migration: rimozione completa NgModule wrapper.
+	- Fase 12A: spostati side effect (GravatarModule.forRoot, defineCustomElements, BreadcrumbService) in app.config.ts/bootstrap.ts
+	- Fase 12B: eliminato ComponentsModule, creato array COMPONENTS_IMPORTS in lib/index.ts (~91 file aggiornati)
+	- Fase 12C: eliminato AppComponentsModule, creato array APP_COMPONENTS_IMPORTS (~20 file aggiornati)
+	- Fase 12D: eliminati ~52 module wrapper singoli (directive, component, pipe, sub-view)
+	- Fase 12E: convertiti 60 routing module in route file (.routes.ts), eliminati 60 feature module
+	- Fase 12F: cleanup barrel files, rinominato components.module.ts in components-imports.ts
+	- Risultato: 0 file .module.ts, 61 file .routes.ts, build prod OK, 292 spec / 3300 test / 29 E2E verdi
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix coverage: esclusi template HTML dal report e risolti errori residui.
+	- coverageExclude in angular.json per escludere *.html dal coverage (vitest.config.ts ignorato dal builder)
+	- Mock jQuery ($) spostato a inizio vitest-setup.ts (prima di tutti gli import) su globalThis
+	- Spy su Tools.ScrollTo/ScrollElement in servizio-api-allegati.spec.ts per evitare setTimeout leak
+	- Fix breadcrumb.component.spec.ts: mockImplementation su _updateBreadcrumbs per evitare crash non-deterministico
+	- Risultato: 292 file, 3300 test, 0 fallimenti, 0 errori, 0 file HTML nel coverage
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix stabilità test e pulizia errori residui.
+	- Mock globale jQuery ($) in vitest-setup.ts (vi.stubGlobal + Tools.ScrollTo no-op)
+	- Cleanup Tools.Configurazione in afterEach per 9 spec file che causavano contaminazione cross-test
+	- Rimosso workaround vi.useFakeTimers da 3 spec (non più necessario col mock globale)
+	- Risultato: 292 file, 3300 test, 0 fallimenti, 0 errori (anche con --coverage)
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fase 11: test views, modelli, servizi e decorator.
+	- Step 1-4: 50 file spec per containers (2), views semplici (16), adesioni (18), servizi (32)
+	- Step 5-9: 14 file spec per componenti residui (5), modelli (6), servizio PDND, decorator, utility
+	- Fix test isolation: Tools.Configurazione save/restore, vi.useFakeTimers per timer leak jQuery
+	- Totale: 292 file di test, 3300 test unitari verdi
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fase 10: configurazione coverage Vitest e test componenti shared.
+	- Configurato @vitest/coverage-v8 con reporter text/html, aggiunto script test:coverage
+	- Aggiunti 227 test per componenti shared, UI, dialog autenticazione e business
+	- Migliorati 7 spec esistenti lib/ui con pattern istanziazione diretta
+	- Totale: 167 file di test, 1451 test unitari verdi, build produzione OK
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migrazione standalone - Fase 9: rimosso AppModule, bootstrap standalone.
+	154/154 componenti standalone, creato app.config.ts e app.routes.ts.
+
+2026-02-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migrazione standalone componenti Angular (Fasi 0-8).
+	- Fase 0: consolidamento librerie @linkit/components e @linkit/validators in apicat-app
+	- Fasi 1-6: pipe, direttive, componenti UI, layout convertiti a standalone
+	- Fase 7: feature modules semplici (login, registrazione, PDND, dashboard, ecc.)
+	- Fase 8: feature modules complessi (adesioni 11 componenti, servizi 25 componenti,
+	  domini, clients, soggetti, utenti, classi-utente, gruppi, organizzazioni, taxonomies)
+	- Risultato: 121 componenti standalone su 154 totali
+	- Build produzione OK, 1224 test unitari verdi, 29 test E2E verdi
+
+2026-02-28  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Upgrade Angular 19 → 21 e migrazione test Karma → Vitest.
+	- Rimosso ngx-build-plus, migrato a @angular/build:application
+	- Aggiornato Angular 19 → 20 → 21, TypeScript 5.9, zone.js 0.15
+	- Aggiornate tutte le dipendenze terze (ng-select, ngx-bootstrap, ecc.)
+	- Migrato framework test da Karma/Jasmine a Vitest (627 test verificati)
+	- Corretto pattern [items] async pipe per ng-select v21
+	- AppComponent convertito a standalone per compatibilita' builder
+	- Fix runtime: dipendenza circolare TipoCertificatoEnum, NG0912 path resolution,
+	  NG8107 optional chaining, NG0955/NG0956 track expression
+	- Setup Playwright per test E2E (29 test: login, navigazione, catalogo, dashboard)
+
 2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

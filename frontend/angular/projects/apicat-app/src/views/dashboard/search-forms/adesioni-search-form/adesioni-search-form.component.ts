@@ -17,9 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
-import { ConfigService, Tools, SearchBarFormComponent } from '@linkit/components';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { COMPONENTS_IMPORTS, ConfigService, Tools, SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
@@ -38,7 +42,15 @@ export enum StatoConfigurazione {
   selector: 'app-adesioni-search-form',
   templateUrl: './adesioni-search-form.component.html',
   styleUrls: ['./adesioni-search-form.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgSelectModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class AdesioniSearchFormComponent implements OnInit {
 
@@ -287,7 +299,4 @@ export class AdesioniSearchFormComponent implements OnInit {
     }, 200);
   }
 
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio || item.id_soggetto || item.id_organizzazione || item.id_dominio;
-  }
 }

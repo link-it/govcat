@@ -16,14 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction, ConfigService, EventsManagerService, Tools, EventType } from '@linkit/components';
+import { MenuAction, ConfigService, EventsManagerService, Tools, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -38,14 +38,44 @@ import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchM
 
 import { Grant } from '@app/model/grant';
 
+import { CommonModule } from '@angular/common';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { WorkflowComponent } from '@app/components/workflow/workflow.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
+import { MarkdownModule } from 'ngx-markdown';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
+
 declare const saveAs: any;
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Component({
     selector: 'app-servizio-details',
     templateUrl: 'servizio-details.component.html',
     styleUrls: ['servizio-details.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        RouterModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        DisablePermissionDirective,
+        MarkAsteriskDirective,
+        WorkflowComponent,
+        ErrorViewComponent,
+        MonitorDropdwnComponent,
+        NotificationBarComponent,
+        MarkdownModule,
+        MapperPipe,
+        HttpImgSrcPipe
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioDetailsComponent';
@@ -422,7 +452,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _hasControlError(name: string) {
-        return (this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
     }
 
     _isVisibilita(type: string) {
@@ -804,10 +834,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._errorMsg = this.utils.GetErrorMsg(error);
             }
         });
-    }
-
-    trackByFn(item: any) {
-        return item.id;
     }
 
     getDomini(term: string | null = null): Observable<any> {

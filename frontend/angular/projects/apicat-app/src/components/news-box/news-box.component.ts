@@ -22,7 +22,7 @@ import { Component, Input, OnInit } from '@angular/core';
   selector: 'app-news-box',
   templateUrl: './news-box.component.html',
   styleUrls: ['./news-box.component.scss'],
-  standalone: false
+  standalone: true
 })
 export class NewsBoxComponent implements OnInit {
 

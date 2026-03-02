@@ -16,33 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild, TemplateRef } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild, TemplateRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, EventType, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService, EventType } from '@linkit/components';
+import { UtilService, Certificato } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
-import { Client, PeriodEnum } from './client';
-import { Soggetto } from './client';
+import { Client, PeriodEnum, Soggetto } from './client';
 
-import { DatiSpecItem } from './clientUpdate';
-import { CommonName } from './clientUpdate';
-import { DoubleCert } from './clientUpdate';
-import { Datispecifici } from './clientUpdate';
+import { DatiSpecItem, CommonName, DoubleCert, Datispecifici } from './clientUpdate';
 
 const fake_tipoCertificatoEnum = [ 'fornito', 'richiesto_cn', 'richiesto_csr'];
 const fake_stato = [ 'nuovo', 'configurato'];
@@ -51,13 +44,24 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
 import * as _ from 'lodash';
 declare const saveAs: any;
 
-import { Certificato } from '@app/services/utils.service';
+
+import { CommonModule } from '@angular/common';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 
 @Component({
   selector: 'app-client-details',
   templateUrl: 'client-details.component.html',
   styleUrls: ['client-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    RouterModule,
+    TrimOnBlurDirective,
+    ErrorViewComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientDetailsComponent';
@@ -291,7 +295,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -1685,10 +1689,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
         }
       })
       );
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   _checkSoggetto(event: any) {  

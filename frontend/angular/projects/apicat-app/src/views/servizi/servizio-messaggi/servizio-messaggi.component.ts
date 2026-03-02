@@ -16,17 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools, EventsManagerService, SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from '@linkit/components'
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 
 import { Page } from '@app/models/page';
 
@@ -34,7 +34,9 @@ import { Page } from '@app/models/page';
   selector: 'app-servizio-messaggi',
   templateUrl: 'servizio-messaggi.component.html',
   styleUrls: ['servizio-messaggi.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [...COMPONENTS_IMPORTS, AutoFillScrollDirective, MonitorDropdwnComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioMessaggiComponent';
@@ -186,7 +188,7 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
 
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
+      organizationTaxCode: new UntypedFormControl(''),
       creationDateFrom: new UntypedFormControl(''),
       creationDateTo: new UntypedFormControl(''),
       fileName: new UntypedFormControl(''),

@@ -17,11 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
+import { NgSelectModule } from '@ng-select/ng-select';
+import { TranslateModule } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { Tools, ConfigService, SearchBarFormComponent, EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent, EventsManagerService } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { TassonomiaTokenComponent } from '@app/components/token/tassonomia-token.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
@@ -37,7 +42,17 @@ import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
     selector: 'app-servizi-search-form',
     templateUrl: './servizi-search-form.component.html',
     styleUrls: ['./servizi-search-form.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        NgSelectModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        TassonomiaTokenComponent
+    ]
 })
 export class ServiziSearchFormComponent implements OnInit {
 
@@ -254,10 +269,6 @@ export class ServiziSearchFormComponent implements OnInit {
                 }
             })
         );
-    }
-
-    trackBySelectFn(item: any) {
-        return item.id_api;
     }
 
     onSelectedSearchDropdwon($event: Event){

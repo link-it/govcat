@@ -62,9 +62,11 @@
                     <div class="col-8">
                       <select class="form-select form-control-sm" id="ruolo" formControlName="ruolo">
                         <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                        <option *ngFor="let ruolo of _ruoloArr" [value]="ruolo">
-                          {{ 'APP.USERS.ROLES.' + ruolo | translate }}
-                        </option>
+                        @for (ruolo of _ruoloArr; track ruolo) {
+                          <option [value]="ruolo">
+                            {{ 'APP.USERS.ROLES.' + ruolo | translate }}
+                          </option>
+                        }
                       </select>
                     </div>
                   </div>
@@ -77,9 +79,11 @@
                     <div class="col-8">
                       <select class="form-select form-control-sm" id="stato" formControlName="stato">
                         <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                        <option *ngFor="let stato of _statoArr" [value]="stato">
-                          {{ 'APP.USERS.STATUS.' + stato | translate }}
-                        </option>
+                        @for (stato of _statoArr; track stato) {
+                          <option [value]="stato">
+                            {{ 'APP.USERS.STATUS.' + stato | translate }}
+                          </option>
+                        }
                       </select>
                     </div>
                   </div>
@@ -101,8 +105,8 @@
                 </div>
                 <div class="col-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="organizzazioni$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(organizzazioni$ | async) || []"
+
                     [typeahead]="organizzazioniInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
@@ -128,8 +132,8 @@
                 </div>
                 <div class="col-10">
                   <ng-select (click)="onSelectedSearchDropdwon($event)"
-                    [items]="classiUtente$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(classiUtente$ | async) || []"
+
                     [typeahead]="classiUtenteInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
@@ -155,9 +159,11 @@
                 <div class="col-10">
                   <select class="form-select form-control-sm" id="referente_tecnico" formControlName="referente_tecnico">
                     <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                    <option *ngFor="let yn of yesNoList" [value]="yn.value">
-                      {{ yn.label | translate }}
-                    </option>
+                    @for (yn of yesNoList; track yn) {
+                      <option [value]="yn.value">
+                        {{ yn.label | translate }}
+                      </option>
+                    }
                   </select>
                 </div>
               </div>

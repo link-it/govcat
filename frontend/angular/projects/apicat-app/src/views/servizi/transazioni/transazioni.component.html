@@ -22,37 +22,44 @@
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
       <!-- <div class="position-relative" *ngIf="service">
-        <app-back-web [service_id]="service.id_servizio"></app-back-web>
-      </div> -->
-    </div>
+      <app-back-web [service_id]="service.id_servizio"></app-back-web>
+    </div> -->
   </div>
-  <div class="top-area">
-    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
-      <div class="">
-        <ul class="nav gp-border-b-0 gp-tabs-nav">
-          <li class="nav-item">
-            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="_allElements || elements.length">
-              <span>{{ 'APP.FILTER.Testing' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements" *ngIf="_isCollaudo()">{{ _allElements || elements.length }}</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()" [attr.aria-label]="_allElements || elements.length">
-              <span>{{ 'APP.FILTER.Production' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements" *ngIf="!_isCollaudo()">{{ _allElements || elements.length }}</span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-    <div class="nav-control align-self-center d-flex">
-      <div class="btn-group-">
-        <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_onExportTransazioni()" [disabled]="!_formGroup.valid || _spinExport || (elements.length === 0)">
-          <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
-          <span class="ms-3 spinner-border spinner-border-sm" *ngIf="_spinExport"></span>
-        </button>
-      </div>
-    </div>
+</div>
+<div class="top-area">
+  <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+    <div class="">
+      <ul class="nav gp-border-b-0 gp-tabs-nav">
+        <li class="nav-item">
+          <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="_isCollaudo()" (click)="_showCollaudo()" [attr.aria-label]="_allElements || elements.length">
+            <span>{{ 'APP.FILTER.Testing' | translate }}</span> @if (_isCollaudo()) {
+            <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || elements.length }}</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item">
+        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!_isCollaudo()" (click)="_showProduzione()" [attr.aria-label]="_allElements || elements.length">
+          <span>{{ 'APP.FILTER.Production' | translate }}</span> @if (!_isCollaudo()) {
+          <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || elements.length }}</span>
+        }
+      </a>
+    </li>
+  </ul>
+</div>
+</div>
+<div class="nav-control align-self-center d-flex">
+  <div class="btn-group-">
+    <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_onExportTransazioni()" [disabled]="!_formGroup.valid || _spinExport || (elements.length === 0)">
+      <i class="bi bi-download"></i> <span class="ms-2">{{ 'APP.MENU.Export' | translate }}</span>
+      @if (_spinExport) {
+        <span class="ms-3 spinner-border spinner-border-sm"></span>
+      }
+    </button>
   </div>
-  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
+</div>
+</div>
+@if (_hasFilter) {
+  <section class="search-bar container-fluid px-0">
     <div class="row align-items-center">
       <div class="col-12">
         <ui-search-bar-form #searchBarForm
@@ -82,16 +89,21 @@
                   </div>
                   <div class="col-sm-10">
                     <select class="form-select form-control-sm" id="search_type" formControlName="search_type" [class.gl-field-error-outline]="_hasControlError('search_type')">
-                      <option *ngFor="let type of _searchTypes" [value]="type.value">
-                        {{ type.label }}
-                      </option>
+                      @for (type of _searchTypes; track type) {
+                        <option [value]="type.value">
+                          {{ type.label }}
+                        </option>
+                      }
                     </select>
-                    <p *ngIf="_formGroup.get('search_type')?.dirty || _formGroup.get('search_type')?.touched" class="form-text text-danger">
-                      <span *ngIf="_formGroup.get('search_type')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                    </p>
+                    @if (_formGroup.get('search_type')?.dirty || _formGroup.get('search_type')?.touched) {
+                      <p class="form-text text-danger">
+                        @if (_formGroup.get('search_type')?.hasError('required')) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        }
+                      </p>
+                    }
                   </div>
                 </div>
-
                 <div [class.d-none]="!(_formGroup.get('search_type')?.value === SearchTypeEnum.Generic)">
                   <div class="row mb-1">
                     <div class="col-sm-2">
@@ -137,24 +149,24 @@
                     </div>
                   </div>
                   <!-- <div class="row mb-1">
-                    <div class="col-sm-2">
-                      <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Subject' | translate }}</label>
-                    </div>
-                    <div class="col-sm-10">
-                      <input type="text" class="form-control form-control-sm" id="soggetto" formControlName="soggetto">
-                    </div>
-                  </div> -->
-                  <div *ngIf="_monitoraggioLimitata">
+                  <div class="col-sm-2">
+                    <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.Subject' | translate }}</label>
+                  </div>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control form-control-sm" id="soggetto" formControlName="soggetto">
+                  </div>
+                </div> -->
+                @if (_monitoraggioLimitata) {
+                  <div>
                     <div class="row mb-1">
                       <div class="col-sm-2">
                         <label class="col-form-label col-form-label-fix" for="id_api">{{ 'APP.LABEL.id_api' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_api'"></span></label>
                       </div>
                       <div class="col-sm-10">
                         <ng-select class="" [class.gl-field-error-outline]="_hasControlError('id_api')" (click)="onSelectedSearchDropdwon($event)"
-                          [items]="servizioApis$ | async"
-                          [trackByFn]="trackApiBySelectFn"
+                          [items]="(servizioApis$ | async) || []"
                           [typeahead]="servizioApisInput$"
-                          [minTermLength]="minLengthTerm" 
+                          [minTermLength]="minLengthTerm"
                           [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                           [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
                           labelForId="id_api"
@@ -174,64 +186,69 @@
                         </ng-select>
                       </div>
                     </div>
-                    <div class="row mb-1" *ngIf="_apiSelected?.ruolo === 'erogato_soggetto_aderente'">
-                      <div class="col-sm-2">
-                        <label class="col-form-label col-form-label-fix" for="id_adesione">{{ 'APP.LABEL.id_adesione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_adesione'"></span></label>
+                    @if (_apiSelected?.ruolo === 'erogato_soggetto_aderente') {
+                      <div class="row mb-1">
+                        <div class="col-sm-2">
+                          <label class="col-form-label col-form-label-fix" for="id_adesione">{{ 'APP.LABEL.id_adesione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_adesione'"></span></label>
+                        </div>
+                        <div class="col-sm-10">
+                          <ng-select class="" [class.gl-field-error-outline]="_hasControlError('id_adesione')" (click)="onSelectedSearchDropdwon($event)"
+                            [items]="(adesioni$ | async) || []"
+                            [typeahead]="adesioniInput$"
+                            [minTermLength]="minLengthTerm"
+                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                            labelForId="id_adesione"
+                            [editableSearchTerm]="true"
+                            bindValue="id_adesione"
+                            formControlName="id_adesione"
+                            (change)="onChangeAdesioneSearchDropdwon($event)">
+                            <ng-template ng-label-tmp let-item="item">
+                              {{ item?.soggetto?.nome }}
+                            </ng-template>
+                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                              <div class="fw-bold">{{ item.soggetto.nome }}</div>
+                              <div class="">
+                                <span class="small text-muted">{{ item.soggetto.descrizione }}</span>
+                              </div>
+                            </ng-template>
+                          </ng-select>
+                        </div>
                       </div>
-                      <div class="col-sm-10">
-                        <ng-select class="" [class.gl-field-error-outline]="_hasControlError('id_adesione')" (click)="onSelectedSearchDropdwon($event)"
-                          [items]="adesioni$ | async"
-                          [trackByFn]="trackAdesioniBySelectFn"
-                          [typeahead]="adesioniInput$"
-                          [minTermLength]="minLengthTerm" 
-                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                          labelForId="id_adesione"
-                          [editableSearchTerm]="true"
-                          bindValue="id_adesione"
-                          formControlName="id_adesione"
-                          (change)="onChangeAdesioneSearchDropdwon($event)">
-                          <ng-template ng-label-tmp let-item="item">
-                            {{ item?.soggetto?.nome }}
-                          </ng-template>
-                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                            <div class="fw-bold">{{ item.soggetto.nome }}</div>
-                            <div class="">
-                              <span class="small text-muted">{{ item.soggetto.descrizione }}</span>
-                            </div>
-                          </ng-template>
-                        </ng-select>
-                      </div>
-                    </div>
+                    }
                   </div>
-
-                  <div class="row">
-                    <div class="col-2">
-                      <label class="col-form-label col-form-label-fix" for="esito">{{ 'APP.LABEL.Outcome' | translate }}
-                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'esito'"></span>
-                      </label>
-                    </div>
-                    <div class="col-sm-10">
-                      <ng-select class="" [class.gl-field-error-outline]="_hasControlError('esito')" (click)="onSelectedSearchDropdwon($event)"
-                        [items]="outcomes"
-                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                        labelForId="esito"
-                        bindValue="value"
-                        formControlName="esito">
-                        <ng-template ng-label-tmp let-item="item">
-                          {{ item.label }}
-                        </ng-template>
-                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                          <div class="fw-bold">{{ item.label }}</div>
-                        </ng-template>
-                      </ng-select>
-                      <p *ngIf="_formGroup.get('esito')?.dirty || _formGroup.get('esito')?.touched" class="form-text text-danger">
-                        <span *ngIf="_formGroup.get('esito')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                }
+                <div class="row">
+                  <div class="col-2">
+                    <label class="col-form-label col-form-label-fix" for="esito">{{ 'APP.LABEL.Outcome' | translate }}
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'esito'"></span>
+                    </label>
+                  </div>
+                  <div class="col-sm-10">
+                    <ng-select class="" [class.gl-field-error-outline]="_hasControlError('esito')" (click)="onSelectedSearchDropdwon($event)"
+                      [items]="outcomes"
+                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                      labelForId="esito"
+                      bindValue="value"
+                      formControlName="esito">
+                      <ng-template ng-label-tmp let-item="item">
+                        {{ item.label }}
+                      </ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                        <div class="fw-bold">{{ item.label }}</div>
+                      </ng-template>
+                    </ng-select>
+                    @if (_formGroup.get('esito')?.dirty || _formGroup.get('esito')?.touched) {
+                      <p class="form-text text-danger">
+                        @if (_formGroup.get('esito')?.hasError('required')) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        }
                       </p>
-                    </div>
+                    }
                   </div>
-
-                  <div class="row" *ngIf="_formGroup.get('transaction_outcome_codes')?.enabled">
+                </div>
+                @if (_formGroup.get('transaction_outcome_codes')?.enabled) {
+                  <div class="row">
                     <div class="col-2">
                       <label class="col-form-label col-form-label-fix" for="transaction_outcome_codes">{{ 'APP.LABEL.ReportTransactionDetailedOutcome' | translate }}
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'transaction_outcome_codes'"></span>
@@ -252,73 +269,91 @@
                           <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.label}}
                         </ng-template>
                       </ng-select>
-                      <p *ngIf="_formGroup.get('transaction_outcome_codes')?.dirty || _formGroup.get('transaction_outcome_codes')?.touched" class="form-text text-danger">
-                        <span *ngIf="_formGroup.get('transaction_outcome_codes')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                      </p>
+                      @if (_formGroup.get('transaction_outcome_codes')?.dirty || _formGroup.get('transaction_outcome_codes')?.touched) {
+                        <p class="form-text text-danger">
+                          @if (_formGroup.get('transaction_outcome_codes')?.hasError('required')) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          }
+                        </p>
+                      }
                     </div>
                   </div>
-                </div>
-
-                <div class="" [class.d-none]="!(_formGroup.get('search_type')?.value === SearchTypeEnum.Transaction)">
-                  <div class="row mb-1">
-                    <div class="col-sm-2">
-                      <label class="col-form-label col-form-label-fix" for="id_transazione">{{ 'APP.LABEL.IdTransazione' | translate }}
-                        <span appMarkAsterisk [formGroup]="_formGroup" controlName="id_transazione"></span>
-                      </label>
-                      </div>
-                    <div class="col-sm-10">
-                      <input type="text" class="form-control form-control-sm" id="id_transazione" formControlName="id_transazione">
-                      <p *ngIf="_formGroup.get('id_transazione')?.dirty || _formGroup.get('id_transazione')?.touched" class="form-text text-danger">
-                        <span *ngIf="_formGroup.get('id_transazione')?.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        <span *ngIf="_formGroup.get('id_transazione')?.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                }
+              </div>
+              <div class="" [class.d-none]="!(_formGroup.get('search_type')?.value === SearchTypeEnum.Transaction)">
+                <div class="row mb-1">
+                  <div class="col-sm-2">
+                    <label class="col-form-label col-form-label-fix" for="id_transazione">{{ 'APP.LABEL.IdTransazione' | translate }}
+                      <span appMarkAsterisk [formGroup]="_formGroup" controlName="id_transazione"></span>
+                    </label>
+                  </div>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control form-control-sm" id="id_transazione" formControlName="id_transazione">
+                    @if (_formGroup.get('id_transazione')?.dirty || _formGroup.get('id_transazione')?.touched) {
+                      <p class="form-text text-danger">
+                        @if (_formGroup.get('id_transazione')?.hasError('required')) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        }
+                        @if (_formGroup.get('id_transazione')?.hasError('uuid')) {
+                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                        }
                       </p>
-                    </div>
+                    }
                   </div>
                 </div>
-
-                <div class="d-flex justify-content-end pt-4" *ngIf="_useNewSearchUI">
+              </div>
+              @if (_useNewSearchUI) {
+                <div class="d-flex justify-content-end pt-4">
                   <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
                   <button type="submit" class="btn btn-confirm btn-md gl-button ms-2" [disabled]="_formGroup.invalid">{{ 'APP.BUTTON.Search' | translate }}</button>
                 </div>
-                <button type="submit" class="d-none" *ngIf="!_useNewSearchUI">hidden submit</button>
-              </fieldset>
-            </form>
-          </div>
-        </ui-search-bar-form>
-      </div>
+              }
+              @if (!_useNewSearchUI) {
+                <button type="submit" class="d-none">hidden submit</button>
+              }
+            </fieldset>
+          </form>
+        </div>
+      </ui-search-bar-form>
     </div>
-  </section>
-  <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
-    infiniteScroll
-    [infiniteScrollDistance]="2"
-    [infiniteScrollThrottle]="50"
-    (scrolled)="__loadMoreData()"
-    [scrollWindow]="false"
-    [autoFillScroll]="true"
-    (autoFillNeeded)="__loadMoreData()">
+  </div>
+</section>
+}
+<section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
+  infiniteScroll
+  [infiniteScrollDistance]="2"
+  [infiniteScrollThrottle]="50"
+  (scrolled)="__loadMoreData()"
+  [scrollWindow]="false"
+  [autoFillScroll]="true"
+  (autoFillNeeded)="__loadMoreData()">
 
-    <ui-box-message *ngIf="elements.length == 0 && !_spin"
+  @if (elements.length == 0 && !_spin) {
+    <ui-box-message
       [size]="64"
       [icon]="'report_problem'"
       [image]="'./assets/images/illustrations/'+model+'.svg'"
       [message]="_message | translate"
       [subMessage]="_messageHelp | translate">
     </ui-box-message>
+  }
 
-    <div class="row">
-      <div class="col-12">
-        <ng-container *ngFor="let element of elements">
-          <ui-item-row class="{{ transazioniConfig.itemRow.class }}" [style.background-color]="transazioniConfig.itemRow.background"
-            [data]="element"
-            [config]="transazioniConfig"
-            [hasLink]="true"
-            (itemClick)="_onEdit($event, element)">
-          </ui-item-row>
-        </ng-container>
-      </div>
+  <div class="row">
+    <div class="col-12">
+      @for (element of elements; track element) {
+        <ui-item-row class="{{ transazioniConfig.itemRow.class }}" [style.background-color]="transazioniConfig.itemRow.background"
+          [data]="element"
+          [config]="transazioniConfig"
+          [hasLink]="true"
+          (itemClick)="_onEdit($event, element)">
+        </ui-item-row>
+      }
     </div>
+  </div>
 
-    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+  @if (_spin) {
+    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+  }
 
-  </section>
+</section>
 </div>

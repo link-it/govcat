@@ -16,32 +16,44 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
-import { SenderComponent } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools, SearchBarFormComponent, SenderComponent, TargetOption } from '@linkit/components';
+import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
 import { OpenAPIService } from '@services/openAPI.service';
 import { AuthenticationService } from '@services/authentication.service';
 
 import { Page } from '@app/models/page';
 import { Messaggio } from './messaggio';
-import { TargetOption } from '@linkit/components';
 
 declare const saveAs: any;
-import * as moment from 'moment';
+import moment from 'moment';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
 @Component({
   selector: 'app-adesione-comunicazioni',
   templateUrl: 'adesione-comunicazioni.component.html',
   styleUrls: ['adesione-comunicazioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    TooltipModule,
+    InfiniteScrollDirective,
+    AutoFillScrollDirective,
+    NotificationBarComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioneComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneComunicazioniComponent';

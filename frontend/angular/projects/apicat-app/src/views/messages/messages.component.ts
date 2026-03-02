@@ -16,27 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { Page } from '../../models/page';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
 @Component({
   selector: 'app-messages',
   templateUrl: 'messages.component.html',
   styleUrls: ['messages.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class MessagesComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'MessagesComponent';

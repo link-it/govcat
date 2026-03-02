@@ -16,22 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components'
+import { ConfigService, COMPONENTS_IMPORTS, Tools, SearchBarFormComponent, YesnoDialogBsComponent } from '@linkit/components';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+import { ApiCustomPropertiesComponent } from '@app/components/api-custom-properties/api-custom-properties.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
@@ -39,10 +41,7 @@ import { Observable, Subject, Subscription, forkJoin } from 'rxjs';
 
 import { Grant, RightsEnum } from '@app/model/grant';
 
-import { Datispecifici, PeriodEnum } from './datispecifici';
-import { DatiSpecItem } from './datispecifici';
-import { CommonName } from './datispecifici';
-import { DoubleCert } from './datispecifici';
+import { Datispecifici, PeriodEnum, DatiSpecItem, CommonName, DoubleCert } from './datispecifici';
 
 import { Erogazioni } from './erogazioni';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
@@ -65,17 +64,8 @@ export enum StatoConfigurazioneEnum {
     CONFIGINPROGRESS = 'config_in_progress'
 }
 
-export enum TipoCertificatoEnum {
-    FORNITO = 'fornito',
-    RICHIESTO_CN = 'richiesto_cn',
-    RICHIESTO_CSR = 'richiesto_csr'
-}
-
-export const TipiCertificato = [
-    { 'nome': 'fornito', 'value': TipoCertificatoEnum.FORNITO}, 
-    { 'nome': 'richiesto_cn', 'value': TipoCertificatoEnum.RICHIESTO_CN}, 
-    { 'nome': 'richiesto_csr', 'value': TipoCertificatoEnum.RICHIESTO_CSR}
-];
+import { TipoCertificatoEnum, TipiCertificato } from './certificato.model';
+export { TipoCertificatoEnum, TipiCertificato };
 
 declare const saveAs: any;
 import * as _ from 'lodash';
@@ -84,7 +74,18 @@ import * as _ from 'lodash';
     selector: 'app-adesione-configurazioni',
     templateUrl: 'adesione-configurazioni.component.html',
     styleUrls: ['adesione-configurazioni.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        MapperPipe,
+        TooltipModule,
+        MonitorDropdwnComponent,
+        ApiCustomPropertiesComponent
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'AdesioneConfigurazioniComponent';
@@ -388,7 +389,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
 
     _initSearchForm() {
         this._formGroup = new UntypedFormGroup({
-            "organization.taxCode": new UntypedFormControl(''),
+            organizationTaxCode: new UntypedFormControl(''),
             creationDateFrom: new UntypedFormControl(''),
             creationDateTo: new UntypedFormControl(''),
             fileName: new UntypedFormControl(''),
@@ -1356,11 +1357,7 @@ export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChec
     }
 
     _hasControlError(name: string) {
-        return (this.f[name] && this.f[name].errors && this.f[name].touched);
-    }
-
-    trackByFn(item: any) {
-        return item.id;
+        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
     }
 
     _showCollaudo() {

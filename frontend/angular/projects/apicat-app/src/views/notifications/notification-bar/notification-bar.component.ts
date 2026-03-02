@@ -17,7 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from "@angular/core";
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
+
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ConfigService } from '@linkit/components';
 
@@ -30,7 +34,12 @@ import { NotificationState } from '../notifications'
   selector: 'app-notification-bar',
   templateUrl: 'notification-bar.component.html',
   styleUrls: ['notification-bar.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TooltipModule,
+    TranslateModule
+  ]
 })
 export class NotificationBarComponent implements OnInit, OnChanges {
 

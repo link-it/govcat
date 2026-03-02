@@ -16,32 +16,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components'
 
-import { EventType } from '@linkit/components';
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+
+import { CommonModule } from '@angular/common';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
   selector: 'app-domini',
   templateUrl: 'domini.component.html',
   styleUrls: ['domini.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class DominiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'DominiComponent';
@@ -287,10 +295,6 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
   onSelectedSearchDropdwon($event: Event){
     this.searchBarForm.setNotCloseForm(true)
-  }
-
-  trackBySelectFn(item: any) {
-    return item.id_soggetto;
   }
 
   _onNew() {

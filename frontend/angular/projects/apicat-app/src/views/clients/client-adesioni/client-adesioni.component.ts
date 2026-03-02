@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -24,25 +24,28 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { FieldClass } from '@linkit/components';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
 import { concat, Observable, of, Subject, forkJoin } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-client-adesioni',
   templateUrl: 'client-adesioni.component.html',
   styleUrls: ['client-adesioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientAdesioniComponent';
@@ -184,7 +187,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
 
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
+      organizationTaxCode: new UntypedFormControl(''),
       creationDateFrom: new UntypedFormControl(''),
       creationDateTo: new UntypedFormControl(''),
       fileName: new UntypedFormControl(''),
@@ -374,11 +377,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
-  }
-
-  trackByFn(item: any) {
-    return item.id;
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   loadAnagrafiche() {

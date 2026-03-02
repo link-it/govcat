@@ -43,8 +43,12 @@
     <div class="nav-control align-self-center d-flex">
       <div class="btn-group-">
         <button type="button" class="btn btn-default btn-md gl-button btn-icon" (click)="_toggleFilter();">
-          <i class="bi bi-funnel-fill" *ngIf="_showFilter"></i>
-          <i class="bi bi-funnel" *ngIf="!_showFilter"></i>
+          @if (_showFilter) {
+            <i class="bi bi-funnel-fill"></i>
+          }
+          @if (!_showFilter) {
+            <i class="bi bi-funnel"></i>
+          }
         </button>
       </div>
     </div>
@@ -86,243 +90,365 @@
                                 <div class="fw-bold">{{ item.label }}</div>
                               </ng-template>
                             </ng-select>
-                            <p *ngIf="_pdndType.dirty || _pdndType.touched" class="form-text text-danger">
-                              <span *ngIf="_pdndType.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                            </p>
+                            @if (_pdndType.dirty || _pdndType.touched) {
+                              <p class="form-text text-danger">
+                                @if (_pdndType.hasError('required')) {
+                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                }
+                              </p>
+                            }
                           </div>
                         </div>
                       </div>
 
-                      <div *ngIf="_kid.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="kid">{{ 'APP.LABEL.KID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="kid"></span>
-                            </label>
-                            <input type="text" class="form-control" id="kid" formControlName="kid">
-                            <p *ngIf="_kid.dirty || _kid.touched" class="form-text text-danger">
-                              <span *ngIf="_kid.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_kid.hasError('pattern')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.NoSpace' | translate }}</span>
-                            </p>
+                      @if (_kid.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="kid">{{ 'APP.LABEL.KID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="kid"></span>
+                              </label>
+                              <input type="text" class="form-control" id="kid" formControlName="kid">
+                              @if (_kid.dirty || _kid.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_kid.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_kid.hasError('pattern')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.NoSpace' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
-                      <div *ngIf="_clientId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.ClientID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="clientId"></span>
-                            </label>
-                            <input type="text" class="form-control" id="clientId" formControlName="clientId">
-                            <p *ngIf="_clientId.dirty || _clientId.touched" class="form-text text-danger">
-                              <span *ngIf="_clientId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_clientId.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+                      @if (_clientId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.ClientID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="clientId"></span>
+                              </label>
+                              <input type="text" class="form-control" id="clientId" formControlName="clientId">
+                              @if (_clientId.dirty || _clientId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_clientId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_clientId.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
-                      <div *ngIf="_organizationId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationId"></span>
-                            </label>
-                            <input type="text" class="form-control" id="organizationId" formControlName="organizationId">
-                            <p *ngIf="_organizationId.dirty || _organizationId.touched" class="form-text text-danger">
-                              <span *ngIf="_organizationId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_organizationId.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+                      @if (_organizationId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationId"></span>
+                              </label>
+                              <input type="text" class="form-control" id="organizationId" formControlName="organizationId">
+                              @if (_organizationId.dirty || _organizationId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_organizationId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_organizationId.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
-                      <div *ngIf="_attributeId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeId"></span>
-                            </label>
-                            <input type="text" class="form-control" id="attributeId" formControlName="attributeId">
-                            <p *ngIf="_attributeId.dirty || _attributeId.touched" class="form-text text-danger">
-                              <span *ngIf="_attributeId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_attributeId.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+                      @if (_attributeId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeId"></span>
+                              </label>
+                              <input type="text" class="form-control" id="attributeId" formControlName="attributeId">
+                              @if (_attributeId.dirty || _attributeId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_attributeId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_attributeId.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
-                      <div *ngIf="_eserviceId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.ServiceID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="eserviceId"></span>
-                            </label>
-                            <input type="text" class="form-control" id="eserviceId" formControlName="eserviceId">
-                            <p *ngIf="_eserviceId.dirty || _eserviceId.touched" class="form-text text-danger">
-                              <span *ngIf="_eserviceId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_eserviceId.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+                      @if (_eserviceId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.ServiceID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="eserviceId"></span>
+                              </label>
+                              <input type="text" class="form-control" id="eserviceId" formControlName="eserviceId">
+                              @if (_eserviceId.dirty || _eserviceId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_eserviceId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_eserviceId.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
-                      <div *ngIf="_agreementId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.AgreementID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="agreementId"></span>
-                            </label>
-                            <input type="text" class="form-control" id="agreementId" formControlName="agreementId">
-                            <p *ngIf="_agreementId.dirty || _agreementId.touched" class="form-text text-danger">
-                              <span *ngIf="_agreementId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_agreementId.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+                      @if (_agreementId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AgreementID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="agreementId"></span>
+                              </label>
+                              <input type="text" class="form-control" id="agreementId" formControlName="agreementId">
+                              @if (_agreementId.dirty || _agreementId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_agreementId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_agreementId.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
-                      <div *ngIf="_purposeId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.PurposeId' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="purposeId"></span>
-                            </label>
-                            <input type="text" class="form-control" id="purposeId" formControlName="purposeId">
-                            <p *ngIf="_purposeId.dirty || _purposeId.touched" class="form-text text-danger">
-                              <span *ngIf="_purposeId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_purposeId.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+                      @if (_purposeId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.PurposeId' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="purposeId"></span>
+                              </label>
+                              <input type="text" class="form-control" id="purposeId" formControlName="purposeId">
+                              @if (_purposeId.dirty || _purposeId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_purposeId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_purposeId.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
                       <!-- Service list fields start -->
-                      
-                      <div *ngIf="_organizationOrigin.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationOrigin' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationOrigin"></span>
-                            </label>
-                            <input type="text" class="form-control" id="organizationOrigin" formControlName="organizationOrigin">
-                            <p *ngIf="_organizationOrigin.dirty || _organizationOrigin.touched" class="form-text text-danger">
-                              <span *ngIf="_organizationOrigin.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_organizationOrigin.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+
+                      @if (_organizationOrigin.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationOrigin' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationOrigin"></span>
+                              </label>
+                              <input type="text" class="form-control" id="organizationOrigin" formControlName="organizationOrigin">
+                              @if (_organizationOrigin.dirty || _organizationOrigin.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_organizationOrigin.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_organizationOrigin.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div *ngIf="_organizationExternalId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationExternalID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationExternalId"></span>
-                            </label>
-                            <input type="text" class="form-control" id="organizationExternalId" formControlName="organizationExternalId">
-                            <p *ngIf="_organizationExternalId.dirty || _organizationExternalId.touched" class="form-text text-danger">
-                              <span *ngIf="_organizationExternalId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_organizationExternalId.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                            </p>
+                      }
+
+                      @if (_organizationExternalId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.OrganizationExternalID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="organizationExternalId"></span>
+                              </label>
+                              <input type="text" class="form-control" id="organizationExternalId" formControlName="organizationExternalId">
+                              @if (_organizationExternalId.dirty || _organizationExternalId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_organizationExternalId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_organizationExternalId.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div *ngIf="_attributeOrigin.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeOrigin' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeOrigin"></span>
-                            </label>
-                            <input type="text" class="form-control" id="attributeOrigin" formControlName="attributeOrigin">
-                            <p *ngIf="_attributeOrigin.dirty || _attributeOrigin.touched" class="form-text text-danger">
-                              <span *ngIf="_attributeOrigin.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_attributeOrigin.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                              <span *ngIf="_attributeOrigin.hasError('pattern')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate : {pattern: '0-9-a-zA-Z'} }}</span>
-                            </p>
+                      }
+
+                      @if (_attributeOrigin.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeOrigin' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeOrigin"></span>
+                              </label>
+                              <input type="text" class="form-control" id="attributeOrigin" formControlName="attributeOrigin">
+                              @if (_attributeOrigin.dirty || _attributeOrigin.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_attributeOrigin.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_attributeOrigin.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                  @if (_attributeOrigin.hasError('pattern')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate : {pattern: '0-9-a-zA-Z'} }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div *ngIf="_attributeCode.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeCode' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeCode"></span>
-                            </label>
-                            <input type="text" class="form-control" id="attributeCode" formControlName="attributeCode">
-                            <p *ngIf="_attributeCode.dirty || _attributeCode.touched" class="form-text text-danger">
-                              <span *ngIf="_attributeCode.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_attributeCode.hasError('uuid')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
-                              <span *ngIf="_attributeCode.hasError('pattern')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate : {pattern: '0-9-a-zA-Z'} }}</span>
-                            </p>
+                      }
+
+                      @if (_attributeCode.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="clientId">{{ 'APP.LABEL.AttributeCode' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="attributeCode"></span>
+                              </label>
+                              <input type="text" class="form-control" id="attributeCode" formControlName="attributeCode">
+                              @if (_attributeCode.dirty || _attributeCode.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_attributeCode.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_attributeCode.hasError('uuid')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Uuid' | translate }}</span>
+                                  }
+                                  @if (_attributeCode.hasError('pattern')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate : {pattern: '0-9-a-zA-Z'} }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
                       <!-- Service list fields end -->
 
                       <!-- Events list start here -->
 
-                      <div *ngIf="_eventType.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="eventType">{{ 'APP.LABEL.EventType' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="eventType"></span>
-                            </label>
-                            <ng-select
-                              [items]="eventTypes"
-                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                              bindValue="value"
-                              labelForId="eventType"
-                              formControlName="eventType">
-                              <ng-template ng-label-tmp let-item="item">
-                                {{ item.label }}
-                              </ng-template>
-                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                <div class="fw-bold">{{ item.label }}</div>
-                              </ng-template>
-                            </ng-select>
-                            <p *ngIf="_eventType.dirty || _eventType.touched" class="form-text text-danger">
-                              <span *ngIf="_eventType.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                            </p>
+                      @if (_eventType.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="eventType">{{ 'APP.LABEL.EventType' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="eventType"></span>
+                              </label>
+                              <ng-select
+                                [items]="eventTypes"
+                                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                                bindValue="value"
+                                labelForId="eventType"
+                                formControlName="eventType">
+                                <ng-template ng-label-tmp let-item="item">
+                                  {{ item.label }}
+                                </ng-template>
+                                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                  <div class="fw-bold">{{ item.label }}</div>
+                                </ng-template>
+                              </ng-select>
+                              @if (_eventType.dirty || _eventType.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_eventType.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div *ngIf="_lastEventId.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="lastEventId">{{ 'APP.LABEL.LastEventID' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="lastEventId"></span>
-                            </label>
-                            <input type="number" step="1" class="form-control" id="lastEventId" formControlName="lastEventId">
-                            <p *ngIf="_lastEventId.dirty || _lastEventId.touched" class="form-text text-danger">
-                              <span *ngIf="_lastEventId.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_lastEventId.hasError('min')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MinAmount' | translate: {value: 0} }}</span>
-                              <span *ngIf="_lastEventId.hasError('pattern')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate: {pattern: '0-9'} }}</span>
-                            </p>
+                      }
+
+                      @if (_lastEventId.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="lastEventId">{{ 'APP.LABEL.LastEventID' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="lastEventId"></span>
+                              </label>
+                              <input type="number" step="1" class="form-control" id="lastEventId" formControlName="lastEventId">
+                              @if (_lastEventId.dirty || _lastEventId.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_lastEventId.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_lastEventId.hasError('min')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MinAmount' | translate: {value: 0} }}</span>
+                                  }
+                                  @if (_lastEventId.hasError('pattern')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate: {pattern: '0-9'} }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div *ngIf="_limit.enabled" class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="limit">{{ 'APP.LABEL.Limit' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" controlName="limit"></span>
-                            </label>
-                            <input type="number" step="1" class="form-control" id="limit" formControlName="limit">
-                            <p *ngIf="_limit.dirty || _limit.touched" class="form-text text-danger">
-                              <span *ngIf="_limit.hasError('required')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              <span *ngIf="_limit.hasError('min')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MinAmount' | translate: {value: 0} }}</span>
-                              <span *ngIf="_limit.hasError('pattern')" class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate: {pattern: '0-9'} }}</span>
-                            </p>
+                      }
+
+                      @if (_limit.enabled) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="limit">{{ 'APP.LABEL.Limit' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" controlName="limit"></span>
+                              </label>
+                              <input type="number" step="1" class="form-control" id="limit" formControlName="limit">
+                              @if (_limit.dirty || _limit.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_limit.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                  @if (_limit.hasError('min')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MinAmount' | translate: {value: 0} }}</span>
+                                  }
+                                  @if (_limit.hasError('pattern')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate: {pattern: '0-9'} }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
                       <!-- Events list ends here -->
 
@@ -334,114 +460,143 @@
               </div>
               <div class="content-chart main flex-grow-1 mb-5" [class.border-start]="_showFilter" #captureGraphArea>
 
-                <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+                @if (_spin) {
+                  <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+                }
 
-                <div class="gl-alert gl-alert-danger mt-4 mb-5" *ngIf="_error">
-                  {{ _errorMsg }}
-                </div>
-                
-                <div class="content-charts px-4" *ngIf="!_spin && !jwk">
-                  <div class="d-flex justify-content-center">
-                    <div class="px-3 py-1 w-100">
-                      <ui-box-message
-                        [size]="64"
-                        [icon]="'report_problem'"
-                        [image]="'./assets/images/illustrations/'+model+'.svg'"
-                        [message]="_message | translate"
-                        [subMessage]="_messageHelp | translate">
-                      </ui-box-message>
-                    </div>
+                @if (_error) {
+                  <div class="gl-alert gl-alert-danger mt-4 mb-5">
+                    {{ _errorMsg }}
                   </div>
-                </div>
-                
-                <section *ngIf="jwk">
-                  <div class="p-4 m-4 bg-lightest" *ngIf="!_pdndType.value?.view">
-                    <pre>{{ jwk | json }}</pre>
-                    <button (click)="download(jwk)" aria-label="Download" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Download' | translate" container="body">
-                      <i class="bi bi-download"></i>
-                    </button>
-                  </div>
+                }
 
-                  <ng-container *ngFor="let view of  _pdndType.value?.view; index as i">
-                    
-                    <pdnd-service-view
-                      *ngIf="view.type === 'pdnd-service-view'" 
-                      [environmentId]="environmentId" 
-                      [eServiceId]="jwk[i]"
-                      (loading)="_spin = $event"
-                    ></pdnd-service-view>
-
-                    <div class="p-4 m-4 bg-lightest" *ngIf="view.type !== 'pdnd-service-view' && ((jwk[i].constructor.name === 'Array' && jwk[i].length > 0) || (jwk[i].constructor.name === 'Object'))">
-                      <h4 class="mb-3" *ngIf="view.title">{{ view.title }}</h4>
-
-                      <div class="gl-alert gl-alert-danger mt-4 mb-5" *ngIf="jwk[i].message">
-                        <p>{{ jwk[i].message }}</p>
-                        <pre>{{ jwk[i].error | json }}</pre>
+                @if (!_spin && !jwk) {
+                  <div class="content-charts px-4">
+                    <div class="d-flex justify-content-center">
+                      <div class="px-3 py-1 w-100">
+                        <ui-box-message
+                          [size]="64"
+                          [icon]="'report_problem'"
+                          [image]="'./assets/images/illustrations/'+model+'.svg'"
+                          [message]="_message | translate"
+                          [subMessage]="_messageHelp | translate">
+                        </ui-box-message>
                       </div>
-
-                      <ui-data-view *ngIf="!jwk[i].message && view.type === 'ui-data-view'"
-                        [data]="jwk[i]"
-                        [details]="view.configuration">
-                      </ui-data-view>
-
-                      <ui-collapse-row *ngIf="!jwk[i].message && view.type === 'ui-collapse-row' && view.collapseView"
-                        [data]="jwk[i]"
-                        [config]="view.collapseView.configuration"
-                        [enableCollapse]="view.collapseView.collapsed"
-                        [hasLink]="true">
-                        <div collapse-content class="p-4 my-1 bg-lightest" *ngIf="view.collapseView?.collapsed">
-                          <div class="d-flex flex-row">
-                            <ui-data-view 
-                            [data]="jwk[i]"
-                            [details]="view.configuration">
-                          </ui-data-view>
-                          </div>
-                        </div>
-                      </ui-collapse-row>
-
-                      <ng-container *ngIf="!jwk[i].message && view.type === 'list-ui-collapse-row' && view.collapseView">
-                        <ui-collapse-row class="border-bottom bg-white"
-                          *ngFor="let item of jwk[i]; index as j"
-                          [data]="jwk[i][j].data ? jwk[i][j].data : jwk[i][j]"
-                          [config]="view.collapseView.configuration"
-                          [enableCollapse]="view.collapseView.collapsed"
-                          [hasLink]="true">
-                          <div collapse-content class="px-4 pt-3 pb-3 my-1" *ngIf="view.collapseView?.collapsed">
-                            <div class="d-flex flex-row mb-6" *ngIf="!view.hideContent">
-                              <ui-data-view 
-                                [data]="jwk[i][j].data ? jwk[i][j].data : jwk[i][j]"
-                                [details]="view.configuration">
-                              </ui-data-view>
-                            </div>
-                            <div *ngIf="view.listView">
-                              <h5 class="mb-3" *ngIf="view.listView?.title">{{ view.listView.title }}</h5>
-                              <ui-item-row [class.border-bottom]="jwk[i][j]?.list.length > 1 && !last"
-                                *ngFor="let item of jwk[i][j]?.list;let last = last;"
-                                [data]="item"
-                                [config]="view.listView.configuration"
-                                [hasLink]="false">
-                              </ui-item-row>
-                            </div>
-                          </div>
-                        </ui-collapse-row>
-                      </ng-container>
-
-                      <ng-container *ngIf="!jwk[i].message && view.type === 'list-ui-item-row'">
-                        <div *ngIf="view.listView">
-                          <h5 class="mb-3" *ngIf="view.listView?.title">{{ view.listView.title }}</h5>
-                          <ui-item-row [class.border-bottom]="!last"
-                            *ngFor="let item of jwk[i];let last = last; let itemIndex = index;"
-                            [data]="item"
-                            [config]="view.listView.configuration"
-                            [hasLink]="false"
-                            (itemClick)="onItemClick(item, jwk[i], itemIndex)">
-                          </ui-item-row>
-                        </div>
-                      </ng-container>
                     </div>
-                  </ng-container>
+                  </div>
+                }
 
-                </section>
+                @if (jwk) {
+                  <section>
+                    @if (!_pdndType.value?.view) {
+                      <div class="p-4 m-4 bg-lightest">
+                        <pre>{{ jwk | json }}</pre>
+                        <button (click)="download(jwk)" aria-label="Download" type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Download' | translate" container="body">
+                          <i class="bi bi-download"></i>
+                        </button>
+                      </div>
+                    }
+                    @for (view of  _pdndType.value?.view; track view; let i = $index) {
+                      @if (view.type === 'pdnd-service-view') {
+                        <pdnd-service-view
+                          [environmentId]="environmentId"
+                          [eServiceId]="jwk[i]"
+                          (loading)="_spin = $event"
+                        ></pdnd-service-view>
+                      }
+                      @if (view.type !== 'pdnd-service-view' && ((jwk[i].constructor.name === 'Array' && jwk[i].length > 0) || (jwk[i].constructor.name === 'Object'))) {
+                        <div class="p-4 m-4 bg-lightest">
+                          @if (view.title) {
+                            <h4 class="mb-3">{{ view.title }}</h4>
+                          }
+                          @if (jwk[i].message) {
+                            <div class="gl-alert gl-alert-danger mt-4 mb-5">
+                              <p>{{ jwk[i].message }}</p>
+                              <pre>{{ jwk[i].error | json }}</pre>
+                            </div>
+                          }
+                          @if (!jwk[i].message && view.type === 'ui-data-view') {
+                            <ui-data-view
+                              [data]="jwk[i]"
+                              [details]="view.configuration">
+                            </ui-data-view>
+                          }
+                          @if (!jwk[i].message && view.type === 'ui-collapse-row' && view.collapseView) {
+                            <ui-collapse-row
+                              [data]="jwk[i]"
+                              [config]="view.collapseView.configuration"
+                              [enableCollapse]="view.collapseView.collapsed"
+                              [hasLink]="true">
+                              @if (view.collapseView.collapsed) {
+                                <div collapse-content class="p-4 my-1 bg-lightest">
+                                  <div class="d-flex flex-row">
+                                    <ui-data-view
+                                      [data]="jwk[i]"
+                                      [details]="view.configuration">
+                                    </ui-data-view>
+                                  </div>
+                                </div>
+                              }
+                            </ui-collapse-row>
+                          }
+                          @if (!jwk[i].message && view.type === 'list-ui-collapse-row' && view.collapseView) {
+                            @for (item of jwk[i]; track item; let j = $index) {
+                              <ui-collapse-row class="border-bottom bg-white"
+                                [data]="jwk[i][j].data ? jwk[i][j].data : jwk[i][j]"
+                                [config]="view.collapseView.configuration"
+                                [enableCollapse]="view.collapseView.collapsed"
+                                [hasLink]="true">
+                                @if (view.collapseView.collapsed) {
+                                  <div collapse-content class="px-4 pt-3 pb-3 my-1">
+                                    @if (!view.hideContent) {
+                                      <div class="d-flex flex-row mb-6">
+                                        <ui-data-view
+                                          [data]="jwk[i][j].data ? jwk[i][j].data : jwk[i][j]"
+                                          [details]="view.configuration">
+                                        </ui-data-view>
+                                      </div>
+                                    }
+                                    @if (view.listView) {
+                                      <div>
+                                        @if (view.listView.title) {
+                                          <h5 class="mb-3">{{ view.listView.title }}</h5>
+                                        }
+                                        @for (item of jwk[i][j]?.list; track item; let last = $last) {
+                                          <ui-item-row [class.border-bottom]="jwk[i][j]?.list.length > 1 && !last"
+                                            [data]="item"
+                                            [config]="view.listView.configuration"
+                                            [hasLink]="false">
+                                          </ui-item-row>
+                                        }
+                                      </div>
+                                    }
+                                  </div>
+                                }
+                              </ui-collapse-row>
+                            }
+                          }
+                          @if (!jwk[i].message && view.type === 'list-ui-item-row') {
+                            @if (view.listView) {
+                              <div>
+                                @if (view.listView.title) {
+                                  <h5 class="mb-3">{{ view.listView.title }}</h5>
+                                }
+                                @for (item of jwk[i]; track item; let last = $last; let itemIndex = $index) {
+                                  <ui-item-row [class.border-bottom]="!last"
+                                    [data]="item"
+                                    [config]="view.listView.configuration"
+                                    [hasLink]="false"
+                                    (itemClick)="onItemClick(item, jwk[i], itemIndex)">
+                                  </ui-item-row>
+                                }
+                              </div>
+                            }
+                          }
+                        </div>
+                      }
+                    }
+                  </section>
+                }
 
               </div>
             </div>

@@ -51,9 +51,11 @@
                 <div class="col-sm-10">
                   <select class="form-select form-control-sm" id="stato" formControlName="stato">
                     <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                    <option *ngFor="let stato of _statiClient" [value]="stato.value">
-                      {{ 'APP.CLIENT.STATUS.' + stato.label | translate }}
-                    </option>
+                    @for (stato of _statiClient; track stato) {
+                      <option [value]="stato.value">
+                        {{ 'APP.CLIENT.STATUS.' + stato.label | translate }}
+                      </option>
+                    }
                   </select>
                 </div>
               </div>
@@ -67,9 +69,11 @@
                     <div class="col-sm-8">
                       <select class="form-select form-control-sm" id="auth_type" formControlName="auth_type">
                         <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                        <option *ngFor="let at of _authTypeEnum" [value]="at">
-                          {{ 'APP.CLIENT.AUTH_TYPE.' + at | translate }}
-                        </option>
+                        @for (at of _authTypeEnum; track at) {
+                          <option [value]="at">
+                            {{ 'APP.CLIENT.AUTH_TYPE.' + at | translate }}
+                          </option>
+                        }
                       </select>
                     </div>
                   </div>
@@ -82,9 +86,11 @@
                     <div class="col-sm-8">
                       <select class="form-select form-control-sm" id="ambiente" formControlName="ambiente">
                         <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                        <option *ngFor="let el of _ambienteEnum" [value]="el">
-                          {{ 'APP.CLIENT.LABEL.' + el | translate }}
-                        </option>
+                        @for (el of _ambienteEnum; track el) {
+                          <option [value]="el">
+                            {{ 'APP.CLIENT.LABEL.' + el | translate }}
+                          </option>
+                        }
                       </select>
                     </div>
                   </div>
@@ -97,8 +103,8 @@
                 </div>
                 <div class="col-sm-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="organizzazioni$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(organizzazioni$ | async) || []"
+
                     [typeahead]="organizzazioniInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
@@ -124,8 +130,8 @@
                 </div>
                 <div class="col-sm-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="soggetti$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(soggetti$ | async) || []"
+
                     [typeahead]="soggettiInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"

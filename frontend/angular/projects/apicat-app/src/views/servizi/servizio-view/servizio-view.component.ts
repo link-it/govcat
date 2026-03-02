@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 
@@ -26,7 +26,7 @@ import { catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService, EventsManagerService, MenuAction, EventType, Tools } from '@linkit/components';
+import { ConfigService, EventsManagerService, MenuAction, EventType, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -42,6 +42,17 @@ import { CodeGrantDialogComponent } from '@app/components/authemtications-dialog
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
 import { environment } from '@app/environments/environment';
+
+import { CommonModule } from '@angular/common';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { ScrollComponent } from '@app/components/scroll/scroll.component';
+import { SwaggerComponent } from '@app/components/swagger/swagger.component';
+import { WsdlComponent } from '@app/components/wsdl/wsdl.component';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { MarkdownModule } from 'ngx-markdown';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
+import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
 export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
@@ -97,7 +108,21 @@ export enum ApiMode {
     selector: 'app-servizio-view',
     templateUrl: 'servizio-view.component.html',
     styleUrls: ['servizio-view.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        ScrollComponent,
+        SwaggerComponent,
+        WsdlComponent,
+        MonitorDropdwnComponent,
+        MarkdownModule,
+        MapperPipe,
+        HttpImgSrcPipe,
+        PluralTranslatePipe
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioViewComponent';

@@ -16,30 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { FieldClass } from '@linkit/components';
 import { CustomValidators } from '@linkit/validators';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Organizzazione } from './organizzazione';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
 
 @Component({
   selector: 'app-organizzazione-details',
   templateUrl: 'organizzazione-details.component.html',
   styleUrls: ['organizzazione-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective,
+    TrimOnBlurDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'OrganizzazioneDetailsComponent';
@@ -160,7 +166,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {

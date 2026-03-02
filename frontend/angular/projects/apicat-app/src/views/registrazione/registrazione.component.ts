@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { ConfigService, Tools } from '@linkit/components';
 import { RegistrazioneService } from '@app/services/registrazione.service';
@@ -12,13 +12,25 @@ import {
   StatoRegistrazioneEnum
 } from '@app/model/registrazione';
 
+import { StepConfermaEmailComponent } from './components/step-conferma-email/step-conferma-email.component';
+import { StepModificaEmailComponent } from './components/step-modifica-email/step-modifica-email.component';
+import { StepVerificaCodiceComponent } from './components/step-verifica-codice/step-verifica-codice.component';
+import { StepCompletatoComponent } from './components/step-completato/step-completato.component';
+
 export type RegistrazioneStep = 'conferma' | 'modifica' | 'verifica' | 'completato';
 
 @Component({
   selector: 'app-registrazione',
   templateUrl: './registrazione.component.html',
   styleUrls: ['./registrazione.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    TranslateModule,
+    StepConfermaEmailComponent,
+    StepModificaEmailComponent,
+    StepVerificaCodiceComponent,
+    StepCompletatoComponent
+  ]
 })
 export class RegistrazioneComponent implements OnInit, OnDestroy {
 

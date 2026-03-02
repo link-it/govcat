@@ -17,12 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-import { EventType } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { EventType, EventsManagerService } from '@linkit/components';
+import { RemoveHostDirective } from '@app/directives/remove-host/remove-host.directive';
 import { AuthenticationService } from '../../../services/authentication.service';
 import { OpenAPIService } from '../../../services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+
+import { MonitoraggioCardComponent } from '../monitoraggio-card/monitoraggio-card.component';
 
 import { AmbienteEnum } from '../../../model/ambienteEnum';
 
@@ -30,7 +35,13 @@ import { AmbienteEnum } from '../../../model/ambienteEnum';
   selector: 'app-monitoraggio-group',
   templateUrl: './monitoraggio-group.component.html',
   styleUrls: ['./monitoraggio-group.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    RemoveHostDirective,
+    MonitoraggioCardComponent
+  ]
 })
 export class MonitoraggioGroupComponent implements OnInit, OnChanges {
 

@@ -1,0 +1,80 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@if (title) {
+  <div class="ph-item px-0 mb-4 border-0">
+    <div class="ph-col-12 p-0 m-0 mb-2">
+      <div class="ph-row">
+        <div class="ph-col-4 big bg-white" [class.rounded-4]="rounded">
+          <h5>@if (icon) {
+            <span class="bi bi-{{ icon }} me-2"></span>
+          }{{ title | translate }}</h5>
+        </div>
+        <div class="ph-col-8 empty big"></div>
+      </div>
+    </div>
+  </div>
+}
+@if (type === 'list') {
+  @for (item of range_arr; track item) {
+    <div class="border-bottom mb-3 pb-0 ms-2">
+      <div class="ph-item p-0 m-0 border-0">
+        <div class="ph-col-12 p-0 m-0 mb-3">
+          <div class="ph-row">
+            <div class="ph-col-6 big" [class.rounded-4]="rounded"></div>
+            <div class="ph-col-4 empty big"></div>
+            <div class="ph-col-2 big" [class.rounded-4]="rounded"></div>
+            <div class="ph-col-4" [class.rounded-4]="rounded"></div>
+            <div class="ph-col-8 empty"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}
+
+@if (type === 'card') {
+  <div class="row">
+    @for (item of range_arr; track item) {
+      <div class="col-{{ col }}">
+        <div class="ph-item p-0 m-0 border-0">
+          <div class="ph-col-12">
+            <div class="ph-picture"></div>
+            <div class="ph-row">
+              <div class="ph-col-4"></div>
+              <div class="ph-col-8 empty"></div>
+              <div class="ph-col-12"></div>
+            </div>
+          </div>
+          <div class="ph-col-2">
+            <div class="ph-avatar"></div>
+          </div>
+          <div>
+            <div class="ph-row">
+              <div class="ph-col-12"></div>
+              <div class="ph-col-2"></div>
+              <div class="ph-col-10 empty"></div>
+              <div class="ph-col-8 big"></div>
+              <div class="ph-col-4 big empty"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

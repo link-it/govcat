@@ -47,6 +47,10 @@ openapi.yaml
 .DS_Store
 Thumbs.db
 
+# Playwright
+/playwright-report
+/test-results
+
 # Custom - Develop
 /@NOTE
 

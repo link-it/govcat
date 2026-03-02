@@ -18,19 +18,21 @@
         placeholder="______">
     </div>
 
-    <div class="text-center text-danger small mb-3" *ngIf="codiceControl?.errors?.['minlength'] && codiceControl?.touched">
-      {{ 'APP.REGISTRAZIONE.ERROR.CodiceLength' | translate }}
-    </div>
+    @if (codiceControl?.errors?.['minlength'] && codiceControl?.touched) {
+      <div class="text-center text-danger small mb-3">
+        {{ 'APP.REGISTRAZIONE.ERROR.CodiceLength' | translate }}
+      </div>
+    }
 
     <!-- Countdown -->
     <div class="countdown" [class.expired]="isExpired">
-      <ng-container *ngIf="!isExpired">
+      @if (!isExpired) {
         <span class="me-2">{{ 'APP.REGISTRAZIONE.MESSAGE.CodiceScadeIn' | translate }}</span>
         <span class="countdown-timer">{{ countdownFormatted }}</span>
-      </ng-container>
-      <ng-container *ngIf="isExpired">
+      }
+      @if (isExpired) {
         <span class="text-danger">{{ 'APP.REGISTRAZIONE.MESSAGE.CodiceScaduto' | translate }}</span>
-      </ng-container>
+      }
     </div>
 
     <div class="actions">

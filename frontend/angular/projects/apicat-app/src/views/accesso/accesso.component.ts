@@ -18,19 +18,25 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { ConfigService } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 
 @Component({
   selector: 'app-accesso',
   templateUrl: 'accesso.component.html',
   styleUrls: ['accesso.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class AccessoComponent implements OnInit {
 

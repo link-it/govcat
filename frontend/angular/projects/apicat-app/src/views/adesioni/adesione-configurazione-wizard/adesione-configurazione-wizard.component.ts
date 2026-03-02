@@ -16,18 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
-import { ConfigService, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+import { ApiCustomPropertiesComponent } from '@app/components/api-custom-properties/api-custom-properties.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
+import { AdesioneListaClientsComponent } from './adesione-lista-clients/adesione-lista-clients.component';
+import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
+import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
@@ -53,7 +61,20 @@ export enum AccordionType {
     selector: 'app-adesione-configurazione-wizard',
     templateUrl: './adesione-configurazione-wizard.component.html',
     styleUrls: ['./adesione-configurazione-wizard.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        MapperPipe,
+        TooltipModule,
+        MonitorDropdwnComponent,
+        ApiCustomPropertiesComponent,
+        ErrorViewComponent,
+        AdesioneListaClientsComponent,
+        AdesioneListaErogazioniComponent,
+        AdesioneFormComponent
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioneConfigurazioneWizardComponent implements OnInit {
 

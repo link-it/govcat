@@ -44,19 +44,23 @@
                 </div>
               </div>
 
-              <div class="row mb-1" *ngIf="isGestore && hasConfigurazioneAutomatica">
-                <div class="col-sm-2">
-                  <label class="col-form-label col-form-label-fix" for="stato_configurazione_automatica">{{ 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus' | translate }}</label>
+              @if (isGestore && hasConfigurazioneAutomatica) {
+                <div class="row mb-1">
+                  <div class="col-sm-2">
+                    <label class="col-form-label col-form-label-fix" for="stato_configurazione_automatica">{{ 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus' | translate }}</label>
+                  </div>
+                  <div class="col-sm-10">
+                    <select class="form-select form-control-sm" id="stato_configurazione_automatica" formControlName="stato_configurazione_automatica">
+                      <option value="">{{ 'APP.LABEL.All' | translate }}</option>
+                      @for (stato of configStatusList; track stato) {
+                        <option [value]="stato.value">
+                          {{ stato.label | translate }}
+                        </option>
+                      }
+                    </select>
+                  </div>
                 </div>
-                <div class="col-sm-10">
-                  <select class="form-select form-control-sm" id="stato_configurazione_automatica" formControlName="stato_configurazione_automatica">
-                    <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                    <option *ngFor="let stato of configStatusList" [value]="stato.value">
-                      {{ stato.label | translate }}
-                    </option>
-                  </select>
-                </div>
-              </div>
+              }
 
               <div class="row mb-1">
                 <div class="col-sm-2">
@@ -64,8 +68,8 @@
                 </div>
                 <div class="col-sm-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="domini$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(domini$ | async) || []"
+
                     [typeahead]="dominiInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
@@ -91,8 +95,8 @@
                 </div>
                 <div class="col-sm-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="servizi$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(servizi$ | async) || []"
+
                     [typeahead]="serviziInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
@@ -118,8 +122,8 @@
                 </div>
                 <div class="col-sm-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="organizzazioni$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(organizzazioni$ | async) || []"
+
                     [typeahead]="organizzazioniInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
@@ -139,32 +143,34 @@
                 </div>
               </div>
 
-              <div class="row mb-1" *ngIf="showSoggetto">
-                <div class="col-sm-2">
-                  <label class="col-form-label col-form-label-fix" for="id_soggetto">{{ 'APP.ADESIONI.LABEL.Subject' | translate }}</label>
+              @if (showSoggetto) {
+                <div class="row mb-1">
+                  <div class="col-sm-2">
+                    <label class="col-form-label col-form-label-fix" for="id_soggetto">{{ 'APP.ADESIONI.LABEL.Subject' | translate }}</label>
+                  </div>
+                  <div class="col-sm-10">
+                    <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
+                      [items]="(soggetti$ | async) || []"
+  
+                      [typeahead]="soggettiInput$"
+                      [minTermLength]="minLengthTerm"
+                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                      labelForId="id_soggetto"
+                      [editableSearchTerm]="true"
+                      bindValue="id_soggetto"
+                      formControlName="id_soggetto"
+                      (change)="onChangeSearchDropdwon($event)">
+                      <ng-template ng-label-tmp let-item="item">
+                        {{ item.nome }}
+                      </ng-template>
+                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                        <div class="fw-bold">{{ item.nome }}</div>
+                      </ng-template>
+                    </ng-select>
+                  </div>
                 </div>
-                <div class="col-sm-10">
-                  <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="soggetti$ | async"
-                    [trackByFn]="trackBySelectFn"
-                    [typeahead]="soggettiInput$"
-                    [minTermLength]="minLengthTerm"
-                    [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                    [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                    labelForId="id_soggetto"
-                    [editableSearchTerm]="true"
-                    bindValue="id_soggetto"
-                    formControlName="id_soggetto"
-                    (change)="onChangeSearchDropdwon($event)">
-                    <ng-template ng-label-tmp let-item="item">
-                      {{ item.nome }}
-                    </ng-template>
-                    <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                      <div class="fw-bold">{{ item.nome }}</div>
-                    </ng-template>
-                  </ng-select>
-                </div>
-              </div>
+              }
 
               <div class="row mb-1">
                 <div class="col-sm-2">
@@ -172,8 +178,8 @@
                 </div>
                 <div class="col-sm-10">
                   <ng-select class="" (click)="onSelectedSearchDropdwon($event)"
-                    [items]="clients$ | async"
-                    [trackByFn]="trackBySelectFn"
+                    [items]="(clients$ | async) || []"
+
                     [typeahead]="clientsInput$"
                     [minTermLength]="minLengthTerm"
                     [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"

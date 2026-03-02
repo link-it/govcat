@@ -16,20 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GravatarModule } from 'ngx-gravatar';
+
+import { COMPONENTS_IMPORTS, ConfigService, Tools, MenuAction } from '@linkit/components';
+import { ScrollComponent } from '@app/components/scroll/scroll.component';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+
 import { AuthenticationService } from '@app/services/authentication.service';
 import { NavigationService } from '@app/services/navigation.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
-import { TranslateService } from '@ngx-translate/core';
-import { ConfigService } from '@linkit/components';
 
-import { Tools } from '@linkit/components';
 import { forkJoin } from 'rxjs';
 import { ComponentAuthTypeEnum } from '@app/model/componentAuthTypeEnum';
-import { MenuAction } from '@linkit/components';
 import { Grant } from '@app/model/grant';
 
 import * as _ from 'lodash';
@@ -240,7 +244,16 @@ const clientRowConfig = {
   selector: 'app-adesione-view',
   templateUrl: './adesione-view.component.html',
   styleUrls: ['./adesione-view.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    ScrollComponent,
+    GravatarModule,
+    MonitorDropdwnComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioneViewComponent implements OnInit {
 

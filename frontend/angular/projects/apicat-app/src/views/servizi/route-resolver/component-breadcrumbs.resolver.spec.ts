@@ -17,14 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ComponentBreadcrumbsResolver } from './component-breadcrumbs.resolver';
+import { ConfigService } from '@linkit/components';
 
 describe('ParentComponentResolver', () => {
   let resolver: ComponentBreadcrumbsResolver;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      imports: [
+        TranslateModule.forRoot()
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: ConfigService, useValue: { getConfiguration: () => ({ AppConfig: { GOVAPI: { HOST: '', HOST_PDND: '', HOST_MONITOR: '' } } }) } }
+      ]
+    });
     resolver = TestBed.inject(ComponentBreadcrumbsResolver);
   });
 

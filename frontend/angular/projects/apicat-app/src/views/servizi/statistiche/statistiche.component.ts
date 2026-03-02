@@ -16,19 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
 
-import { Tools, ConfigService } from '@linkit/components';
+import { Tools, ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { BarVertical2DComponent, BarVerticalComponent, LegendPosition, LineChartComponent, PieChartComponent, ScaleType, colorSets } from '@swimlane/ngx-charts';
 import * as htmlToImage from 'html-to-image';
@@ -190,7 +192,9 @@ const domainStatistics = [
   selector: 'app-statistiche',
   templateUrl: 'statistiche.component.html',
   styleUrls: ['statistiche.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class StatisticheComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'StatisticheComponent';

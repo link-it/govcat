@@ -17,12 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools } from '@linkit/components';
-import { ConfigService } from '@linkit/components';
+import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { ConsoleToggleService } from '@services/console-toggle.service';
 import { ModifierKeyService } from '@services/modifier-key.service';
@@ -39,7 +38,7 @@ import { enGbLocale as ngxEnGbLocale, itLocale as ngxItLocale, frLocale as ngxFr
 import { BsLocaleService } from 'ngx-bootstrap/datepicker';
 
 declare const $: any;
-import * as moment from 'moment';
+import moment from 'moment';
 
 enum AppLanguageCode {
   ITALIAN = 'it',
@@ -51,7 +50,7 @@ enum AppLanguageCode {
   selector: 'app-root',
   template: '<router-outlet></router-outlet>',
   styleUrls: ['./app.component.scss'],
-  standalone: false
+  imports: [RouterOutlet]
 })
 export class AppComponent implements OnInit {
   title = 'apicat-app';

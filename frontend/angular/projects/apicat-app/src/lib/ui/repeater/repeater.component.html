@@ -1,0 +1,47 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@for (rpt of _data; track rpt; let i = $index) {
+  <div class="w-100">
+    <div class="w-100 align-items-center d-flex justify-between align-items-center mb-3 px-3 pt-3 text-bg-light">
+      <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: rpt }"></ng-container>
+      @if (edit) {
+        <div role="button"
+          [class]="(disabled || rpt[actionPropertyDisabled])?_class + ' disabled':_class"
+          [tabindex]="(i + 1)"
+          (click)="__remove($event, rpt, i)" (keyup)="__onKeyRemove($event, rpt, i)">
+          <span class="bi bi-trash text-danger"></span>
+        </div>
+      }
+    </div>
+  </div>
+}
+@if (!disabled) {
+  <ng-content select="[trigger]"></ng-content>
+}
+@if (trigger && !disabled && edit) {
+  <div class="w-100 align-items-center d-flex justify-between align-items-center mb-3 px-3 pt-3 border">
+    <ng-content select="[manual-trigger]"></ng-content>
+    <div role="button" tabindex="0"
+      [class]="(disableTrigger)?_class + ' disabled':_class"
+      (click)="__add($event)"
+      (keyup)="__onKeyAdd($event)">
+      <span class="bi bi-plus-lg"></span>
+    </div>
+  </div>
+}

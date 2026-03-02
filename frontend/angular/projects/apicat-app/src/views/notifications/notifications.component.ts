@@ -16,30 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { LocalStorageService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, SearchBarFormComponent, Tools, EventsManagerService, LocalStorageService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
 import { Page } from '@app/models/page';
 
 import * as _ from 'lodash';
 
-import { NotificationType, NotificationState, NotificationEntityType } from './notifications'
-import { MenuSelectType } from './notifications'
+import { NotificationType, NotificationState, NotificationEntityType, MenuSelectType } from './notifications';
 import { NavigationService } from '@app/services/navigation.service';
 
 import { Observable } from 'rxjs/internal/Observable';
@@ -48,7 +42,12 @@ import { Observable } from 'rxjs/internal/Observable';
   selector: 'app-notifications',
   templateUrl: 'notifications.component.html',
   styleUrls: ['notifications.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class NotificationsComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'NotificationsComponent';

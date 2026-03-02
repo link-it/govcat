@@ -19,12 +19,16 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+
 @Component({
   selector: 'app-back-web',
   templateUrl: './back-web.component.html',
   styleUrls: ['./back-web.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, TooltipModule]
 })
 export class BackWebComponent {
 

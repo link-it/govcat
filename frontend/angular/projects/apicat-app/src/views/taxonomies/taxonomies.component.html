@@ -33,56 +33,58 @@
       </div>
     </div>
     <div class="nav-controls align-self-center d-flex">
-      <div class="gl-w-full btn-group- position-relative" *ngIf="!_spin">
-        <button type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-          <span class="material-icons-outlined">add</span> <span class="ms-2">{{ 'APP.BUTTON.AddTaxonomy' | translate }}</span>
-        </button>
-      </div>
+      @if (!_spin) {
+        <div class="gl-w-full btn-group- position-relative">
+          <button type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+            <span class="material-icons-outlined">add</span> <span class="ms-2">{{ 'APP.BUTTON.AddTaxonomy' | translate }}</span>
+          </button>
+        </div>
+      }
     </div>
   </div>
-  <section class="search-bar container-fluid px-0" *ngIf="_hasFilter">
-    <div class="row align-items-center">
-      <div class="col-12">
-        <ui-search-bar-form #searchBarForm
-          [classBlock]="''"
-          [placeholder]="'APP.PLACEHOLDER.Search' | translate"
-          [showHistory]="showHistory"
-          [historyStore]="model"
-          [showSearch]="showSearch"
-          [searchFields]="searchFields"
-          [useCondition]="useCondition"
-          [showSorting]="showSorting"
-          [sortField]="sortField"
-          [sortDirection]="sortDirection"
-          [sortFields]="sortFields"
-          [formGroup]="_formGroup"
-          [simple]="true"
-          (onSearch)="_onSearch($event)"
-          (onSort)="_onSort($event)">
-          <div form-search class="search-material-custom">
-            <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
-              <fieldset>
-
-                <div class="row mb-1">
-                  <div class="col-2">
-                    <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+  @if (_hasFilter) {
+    <section class="search-bar container-fluid px-0">
+      <div class="row align-items-center">
+        <div class="col-12">
+          <ui-search-bar-form #searchBarForm
+            [classBlock]="''"
+            [placeholder]="'APP.PLACEHOLDER.Search' | translate"
+            [showHistory]="showHistory"
+            [historyStore]="model"
+            [showSearch]="showSearch"
+            [searchFields]="searchFields"
+            [useCondition]="useCondition"
+            [showSorting]="showSorting"
+            [sortField]="sortField"
+            [sortDirection]="sortDirection"
+            [sortFields]="sortFields"
+            [formGroup]="_formGroup"
+            [simple]="true"
+            (onSearch)="_onSearch($event)"
+            (onSort)="_onSort($event)">
+            <div form-search class="search-material-custom">
+              <form class="row" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+                <fieldset>
+                  <div class="row mb-1">
+                    <div class="col-2">
+                      <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                    </div>
+                    <div class="col-10">
+                      <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                    </div>
                   </div>
-                  <div class="col-10">
-                    <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
+                  <div class="d-flex justify-content-end pt-4">
+                    <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
+                    <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
                   </div>
-                </div>
-
-                <div class="d-flex justify-content-end pt-4">
-                  <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
-                  <button type="submit" class="btn btn-confirm btn-md gl-button ms-2">{{ 'APP.BUTTON.Search' | translate }}</button>
-                </div>
-              </fieldset>
-            </form>
-          </div>
-        </ui-search-bar-form>
+                </fieldset>
+              </form>
+            </div>
+          </ui-search-bar-form>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  }
   <section id="container-scroller" class="container-fluid container-scroller px-0" [class.container-scroller-no-search]="!_hasFilter"
     infiniteScroll
     [infiniteScrollDistance]="2"
@@ -92,27 +94,33 @@
     [autoFillScroll]="true"
     (autoFillNeeded)="__loadMoreData()">
     <div class="row">
-      <ui-box-message *ngIf="taxonomies.length == 0 && !_spin"
-        [size]="64"
-        [icon]="'report_problem'"
-        [image]="'./assets/images/illustrations/taxonomies.svg'"
-        [message]="_message | translate"
-        [subMessage]="_messageHelp | translate">
-      </ui-box-message>
+      @if (taxonomies.length == 0 && !_spin) {
+        <ui-box-message
+          [size]="64"
+          [icon]="'report_problem'"
+          [image]="'./assets/images/illustrations/taxonomies.svg'"
+          [message]="_message | translate"
+          [subMessage]="_messageHelp | translate">
+        </ui-box-message>
+      }
 
       <div class="row">
         <div class="col-12">
-          <ui-item-row class="border-bottom" *ngFor="let item of taxonomies; trackBy: trackBySelectFn;"
-            [data]="item"
-            [config]="taxonomiesConfig"
-            [hasLink]="true"
-            (itemClick)="_onEdit($event, item)"
-            (openInNewTab)="_onOpenInNewTab($event)">
-          </ui-item-row>
+          @for (item of taxonomies; track $index) {
+            <ui-item-row class="border-bottom"
+              [data]="item"
+              [config]="taxonomiesConfig"
+              [hasLink]="true"
+              (itemClick)="_onEdit($event, item)"
+              (openInNewTab)="_onOpenInNewTab($event)">
+            </ui-item-row>
+          }
         </div>
       </div>
 
-      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+      @if (_spin) {
+        <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+      }
 
     </div>
   </section>

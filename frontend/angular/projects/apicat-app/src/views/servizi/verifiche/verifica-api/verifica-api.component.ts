@@ -16,10 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, HostListener, Input, SimpleChanges } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, Input, SimpleChanges } from '@angular/core';
 
+import { TranslateModule } from '@ngx-translate/core';
+
+import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 
 import _ from 'lodash';
 import { Observable, forkJoin, of } from 'rxjs';
@@ -31,7 +35,9 @@ import { ViewType } from '../verifiche.component';
   selector: 'ui-verifica-api',
   styleUrls: ['./verifica-api.component.scss'],
   templateUrl: './verifica-api.component.html',
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, ...COMPONENTS_IMPORTS, MapperPipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class VerificaApiComponent {
 

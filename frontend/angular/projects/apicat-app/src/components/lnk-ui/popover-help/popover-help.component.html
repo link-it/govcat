@@ -16,17 +16,19 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<p class="form-text text-muted" *ngIf="existsValue">
+@if (existsValue) {
+  <p class="form-text text-muted">
     <ng-template #popTemplate>
-        <div markdown ngPreserveWhitespaces>{{ text }}</div>
+      <div markdown ngPreserveWhitespaces>{{ text }}</div>
     </ng-template>
     <i class="cursor-pointer {{ iconHelp }}"
-        [popoverTitle]="title"
-        [popover]="popTemplate"
-        [adaptivePosition]="true"
-        [placement]="helpPlacement"
-        triggers="click"
-        [outsideClick]="true"
-        [containerClass]="helpContainerClass"
+      [popoverTitle]="title"
+      [popover]="popTemplate"
+      [adaptivePosition]="true"
+      [placement]="helpPlacement"
+      triggers="click"
+      [outsideClick]="true"
+      [containerClass]="helpContainerClass"
     ></i>
-</p>
+  </p>
+}

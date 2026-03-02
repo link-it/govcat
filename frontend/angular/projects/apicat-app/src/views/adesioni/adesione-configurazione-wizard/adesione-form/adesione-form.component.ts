@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { Tools } from '@linkit/components';
+import { Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -31,8 +32,7 @@ import { Grant } from '@app/model/grant';
 
 import { map, of, tap } from 'rxjs';
 
-import { AdesioneUpdate, Servizio } from '../../adesione-details/adesioneUpdate';
-import { Soggetto } from '../../adesione-details/adesioneUpdate';
+import { AdesioneUpdate, Servizio, Soggetto } from '../../adesione-details/adesioneUpdate';
 
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
@@ -42,7 +42,14 @@ import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
     selector: 'app-adesione-form',
     templateUrl: './adesione-form.component.html',
     styleUrls: ['./adesione-form.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        MapperPipe
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioneFormComponent implements OnInit {
 

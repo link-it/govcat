@@ -16,28 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { Page } from '@app/models/page';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import * as _ from 'lodash';
+
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-verifiche',
   templateUrl: 'verifiche.component.html',
   styleUrls: ['verifiche.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

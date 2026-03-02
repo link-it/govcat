@@ -16,21 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, Input, OnDestroy, OnInit, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { Page } from '@app/models/page';
+
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-client-verifiche',
   templateUrl: 'client-verifiche.component.html',
   styleUrls: ['client-verifiche.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ClientVerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

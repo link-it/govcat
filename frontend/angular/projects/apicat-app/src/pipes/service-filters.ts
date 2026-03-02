@@ -22,7 +22,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 @Pipe({
   name: 'serviceGroupFilter',
   pure: false,
-  standalone: false
+  standalone: true
 })
 export class ServiceGroupFilterPipe implements PipeTransform {
   transform(items: any[], _value: string, dictionary: any, stato: string): any {
@@ -44,7 +44,7 @@ export class ServiceGroupFilterPipe implements PipeTransform {
 @Pipe({
   name: 'serviceFilter',
   pure: false,
-  standalone: false
+  standalone: true
 })
 export class ServiceFilterPipe implements PipeTransform {
   transform(items: any[], _value: string): any {
@@ -61,7 +61,7 @@ export class ServiceFilterPipe implements PipeTransform {
 @Pipe({
   name: 'groupFilter',
   pure: false,
-  standalone: false
+  standalone: true
 })
 export class GroupFilterPipe implements PipeTransform {
   transform(items: any[], _value: string, _all: boolean = false): any {
@@ -79,7 +79,7 @@ export class GroupFilterPipe implements PipeTransform {
 @Pipe({
   name: 'dominiFilterList',
   pure: false,
-  standalone: false
+  standalone: true
 })
 export class DominiFilterListPipe implements PipeTransform {
   transform(items: any[], _value: string): any {
@@ -98,7 +98,7 @@ export class DominiFilterListPipe implements PipeTransform {
 @Pipe({
   name: 'propertyFilter',
   pure: false,
-  standalone: false
+  standalone: true
 })
 export class PropertyFilterPipe implements PipeTransform {
   transform(items: any[], _property: string, _value: string): any {
@@ -115,7 +115,7 @@ export class PropertyFilterPipe implements PipeTransform {
 @Pipe({
   name: 'risorseFilter',
   pure: false,
-  standalone: false
+  standalone: true
 })
 export class RisorseFilterPipe implements PipeTransform {
   transform(items: any[], values: any[]): any {
@@ -131,7 +131,7 @@ export class RisorseFilterPipe implements PipeTransform {
 @Pipe({
   name: 'authFilter',
   pure: false,
-  standalone: false
+  standalone: true
 })
 export class AuthFilterPipe implements PipeTransform {
   transform(items: any[], values: any[]): any {

@@ -16,32 +16,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, SearchBarFormComponent, EventType } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
-import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { EventType } from '@linkit/components';
 import { Page } from '@app/models/page';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import * as _ from 'lodash';
-import { uuid } from 'projects/linkit/validators/src/lib/uuid/validator';
+import { uuid } from '@app/validators/uuid/validator';
 declare const saveAs: any;
 
 enum TransactionOutcome {
@@ -63,7 +62,9 @@ enum SearchTypeEnum {
   selector: 'app-transazioni',
   templateUrl: 'transazioni.component.html',
   styleUrls: ['transazioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective, AutoFillScrollDirective],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class TransazioniComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'TransazioniComponent';
@@ -403,7 +404,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _loadServizio() {
@@ -760,10 +761,6 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     return (this.environmentId === 'collaudo');
   }
 
-  trackApiBySelectFn(item: any) {
-    return item.id_api;
-  }
-
   _initServizioApiSelect(defaultValue: any[] = []) {
     this.servizioApis$ = concat(
       of(defaultValue),
@@ -809,10 +806,6 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
         })
       )
     );
-  }
-
-  trackAdesioniBySelectFn(item: any) {
-    return item.id_api;
   }
 
   _initAdesioniSelect(defaultValue: any[] = []) {

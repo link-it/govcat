@@ -16,14 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute, Navigation } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MarkdownModule } from 'ngx-markdown';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -37,7 +37,9 @@ declare const saveAs: any;
   selector: 'app-transazione-details',
   templateUrl: 'transazione-details.component.html',
   styleUrls: ['transazione-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, MarkdownModule, ...COMPONENTS_IMPORTS],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'TransazioneDetailsComponent';
@@ -196,7 +198,7 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -225,10 +227,6 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
 
   _downloadAction(event: any) {
     // Dummy
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   _loadServizio() {

@@ -18,20 +18,23 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, Navigation } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 
-import { ConfigService } from '@linkit/components';
+import { ConfigService, Tools } from '@linkit/components';
 import { AuthenticationService } from '../../services/authentication.service';
-import { Tools } from '@linkit/components';
 
 @Component({
   selector: 'app-login',
   templateUrl: 'login.component.html',
   styleUrls: ['login.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    TranslateModule
+  ]
 })
 export class LoginComponent implements OnInit {
 

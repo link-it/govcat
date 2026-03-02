@@ -18,11 +18,15 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 
+import { TranslateModule } from '@ngx-translate/core';
+import { MarkdownModule } from 'ngx-markdown';
+
 @Component({
     selector: 'lnk-form-fieldset',
     templateUrl: './form-fieldset.component.html',
     styleUrls: ['./form-fieldset.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [TranslateModule, MarkdownModule]
 })
 export class LnkFormFieldsetComponent implements OnInit {
     @Input() title: string = '';

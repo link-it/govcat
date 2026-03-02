@@ -1,10 +1,15 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+
+import { TranslateModule } from '@ngx-translate/core';
+
+import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
 
 @Component({
   selector: 'app-step-modifica-email',
   templateUrl: './step-modifica-email.component.html',
-  standalone: false
+  standalone: true,
+  imports: [ReactiveFormsModule, TranslateModule, LnkButtonComponent]
 })
 export class StepModificaEmailComponent implements OnInit {
 

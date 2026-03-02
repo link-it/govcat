@@ -16,24 +16,34 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<p
-    *ngIf="control?.invalid && (control?.dirty || control?.touched)"
+@if (control?.invalid && (control?.dirty || control?.touched)) {
+  <p
     class="form-text text-danger mb-0"
->
-    <span *ngIf="control?.errors?.['required']" class="d-block">
+    >
+    @if (control?.errors?.['required']) {
+      <span class="d-block">
         {{ "APP.MESSAGE.VALIDATION.FieldRequired" | translate }}
-    </span>
-    <span *ngIf="control?.errors?.['maxlength']" class="d-block">
+      </span>
+    }
+    @if (control?.errors?.['maxlength']) {
+      <span class="d-block">
         {{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: control?.errors?.['maxlength'].requiredLength } }}
-    </span>
-    <span *ngIf="control?.errors?.['email']" class="d-block">
+      </span>
+    }
+    @if (control?.errors?.['email']) {
+      <span class="d-block">
         {{ 'APP.MESSAGE.VALIDATION.Email' | translate }}
-    </span>
-    <span *ngIf="control?.errors?.['minlength']" class="d-block">
+      </span>
+    }
+    @if (control?.errors?.['minlength']) {
+      <span class="d-block">
         {{ 'APP.MESSAGE.VALIDATION.MinLength' | translate:{ length: control?.errors?.['minlength'].requiredLength } }}
-    </span>
-
-    <span *ngIf="control?.errors?.['custom']" class="d-block">
+      </span>
+    }
+    @if (control?.errors?.['custom']) {
+      <span class="d-block">
         {{ control?.errors?.['custom'] | translate }}
-    </span>
-</p>
+      </span>
+    }
+  </p>
+}

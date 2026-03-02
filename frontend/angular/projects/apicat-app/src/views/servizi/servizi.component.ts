@@ -16,18 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
+import { AbstractControl, FormGroup, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HttpHeaders } from '@angular/common/http';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
-import { Tools, ConfigService, EventsManagerService, LocalStorageService, EventType, BreadcrumbService, SearchBarFormComponent } from '@linkit/components';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { Tools, ConfigService, EventsManagerService, LocalStorageService, EventType, BreadcrumbService, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -41,18 +42,37 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith,
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
-import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
+import { CardType } from '@app/lib/ui/card/card.component';
 
+import { CommonModule } from '@angular/common';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { TassonomiaTokenComponent } from '@app/components/token/tassonomia-token.component';
+import { ExportDropdwnComponent, ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+import { ServiziGroupListCardComponent } from './components/servizi-group-list-card/servizi-group-list-card.component';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import * as _ from 'lodash';
 declare const saveAs: any;
 
-import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
 
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
     styleUrls: ['servizi.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        TassonomiaTokenComponent,
+        ExportDropdwnComponent,
+        ServiziGroupListCardComponent,
+        MapperPipe,
+        InfiniteScrollDirective,
+        AutoFillScrollDirective
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked {
     static readonly Name = 'ServiziComponent';
@@ -882,10 +902,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _isAnonymousMapper = (): boolean => {
         return this._isAnonymous();
-    }
-
-    trackBySelectFn(item: any) {
-        return item.id_api;
     }
 
     _initProfili() {

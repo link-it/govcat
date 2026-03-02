@@ -16,15 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent } from '@linkit/components';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -37,6 +37,17 @@ import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choic
 
 import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 import { Grant } from '@app/model/grant';
+
+import { CommonModule } from '@angular/common';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
+import { AuthFilterPipe } from '@app/pipes/service-filters';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
+import { MarkdownModule } from 'ngx-markdown';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
@@ -62,7 +73,22 @@ export type GruppiCampi = Record<string, Campo[]>;
     selector: 'app-servizio-api-details',
     templateUrl: 'servizio-api-details.component.html',
     styleUrls: ['servizio-api-details.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        MarkAsteriskDirective,
+        DisablePermissionDirective,
+        AuthFilterPipe,
+        MonitorDropdwnComponent,
+        ErrorViewComponent,
+        MarkdownModule,
+        MapperPipe,
+        PluralTranslatePipe
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioApiDetailsComponent';
@@ -334,7 +360,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _hasControlError(name: string) {
-        return (this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name].errors && this.f[name].touched);
     }
 
     get f(): { [key: string]: AbstractControl } {

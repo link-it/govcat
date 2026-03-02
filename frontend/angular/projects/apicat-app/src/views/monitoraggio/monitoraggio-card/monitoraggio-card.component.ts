@@ -17,9 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
+import { TranslateModule } from '@ngx-translate/core';
+
+import { COMPONENTS_IMPORTS, EventsManagerService } from '@linkit/components';
 import { AuthenticationService } from '../../../services/authentication.service';
-import { EventsManagerService } from '@linkit/components'
 
 import { AmbienteEnum } from '../../../model/ambienteEnum';
 
@@ -27,7 +30,12 @@ import { AmbienteEnum } from '../../../model/ambienteEnum';
   selector: 'app-monitoraggio-card',
   templateUrl: './monitoraggio-card.component.html',
   styleUrls: ['./monitoraggio-card.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class MonitoraggioCardComponent implements OnInit, OnChanges {
   @ViewChild('childComponentTemplate') childComponentTemplate!: TemplateRef<any>;

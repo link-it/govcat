@@ -23,9 +23,9 @@ import { takeUntil } from "rxjs/operators";
 
 @Directive({
     selector: 'input[type=checkbox][checkboxArrayKey]',
-    standalone: false,
+    standalone: true,
     host: {
-        '(change)': 'onChange($event.target.checked)',
+        '(change)': 'onChange($any($event.target).checked)',
         '(blur)': 'onTouched()'
     }
 })
@@ -65,7 +65,7 @@ export const CHECKBOX_ARRAY_VALUE_ACCESSOR: any = {
 @Directive({
     selector: '[checkboxArray][formControlName], [checkboxArray][formControl], [checkboxArray][ngModel]',
     providers: [CHECKBOX_ARRAY_VALUE_ACCESSOR],
-    standalone: false
+    standalone: true
 
 })
 export class CheckboxArrayValueAccessor implements ControlValueAccessor, AfterContentInit, OnDestroy {

@@ -16,15 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
-import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -39,6 +39,9 @@ import { catchError, debounceTime, distinctUntilChanged, filter, finalize, switc
 
 import * as _ from 'lodash';
 
+import { CommonModule } from '@angular/common';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+
 export enum TabType {
   REFERENTI = 'REFERENTI',
   DOMINIO = 'DOMINIO'
@@ -48,7 +51,13 @@ export enum TabType {
   selector: 'app-servizio-referenti',
   templateUrl: 'servizio-referenti.component.html',
   styleUrls: ['servizio-referenti.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    MonitorDropdwnComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioReferentiComponent';
@@ -548,11 +557,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
-  }
-
-  trackByFn(item: any) {
-    return item.id;
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _initReferentiSelect(defaultValue: any[] = []) {

@@ -16,20 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { AbstractControl, FormBuilder, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, EventsManagerService, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { CustomValidators } from '@linkit/validators';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Dominio } from './dominio';
 
@@ -41,11 +38,23 @@ import { UtilService } from '@app/services/utils.service';
 
 import { DominioCreateUpdateRequest } from './dominio-create-update';
 
+import { CommonModule } from '@angular/common';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+
 @Component({
   selector: 'app-dominio-details',
   templateUrl: 'dominio-details.component.html',
   styleUrls: ['dominio-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    RouterModule,
+    HasPermissionDirective,
+    TrimOnBlurDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'DominioDetailsComponent';
@@ -174,7 +183,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -397,10 +406,6 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         }
       });
     }
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   _initSoggettiSelect(defaultValue: any[] = []) {

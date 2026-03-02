@@ -17,11 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
-
-import { ConfigService, Tools, SearchBarFormComponent } from '@linkit/components';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -34,7 +35,15 @@ import { Ruolo, Stato } from '@app/views/utenti/utente-details/utente';
   selector: 'app-utenti-search-form',
   templateUrl: './utenti-search-form.component.html',
   styleUrls: ['./utenti-search-form.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgSelectModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class UtentiSearchFormComponent implements OnInit {
 
@@ -198,7 +207,4 @@ export class UtentiSearchFormComponent implements OnInit {
     $event.stopPropagation();
   }
 
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio;
-  }
 }

@@ -16,32 +16,38 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, EventsManagerService, FieldClass, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { FieldClass } from '@linkit/components';
 import { CustomValidators } from '@linkit/validators';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { ClasseUtente } from './classe-utente';
 import { UtilService } from '@app/services/utils.service';
 
 import * as _ from 'lodash';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
 
 @Component({
   selector: 'app-classe-utente-details',
   templateUrl: 'classe-utente-details.component.html',
   styleUrls: ['classe-utente-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective,
+    TrimOnBlurDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClasseUtenteDetailsComponent';
@@ -159,7 +165,7 @@ export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterCon
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {

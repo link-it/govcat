@@ -19,7 +19,13 @@
 
 // ng-select-wrapper.component.ts
 import { Component, Input, Output, EventEmitter, forwardRef } from "@angular/core";
-import { ControlValueAccessor, FormGroup, NG_VALUE_ACCESSOR } from "@angular/forms";
+import { ControlValueAccessor, FormGroup, FormsModule, NG_VALUE_ACCESSOR, ReactiveFormsModule } from "@angular/forms";
+
+import { TranslateModule } from '@ngx-translate/core';
+import { NgSelectModule } from '@ng-select/ng-select';
+
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { LnkFormFieldErrorComponent } from '@app/components/lnk-ui/form-field-error/form-field-error.component';
 
 @Component({
     selector: "lnk-form-select",
@@ -32,7 +38,8 @@ import { ControlValueAccessor, FormGroup, NG_VALUE_ACCESSOR } from "@angular/for
             multi: true,
         },
     ],
-    standalone: false
+    standalone: true,
+    imports: [TranslateModule, FormsModule, ReactiveFormsModule, NgSelectModule, MarkAsteriskDirective, LnkFormFieldErrorComponent]
 })
 export class LnkFormSelectComponent implements ControlValueAccessor {
     @Input() label?: string;

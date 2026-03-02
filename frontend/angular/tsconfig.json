@@ -20,8 +20,14 @@
       "@services/*": [
         "projects/apicat-app/src/services/*"
       ],
-      "@linkit/*": [
-        "dist/linkit/*"
+      "@linkit/components": [
+        "projects/apicat-app/src/lib/index"
+      ],
+      "@linkit/validators": [
+        "projects/apicat-app/src/validators/index"
+      ],
+      "ts-md5/dist/md5": [
+        "node_modules/ts-md5/dist/md5.js"
       ]
     },
     "outDir": "./dist/out-tsc",
@@ -34,15 +40,11 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
-    "useDefineForClassFields": false,
-    "lib": [
-      "ES2022",
-      "dom"
-    ]
+    "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

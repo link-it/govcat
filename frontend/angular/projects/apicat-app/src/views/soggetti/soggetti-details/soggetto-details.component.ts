@@ -16,20 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, Tools, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Soggetto, TipoGateway } from './soggetto';
 import { SoggettoCreate } from './soggettoCreate';
@@ -37,11 +35,23 @@ import { SoggettoCreate } from './soggettoCreate';
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
+import { CommonModule } from '@angular/common';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+
 @Component({
   selector: 'app-soggetto-details',
   templateUrl: 'soggetto-details.component.html',
   styleUrls: ['soggetto-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    RouterModule,
+    HasPermissionDirective,
+    TrimOnBlurDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'SoggettoDetailsComponent';
@@ -189,7 +199,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -583,10 +593,6 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
         }
       })
       );
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   onBreadcrumb(event: any) {

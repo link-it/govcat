@@ -16,17 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
-import { Tools, ConfigService, YesnoDialogBsComponent } from '@linkit/components';
+import { Tools, ConfigService, YesnoDialogBsComponent, BreadcrumbComponent, BoxMessageComponent, BoxSpinnerComponent, InputHelpComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
+import { LnkFormFieldComponent } from '@app/components/lnk-ui/form-field/form-field.component';
+import { LnkFormErrorComponent } from '@app/components/lnk-ui/form-error/form-error.component';
+import { LnkFormSubmitComponent } from '@app/components/lnk-ui/form-submit/submit.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -46,7 +52,18 @@ interface BodySettingsType {
   selector: 'app-profile',
   templateUrl: 'profile.component.html',
   styleUrls: ['profile.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    MarkdownModule,
+    InputHelpComponent,
+    LnkButtonComponent,
+    LnkFormFieldComponent,
+    LnkFormErrorComponent,
+    LnkFormSubmitComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ProfileComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ProfileComponent';
@@ -723,10 +740,6 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         }
       })
       );
-  }
-
-  trackByFn(item: any) {
-    return item.id_organizzazione;
   }
 
   requestOrganizationChange(selectedOrgId: string) {

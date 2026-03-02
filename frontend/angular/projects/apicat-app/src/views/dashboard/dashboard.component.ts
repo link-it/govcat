@@ -16,12 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
-import { ConfigService } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 import { AuthenticationService } from '../../services/authentication.service';
 import { DashboardService } from '../../services/dashboard.service';
@@ -29,11 +31,30 @@ import { OpenAPIService } from '../../services/openAPI.service';
 import { UtilService } from '../../services/utils.service';
 import { DashboardRoleConfig } from '../../model/dashboard';
 
+import { DashboardPanelComponent } from './dashboard-panel/dashboard-panel.component';
+import { ClientsSearchFormComponent } from './search-forms/clients-search-form/clients-search-form.component';
+import { ServiziSearchFormComponent } from './search-forms/servizi-search-form/servizi-search-form.component';
+import { AdesioniSearchFormComponent } from './search-forms/adesioni-search-form/adesioni-search-form.component';
+import { UtentiSearchFormComponent } from './search-forms/utenti-search-form/utenti-search-form.component';
+import { ComunicazioniSearchFormComponent } from './search-forms/comunicazioni-search-form/comunicazioni-search-form.component';
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    ...APP_COMPONENTS_IMPORTS,
+    DashboardPanelComponent,
+    ClientsSearchFormComponent,
+    ServiziSearchFormComponent,
+    AdesioniSearchFormComponent,
+    UtentiSearchFormComponent,
+    ComunicazioniSearchFormComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class DashboardComponent implements OnInit {
   static readonly Name = 'DashboardComponent';

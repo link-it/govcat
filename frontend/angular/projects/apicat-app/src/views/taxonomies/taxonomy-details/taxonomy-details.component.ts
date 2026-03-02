@@ -16,16 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { NavigationService } from '@app/services/navigation.service';
@@ -34,11 +32,19 @@ import { Taxonomy } from './taxonomy';
 
 import * as _ from 'lodash';
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-taxonomy-details',
   templateUrl: 'taxonomy-details.component.html',
   styleUrls: ['taxonomy-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    RouterModule
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
   static readonly Name = 'TaxonomyDetailsComponent';
@@ -131,7 +137,7 @@ export class TaxonomyDetailsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {

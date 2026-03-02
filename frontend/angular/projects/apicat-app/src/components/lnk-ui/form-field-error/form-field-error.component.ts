@@ -19,10 +19,13 @@
 import { Component, Input } from "@angular/core";
 import { AbstractControl } from "@angular/forms";
 
+import { TranslateModule } from '@ngx-translate/core';
+
 @Component({
   selector: "lnk-form-field-error",
   templateUrl: "./form-field-error.component.html",
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule]
 })
 export class LnkFormFieldErrorComponent {
   @Input() control: AbstractControl | null = null;

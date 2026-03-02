@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { Tools } from '@linkit/components';
 
@@ -26,7 +30,8 @@ import { OpenAPIService } from '@app/services/openAPI.service';
   selector: 'ui-wsdl',
   templateUrl: './wsdl.component.html',
   styleUrls: ['./wsdl.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TooltipModule, TranslateModule]
 })
 export class WsdlComponent implements OnInit {
 

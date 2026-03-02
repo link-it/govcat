@@ -16,29 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components'
+import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { EventType } from '@linkit/components';
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 
-import * as moment from 'moment';
+import moment from 'moment';
+
+import { CommonModule } from '@angular/common';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
 const fake_ambiente = [ 'collaudo', 'produzione'];
 
@@ -46,7 +47,12 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
   selector: 'app-clients',
   templateUrl: 'clients.component.html',
   styleUrls: ['clients.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClientsComponent';
@@ -433,11 +439,4 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
     Tools.ScrollElement('container-scroller', 0);
   }
 
-  trackByFn(item: any) {
-    return item.id;
-  }
-
-  trackBySelectFn(item: any) {
-    return item.id_soggetto || item.id_organizzazione;
-  }
 }

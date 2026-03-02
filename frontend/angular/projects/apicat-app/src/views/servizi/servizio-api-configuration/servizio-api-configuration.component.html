@@ -21,389 +21,490 @@
     <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
-      <app-monitor-dropdown *ngIf="service"
-        [showComunications]="false"
-        [showMonitoring]="false"
-        [returnWeb]="true"
-        [otherActions]="[]"
-        (action)="onActionMonitor($event)">
-      </app-monitor-dropdown>
+      @if (service) {
+        <app-monitor-dropdown
+          [showComunications]="false"
+          [showMonitoring]="false"
+          [returnWeb]="true"
+          [otherActions]="[]"
+          (action)="onActionMonitor($event)">
+        </app-monitor-dropdown>
+      }
     </div>
   </div>
 
   <div class="top-area container-fluid container-limited limit-container-width px-0">
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls align-self-center d-flex">
-      <div class="position-relative" *ngIf="!_isEdit && !_spin ">
-        <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon"
-          [tooltip]="'APP.TOOLTIP.EditConfiguration' | translate" (click)="_isEdit = !_isEdit" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
-          <i class="bi bi-pencil"></i>
-        </button>
-      </div>
+      @if (!_isEdit && !_spin ) {
+        <div class="position-relative">
+          <button aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-icon"
+            [tooltip]="'APP.TOOLTIP.EditConfiguration' | translate" (click)="_isEdit = !_isEdit" [disabled]="!(_updateMapper | mapper:_canEditMapper)">
+            <i class="bi bi-pencil"></i>
+          </button>
+        </div>
+      }
 
-      <div role="group" class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
-        <button aria-haspopup="true" aria-expanded="false" type="button"
-          class="btn btn-default btn-md gl-button btn-default-tertiary ms-2"
-          [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate"
-          (click)="_onCancelEdit()">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
+      @if (_isEdit && !_spin) {
+        <div role="group" class="gl-w-full btn-group- position-relative">
+          <button aria-haspopup="true" aria-expanded="false" type="button"
+            class="btn btn-default btn-md gl-button btn-default-tertiary ms-2"
+            [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate"
+            (click)="_onCancelEdit()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      }
     </div>
   </div>
 
   <section
     class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
 
-    <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin"></ui-box-spinner>
+    @if (_spin) {
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+    }
 
-    <ui-box-message *ngIf="!_spin && !environmentId" [size]="64" [icon]="'report_problem'"
-      [image]="'./assets/images/illustrations/'+model+'.svg'" [message]="_message | translate"
-      [subMessage]="_messageHelp | translate">
-    </ui-box-message>
+    @if (!_spin && !environmentId) {
+      <ui-box-message [size]="64" [icon]="'report_problem'"
+        [image]="'./assets/images/illustrations/'+model+'.svg'" [message]="_message | translate"
+        [subMessage]="_messageHelp | translate">
+      </ui-box-message>
+    }
 
-    <div class="settings" *ngIf="servizioApi">
-      <div class="settings-content">
-        <div class="edit-form">
-          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form"
-            [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
-            <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
-              <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn"
-                [class.mb-5]="_singleColumn" *ngIf="!_isNew">
-                <h4 class="gl-mt-0 text-break">{{ (environmentId === 'collaudo' ? 'APP.API.TITLE.TestingInformations' :
-                  'APP.API.TITLE.ProductionInformations') | translate }}</h4>
-                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.API.TITLE.GeneralInformations_sub' | translate
-                  }}</div>
-              </div>
-              <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
-                <div class="row" *ngIf="_isGestore()">
-                  <div class="col-6">
-                    <div class="form-group nome_gateway">
-                      <label class="label-bold" for="nome_gateway">{{ 'APP.LABEL.nome_gateway' | translate }} <span
-                          appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome_gateway'"
-                          *ngIf="_isEdit"></span></label>
-                      <div class="" *ngIf="_isEdit">
-                        <div class="input-group">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
-                            [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text"
-                            name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission
-                            [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
-                            [grant]="_grant">
-
-                          <button class="btn btn-default btn-md gl-button" type="button"
-                            *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('nome_gateway')"
-                            (click)="copyTestingValue('nome_gateway')"
-                            [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
-                          </button>
-                        </div>
-                        <p *ngIf="f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)"
-                          class="form-text text-danger">
-                          <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['required']"
-                            class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          <span *ngIf="f['nome_gateway'].errors && f['nome_gateway'].errors['maxlength']"
-                            class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length:
-                            f['nome_gateway'].errors['maxlength'].requiredLength } }}</span>
-                        </p>
-                        <ui-input-help field="nome_gateway" context="API"></ui-input-help>
-                      </div>
-                      <div class="" *ngIf="!_isEdit">
-                        <input type="text" readonly class="form-control-plaintext" id="nome_gateway_view"
-                          [value]="viewValues.nome_gateway || '-'">
-                      </div>
-                    </div>
+    @if (servizioApi) {
+      <div class="settings">
+        <div class="settings-content">
+          <div class="edit-form">
+            <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form"
+              [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+              <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
+                @if (!_isNew) {
+                  <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn"
+                    [class.mb-5]="_singleColumn">
+                    <h4 class="gl-mt-0 text-break">{{ (environmentId === 'collaudo' ? 'APP.API.TITLE.TestingInformations' :
+                    'APP.API.TITLE.ProductionInformations') | translate }}</h4>
+                    <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.API.TITLE.GeneralInformations_sub' | translate
+                    }}</div>
                   </div>
-                  <div class="col-6">
-                    <div class="form-group versione_gateway">
-                      <label class="label-bold" for="versione_gateway">{{ 'APP.LABEL.versione_gateway' | translate }}
-                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione_gateway'"
-                          *ngIf="_isEdit"></span></label>
-                      <div *ngIf="_isEdit">
-                        <div class="input-group">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
-                            [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="number"
-                            name="versione_gateway" id="versione_gateway" formControlName="versione_gateway"
-                            disablePermission [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
-                            [grant]="_grant" min="1">
-
-                          <button class="btn btn-default btn-md gl-button" type="button"
-                            *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('versione_gateway')"
-                            (click)="copyTestingValue('versione_gateway')"
-                            [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
-                          </button>
-                        </div>
-                        <p *ngIf="f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)"
-                          class="form-text text-danger">
-                          <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['required']"
-                            class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                          <span *ngIf="f['versione_gateway'].errors && f['versione_gateway'].errors['pattern']"
-                            class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
-                        </p>
-                        <ui-input-help field="versione_gateway" context="API"></ui-input-help>
-                      </div>
-                      <div class="" *ngIf="!_isEdit">
-                        <input type="text" readonly class="form-control-plaintext" id="versione_gateway_view"
-                          [value]="viewValues.versione_gateway || '-'">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-12 ms-3" *ngIf="!_specificaObbligatorio">
-                    <div class="form-group">
-                      <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" [checked]="_hasSpecifica"
-                          id="hasSpecifica" [disabled]="!_isEdit" (click)="_toggleSpecifica()">
-                        <label class="form-check-label" for="hasSpecifica">{{ 'APP.LABEL.SpecificaInterfaccia' |
-                          translate }}</label>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-6">
-                    <div class="form-group protocollo">
-                      <label class="label-bold" for="protocollo">{{ 'APP.LABEL.protocollo' | translate }} <span
-                          appMarkAsterisk [formGroup]="_formGroup" [controlName]="'protocollo'"
-                          *ngIf="_isEdit"></span></label>
-                      <div class="" *ngIf="_isEdit">
-                        <div class="input-group">
-                          <select class="form-select" id="protocollo" formControlName="protocollo"
-                            [class.gl-field-error-outline]="_hasControlError('protocollo')" disablePermission
-                            [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
-                            [grant]="_grant">
-                            <option value="">{{ 'APP.MESSAGE.SelectInterface' | translate }}</option>
-                            <option *ngFor="let ti of _tipoInterfaccia" [value]="ti.value">{{ ti.label | translate }}
-                            </option>
-                          </select>
-
-                          <button class="btn btn-default btn-md gl-button" type="button"
-                            *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('protocollo')"
-                            (click)="copyTestingValue('protocollo')"
-                            [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
-                          </button>
-                        </div>
-                        <p *ngIf="f['protocollo'].invalid && (f['protocollo'].dirty || f['protocollo'].touched)"
-                          class="form-text text-danger">
-                          <span *ngIf="f['protocollo'].errors && f['protocollo'].errors['required']" class="d-block">{{
-                            'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        </p>
-                        <ui-input-help field="protocollo" context="API"></ui-input-help>
-                      </div>
-                      <div class="" *ngIf="!_isEdit && !viewValues.protocollo">-</div>
-                      <div class="" *ngIf="!_isEdit && viewValues.protocollo">
-                        <div class="row">
-                          <div class="col-6">
-                            <input type="text" readonly class="form-control-plaintext" id="protocollo"
-                              [value]="('APP.INTERFACE.' + viewValues.protocollo | translate) + ' - ' + ('APP.INTERFACE.' + viewValues.protocollo_dettaglio | translate)"
-                              *ngIf="_hasSpecifica">
-                            <input type="text" readonly class="form-control-plaintext" id="protocollo"
-                              [value]="viewValues.protocollo ? ('APP.INTERFACE.' + viewValues.protocollo | translate) : '-'"
-                              *ngIf="!_hasSpecifica">
-                          </div>
-                          <div class="col-3" *ngIf="_hasSpecifica">
-                            <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-"
-                              (click)="_downloadSpecifica()">
-                              <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-6 specifica">
-                    <div class="form-group" *ngIf="_configuration?.specifica?.storico?.length && !_isEdit">
-                      <label class="label-bold py-2" for="specifica">{{ 'APP.LABEL.Empty' | translate }}</label>
-                      <div class="mb-3">
-                        <button class="btn btn-default btn-md gl-button btn-icon- bg-white-"
-                          (click)="toggleHistorical()">
-                          <span>{{ (showHistory ? 'APP.BUTTON.HideHistory' : 'APP.BUTTON.ShowHistory') | translate
-                            }}</span><i class="bi bi-clock-history ms-2"></i>
-                        </button>
-                      </div>
-                    </div>
-                    <ng-container *ngIf="_isEdit && _hasSpecifica">
-                      <ui-allegato #des class="miw-50" [control]="_descrittoreCtrl"
-                        [label]="'APP.LABEL.specifica' | translate"
-                        (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
-                        (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
-                        [required]="_specificaObbligatorio || this._hasSpecifica"
-                        [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
-                        [maxUpload]="null"
-                      ></ui-allegato>
-                      <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
-                    </ng-container>
-                  </div>
-                </div>
-                <div class="box-historical mt-1 mb-4" *ngIf="showHistory">
-                  <span class="fw-bold mb-2">{{ 'APP.LABEL.Storico' | translate }}</span>
-                  <table class="table table-border align-items-center border mt-2 mb-0">
-                    <tbody>
-                      <tr class="table-light">
-                        <th class="col-6 vertical">{{ 'APP.LABEL.FileName' | translate }}</th>
-                        <th class="col-3 text-center">{{ 'APP.LABEL.Progressive' | translate }}</th>
-                        <th class="col-3">{{ 'APP.LABEL.Actions' | translate }}</th>
-                      </tr>
-                      <tr *ngFor="let item of _configuration?.specifica?.storico">
-                        <td class="align-middle">{{ item.filename || '-' }}</td>
-                        <td class="align-middle text-center">{{ item.versione || '-' }}</td>
-                        <td class="align-middle text-end">
-                          <span class="fw-bold me-2" *ngIf="item.versione === _configuration?.specifica?.versione">{{
-                            'APP.LABEL.Current' | translate }}</span>
-                          <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-"
-                            (click)="_downloadHistory(item)" *ngIf="item.versione">
-                            <i class="bi bi-download"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div class="row" *ngIf="servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO">
-                  <div class="col-12">
-                    <div class="form-group url">
-                      <label class="label-bold" for="url">{{ 'APP.LABEL.base_url' | translate }} <span appMarkAsterisk
-                          [formGroup]="_formGroup" [controlName]="'url'" *ngIf="_isEdit"></span></label>
-                      <div class="" *ngIf="_isEdit">
-                        <div class="input-group">
-                          <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
-                            [class.gl-field-error-outline]="_hasControlError('url')" type="text" name="url" id="url"
-                            formControlName="url" disablePermission [isNew]="_isNew" [module]="'servizio'"
-                            [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-
-                          <button class="btn btn-default btn-md gl-button" type="button"
-                            *ngIf="environmentId === 'produzione'" [disabled]="!getTestingValue('url')"
-                            (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
-                            <span><i class="bi bi-copy"></i></span>
-                          </button>
-                        </div>
-                        <p *ngIf="f['url'].invalid && (f['url'].dirty || f['url'].touched)"
-                          class="form-text text-danger">
-                          <span *ngIf="f['url'].errors && f['url'].errors['required']" class="d-block">{{
-                            'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        </p>
-                        <ui-input-help field="url" context="API"></ui-input-help>
-                      </div>
-                      <div class="" *ngIf="!_isEdit">
-                        <input type="text" readonly class="form-control-plaintext" id="url_view"
-                          [value]="viewValues.url || '-'">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-
-                <div class="row mt-5 api-custom-properties" *ngIf="servizioApi?.ruolo === EROGATO_SOGGETTO_DOMINIO">
-                  <div class="col-12">
-                    <ng-container *ngFor="let apc of _apiProprietaCustomGrouped | keyvalue">
-                      <ng-container *ngIf="_apiProprietaCustomGrouped[apc.key + ''].length">
-                        <h5 class="pb-2 mb-5 border-bottom" [title]="`${apc.key} - ${fieldToGroup}`">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
-                        <ng-container *ngFor="let cp of _apiProprietaCustomGrouped[apc.key + ''] | mapper:sortByFieldPreservingOthersMapper:'index'">
-                          <div formArrayName="proprieta_custom" class="row custom-properties-fields">
-                            <div [formArrayName]="cp[fieldToGroup]" class="col-12 form-group">
-                              <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} <span appMarkAsterisk
-                                  [formGroup]="acfgc(cp[fieldToGroup])" [controlName]="cp.nome"
-                                  *ngIf="_markAsteriskUpdated && _isEdit"></span></label>
-                              <div class="" *ngIf="_isEdit">
-  
-                                <div class="input-group">
-                                  <ng-container *ngIf="cp.tipo === 'text'">
-                                    <input autocomplete="off" class="form-control"
-                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
-                                      [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome"
-                                      disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
-                                      [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                  </ng-container>
-                                  <ng-container *ngIf="cp.tipo === 'select'">
-                                    <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome"
-                                      [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
-                                      disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
-                                      [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
-                                      <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
-                                      <option *ngFor="let cpv of cp.valori" [value]="cpv.nome">{{ cpv.etichetta }}
-                                      </option>
-                                    </select>
-                                  </ng-container>
-                                  <!-- <ng-container *ngIf="cp.tipo === ProprietaType.File">
-                                    <ui-allegato class=""
-                                        [control]="cfgc(cp.nome)"
-                                        [label]="''"
-                                        [required]="!!_hasRequiredValidator(cp.nome)"
-                                        (resetControl)="_onFileChange(cfg().controls[cp.nome].value)"
-                                        (fileChanged)="_onFileChange(cfg().controls[cp.nome].value)"
-                                        [maxUpload]="null"
-                                    ></ui-allegato>
-                                  </ng-container> -->
-  
-                                  <button class="btn btn-default btn-md gl-button" type="button" *ngIf="environmentId === 'produzione'"
-                                    [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
-                                    (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
+                }
+                <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                  @if (_isGestore()) {
+                    <div class="row">
+                      <div class="col-6">
+                        <div class="form-group nome_gateway">
+                          <label class="label-bold" for="nome_gateway">{{ 'APP.LABEL.nome_gateway' | translate }} @if (_isEdit) {
+                            <span
+                              appMarkAsterisk [formGroup]="_formGroup" [controlName]="'nome_gateway'"
+                            ></span>
+                          }</label>
+                          @if (_isEdit) {
+                            <div class="">
+                              <div class="input-group">
+                                <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
+                                  [class.gl-field-error-outline]="_hasControlError('nome_gateway')" type="text"
+                                  name="nome_gateway" id="nome_gateway" formControlName="nome_gateway" disablePermission
+                                  [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
+                                  [grant]="_grant">
+                                @if (environmentId === 'produzione') {
+                                  <button class="btn btn-default btn-md gl-button" type="button"
+                                    [disabled]="!getTestingValue('nome_gateway')"
+                                    (click)="copyTestingValue('nome_gateway')"
                                     [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
                                     <span><i class="bi bi-copy"></i></span>
                                   </button>
-                                </div>
-                                <p *ngIf="acfgc(cp[fieldToGroup]).controls[cp.nome]?.invalid && (acfgc(cp[fieldToGroup]).controls[cp.nome]?.touched)"
+                                }
+                              </div>
+                              @if (f['nome_gateway'].invalid && (f['nome_gateway'].dirty || f['nome_gateway'].touched)) {
+                                <p
                                   class="form-text text-danger">
-                                  <span
-                                    *ngIf="acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.required"
+                                  @if (f['nome_gateway'].errors && f['nome_gateway'].errors['required']) {
+                                    <span
                                     class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                  <span
-                                    *ngIf="acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.pattern"
-                                    class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern:
-                                    cp.regular_expression } }}</span>
+                                  }
+                                  @if (f['nome_gateway'].errors && f['nome_gateway'].errors['maxlength']) {
+                                    <span
+                                      class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length:
+                                    f['nome_gateway'].errors['maxlength'].requiredLength } }}</span>
+                                  }
                                 </p>
+                              }
+                              <ui-input-help field="nome_gateway" context="API"></ui-input-help>
+                            </div>
+                          }
+                          @if (!_isEdit) {
+                            <div class="">
+                              <input type="text" readonly class="form-control-plaintext" id="nome_gateway_view"
+                                [value]="viewValues.nome_gateway || '-'">
+                            </div>
+                          }
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-group versione_gateway">
+                          <label class="label-bold" for="versione_gateway">{{ 'APP.LABEL.versione_gateway' | translate }}
+                            @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'versione_gateway'"
+                              ></span>
+                            }</label>
+                            @if (_isEdit) {
+                              <div>
+                                <div class="input-group">
+                                  <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
+                                    [class.gl-field-error-outline]="_hasControlError('versione_gateway')" type="number"
+                                    name="versione_gateway" id="versione_gateway" formControlName="versione_gateway"
+                                    disablePermission [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
+                                    [grant]="_grant" min="1">
+                                  @if (environmentId === 'produzione') {
+                                    <button class="btn btn-default btn-md gl-button" type="button"
+                                      [disabled]="!getTestingValue('versione_gateway')"
+                                      (click)="copyTestingValue('versione_gateway')"
+                                      [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                      <span><i class="bi bi-copy"></i></span>
+                                    </button>
+                                  }
+                                </div>
+                                @if (f['versione_gateway'].invalid && (f['versione_gateway'].dirty || f['versione_gateway'].touched)) {
+                                  <p
+                                    class="form-text text-danger">
+                                    @if (f['versione_gateway'].errors && f['versione_gateway'].errors['required']) {
+                                      <span
+                                      class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    }
+                                    @if (f['versione_gateway'].errors && f['versione_gateway'].errors['pattern']) {
+                                      <span
+                                      class="d-block">{{ 'APP.MESSAGE.VALIDATION.IntegerGreaterThanZero' | translate }}</span>
+                                    }
+                                  </p>
+                                }
+                                <ui-input-help field="versione_gateway" context="API"></ui-input-help>
                               </div>
-                              <div class="" *ngIf="!_isEdit">
-                                <ng-container *ngIf="cp.tipo !== 'select'">
-                                  <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
-                                    [name]="cp.nome" [value]="acfgc(cp[fieldToGroup]).controls[cp.nome].value || '-'">
-                                </ng-container>
-                                <ng-container *ngIf="cp.tipo === 'select'">
-                                  <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
-                                    [name]="cp.nome"
-                                    [value]="acfgc(cp[fieldToGroup]).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
-                                </ng-container>
+                            }
+                            @if (!_isEdit) {
+                              <div class="">
+                                <input type="text" readonly class="form-control-plaintext" id="versione_gateway_view"
+                                  [value]="viewValues.versione_gateway || '-'">
                               </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    <div class="row">
+                      @if (!_specificaObbligatorio) {
+                        <div class="col-12 ms-3">
+                          <div class="form-group">
+                            <div class="form-check form-switch">
+                              <input class="form-check-input" type="checkbox" role="switch" [checked]="_hasSpecifica"
+                                id="hasSpecifica" [disabled]="!_isEdit" (click)="_toggleSpecifica()">
+                              <label class="form-check-label" for="hasSpecifica">{{ 'APP.LABEL.SpecificaInterfaccia' |
+                              translate }}</label>
                             </div>
                           </div>
-                        </ng-container>
-                      </ng-container>
-                    </ng-container>
-                  </div>
-                </div>
-
-                <div class="gl-alert gl-alert-danger col-md-12 mt-3" *ngIf="_isEdit && _error">
-                  {{ _errorMsg }}
-                </div>
-
-                <div class="row-content-block footer-block" *ngIf="_isEdit">
-                  <div class="d-flex justify-content-between">
-                    <div class="d-flex gap-md-1">
-                      <button type="submit" class="gl-button btn btn-confirm gl-mr-2"
-                        [disabled]="_formGroup.invalid || _spin">
-                        {{ 'APP.BUTTON.Save' | translate }} <span class="spinner-border spinner-border-sm ms-2"
-                          *ngIf="_spin"></span>
-                      </button>
-                      <button type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
-                        {{ 'APP.BUTTON.Cancel' | translate }}
-                      </button>
+                        </div>
+                      }
+                      <div class="col-6">
+                        <div class="form-group protocollo">
+                          <label class="label-bold" for="protocollo">{{ 'APP.LABEL.protocollo' | translate }} @if (_isEdit) {
+                            <span
+                              appMarkAsterisk [formGroup]="_formGroup" [controlName]="'protocollo'"
+                            ></span>
+                          }</label>
+                          @if (_isEdit) {
+                            <div class="">
+                              <div class="input-group">
+                                <select class="form-select" id="protocollo" formControlName="protocollo"
+                                  [class.gl-field-error-outline]="_hasControlError('protocollo')" disablePermission
+                                  [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato"
+                                  [grant]="_grant">
+                                  <option value="">{{ 'APP.MESSAGE.SelectInterface' | translate }}</option>
+                                  @for (ti of _tipoInterfaccia; track ti) {
+                                    <option [value]="ti.value">{{ ti.label | translate }}
+                                    </option>
+                                  }
+                                </select>
+                                @if (environmentId === 'produzione') {
+                                  <button class="btn btn-default btn-md gl-button" type="button"
+                                    [disabled]="!getTestingValue('protocollo')"
+                                    (click)="copyTestingValue('protocollo')"
+                                    [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                    <span><i class="bi bi-copy"></i></span>
+                                  </button>
+                                }
+                              </div>
+                              @if (f['protocollo'].invalid && (f['protocollo'].dirty || f['protocollo'].touched)) {
+                                <p
+                                  class="form-text text-danger">
+                                  @if (f['protocollo'].errors && f['protocollo'].errors['required']) {
+                                    <span class="d-block">{{
+                                    'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                              <ui-input-help field="protocollo" context="API"></ui-input-help>
+                            </div>
+                          }
+                          @if (!_isEdit && !viewValues.protocollo) {
+                            <div class="">-</div>
+                          }
+                          @if (!_isEdit && viewValues.protocollo) {
+                            <div class="">
+                              <div class="row">
+                                <div class="col-6">
+                                  @if (_hasSpecifica) {
+                                    <input type="text" readonly class="form-control-plaintext" id="protocollo"
+                                      [value]="('APP.INTERFACE.' + viewValues.protocollo | translate) + ' - ' + ('APP.INTERFACE.' + viewValues.protocollo_dettaglio | translate)"
+                                      >
+                                  }
+                                  @if (!_hasSpecifica) {
+                                    <input type="text" readonly class="form-control-plaintext" id="protocollo"
+                                      [value]="viewValues.protocollo ? ('APP.INTERFACE.' + viewValues.protocollo | translate) : '-'"
+                                      >
+                                  }
+                                </div>
+                                @if (_hasSpecifica) {
+                                  <div class="col-3">
+                                    <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-"
+                                      (click)="_downloadSpecifica()">
+                                      <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                      <div class="col-6 specifica">
+                        @if (_configuration?.specifica?.storico?.length && !_isEdit) {
+                          <div class="form-group">
+                            <label class="label-bold py-2" for="specifica">{{ 'APP.LABEL.Empty' | translate }}</label>
+                            <div class="mb-3">
+                              <button class="btn btn-default btn-md gl-button btn-icon- bg-white-"
+                                (click)="toggleHistorical()">
+                                <span>{{ (showHistory ? 'APP.BUTTON.HideHistory' : 'APP.BUTTON.ShowHistory') | translate
+                                  }}</span><i class="bi bi-clock-history ms-2"></i>
+                                </button>
+                              </div>
+                            </div>
+                          }
+                          @if (_isEdit && _hasSpecifica) {
+                            <ui-allegato #des class="miw-50" [control]="_descrittoreCtrl"
+                              [label]="'APP.LABEL.specifica' | translate"
+                              (resetControl)="_onDescrittoreChange(_descrittoreCtrl.value)"
+                              (fileChanged)="_onDescrittoreChange(_descrittoreCtrl.value)"
+                              [required]="_specificaObbligatorio || this._hasSpecifica"
+                              [disabled]="!f['protocollo'].value || !('allegati' | mapper:_canEditFieldMapper)"
+                              [maxUpload]="null"
+                            ></ui-allegato>
+                            <ui-input-help field="filename" context="ALLEGATI"></ui-input-help>
+                          }
+                        </div>
+                      </div>
+                      @if (showHistory) {
+                        <div class="box-historical mt-1 mb-4">
+                          <span class="fw-bold mb-2">{{ 'APP.LABEL.Storico' | translate }}</span>
+                          <table class="table table-border align-items-center border mt-2 mb-0">
+                            <tbody>
+                              <tr class="table-light">
+                                <th class="col-6 vertical">{{ 'APP.LABEL.FileName' | translate }}</th>
+                                <th class="col-3 text-center">{{ 'APP.LABEL.Progressive' | translate }}</th>
+                                <th class="col-3">{{ 'APP.LABEL.Actions' | translate }}</th>
+                              </tr>
+                              @for (item of _configuration?.specifica?.storico; track item) {
+                                <tr>
+                                  <td class="align-middle">{{ item.filename || '-' }}</td>
+                                  <td class="align-middle text-center">{{ item.versione || '-' }}</td>
+                                  <td class="align-middle text-end">
+                                    @if (item.versione === _configuration?.specifica?.versione) {
+                                      <span class="fw-bold me-2">{{
+                                      'APP.LABEL.Current' | translate }}</span>
+                                    }
+                                    @if (item.versione) {
+                                      <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-"
+                                        (click)="_downloadHistory(item)">
+                                        <i class="bi bi-download"></i>
+                                      </button>
+                                    }
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      }
+                      @if (servizioApi.ruolo === EROGATO_SOGGETTO_DOMINIO) {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group url">
+                              <label class="label-bold" for="url">{{ 'APP.LABEL.base_url' | translate }} @if (_isEdit) {
+                                <span appMarkAsterisk
+                                [formGroup]="_formGroup" [controlName]="'url'"></span>
+                              }</label>
+                              @if (_isEdit) {
+                                <div class="">
+                                  <div class="input-group">
+                                    <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control"
+                                      [class.gl-field-error-outline]="_hasControlError('url')" type="text" name="url" id="url"
+                                      formControlName="url" disablePermission [isNew]="_isNew" [module]="'servizio'"
+                                      [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                    @if (environmentId === 'produzione') {
+                                      <button class="btn btn-default btn-md gl-button" type="button"
+                                        [disabled]="!getTestingValue('url')"
+                                        (click)="copyTestingValue('url')" [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                        <span><i class="bi bi-copy"></i></span>
+                                      </button>
+                                    }
+                                  </div>
+                                  @if (f['url'].invalid && (f['url'].dirty || f['url'].touched)) {
+                                    <p
+                                      class="form-text text-danger">
+                                      @if (f['url'].errors && f['url'].errors['required']) {
+                                        <span class="d-block">{{
+                                        'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                      }
+                                    </p>
+                                  }
+                                  <ui-input-help field="url" context="API"></ui-input-help>
+                                </div>
+                              }
+                              @if (!_isEdit) {
+                                <div class="">
+                                  <input type="text" readonly class="form-control-plaintext" id="url_view"
+                                    [value]="viewValues.url || '-'">
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      }
+                      @if (servizioApi.ruolo === EROGATO_SOGGETTO_DOMINIO) {
+                        <div class="row mt-5 api-custom-properties">
+                          <div class="col-12">
+                            @for (apc of _apiProprietaCustomGrouped | keyvalue; track apc) {
+                              @if (_apiProprietaCustomGrouped[$any(apc.key)].length) {
+                                <h5 class="pb-2 mb-5 border-bottom" [title]="$any(apc.key) + ' - ' + fieldToGroup">{{ apc.key | mapper:_getGroupLabelMapper }}</h5>
+                                @for (cp of _apiProprietaCustomGrouped[$any(apc.key)] | mapper:sortByFieldPreservingOthersMapper:'index'; track cp) {
+                                  <div formArrayName="proprieta_custom" class="row custom-properties-fields">
+                                    <div [formArrayName]="cp[fieldToGroup]" class="col-12 form-group">
+                                      <label class="label-bold" [for]="cp.nome">{{ cp.etichetta }} @if (_markAsteriskUpdated && _isEdit) {
+                                        <span appMarkAsterisk
+                                          [formGroup]="acfgc(cp[fieldToGroup])" [controlName]="cp.nome"
+                                        ></span>
+                                      }</label>
+                                      @if (_isEdit) {
+                                        <div class="">
+                                          <div class="input-group">
+                                            @if (cp.tipo === 'text') {
+                                              <input autocomplete="off" class="form-control"
+                                                [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
+                                                [type]="cp.type" [name]="cp.nome" [id]="cp.nome" [formControlName]="cp.nome"
+                                                disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                                [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                            }
+                                            @if (cp.tipo === 'select') {
+                                              <select class="form-select" [id]="cp.nome" [formControlName]="cp.nome"
+                                                [class.gl-field-error-outline]="_hasControlApiCustomPropertiesError(cp[fieldToGroup], cp.nome)"
+                                                disablePermission [field]="'allegati'" [isNew]="_isNew" [module]="'servizio'"
+                                                [submodule]="'api'" [state]="service?.stato" [grant]="_grant">
+                                                <option value="">{{ 'APP.MESSAGE.Select' | translate }}</option>
+                                                @for (cpv of cp.valori; track cpv) {
+                                                  <option [value]="cpv.nome">{{ cpv.etichetta }}
+                                                  </option>
+                                                }
+                                              </select>
+                                            }
+                                            <!-- <ng-container *ngIf="cp.tipo === ProprietaType.File">
+                                            <ui-allegato class=""
+                                              [control]="cfgc(cp.nome)"
+                                              [label]="''"
+                                              [required]="!!_hasRequiredValidator(cp.nome)"
+                                              (resetControl)="_onFileChange(cfg().controls[cp.nome].value)"
+                                              (fileChanged)="_onFileChange(cfg().controls[cp.nome].value)"
+                                              [maxUpload]="null"
+                                            ></ui-allegato>
+                                          </ng-container> -->
+                                          @if (environmentId === 'produzione') {
+                                            <button class="btn btn-default btn-md gl-button" type="button"
+                                              [disabled]="!getCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
+                                              (click)="copyCustomPropertyTestingValue(cp[fieldToGroup], cp.nome)"
+                                              [tooltip]="'APP.TOOLTIP.CopyTestingValue' | translate">
+                                              <span><i class="bi bi-copy"></i></span>
+                                            </button>
+                                          }
+                                        </div>
+                                        @if (acfgc(cp[fieldToGroup]).controls[cp.nome]?.invalid && (acfgc(cp[fieldToGroup]).controls[cp.nome]?.touched)) {
+                                          <p
+                                            class="form-text text-danger">
+                                            @if (acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.required) {
+                                              <span
+                                              class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                            }
+                                            @if (acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors && acfgc(cp[fieldToGroup]).controls[cp.nome]?.errors?.pattern) {
+                                              <span
+                                                class="d-block">{{ 'APP.MESSAGE.VALIDATION.Pattern' | translate:{pattern:
+                                              cp.regular_expression } }}</span>
+                                            }
+                                          </p>
+                                        }
+                                      </div>
+                                    }
+                                    @if (!_isEdit) {
+                                      <div class="">
+                                        @if (cp.tipo !== 'select') {
+                                          <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
+                                            [name]="cp.nome" [value]="acfgc(cp[fieldToGroup]).controls[cp.nome].value || '-'">
+                                        }
+                                        @if (cp.tipo === 'select') {
+                                          <input type="text" readonly class="form-control-plaintext" [id]="cp.nome"
+                                            [name]="cp.nome"
+                                            [value]="acfgc(cp[fieldToGroup]).controls[cp.nome].value | mapper:_getCustomSelectLabelMapper:cp.nome:apc.key">
+                                        }
+                                      </div>
+                                    }
+                                  </div>
+                                </div>
+                              }
+                            }
+                          }
+                        </div>
+                      </div>
+                    }
+                    @if (_isEdit && _error) {
+                      <div class="gl-alert gl-alert-danger col-md-12 mt-3">
+                        {{ _errorMsg }}
+                      </div>
+                    }
+                    @if (_isEdit) {
+                      <div class="row-content-block footer-block">
+                        <div class="d-flex justify-content-between">
+                          <div class="d-flex gap-md-1">
+                            <button type="submit" class="gl-button btn btn-confirm gl-mr-2"
+                              [disabled]="_formGroup.invalid || _spin">
+                              {{ 'APP.BUTTON.Save' | translate }} @if (_spin) {
+                              <span class="spinner-border spinner-border-sm ms-2"
+                              ></span>
+                            }
+                          </button>
+                          <button type="button" class="btn gl-button btn-default gl-mr-2" (click)="_onCancelEdit()">
+                            {{ 'APP.BUTTON.Cancel' | translate }}
+                          </button>
+                        </div>
+                        @if (environmentId === 'produzione') {
+                          <button type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
+                            {{ 'APP.BUTTON.CopyTestingValues' | translate }}
+                          </button>
+                        }
+                      </div>
                     </div>
-                    <button *ngIf="environmentId === 'produzione'" type="button" class="gl-button btn btn-confirm" (click)="copyAllTestingValues()">
-                      {{ 'APP.BUTTON.CopyTestingValues' | translate }}
-                    </button>
-                  </div>
+                  }
                 </div>
-
               </div>
-            </div>
-
-          </form>
+            </form>
+          </div>
         </div>
-
-
       </div>
-
-    </div>
+    }
 
   </section>
 </div>

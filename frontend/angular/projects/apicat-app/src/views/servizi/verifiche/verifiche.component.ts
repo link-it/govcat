@@ -16,22 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { HttpParams } from '@angular/common/http';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+
+import { VerificaApiComponent } from './verifica-api/verifica-api.component';
 
 import { Page } from '@app/models/page';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import * as _ from 'lodash';
 
 export enum ViewType {
@@ -88,7 +91,9 @@ export enum ViewType {
       ])
     ])
   ],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, ...COMPONENTS_IMPORTS, MapperPipe, VerificaApiComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnChanges, OnDestroy {
   static readonly Name = 'VerificheComponent';

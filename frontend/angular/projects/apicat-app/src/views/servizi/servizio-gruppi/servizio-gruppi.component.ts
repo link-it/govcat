@@ -16,23 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
+import { ConfigService, Tools, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { FieldClass } from '@linkit/components';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -45,11 +41,20 @@ import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap 
 
 import * as _ from 'lodash';
 
+import { CommonModule } from '@angular/common';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+
 @Component({
   selector: 'app-servizio-gruppi',
   templateUrl: 'servizio-gruppi.component.html',
   styleUrls: ['servizio-gruppi.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    MonitorDropdwnComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioGruppiComponent';
@@ -257,7 +262,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
 
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
+      organizationTaxCode: new UntypedFormControl(''),
       creationDateFrom: new UntypedFormControl(''),
       creationDateTo: new UntypedFormControl(''),
       fileName: new UntypedFormControl(''),
@@ -501,11 +506,7 @@ export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
-  }
-
-  trackByFn(item: any) {
-    return item.id;
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _initGruppiSelect(defaultValue: any[] = []) {

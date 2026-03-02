@@ -16,48 +16,65 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { ReactiveFormsModule, FormsModule, AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, YesnoDialogBsComponent, MenuAction, EventType } from '@linkit/components';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { WorkflowComponent } from '@app/components/workflow/workflow.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Adesione } from './adesione';
 import { AdesioneCreate } from './adesioneCreate';
-import { AdesioneUpdate, Servizio } from './adesioneUpdate';
-import { Soggetto } from './adesioneUpdate';
+import { AdesioneUpdate, Servizio, Soggetto } from './adesioneUpdate';
 
 import { concat, Observable, of, Subject, throwError, forkJoin } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 declare const saveAs: any;
-import * as moment from 'moment';
+import moment from 'moment';
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
 import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
-import { NgSelectComponent } from '@ng-select/ng-select';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
-import { Location } from '@angular/common';
-import { MenuAction } from '@linkit/components';
 
 import { Grant } from '@app/model/grant';
-import { EventType } from '@linkit/components';
 
 @Component({
   selector: 'app-adesione-details',
   templateUrl: 'adesione-details.component.html',
   styleUrls: ['adesione-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    MarkAsteriskDirective,
+    WorkflowComponent,
+    ErrorViewComponent,
+    NotificationBarComponent,
+    MonitorDropdwnComponent,
+    NgSelectModule,
+    TooltipModule
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneDetailsComponent';
@@ -380,7 +397,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _isVisibilita(type: string) {
@@ -619,10 +636,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         }
       }
     );
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   getServizi(term: string | null = null): Observable<any> {

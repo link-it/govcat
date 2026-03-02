@@ -16,33 +16,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 import { Ruolo, Stato } from './utente-details/utente';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
   selector: 'app-utenti',
   templateUrl: 'utenti.component.html',
   styleUrls: ['utenti.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtentiComponent';
@@ -436,7 +444,4 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     $event.stopPropagation();
   }
 
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio;
-  }
 }

@@ -16,13 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { MarkdownModule } from 'ngx-markdown';
+import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -70,7 +77,9 @@ type Raggruppamento = {
   selector: 'app-servizio-api-configuration',
   templateUrl: 'servizio-api-configuration.component.html',
   styleUrls: ['servizio-api-configuration.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioApiConfigurationComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';
@@ -314,7 +323,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {

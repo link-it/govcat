@@ -1,0 +1,194 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="filtered-search-bar-container gl-md-display-flex gl-flex-grow-1 gl-border-t-none row-content-block {{ classBlock }}">
+  @if (showSearch) {
+    <div class="gl-search-box-by-click flex-grow-1 filtered-search-input">
+      <div id="form_toggle" role="group" class="input-group">
+        @if (showHistory) {
+          <div class="" [class.input-group-prepend]="showHistory">
+            <div class="dropdown b-dropdown gl-new-dropdown gl-search-box-by-click-history btn-group" id="history">
+              <button id="history_toggle" aria-haspopup="true" aria-expanded="false" type="button" data-bs-toggle="dropdown" data-bs-display="static" class="btn dropdown-toggle btn-default btn-md gl-button dropdowngl-dropdown-toggle btn-default-secondary" (click)="_closeSearchDropDpwn($event)">
+                <span class="material-icons-outlined">history</span>
+                <span class="material-icons-outlined">expand_more</span>
+                <span class="gl-sr-only">{{ 'Toggle history' | translate }}</span>
+              </button>
+              <ul tabindex="-1" class="dropdown-menu gl-search-box-by-click-menu" [ngStyle]="{'background-color': backColor}" aria-labelledby="history_toggle">
+                <div class="gl-new-dropdown-inner">
+                  <div class="gl-new-dropdown-contents">
+                    <li role="presentation" class="gl-new-dropdown-text gl-search-box-by-click-history-header">
+                      <p class="b-dropdown-text">
+                        {{ 'APP.SEARCH.RecentSearches' | translate }}
+                        <button title="Close" aria-label="Close" name="close" type="button" class="btn btn-sm gl-search-box-by-click-close-history-button btn-default btn-md gl-button btn-default-tertiary btn-icon">
+                          <em class="bi bi-x fs-6"></em>
+                        </button>
+                      </p>
+                    </li>
+                    <li role="presentation" class="gl-new-dropdown-divider">
+                      <hr aria-orientation="horizontal" class="dropdown-divider">
+                    </li>
+                    <li role="presentation" class="gl-new-dropdown-item gl-search-box-by-click-history-item">
+                      @for (item of _history; track item) {
+                        <button role="menuitem" type="button" class="dropdown-item">
+                          <!-- <span>{{ item | json }}</span> -->
+                          <div class="gl-new-dropdown-item-text-wrapper" (click)="_restoreSearch(item)">
+                            <p class="gl-new-dropdown-item-text-primary">
+                              @for (token of _getHistorytokens(item); track token; let index = $index) {
+                                <span class="gl-px-1">
+                                  <!-- <ui-token-segment
+                                  [token]="token"
+                                  [index]="index"
+                                  [useCondition]="useCondition"
+                                  [simple]="true"
+                                ></ui-token-segment> -->
+                                <span class="me-1">{{ token.label }} {{ token.operator }}</span><strong>{{ __formatValue(token.label, token.value) }}</strong>
+                              </span>
+                            }
+                          </p>
+                        </div>
+                      </button>
+                    }
+                  </li>
+                  @if (!_history?.length) {
+                    <li role="presentation" class="gl-new-dropdown-text gl-search-box-by-click-history-no-searches">
+                      <p class="b-dropdown-text">{{ 'APP.SEARCH.NoRecentSearches' | translate }}</p>
+                    </li>
+                  }
+                  @if (_history?.length) {
+                    <li role="presentation" class="gl-new-dropdown-divider">
+                      <hr aria-orientation="horizontal" class="dropdown-divider">
+                    </li>
+                  }
+                  @if (_history?.length) {
+                    <li role="presentation" class="gl-new-dropdown-item">
+                      <button role="menuitem" type="button" class="dropdown-item" (click)="_clearHistory()">
+                        <div class="gl-new-dropdown-item-text-wrapper">
+                          <p class="gl-new-dropdown-item-text-primary">{{ 'APP.SEARCH.ClearRecentSearches' | translate }}</p>
+                        </div>
+                      </button>
+                    </li>
+                  }
+                </div>
+              </div>
+            </ul>
+          </div>
+        </div>
+      }
+      @if (!searchAppend) {
+        <div class="input-group-prepend">
+          <button aria-label="Search" type="button" class="btn gl-search-box-by-click-search-button btn-default btn-md gl-button btn-icon" (click)="_onSearch()" [disabled]="formGroup.invalid">
+            <span class="material-icons-outlined" [ngClass]="{ 'fw-bold': _isOpen}">search</span>
+          </button>
+        </div>
+      }
+      <div class="gl-filtered-search-scrollable" style="border-top-right-radius: 0.25rem;border-bottom-right-radius: 0.25rem;">
+        @for (token of _tokens; track token; let index = $index) {
+          <ui-token-segment
+            [token]="token"
+            [index]="index"
+            [useCondition]="useCondition"
+            (onAction)="_openSearch($event)"
+            (onRemove)="_clearToken($event, token, index)"
+          ></ui-token-segment>
+        }
+        <div class="gl-h-auto gl-filtered-search-term gl-filtered-search-item gl-filtered-search-last-item">
+          <div class="gl-filtered-search-token-segment gl-filtered-search-term-token" [class.gl-w-full]="!_tokens.length">
+            <input type="text" [(ngModel)]="query" [placeholder]="_placeholder" [attr.aria-label]="_placeholder" class="gl-filtered-search-term-input w-100" style="background-color: transparent;" [readonly]="!freeSearch" (click)="_onClickSearchInput($event)" (keyup.enter)="_onSearch()" (keyup)="_onKeyup($event)">
+            <!-- <ul class="dropdown-menu form-search-container w-100 px-2" [ngStyle]="{'background-color': backColor, 'max-width': maxWidth}">
+            <li><button type="button" class="close" style="width: auto;" (click)="_closeSearchDropDpwn($event)" *ngIf="!hideClose"><em class="bi bi-x"></em></button></li>
+            <div class="dropdown-menu-content p-3">
+              <ng-content select="[form-search]"></ng-content>
+            </div>
+          </ul> -->
+        </div>
+      </div>
+    </div>
+    <!--  form_toggle - start -->
+    @if (!simple) {
+      <ul tabindex="-1" class="dropdown-menu form-search-container w-100 px-2" aria-labelledby="form_toggle" [ngStyle]="{'background-color': backColor, 'max-width': maxWidth}">
+        <li>@if (!hideClose) {
+          <button type="button" class="close" style="width: auto;" (click)="_closeSearchDropDpwn($event)"><em class="bi bi-x"></em></button>
+        }</li>
+        <div class="dropdown-menu-content p-3">
+          <ng-content select="[form-search]"></ng-content>
+        </div>
+      </ul>
+    }
+    <!--  form_toggle - end -->
+    @if (_tokens.length || query) {
+      <button name="clear" title="Clear" aria-label="Clear" type="button" class="btn gl-clear-icon-button gl-search-box-by-click-icon-button gl-search-box-by-click-clear-button gl-clear-icon-button btn-default btn-sm gl-button btn-default-tertiary btn-icon" style="border-radius: 0.25rem;" [ngStyle]="{'right': searchAppend ? '2rem' : '0', 'margin-right': simple ? '0px' : '32px'}" (click)="_clearSearch($event)">
+        <div aria-hidden="true" class="gl-button-icon gl-icon s16">
+          <span class="material-icons-outlined">close</span>
+        </div>
+      </button>
+    }
+    @if (!simple) {
+      <button name="options" title="Options" aria-label="Options" type="button" class="btn gl-clear-icon-button gl-search-box-by-click-icon-button gl-search-box-by-click-clear-button gl-clear-icon-button btn-default btn-sm gl-button btn-default-tertiary btn-icon" style="border-radius: 0.25rem;" [ngStyle]="{'right': searchAppend ? '2rem' : '0'}" (click)="_openSearch($event)">
+        <div aria-hidden="true" class="gl-button-icon gl-icon s16">
+          <em class="bi bi-sliders"></em>
+        </div>
+      </button>
+    }
+    @if (searchAppend) {
+      <div class="input-group-append">
+        <button aria-label="Search" type="button" class="btn gl-search-box-by-click-search-button btn-default btn-md gl-button btn-icon" (click)="_onSearch()">
+          <span class="material-icons-outlined" [ngClass]="{ 'fw-bold': _isOpen}">search</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>
+}
+@if (showSorting && sortFields.length) {
+  <div role="group" class="sort-dropdown-container d-flex btn-group">
+    <div class="dropdown b-dropdown gl-new-dropdown w-100 btn-group" id="sort">
+      <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" id="sort_toggle" (click)="_closeSearchDropDpwn($event)">
+        <span class="gl-new-dropdown-button-text">{{ _getSortLabel(sortField) | translate }}</span> <span class="material-icons-outlined">expand_more</span>
+      </button>
+      <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+        <div class="gl-new-dropdown-inner">
+          <div class="gl-new-dropdown-contents">
+            @for (field of sortFields; track field) {
+              <li role="presentation" class="gl-new-dropdown-item">
+                <button role="menuitem" type="button" class="dropdown-item" (click)="_selectSort(field)">
+                  <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
+                    @if (field.field == sortField) {
+                      <em class="bi bi-check2 fs-6"></em>
+                    }
+                  </div>
+                  <div class="gl-new-dropdown-item-text-wrapper">
+                    <p class="gl-new-dropdown-item-text-primary">{{ field.label | translate }}</p>
+                  </div>
+                </button>
+              </li>
+            }
+          </div>
+        </div>
+      </ul>
+    </div>
+    <button title="Sort direction: Descending" aria-label="Sort direction: Descending" type="button" class="btn flex-shrink-1 btn-default btn-md gl-button btn-icon" (click)="_toggleSortBy()">
+      @if (_isAscending()) {
+        <em class="bi bi-sort-down-alt fs-6"></em>
+      }
+      @if (!_isAscending()) {
+        <em class="bi bi-sort-up-alt fs-6"></em>
+      }
+    </button>
+  </div>
+}
+</div>

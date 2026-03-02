@@ -17,15 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, Type } from '@angular/core';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, ReactiveFormsModule, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { COMPONENTS_IMPORTS, Tools, EventsManagerService, EventType } from '@linkit/components';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { EventType } from '@linkit/components';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
@@ -67,7 +70,8 @@ type FileType = {
     selector: 'app-custom-properties',
     templateUrl: './custom-properties.component.html',
     styleUrls: ['./custom-properties.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, TooltipModule, TranslateModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
 export class CustomPropertiesComponent implements OnInit, OnChanges {
 

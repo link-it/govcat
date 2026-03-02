@@ -16,12 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools, ConfigService } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
@@ -34,7 +37,9 @@ import * as _ from 'lodash';
   selector: 'app-servizio-api-pdnd-informations',
   templateUrl: 'servizio-api-pdnd-informations.component.html',
   styleUrls: ['servizio-api-pdnd-informations.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MonitorDropdwnComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioApiPdndInformationsComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiPdndInformationsComponent';

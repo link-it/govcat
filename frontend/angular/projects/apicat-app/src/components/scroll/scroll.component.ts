@@ -17,13 +17,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-scroll',
   templateUrl: './scroll.component.html',
   styleUrls: ['./scroll.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false
+  standalone: true,
+  imports: [CommonModule]
 })
 export class ScrollComponent {
 

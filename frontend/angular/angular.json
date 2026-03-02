@@ -21,12 +21,17 @@
 			"prefix": "app",
 			"architect": {
 				"build": {
-					"builder": "ngx-build-plus:browser",
+					"builder": "@angular/build:application",
 					"options": {
-						"outputPath": "dist/apicat-app",
+						"outputPath": {
+							"base": "dist/apicat-app",
+							"browser": ""
+						},
 						"index": "projects/apicat-app/src/index.html",
-						"main": "projects/apicat-app/src/main.ts",
-						"polyfills": "projects/apicat-app/src/polyfills.ts",
+						"browser": "projects/apicat-app/src/main.ts",
+						"polyfills": [
+							"zone.js"
+						],
 						"tsConfig": "projects/apicat-app/tsconfig.app.json",
 						"allowedCommonJsDependencies": [
 							"moment",
@@ -35,7 +40,10 @@
 							"clone-deep",
 							"rfdc",
 							"ev-emitter/ev-emitter",
-							"jsrsasign"
+							"jsrsasign",
+							"masonry-layout",
+							"swagger-ui-dist/swagger-ui-bundle",
+							"swagger-ui-dist/swagger-ui-standalone-preset"
 						],
 						"inlineStyleLanguage": "scss",
 						"assets": [
@@ -56,9 +64,7 @@
 							"node_modules/jquery/dist/jquery.min.js",
 							"node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
 							"node_modules/file-saver/dist/FileSaver.min.js"
-						],
-						"extraWebpackConfig": "projects/apicat-app/webpack.config.js",
-						"commonChunk": false
+						]
 					},
 					"configurations": {
 						"production": {
@@ -80,35 +86,27 @@
 									"with": "projects/apicat-app/src/environments/environment.prod.ts"
 								}
 							],
-							"outputHashing": "all",
-							"extraWebpackConfig": "projects/apicat-app/webpack.prod.config.js"
+							"outputHashing": "all"
 						},
 						"development": {
-							"buildOptimizer": false,
 							"optimization": false,
-							"vendorChunk": true,
 							"extractLicenses": false,
-							"sourceMap": true,
-							"namedChunks": true
+							"sourceMap": true
 						},
 						"development-baseref": {
-							"buildOptimizer": false,
 							"optimization": false,
-							"vendorChunk": true,
 							"extractLicenses": false,
 							"sourceMap": true,
-							"namedChunks": true,
 							"baseHref": "/apicat-app/"
 						}
 					},
 					"defaultConfiguration": "production"
 				},
 				"serve": {
-					"builder": "ngx-build-plus:dev-server",
+					"builder": "@angular/build:dev-server",
 					"configurations": {
 						"production": {
-							"buildTarget": "apicat-app:build:production",
-							"extraWebpackConfig": "projects/apicat-app/webpack.prod.config.js"
+							"buildTarget": "apicat-app:build:production"
 						},
 						"development": {
 							"buildTarget": "apicat-app:build:development"
@@ -121,99 +119,53 @@
 					},
 					"defaultConfiguration": "development",
 					"options": {
-						"port": 6200,
-						"publicHost": "http://localhost:6200",
-						"extraWebpackConfig": "projects/apicat-app/webpack.config.js"
+						"port": 6200
 					}
 				},
 				"extract-i18n": {
-					"builder": "ngx-build-plus:extract-i18n",
+					"builder": "@angular/build:extract-i18n",
 					"options": {
-						"buildTarget": "apicat-app:build",
-						"extraWebpackConfig": "projects/apicat-app/webpack.config.js"
+						"buildTarget": "apicat-app:build"
 					}
 				},
 				"test": {
-					"builder": "@angular-devkit/build-angular:karma",
+					"builder": "@angular/build:unit-test",
 					"options": {
-						"main": "projects/apicat-app/src/test.ts",
-						"polyfills": "projects/apicat-app/src/polyfills.ts",
+						"buildTarget": "apicat-app:build:development",
 						"tsConfig": "projects/apicat-app/tsconfig.spec.json",
-						"karmaConfig": "projects/apicat-app/karma.conf.js",
-						"inlineStyleLanguage": "scss",
-						"assets": [
-							"projects/apicat-app/src/favicon.ico",
-							"projects/apicat-app/src/assets"
-						],
-						"styles": [
-							"projects/apicat-app/src/styles.scss"
-						],
-						"scripts": []
-					}
-				}
-			}
-		},
-		"@linkit/components": {
-			"projectType": "library",
-			"root": "projects/linkit/components",
-			"sourceRoot": "projects/linkit/components/src",
-			"prefix": "lib",
-			"architect": {
-				"build": {
-					"builder": "@angular-devkit/build-angular:ng-packagr",
-					"options": {
-						"project": "projects/linkit/components/ng-package.json"
-					},
-					"configurations": {
-						"production": {
-							"tsConfig": "projects/linkit/components/tsconfig.lib.prod.json"
-						},
-						"development": {
-							"tsConfig": "projects/linkit/components/tsconfig.lib.json"
-						}
-					},
-					"defaultConfiguration": "production"
-				},
-				"test": {
-					"builder": "@angular-devkit/build-angular:karma",
-					"options": {
-						"main": "projects/linkit/components/src/test.ts",
-						"karmaConfig": "karma.conf.js",
-						"tsConfig": "projects/linkit/components/tsconfig.spec.json"
-					}
-				}
-			}
-		},
-		"@linkit/validators": {
-			"projectType": "library",
-			"root": "projects/linkit/validators",
-			"sourceRoot": "projects/linkit/validators/src",
-			"prefix": "lib",
-			"architect": {
-				"build": {
-					"builder": "@angular-devkit/build-angular:ng-packagr",
-					"options": {
-						"project": "projects/linkit/validators/ng-package.json"
-					},
-					"configurations": {
-						"production": {
-							"tsConfig": "projects/linkit/validators/tsconfig.lib.prod.json"
-						},
-						"development": {
-							"tsConfig": "projects/linkit/validators/tsconfig.lib.json"
-						}
-					},
-					"defaultConfiguration": "production"
-				},
-				"test": {
-					"builder": "@angular-devkit/build-angular:karma",
-					"options": {
-						"main": "projects/linkit/validators/src/test.ts",
-						"karmaConfig": "karma.conf.js",
-						"tsConfig": "projects/linkit/validators/tsconfig.spec.json"
+						"runnerConfig": true,
+						"coverageExclude": [
+							"**/*.html"
+						]
 					}
 				}
 			}
 		}
-	}
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
+    }
+  }
 }

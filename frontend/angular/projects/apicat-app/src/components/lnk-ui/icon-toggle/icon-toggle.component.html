@@ -16,10 +16,16 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<span class="d-flex gap-2" *ngIf="!hide">
-    <i *ngIf="!loading"
+@if (!hide) {
+  <span class="d-flex gap-2">
+    @if (!loading) {
+      <i
         class="{{ iconClass }}"
         [tooltip]="tooltip | translate"
-    ></i>
-    <i class="spinner-border spinner-border-sm" [style.border-width.px]="1" [tooltip]="'APP.TOOLTIP.Loading' | translate" *ngIf="loading"></i>
-</span>
+      ></i>
+    }
+    @if (loading) {
+      <i class="spinner-border spinner-border-sm" [style.border-width.px]="1" [tooltip]="'APP.TOOLTIP.Loading' | translate"></i>
+    }
+  </span>
+}

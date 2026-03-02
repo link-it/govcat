@@ -18,10 +18,13 @@
  */
 import {Component, EventEmitter, Input, Output} from "@angular/core";
 
+import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
+
 @Component({
     selector: "lnk-form-submit",
     templateUrl: "./submit.component.html",
-    standalone: false
+    standalone: true,
+    imports: [LnkButtonComponent]
 })
 export class LnkFormSubmitComponent {
     @Input() submitLabel: string = 'Submit';

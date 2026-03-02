@@ -16,21 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
-import { Location } from '@angular/common';
-import { NavigationEnd, Router } from '@angular/router';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
+import { TranslateModule, LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService } from '@linkit/components';
+import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService, HeadBarComponent, SafeHtmlPipe, MapperPipe, MultiSnackbarComponent, RouterLinkMatchDirective } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { DashboardService } from '@services/dashboard.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
 
 import { AboutDialogComponent } from '@app/components/about-dialog/about-dialog.component';
+import { NewsBoxComponent } from '@app/components/news-box/news-box.component';
+import { AboutMiniBoxComponent } from '@app/components/about-mini-box/about-mini-box.component';
+
+import { FlyOutDirective } from './gp-layout.directive';
 
 import { INavData } from './gp-sidebar-nav';
 import { GpSidebarNavHelper } from './gp-sidebar-nav.helper';
@@ -47,7 +51,21 @@ import * as _ from 'lodash';
     selector: 'gp-layout',
     templateUrl: './gp-layout.component.html',
     styleUrls: ['./gp-layout.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        RouterModule,
+        TranslateModule,
+        SafeHtmlPipe,
+        MapperPipe,
+        HeadBarComponent,
+        FlyOutDirective,
+        RouterLinkMatchDirective,
+        NewsBoxComponent,
+        AboutMiniBoxComponent,
+        MultiSnackbarComponent
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GpLayoutComponent';

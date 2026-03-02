@@ -17,6 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { Tools } from '@linkit/components';
 
@@ -24,7 +28,8 @@ import { Tools } from '@linkit/components';
   selector: 'ui-error-view',
   templateUrl: './error-view.component.html',
   styleUrls: ['./error-view.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TooltipModule, TranslateModule]
 })
 export class ErrorViewComponent implements OnInit {
 

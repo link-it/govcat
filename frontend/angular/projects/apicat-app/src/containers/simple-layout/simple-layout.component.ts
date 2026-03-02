@@ -17,6 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, HostBinding, HostListener } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 import { ConfigService } from '@linkit/components';
 
@@ -27,7 +28,8 @@ import { ConfigService } from '@linkit/components';
         <router-outlet></router-outlet>
     </main>
   `,
-  standalone: false
+  standalone: true,
+  imports: [RouterModule]
 })
 export class SimpleLayoutComponent {
   @HostBinding('class.full-content') get fullContentClass(): boolean {

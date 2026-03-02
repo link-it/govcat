@@ -16,7 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
@@ -24,7 +29,6 @@ import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -42,7 +46,9 @@ import * as _ from 'lodash';
   selector: 'app-servizio-api-subscribers',
   templateUrl: 'servizio-api-subscribers.component.html',
   styleUrls: ['servizio-api-subscribers.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, MonitorDropdwnComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioApiSubscribersComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiSubscribersComponent';
@@ -265,7 +271,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
 
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
+      organizationTaxCode: new UntypedFormControl(''),
       creationDateFrom: new UntypedFormControl(''),
       creationDateTo: new UntypedFormControl('')
     });

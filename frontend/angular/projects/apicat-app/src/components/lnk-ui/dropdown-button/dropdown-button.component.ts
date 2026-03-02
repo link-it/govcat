@@ -18,13 +18,15 @@
  */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
+import { TranslateModule } from '@ngx-translate/core';
 import { MenuAction } from '@linkit/components';
 
 @Component({
   selector: 'lnk-dropdown-button',
   templateUrl: './dropdown-button.component.html',
   styleUrls: ['./dropdown-button.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule]
 })
 export class LnkDropdwnButtonComponent implements OnInit {
 

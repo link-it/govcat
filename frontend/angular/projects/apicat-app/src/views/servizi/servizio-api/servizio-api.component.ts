@@ -16,17 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, EventsManagerService, Tools, SearchBarFormComponent, EventType } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -34,13 +32,29 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
-import { EventType } from '@linkit/components';
+
+import { CommonModule } from '@angular/common';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 
 @Component({
   selector: 'app-servizio-api',
   templateUrl: 'servizio-api.component.html',
   styleUrls: ['servizio-api.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    ...COMPONENTS_IMPORTS,
+    MonitorDropdwnComponent,
+    MapperPipe,
+    PluralTranslatePipe,
+    InfiniteScrollDirective,
+    AutoFillScrollDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioApiComponent';

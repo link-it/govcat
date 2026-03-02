@@ -17,21 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin, Observable, of } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
+import { ConfigService, SafeHtmlPipe } from '@linkit/components';
 
-import { forkJoin, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-about-dialog',
   templateUrl: './about-dialog.component.html',
   styleUrls: ['./about-dialog.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, SafeHtmlPipe]
 })
 export class AboutDialogComponent implements OnInit {
 

@@ -19,11 +19,18 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
 
+import { TranslateModule } from '@ngx-translate/core';
+import { COMPONENTS_IMPORTS } from '@linkit/components';
+
 @Component({
     selector: 'code-grant-authorization',
     templateUrl: 'code-grant-authorization.component.html',
     styleUrls: ['code-grant-authorization.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        TranslateModule,
+        ...COMPONENTS_IMPORTS
+    ]
 })
 export class CodeGrantAuthorizationComponent implements OnInit {
 

@@ -1,0 +1,227 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<!-- Mobile version -->
+@if (!desktop) {
+  <ui-item-row-mobile
+    [data]="_data"
+    [config]="_config"
+    [configRow]="configRow"
+    [actionDisabled]="actionDisabled"
+    [notify]="notify"
+    [hoverFeedback]="hoverFeedback"
+    [hasLink]="hasLink"
+    [hasAction]="hasAction"
+    [iconAction]="iconAction"
+    [actionText]="actionText"
+    [actionTooltip]="actionTooltip"
+    [rowClick]="rowClick"
+    [linkRoute]="linkRoute"
+    [hostBackground]="hostBackground"
+    [primaryClass]="primaryClass"
+    [isAnonymous]="isAnonymous"
+    [enableOpenInNewTab]="enableOpenInNewTab"
+    [openInNewTabTooltip]="openInNewTabTooltip"
+    (itemClick)="itemClick.emit($event)"
+    (actionClick)="actionClick.emit($event)"
+    (openInNewTab)="openInNewTab.emit($event)">
+  </ui-item-row-mobile>
+}
+
+<!-- Desktop version -->
+@if (desktop) {
+  <div #ir class="d-flex flex-column" [class.cursor-pointer]="rowClick && hasLink" [class]="{ 'supports-new-tab no-icon': rowClick && hasLink && linkRoute }" (click)="__itemClickRow($event, ir)" (auxclick)="__itemClickRow($event, ir)">
+    <div class="active-item d-flex flex-grow-1 align-items-center">
+      <div class="d-flex align-items-center w-100" [class.flex-wrap]="_itemRowConfig?.wrap">
+        @if (_itemRowConfig?.avatar) {
+          <div class="avatar-image">
+            <ui-item-type
+              [data]="_data"
+              [elem]="_itemRowConfig?.avatar"
+              [config]="_config">
+            </ui-item-type>
+          </div>
+        }
+        <div class="main-info main-content">
+          <div class="main-data">
+            <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
+              <a href="javascript:void(0);" class="item-row-link" [class.text-hover]="hasLink && !rowClick" [class.cursor-pointer]="hasLink && !rowClick" [class.supports-new-tab]="hasLink && linkRoute" (click)="__itemClick($event, ir)" (auxclick)="__itemClick($event, ir)">
+                @for (elem of _itemRowConfig?.primaryText; track elem) {
+                  @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                    <ui-item-type
+                      [data]="_data"
+                      [elem]="elem"
+                      [config]="_config">
+                    </ui-item-type>
+                  }
+                }
+              </a>
+              @if (enableOpenInNewTab && hasLink && linkRoute) {
+                <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                  [title]="openInNewTabTooltip"
+                (click)="__openInNewTab($event)"></span>
+              }
+            </div>
+          </div>
+          <div class="meta-data">
+            @if (_itemRowConfig?.metadata?.text.length > 0) {
+              <div class="d-inline-block text">
+                @for (elem of _itemRowConfig?.metadata.text; track elem) {
+                  @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                    <ui-item-type
+                      [data]="_data"
+                      [elem]="elem"
+                      [config]="_config">
+                    </ui-item-type>
+                  }
+                }
+              </div>
+            }
+            @if (_itemRowConfig?.metadata?.label.length > 0) {
+              <div class="d-inline-block labels ms-2">
+                @for (elem of _itemRowConfig?.metadata.label; track elem) {
+                  @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                    <ui-item-type
+                      [data]="_data"
+                      [elem]="elem"
+                      [config]="_config">
+                    </ui-item-type>
+                  }
+                }
+              </div>
+            }
+          </div>
+        </div>
+        @if (_itemRowConfig?.secondaryText?.length > 0 || _itemRowConfig?.secondaryMetadata?.length > 0) {
+          <div class="meta-info main-content" [class.pb-0]="_itemRowConfig?.footer">
+            @if (_itemRowConfig?.secondaryText?.length > 0) {
+              <div class="main-data d-block">
+                @for (elem of _itemRowConfig?.secondaryText; track elem) {
+                  @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                    <ui-item-type
+                      [data]="_data"
+                      [elem]="elem"
+                      [config]="_config">
+                    </ui-item-type>
+                  }
+                }
+              </div>
+            }
+            @if (_itemRowConfig?.secondaryMetadata?.length > 0) {
+              <div class="meta-data">
+                @for (elem of _itemRowConfig?.secondaryMetadata; track elem) {
+                  @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                    <ui-item-type
+                      [data]="_data"
+                      [elem]="elem"
+                      [config]="_config">
+                    </ui-item-type>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+        @if (_itemRowConfig?.boxStatus1 || _itemRowConfig?.boxStatus2) {
+          <div class="box-area-status align-self-stretch d-flex justify-content-between">
+            <ng-template #tooltipBox1Template><div [innerHtml]="_tooltipBox1"></div></ng-template>
+            @if (_itemRowConfig?.boxStatus1) {
+              <div class="box-status align-self-stretch d-flex flex-column" [style.background-color]="_getBackground(_itemRowConfig?.boxStatus1)" [style.color]="_getColor(_itemRowConfig?.boxStatus1)" [tooltip]="tooltipBox1Template" [placement]="_tooltipPlacementBox1" [delay]="_tooltipDelay" container="body">
+                <div class="box-status-1">
+                  @for (elem of _itemRowConfig?.boxStatus1?.primaryText; track elem) {
+                    @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                      <ui-item-type
+                        [data]="_data"
+                        [elem]="elem"
+                        [config]="_config">
+                      </ui-item-type>
+                    }
+                  }
+                </div>
+                <div class="box-status-2 box-status-meta mt-auto">
+                  @for (elem of _itemRowConfig?.boxStatus1?.metadata; track elem) {
+                    @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                      <ui-item-type
+                        [data]="_data"
+                        [elem]="elem"
+                        [config]="_config">
+                      </ui-item-type>
+                    }
+                  }
+                </div>
+              </div>
+            }
+            <ng-template #tooltipBox2Template><div [innerHtml]="_tooltipBox2"></div></ng-template>
+            @if (_itemRowConfig?.boxStatus2) {
+              <div class="box-status align-self-stretch d-flex flex-column" [style.background-color]="_getBackground(_itemRowConfig?.boxStatus2)" [style.color]="_getColor(_itemRowConfig?.boxStatus2)" [tooltip]="tooltipBox2Template" [placement]="_tooltipPlacementBox2" [delay]="_tooltipDelay" container="body">
+                <div class="box-status-1">
+                  @for (elem of _itemRowConfig?.boxStatus2?.primaryText; track elem) {
+                    @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                      <ui-item-type
+                        [data]="_data"
+                        [elem]="elem"
+                        [config]="_config">
+                      </ui-item-type>
+                    }
+                  }
+                </div>
+                <div class="box-status-2 box-status-meta mt-auto">
+                  @for (elem of _itemRowConfig?.boxStatus2?.metadata; track elem) {
+                    @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                      <ui-item-type
+                        [data]="_data"
+                        [elem]="elem"
+                        [config]="_config">
+                      </ui-item-type>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+      @if (hasAction) {
+        <div class="d-flex align-items-center ms-4">
+          <div class="btn btn-default btn-md gl-button btn-icon button-collapse" [tooltip]="actionTooltip">
+            <i class="bi bi-{{ iconAction }}" (click)="__actionlick($event)"></i>
+            @if (!iconAction) {
+              <span>{{ actionText }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    @if (_itemRowConfig?.footer) {
+      <div class="footer-info">
+        @for (elem of _itemRowConfig?.footer; track elem) {
+          @if (_itemRowConfig?.footer.length > 0 && _showEmpty(elem) && _checkConfigDependency(elem)) {
+            <div class="d-inline-block text">
+              <ui-item-type
+                [data]="_data"
+                [elem]="elem"
+                [config]="_config">
+              </ui-item-type>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+}

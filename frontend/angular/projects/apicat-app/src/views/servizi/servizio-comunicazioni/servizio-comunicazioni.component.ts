@@ -16,35 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, Renderer2 } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild, Renderer2 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
-import { SenderComponent } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools, EventsManagerService, SearchBarFormComponent, SenderComponent, TargetOption } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
 import { AuthenticationService } from '@services/authentication.service';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
 import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/component-breadcrumbs.resolver';
+
+import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
 
 import { Page } from '@app/models/page';
 import { Messaggio } from './messaggio';
 import { Grant } from '@app/model/grant';
-import { TargetOption } from '@linkit/components';
 
 declare const saveAs: any;
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Component({
   selector: 'app-servizio-comunicazioni',
   templateUrl: 'servizio-comunicazioni.component.html',
   styleUrls: ['servizio-comunicazioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, NotificationBarComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class ServizioComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioComunicazioniComponent';

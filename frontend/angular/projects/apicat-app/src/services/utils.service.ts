@@ -29,10 +29,10 @@ import { OpenAPIService } from '@services/openAPI.service';
 
 import { YesnoDialogBsComponent } from '@linkit/components';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import { FormGroup, Validators } from '@angular/forms';
 
-import { TipiCertificato, TipoCertificatoEnum } from '@app/views/adesioni/adesione-configurazioni/adesione-configurazioni.component';
+import { TipiCertificato, TipoCertificatoEnum } from '@app/views/adesioni/adesione-configurazioni/certificato.model';
 
 export type Certificato = {
     file?: boolean;

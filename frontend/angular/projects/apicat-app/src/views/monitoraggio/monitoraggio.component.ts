@@ -16,20 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { EventType } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components'
+import { COMPONENTS_IMPORTS, ConfigService, EventType, EventsManagerService, Tools, SearchBarFormComponent } from '@linkit/components';
 import { AuthenticationService } from '../../services/authentication.service';
 import { OpenAPIService } from '../../services/openAPI.service';
-import { Tools } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
-import { SearchBarFormComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { INavData } from '../../containers/gp-layout/gp-sidebar-nav';
@@ -39,14 +36,25 @@ import { environment } from '@app/environments/environment';
 import { AmbienteEnum } from '../../model/ambienteEnum';
 
 import { ModelType, SectionType, DashboardSections } from './data';
+import { MonitoraggioGroupComponent } from './monitoraggio-group/monitoraggio-group.component';
+import { VerificheComponent } from '../servizi/verifiche/verifiche.component';
+import { ClientVerificheComponent } from '../clients/client-verifiche/client-verifiche.component';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Component({
   selector: 'app-monitoraggio',
   templateUrl: 'monitoraggio.component.html',
   styleUrls: ['monitoraggio.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    MonitoraggioGroupComponent,
+    VerificheComponent,
+    ClientVerificheComponent
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class MonitoraggioComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'MonitoraggioComponent';

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 
 @Directive({
   selector: '[appOpenInNewTab]',
-  standalone: false
+  standalone: true
 })
 export class OpenInNewTabDirective implements OnInit, OnDestroy {
   @Input() appOpenInNewTab: any[] = [];

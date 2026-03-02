@@ -17,14 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { ServiceBreadcrumbsResolver } from './service-breadcrumbs.resolver';
+import { ConfigService } from '@linkit/components';
 
 describe('ParentServiceResolver', () => {
   let resolver: ServiceBreadcrumbsResolver;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: ConfigService, useValue: { getConfiguration: () => ({ AppConfig: { GOVAPI: { HOST: '', HOST_PDND: '', HOST_MONITOR: '' } } }) } }
+      ]
+    });
     resolver = TestBed.inject(ServiceBreadcrumbsResolver);
   });
 

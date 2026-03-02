@@ -16,17 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 
-import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+import { ActionEnum, ExportDropdwnComponent } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
-import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, EventType } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, EventsManagerService, SearchBarFormComponent, EventType } from '@linkit/components';
+import { SelectionDropdownComponent } from '@app/components/selection-dropdown/selection-dropdown.component';
+
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -35,7 +42,7 @@ import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
@@ -54,7 +61,22 @@ export enum StatoConfigurazione {
   selector: 'app-adesioni',
   templateUrl: 'adesioni.component.html',
   styleUrls: ['adesioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    SelectionDropdownComponent,
+    ExportDropdwnComponent,
+    InfiniteScrollDirective,
+    AutoFillScrollDirective,
+    NgSelectModule,
+    TooltipModule
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'AdesioniComponent';
@@ -504,10 +526,6 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     setTimeout(() => {
       this.searchBarForm.setNotCloseForm(false)
     }, 200);
-  }
-
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio;
   }
 
   __loadMoreData() {

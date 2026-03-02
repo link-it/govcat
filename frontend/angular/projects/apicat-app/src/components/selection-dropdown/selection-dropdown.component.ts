@@ -17,12 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { TranslateModule } from '@ngx-translate/core';
+import { COMPONENTS_IMPORTS } from '@linkit/components';
 
 @Component({
   selector: 'ui-selection-dropdown',
   templateUrl: './selection-dropdown.component.html',
   styleUrls: ['./selection-dropdown.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, ...COMPONENTS_IMPORTS]
 })
 export class SelectionDropdownComponent implements OnInit {
 
