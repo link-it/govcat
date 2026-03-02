@@ -75,7 +75,7 @@ public class ServizioGruppoItemAssembler extends RepresentationModelAssemblerSup
 		}
 		if(entity.getImmagine()!=null) {
 			Documento immagine = new Documento();
-			immagine.setUuid(UUID.randomUUID());
+			immagine.setUuid(UUID.fromString(entity.getImmagine().getUuid()));
 			dettaglio.setImmagine(immagine);
 		}
 		

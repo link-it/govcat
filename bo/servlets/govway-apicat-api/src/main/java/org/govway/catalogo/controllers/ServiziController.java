@@ -1138,8 +1138,8 @@ public class ServiziController implements ServiziApi {
 				}
 				this.logger.info("Invocazione completata con successo");
 
-				String date = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss").format(new Date());
-				return ResponseEntity.status(HttpStatus.OK).header("Content-Disposition", "attachment; filename=eService-"+entity.getNome()+"-"+entity.getVersione()+"-"+date+".zip").body(resource);
+//				String date = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss").format(new Date());
+				return ResponseEntity.status(HttpStatus.OK).header("Content-Disposition", "attachment; filename=eService.zip").body(resource);
 			});
 		}
 		catch(RuntimeException e) {
