@@ -1,6 +1,13 @@
 2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Issue #196
+	Aggiunto flag showMobileTitle nella configurazione Layout.Header per
+	controllare la visibilità del titolo nella header bar su dispositivi mobile.
+
+2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Sostituito hideVersions da config locale con mostra_versione da config remota.
 	- gp-layout: hideVersions derivato da servizio.mostra_versione (enabled=visibile)
 	- Rimossa sezione Services da app-config.json (ora gestita da remoto)
