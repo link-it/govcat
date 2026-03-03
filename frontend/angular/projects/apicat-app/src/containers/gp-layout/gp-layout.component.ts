@@ -151,6 +151,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _stopPropagation: boolean = false; // Fix contextMenu
 
+    _showMobileTitle: boolean = true;
     _showLanguagesMenu: boolean = true;
     _showNotificationsMenu: boolean = false;
     _showNotificationsBar: boolean = true;
@@ -234,6 +235,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
         this._enableOpenInNewTab = this._config.AppConfig.Layout.enableOpenInNewTab || false;
         this._title = this._config.AppConfig.Layout.Header.title;
+        this._showMobileTitle = this._config.AppConfig.Layout.Header.showMobileTitle !== false;
         this._api_url = this._config.AppConfig.SITE;
 
         let offset = 0;

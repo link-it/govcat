@@ -39,6 +39,7 @@ export class HeadBarComponent implements OnInit {
   }
   @Input() title: string = '';
   @Input() logo: string = '';
+  @Input() showMobileTitle: boolean = true;
 
   @Input() anonymous: boolean = true;
   @Input() login: boolean = false;
