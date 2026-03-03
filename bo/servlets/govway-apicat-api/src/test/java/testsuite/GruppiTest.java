@@ -40,6 +40,8 @@ import org.govway.catalogo.exception.ConflictException;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
+import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
+import org.govway.catalogo.servlets.model.DocumentoUpdateId;
 import org.govway.catalogo.servlets.model.Gruppo;
 import org.govway.catalogo.servlets.model.GruppoCreate;
 import org.govway.catalogo.servlets.model.GruppoUpdate;
@@ -581,5 +583,6 @@ public class GruppiTest {
 
         assertEquals("GRP.404", exception.getMessage());
     }
+
 }
 

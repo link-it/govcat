@@ -158,7 +158,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 						linkTo(Class.forName(ServiziController.class.getName()).getMethod("getImmagineServizio", UUID.class), dettaglio.getIdServizio()).withRel("immagine");
 
 				Documento documento = new Documento();
-				documento.setUuid(UUID.randomUUID());
+				documento.setUuid(UUID.fromString(entity.getImmagine().getUuid()));
 				dettaglio.setImmagine(documento);
 				dettaglio.add(link);
 			}

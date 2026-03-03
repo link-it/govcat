@@ -84,7 +84,7 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 						linkTo(Class.forName(GruppiController.class.getName()).getMethod("getImmagineGruppo", UUID.class), dettaglio.getIdGruppo()).withRel("immagine");
 				
 				Documento documento = new Documento();
-				documento.setUuid(UUID.randomUUID());
+				documento.setUuid(UUID.fromString(entity.getImmagine().getUuid()));
 				dettaglio.setImmagine(documento);
 				
 				dettaglio.add(link);
