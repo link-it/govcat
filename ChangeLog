@@ -1,6 +1,17 @@
 2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Aumento copertura test unitari: da ~2067 a 4594 test (+2527).
+	- Aggiunta massiva di test per tutti i componenti view principali
+	  (adesioni, servizi, client, dashboard, login, monitoraggio)
+	- Pattern class-only (istanziazione diretta senza TestBed)
+	- Corretti 3 test in dashboard.service con aspettative errate
+	  sulla mappa _REFERENTE_PANELS di computeRoleConfig
+	- 293 file spec, 4594 test, 0 fallimenti
+
+2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Corretta la visibilità dei pannelli della dashboard in base ai ruoli
 	dell'utente. Rimossa dipendenza da stati_dashboard e logica a priorità
 	per i referenti. Implementata mappa diretta ruolo→pannelli con unione

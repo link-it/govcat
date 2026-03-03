@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { of, throwError } from 'rxjs';
 import { Tools } from '@linkit/components';
 import { LoginComponent } from './login.component';
 
@@ -86,5 +87,111 @@ describe('LoginComponent', () => {
   it('should call oauthLogin on logidWithUrlAction with oauth action', () => {
     component.logidWithUrlAction({ signin_action: 'oauth' });
     expect(mockAuthService.oauthLogin).toHaveBeenCalled();
+  });
+
+  it('should redirect to signin_url when logidWithUrlAction has signin_url', () => {
+    const originalHref = Object.getOwnPropertyDescriptor(window, 'location');
+    const mockLocation = { href: '' };
+    Object.defineProperty(window, 'location', { value: mockLocation, writable: true, configurable: true });
+    component.logidWithUrlAction({ signin_url: 'https://external-auth.com/login' });
+    expect(mockLocation.href).toBe('https://external-auth.com/login');
+    if (originalHref) {
+      Object.defineProperty(window, 'location', originalHref);
+    }
+  });
+
+  it('should do nothing for unknown signin_action without signin_url', () => {
+    component.logidWithUrlAction({ signin_action: 'unknown_action' });
+    expect(mockAuthService.oauthLogin).not.toHaveBeenCalled();
+  });
+
+  describe('login', () => {
+    it('should set loading to true during login', () => {
+      mockAuthService.login = vi.fn().mockReturnValue(of({}));
+      mockAuthService.setCurrentSession = vi.fn();
+      mockAuthService.reloadSession = vi.fn();
+      component.ngOnInit();
+      component.login({ username: 'user', password: 'pass' });
+      expect(mockAuthService.login).toHaveBeenCalledWith('user', 'pass');
+    });
+
+    it('should navigate to /dashboard on success when returnUrl is /', () => {
+      mockAuthService.login = vi.fn().mockReturnValue(of({ principal: 'user' }));
+      mockAuthService.setCurrentSession = vi.fn();
+      mockAuthService.reloadSession = vi.fn();
+      component.ngOnInit();
+      component.returnUrl = '/';
+      component.login({ username: 'user', password: 'pass' });
+      expect(mockAuthService.setCurrentSession).toHaveBeenCalledWith({ principal: 'user' });
+      expect(mockAuthService.reloadSession).toHaveBeenCalled();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(component.loading).toBe(false);
+    });
+
+    it('should navigate to returnUrl on success when returnUrl is not /', () => {
+      mockAuthService.login = vi.fn().mockReturnValue(of({ principal: 'user' }));
+      mockAuthService.setCurrentSession = vi.fn();
+      mockAuthService.reloadSession = vi.fn();
+      component.ngOnInit();
+      component.returnUrl = '/servizi';
+      component.login({ username: 'user', password: 'pass' });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/servizi']);
+    });
+
+    it('should set error and errorCode on login failure', () => {
+      const errorResponse = { error: { status: '401' } };
+      mockAuthService.login = vi.fn().mockReturnValue(throwError(() => errorResponse));
+      component.ngOnInit();
+      component.login({ username: 'user', password: 'wrong' });
+      expect(component.error).toBe(errorResponse);
+      expect(component.errorCode).toBe('401');
+      expect(component.loading).toBe(false);
+    });
+  });
+
+  it('should set returnUrl from queryParams', () => {
+    mockRoute.snapshot.queryParams = { returnUrl: '/custom-page' };
+    component.ngOnInit();
+    expect(component.returnUrl).toBe('/custom-page');
+    mockRoute.snapshot.queryParams = {};
+  });
+
+  it('should not logout if not logged on ngOnInit', () => {
+    mockAuthService.isLogged.mockReturnValue(false);
+    component.ngOnInit();
+    expect(mockAuthService.logout).not.toHaveBeenCalled();
+  });
+
+  it('should set error from navigation extras state', () => {
+    mockRouter.getCurrentNavigation.mockReturnValue({
+      extras: { state: { from: 'guard', message: 'Not authorized' } }
+    });
+    const comp = new LoginComponent(
+      mockRoute, mockRouter, mockTranslate,
+      mockOAuth, mockAuthService, mockConfigService
+    );
+    expect(comp.error).toEqual({ from: 'guard', message: 'Not authorized' });
+  });
+
+  it('should have username validation (required, minLength 2)', () => {
+    component.ngOnInit();
+    const ctrl = component.f['username'];
+    ctrl.setValue('');
+    expect(ctrl.valid).toBe(false);
+    ctrl.setValue('a');
+    expect(ctrl.valid).toBe(false);
+    ctrl.setValue('ab');
+    expect(ctrl.valid).toBe(true);
+  });
+
+  it('should have password validation (required, minLength 4)', () => {
+    component.ngOnInit();
+    const ctrl = component.f['password'];
+    ctrl.setValue('');
+    expect(ctrl.valid).toBe(false);
+    ctrl.setValue('abc');
+    expect(ctrl.valid).toBe(false);
+    ctrl.setValue('abcd');
+    expect(ctrl.valid).toBe(true);
   });
 });

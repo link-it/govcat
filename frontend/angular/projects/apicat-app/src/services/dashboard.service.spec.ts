@@ -83,37 +83,28 @@ describe('DashboardService', () => {
         expect(config.utenti).toBe(false);
       });
 
-      it('should map referente_dominio to referente_superiore role', () => {
-        (Tools as any).Configurazione = {
-          servizio: { workflow: { stati_dashboard: [{ ruolo: 'referente_superiore', stati: ['in_revisione'] }] } },
-          adesione: { workflow: { stati_dashboard: [{ ruolo: 'referente_superiore', stati: ['da_approvare'] }] }, stati_dashboard_client: ['attivo'] }
-        };
+      it('should map referente_dominio to servizi+adesioni+comunicazioni', () => {
         const config = service.computeRoleConfig('referente', ['referente_dominio']);
         expect(config.servizi).toBe(true);
         expect(config.adesioni).toBe(true);
-        expect(config.client).toBe(true);
-      });
-
-      it('should map referente_servizio to referente role', () => {
-        (Tools as any).Configurazione = {
-          servizio: { workflow: { stati_dashboard: [{ ruolo: 'referente', stati: ['bozza'] }] } },
-          adesione: { workflow: { stati_dashboard: [] } }
-        };
-        const config = service.computeRoleConfig('referente', ['referente_servizio']);
-        expect(config.servizi).toBe(true);
-        expect(config.adesioni).toBe(false);
         expect(config.client).toBe(false);
+        expect(config.comunicazioni).toBe(true);
       });
 
-      it('should map richiedente_servizio to richiedente role', () => {
-        (Tools as any).Configurazione = {
-          servizio: { workflow: { stati_dashboard: [{ ruolo: 'richiedente', stati: ['inviato'] }] } },
-          adesione: { workflow: { stati_dashboard: [{ ruolo: 'richiedente', stati: ['bozza'] }] } }
-        };
-        const config = service.computeRoleConfig('referente', ['richiedente_servizio']);
+      it('should map referente_servizio to servizi+adesioni+comunicazioni', () => {
+        const config = service.computeRoleConfig('referente', ['referente_servizio']);
         expect(config.servizi).toBe(true);
         expect(config.adesioni).toBe(true);
         expect(config.client).toBe(false);
+        expect(config.comunicazioni).toBe(true);
+      });
+
+      it('should fallback to comunicazioni for unmapped richiedente_servizio role', () => {
+        const config = service.computeRoleConfig('referente', ['richiedente_servizio']);
+        expect(config.servizi).toBe(false);
+        expect(config.adesioni).toBe(false);
+        expect(config.client).toBe(false);
+        expect(config.comunicazioni).toBe(true);
       });
 
       it('should not enable client for non-superiore roles', () => {
