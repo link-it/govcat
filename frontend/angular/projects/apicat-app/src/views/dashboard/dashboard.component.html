@@ -33,11 +33,11 @@
       </lnk-button>
     </div>
   </div>
-  <section class="container-fluid px-0 mt-3">
+  <section class="container-fluid container-scroller container-scroller-no-search px-2 mt-2">
 
     <!-- Summary Cards: sempre visibili, fungono da tab quando espanso -->
     <div class="row g-3 mb-4" *ngIf="showSummaryCards">
-      <div class="col-sm-6 col-xl" *ngIf="roleConfig.servizi">
+      <div class="col-6 col-xl" *ngIf="roleConfig.servizi">
         <div class="summary-card" [class.summary-card-active]="expandedSection === 'servizi'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'servizi'" (click)="onSummaryClick('servizi')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('servizi')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('servizi')"></i></div>
@@ -48,7 +48,7 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-6 col-xl" *ngIf="roleConfig.adesioni">
+      <div class="col-6 col-xl" *ngIf="roleConfig.adesioni">
         <div class="summary-card" [class.summary-card-active]="expandedSection === 'adesioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'adesioni'" (click)="onSummaryClick('adesioni')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('adesioni')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('adesioni')"></i></div>
@@ -59,7 +59,7 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-6 col-xl" *ngIf="roleConfig.client">
+      <div class="col-6 col-xl" *ngIf="roleConfig.client">
         <div class="summary-card" [class.summary-card-active]="expandedSection === 'client'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'client'" (click)="onSummaryClick('client')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('client')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('client')"></i></div>
@@ -70,7 +70,7 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-6 col-xl" *ngIf="roleConfig.comunicazioni">
+      <div class="col-6 col-xl" *ngIf="roleConfig.comunicazioni">
         <div class="summary-card" [class.summary-card-active]="expandedSection === 'comunicazioni'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'comunicazioni'" (click)="onSummaryClick('comunicazioni')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('comunicazioni')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('comunicazioni')"></i></div>
@@ -81,7 +81,7 @@
           </div>
         </div>
       </div>
-      <div class="col-sm-6 col-xl" *ngIf="roleConfig.utenti">
+      <div class="col-6 col-xl" *ngIf="roleConfig.utenti">
         <div class="summary-card" [class.summary-card-active]="expandedSection === 'utenti'" [class.summary-card-dimmed]="expandedSection && expandedSection !== 'utenti'" (click)="onSummaryClick('utenti')">
           <div class="summary-card-body" [ngStyle]="getSummaryStyle('utenti')">
             <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('utenti')"></i></div>

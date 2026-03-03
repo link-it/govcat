@@ -28,6 +28,7 @@
             <app-head-bar *ngIf="!_spin"
                 [title]="_applicationTitle"
                 [logo]="_config.AppConfig.Layout.Header.logo"
+                [showMobileTitle]="_config.AppConfig.Layout.Header.showMobileTitle"
                 [anonymous]="_isAnonymous"
                 [loggedIn]="loggedIn"
                 [login]="login"

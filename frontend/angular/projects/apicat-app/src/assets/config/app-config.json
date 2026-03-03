@@ -83,7 +83,8 @@
       "footerExpandedOver": true,
       "Header": {
         "title": "Catalogo API ModI",
-        "logo": "linkit_logo/LINK_logo-Govcat-O.svg"
+        "logo": "linkit_logo/LINK_logo-Govcat-O.svg",
+        "showMobileTitle": true
       },
       "forceMenuOpen": true,
       "Details": {
