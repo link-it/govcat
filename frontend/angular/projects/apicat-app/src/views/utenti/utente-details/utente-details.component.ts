@@ -25,6 +25,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService, EventsManagerService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
@@ -47,10 +48,10 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
   imports: [
     CommonModule,
     ...COMPONENTS_IMPORTS,
+    ...APP_COMPONENTS_IMPORTS,
     HasPermissionDirective,
     TrimOnBlurDirective
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtenteDetailsComponent';
