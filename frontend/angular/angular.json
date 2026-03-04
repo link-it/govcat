@@ -121,8 +121,8 @@
 					},
 					"defaultConfiguration": "development",
 					"options": {
-						"port": 6200,
-						"publicHost": "http://localhost:6200",
+						"port": 6300,
+						"publicHost": "http://localhost:6300",
 						"extraWebpackConfig": "projects/apicat-app/webpack.config.js"
 					}
 				},

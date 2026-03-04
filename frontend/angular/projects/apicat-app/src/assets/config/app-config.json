@@ -151,7 +151,7 @@
       },
       "showNotificationsMenu": false,
       "showNotificationsBar": true,
-      "enablePollingNotifications": false,
+      "enablePollingNotifications": true,
       "showTaxonomies": true,
       "showCommunicationsMenu": true,
       "enableOpenInNewTab": true,

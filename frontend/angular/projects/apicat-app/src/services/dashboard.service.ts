@@ -19,7 +19,7 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable, Subject, forkJoin, of, timer } from 'rxjs';
-import { catchError, map, retry, share, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, map, retry, share, shareReplay, switchMap, takeUntil } from 'rxjs/operators';
 
 import { ConfigService } from '@linkit/components';
 
@@ -41,6 +41,7 @@ export class DashboardService {
 
   private _dashboardCount$: Observable<number> | null = null;
   private _stopPolling = new Subject<void>();
+  private _ruoliProfilo$: Observable<ProfiloRuoli> | null = null;
 
   constructor(
     private apiService: OpenAPIService,
@@ -117,7 +118,12 @@ export class DashboardService {
   }
 
   getRuoliProfilo(): Observable<ProfiloRuoli> {
-    return this.apiService.getList('profilo/ruoli');
+    if (!this._ruoliProfilo$) {
+      this._ruoliProfilo$ = this.apiService.getList('profilo/ruoli').pipe(
+        shareReplay(1)
+      );
+    }
+    return this._ruoliProfilo$;
   }
 
   private _dashboardOptions(): any {
@@ -145,19 +151,17 @@ export class DashboardService {
   }
 
   getDashboardCount(timerMs: number): Observable<number> {
-    if (!this._dashboardCount$) {
-      this._dashboardCount$ = this._resolveRoleConfig().pipe(
-        switchMap(roleConfig => {
-          return timer(1, timerMs).pipe(
-            switchMap(() => this._fetchTotalCount(roleConfig)),
-            retry(3),
-            catchError(() => of(0)),
-            share(),
-            takeUntil(this._stopPolling)
-          );
-        })
-      );
-    }
+    this._dashboardCount$ ??= this._resolveRoleConfig().pipe(
+      switchMap(roleConfig => {
+        return timer(1, timerMs).pipe(
+          switchMap(() => this._fetchTotalCount(roleConfig)),
+          retry(3),
+          catchError(() => of(0)),
+          share(),
+          takeUntil(this._stopPolling)
+        );
+      })
+    );
     return this._dashboardCount$;
   }
 
