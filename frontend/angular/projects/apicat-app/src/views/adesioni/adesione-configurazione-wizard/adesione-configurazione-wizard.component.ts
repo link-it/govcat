@@ -104,6 +104,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     ];
 
     serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
+    private _fromDashboard: boolean = false;
 
     grant: Grant | null = null;
     updateMapper: string = '';
@@ -190,7 +191,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 const _referentiConfig: Observable<any> = this.configService.getConfig('referenti');
 
                 const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig]);
-                combined.subscribe(result => {                    
+                combined.subscribe(result => {
                     this.grant = result[0];
                     this.adesioniClientsConfig = result[1];
                     this.adesioniErogazConfig = result[2];
@@ -201,6 +202,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
                     this.loadAdesione(true);
                 });
+            }
+        });
+
+        this.route.queryParams.subscribe((val) => {
+            if (val.from === 'dashboard') {
+                this._fromDashboard = true;
+                this._initBreadcrumb();
             }
         });
 
@@ -367,21 +375,36 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             title = `${this.adesione.id_logico} (${_organizzazione})`;
         }
 
-        if (this.config?.useEditWizard) {
-            this.breadcrumbs = [
-                { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-                { label: title, url: '', type: 'link' },
-            ];
+        if (this._fromDashboard && !this.serviceBreadcrumbs) {
+            if (this.config?.useEditWizard) {
+                this.breadcrumbs = [
+                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+                    { label: title, url: '', type: 'link' },
+                ];
+            } else {
+                this.breadcrumbs = [
+                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+                    { label: title, url: `${baseUrl}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
+                    { label: 'APP.TITLE.SubscriptionConfiguration', url: ``, type: 'link' }
+                ];
+            }
         } else {
-            this.breadcrumbs = [
-                { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-                { label: title, url: `${baseUrl}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
-                { label: 'APP.TITLE.SubscriptionConfiguration', url: ``, type: 'link' }
-            ];
-        }
+            if (this.config?.useEditWizard) {
+                this.breadcrumbs = [
+                    { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
+                    { label: title, url: '', type: 'link' },
+                ];
+            } else {
+                this.breadcrumbs = [
+                    { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
+                    { label: title, url: `${baseUrl}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
+                    { label: 'APP.TITLE.SubscriptionConfiguration', url: ``, type: 'link' }
+                ];
+            }
 
-        if (this.serviceBreadcrumbs){
-            this.breadcrumbs.unshift(...this.serviceBreadcrumbs.breadcrumbs);
+            if (this.serviceBreadcrumbs){
+                this.breadcrumbs.unshift(...this.serviceBreadcrumbs.breadcrumbs);
+            }
         }
     }
 
