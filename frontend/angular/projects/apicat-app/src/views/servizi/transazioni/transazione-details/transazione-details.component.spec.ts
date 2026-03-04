@@ -805,27 +805,27 @@ describe('TransazioneDetailsComponent', () => {
     });
 
     it('should append /view to service URL when SERVIZI_VIEW is TRUE', () => {
-      vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('TRUE');
+      localStorage.setItem('SERVIZI_VIEW', 'TRUE');
       component.service = { nome: 'Svc', versione: 1, stato: 'bozza' };
+      component.sid = 10;
 
       component._initBreadcrumb();
 
       const svcBC = component.breadcrumbs.find((b: any) => b.label === 'Svc v. 1');
       expect(svcBC.url).toContain('/view');
-      vi.restoreAllMocks();
-      vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
+      localStorage.removeItem('SERVIZI_VIEW');
     });
 
     it('should not append /view to service URL when SERVIZI_VIEW is not TRUE', () => {
-      vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('FALSE');
+      localStorage.setItem('SERVIZI_VIEW', 'FALSE');
       component.service = { nome: 'Svc', versione: 1, stato: 'bozza' };
+      component.sid = 10;
 
       component._initBreadcrumb();
 
       const svcBC = component.breadcrumbs.find((b: any) => b.label === 'Svc v. 1');
       expect(svcBC.url).not.toContain('/view');
-      vi.restoreAllMocks();
-      vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
+      localStorage.removeItem('SERVIZI_VIEW');
     });
 
     it('should have empty tooltip when no service', () => {
