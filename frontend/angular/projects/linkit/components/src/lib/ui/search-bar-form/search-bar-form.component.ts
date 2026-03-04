@@ -319,10 +319,12 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     } else {
       switch (_field.type) {
         case 'enum':
-          _value = this.translate.instant(_field.enumValues[value]);
+          const enumKey = _field.enumValues?.[value];
+          _value = enumKey ? this.translate.instant(enumKey) : value;
           break;
         case 'boolean':
-          _value = value ? this.translate.instant(_field.booleanValues[0]) : this.translate.instant(_field.booleanValues[1]);
+          const boolKey = value ? _field.booleanValues?.[0] : _field.booleanValues?.[1];
+          _value = boolKey ? this.translate.instant(boolKey) : value;
           break;
         case 'date':
           _value = moment(value.valueOf()).format(_field.format);
