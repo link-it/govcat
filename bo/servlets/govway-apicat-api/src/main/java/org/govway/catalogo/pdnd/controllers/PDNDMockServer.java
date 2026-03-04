@@ -133,7 +133,7 @@ public class PDNDMockServer {
 	        	return valueType.cast(files.get(key));
 	    	} else {
 	        	this.logger.debug("File "+key+" non trovato. Restituisco BadRequest");
-	    		throw new BadRequestException(ErrorCode.API_400_DELETE);  // key);
+	    		throw new BadRequestException(ErrorCode.GEN_400);  // key);
 	    	}
     	} catch(RuntimeException e) {
     		this.logger.error("Errore durante la getMockResponse: " + e.getMessage(), e);
@@ -158,7 +158,7 @@ public class PDNDMockServer {
 		if(id == null) return;
 		
 		if(id.startsWith("eeeee400")) {
-			throw new BadRequestException(ErrorCode.API_400_DELETE);  // "ID ["+id+"]");
+			throw new BadRequestException(ErrorCode.GEN_400);  // "ID ["+id+"]");
 		}
 		
 		if(id.startsWith("eeeee404")) {
@@ -179,7 +179,7 @@ public class PDNDMockServer {
 		if(id == null) return;
 		
 		if(id.longValue() == 40) {
-			throw new BadRequestException(ErrorCode.API_400_DELETE);  // "ID ["+id+"]");
+			throw new BadRequestException(ErrorCode.GEN_400);  // "ID ["+id+"]");
 		}
 		
 		if(id.longValue() == 44) {

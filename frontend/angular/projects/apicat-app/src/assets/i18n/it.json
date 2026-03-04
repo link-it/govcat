@@ -1105,15 +1105,15 @@
 			"ERROR": {
 				"ADE": {
 					"400": {
-						"STATE": "Stato adesione [{{stato}}] non valido per questa operazione"
+						"STATE": "Stato adesione non valido per questa operazione"
 					},
 					"403": {
-						"REFERENT": "Referente adesione [{{referente}}] non autorizzato"
+						"REFERENT": "Referente adesione non autorizzato"
 					},
 					"404": "Adesione [{{idAdesione}}] non trovata",
 					"409": {
-						"DEFAULT": "Adesione [{{nome}}] già esistente",
-						"STATE": "Impossibile modificare adesione in stato [{{stato}}]"
+						"DEFAULT": "Adesione per soggetto [{{soggetto}}] al servizio [{{servizio}} v{{versione}}] già esistente",
+						"STATE": "Impossibile modificare adesione nello stato corrente"
 					}
 				},
 				"API": {
@@ -1142,12 +1142,12 @@
 							"MISMATCH": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] associato all'organizzazione [{{userOrgNome}}]",
 							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione"
 						},
-						"RESOURCE": "Accesso negato alla risorsa [{{risorsa}}]",
+						"RESOURCE": "Accesso negato alla risorsa [{{idTraccia}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force"
 					}
 				},
 				"CAT": {
-					"404": "Categoria [{{idCategoria}}] non trovata",
+					"404": "Categoria [{{nome}}] non trovata",
 					"409": "Categoria [{{nome}}] già esistente per tassonomia [{{tassonomia}}]"
 				},
 				"CheckPrivateKey": "E stato riscontrato un'errore nei dati inseriti. Ricontrolla i dati inseriti e riprova.",
@@ -1157,21 +1157,21 @@
 				},
 				"CLT": {
 					"400": {
-						"CONFIG": "Configurazione client non valida: {{dettagli}}",
+						"CONFIG": "Configurazione client non valida",
 						"EXTENSION": "Estensione client [{{tipo}}] non supportata"
 					},
-					"404": "Client [{{idClient}}] non trovato",
+					"404": "Client [{{nomeClient}}] non trovato",
 					"409": "Client [{{nome}}] già esistente per soggetto [{{soggetto}}] e ambiente [{{ambiente}}]"
 				},
 				"Default": "Si è verificato un problema non previsto",
 				"DefaultHelp": "Si prega di riprovare più tardi",
 				"DOC": {
 					"400": {
-						"FORMAT": "Formato documento [{{formato}}] non supportato",
+						"FORMAT": "Formato documento non supportato",
 						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]"
 					},
 					"404": {
-						"DEFAULT": "Documento [{{idDocumento}}] non trovato",
+						"DEFAULT": "Documento [{{idAllegato}}] non trovato per l'adesione [{{idAdesione}}]",
 						"VERSION": "Documento con UUID [{{uuid}}] e versione [{{versione}}] non trovato"
 					},
 					"500": "Impossibile elaborare il documento: {{errore}}"
@@ -1182,15 +1182,15 @@
 				},
 				"GEN": {
 					"400": {
-						"DEFAULT": "Operazione [{{operazione}}] non consentita",
-						"REQUEST": "Richiesta non valida: {{dettagli}}"
+						"DEFAULT": "Operazione non consentita",
+						"REQUEST": "Richiesta non valida"
 					},
-					"404": "Risorsa [{{risorsa}}] non trovata",
+					"404": "Risorsa non trovata",
 					"409": {
-						"DEFAULT": "Risorsa [{{risorsa}}] già esistente",
-						"STATE": "Conflitto con stato attuale: {{dettagli}}"
+						"DEFAULT": "Risorsa già esistente",
+						"STATE": "Conflitto con stato attuale"
 					},
-					"500": ""
+					"500": "Errore interno"
 				},
 				"GRP": {
 					"404": "Gruppo [{{idGruppo}}] non trovato",
@@ -1210,16 +1210,16 @@
 				},
 				"INT": {
 					"500": {
-						"DEFAULT": "",
-						"COMMUNICATION": "Errore di comunicazione con servizio esterno [{{servizio}}]: {{errore}}",
-						"CONFIG": "",
-						"DB": "",
+						"DEFAULT": "Errore di integrazione con servizio esterno",
+						"COMMUNICATION": "Errore di comunicazione con servizio esterno",
+						"CONFIG": "Errore di configurazione integrazione",
+						"DB": "Errore di accesso al database di integrazione",
 						"GOVWAY": "Errore GovWay: {{dettagli}}",
 						"PDND": "Errore PDND: {{dettagli}}"
 					},
-					"502": "Risposta non valida dal servizio [{{servizio}}]: {{dettagli}}",
-					"503": "Servizio [{{servizio}}] temporaneamente non disponibile",
-					"504": "Timeout nella chiamata al servizio [{{servizio}}]"
+					"502": "Risposta non valida dal servizio esterno",
+					"503": "Servizio esterno temporaneamente non disponibile",
+					"504": "Timeout nella chiamata al servizio esterno"
 				},
 				"MON": {
 					"400": {
@@ -1229,10 +1229,10 @@
 						"INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido"
 					},
 					"404": {
-						"DEFAULT": "Dati di monitoraggio non disponibili per il servizio [{{servizio}}]",
+						"DEFAULT": "Dati di monitoraggio non disponibili",
 						"ALARM": "Allarme [{{idAllarme}}] non trovato",
 						"METRIC": "Metrica [{{metrica}}] non trovata",
-						"STATS": "Statistiche non disponibili per il periodo [{{periodo}}]"
+						"STATS": "Statistiche di tipo [{{tipo}}] non disponibili"
 					}
 				},
 				"NoAddCategorie": "Non è stato possibile aggiungere la categoria.",
@@ -1250,7 +1250,7 @@
 					"500": "Impossibile inviare notifica: {{errore}}"
 				},
 				"ORG": {
-					"404": "Organizzazione [{{idOrganizzazione}}] non trovata",
+					"404": "Organizzazione [{{nome}}] non trovata",
 					"409": "Organizzazione [{{nome}}] già esistente"
 				},
 				"PRF": {
@@ -1300,7 +1300,7 @@
 					}
 				},
 				"SOG": {
-					"404": "Soggetto [{{idSoggetto}}] non trovato",
+					"404": "Soggetto [{{nome}}] non trovato",
 					"409": "Soggetto [{{nome}}] già esistente"
 				},
 				"SRV": {
@@ -1326,7 +1326,7 @@
 					},
 					"404": {
 						"DEFAULT": "Servizio [{{idServizio}}] non trovato",
-						"IMAGE": "Immagine per il servizio [{{idServizio}}] non trovata"
+						"IMAGE": "Immagine per il gruppo [{{idGruppo}}] non trovata"
 					},
 					"409": {
 						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste gia",
@@ -1337,16 +1337,16 @@
 				},
 				"SYS": {
 					"500": {
-						"DEFAULT": "Errore interno del sistema: {{dettagli}}",
-						"CONFIG": "Configurazione sistema non valida: {{dettagli}}",
-						"DB": "Errore di accesso al database: {{dettagli}}",
-						"IO": "Errore di I/O: {{dettagli}}"
+						"DEFAULT": "Errore interno del sistema",
+						"CONFIG": "Configurazione sistema non valida",
+						"DB": "Errore di accesso al database",
+						"IO": "Errore di I/O"
 					},
-					"501": "Operazione [{{operazione}}] non supportata",
-					"503": "Risorsa [{{risorsa}}] temporaneamente non disponibile"
+					"501": "Operazione non supportata",
+					"503": "Risorsa temporaneamente non disponibile"
 				},
 				"TAX": {
-					"404": "Tassonomia [{{idTassonomia}}] non trovata",
+					"404": "Tassonomia [{{nome}}] non trovata",
 					"409": "Tassonomia [{{nome}}] già esistente"
 				},
 				"Timeout": "Timeout durante il download. Riprova più tardi.",
@@ -1358,30 +1358,31 @@
 				"Unauthorized": "Non autorizzato",
 				"Unprocessable Entity": "Entità non elaborabile",
 				"UT": {
-					"404": "Utente [{{idUtente}}] non trovato",
-					"409": "Utente [{{principal}}] già esistente",
 					"403": {
+						"DEFAULT": "Utente non abilitato",
 						"EMAIL": {
 							"CHANGE": "Modifica email non consentita. Utilizzare il flusso di verifica email."
 						}
-					}
+					},
+					"404": "Utente [{{idUtente}}] non trovato",
+					"409": "Utente [{{principal}}] già esistente"
 				},
 				"VAL": {
 					"400": {
 						"CF": "Codice fiscale [{{codiceFiscale}}] non valido",
 						"DATE": "Data [{{data}}] non valida",
 						"EMAIL": "Email [{{email}}] non valida",
-						"FORMAT": "Formato campo [{{campo}}] non valido: {{formato}}",
+						"FORMAT": "Formato non valido",
 						"LENGTH": "Lunghezza campo [{{campo}}] non valida: attesa {{lunghezzaAttesa}}, trovata {{lunghezzaTrovata}}",
 						"PATTERN": "Pattern [{{pattern}}] non rispettato per il campo [{{campo}}]",
 						"PIVA": "Partita IVA [{{partitaIva}}] non valida",
 						"RANGE": "Valore [{{valore}}] fuori dal range consentito [{{min}} - {{max}}]",
-						"REQUIRED": "Campo obbligatorio [{{campo}}] mancante",
+						"REQUIRED": "Campo obbligatorio mancante",
 						"URL": "URL [{{url}}] non valido"
 					},
 					"422": {
-						"DEFAULT": "Richiesta non valida semanticamente: {{dettagli}}",
-						"COMPLEX": "Update entità complessa non valida semanticamente: {{dettagli}}"
+						"DEFAULT": "Richiesta non valida semanticamente",
+						"COMPLEX": "Update entità complessa non valida semanticamente"
 					}
 				},
 				"WFL": {

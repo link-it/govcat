@@ -264,7 +264,7 @@ public class APIController implements ApiApi {
 				}
 
 				if(!entity.getServizio().getAdesioni().isEmpty()) {
-					throw new BadRequestException(ErrorCode.API_400_DELETE, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString()));
+					throw new BadRequestException(ErrorCode.API_400_DELETE, java.util.Map.of("nome", entity.getNome(), "versione", entity.getVersione().toString(), "numeroAdesioni", String.valueOf(entity.getServizio().getAdesioni().size())));
 				}
 
 				this.service.delete(entity);
