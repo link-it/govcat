@@ -144,7 +144,10 @@
             <div class="settings-content">
                 <div class="gl-alert gl-alert-danger col-md-12 mb-5" *ngIf="!_isEdit && _error">
                     <span *ngIf="!_errors.length">{{ _errorMsg }}</span>
-                    <span *ngIf="_errors.length">{{ 'APP.MESSAGE.ERROR.ApiNoDelete' | translate }}</span>
+                    <ui-error-view *ngIf="_errors.length"
+                        [errTitle]="'APP.MESSAGE.ERROR.ApiNoDelete' | translate"
+                        [errors]="_errors"
+                    ></ui-error-view>
                 </div>
                 <div class="edit-form">
                     <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">

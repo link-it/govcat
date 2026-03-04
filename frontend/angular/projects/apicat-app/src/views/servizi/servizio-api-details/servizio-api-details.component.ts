@@ -593,7 +593,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this._spin--;
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
-                this._errors = error.error.errori || [];
+                this._errors = error.errori || [];
             }
         );
     }
@@ -696,7 +696,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             error: (error) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
-                this._errors = error.error.errori || [];
+                this._errors = error.errori || [];
             }
         });
     }
