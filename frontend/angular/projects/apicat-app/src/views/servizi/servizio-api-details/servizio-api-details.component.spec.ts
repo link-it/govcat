@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { of, throwError } from 'rxjs';
-import { FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
+import { of, throwError, EMPTY } from 'rxjs';
+import { FormGroup, FormControl, FormArray, FormBuilder, Validators } from '@angular/forms';
 import { Tools } from '@linkit/components';
 import { ServizioApiDetailsComponent } from './servizio-api-details.component';
 import { ServizioApiCreate } from './servizio-api-create';
@@ -75,8 +75,12 @@ describe('ServizioApiDetailsComponent', () => {
     getLanguage: vi.fn().mockReturnValue('it')
   } as any;
 
+  const _safeServiceResponse = {
+    dominio: { nome: 'dom', soggetto_referente: { nome: 'Sogg', organizzazione: { esterna: false } } }
+  };
+
   const mockApiService = {
-    getDetails: vi.fn().mockReturnValue(of({})),
+    getDetails: vi.fn().mockReturnValue(of(_safeServiceResponse)),
     getList: vi.fn().mockReturnValue(of({ content: [], page: {} })),
     getElementRelated: vi.fn().mockReturnValue(of({ content: [] })),
     saveElement: vi.fn().mockReturnValue(of({})),
@@ -1690,6 +1694,2304 @@ describe('ServizioApiDetailsComponent', () => {
       component._onAddCustomAuth();
       expect(component.authTypesArray().length).toBe(1);
       expect(component._customAuthAdded).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // _initForm
+  // =========================================================================
+  describe('_initForm', () => {
+    it('should do nothing when data is null', () => {
+      const oldFormGroup = component._formGroup;
+      component._initForm(null);
+      expect(component._formGroup).toBe(oldFormGroup);
+    });
+
+    it('should create FormGroup with controls for each key in data', () => {
+      component._isNew = false;
+      component._codiceAssetObbligatorio = false;
+      component._specificaObbligatorio = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+      // Use a real FormBuilder
+      (component as any).formBuilder = new FormBuilder();
+
+      const data = {
+        nome: 'TestApi',
+        ruolo: 'erogato_soggetto_dominio',
+        protocollo: 'rest',
+        descrizione: 'A description',
+        versione: 2,
+        codice_asset: 'CA1',
+        url_collaudo: null,
+        url_produzione: null,
+        filename: null,
+        estensione: null,
+        content: null,
+        uuid: null
+      };
+
+      component._initForm(data);
+
+      expect(component._formGroup.get('nome')).toBeTruthy();
+      expect(component._formGroup.get('nome')!.value).toBe('TestApi');
+      expect(component._formGroup.get('ruolo')).toBeTruthy();
+      expect(component._formGroup.get('ruolo')!.value).toBe('erogato_soggetto_dominio');
+      expect(component._formGroup.get('protocollo')).toBeTruthy();
+      expect(component._formGroup.get('versione')).toBeTruthy();
+      expect(component._formGroup.get('versione')!.value).toBe(2);
+      expect(component._formGroup.get('descrizione')).toBeTruthy();
+      expect(component._formGroup.get('codice_asset')).toBeTruthy();
+      expect(component._formGroup.get('authTypes')).toBeTruthy();
+    });
+
+    it('should set required validator on nome', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ nome: '', ruolo: '', protocollo: '', versione: '', descrizione: '', codice_asset: '' });
+
+      const nomeCtrl = component._formGroup.get('nome')!;
+      nomeCtrl.setValue('');
+      nomeCtrl.updateValueAndValidity();
+      expect(nomeCtrl.valid).toBe(false);
+
+      nomeCtrl.setValue('valid');
+      nomeCtrl.updateValueAndValidity();
+      expect(nomeCtrl.valid).toBe(true);
+    });
+
+    it('should set maxLength(255) on nome', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ nome: 'x' });
+
+      const nomeCtrl = component._formGroup.get('nome')!;
+      nomeCtrl.setValue('a'.repeat(256));
+      nomeCtrl.updateValueAndValidity();
+      expect(nomeCtrl.valid).toBe(false);
+    });
+
+    it('should set required validator on ruolo', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ ruolo: '' });
+
+      const ctrl = component._formGroup.get('ruolo')!;
+      ctrl.setValue('');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(false);
+    });
+
+    it('should set required validator on protocollo when _isNew', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = true;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ protocollo: '' });
+
+      const ctrl = component._formGroup.get('protocollo')!;
+      ctrl.setValue('');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(false);
+    });
+
+    it('should not set required on protocollo when not _isNew', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ protocollo: '' });
+
+      const ctrl = component._formGroup.get('protocollo')!;
+      ctrl.setValue('');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(true);
+    });
+
+    it('should set pattern validator on versione (only positive integers)', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ versione: '' });
+
+      const ctrl = component._formGroup.get('versione')!;
+      ctrl.setValue('0');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(false);
+
+      ctrl.setValue('abc');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(false);
+
+      ctrl.setValue('3');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(true);
+    });
+
+    it('should set maxLength(255) on descrizione', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ descrizione: '' });
+
+      const ctrl = component._formGroup.get('descrizione')!;
+      ctrl.setValue('a'.repeat(256));
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(false);
+    });
+
+    it('should set required on codice_asset when _codiceAssetObbligatorio is true', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._codiceAssetObbligatorio = true;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ codice_asset: '' });
+
+      const ctrl = component._formGroup.get('codice_asset')!;
+      ctrl.setValue('');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(false);
+    });
+
+    it('should not set required on codice_asset when _codiceAssetObbligatorio is false', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._codiceAssetObbligatorio = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ codice_asset: '' });
+
+      const ctrl = component._formGroup.get('codice_asset')!;
+      ctrl.setValue('');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(true);
+    });
+
+    it('should set required on descrittore when _isNew and _specificaObbligatorio', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = true;
+      component._specificaObbligatorio = true;
+      component._hasSpecifica = false;
+      component._descrittoreCtrl = new FormControl('');
+      component.servizioApi = null;
+
+      component._initForm({ nome: 'x' });
+
+      component._descrittoreCtrl.setValue('');
+      component._descrittoreCtrl.updateValueAndValidity();
+      expect(component._descrittoreCtrl.valid).toBe(false);
+    });
+
+    it('should set required on descrittore when _isNew and _hasSpecifica', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = true;
+      component._specificaObbligatorio = false;
+      component._hasSpecifica = true;
+      component._descrittoreCtrl = new FormControl('');
+      component.servizioApi = null;
+
+      component._initForm({ nome: 'x' });
+
+      component._descrittoreCtrl.setValue('');
+      component._descrittoreCtrl.updateValueAndValidity();
+      expect(component._descrittoreCtrl.valid).toBe(false);
+    });
+
+    it('should handle default case for unknown keys', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ some_unknown_key: 'val' });
+
+      const ctrl = component._formGroup.get('some_unknown_key');
+      expect(ctrl).toBeTruthy();
+      expect(ctrl!.value).toBe('val');
+    });
+
+    it('should set protocollo from servizioApi.configurazione_collaudo.protocollo if present', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = {
+        configurazione_collaudo: { protocollo: 'soap' }
+      } as any;
+
+      component._initForm({ protocollo: '' });
+
+      expect(component._formGroup.get('protocollo')!.value).toBe('soap');
+    });
+
+    it('should use empty string for nome when data value is null', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ nome: null });
+
+      expect(component._formGroup.get('nome')!.value).toBe('');
+    });
+
+    it('should use null for descrizione when data value is null', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._isNew = false;
+      component._hasSpecifica = false;
+      component.servizioApi = null;
+
+      component._initForm({ descrizione: null });
+
+      expect(component._formGroup.get('descrizione')!.value).toBeNull();
+    });
+  });
+
+  // =========================================================================
+  // _createAuthGroup
+  // =========================================================================
+  describe('_createAuthGroup', () => {
+    it('should create a FormGroup with profilo, resources, note', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._profili = [];
+
+      const result = component._createAuthGroup({
+        profilo: 'prof1',
+        resources: ['/r1'],
+        note: 'some note',
+        proprieta_custom: []
+      });
+
+      expect(result).toBeInstanceOf(FormGroup);
+      expect(result.get('profilo')!.value).toBe('prof1');
+      expect(result.get('resources')!.value).toEqual(['/r1']);
+      expect(result.get('note')!.value).toBe('some note');
+    });
+
+    it('should add customProperties sub-group when profilo has proprieta_custom', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._profili = [
+        {
+          codice_interno: 'profPDND',
+          etichetta: 'PDND',
+          auth_type: 'pdnd',
+          proprieta_custom: [
+            { nome: 'id_eservice', required: true, regular_expression: null },
+            { nome: 'id_agreement', required: false, regular_expression: '^[0-9]+$' }
+          ]
+        }
+      ];
+
+      const result = component._createAuthGroup({
+        profilo: 'profPDND',
+        resources: ['/r1'],
+        note: '',
+        proprieta_custom: [
+          { nome: 'id_eservice', valore: 'abc' },
+          { nome: 'id_agreement', valore: '123' }
+        ]
+      });
+
+      const cpGroup = result.get('customProperties') as FormGroup;
+      expect(cpGroup).toBeTruthy();
+      expect(cpGroup.get('id_eservice')!.value).toBe('abc');
+      expect(cpGroup.get('id_agreement')!.value).toBe('123');
+    });
+
+    it('should set required validator on customProperties when item.required is true', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._profili = [
+        {
+          codice_interno: 'p1',
+          proprieta_custom: [
+            { nome: 'field1', required: true }
+          ]
+        }
+      ];
+
+      const result = component._createAuthGroup({
+        profilo: 'p1', resources: [], note: '',
+        proprieta_custom: []
+      });
+
+      const cpGroup = result.get('customProperties') as FormGroup;
+      const field1 = cpGroup.get('field1')!;
+      field1.setValue('');
+      field1.updateValueAndValidity();
+      expect(field1.valid).toBe(false);
+    });
+
+    it('should set pattern validator when regular_expression is defined', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._profili = [
+        {
+          codice_interno: 'p1',
+          proprieta_custom: [
+            { nome: 'field1', required: false, regular_expression: '^[0-9]+$' }
+          ]
+        }
+      ];
+
+      const result = component._createAuthGroup({
+        profilo: 'p1', resources: [], note: '',
+        proprieta_custom: []
+      });
+
+      const cpGroup = result.get('customProperties') as FormGroup;
+      const field1 = cpGroup.get('field1')!;
+      field1.setValue('abc');
+      field1.updateValueAndValidity();
+      expect(field1.valid).toBe(false);
+
+      field1.setValue('123');
+      field1.updateValueAndValidity();
+      expect(field1.valid).toBe(true);
+    });
+
+    it('should not add customProperties when profilo has no proprieta_custom', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._profili = [
+        { codice_interno: 'p1', proprieta_custom: [] }
+      ];
+
+      const result = component._createAuthGroup({
+        profilo: 'p1', resources: [], note: '',
+        proprieta_custom: []
+      });
+
+      expect(result.get('customProperties')).toBeNull();
+    });
+
+    it('should use empty string when proprieta_custom value not found', () => {
+      (component as any).formBuilder = new FormBuilder();
+      component._profili = [
+        {
+          codice_interno: 'p1',
+          proprieta_custom: [
+            { nome: 'missing_field', required: false }
+          ]
+        }
+      ];
+
+      const result = component._createAuthGroup({
+        profilo: 'p1', resources: [], note: '',
+        proprieta_custom: []
+      });
+
+      const cpGroup = result.get('customProperties') as FormGroup;
+      expect(cpGroup.get('missing_field')!.value).toBe('');
+    });
+  });
+
+  // =========================================================================
+  // __loadRisorse
+  // =========================================================================
+  describe('__loadRisorse', () => {
+    it('should not call API when no apiType', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl(''),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      mockApiService.saveElement.mockClear();
+
+      (component as any).__loadRisorse();
+      expect(mockApiService.saveElement).not.toHaveBeenCalled();
+    });
+
+    it('should not call API when no document and no uuid', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null)
+      });
+      mockApiService.saveElement.mockClear();
+
+      (component as any).__loadRisorse();
+      expect(mockApiService.saveElement).not.toHaveBeenCalled();
+    });
+
+    it('should call API with inline document when content is present', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl('json'),
+        content: new FormControl('base64data'),
+        uuid: new FormControl(null)
+      });
+      component.service = { dominio: { nome: 'dom1', soggetto_referente: { nome: 'sogg1' } } };
+      component._profili = [];
+      component._isNew = false;
+      mockApiService.saveElement.mockReturnValue(of(['/r1', '/r2']));
+
+      (component as any).__loadRisorse();
+
+      expect(mockApiService.saveElement).toHaveBeenCalledWith('tools/lista-risorse-api', {
+        api_type: 'rest',
+        document: { type: 'inline', content_type: 'json', document: 'base64data' }
+      });
+      expect(component._risorseOrig).toEqual(['/r1', '/r2']);
+      expect(component._loadingRisorse).toBe(false);
+    });
+
+    it('should call API with uuid document when uuid is present and content is not', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('soap'),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl('uuid-123')
+      });
+      component.service = { dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._profili = [];
+      component._isNew = false;
+      mockApiService.saveElement.mockReturnValue(of([]));
+
+      (component as any).__loadRisorse();
+
+      expect(mockApiService.saveElement).toHaveBeenCalledWith('tools/lista-risorse-api', {
+        api_type: 'soap',
+        document: { type: 'uuid', uuid: 'uuid-123' }
+      });
+    });
+
+    it('should call _autoSelectAllResurces when _isNew', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      component.service = { dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._profili = [];
+      component._isNew = true;
+      mockApiService.saveElement.mockReturnValue(of(['/r1']));
+      const autoSelectSpy = vi.spyOn(component, '_autoSelectAllResurces').mockImplementation(() => {});
+
+      (component as any).__loadRisorse();
+
+      expect(autoSelectSpy).toHaveBeenCalledWith(['/r1']);
+    });
+
+    it('should filter profili by compatibilita', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      component.service = { dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._profili = [
+        { codice_interno: 'p1', compatibilita: 'rest' },
+        { codice_interno: 'p2', compatibilita: 'soap' },
+        { codice_interno: 'p3' } // no compatibilita = compatible with all
+      ];
+      component._isNew = false;
+      mockApiService.saveElement.mockReturnValue(of([]));
+
+      (component as any).__loadRisorse();
+
+      expect(component._profiliFiltered).toHaveLength(2);
+      expect(component._profiliFiltered[0].codice_interno).toBe('p1');
+      expect(component._profiliFiltered[1].codice_interno).toBe('p3');
+    });
+
+    it('should filter profili by domini', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      component.service = { dominio: { nome: 'domA', soggetto_referente: { nome: 's' } } };
+      component._profili = [
+        { codice_interno: 'p1', domini: ['domA', 'domB'] },
+        { codice_interno: 'p2', domini: ['domC'] }
+      ];
+      component._isNew = false;
+      mockApiService.saveElement.mockReturnValue(of([]));
+
+      (component as any).__loadRisorse();
+
+      expect(component._profiliFiltered).toHaveLength(1);
+      expect(component._profiliFiltered[0].codice_interno).toBe('p1');
+    });
+
+    it('should filter profili by soggetti', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      component.service = { dominio: { nome: 'd', soggetto_referente: { nome: 'soggA' } } };
+      component._profili = [
+        { codice_interno: 'p1', soggetti: ['soggA'] },
+        { codice_interno: 'p2', soggetti: ['soggB'] }
+      ];
+      component._isNew = false;
+      mockApiService.saveElement.mockReturnValue(of([]));
+
+      (component as any).__loadRisorse();
+
+      expect(component._profiliFiltered).toHaveLength(1);
+      expect(component._profiliFiltered[0].codice_interno).toBe('p1');
+    });
+
+    it('should filter profili by tipo_dominio (interno)', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      component.service = { dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._isDominioEsterno = false;
+      component._profili = [
+        { codice_interno: 'p1', tipo_dominio: 'interno' },
+        { codice_interno: 'p2', tipo_dominio: 'esterno' }
+      ];
+      component._isNew = false;
+      mockApiService.saveElement.mockReturnValue(of([]));
+
+      (component as any).__loadRisorse();
+
+      expect(component._profiliFiltered).toHaveLength(1);
+      expect(component._profiliFiltered[0].codice_interno).toBe('p1');
+    });
+
+    it('should filter profili by tipo_dominio (esterno)', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      component.service = { dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._isDominioEsterno = true;
+      component._profili = [
+        { codice_interno: 'p1', tipo_dominio: 'interno' },
+        { codice_interno: 'p2', tipo_dominio: 'esterno' }
+      ];
+      component._isNew = false;
+      mockApiService.saveElement.mockReturnValue(of([]));
+
+      (component as any).__loadRisorse();
+
+      expect(component._profiliFiltered).toHaveLength(1);
+      expect(component._profiliFiltered[0].codice_interno).toBe('p2');
+    });
+
+    it('should set error and reset risorse on API failure', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        estensione: new FormControl(null),
+        content: new FormControl('data'),
+        uuid: new FormControl(null)
+      });
+      component._descrittoreCtrl = new FormControl('some value');
+      mockApiService.saveElement.mockReturnValue(throwError(() => ({ status: 500 })));
+
+      (component as any).__loadRisorse();
+
+      expect(component._error).toBe(true);
+      expect(component._risorse).toEqual([]);
+      expect(component._descrittoreCtrl.value).toBe('');
+      expect(component._loadingRisorse).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // _resetProprietaCustom
+  // =========================================================================
+  describe('_resetProprietaCustom', () => {
+    it('should remove proprieta_custom control and clear arrays', () => {
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({ g1: new FormGroup({}) })
+      });
+      component._apiProprietaCustom = [{ nome: 'x' }];
+      component._apiProprietaCustomGrouped = { 'g': [{ nome: 'x' }] };
+
+      component._resetProprietaCustom();
+
+      expect(component._formGroup.get('proprieta_custom')).toBeNull();
+      expect(component._apiProprietaCustom).toEqual([]);
+      expect(component._apiProprietaCustomGrouped).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // _hasPDNDConfiguredMapper (extended)
+  // =========================================================================
+  describe('_hasPDNDConfiguredMapper (extended)', () => {
+    it('should return true when PDNDProduzione_identificativo group has identificativo_eservice_pdnd', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDProduzione_identificativo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'eservice-123' }]
+          }
+        ]
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(true);
+    });
+
+    it('should return true when PDNDCollaudo_identificativo group has identificativo_eservice_pdnd', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDCollaudo_identificativo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'eservice-456' }]
+          }
+        ]
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(true);
+    });
+
+    it('should return true with fallback to PDNDProduzione (old convention)', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDProduzione',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }]
+          }
+        ]
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(true);
+    });
+
+    it('should return true with fallback to PDNDCollaudo (old convention)', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDCollaudo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }]
+          }
+        ]
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(true);
+    });
+
+    it('should return false when property has empty valore', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDProduzione_identificativo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: '' }]
+          }
+        ]
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(false);
+    });
+
+    it('should return false when auth_type does not include pdnd', () => {
+      component._profili = [{ codice_interno: 'mtlsProf', auth_type: ['mtls'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'mtlsProf', resources: ['/r'], note: '' }],
+        proprieta_custom: []
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(false);
+    });
+
+    it('should return false when proprieta_custom is empty', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: []
+      } as any;
+
+      expect(component._hasPDNDConfiguredMapper()).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // _canShowPDNDActionsMapper (extended)
+  // =========================================================================
+  describe('_canShowPDNDActionsMapper (extended)', () => {
+    it('should return true when PDND is configured and soggetto matches _pdnd', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDProduzione_identificativo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }]
+          }
+        ]
+      } as any;
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoA' } } };
+      component._pdnd = [{ nome_soggetto: 'SoggettoA', collaudo: {}, produzione: {} }];
+
+      expect(component._canShowPDNDActionsMapper()).toBe(true);
+    });
+
+    it('should return false when soggetto not in _pdnd', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDProduzione_identificativo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }]
+          }
+        ]
+      } as any;
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoB' } } };
+      component._pdnd = [{ nome_soggetto: 'SoggettoA' }];
+
+      expect(component._canShowPDNDActionsMapper()).toBe(false);
+    });
+
+    it('should return false when _pdnd is null', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDProduzione_identificativo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }]
+          }
+        ]
+      } as any;
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggettoA' } } };
+      component._pdnd = null;
+
+      expect(component._canShowPDNDActionsMapper()).toBe(false);
+    });
+
+    it('should return false when service has no soggetto_referente nome', () => {
+      component._profili = [{ codice_interno: 'pdndProf', auth_type: ['pdnd'] }];
+      component.servizioApi = {
+        gruppi_auth_type: [{ profilo: 'pdndProf', resources: ['/r'], note: '' }],
+        proprieta_custom: [
+          {
+            gruppo: 'PDNDProduzione_identificativo',
+            proprieta: [{ nome: 'identificativo_eservice_pdnd', valore: 'val' }]
+          }
+        ]
+      } as any;
+      component.service = { dominio: { soggetto_referente: { nome: '' } } };
+      component._pdnd = [{ nome_soggetto: 'SoggettoA' }];
+
+      expect(component._canShowPDNDActionsMapper()).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // _showPDNDConfiguration
+  // =========================================================================
+  describe('_showPDNDConfiguration', () => {
+    it('should navigate to pdnd-configuration without componentBreadcrumbs', () => {
+      component._componentBreadcrumbs = null;
+      component.sid = '42';
+      component.id = '10';
+
+      component._showPDNDConfiguration();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(
+        ['servizi', '42', 'api', '10', 'pdnd-configuration'],
+        { queryParams: {}, queryParamsHandling: 'merge' }
+      );
+    });
+
+    it('should navigate to pdnd-configuration with componentBreadcrumbs', () => {
+      component._componentBreadcrumbs = { service: { id_servizio: '100' }, breadcrumbs: [] } as any;
+      component.sid = '42';
+      component.id = '10';
+
+      component._showPDNDConfiguration();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(
+        ['servizi', '100', 'componenti', '42', 'api', '10', 'pdnd-configuration'],
+        { queryParams: {}, queryParamsHandling: 'merge' }
+      );
+    });
+  });
+
+  // =========================================================================
+  // _showPDND
+  // =========================================================================
+  describe('_showPDND', () => {
+    it('should navigate to subscribers without componentBreadcrumbs', () => {
+      component._componentBreadcrumbs = null;
+      component.sid = '42';
+      component.id = '10';
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggA' } } };
+      component._pdnd = [
+        { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
+      ];
+
+      component._showPDND();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(
+        ['servizi', '42', 'api', '10', 'subscribers'],
+        { queryParams: { producerIdCollaudo: 'c1', producerIdProduzione: 'p1' }, queryParamsHandling: 'merge' }
+      );
+    });
+
+    it('should navigate to subscribers with componentBreadcrumbs', () => {
+      component._componentBreadcrumbs = { service: { id_servizio: '100' }, breadcrumbs: [] } as any;
+      component.sid = '42';
+      component.id = '10';
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggA' } } };
+      component._pdnd = [
+        { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
+      ];
+
+      component._showPDND();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(
+        ['servizi', '100', 'componenti', '42', 'api', '10', 'subscribers'],
+        { queryParams: { producerIdCollaudo: 'c1', producerIdProduzione: 'p1' }, queryParamsHandling: 'merge' }
+      );
+    });
+
+    it('should not navigate when soggetto not found in _pdnd', () => {
+      component._componentBreadcrumbs = null;
+      component.sid = '42';
+      component.id = '10';
+      component.service = { dominio: { soggetto_referente: { nome: 'NotFound' } } };
+      component._pdnd = [
+        { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
+      ];
+
+      component._showPDND();
+
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // _showGeneralInformationsPDND
+  // =========================================================================
+  describe('_showGeneralInformationsPDND', () => {
+    it('should navigate to pdnd-informations without componentBreadcrumbs', () => {
+      component._componentBreadcrumbs = null;
+      component.sid = '42';
+      component.id = '10';
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggA' } } };
+      component._pdnd = [
+        { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
+      ];
+
+      component._showGeneralInformationsPDND();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(
+        ['servizi', '42', 'api', '10', 'pdnd-informations'],
+        { queryParams: { producerIdCollaudo: 'c1', producerIdProduzione: 'p1' }, queryParamsHandling: 'merge' }
+      );
+    });
+
+    it('should navigate to pdnd-informations with componentBreadcrumbs', () => {
+      component._componentBreadcrumbs = { service: { id_servizio: '100' }, breadcrumbs: [] } as any;
+      component.sid = '42';
+      component.id = '10';
+      component.service = { dominio: { soggetto_referente: { nome: 'SoggA' } } };
+      component._pdnd = [
+        { nome_soggetto: 'SoggA', collaudo: { id_producer: 'c1' }, produzione: { id_producer: 'p1' } }
+      ];
+
+      component._showGeneralInformationsPDND();
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(
+        ['servizi', '100', 'componenti', '42', 'api', '10', 'pdnd-informations'],
+        { queryParams: { producerIdCollaudo: 'c1', producerIdProduzione: 'p1' }, queryParamsHandling: 'merge' }
+      );
+    });
+
+    it('should not navigate when soggetto not found', () => {
+      component.service = { dominio: { soggetto_referente: { nome: 'Missing' } } };
+      component._pdnd = [{ nome_soggetto: 'SoggA' }];
+
+      component._showGeneralInformationsPDND();
+
+      expect(mockRouter.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // __protocolloChange
+  // =========================================================================
+  describe('__protocolloChange', () => {
+    it('should call _setAuthsArrayWithoutSpecification when _hasSpecifica is false', () => {
+      component._hasSpecifica = false;
+      const spy = vi.spyOn(component, '_setAuthsArrayWithoutSpecification' as any).mockImplementation(() => {});
+      component._descrittoreCtrl = new FormControl('');
+
+      (component as any).__protocolloChange();
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should reset descrittore and call __resetGAT when descrittore has value', () => {
+      component._hasSpecifica = true;
+      component._descrittoreCtrl = new FormControl('some-value');
+      component._formGroup = new FormGroup({
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null),
+        protocollo: new FormControl('rest'),
+        ruolo: new FormControl('erogato_soggetto_aderente')
+      });
+      const resetGATSpy = vi.spyOn(component as any, '__resetGAT').mockImplementation(() => {});
+
+      (component as any).__protocolloChange();
+
+      expect(component._descrittoreCtrl.value).toBe('');
+      expect(resetGATSpy).toHaveBeenCalled();
+    });
+
+    it('should not reset descrittore when descrittore is empty', () => {
+      component._hasSpecifica = true;
+      component._descrittoreCtrl = new FormControl('');
+      const resetGATSpy = vi.spyOn(component as any, '__resetGAT');
+
+      (component as any).__protocolloChange();
+
+      // __resetGAT should NOT be called from the if branch
+      expect(resetGATSpy).not.toHaveBeenCalled();
+    });
+
+    it('should call des.reset when des ref exists', () => {
+      component._hasSpecifica = true;
+      component._descrittoreCtrl = new FormControl('value');
+      component._formGroup = new FormGroup({
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null),
+        protocollo: new FormControl('rest'),
+        ruolo: new FormControl('erogato_soggetto_aderente')
+      });
+      component.des = { reset: vi.fn() } as any;
+
+      (component as any).__protocolloChange();
+
+      expect(component.des.reset).toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // _onDescrittoreChange
+  // =========================================================================
+  describe('_onDescrittoreChange', () => {
+    it('should set _newDescrittore to true and call __descrittoreChange', () => {
+      component._formGroup = new FormGroup({
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null),
+        protocollo: new FormControl('rest'),
+        ruolo: new FormControl('erogato_soggetto_aderente')
+      });
+      const descChangeSpy = vi.spyOn(component as any, '__descrittoreChange').mockImplementation(() => {});
+
+      component._onDescrittoreChange({ file: 'f', type: 't', data: 'd' });
+
+      expect(component._newDescrittore).toBe(true);
+      expect(descChangeSpy).toHaveBeenCalledWith({ file: 'f', type: 't', data: 'd' });
+    });
+  });
+
+  // =========================================================================
+  // __checkAmbiente
+  // =========================================================================
+  describe('__checkAmbiente', () => {
+    it('should set mandatory fields as required', () => {
+      component.service = { stato: 'pubblicato' };
+      mockAuthenticationService._getFieldsMandatory.mockReturnValue(['url_collaudo']);
+      mockAuthenticationService._getClassesNotModifiable.mockReturnValue([]);
+      component._isNew = true;
+      component._formGroup = new FormGroup({
+        url_collaudo: new FormControl(null),
+        url_produzione: new FormControl(null)
+      });
+
+      (component as any).__checkAmbiente(component._formGroup.controls);
+
+      const ctrl = component._formGroup.get('url_collaudo')!;
+      ctrl.setValue('');
+      ctrl.updateValueAndValidity();
+      expect(ctrl.valid).toBe(false);
+    });
+
+    it('should disable not-modifiable fields when not _isNew', () => {
+      component.service = { stato: 'pubblicato' };
+      mockAuthenticationService._getFieldsMandatory.mockReturnValue([]);
+      mockAuthenticationService._getClassesNotModifiable.mockReturnValue(['url_collaudo']);
+      component._isNew = false;
+      component._formGroup = new FormGroup({
+        url_collaudo: new FormControl('val'),
+        url_produzione: new FormControl(null)
+      });
+
+      (component as any).__checkAmbiente(component._formGroup.controls);
+
+      expect(component._formGroup.get('url_collaudo')!.disabled).toBe(true);
+    });
+
+    it('should not disable fields when _isNew', () => {
+      component.service = { stato: 'pubblicato' };
+      mockAuthenticationService._getFieldsMandatory.mockReturnValue([]);
+      mockAuthenticationService._getClassesNotModifiable.mockReturnValue(['url_collaudo']);
+      component._isNew = true;
+      component._formGroup = new FormGroup({
+        url_collaudo: new FormControl('val'),
+        url_produzione: new FormControl(null)
+      });
+
+      (component as any).__checkAmbiente(component._formGroup.controls);
+
+      expect(component._formGroup.get('url_collaudo')!.disabled).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // __disableAmbiente
+  // =========================================================================
+  describe('__disableAmbiente', () => {
+    it('should disable url fields and authTypes', () => {
+      component._formGroup = new FormGroup({
+        url_produzione: new FormControl('http://prod'),
+        url_collaudo: new FormControl('http://coll'),
+        authTypes: new FormArray([])
+      });
+
+      (component as any).__disableAmbiente(component._formGroup.controls);
+
+      expect(component._formGroup.get('url_produzione')!.value).toBeNull();
+      expect(component._formGroup.get('url_produzione')!.disabled).toBe(true);
+      expect(component._formGroup.get('url_collaudo')!.value).toBeNull();
+      expect(component._formGroup.get('url_collaudo')!.disabled).toBe(true);
+      expect(component._formGroup.get('authTypes')!.disabled).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // __disableUrlFields
+  // =========================================================================
+  describe('__disableUrlFields', () => {
+    it('should set url fields to null and disable them', () => {
+      component._formGroup = new FormGroup({
+        url_produzione: new FormControl('http://prod'),
+        url_collaudo: new FormControl('http://coll')
+      });
+
+      (component as any).__disableUrlFields(component._formGroup.controls);
+
+      expect(component._formGroup.get('url_produzione')!.value).toBeNull();
+      expect(component._formGroup.get('url_produzione')!.disabled).toBe(true);
+      expect(component._formGroup.get('url_collaudo')!.value).toBeNull();
+      expect(component._formGroup.get('url_collaudo')!.disabled).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // _onServiceLoaded
+  // =========================================================================
+  describe('_onServiceLoaded', () => {
+    it('should set _selectedService from event', () => {
+      const event = { target: { services: [{ id: 1, nome: 'svc' }] } };
+      component._onServiceLoaded(event, 'field');
+      expect(component._selectedService).toEqual({ id: 1, nome: 'svc' });
+    });
+  });
+
+  // =========================================================================
+  // _confirmDelection
+  // =========================================================================
+  describe('_confirmDelection', () => {
+    it('should call utils._confirmDelection', () => {
+      component._confirmDelection();
+      expect(mockUtils._confirmDelection).toHaveBeenCalledWith(null, expect.any(Function));
+    });
+  });
+
+  // =========================================================================
+  // _downloadHistory
+  // =========================================================================
+  describe('_downloadHistory', () => {
+    it('should call _downloadSpecifica with item.versione', () => {
+      const spy = vi.spyOn(component, '_downloadSpecifica').mockImplementation(() => {});
+      component._downloadHistory({ versione: 5 } as any);
+      expect(spy).toHaveBeenCalledWith(5);
+    });
+  });
+
+  // =========================================================================
+  // _loadAll
+  // =========================================================================
+  describe('_loadAll', () => {
+    it('should call _loadServizio and _loadServiceApi', () => {
+      const loadServizioSpy = vi.spyOn(component, '_loadServizio').mockImplementation(() => {});
+      const loadServiceApiSpy = vi.spyOn(component, '_loadServiceApi').mockImplementation(() => {});
+
+      component._loadAll();
+
+      expect(loadServizioSpy).toHaveBeenCalled();
+      expect(loadServiceApiSpy).toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // _hasControlError
+  // =========================================================================
+  describe('_hasControlError', () => {
+    it('should return true when control has errors and is touched', () => {
+      component._formGroup = new FormGroup({
+        nome: new FormControl('', Validators.required)
+      });
+      component._formGroup.get('nome')!.markAsTouched();
+      expect(component._hasControlError('nome')).toBe(true);
+    });
+
+    it('should return false when control has no errors', () => {
+      component._formGroup = new FormGroup({
+        nome: new FormControl('valid', Validators.required)
+      });
+      component._formGroup.get('nome')!.markAsTouched();
+      expect(component._hasControlError('nome')).toBe(false);
+    });
+
+    it('should return false when control is not touched', () => {
+      component._formGroup = new FormGroup({
+        nome: new FormControl('', Validators.required)
+      });
+      expect(component._hasControlError('nome')).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // f getter
+  // =========================================================================
+  describe('f getter', () => {
+    it('should return formGroup controls', () => {
+      component._formGroup = new FormGroup({
+        nome: new FormControl('test')
+      });
+      expect(component.f['nome']).toBeTruthy();
+      expect(component.f['nome'].value).toBe('test');
+    });
+  });
+
+  // =========================================================================
+  // __compareWith
+  // =========================================================================
+  describe('__compareWith', () => {
+    it('should return true when el.code matches item.code', () => {
+      expect((component as any).__compareWith({ code: 'A' }, { code: 'A' })).toBe(true);
+    });
+
+    it('should return false when codes differ', () => {
+      expect((component as any).__compareWith({ code: 'A' }, { code: 'B' })).toBe(false);
+    });
+
+    it('should return falsy when item is null', () => {
+      expect((component as any).__compareWith({ code: 'A' }, null)).toBeFalsy();
+    });
+  });
+
+  // =========================================================================
+  // __onRemove
+  // =========================================================================
+  describe('__onRemove', () => {
+    it('should filter out removed resources and auth', () => {
+      component._risorseSelected = ['/r1', '/r2', '/r3'];
+      component._authSelected = ['p1', 'p2'];
+
+      (component as any).__onRemove({
+        target: { resources: ['/r1', '/r2'], profilo: 'p1' }
+      });
+
+      expect(component._risorseSelected).toEqual(['/r3']);
+      expect(component._authSelected).toEqual(['p2']);
+    });
+  });
+
+  // =========================================================================
+  // _changeResources
+  // =========================================================================
+  describe('_changeResources', () => {
+    it('should open modal with filtered resources', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({
+            profilo: new FormControl('p1'),
+            resources: new FormControl(['/r1', '/r2']),
+            note: new FormControl('')
+          })
+        ])
+      });
+      component._risorseOrig = ['/r1', '/r2', '/r3', '/r4'];
+      component._risorseSelected = ['/r1', '/r2', '/r3'];
+      const openModalSpy = vi.spyOn(component as any, '_openChoiceModal').mockImplementation(() => {});
+
+      component._changeResources(0);
+
+      // Should include: /r1 (in current), /r2 (in current), /r4 (not selected)
+      expect(openModalSpy).toHaveBeenCalledWith(
+        ['/r1', '/r2', '/r4'],
+        ['/r1', '/r2'],
+        0
+      );
+    });
+  });
+
+  // =========================================================================
+  // authTypesArray
+  // =========================================================================
+  describe('authTypesArray', () => {
+    it('should return the FormArray from formGroup', () => {
+      const arr = new FormArray([]);
+      component._formGroup = new FormGroup({ authTypes: arr });
+      expect(component.authTypesArray()).toBe(arr);
+    });
+  });
+
+  // =========================================================================
+  // _geControlResourcest
+  // =========================================================================
+  describe('_geControlResourcest', () => {
+    it('should return resources at given index', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('p1'), resources: new FormControl(['/r1']) })
+        ])
+      });
+      expect(component._geControlResourcest(0)).toEqual(['/r1']);
+    });
+  });
+
+  // =========================================================================
+  // _canAddAuthenticationMapper
+  // =========================================================================
+  describe('_canAddAuthenticationMapper', () => {
+    it('should delegate to _canAddAuthentication', () => {
+      component._risorseSelected = ['/r1'];
+      component._risorseOrig = ['/r1', '/r2'];
+      expect(component._canAddAuthenticationMapper()).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // _getProfiloLabelMapper for profili
+  // =========================================================================
+  describe('_getProfiloAuthType', () => {
+    it('should return auth_type for profilo at index', () => {
+      component._profili = [{ codice_interno: 'prof1', auth_type: 'pdnd' }];
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('prof1'), resources: new FormControl([]) })
+        ])
+      });
+      expect(component._getProfiloAuthType(0)).toBe('pdnd');
+    });
+
+    it('should return empty string when profilo not found', () => {
+      component._profili = [];
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('unknown'), resources: new FormControl([]) })
+        ])
+      });
+      expect(component._getProfiloAuthType(0)).toBe('');
+    });
+  });
+
+  // =========================================================================
+  // _getProfiloProprietaValue
+  // =========================================================================
+  describe('_getProfiloProprietaValue', () => {
+    it('should return profilo value at index', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('myProf'), resources: new FormControl([]) })
+        ])
+      });
+      expect(component._getProfiloProprietaValue(0)).toBe('myProf');
+    });
+  });
+
+  // =========================================================================
+  // _getAllProfileValues
+  // =========================================================================
+  describe('_getAllProfileValues', () => {
+    it('should return all profilo values from authTypes', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('p1'), resources: new FormControl([]) }),
+          new FormGroup({ profilo: new FormControl('p2'), resources: new FormControl([]) })
+        ])
+      });
+      expect(component._getAllProfileValues()).toEqual(['p1', 'p2']);
+    });
+
+    it('should return empty array when no authTypes', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([])
+      });
+      expect(component._getAllProfileValues()).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // _onChangeProfilo
+  // =========================================================================
+  describe('_onChangeProfilo', () => {
+    it('should call _removeCustomControls, _updateAuthTypesSelected, _initProprietaCustom', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('prof1'), resources: new FormControl([]) })
+        ])
+      });
+      component._profili = [{ codice_interno: 'prof1', auth_type: 'pdnd' }];
+      component.service = { stato: 'pubblicato' };
+      component._grant = { ruoli: [] } as any;
+      Tools.Configurazione = {
+        servizio: { api: { profili: [{ codice_interno: 'prof1' }], proprieta_custom: [] } }
+      } as any;
+      const removeSpy = vi.spyOn(component as any, '_removeCustomControls').mockImplementation(() => {});
+      const updateSpy = vi.spyOn(component as any, '_updateAuthTypesSelected').mockImplementation(() => {});
+      const initPropSpy = vi.spyOn(component, '_initProprietaCustom' as any).mockImplementation(() => {});
+
+      component._onChangeProfilo({}, 0);
+
+      expect(removeSpy).toHaveBeenCalledWith(0);
+      expect(updateSpy).toHaveBeenCalled();
+      expect(initPropSpy).toHaveBeenCalled();
+    });
+
+    it('should set _isPDND when profilo includes PDND', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('mtls_PDND'), resources: new FormControl([]) })
+        ])
+      });
+      component._profili = [];
+      const removeSpy = vi.spyOn(component as any, '_removeCustomControls').mockImplementation(() => {});
+      vi.spyOn(component as any, '_updateAuthTypesSelected').mockImplementation(() => {});
+      vi.spyOn(component, '_initProprietaCustom' as any).mockImplementation(() => {});
+
+      component._onChangeProfilo({}, 0);
+
+      expect(component._isPDND).toBe(true);
+    });
+
+    it('should set _isPDND to false when profilo does not include PDND', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('mtls_only'), resources: new FormControl([]) })
+        ])
+      });
+      component._profili = [];
+      vi.spyOn(component as any, '_removeCustomControls').mockImplementation(() => {});
+      vi.spyOn(component as any, '_updateAuthTypesSelected').mockImplementation(() => {});
+      vi.spyOn(component, '_initProprietaCustom' as any).mockImplementation(() => {});
+
+      component._onChangeProfilo({}, 0);
+
+      expect(component._isPDND).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // _removeCustomControls
+  // =========================================================================
+  describe('_removeCustomControls', () => {
+    it('should remove customProperties from auth group at index', () => {
+      const authGroup = new FormGroup({
+        profilo: new FormControl('p1'),
+        resources: new FormControl([]),
+        customProperties: new FormGroup({ f1: new FormControl('v1') })
+      });
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([authGroup])
+      });
+
+      component._removeCustomControls(0);
+
+      expect(authGroup.get('customProperties')).toBeNull();
+    });
+
+    it('should not do anything when index < 0', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([])
+      });
+      component._removeCustomControls(-1);
+      // No error thrown
+    });
+  });
+
+  // =========================================================================
+  // _updateAuthTypesSelected
+  // =========================================================================
+  describe('_updateAuthTypesSelected', () => {
+    it('should collect unique auth_types from selected profili', () => {
+      component._profili = [
+        { codice_interno: 'p1', auth_type: 'pdnd' },
+        { codice_interno: 'p2', auth_type: 'mtls' },
+        { codice_interno: 'p3', auth_type: 'pdnd' }
+      ];
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('p1'), resources: new FormControl([]) }),
+          new FormGroup({ profilo: new FormControl('p3'), resources: new FormControl([]) })
+        ])
+      });
+
+      (component as any)._updateAuthTypesSelected();
+
+      expect(component._authTypesSelected).toEqual(['pdnd']);
+    });
+
+    it('should return empty when no match', () => {
+      component._profili = [{ codice_interno: 'p1', auth_type: 'pdnd' }];
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({ profilo: new FormControl('unknown'), resources: new FormControl([]) })
+        ])
+      });
+
+      (component as any)._updateAuthTypesSelected();
+
+      expect(component._authTypesSelected).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // _initProfiliFilterred
+  // =========================================================================
+  describe('_initProfiliFilterred', () => {
+    it('should filter profili based on form protocollo and service dominio', () => {
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest')
+      });
+      component.service = { dominio: { nome: 'dom1', soggetto_referente: { nome: 'sogg1' } } };
+      component._isDominioEsterno = false;
+      component._profili = [
+        { codice_interno: 'p1', compatibilita: 'rest' },
+        { codice_interno: 'p2', compatibilita: 'soap' },
+        { codice_interno: 'p3' }
+      ];
+
+      component._initProfiliFilterred();
+
+      expect(component._profiliFiltered).toHaveLength(2);
+    });
+  });
+
+  // =========================================================================
+  // _setAuthsArrayWithoutSpecification
+  // =========================================================================
+  describe('_setAuthsArrayWithoutSpecification', () => {
+    it('should reset GAT, init profili filtered, and set auth array with dummy resource after timeout', () => {
+      vi.useFakeTimers();
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        authTypes: new FormArray([])
+      });
+      component.service = { dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._profili = [];
+      const setAuthsSpy = vi.spyOn(component, '_setAuthsArray').mockImplementation(() => {});
+
+      component._setAuthsArrayWithoutSpecification();
+
+      expect(component._loadingRisorse).toBe(true);
+      vi.advanceTimersByTime(0);
+      expect(setAuthsSpy).toHaveBeenCalledWith([{ profilo: '', resources: ['/dummy'], note: '' }]);
+      expect(component._loadingRisorse).toBe(false);
+      vi.useRealTimers();
+    });
+  });
+
+  // =========================================================================
+  // afg, afgc, cfg, cfgc, cfgcName helper methods
+  // =========================================================================
+  describe('auth form group helpers', () => {
+    beforeEach(() => {
+      const cpGroup = new FormGroup({
+        field1: new FormControl('val1'),
+        field2: new FormControl('val2')
+      });
+      const authGroup = new FormGroup({
+        profilo: new FormControl('p1'),
+        resources: new FormControl(['/r1']),
+        note: new FormControl(''),
+        customProperties: cpGroup
+      });
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([authGroup])
+      });
+    });
+
+    it('afg should return FormGroup at index', () => {
+      const result = component.afg(0);
+      expect(result).toBeInstanceOf(FormGroup);
+      expect(result.get('profilo')!.value).toBe('p1');
+    });
+
+    it('afgc should return controls of FormGroup at index', () => {
+      const result = component.afgc(0);
+      expect(result['profilo'].value).toBe('p1');
+    });
+
+    it('cfg should return customProperties FormGroup', () => {
+      const result = component.cfg(0);
+      expect(result).toBeInstanceOf(FormGroup);
+      expect(result.get('field1')!.value).toBe('val1');
+    });
+
+    it('cfgc should return customProperties controls', () => {
+      const result = component.cfgc(0);
+      expect(result['field1'].value).toBe('val1');
+    });
+
+    it('cfgcName should return specific control by name', () => {
+      const result = component.cfgcName(0, 'field2');
+      expect(result.value).toBe('val2');
+    });
+  });
+
+  // =========================================================================
+  // _hasControlCustomPropertiesError / _hasControlCustomPropertiesValue
+  // =========================================================================
+  describe('_hasControlCustomPropertiesError and _hasControlCustomPropertiesValue', () => {
+    beforeEach(() => {
+      const cpGroup = new FormGroup({
+        field1: new FormControl('', Validators.required),
+        field2: new FormControl('has-value')
+      });
+      const authGroup = new FormGroup({
+        profilo: new FormControl('p1'),
+        resources: new FormControl([]),
+        customProperties: cpGroup
+      });
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([authGroup])
+      });
+    });
+
+    it('should return true when field has errors and is touched', () => {
+      const cpGroup = (component.authTypesArray().at(0) as FormGroup).get('customProperties') as FormGroup;
+      cpGroup.get('field1')!.markAsTouched();
+      expect(component._hasControlCustomPropertiesError('field1', 0)).toBeTruthy();
+    });
+
+    it('should return falsy when field is not touched', () => {
+      expect(component._hasControlCustomPropertiesError('field1', 0)).toBeFalsy();
+    });
+
+    it('should return value for field that has value', () => {
+      expect(component._hasControlCustomPropertiesValue('field2', 0)).toBe('has-value');
+    });
+
+    it('should return empty string for field with no value', () => {
+      expect(component._hasControlCustomPropertiesValue('field1', 0)).toBe('');
+    });
+  });
+
+  // =========================================================================
+  // acfg, acfgc, _hasControlApiCustomPropertiesError, _hasControlApiCustomPropertiesValue
+  // =========================================================================
+  describe('API custom properties form helpers', () => {
+    beforeEach(() => {
+      const groupG1 = new FormGroup({
+        prop1: new FormControl('', Validators.required),
+        prop2: new FormControl('has-val')
+      });
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          G1: groupG1
+        })
+      });
+    });
+
+    it('acfg should return proprieta_custom FormGroup', () => {
+      expect(component.acfg()).toBeInstanceOf(FormGroup);
+    });
+
+    it('acfgc should return sub-group by name', () => {
+      const result = component.acfgc('G1');
+      expect(result).toBeInstanceOf(FormGroup);
+      expect(result.get('prop1')).toBeTruthy();
+    });
+
+    it('_hasControlApiCustomPropertiesError returns true when error and touched', () => {
+      const g1 = (component._formGroup.get('proprieta_custom') as FormGroup).get('G1') as FormGroup;
+      g1.get('prop1')!.markAsTouched();
+      expect(component._hasControlApiCustomPropertiesError('G1', 'prop1')).toBeTruthy();
+    });
+
+    it('_hasControlApiCustomPropertiesValue returns truthy when value present', () => {
+      expect(component._hasControlApiCustomPropertiesValue('G1')).toBeTruthy();
+    });
+  });
+
+  // =========================================================================
+  // proprietaCustom getter
+  // =========================================================================
+  describe('proprietaCustom getter', () => {
+    it('should return proprieta_custom FormGroup', () => {
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({ g: new FormGroup({}) })
+      });
+      expect(component.proprietaCustom).toBeInstanceOf(FormGroup);
+    });
+  });
+
+  // =========================================================================
+  // _hasIdentificativoeServicePDND
+  // =========================================================================
+  describe('_hasIdentificativoeServicePDND', () => {
+    it('should return true when identificativo_eservice_pdnd has value', () => {
+      component._formGroup = new FormGroup({
+        proprieta_custom: new FormGroup({
+          identificativo_eservice_pdnd: new FormControl('some-id')
+        })
+      });
+      // acfg() returns FormGroup with controls including the one we check
+      expect(component._hasIdentificativoeServicePDND()).toBe(true);
+    });
+
+    it('should return false when acfg returns null', () => {
+      component._formGroup = new FormGroup({});
+      expect(component._hasIdentificativoeServicePDND()).toBe(false);
+    });
+  });
+
+  // =========================================================================
+  // _hasIdentificativoeServicePDNDMapper
+  // =========================================================================
+  describe('_hasIdentificativoeServicePDNDMapper', () => {
+    it('should delegate to _hasIdentificativoeServicePDND', () => {
+      const spy = vi.spyOn(component, '_hasIdentificativoeServicePDND').mockReturnValue(true);
+      expect(component._hasIdentificativoeServicePDNDMapper()).toBe(true);
+      expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // _getCustomSelectLabelMapper
+  // =========================================================================
+  describe('_getCustomSelectLabelMapper', () => {
+    it('should return etichetta from configurazione proprieta_custom', () => {
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              {
+                nome_gruppo: 'G1',
+                proprieta: [
+                  {
+                    nome: 'ambiente',
+                    valori: [
+                      { nome: 'coll', etichetta: 'Collaudo' },
+                      { nome: 'prod', etichetta: 'Produzione' }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._getCustomSelectLabelMapper('coll', 'ambiente', 'G1')).toBe('Collaudo');
+    });
+
+    it('should return cod when etichetta not found', () => {
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              {
+                nome_gruppo: 'G1',
+                proprieta: [
+                  {
+                    nome: 'campo',
+                    valori: [{ nome: 'other', etichetta: 'Other' }]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._getCustomSelectLabelMapper('unknown', 'campo', 'G1')).toBe('unknown');
+    });
+  });
+
+  // =========================================================================
+  // _getGroupLabelMapper
+  // =========================================================================
+  describe('_getGroupLabelMapper', () => {
+    it('should return label_gruppo by nome_gruppo', () => {
+      component._isNew = false;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              { nome_gruppo: 'G1', label_gruppo: 'Group Label 1', classe_dato: 'generico' }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._getGroupLabelMapper('G1')).toBe('Group Label 1');
+    });
+
+    it('should fallback to searching by label_gruppo', () => {
+      component._isNew = false;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              { nome_gruppo: 'GN_actual', label_gruppo: 'MyLabel', classe_dato: 'generico' }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._getGroupLabelMapper('MyLabel')).toBe('MyLabel');
+    });
+
+    it('should filter out produzione classe_dato', () => {
+      component._isNew = true;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              { nome_gruppo: 'G1', label_gruppo: 'Label1', classe_dato: 'produzione' },
+              { nome_gruppo: 'G2', label_gruppo: 'Label2', classe_dato: 'generico' }
+            ]
+          }
+        }
+      } as any;
+
+      // G1 is filtered out (produzione), so searching for G1 should return undefined
+      expect(component._getGroupLabelMapper('G1')).toBeUndefined();
+      expect(component._getGroupLabelMapper('G2')).toBe('Label2');
+    });
+
+    it('should filter out collaudo when not _isNew', () => {
+      component._isNew = false;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              { nome_gruppo: 'G1', label_gruppo: 'Label1', classe_dato: 'collaudo' },
+              { nome_gruppo: 'G2', label_gruppo: 'Label2', classe_dato: 'generico' }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._getGroupLabelMapper('G1')).toBeUndefined();
+      expect(component._getGroupLabelMapper('G2')).toBe('Label2');
+    });
+  });
+
+  // =========================================================================
+  // _getGroupNameByLabel
+  // =========================================================================
+  describe('_getGroupNameByLabel', () => {
+    it('should return nome_gruppo from label_gruppo', () => {
+      component._isNew = false;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: [
+              { nome_gruppo: 'GN1', label_gruppo: 'Label1', classe_dato: 'generico' }
+            ]
+          }
+        }
+      } as any;
+
+      expect(component._getGroupNameByLabel('Label1')).toBe('GN1');
+    });
+
+    it('should return group as fallback when not found', () => {
+      component._isNew = false;
+      Tools.Configurazione = {
+        servizio: {
+          api: {
+            proprieta_custom: []
+          }
+        }
+      } as any;
+
+      expect(component._getGroupNameByLabel('NonExistent')).toBe('NonExistent');
+    });
+  });
+
+  // =========================================================================
+  // _showMandatoryFields
+  // =========================================================================
+  describe('_showMandatoryFields', () => {
+    it('should not log when debugMandatoryFields is false', () => {
+      component.debugMandatoryFields = false;
+      const consoleSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
+      component._showMandatoryFields({});
+      expect(consoleSpy).not.toHaveBeenCalled();
+    });
+
+    it('should log when debugMandatoryFields is true', () => {
+      component.debugMandatoryFields = true;
+      const groupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const groupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
+
+      component._showMandatoryFields({ nome: new FormControl('', Validators.required) });
+
+      expect(groupSpy).toHaveBeenCalledWith('Mandatory fields');
+      expect(logSpy).toHaveBeenCalled();
+      expect(groupEndSpy).toHaveBeenCalled();
+    });
+
+    it('should log NESSUNO when no required fields', () => {
+      component.debugMandatoryFields = true;
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      vi.spyOn(console, 'group').mockImplementation(() => {});
+      vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
+
+      component._showMandatoryFields({ nome: new FormControl('val') });
+
+      expect(logSpy).toHaveBeenCalledWith('NESSUN CAMPO OBBLIGATORIO');
+    });
+  });
+
+  // =========================================================================
+  // getFieldsStatus
+  // =========================================================================
+  describe('getFieldsStatus', () => {
+    it('should return array of field status strings', () => {
+      component._formGroup = new FormGroup({
+        nome: new FormControl('test'),
+        versione: new FormControl('', Validators.required)
+      });
+
+      const result = component.getFieldsStatus();
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toContain('nome');
+      expect(result[0]).toContain('true');
+      expect(result[1]).toContain('versione');
+      expect(result[1]).toContain('false');
+    });
+  });
+
+  // =========================================================================
+  // _openChoiceModal
+  // =========================================================================
+  describe('_openChoiceModal', () => {
+    it('should show modal and subscribe to onClose', () => {
+      component._formGroup = new FormGroup({
+        authTypes: new FormArray([
+          new FormGroup({
+            profilo: new FormControl('p1'),
+            resources: new FormControl(['/r1'])
+          })
+        ])
+      });
+      component._risorseSelected = ['/r1', '/r2'];
+
+      component._openChoiceModal(['/r1', '/r2', '/r3'], ['/r1'], 0);
+
+      expect(mockModalService.show).toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // ngOnInit
+  // =========================================================================
+  describe('ngOnInit', () => {
+    it('should register INIT_DATA event handler', () => {
+      component.ngOnInit();
+      expect(mockEventsManagerService.on).toHaveBeenCalledWith('INIT_DATA', expect.any(Function));
+    });
+
+    it('should register PROFILE:UPDATE event handler', () => {
+      component.ngOnInit();
+      expect(mockEventsManagerService.on).toHaveBeenCalledWith('PROFILE:UPDATE', expect.any(Function));
+    });
+  });
+
+  // =========================================================================
+  // constructor with navigation state
+  // =========================================================================
+  describe('constructor with navigation state', () => {
+    it('should set service and grant from navigation extras state', () => {
+      // Use EMPTY to avoid triggering _loadServizio subscriptions
+const routeWithData = {
+        data: of({}),
+        params: EMPTY,
+        queryParams: of({}),
+        parent: { params: of({}) }
+      } as any;
+      const routerWithState = {
+        navigate: vi.fn(),
+        getCurrentNavigation: vi.fn().mockReturnValue({
+          extras: {
+            state: {
+              service: { nome: 'FromState', stato: 'bozza' },
+              grant: { ruoli: ['admin'] }
+            }
+          }
+        })
+      } as any;
+
+      const comp = new ServizioApiDetailsComponent(
+        routeWithData, routerWithState, mockFormBuilder, mockTranslate,
+        mockModalService, mockConfigService, mockTools, mockEventsManagerService,
+        mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
+      );
+
+      expect(comp.service).toEqual({ nome: 'FromState', stato: 'bozza' });
+      expect(comp._grant).toEqual({ ruoli: ['admin'] });
+    });
+
+    it('should set _fromDashboard when queryParam from=dashboard', () => {
+const routeWithDashboard = {
+        data: of({}),
+        params: EMPTY,
+        queryParams: of({ from: 'dashboard' }),
+        parent: { params: of({}) }
+      } as any;
+
+      const comp = new ServizioApiDetailsComponent(
+        routeWithDashboard, mockRouter, mockFormBuilder, mockTranslate,
+        mockModalService, mockConfigService, mockTools, mockEventsManagerService,
+        mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
+      );
+
+      expect(comp._fromDashboard).toBe(true);
+    });
+
+    it('should read config flags from Tools.Configurazione', () => {
+      Tools.Configurazione = {
+        servizio: {
+          api_multiple: true,
+          adesioni_multiple: true,
+          api: {
+            auth_type: ['pdnd'],
+            profili: [{ codice_interno: 'p1' }],
+            codice_asset_obbligatorio: true,
+            specifica_obbligatorio: true,
+            info_gateway_visualizzate: true,
+            proprieta_custom: []
+          }
+        },
+        pdnd: [{ nome_soggetto: 'S1' }]
+      } as any;
+
+const safeRoute = {
+        data: of({}),
+        params: EMPTY,
+        queryParams: of({}),
+        parent: { params: of({}) }
+      } as any;
+
+      const comp = new ServizioApiDetailsComponent(
+        safeRoute, mockRouter, mockFormBuilder, mockTranslate,
+        mockModalService, mockConfigService, mockTools, mockEventsManagerService,
+        mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
+      );
+
+      expect(comp._apiMultiple).toBe(true);
+      expect(comp._adesioniMultiple).toBe(true);
+      expect(comp._richiesteEnabled).toBe(true);
+      expect(comp._risposteEnabled).toBe(true);
+      expect(comp._codiceAssetObbligatorio).toBe(true);
+      expect(comp._specificaObbligatorio).toBe(true);
+      expect(comp._authTypes).toEqual(['pdnd']);
+      expect(comp._profili).toHaveLength(1);
+      expect(comp._info_gateway_visualizzate).toBe(true);
+      expect(comp._pdnd).toHaveLength(1);
+    });
+
+    it('should handle hideVersions from appConfig', () => {
+      mockConfigService.getConfiguration.mockReturnValue({
+        AppConfig: { Services: { hideVersions: true } }
+      });
+
+      const safeRoute = {
+        data: of({}),
+        params: EMPTY,
+        queryParams: of({}),
+        parent: { params: of({}) }
+      } as any;
+
+      const comp = new ServizioApiDetailsComponent(
+        safeRoute, mockRouter, mockFormBuilder, mockTranslate,
+        mockModalService, mockConfigService, mockTools, mockEventsManagerService,
+        mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
+      );
+
+      expect(comp.hideVersions).toBe(true);
+    });
+
+    it('should set _componentBreadcrumbs from route data', () => {
+      const bcData = {
+        service: { id_servizio: '99' },
+        breadcrumbs: [{ label: 'BC' }]
+      };
+const routeWithBc = {
+        data: of({ componentBreadcrumbs: bcData }),
+        params: EMPTY,
+        queryParams: of({}),
+        parent: { params: of({}) }
+      } as any;
+
+      const comp = new ServizioApiDetailsComponent(
+        routeWithBc, mockRouter, mockFormBuilder, mockTranslate,
+        mockModalService, mockConfigService, mockTools, mockEventsManagerService,
+        mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
+      );
+
+      expect(comp._componentBreadcrumbs).toEqual(bcData);
+    });
+  });
+
+  // =========================================================================
+  // _initData (extended)
+  // =========================================================================
+  describe('_initData (extended)', () => {
+    it('should process gruppi_auth_type and set _risorseSelected and _authSelected', () => {
+      component.service = { stato: 'pubblicato', dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._profili = [
+        { codice_interno: 'prof1', auth_type: ['mtls'] },
+        { codice_interno: 'prof2', auth_type: ['pdnd'] }
+      ];
+      component.servizioApi = {
+        ruolo: 'erogato_soggetto_dominio',
+        configurazione_collaudo: { specifica: { filename: 'f.wsdl' } },
+        gruppi_auth_type: [
+          { profilo: 'prof1', resources: ['/r1', '/r2'], note: '' },
+          { profilo: 'prof2', resources: ['/r3'], note: '' }
+        ]
+      } as any;
+
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('erogato_soggetto_dominio'),
+        protocollo: new FormControl('rest'),
+        descrittore: new FormControl(''),
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null),
+        authTypes: new FormArray([]),
+        url_produzione: new FormControl(null),
+        url_collaudo: new FormControl(null)
+      });
+
+      vi.spyOn(component as any, '__changeRuolo').mockImplementation(() => {});
+      vi.spyOn(component as any, '__descrittoreChange').mockImplementation(() => {});
+      vi.spyOn(component, '_setAuthsArray').mockImplementation(() => {});
+      vi.spyOn(component as any, '_updateAuthTypesSelected').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initProprietaCustom').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initProfiliFilterred').mockImplementation(() => {});
+
+      component._initData(true);
+
+      expect(component._risorseSelected).toContain('/r1');
+      expect(component._risorseSelected).toContain('/r2');
+      expect(component._risorseSelected).toContain('/r3');
+      expect(component._authSelected).toContain('prof1');
+      expect(component._authSelected).toContain('prof2');
+      expect(component._isPDND).toBe(true); // prof2 has pdnd
+    });
+
+    it('should set _customAuthOrig to true when multiple auth groups', () => {
+      component.service = { stato: 'pubblicato', dominio: { nome: 'd', soggetto_referente: { nome: 's' } } };
+      component._profili = [{ codice_interno: 'p1', auth_type: ['mtls'] }];
+      component.servizioApi = {
+        ruolo: 'erogato_soggetto_dominio',
+        configurazione_collaudo: {},
+        gruppi_auth_type: [
+          { profilo: 'p1', resources: ['/r1'], note: '' },
+          { profilo: 'p1', resources: ['/r2'], note: '' }
+        ]
+      } as any;
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl(''),
+        protocollo: new FormControl(''),
+        descrittore: new FormControl(''),
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null),
+        authTypes: new FormArray([]),
+        url_produzione: new FormControl(null),
+        url_collaudo: new FormControl(null)
+      });
+      vi.spyOn(component as any, '__changeRuolo').mockImplementation(() => {});
+      vi.spyOn(component as any, '__descrittoreChange').mockImplementation(() => {});
+      vi.spyOn(component, '_setAuthsArray').mockImplementation(() => {});
+      vi.spyOn(component as any, '_updateAuthTypesSelected').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initProprietaCustom').mockImplementation(() => {});
+      vi.spyOn(component as any, '_initProfiliFilterred').mockImplementation(() => {});
+
+      component._initData(false);
+
+      expect(component._customAuthOrig).toBe(true);
+    });
+  });
+
+  // =========================================================================
+  // __changeRuolo (extended)
+  // =========================================================================
+  describe('__changeRuolo (extended)', () => {
+    it('should call __loadRisorse when protocollo set and EROGATO_SOGGETTO_DOMINIO and not isInit', () => {
+      vi.useFakeTimers();
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('erogato_soggetto_dominio'),
+        protocollo: new FormControl('rest'),
+        url_produzione: new FormControl(null),
+        url_collaudo: new FormControl(null),
+        authTypes: new FormArray([])
+      });
+      component.service = { stato: 'bozza' };
+      vi.spyOn(component as any, '__resetGAT').mockImplementation(() => {});
+      vi.spyOn(component as any, '__checkAutenticazione').mockImplementation(() => {});
+      const loadSpy = vi.spyOn(component as any, '__loadRisorse').mockImplementation(() => {});
+
+      (component as any).__changeRuolo({ value: 'erogato_soggetto_dominio' }, false);
+      vi.advanceTimersByTime(100);
+
+      expect(loadSpy).toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('should call _resetProprietaCustom when ruolo is not EROGATO_SOGGETTO_DOMINIO', () => {
+      vi.useFakeTimers();
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('erogato_soggetto_aderente'),
+        protocollo: new FormControl('rest'),
+        url_produzione: new FormControl(null),
+        url_collaudo: new FormControl(null),
+        authTypes: new FormArray([])
+      });
+      component.service = { stato: 'bozza' };
+      vi.spyOn(component as any, '__resetGAT').mockImplementation(() => {});
+      vi.spyOn(component as any, '__checkAutenticazione').mockImplementation(() => {});
+      const resetSpy = vi.spyOn(component, '_resetProprietaCustom').mockImplementation(() => {});
+
+      (component as any).__changeRuolo({ value: 'erogato_soggetto_aderente' }, false);
+      vi.advanceTimersByTime(100);
+
+      expect(resetSpy).toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('should not call __loadRisorse when isInit is true even for EROGATO_SOGGETTO_DOMINIO', () => {
+      vi.useFakeTimers();
+      component._formGroup = new FormGroup({
+        ruolo: new FormControl('erogato_soggetto_dominio'),
+        protocollo: new FormControl('rest'),
+        url_produzione: new FormControl(null),
+        url_collaudo: new FormControl(null),
+        authTypes: new FormArray([])
+      });
+      component.service = { stato: 'bozza' };
+      vi.spyOn(component as any, '__resetGAT').mockImplementation(() => {});
+      vi.spyOn(component as any, '__checkAutenticazione').mockImplementation(() => {});
+      const loadSpy = vi.spyOn(component as any, '__loadRisorse').mockImplementation(() => {});
+
+      (component as any).__changeRuolo({ value: 'erogato_soggetto_dominio' }, true);
+      vi.advanceTimersByTime(100);
+
+      expect(loadSpy).not.toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+  });
+
+  // =========================================================================
+  // _toggleSpecifica (extended)
+  // =========================================================================
+  describe('_toggleSpecifica (extended)', () => {
+    it('should call _setAuthsArrayWithoutSpecification when toggling off and protocollo/dominio set', () => {
+      vi.useFakeTimers();
+      component._hasSpecifica = true;
+      component._specificaObbligatorio = false;
+      component._formGroup = new FormGroup({
+        protocollo: new FormControl('rest'),
+        ruolo: new FormControl('erogato_soggetto_dominio'),
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null)
+      });
+      component._descrittoreCtrl = new FormControl('');
+      const spy = vi.spyOn(component, '_setAuthsArrayWithoutSpecification' as any).mockImplementation(() => {});
+
+      component._toggleSpecifica();
+      vi.advanceTimersByTime(100);
+
+      expect(spy).toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+  });
+
+  // =========================================================================
+  // filtraCampiPerRuoli (extended)
+  // =========================================================================
+  describe('filtraCampiPerRuoli (extended)', () => {
+    it('should handle multiple groups', () => {
+      const data = {
+        'Gruppo1': [
+          { nome_gruppo: 'g1', nome: 'c1', ruoli_abilitati: ['admin'] } as any
+        ],
+        'Gruppo2': [
+          { nome_gruppo: 'g2', nome: 'c2', ruoli_abilitati: ['user'] } as any
+        ]
+      };
+      const result = component.filtraCampiPerRuoli(data, ['admin', 'user']);
+      expect(Object.keys(result)).toHaveLength(2);
+    });
+
+    it('should handle undefined ruoli_abilitati', () => {
+      const data = {
+        'Gruppo1': [
+          { nome_gruppo: 'g1', nome: 'c1' } as any
+        ]
+      };
+      const result = component.filtraCampiPerRuoli(data, []);
+      expect(result['Gruppo1']).toHaveLength(1);
     });
   });
 
