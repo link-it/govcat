@@ -541,7 +541,12 @@ export class UtilService {
         if (error.error.errori?.length > 0) {
           params = error.error.errori[0].params || {};
         }
-        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
+        let translation = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
+        // Se la traduzione è un oggetto (non una stringa), prova con .DEFAULT
+        if (typeof translation === 'object' && translation !== null) {
+          translation = this.translate.instant(`APP.MESSAGE.ERROR.${code}.DEFAULT`, params);
+        }
+        _msg = typeof translation === 'string' ? translation : code;
       } else if (error.error?.title || error.error?.detail) {
         if (error.error.title) {
           _msgA.push(error.error.title);
