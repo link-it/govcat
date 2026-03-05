@@ -1,9 +1,19 @@
+2026-03-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.5
+
 2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
 	Aggiornamento Angular 19.2.18 -> 19.2.19 per fix vulnerabilità XSS
 	i18n (GHSA-prjf-86w9-mfqv). Aggiunta dipendenza marked@^15.0.0
 	richiesta da ngx-markdown.
+
+2026-03-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #193
+	Fix messaggi di errore applicativi.
 
 2026-03-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -13,6 +23,9 @@
 	Aggiunta voce menu dashboard per utenti senza ruolo ma con
 	ruoli_referente. Cachata chiamata getRuoliProfilo con shareReplay
 	per evitare chiamate API multiple.
+	Fix breadcrumb ritorno alla dashboard per le adesioni e per
+	adesione-configurazione-wizard.
+	Fix visualizzazione errori in servizio-api-details.
 
 2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -28,6 +41,32 @@
 	Issue #196
 	Aggiunto flag showMobileTitle nella configurazione Layout.Header per
 	controllare la visibilità del titolo nella header bar su dispositivi mobile.
+
+2026-03-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #194
+	Disabilitate notifiche email di default. Migliorata gestione dello stato
+	delle notifiche email. Aggiunti timestamp e destinatario email alla notifica.
+
+2026-03-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #188
+	Aggiunta configurazione mostra_versione per PDF e Frontend.
+
+2026-03-02  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Fix immagini in gruppi e servizi. Abilitato lazy loading del raw data.
+
+2026-03-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #195
+	Fix scrolling pagina Dashboard e miglioramenti layout responsive.
+	Migliorata visualizzazione badge menu dashboard.
 
 2026-02-27  Giovanni De Luca <giovanni.deluca@link.it>
 
