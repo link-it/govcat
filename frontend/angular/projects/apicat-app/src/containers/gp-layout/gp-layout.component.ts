@@ -559,6 +559,15 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             const ruolo = this.authenticationService.getRole();
             if (ruolo && this._dashboardEnabled) {
                 this.navItems = [...navItemsDashboardMenu];
+            } else if (!ruolo && this._dashboardEnabled) {
+                // Utente senza ruolo principale: verifica se ha ruoli_referente
+                this.dashboardService.getRuoliProfilo().subscribe({
+                    next: (profilo) => {
+                        if (profilo.ruoli_referente && profilo.ruoli_referente.length > 0) {
+                            this.navItems = [...navItemsDashboardMenu, ...this.navItems];
+                        }
+                    }
+                });
             }
         }
         this.navItems = [...this.navItems, ...this.prepareNavigation()];

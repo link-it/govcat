@@ -79,17 +79,24 @@ public class SchedaAdesioneBuilder {
 	private StampeLabels stampeLabels;
 
 	public byte[] getSchedaAdesione(AdesioneEntity adesione) {
-		return getSchedaAdesione(adesione, true, true);
+		return getSchedaAdesione(adesione, true, true, true);
 	}
 
 	public byte[] getSchedaAdesione(AdesioneEntity adesione, boolean mostraRichiedente, boolean mostraReferenti) {
+		return getSchedaAdesione(adesione, mostraRichiedente, mostraReferenti, true);
+	}
+
+	public byte[] getSchedaAdesione(AdesioneEntity adesione, boolean mostraRichiedente, boolean mostraReferenti, boolean mostraVersione) {
 
 		SchedaAdesione a = new SchedaAdesione();
 
 		a.setHeader(this.stampeLabels.getScheda().getHeader());
 		a.setTitolo(this.stampeLabels.getScheda().getLabel().getAderente() + " " + adesione.getSoggetto().getOrganizzazione().getNome());
 		a.setServizio(adesione.getServizio().getNome());
-		a.setVersioneServizio(adesione.getServizio().getVersione());
+		// Imposta la versione del servizio solo se configurato
+		if(mostraVersione) {
+			a.setVersioneServizio(adesione.getServizio().getVersione());
+		}
 		a.setOrganizzazioneAderente(adesione.getSoggetto().getOrganizzazione().getNome());
 
 		if(adesione.getSoggetto().getOrganizzazione().getSoggetti().size() > 1) {
@@ -116,7 +123,7 @@ public class SchedaAdesioneBuilder {
 
 
 		ApiType api = new ApiType();
-		
+
 		List<ApiEntity> listApi = getAPI(adesione.getServizio());
 		for(ApiEntity apiEntity: listApi) {
 
@@ -126,7 +133,12 @@ public class SchedaAdesioneBuilder {
 			} else {
 				apirow.setLabel(this.stampeLabels.getScheda().getLabel().getApiRisposta());
 			}
-			apirow.setValore(apiEntity.getNome() + " v" + apiEntity.getVersione());
+			// Mostra la versione dell'API solo se configurato
+			if(mostraVersione) {
+				apirow.setValore(apiEntity.getNome() + " v" + apiEntity.getVersione());
+			} else {
+				apirow.setValore(apiEntity.getNome());
+			}
 			api.getRow().add(apirow);
 
 			List<AuthTypeEntity> authTypeList = apiEntity.getAuthType();
@@ -281,9 +293,12 @@ public class SchedaAdesioneBuilder {
 		ApiType apiEP = new ApiType();
 		for(ApiEntity apiEntity: listApi) {
 			if(apiEntity.getRuolo().equals(RUOLO.EROGATO_SOGGETTO_DOMINIO)) {
-				
-				String label = apiEntity.getNome() + " v" + apiEntity.getVersione();
-				
+
+				// Mostra la versione dell'API nella label solo se configurato
+				String label = mostraVersione ?
+						apiEntity.getNome() + " v" + apiEntity.getVersione() :
+						apiEntity.getNome();
+
 				if(apiEntity.getCollaudo() != null && apiEntity.getCollaudo().getUrl()!= null) {
 					RowType row = new RowType();
 					row.setLabel(label);

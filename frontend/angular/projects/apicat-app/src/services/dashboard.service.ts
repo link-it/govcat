@@ -19,9 +19,9 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable, Subject, forkJoin, of, timer } from 'rxjs';
-import { catchError, map, retry, share, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, map, retry, share, shareReplay, switchMap, takeUntil } from 'rxjs/operators';
 
-import { ConfigService, Tools } from '@linkit/components';
+import { ConfigService } from '@linkit/components';
 
 import { AuthenticationService } from './authentication.service';
 import { OpenAPIService } from './openAPI.service';
@@ -41,6 +41,7 @@ export class DashboardService {
 
   private _dashboardCount$: Observable<number> | null = null;
   private _stopPolling = new Subject<void>();
+  private _ruoliProfilo$: Observable<ProfiloRuoli> | null = null;
 
   constructor(
     private apiService: OpenAPIService,
@@ -49,89 +50,80 @@ export class DashboardService {
   ) {}
 
   /**
-   * Mappa ruoli_referente al ruolo dashboard (ConfigurazioneRuolo enum).
-   * Valori possibili: richiedente, referente, referente_superiore, gestore
-   * Priorità: referente_dominio > referente_servizio/adesione/tecnici > richiedente
+   * Mappa ruoli/pannelli per i ruoli referente.
+   * L'utente può avere più ruoli e la visibilità è l'unione dei pannelli di ogni ruolo.
+   *
+   * Referente dominio: servizi, adesioni, comunicazioni
+   * Referente dominio tecnico: comunicazioni
+   * Referente servizio: servizi, adesioni, comunicazioni
+   * Referente servizio tecnico: comunicazioni
+   * Referente adesione: comunicazioni
+   * Referente adesione tecnico: comunicazioni
    */
-  private _mapRuoliReferenteToDashboardRole(ruoliReferente: string[]): string | null {
-    if (!ruoliReferente || ruoliReferente.length === 0) return null;
-
-    // referente_dominio o referente_tecnico_dominio → referente_superiore
-    if (ruoliReferente.includes('referente_dominio') || ruoliReferente.includes('referente_tecnico_dominio')) {
-      return 'referente_superiore';
-    }
-    // Referente o referente tecnico di servizio/adesione → referente
-    if (ruoliReferente.includes('referente_servizio') || ruoliReferente.includes('referente_adesione') ||
-        ruoliReferente.includes('referente_tecnico_servizio') || ruoliReferente.includes('referente_tecnico_adesione')) {
-      return 'referente';
-    }
-    // Richiedente
-    if (ruoliReferente.includes('richiedente_servizio') || ruoliReferente.includes('richiedente_adesione')) {
-      return 'richiedente';
-    }
-
-    return null;
-  }
-
-  /**
-   * Verifica se una sezione ha stati configurati in stati_dashboard per il ruolo specificato.
-   * stati_dashboard è un array di { ruolo: string, stati: string[] }
-   */
-  private _hasStatiDashboard(configSection: string, dashboardRole: string): boolean {
-    const workflow = Tools.Configurazione?.[configSection]?.workflow;
-    const statiDashboard = workflow?.stati_dashboard;
-    if (!Array.isArray(statiDashboard)) return false;
-
-    const entry = statiDashboard.find((s: any) => s.ruolo === dashboardRole);
-    return Array.isArray(entry?.stati) && entry.stati.length > 0;
-  }
+  private static readonly _REFERENTE_PANELS: { [ruolo: string]: (keyof DashboardRoleConfig)[] } = {
+    referente_dominio: ['servizi', 'adesioni', 'comunicazioni'],
+    referente_tecnico_dominio: ['comunicazioni'],
+    referente_servizio: ['servizi', 'adesioni', 'comunicazioni'],
+    referente_tecnico_servizio: ['comunicazioni'],
+    referente_adesione: ['comunicazioni'],
+    referente_tecnico_adesione: ['comunicazioni']
+  };
 
   private _isHideComunicazioniGestore(): boolean {
     const appConfig = this.configService.getConfiguration();
     return appConfig?.AppConfig?.Layout?.dashboard?.hideNotificationGestore === true;
   }
 
-  private _hasStatiDashboardClient(): boolean {
-    const stati = Tools.Configurazione?.adesione?.stati_dashboard_client;
-    return Array.isArray(stati) && stati.length > 0;
-  }
-
   computeRoleConfig(ruolo: string, ruoliReferente: string[]): DashboardRoleConfig {
-    // Gestore: tutto visibile
+    // Gestore: tutto visibile (comunicazioni controllate da hideNotificationGestore)
     if (ruolo === 'gestore') {
       const hideCom = this._isHideComunicazioniGestore();
       return { servizi: true, adesioni: true, client: true, comunicazioni: !hideCom, utenti: true };
     }
 
-    // Coordinatore: tutto tranne client e utenti
+    // Coordinatore: servizi, adesioni, comunicazioni, utenti
     if (ruolo === 'coordinatore') {
       return { servizi: true, adesioni: true, client: false, comunicazioni: true, utenti: true };
     }
 
-    // Referente: dipende da ruoliReferente e configurazione stati_dashboard
-    const dashboardRole = this._mapRuoliReferenteToDashboardRole(ruoliReferente);
-
-    if (!dashboardRole) {
-      // Nessun ruolo referente mappabile: solo comunicazioni
-      return { servizi: false, adesioni: false, client: false, comunicazioni: true, utenti: false };
-    }
-
-    const serviziVisible = this._hasStatiDashboard('servizio', dashboardRole);
-    const adesioniVisible = this._hasStatiDashboard('adesione', dashboardRole);
-    // Client visibile solo per referente_superiore (dominio) se stati_dashboard_client è configurato
-    const clientVisible = dashboardRole === 'referente_superiore' && this._hasStatiDashboardClient();
-
-    return {
-      servizi: serviziVisible,
-      adesioni: adesioniVisible,
-      client: clientVisible,
-      comunicazioni: true,
+    // Referente: unione dei pannelli per ogni ruolo referente
+    const config: DashboardRoleConfig = {
+      servizi: false,
+      adesioni: false,
+      client: false,
+      comunicazioni: false,
       utenti: false
     };
+
+    if (!ruoliReferente || ruoliReferente.length === 0) {
+      config.comunicazioni = true;
+      return config;
+    }
+
+    for (const ruoloRef of ruoliReferente) {
+      const panels = DashboardService._REFERENTE_PANELS[ruoloRef];
+      if (panels) {
+        for (const panel of panels) {
+          config[panel] = true;
+        }
+      }
+    }
+
+    // Fallback: se ha ruoli referente ma nessuno mappato, almeno comunicazioni
+    if (!config.comunicazioni && !config.servizi && !config.adesioni) {
+      config.comunicazioni = true;
+    }
+
+    return config;
   }
 
   getRuoliProfilo(): Observable<ProfiloRuoli> {
-    return this.apiService.getList('profilo/ruoli');
+    if (!this._ruoliProfilo$) {
+      this._ruoliProfilo$ = this.apiService.getList('profilo/ruoli').pipe(
+        shareReplay(1)
+      );
+    }
+    return this._ruoliProfilo$;
   }
 
   private _dashboardOptions(): any {
@@ -159,19 +151,17 @@ export class DashboardService {
   }
 
   getDashboardCount(timerMs: number): Observable<number> {
-    if (!this._dashboardCount$) {
-      this._dashboardCount$ = this._resolveRoleConfig().pipe(
-        switchMap(roleConfig => {
-          return timer(1, timerMs).pipe(
-            switchMap(() => this._fetchTotalCount(roleConfig)),
-            retry(3),
-            catchError(() => of(0)),
-            share(),
-            takeUntil(this._stopPolling)
-          );
-        })
-      );
-    }
+    this._dashboardCount$ ??= this._resolveRoleConfig().pipe(
+      switchMap(roleConfig => {
+        return timer(1, timerMs).pipe(
+          switchMap(() => this._fetchTotalCount(roleConfig)),
+          retry(3),
+          catchError(() => of(0)),
+          share(),
+          takeUntil(this._stopPolling)
+        );
+      })
+    );
     return this._dashboardCount$;
   }
 

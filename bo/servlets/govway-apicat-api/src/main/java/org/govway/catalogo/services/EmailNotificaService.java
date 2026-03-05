@@ -66,7 +66,7 @@ public class EmailNotificaService {
 	@Value("${email.notifiche.from:no-reply@govcat.it}")
 	private String fromAddress;
 
-	@Value("${email.notifiche.enabled:true}")
+	@Value("${email.notifiche.enabled:false}")
 	private boolean emailEnabled;
 
 	@Value("${email.notifiche.batch.size:50}")
@@ -122,14 +122,22 @@ public class EmailNotificaService {
 		List<NotificaEntity> content = notifiche.getContent();
 		for (NotificaEntity notifica : content) {
 			try {
+				String emailDest = getEmailDestinatario(notifica.getDestinatario());
 				inviaEmail(notifica);
-				notifica.setEmailInviata(true);
+
+				// Aggiorna stato e campi di tracing
+				notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.INVIATA);
+				notifica.setTimestampInvioEmail(new java.util.Date());
+				notifica.setEmailDestinatario(emailDest);
+
 				this.notificaService.save(notifica);
 				this.logger.info("Email inviata con successo per notifica {}", notifica.getIdNotifica());
 			} catch (Exception e) {
+				// Segna come errore per retry al prossimo ciclo
+				notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.ERRORE);
+				this.notificaService.save(notifica);
 				this.logger.error("Errore durante l'invio dell'email per notifica {}: {}",
 						notifica.getIdNotifica(), e.getMessage(), e);
-				// Non aggiorniamo emailInviata, sarà riprovata al prossimo ciclo
 			}
 		}
 	}
@@ -337,10 +345,19 @@ public class EmailNotificaService {
 		try {
 			this.notificaService.runTransaction(() -> {
 				try {
+					String emailDest = getEmailDestinatario(notifica.getDestinatario());
 					inviaEmail(notifica);
-					notifica.setEmailInviata(true);
+
+					// Aggiorna stato e campi di tracing
+					notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.INVIATA);
+					notifica.setTimestampInvioEmail(new java.util.Date());
+					notifica.setEmailDestinatario(emailDest);
+
 					this.notificaService.save(notifica);
 				} catch (Exception e) {
+					// Segna come errore per retry
+					notifica.setStatoNotificaEmail(NotificaEntity.STATO_EMAIL.ERRORE);
+					this.notificaService.save(notifica);
 					this.logger.error("Errore durante l'invio asincrono dell'email: " + e.getMessage(), e);
 				}
 			});

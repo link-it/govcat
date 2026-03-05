@@ -55,6 +55,7 @@ import org.govway.catalogo.servlets.model.CategorieCreate;
 import org.govway.catalogo.servlets.model.DatiGenericiServizioUpdate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
+import org.govway.catalogo.servlets.model.DocumentoUpdateId;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;

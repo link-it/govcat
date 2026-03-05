@@ -5892,6 +5892,8 @@ components:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         mostra_referenti:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_versione:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
     ConfigurazioneProfilo:
       type: "object"
       required:
@@ -6449,6 +6451,8 @@ components:
         mostra_richiedente:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         mostra_referenti:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_versione:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         max_image_size:
           type: "integer"

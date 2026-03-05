@@ -1105,27 +1105,27 @@
 			"ERROR": {
 				"ADE": {
 					"400": {
-						"STATE": "Membership state [{{stato}}] not valid for this operation"
+						"STATE": "Membership state not valid for this operation"
 					},
 					"403": {
-						"REFERENT": "Membership referent [{{referente}}] not authorized"
+						"REFERENT": "Membership referent not authorized"
 					},
 					"404": "Membership [{{idAdesione}}] not found",
 					"409": {
-						"DEFAULT": "Membership [{{nome}}] already exists",
-						"STATE": "Cannot modify membership in state [{{stato}}]"
+						"DEFAULT": "Membership for subject [{{soggetto}}] to service [{{servizio}} v{{versione}}] already exists",
+						"STATE": "Cannot modify membership in current state"
 					}
 				},
 				"API": {
 					"400": {
-						"DELETE": "",
+						"DELETE": "Cannot delete API [{{nome}}/{{versione}}] because it is used in [{{numeroAdesioni}}] memberships",
 						"DUPLICATE": "Attachment [{{allegato}}] duplicated",
-						"SPEC": "",
+						"SPEC": "Specification not present",
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed"
 					},
 					"404": {
 						"DEFAULT": "API [{{idApi}}] not found",
-						"ATTACHMENT": ""
+						"ATTACHMENT": "Attachment [{{idAllegato}}] not found for API [{{idApi}}]"
 					},
 					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists"
 				},
@@ -1142,12 +1142,12 @@
 							"MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
 							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization"
 						},
-						"RESOURCE": "Access denied to resource [{{risorsa}}]",
+						"RESOURCE": "Access denied to resource [{{idTraccia}}]",
 						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force"
 					}
 				},
 				"CAT": {
-					"404": "Category [{{idCategoria}}] not found",
+					"404": "Category [{{nome}}] not found",
 					"409": "Category [{{nome}}] already exists for taxonomy [{{tassonomia}}]"
 				},
 				"CheckPrivateKey": "An error was found in the data you entered. Please check the data you entered and try again.",
@@ -1157,21 +1157,21 @@
 				},
 				"CLT": {
 					"400": {
-						"CONFIG": "Invalid client configuration: {{dettagli}}",
+						"CONFIG": "Invalid client configuration",
 						"EXTENSION": "Client extension [{{tipo}}] not supported"
 					},
-					"404": "Client [{{idClient}}] not found",
+					"404": "Client [{{nomeClient}}] not found",
 					"409": "Client [{{nome}}] already exists for subject [{{soggetto}}] and environment [{{ambiente}}]"
 				},
 				"Default": "Sorry, unpredictable problem",
 				"DefaultHelp": "Please try again later",
 				"DOC": {
 					"400": {
-						"FORMAT": "Document format [{{formato}}] not supported",
+						"FORMAT": "Document format not supported",
 						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]"
 					},
 					"404": {
-						"DEFAULT": "Document [{{idDocumento}}] not found",
+						"DEFAULT": "Document [{{idAllegato}}] not found for membership [{{idAdesione}}]",
 						"VERSION": "Document with UUID [{{uuid}}] and version [{{versione}}] not found"
 					},
 					"500": "Cannot process document: {{errore}}"
@@ -1182,15 +1182,15 @@
 				},
 				"GEN": {
 					"400": {
-						"DEFAULT": "Bad request",
-						"REQUEST": ""
+						"DEFAULT": "Operation not allowed",
+						"REQUEST": "Invalid request"
 					},
 					"404": "Resource not found",
 					"409": {
-						"DEFAULT": "",
-						"STATE": ""
+						"DEFAULT": "Resource already exists",
+						"STATE": "Conflict with current state"
 					},
-					"500": "Internal server error"
+					"500": "Internal error"
 				},
 				"GRP": {
 					"404": "Group [{{idGruppo}}] not found",
@@ -1210,16 +1210,16 @@
 				},
 				"INT": {
 					"500": {
-						"DEFAULT": "Internal error: {{errore}}",
-						"COMMUNICATION": "",
-						"CONFIG": "Configuration error: {{errore}}",
-						"DB": "Database error: {{errore}}",
-						"GOVWAY": "",
-						"PDND": ""
+						"DEFAULT": "External service integration error",
+						"COMMUNICATION": "Communication error with external service",
+						"CONFIG": "Integration configuration error",
+						"DB": "Integration database access error",
+						"GOVWAY": "GovWay error: {{dettagli}}",
+						"PDND": "PDND error: {{dettagli}}"
 					},
-					"502": "",
-					"503": "Service temporarily unavailable",
-					"504": ""
+					"502": "Invalid response from external service",
+					"503": "External service temporarily unavailable",
+					"504": "Timeout calling external service"
 				},
 				"MON": {
 					"400": {
@@ -1229,10 +1229,10 @@
 						"INTERVAL": "Time interval [{{inizio}} - {{fine}}] not valid"
 					},
 					"404": {
-						"DEFAULT": "Monitoring data not available for service [{{servizio}}]",
+						"DEFAULT": "Monitoring data not available",
 						"ALARM": "Alarm [{{idAllarme}}] not found",
 						"METRIC": "Metric [{{metrica}}] not found",
-						"STATS": "Statistics not available for period [{{periodo}}]"
+						"STATS": "Statistics of type [{{tipo}}] not available"
 					}
 				},
 				"NoAddCategorie": "The category could not be added.",
@@ -1250,7 +1250,7 @@
 					"500": "Cannot send notification: {{errore}}"
 				},
 				"ORG": {
-					"404": "Organization [{{idOrganizzazione}}] not found",
+					"404": "Organization [{{nome}}] not found",
 					"409": "Organization [{{nome}}] already exists"
 				},
 				"PRF": {
@@ -1300,53 +1300,53 @@
 					}
 				},
 				"SOG": {
-					"404": "Subject [{{idSoggetto}}] not found",
+					"404": "Subject [{{nome}}] not found",
 					"409": "Subject [{{nome}}] already exists"
 				},
 				"SRV": {
 					"400": {
 						"CATEGORY": {
 							"NOT": {
-								"LEAF": ""
+								"LEAF": "Cannot associate category [{{categoria}}] to service [{{nome}}/{{versione}}]. Category is not a leaf"
 							}
 						},
 						"NOT": {
-							"DELETABLE": "",
-							"REGISTERED": ""
+							"DELETABLE": "Service cannot be deleted",
+							"REGISTERED": "User not registered, cannot retrieve pending services"
 						},
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed for services"
 					},
 					"403": {
 						"ADD": {
-							"REFERENT": ""
+							"REFERENT": "Cannot add user [{{nomeUtente}} {{cognomeUtente}}] as referent of package [{{nomePackage}} v{{versionePackage}}]. User is not referent of component service [{{nomeComponente}} v{{versioneComponente}}]"
 						},
 						"REMOVE": {
-							"REFERENT": ""
+							"REFERENT": "Cannot remove user [{{nomeUtente}} {{cognomeUtente}}] from referent of service [{{nome}} v{{versione}}]. {{motivo}}"
 						}
 					},
 					"404": {
 						"DEFAULT": "Service [{{idServizio}}] not found",
-						"IMAGE": ""
+						"IMAGE": "Image for group [{{idGruppo}}] not found"
 					},
 					"409": {
-						"DEFAULT": "Service [{{nome}}] already exists",
-						"CATEGORY": "",
-						"GROUP": "",
-						"STATE": "Cannot modify service in state [{{stato}}]"
+						"DEFAULT": "Service [{{nome}} v{{versione}}] already exists",
+						"CATEGORY": "Category [{{categoria}}] already associated to service [{{nome}}/{{versione}}]",
+						"GROUP": "Group [{{gruppo}}] already associated to service [{{nome}}/{{versione}}]",
+						"STATE": "Cannot modify service in current state"
 					}
 				},
 				"SYS": {
 					"500": {
-						"DEFAULT": "System error",
-						"CONFIG": "",
-						"DB": "",
-						"IO": ""
+						"DEFAULT": "Internal system error",
+						"CONFIG": "Invalid system configuration",
+						"DB": "Database access error",
+						"IO": "I/O error"
 					},
-					"501": "",
-					"503": "Service unavailable"
+					"501": "Operation not supported",
+					"503": "Resource temporarily unavailable"
 				},
 				"TAX": {
-					"404": "Taxonomy [{{idTassonomia}}] not found",
+					"404": "Taxonomy [{{nome}}] not found",
 					"409": "Taxonomy [{{nome}}] already exists"
 				},
 				"Timeout": "Download timeout. Please try again later.",
@@ -1358,44 +1358,45 @@
 				"Unauthorized": "Unauthorized",
 				"Unprocessable Entity": "Unprocessable Entity",
 				"UT": {
-					"404": "User [{{idUtente}}] not found",
-					"409": "User [{{principal}}] already exists",
 					"403": {
+						"DEFAULT": "User not enabled",
 						"EMAIL": {
 							"CHANGE": "Email change not allowed. Please use the email verification flow."
 						}
-					}
+					},
+					"404": "User [{{idUtente}}] not found",
+					"409": "User [{{principal}}] already exists"
 				},
 				"VAL": {
 					"400": {
 						"CF": "Tax code [{{codiceFiscale}}] not valid",
 						"DATE": "Date [{{data}}] not valid",
 						"EMAIL": "Email [{{email}}] not valid",
-						"FORMAT": "Field format [{{campo}}] not valid: {{formato}}",
+						"FORMAT": "Invalid format",
 						"LENGTH": "Field length [{{campo}}] not valid: expected {{lunghezzaAttesa}}, found {{lunghezzaTrovata}}",
 						"PATTERN": "Pattern [{{pattern}}] not satisfied for field [{{campo}}]",
 						"PIVA": "VAT number [{{partitaIva}}] not valid",
 						"RANGE": "Value [{{valore}}] out of allowed range [{{min}} - {{max}}]",
-						"REQUIRED": "Required field [{{campo}}] missing",
+						"REQUIRED": "Required field missing",
 						"URL": "URL [{{url}}] not valid"
 					},
 					"422": {
-						"DEFAULT": "Semantically invalid request: {{dettagli}}",
-						"COMPLEX": "Semantically invalid complex entity update: {{dettagli}}"
+						"DEFAULT": "Semantically invalid request",
+						"COMPLEX": "Semantically invalid complex entity update"
 					}
 				},
 				"WFL": {
-					"404": "",
 					"400": {
 						"DATA": {
 							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
 						},
-						"STATE": "",
+						"STATE": "Invalid workflow state [{{stato}}]",
 						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
 					},
 					"403": {
-						"ACTION": ""
-					}
+						"ACTION": "Workflow action [{{azione}}] not authorized for user [{{utente}}]"
+					},
+					"404": "Workflow [{{idWorkflow}}] not found"
 				}
 			},
 			"ExportingFile": "Exporting File…",

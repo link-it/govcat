@@ -272,6 +272,7 @@ export class AdesioneViewComponent implements OnInit {
   private apiUrl: string = '';
   private defaultLogo: string = './assets/images/logo-servizio.png';
   private _serviceBreadcrumbs: ServiceBreadcrumbsData | null = null;
+  private _fromDashboard: boolean = false;
 
   public grant: Grant | null = null;
   
@@ -304,6 +305,13 @@ export class AdesioneViewComponent implements OnInit {
       if (params['id']) {
         this.id = params['id'];
         this.loadAdesione(true);
+      }
+    });
+
+    this.route.queryParams.subscribe((val) => {
+      if (val.from === 'dashboard') {
+        this._fromDashboard = true;
+        this._initBreadcrumb();
       }
     });
 
@@ -453,13 +461,20 @@ export class AdesioneViewComponent implements OnInit {
       title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
-    this.breadcrumbs = [
-      { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-      { label: title, url: ``, type: 'link' },
-    ];
+    if (this._fromDashboard && !this._serviceBreadcrumbs) {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: title, url: ``, type: 'link' },
+      ];
+    } else {
+      this.breadcrumbs = [
+        { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
+        { label: title, url: ``, type: 'link' },
+      ];
 
-    if (this._serviceBreadcrumbs) {
-      this.breadcrumbs.unshift(...this._serviceBreadcrumbs.breadcrumbs);
+      if (this._serviceBreadcrumbs) {
+        this.breadcrumbs.unshift(...this._serviceBreadcrumbs.breadcrumbs);
+      }
     }
   }
 

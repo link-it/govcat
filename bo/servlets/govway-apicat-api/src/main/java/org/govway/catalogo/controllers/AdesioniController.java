@@ -584,17 +584,19 @@ public class AdesioniController implements AdesioniApi {
 					throw new BadRequestException(ErrorCode.ADE_400_STATE, java.util.Map.of("stato", entity.getStato().toString()));
 				}
 
-				// Determina se mostrare richiedente e referenti nel PDF
+				// Determina se mostrare richiedente, referenti e versione nel PDF
 				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
 				// Se il valore è "disabled", non mostra
 				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getAdesione().getMostraRichiedente());
 				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getAdesione().getMostraReferenti());
+				boolean mostraVersione = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getAdesione().getMostraVersione());
 
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity, mostraRichiedente, mostraReferenti));
+					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity, mostraRichiedente, mostraReferenti, mostraVersione));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);
