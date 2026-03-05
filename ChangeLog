@@ -5,6 +5,12 @@
 2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Aggiornamento dompurify 3.3.1 -> 3.3.2 (override npm) per fix
+	vulnerabilità XSS CVE-2026-0540 (GHSA-v2wj-7wpq-c8vv).
+
+2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Aggiornamento Angular 19.2.18 -> 19.2.19 per fix vulnerabilità XSS
 	i18n (GHSA-prjf-86w9-mfqv). Aggiunta dipendenza marked@^15.0.0
 	richiesta da ngx-markdown.
