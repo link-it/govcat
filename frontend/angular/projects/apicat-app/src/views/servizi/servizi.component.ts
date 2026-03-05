@@ -217,6 +217,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _lastColor: string = '';
     showGroupIcon: boolean = false;
     showGroupLabel: boolean = false;
+    cardImagePosition: string = 'cover';
+    cardDefaultBackColor: string = '#f1f1f1';
+    listImagePosition: string = 'cover';
+    listDefaultBackColor: string = '#f1f1f1';
 
     masonryOptions: NgxMasonryOptions = {
         itemSelector: '.masonry-item',
@@ -276,6 +280,12 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.colors = this.config.AppConfig.Layout.GroupView.colors || [];
         this.showGroupIcon = this.config.AppConfig.Layout.GroupView.showGroupIcon || false;
         this.showGroupLabel = this.config.AppConfig.Layout.GroupView.showGroupLabel || false;
+        const _cardConfig = this.config.AppConfig.Layout.GroupView.card || {};
+        this.cardImagePosition = _cardConfig.imagePosition || 'cover';
+        this.cardDefaultBackColor = _cardConfig.defaultBackColor || '#f1f1f1';
+        const _listConfig = this.config.AppConfig.Layout.GroupView.list || {};
+        this.listImagePosition = _listConfig.imagePosition || 'cover';
+        this.listDefaultBackColor = _listConfig.defaultBackColor || '#f1f1f1';
         this._useNewSearchUI = true;
         this.fullScroll = this.config.AppConfig.Layout.fullScroll || false;
         this._showTaxonomies = servizio?.tassonomie_abilitate || false;

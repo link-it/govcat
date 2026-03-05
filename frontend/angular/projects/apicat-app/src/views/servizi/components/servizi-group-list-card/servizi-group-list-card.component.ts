@@ -43,6 +43,8 @@ export class ServiziGroupListCardComponent implements OnInit {
   @Input() enabledImageLink: boolean = false;
   @Input() showGroupIcon: boolean = false;
   @Input() showGroupLabel: boolean = false;
+  @Input() imagePosition: string = 'cover';
+  @Input() defaultBackColor: string = '#f1f1f1';
   @Input() groupLabel: string = 'Group';
 
   @Output() simpleClick: EventEmitter<any> = new EventEmitter();
@@ -59,7 +61,7 @@ export class ServiziGroupListCardComponent implements OnInit {
   ngOnInit() {
     this.logoText = this.primaryText.slice(0, this.numberCharLogoText);
     if (this.image) {
-      this.backColor = '#f1f1f1';
+      this.backColor = this.defaultBackColor;
     }
     this.textColor = this.utilsLib.contrast(this.backColor);
 

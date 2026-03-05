@@ -1,3 +1,11 @@
+2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Rese configurabili da app-config.json le proprietà imagePosition
+	(background-size dell'immagine) e defaultBackColor (colore di sfondo
+	di default) per le card dei gruppi servizi (GroupView), con
+	configurazione separata per vista card e vista list.
+
 2026-03-05  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.3.5

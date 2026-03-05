@@ -18,13 +18,13 @@
 -->
 <div class="group-list-card" [class.group]="data.tipo === 'gruppo'" (click)="onCardClick($event)">
   <div class="group-list-card-image-container" *ngIf="showImage && (image || showEmptyImage)">
-    <div tabindex="0"
+    <div
         class="group-list-card-image"
         [class.cursor-pointer]="enabledImageLink"
         (click)="onImageClick($event)"
         setBackgroundImage
         [imageUrl]="{ path: image } | httpImgSrc"
-        [position]="'cover'"
+        [position]="imagePosition"
         [ngStyle]="{ 'background-color': backColor }">
       <span class="logo-text text-nowrap" [ngStyle]="{'color': textColor}" *ngIf="!image">{{ logoText }}</span>
     </div>
@@ -32,7 +32,7 @@
 
   <div class="group-list-card-content">
     <div class="group-list-card-body">
-      <h5 tabindex="0"
+      <h5
           class="group-list-card-title text-hover cursor-pointer text-break"
           [class.supports-new-tab]="data.tipo !== 'gruppo'"
           [attr.title]="primaryText"

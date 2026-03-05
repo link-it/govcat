@@ -35,7 +35,7 @@
     [class.cursor-pointer]="_enabledImageLink"
     (click)="__imageClick($event)" (auxclick)="__imageClick($event)"
     setBackgroundImage [imageUrl]="{ path: _image } | httpImgSrc"
-    [position]="'cover'" [ngStyle]="{ 'background-color': _backColor }"
+    [position]="imagePosition" [ngStyle]="{ 'background-color': _backColor }"
     *ngIf="_showImage && (_image || _showEmptyImage)"
   >
     <span class="logo-text text-nowrap" [ngStyle]="{'color': _textColor}" *ngIf="!_image">{{ _logoText }}</span>
