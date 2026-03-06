@@ -99,6 +99,14 @@
         "enabledImageLink": true,
         "showGroupIcon": true,
         "showGroupLabel": false,
+        "card": {
+          "imagePosition": "cover",
+          "defaultBackColor": "#f1f1f1"
+        },
+        "list": {
+          "imagePosition": "cover",
+          "defaultBackColor": "#f1f1f1"
+        },
         "colors": [
           "#00ffff",
           "#f0ffff",
