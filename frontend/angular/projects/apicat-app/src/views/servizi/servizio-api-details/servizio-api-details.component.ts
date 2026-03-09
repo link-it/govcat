@@ -1274,7 +1274,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _auth: any = {
             profilo: [data.profilo, [Validators.required]],
             resources: [data.resources, [Validators.required]],
-            note: [data.note]
+            note: [data.note, [Validators.maxLength(255)]]
         };
 
         const _customProperties = this._getProfilo(data.profilo)?.proprieta_custom || [];
