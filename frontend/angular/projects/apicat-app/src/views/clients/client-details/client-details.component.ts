@@ -16,32 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild, TemplateRef } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, TemplateRef } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, EventType, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService, EventType } from '@linkit/components';
-
-import { YesnoDialogBsComponent } from '@linkit/components';
+import { UtilService, Certificato } from '@app/services/utils.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
-import { Client, PeriodEnum } from './client';
-import { Soggetto } from './client';
+import { Client, PeriodEnum, Soggetto } from './client';
 
-import { DatiSpecItem } from './clientUpdate';
-import { CommonName } from './clientUpdate';
-import { DoubleCert } from './clientUpdate';
-import { Datispecifici } from './clientUpdate';
+import { DatiSpecItem, CommonName, DoubleCert, Datispecifici } from './clientUpdate';
 
 const fake_tipoCertificatoEnum = [ 'fornito', 'richiesto_cn', 'richiesto_csr'];
 const fake_stato = [ 'nuovo', 'configurato'];
@@ -50,15 +42,13 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
 import * as _ from 'lodash';
 declare const saveAs: any;
 
-import { Certificato } from '@app/services/utils.service';
-
 @Component({
   selector: 'app-client-details',
   templateUrl: 'client-details.component.html',
   styleUrls: ['client-details.component.scss'],
   standalone: false
 })
-export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'ClientDetailsComponent';
   readonly model: string = 'client';
 
@@ -206,16 +196,16 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   debugMandatoryFields: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private apiService: OpenAPIService,
-    private authenticationService: AuthenticationService,
-    private utils: UtilService,
-    private eventsManagerService: EventsManagerService
+    private readonly apiService: OpenAPIService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly utils: UtilService,
+    private readonly eventsManagerService: EventsManagerService
   ) {
     this.appConfig = this.configService.getConfiguration();
   }
@@ -255,9 +245,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
       this.initTipiCertificato();
     });
-  }
-
-  ngOnDestroy() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -1641,7 +1628,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           throwError(resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -1658,7 +1644,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           throwError(resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -1693,11 +1678,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             controls.id_soggetto.clearValidators();
             controls.id_soggetto.updateValueAndValidity();
           } else {
+            const currentValue = controls.id_soggetto.value;
             this._elencoSoggetti = [...result];
             controls.id_soggetto.enable();
             controls.id_soggetto.setValidators(Validators.required);
             controls.id_soggetto.updateValueAndValidity();
             this._hideSoggettoDropdown = false;
+            setTimeout(() => controls.id_soggetto.setValue(currentValue));
           }
 
           this._formGroup.updateValueAndValidity();
@@ -1726,7 +1713,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _hasVerifica = (): boolean => {
     const monitoraggio: any = this.authenticationService._getConfigModule('monitoraggio');
 
-    // const _isSoggettoMonitoraggio = (monitoraggio.soggetto_modi?.nome == this.client.nome) || (monitoraggio.soggetto_pdnd?.nome === this.client.nome);
     const _showMonitoraggio: boolean = monitoraggio.abilitato;
     const _showVerifiche: boolean = monitoraggio.verifiche_abilitate;
 
