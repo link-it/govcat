@@ -35,7 +35,7 @@ import { ServizioApiCreate } from './servizio-api-create';
 
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
-import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
+import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 import { Grant } from '@app/model/grant';
 
 import * as _ from 'lodash';
@@ -635,26 +635,52 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             }
         }
 
-        if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length && !this._isPDND) {
-            const proprieta_custom: ApiCustomProperty[] = [];
-            _newBody.dati_custom = {proprieta_custom: proprieta_custom};
-            Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
-                // Use nome_gruppo from the first item in the group instead of the grouping key
-                const firstItem = this._apiProprietaCustomGrouped[k][0];
-                const _customGrouped: any = {
-                    gruppo: firstItem.nome_gruppo,
-                    proprieta: []
-                };
-                this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
-                        _customGrouped.proprieta.push({
-                            nome: kk.nome,
-                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
-                        });
+        const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
+        const hasOriginalCustomProps = this._servizioApi?.proprieta_custom?.length;
+        if ((hasCurrentCustomProps || hasOriginalCustomProps) && !this._isPDND) {
+            const risultato: Record<string, { nome: string; valore: string }[]> = {};
+
+            if (hasCurrentCustomProps) {
+                Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
+                    this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
+                        const valoriGruppo = body.proprieta_custom?.[campo.nome_gruppo];
+
+                        if (!risultato[campo.nome_gruppo]) {
+                            risultato[campo.nome_gruppo] = [];
+                        }
+
+                        if (!valoriGruppo) return;
+
+                        const nome = campo.nome;
+                        const valore = valoriGruppo[nome];
+
+                        const valoreNonValido =
+                            valore === undefined ||
+                            valore === null ||
+                            (typeof valore === 'string' && valore.trim() === '') ||
+                            (typeof valore === 'number' && Number.isNaN(valore));
+
+                        if (!valoreNonValido) {
+                            risultato[campo.nome_gruppo].push({ nome, valore });
+                        }
+                    });
+                });
+            }
+
+            if (hasOriginalCustomProps) {
+                this._servizioApi?.proprieta_custom?.forEach((originalGroup: any) => {
+                    if (!risultato[originalGroup.gruppo]) {
+                        risultato[originalGroup.gruppo] = [];
                     }
                 });
-                proprieta_custom.push(_customGrouped);
-            });
+            }
+
+            _newBody.dati_custom = {
+                proprieta_custom: Object.entries(risultato).map(([gruppo, proprieta]) => ({
+                    gruppo,
+                    proprieta
+                }))
+            };
         }
 
         return this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);

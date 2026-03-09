@@ -772,8 +772,21 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       request.configurazione_produzione = configuration;
     }
 
-    if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
-      const result: ApiCustomProperty[] = this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom });
+    const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
+    const hasOriginalCustomProps = this.servizioApi?.proprieta_custom?.length;
+    if (hasCurrentCustomProps || hasOriginalCustomProps) {
+      const result: ApiCustomProperty[] = hasCurrentCustomProps
+        ? this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom })
+        : [];
+
+      if (hasOriginalCustomProps) {
+        this.servizioApi!.proprieta_custom!.forEach((originalGroup: any) => {
+          if (!result.some(r => r.gruppo === originalGroup.gruppo)) {
+            result.push({ gruppo: originalGroup.gruppo, proprieta: [] });
+          }
+        });
+      }
+
       request.dati_custom = { proprieta_custom: result };
     }
 
@@ -802,9 +815,14 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
     for (const label_gruppo in definizioni) {
       const campi = definizioni[label_gruppo];
       const valoriGruppo = formValues.proprieta_custom?.[label_gruppo];
-      if (!valoriGruppo) continue;
 
       for (const campo of campi) {
+        if (!risultato[campo.nome_gruppo]) {
+          risultato[campo.nome_gruppo] = [];
+        }
+
+        if (!valoriGruppo) continue;
+
         const nome = campo.nome;
         const valore = valoriGruppo[nome];
 
@@ -814,14 +832,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
           (typeof valore === 'string' && valore.trim() === '') ||
           (typeof valore === 'number' && isNaN(valore));
 
-        if (valoreNonValido) {
-          console.warn(`Campo escluso: ${nome} (gruppo: ${campo.nome_gruppo}) - valore non valido`);
-          continue;
-        }
-
-        if (!risultato[campo.nome_gruppo]) {
-          risultato[campo.nome_gruppo] = [];
-        }
+        if (valoreNonValido) continue;
 
         risultato[campo.nome_gruppo].push({ nome, valore });
       }
