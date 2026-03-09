@@ -84,7 +84,7 @@
         </div>
 
         <div class="edit-form">
-          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.value)">
+          <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
             <div class="row gl-mt-3">
               <div class="col-lg-4 mb-5">
                 <h4 class="gl-mt-0 text-break">{{ 'APP.DOMINI.TITLE.GeneralInformations' | translate }}</h4>

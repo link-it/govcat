@@ -23,16 +23,10 @@ import { AbstractControl, FormBuilder, UntypedFormControl, UntypedFormGroup, Val
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
-
 import { Dominio } from './dominio';
-
-import { VisibilitaEnum } from '@app/model/visibilitaEnum';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -213,13 +207,10 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
             ]);
             break;
           case 'deprecato':
-            value = data[key] ? data[key] : false;
-            _group[key] = new UntypedFormControl(value, []);
-            break;
           case 'skip_collaudo':
             value = data[key] ? data[key] : false;
             _group[key] = new UntypedFormControl(value, []);
-              break;
+            break;
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, []);
@@ -378,7 +369,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
       this.apiService.getDetails(this.model, this.id).subscribe({
         next: (response: any) => {
-          this.dominio = response; // new Dominio({ ...response });
+          this.dominio = response;
           this._dominio = new Dominio({ ...response });
           this._initBreadcrumb();
           const aux: any = {
@@ -430,10 +421,9 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     return this.apiService.getList('soggetti', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -445,7 +435,6 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
   _enableDisableSkipCollaudo(soggetto: any) {
     if (soggetto?.skip_collaudo) {
       if (this.dominio.vincola_skip_collaudo) {
-        this._formGroup.get('skip_collaudo')?.setValue(false);
         this._formGroup.get('skip_collaudo')?.disable();
       } else {
         this._formGroup.get('skip_collaudo')?.enable();
@@ -460,7 +449,15 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
   }
 
   _initBreadcrumb() {
-    const _title = this.dominio ? this.dominio.nome : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    let _title: string;
+    if (this.dominio) {
+      _title = this.dominio.nome;
+    } else if (this.id) {
+      _title = `${this.id}`;
+    } else {
+      _title = this.translate.instant('APP.TITLE.New');
+    }
+
     this.breadcrumbs = [
       { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.LABEL.Domain', url: '/domini', type: 'link' },
@@ -515,11 +512,13 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
   _removeNullProperties(obj: any) {
     Object.keys(obj).forEach((k: string) => {
-        obj[k] == null ? delete obj[k] : null;
+        if (obj[k] == null) {
+          delete obj[k];
+        }
       })
   }
 
   _isVisibilita(type: string) {
-    return (this.f['visibilita'] && this.f['visibilita'].value === type);
+    return (this.f['visibilita']?.value === type);
   }
 }
