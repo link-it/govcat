@@ -366,9 +366,12 @@
                                                         <div class="row">
                                                             <div class="col-12">
                                                                 <div class="form-group">
-                                                                    <label class="label-bold">{{ 'APP.LABEL.note' | translate }}</label>
+                                                                    <label for="note" class="label-bold">{{ 'APP.LABEL.note' | translate }}</label>
                                                                     <div class="" *ngIf="_isEdit">
-                                                                        <textarea class="form-control" formControlName="note" rows="2" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                                                                        <textarea class="form-control" [class.gl-field-error-outline]="authTypesArray().at(authIndex).get('note')?.invalid && authTypesArray().at(authIndex).get('note')?.touched" formControlName="note" rows="2" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'api'" [state]="service?.stato" [grant]="_grant"></textarea>
+                                                                        <p *ngIf="authTypesArray().at(authIndex).get('note')?.invalid && (authTypesArray().at(authIndex).get('note')?.dirty || authTypesArray().at(authIndex).get('note')?.touched)" class="form-text text-danger">
+                                                                            <span *ngIf="authTypesArray().at(authIndex).get('note')?.errors?.['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: 255 } }}</span>
+                                                                        </p>
                                                                     </div>
                                                                     <div class="" *ngIf="!_isEdit">
                                                                         <textarea class="form-control-plaintext" id="note" rows="3"  [placeholder]="'-'" formControlName="note" readonly></textarea>
