@@ -67,9 +67,11 @@ public class ToolsController implements ToolsApi {
 				body = Base64.getDecoder().decode(((DocumentoApiInline)listaRisorseApiRichiesta.getDocument()).getDocument());
 			} else {
 				String uuid = ((DocumentoApiRef)listaRisorseApiRichiesta.getDocument()).getUuid();
-				body = service.find(uuid)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404))
-						.getRawData();
+				body = this.service.runTransaction(() -> {
+					return service.find(uuid)
+							.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404))
+							.getRawData();
+				});
 			}
 			List<String> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
@@ -133,9 +135,11 @@ public class ToolsController implements ToolsApi {
 				body = Base64.getDecoder().decode(((DocumentoApiInline)listaRisorseApiRichiesta.getDocument()).getDocument());
 			} else {
 				String uuid = ((DocumentoApiRef)listaRisorseApiRichiesta.getDocument()).getUuid();
-				body = service.find(uuid)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404))
-						.getRawData();
+				body = this.service.runTransaction(() -> {
+					return service.find(uuid)
+							.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404))
+							.getRawData();
+				});
 			}
 			List<ServizioWsdl> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
