@@ -5531,6 +5531,10 @@ components:
           $ref: '#/components/schemas/ProtocolloEnum'
         document:
             $ref: '#/components/schemas/DocumentoApi'
+        id_api:
+          $ref: '#/components/schemas/IdApi'
+        ambiente:
+          $ref: '#/components/schemas/AmbienteEnum'
     DocumentoApi:
       type: object
       required:
@@ -5572,6 +5576,8 @@ components:
       properties:
         port_type:
           $ref: "#/components/schemas/String255"
+        url_invocazione:
+          type: string
         operations:
           type: array
           items:

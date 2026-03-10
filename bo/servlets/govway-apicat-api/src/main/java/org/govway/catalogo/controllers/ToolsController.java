@@ -26,15 +26,19 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.ApiV1Controller;
+import org.govway.catalogo.core.business.utils.EServiceBuilder;
 import org.govway.catalogo.core.business.utils.OpenapiUtils;
 import org.govway.catalogo.core.business.utils.OperationInfo;
 import org.govway.catalogo.core.business.utils.SOAPAction;
 import org.govway.catalogo.core.business.utils.SwaggerUtils;
 import org.govway.catalogo.core.business.utils.WsdlUtils;
+import org.govway.catalogo.core.orm.entity.ApiEntity;
+import org.govway.catalogo.core.services.ApiService;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.exception.BadRequestException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.servlets.model.AmbienteEnum;
 import org.govway.catalogo.servlets.api.ToolsApi;
 import org.govway.catalogo.servlets.model.DocumentoApiInline;
 import org.govway.catalogo.servlets.model.DocumentoApiRef;
@@ -55,6 +59,12 @@ public class ToolsController implements ToolsApi {
 
 	@Autowired
 	private DocumentoService service;
+
+	@Autowired
+	private ApiService apiService;
+
+	@Autowired
+	private EServiceBuilder eServiceBuilder;
 
 	@Override
 	public ResponseEntity<List<String>> listaRisorseApi(ListaRisorseApiRichiesta listaRisorseApiRichiesta) {
@@ -126,9 +136,9 @@ public class ToolsController implements ToolsApi {
 
 	@Override
 	public ResponseEntity<List<ServizioWsdl>> listaOperazioniWsdl(ListaRisorseApiRichiesta listaRisorseApiRichiesta) {
-		
+
 		try {
-			this.logger.info("Invocazione in corso ...");     
+			this.logger.info("Invocazione in corso ...");
 
 			byte[] body = null;
 			if(listaRisorseApiRichiesta.getDocument().getType().equals(TipoApiRisorsaEnum.INLINE)) {
@@ -141,35 +151,48 @@ public class ToolsController implements ToolsApi {
 							.getRawData();
 				});
 			}
+
+			// Calcola l'URL di invocazione se id_api e ambiente sono specificati
+			String urlInvocazione = null;
+			if(listaRisorseApiRichiesta.getIdApi() != null && listaRisorseApiRichiesta.getAmbiente() != null) {
+				urlInvocazione = this.apiService.runTransaction(() -> {
+					ApiEntity apiEntity = this.apiService.find(listaRisorseApiRichiesta.getIdApi())
+							.orElseThrow(() -> new NotFoundException(ErrorCode.API_404));
+					boolean isCollaudo = listaRisorseApiRichiesta.getAmbiente().equals(AmbienteEnum.COLLAUDO);
+					return this.eServiceBuilder.getUrlInvocazione(apiEntity, isCollaudo);
+				});
+			}
+
+			final String urlInvocazioneFinale = urlInvocazione;
+
 			List<ServizioWsdl> lst = null;
 			switch(listaRisorseApiRichiesta.getApiType()) {
 			case REST: throw new BadRequestException(ErrorCode.SYS_501);
 			case SOAP: lst = WsdlUtils.getInfoFromWsdl(body).stream()
 					.map(serv -> {
 						ServizioWsdl servizioW = new ServizioWsdl();
-						
+
 						servizioW.setPortType(serv.getNome());
+						servizioW.setUrlInvocazione(urlInvocazioneFinale);
 
 						List<OperazioneWsdl> operazioni = new ArrayList<>();
 
 						for(OperationInfo op: serv.getOperazioni().values()) {
 							OperazioneWsdl opW = new OperazioneWsdl();
-							
+
 							opW.setNome(op.getNome());
-							
+
 							opW.setSoapAction(op.getSoapActions().stream().findAny().orElse(new SOAPAction()).getValue());
 							opW.setMessaggio(op.getMessaggio().equals(org.govway.catalogo.core.business.utils.OperationInfo.MessaggioType.INPUT) ? MessaggioType.INPUT: MessaggioType.INPUT_OUTPUT);
 							operazioni.add(opW);
 						}
 						servizioW.setOperations(operazioni);
-						
-						
-						
+
 						return servizioW;
 					}).collect(Collectors.toList());
-					
+
 			}
-			
+
 			this.logger.info("Invocazione completata con successo");
 
 			return ResponseEntity.ok(lst);
