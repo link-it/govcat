@@ -91,9 +91,9 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   query: string = '';
 
   constructor(
-    private translate: TranslateService,
-    private configService: ConfigService,
-    private _elementRef: ElementRef
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    private readonly _elementRef: ElementRef
   ) {
     this.config = this.configService.getConfiguration();
     this._historyCount = this.config.AppConfig.Search.HistoryCount || this._historyCount;
@@ -352,13 +352,16 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
       _value = _field.callBack(_value);
     } else {
       switch (_field.type) {
-        case 'enum':
+        case 'enum': {
           const _enumKey = _field.enumValues?.[value];
           _value = _enumKey ? this.translate.instant(_enumKey) : value;
           break;
-        case 'boolean':
-          _value = value ? this.translate.instant(_field.booleanValues[0]) : this.translate.instant(_field.booleanValues[1]);
+        }
+        case 'boolean': {
+          const boolKey = value ? _field.booleanValues?.[0] : _field.booleanValues?.[1];
+          _value = boolKey ? this.translate.instant(boolKey) : value;
           break;
+        }
         case 'date':
           _value = moment(value.valueOf()).format(_field.format);
           break;
@@ -466,10 +469,10 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
 
   _onClickSearchInput(event: any) {
     if (!this.simple) {
-      if (!this.freeSearch) {
-        this._openSearch(event);
-      } else {
+      if (this.freeSearch) {
         this._closeSearchDropDpwn(event);
+      } else {
+        this._openSearch(event);
       }
     }
   }
@@ -531,10 +534,8 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     if (!this.__isEmptyValues(this._currentValues)) {
       const lStorage = Tools.EncodeDataOptions(this._currentValues);
       localStorage.setItem(`History_Pin_${this.historyStore}`, lStorage);
-    } else {
-      if (this.autoPin) {
-        localStorage.removeItem(`History_Pin_${this.historyStore}`);
-      }
+    } else if (this.autoPin) {
+      localStorage.removeItem(`History_Pin_${this.historyStore}`);
     }
   }
 
