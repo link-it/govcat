@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild, TemplateRef, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { inject, AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -63,7 +63,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'ClientDetailsComponent';
   readonly model: string = 'client';
 
@@ -212,22 +212,20 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   debugMandatoryFields: boolean = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
-    public tools: Tools,
-    private apiService: OpenAPIService,
-    private authenticationService: AuthenticationService,
-    private utils: UtilService,
-    private eventsManagerService: EventsManagerService
-  ) {
-    this.appConfig = this.configService.getConfiguration();
-  }
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
+  private readonly modalService = inject(BsModalService);
+  private readonly configService = inject(ConfigService);
+  public tools = inject(Tools);
+  private readonly apiService = inject(OpenAPIService);
+  private readonly authenticationService = inject(AuthenticationService);
+  private readonly utils = inject(UtilService);
+  private readonly eventsManagerService = inject(EventsManagerService);
 
   ngOnInit() {
+    this.appConfig = this.configService.getConfiguration();
+
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
     if (Tools.Configurazione) {
@@ -269,9 +267,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
       this.initTipiCertificato();
     });
-  }
-
-  ngOnDestroy() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -487,7 +482,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
       if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials) {
         controls.client_id.patchValue(data.dati_specifici.client_id)
-        // controls.client_id.setValidators(Validators.required);
       }
 
       if (this._isOauthAuthCode) {
@@ -624,7 +618,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           this._client = new Client({ ...response, rate_limiting: _rateLimiting, finalita: _finalita });
 
           this._isAnyCertificateUpdated ? this._loadAll() : null;
-          // this.id = this.client.id;
           this.save.emit({ id: this.id, payment: response, update: true });
         },
         error: (error: any) => {
@@ -1662,10 +1655,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('soggetti', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -1679,16 +1671,15 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
         }
       })
-      );
+    );
   }
 
   _checkSoggetto(event: any) {  
@@ -1713,11 +1704,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             controls.id_soggetto.clearValidators();
             controls.id_soggetto.updateValueAndValidity();
           } else {
+            const currentValue = controls.id_soggetto.value;
             this._elencoSoggetti = [...result];
             controls.id_soggetto.enable();
             controls.id_soggetto.setValidators(Validators.required);
             controls.id_soggetto.updateValueAndValidity();
             this._hideSoggettoDropdown = false;
+            setTimeout(() => controls.id_soggetto.setValue(currentValue));
           }
 
           this._formGroup.updateValueAndValidity();
@@ -1746,7 +1739,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _hasVerifica = (): boolean => {
     const monitoraggio: any = this.authenticationService._getConfigModule('monitoraggio');
 
-    // const _isSoggettoMonitoraggio = (monitoraggio.soggetto_modi?.nome == this.client.nome) || (monitoraggio.soggetto_pdnd?.nome === this.client.nome);
     const _showMonitoraggio: boolean = monitoraggio.abilitato;
     const _showVerifiche: boolean = monitoraggio.verifiche_abilitate;
 
