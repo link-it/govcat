@@ -1391,7 +1391,7 @@
 							"MISSING": "Cannot perform transition: missing data [{{datiMancanti}}]"
 						},
 						"STATE": "Invalid workflow state [{{stato}}]",
-						"TRANSITION": "State transition from [{{statoAttuale}}] to [{{statoDesiderato}}] not allowed"
+						"TRANSITION": "State transition not allowed"
 					},
 					"403": {
 						"ACTION": "Workflow action [{{azione}}] not authorized for user [{{utente}}]"

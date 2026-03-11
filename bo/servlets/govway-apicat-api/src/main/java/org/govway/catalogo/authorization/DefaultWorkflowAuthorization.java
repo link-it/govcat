@@ -39,6 +39,7 @@ import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.GrantType;
 import org.govway.catalogo.servlets.model.Ruolo;
 import org.govway.catalogo.servlets.model.Sottotipo;
+import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -311,15 +312,20 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 		if(lst.size()  == 0) {
 			return GrantType.NESSUNO;
 		}
-		
+
 		if(lst.contains(Ruolo.GESTORE)) {
 			return GrantType.SCRITTURA;
 		}
-		
+
+		// Verifica se il dato è sempre modificabile per i ruoli dell'utente
+		if(isDatoSempreModificabile(classe, lst)) {
+			return GrantType.SCRITTURA;
+		}
+
 		ConfigurazioneCambioStato stato = this.getStato(entity, this.getStatoEquivalente(classe, entity));
-		
+
 		boolean isRuoloAbilitato = false;
-		
+
 		List<ConfigurazioneRuolo> lstConfRuoli = lst.stream()
 					.map(r -> {
 						switch(r) {
@@ -332,7 +338,7 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 						}
 						return null;
 					}).collect(Collectors.toList());
-		
+
 		if(stato.getStatoSuccessivo() != null) {
 			for(ConfigurazioneRuolo r: stato.getStatoSuccessivo().getRuoliAbilitati()) {
 				if(lstConfRuoli.contains(r)) {
@@ -340,14 +346,60 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 				}
 			}
 		}
-		
+
 		if(stato.getDatiNonModificabili() != null && stato.getDatiNonModificabili().contains(classe) ||
 				!isRuoloAbilitato) {
 			return GrantType.LETTURA;
 		} else {
 			return GrantType.SCRITTURA;
 		}
-		
+
+	}
+
+	/**
+	 * Verifica se la classe di dato è configurata come sempre modificabile per almeno uno dei ruoli dell'utente.
+	 * @param classe la classe di dato da verificare
+	 * @param ruoliUtente i ruoli dell'utente sull'entità
+	 * @return true se il dato è sempre modificabile per l'utente
+	 */
+	private boolean isDatoSempreModificabile(ConfigurazioneClasseDato classe, List<Ruolo> ruoliUtente) {
+		List<ConfigurazioneDatoSempreModificabile> datiSempreModificabili = getDatiSempreModificabili();
+
+		if(datiSempreModificabili == null || datiSempreModificabili.isEmpty()) {
+			return false;
+		}
+
+		// Converti i ruoli dell'utente in ConfigurazioneRuolo
+		List<ConfigurazioneRuolo> lstConfRuoli = ruoliUtente.stream()
+				.map(r -> {
+					switch(r) {
+					case GESTORE: return ConfigurazioneRuolo.GESTORE;
+					case REFERENTE_TECNICO:
+					case REFERENTE: return ConfigurazioneRuolo.REFERENTE;
+					case REFERENTE_TECNICO_SUPERIORE:
+					case REFERENTE_SUPERIORE: return ConfigurazioneRuolo.REFERENTE_SUPERIORE;
+					case RICHIEDENTE: return ConfigurazioneRuolo.RICHIEDENTE;
+					}
+					return null;
+				})
+				.filter(r -> r != null)
+				.collect(Collectors.toList());
+
+		// Cerca se esiste una configurazione per questa classe di dato
+		for(ConfigurazioneDatoSempreModificabile config : datiSempreModificabili) {
+			if(config.getClasseDato().equals(classe)) {
+				// Verifica se almeno uno dei ruoli dell'utente è nella lista dei ruoli abilitati
+				if(config.getRuoli() != null) {
+					for(ConfigurazioneRuolo ruoloAbilitato : config.getRuoli()) {
+						if(lstConfRuoli.contains(ruoloAbilitato)) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	protected abstract ConfigurazioneWorkflow getWorkflow(ENTITY entity);
@@ -413,8 +465,16 @@ public abstract class DefaultWorkflowAuthorization<CREATE,UPDATE,ENTITY> extends
 	protected abstract List<Ruolo> getRuoli(ENTITY entity);
 
 	protected abstract void checkCampiObbligatori(List<ConfigurazioneClasseDato> datiObbligatori, ENTITY entity, String stato);
-	
+
 	public abstract String getStato(ENTITY entity);
 	public abstract String getStatoPrecedente(ENTITY entity);
-	
+
+	/**
+	 * Restituisce la lista dei dati sempre modificabili dalla configurazione.
+	 * Le sottoclassi devono implementare questo metodo per restituire la configurazione
+	 * specifica dell'entità (adesione o servizio).
+	 * @return la lista dei dati sempre modificabili, può essere null o vuota
+	 */
+	protected abstract List<ConfigurazioneDatoSempreModificabile> getDatiSempreModificabili();
+
 }

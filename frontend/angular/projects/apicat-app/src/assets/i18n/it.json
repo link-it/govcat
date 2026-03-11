@@ -1392,7 +1392,7 @@
 							"MISSING": ""
 						},
 						"STATE": "Stato workflow [{{stato}}] non valido",
-						"TRANSITION": "Transizione di stato da [{{statoAttuale}}] a [{{statoDesiderato}}] non consentita"
+						"TRANSITION": "Transizione di stato non consentita"
 					},
 					"403": {
 						"ACTION": "Azione workflow [{{azione}}] non autorizzata per l'utente [{{utente}}]"

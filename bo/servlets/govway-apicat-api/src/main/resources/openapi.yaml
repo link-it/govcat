@@ -5900,6 +5900,10 @@ components:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         mostra_versione:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        dati_sempre_modificabili:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
     ConfigurazioneProfilo:
       type: "object"
       required:
@@ -6464,6 +6468,10 @@ components:
           type: "integer"
           description: "Dimensione massima in megabytes per le immagini del servizio"
           default: 2
+        dati_sempre_modificabili:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -6491,6 +6499,18 @@ components:
         - referente
         - referente_superiore
         - gestore
+    ConfigurazioneDatoSempreModificabile:
+      type: "object"
+      required:
+        - classe_dato
+        - ruoli
+      properties:
+        classe_dato:
+          $ref: '#/components/schemas/ConfigurazioneClasseDato'
+        ruoli:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneStato:
       type: "object"
       required:
