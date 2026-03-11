@@ -384,6 +384,8 @@ public class StampeLabels {
         private String pubblica = "BaseURL pubblica";
         private String collaudo = "(Ambiente di Collaudo)";
         private String produzione = "(Ambiente di Produzione)";
+        private String rateLimitingCollaudo = "Rate Limiting (Ambiente di Collaudo)";
+        private String rateLimitingProduzione = "Rate Limiting (Ambiente di Produzione)";
 
         public String getPubbliche() {
             return pubbliche;
@@ -415,6 +417,22 @@ public class StampeLabels {
 
         public void setProduzione(String produzione) {
             this.produzione = produzione;
+        }
+
+        public String getRateLimitingCollaudo() {
+            return rateLimitingCollaudo;
+        }
+
+        public void setRateLimitingCollaudo(String rateLimitingCollaudo) {
+            this.rateLimitingCollaudo = rateLimitingCollaudo;
+        }
+
+        public String getRateLimitingProduzione() {
+            return rateLimitingProduzione;
+        }
+
+        public void setRateLimitingProduzione(String rateLimitingProduzione) {
+            this.rateLimitingProduzione = rateLimitingProduzione;
         }
     }
 

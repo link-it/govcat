@@ -356,6 +356,90 @@
       ]
     },
     {
+      "name": "ratelimiting_collaudo",
+      "condition": "rateLimitingCollaudo != null && rateLimitingCollaudo.row != null && !rateLimitingCollaudo.row.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "table",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "rateLimitingCollaudo.row",
+          "alternateRowStyle": true,
+          "headerRow": {
+            "height": 30,
+            "columns": [
+              {
+                "width": 555,
+                "labelDataPath": "rateLimitingCollaudo.titolo",
+                "styleRef": "nestedHeader"
+              }
+            ]
+          },
+          "dataRow": {
+            "minHeight": 30,
+            "columns": [
+              {
+                "width": 145,
+                "dataPath": "label",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              },
+              {
+                "width": 410,
+                "dataPath": "valore",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ratelimiting_produzione",
+      "condition": "rateLimitingProduzione != null && rateLimitingProduzione.row != null && !rateLimitingProduzione.row.isEmpty()",
+      "height": 93,
+      "elements": [
+        {
+          "type": "table",
+          "x": 0,
+          "y": 43,
+          "width": 555,
+          "dataPath": "rateLimitingProduzione.row",
+          "alternateRowStyle": true,
+          "headerRow": {
+            "height": 30,
+            "columns": [
+              {
+                "width": 555,
+                "labelDataPath": "rateLimitingProduzione.titolo",
+                "styleRef": "nestedHeader"
+              }
+            ]
+          },
+          "dataRow": {
+            "minHeight": 30,
+            "columns": [
+              {
+                "width": 145,
+                "dataPath": "label",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              },
+              {
+                "width": 410,
+                "dataPath": "valore",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "baseurl_collaudo",
       "condition": "baseUrlCollaudo != null && baseUrlCollaudo.row != null && !baseUrlCollaudo.row.isEmpty()",
       "height": 93,

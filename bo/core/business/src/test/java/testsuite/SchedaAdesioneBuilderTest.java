@@ -15,6 +15,7 @@ import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
@@ -189,6 +190,48 @@ public class SchedaAdesioneBuilderTest {
 
         byte[] pdf = builder.getSchedaAdesione(adesione);
         assertNotNull(pdf);
+    }
+
+    @Test
+    void testRateLimitingHandling() throws Exception {
+        // Crea API per associare i rate limiting
+        ApiEntity api = apiEntity("ApiTest", 1, "EROGATO_SOGGETTO_DOMINIO");
+        servizio.setApi(Set.of(api));
+
+        lenient().when(serviceBuilder.getUrlInvocazione(any(), eq(true))).thenReturn("URL_COLL");
+        lenient().when(serviceBuilder.getUrlInvocazione(any(), eq(false))).thenReturn("URL_PROD");
+
+        // Crea estensioni rate limiting per collaudo
+        EstensioneAdesioneEntity quotaCollaudo = new EstensioneAdesioneEntity();
+        quotaCollaudo.setNome("rate_limiting_quota");
+        quotaCollaudo.setValore("100");
+        quotaCollaudo.setAmbiente(AmbienteEnum.COLLAUDO);
+        quotaCollaudo.setApi(api);
+
+        EstensioneAdesioneEntity periodoCollaudo = new EstensioneAdesioneEntity();
+        periodoCollaudo.setNome("rate_limiting_periodo");
+        periodoCollaudo.setValore("minuto");
+        periodoCollaudo.setAmbiente(AmbienteEnum.COLLAUDO);
+        periodoCollaudo.setApi(api);
+
+        // Crea estensioni rate limiting per produzione
+        EstensioneAdesioneEntity quotaProduzione = new EstensioneAdesioneEntity();
+        quotaProduzione.setNome("rate_limiting_quota");
+        quotaProduzione.setValore("1000");
+        quotaProduzione.setAmbiente(AmbienteEnum.PRODUZIONE);
+        quotaProduzione.setApi(api);
+
+        EstensioneAdesioneEntity periodoProduzione = new EstensioneAdesioneEntity();
+        periodoProduzione.setNome("rate_limiting_periodo");
+        periodoProduzione.setValore("ora");
+        periodoProduzione.setAmbiente(AmbienteEnum.PRODUZIONE);
+        periodoProduzione.setApi(api);
+
+        adesione.setEstensioni(List.of(quotaCollaudo, periodoCollaudo, quotaProduzione, periodoProduzione));
+
+        byte[] pdf = builder.getSchedaAdesione(adesione);
+        assertNotNull(pdf);
+        assertTrue(pdf.length > 10);
     }
 
 

@@ -216,6 +216,33 @@ public class SchedaAdesionePdfGenerationTest {
         baseUrlProduzione.getRow().add(urlProd3);
         scheda.setBaseUrlProduzione(baseUrlProduzione);
 
+        // Rate Limiting Collaudo
+        ApiType rateLimitingCollaudo = new ApiType();
+        rateLimitingCollaudo.setTitolo("Rate Limiting (Ambiente di Collaudo)");
+
+        RowType rlColl1 = new RowType();
+        rlColl1.setLabel("API Pagamenti v2");
+        rlColl1.setValore("500 / minuto");
+        rateLimitingCollaudo.getRow().add(rlColl1);
+
+        scheda.setRateLimitingCollaudo(rateLimitingCollaudo);
+
+        // Rate Limiting Produzione
+        ApiType rateLimitingProduzione = new ApiType();
+        rateLimitingProduzione.setTitolo("Rate Limiting (Ambiente di Produzione)");
+
+        RowType rlProd1 = new RowType();
+        rlProd1.setLabel("API Pagamenti v2");
+        rlProd1.setValore("1000 / minuto");
+        rateLimitingProduzione.getRow().add(rlProd1);
+
+        RowType rlProd2 = new RowType();
+        rlProd2.setLabel("API Notifiche v1");
+        rlProd2.setValore("200 / ora");
+        rateLimitingProduzione.getRow().add(rlProd2);
+
+        scheda.setRateLimitingProduzione(rateLimitingProduzione);
+
         return scheda;
     }
 }

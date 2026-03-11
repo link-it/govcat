@@ -24,6 +24,8 @@
 			<xsd:element name="referents" type="ReferentsType" minOccurs="0"/>
 			<xsd:element name="baseUrlCollaudo" type="ApiType"/>
 			<xsd:element name="baseUrlProduzione" type="ApiType"/>
+			<xsd:element name="rateLimitingCollaudo" type="ApiType" minOccurs="0"/>
+			<xsd:element name="rateLimitingProduzione" type="ApiType" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 

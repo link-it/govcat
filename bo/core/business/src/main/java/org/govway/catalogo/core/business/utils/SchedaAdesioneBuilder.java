@@ -43,6 +43,7 @@ import org.govway.catalogo.core.orm.entity.AuthTypeEntity;
 import org.govway.catalogo.core.orm.entity.ClientAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.ClientEntity;
 import org.govway.catalogo.core.orm.entity.ErogazioneEntity;
+import org.govway.catalogo.core.orm.entity.EstensioneAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.EstensioneClientEntity;
 import org.govway.catalogo.core.orm.entity.PackageServizioEntity;
 import org.govway.catalogo.core.orm.entity.ReferenteAdesioneEntity;
@@ -328,8 +329,23 @@ public class SchedaAdesioneBuilder {
 		}
 		
 		a.setBaseUrlCollaudo(apiEC);
-		
+
 		a.setBaseUrlProduzione(apiEP);
+
+		// Rate Limiting Collaudo
+		ApiType rateLimitingCollaudoApi = getRateLimitingApi(adesione, AmbienteEnum.COLLAUDO, listApi, mostraVersione);
+		if(rateLimitingCollaudoApi != null && !rateLimitingCollaudoApi.getRow().isEmpty()) {
+			rateLimitingCollaudoApi.setTitolo(this.stampeLabels.getScheda().getBaseurl().getRateLimitingCollaudo());
+			a.setRateLimitingCollaudo(rateLimitingCollaudoApi);
+		}
+
+		// Rate Limiting Produzione
+		ApiType rateLimitingProduzioneApi = getRateLimitingApi(adesione, AmbienteEnum.PRODUZIONE, listApi, mostraVersione);
+		if(rateLimitingProduzioneApi != null && !rateLimitingProduzioneApi.getRow().isEmpty()) {
+			rateLimitingProduzioneApi.setTitolo(this.stampeLabels.getScheda().getBaseurl().getRateLimitingProduzione());
+			a.setRateLimitingProduzione(rateLimitingProduzioneApi);
+		}
+
 		try {
 			return StampePdf.getInstance().creaAdesionePDF(logger,a);
 		} catch (Exception e) {
@@ -348,6 +364,53 @@ public class SchedaAdesioneBuilder {
 		} else {
 			return servizio.getApi().stream().collect(Collectors.toList());
 		}
+	}
+
+	private ApiType getRateLimitingApi(AdesioneEntity adesione, AmbienteEnum ambiente, List<ApiEntity> listApi, boolean mostraVersione) {
+		ApiType rateLimitingApi = new ApiType();
+
+		// Filtra le estensioni per rate limiting
+		List<EstensioneAdesioneEntity> estensioniRateLimiting = adesione.getEstensioni().stream()
+				.filter(e -> e.getAmbiente().equals(ambiente) &&
+						(e.getNome().equals("rate_limiting_quota") || e.getNome().equals("rate_limiting_periodo")))
+				.collect(Collectors.toList());
+
+		// Raggruppa le estensioni per API (usando Optional per gestire null)
+		java.util.Map<Optional<ApiEntity>, List<EstensioneAdesioneEntity>> estensioniPerApi = estensioniRateLimiting.stream()
+				.collect(Collectors.groupingBy(e -> Optional.ofNullable(e.getApi()), java.util.LinkedHashMap::new, Collectors.toList()));
+
+		for(java.util.Map.Entry<Optional<ApiEntity>, List<EstensioneAdesioneEntity>> entry: estensioniPerApi.entrySet()) {
+			ApiEntity api = entry.getKey().orElse(null);
+			List<EstensioneAdesioneEntity> estensioni = entry.getValue();
+
+			String quota = estensioni.stream()
+					.filter(e -> e.getNome().equals("rate_limiting_quota"))
+					.findFirst()
+					.map(EstensioneAdesioneEntity::getValore)
+					.orElse(null);
+			String periodo = estensioni.stream()
+					.filter(e -> e.getNome().equals("rate_limiting_periodo"))
+					.findFirst()
+					.map(EstensioneAdesioneEntity::getValore)
+					.orElse(null);
+
+			if(quota != null && periodo != null) {
+				RowType row = new RowType();
+				if(api != null) {
+					// Mostra la versione dell'API nella label solo se configurato
+					String label = mostraVersione ?
+							api.getNome() + " v" + api.getVersione() :
+							api.getNome();
+					row.setLabel(label);
+				} else {
+					row.setLabel("Rate Limiting");
+				}
+				row.setValore(quota + " / " + periodo);
+				rateLimitingApi.getRow().add(row);
+			}
+		}
+
+		return rateLimitingApi;
 	}
 
 	private String getStato(String stato) {
