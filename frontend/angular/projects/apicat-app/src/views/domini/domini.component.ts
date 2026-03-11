@@ -16,11 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, inject, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Router } from '@angular/router';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -30,8 +28,8 @@ import { UtilService } from '@app/services/utils.service';
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
 
-import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { concat, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { CommonModule } from '@angular/common';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
@@ -47,11 +45,14 @@ import { HasPermissionDirective } from '@app/directives/has-permission/has-permi
   imports: [
     CommonModule,
     ...COMPONENTS_IMPORTS,
-    HasPermissionDirective
+    HasPermissionDirective,
+    InfiniteScrollDirective,
+    NgSelectModule,
+    AutoFillScrollDirective
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class DominiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class DominiComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'DominiComponent';
   readonly model: string = 'domini'; // <<==== parametro di routing per la _loadXXXXX
 
@@ -126,27 +127,22 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   soggettiInput$ = new Subject<string>();
   soggettiLoading: boolean = false;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
-    public tools: Tools,
-    private eventsManagerService: EventsManagerService,
-    public apiService: OpenAPIService,
-    private utils: UtilService,
-    private navigationService: NavigationService
-  ) {
-    this.config = this.configService.getConfiguration();
-
-    this._initSearchForm();
-  }
+  private readonly router = inject(Router);
+  private readonly configService = inject(ConfigService);
+  public tools = inject(Tools);
+  private readonly eventsManagerService = inject(EventsManagerService);
+  public apiService = inject(OpenAPIService);
+  private readonly utils = inject(UtilService);
+  private readonly navigationService = inject(NavigationService);
 
   @HostListener('window:resize') _onResize() {
     this.desktop = (window.innerWidth >= 992);
   }
 
   ngOnInit() {
+    this.config = this.configService.getConfiguration();
+    this._initSearchForm();
+
     this._canAddDomain = this.generalConfig?.dominio.multi_dominio || false;
     
     this.configService.getConfig(this.model).subscribe(
@@ -162,10 +158,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     });
   }
 
-  ngOnDestroy() {}
-
   ngAfterViewInit() {
-    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+    if (!(this.searchBarForm?._isPinned())) {
       setTimeout(() => {
         this._loadDomini();
       }, 100);
@@ -250,27 +244,6 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
       this._loadDomini(null, this._links.next.href);
     }
   }
-
-  // Da usare con nuovo componente <ui-form-live-search>
-  // getSearchSoggetto() {
-  //   return this.searchSoggetto.bind(this)
-  // }
-
-  // private searchSoggetto(term: string, page: number = 0) {
-  //     // if (!term) {
-  //     //     return of([]);
-  //     // }
-  //     return this.apiService.getDataPagination('soggetti', { q: term }, page, this.selectLimit, 'nome', 'asc').pipe(
-  //         // tap((response: any) => console.log(response)),
-  //         map((response: any) => response.map(
-  //             (item: any) => item.id_soggetto ? ({
-  //                 label: `${item.nome}`,
-  //                 // meta: `${item.organizzazione?.nome}`,
-  //                 value: item.id_soggetto
-  //             }) : null
-  //         ).filter((item: any) => item !== null))
-  //     )
-  // }
 
   _initSoggettiSelect(defaultValue: any[] = []) {
     this.soggetti$ = concat(

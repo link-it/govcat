@@ -90,20 +90,6 @@
                         <label class="col-form-label col-form-label-fix" for="id_soggetto">{{ 'APP.LABEL.soggetto' | translate }}</label>
                       </div>
                       <div class="col-sm-10">
-                        <!-- <ui-form-live-search
-                        bindLabel="label"
-                        bindValue="value"
-                        [placeholder]="'APP.MESSAGE.Empty' | translate"
-                        [formGroup]="_formGroup"
-                        formControlName="id_soggetto"
-                        [searchable]="true"
-                        [typeToSearchText]="'APP.MESSAGE.TypeToSearchText' | translate"
-                        [clearable]="true"
-                        [disabledSearch]="false"
-                        [isEdit]="true"
-                        [reduced]="true"
-                        [searchService]="getSearchSoggetto()"
-                      ></ui-form-live-search> -->
                       <ng-select class=""
                         [items]="(soggetti$ | async) || []"
                         [typeahead]="soggettiInput$"
