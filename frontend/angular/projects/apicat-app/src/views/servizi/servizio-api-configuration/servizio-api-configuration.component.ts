@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
+import { inject, AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
@@ -71,7 +71,6 @@ type Campo = {
 type Raggruppamento = {
   [gruppo: string]: { nome: string; valore: any }[];
 };
-
 
 @Component({
   selector: 'app-servizio-api-configuration',
@@ -186,17 +185,17 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   fieldToGroup = 'label_gruppo'; // nome_gruppo | label_gruppo
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly formBuilder: FormBuilder,
-    private readonly translate: TranslateService,
-    private readonly configService: ConfigService,
-    public tools: Tools,
-    public apiService: OpenAPIService,
-    public utils: UtilService,
-    public authenticationService: AuthenticationService
-  ) {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly translate = inject(TranslateService);
+  private readonly configService = inject(ConfigService);
+  private readonly tools = inject(Tools);
+  private readonly apiService = inject(OpenAPIService);
+  private readonly utils = inject(UtilService);
+  private readonly authenticationService = inject(AuthenticationService);
+
+  constructor() {
     this.route.data.subscribe((data) => {
       if (!data.componentBreadcrumbs) return;
       this._componentBreadcrumbs = data.componentBreadcrumbs;
@@ -231,10 +230,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         this.id = params['aid'];
         this.environmentId = params['id_ambiente'] || '';
 
-        if (!this.service) {
-          this._loadServizio();
-        } else {
+        if (this.service) {
           this._initBreadcrumb();
+        } else {
+          this._loadServizio();
         }
       }
     });
@@ -310,7 +309,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   private copySepcificationValue(overwrite: boolean = true) {
-    if (!overwrite && this._descrittoreCtrl.value && this._descrittoreCtrl.value.file) {
+    if (!overwrite && this._descrittoreCtrl?.value?.file) {
       return;
     }
     const configuration = this.servizioApi?.configurazione_collaudo;
@@ -495,7 +494,6 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   _downloadSpecifica(versione: number = 0) {
-    // this.__resetError();
     this._downloading = true;
     let aux: any;
     if (versione && versione > 0) {
@@ -525,21 +523,6 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   _onDescrittoreChange(value: any) {
     // this._newDescrittore = true;
-    // this.__descrittoreChange(value);
-  }
-
-  __descrittoreChange(value: any) {
-    // this.__resetGAT();
-
-    // const controls = this._formGroup.controls;
-    // controls.filename.patchValue(value ? value.file : null);
-    // controls.estensione.patchValue(value ? value.type : null);
-    // controls.content.patchValue(value ? value.data : null);
-    // controls.uuid.patchValue(value ? value.uuid : null);
-    // this._formGroup.updateValueAndValidity();
-    // if (value && controls.protocollo.value && controls.ruolo.value === this.EROGATO_SOGGETTO_DOMINIO) {
-    //     this.__loadRisorse();
-    // }
   }
 
   _getEService(environment: string) {
@@ -565,7 +548,6 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   _onSubmit(form: any) {
     if (this._isEdit && this._formGroup.valid) {
-      // this.__onUpdate(this.servizioApi.id_api, form);
       console.log('_onSubmit', form);
       this._onSaveApi(form);
     }
@@ -603,7 +585,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
   }
 
   _hasControlApiCustomPropertiesValue(name: string) {
-    return (this.acfg().controls[name] && this.acfg().controls[name].value);
+    return (this.acfg().controls[name]?.value);
   }
 
   _resetProprietaCustom() {
@@ -615,13 +597,13 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   _getGroupLabelMapper = (group: any): string => {
     const _srv: any = Tools.Configurazione.servizio;
-    let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+    let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
     return _proprietaCustom.find((item: any) => item[this.fieldToGroup] === group)?.label_gruppo;
   }
 
   _getGroupNameByFieldGroup(group: any) {
     const _srv: any = Tools.Configurazione.servizio;
-    let _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+    let _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
     return _proprietaCustom.find((item: any) => item[this.fieldToGroup] === group)?.nome_gruppo;
   }
 
@@ -728,7 +710,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
     const _srv: any = Tools.Configurazione.servizio;
-    const _proprietaCustom = (_srv && _srv.api) ? _srv.api.proprieta_custom : [];
+    const _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
     const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group || item.label_gruppo === group);
     const _pItem = _group.proprieta.find((item: any) => item.nome === name);
     const _label = _pItem.valori.find((item: any) => item.nome === cod)?.etichetta;
@@ -748,7 +730,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       }
     };
 
-    if (this._descrittoreCtrl.value && this._descrittoreCtrl.value.data && this._hasSpecifica) {
+    if (this._descrittoreCtrl.value?.data && this._hasSpecifica) {
       const file = this._descrittoreCtrl.value;
       const specificaFile: ApiDefinitionUpdateWithFile = {
         tipo_documento: 'nuovo',
@@ -757,7 +739,7 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         content: file.data
       };
       configuration.specifica = specificaFile;
-    } else if (this._descrittoreCtrl.value && this._descrittoreCtrl.value.uuid && this._hasSpecifica) {
+    } else if (this._descrittoreCtrl.value?.uuid && this._hasSpecifica) {
       const file = this._descrittoreCtrl.value;
       const specificaFile: ApiDefinitionUpdateWithReference = {
         tipo_documento: 'uuid_copia',
@@ -781,8 +763,21 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       request.configurazione_produzione = configuration;
     }
 
-    if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length) {
-      const result: ApiCustomProperty[] = this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom });
+    const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
+    const hasOriginalCustomProps = this.servizioApi?.proprieta_custom?.length;
+    if (hasCurrentCustomProps || hasOriginalCustomProps) {
+      const result: ApiCustomProperty[] = hasCurrentCustomProps
+        ? this.generaApiCustomPropertiesDaFlatMap(this._apiProprietaCustomGrouped, { proprieta_custom: formValues.proprieta_custom })
+        : [];
+
+      if (hasOriginalCustomProps) {
+        this.servizioApi!.proprieta_custom!.forEach((originalGroup: any) => {
+          if (!result.some(r => r.gruppo === originalGroup.gruppo)) {
+            result.push({ gruppo: originalGroup.gruppo, proprieta: [] });
+          }
+        });
+      }
+
       request.dati_custom = { proprieta_custom: result };
     }
 
@@ -851,8 +846,6 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
         this._descrittoreCtrl.clearValidators();
       }
       this._descrittoreCtrl.updateValueAndValidity();
-      // this.__protocolloChange();
-      this.__descrittoreChange(null);
     }, 100);
   }
 
@@ -870,10 +863,6 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       const _notModifiableFields = this.authenticationService._getClassesNotModifiable('servizio', 'api', this.service.stato);
       const _mandatoryFields = this.authenticationService._getFieldsMandatory('servizio', 'api', this.service.stato);
 
-      // const _diff = _mandatoryFields.filter( function( el ) {
-      //   return _notModifiableFields.indexOf( el ) < 0;
-      // } );
-
       _mandatoryFields.forEach((field: string) => {
 
           if(this.environmentId === 'collaudo' && field === 'url_collaudo') {
@@ -885,7 +874,6 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
           }
 
           if (controls[field]) {
-              // controls[field].enable();
               controls[field].setValidators([Validators.required]);
           }
           });

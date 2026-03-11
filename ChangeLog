@@ -1,3 +1,27 @@
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #211
+	Fix custom properties non eliminate in update API: in modifica di
+	una API, annullando le proprietà custom il body inviato ora include
+	i gruppi originali con proprietà vuote per consentire la cancellazione
+	lato backend.
+
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #210: aggiunta validazione campo note API -> note (255 caratteri)
+
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix #208: dropdown Soggetto in modifica Client mantiene il valore corretto
+
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix #207: modifica Dominio non perde più il flag skip_collaudo
+
 2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

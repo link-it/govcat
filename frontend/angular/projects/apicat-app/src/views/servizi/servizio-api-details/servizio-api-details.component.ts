@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { inject, AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -35,7 +35,7 @@ import { ServizioApiCreate } from './servizio-api-create';
 
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
-import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
+import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 import { Grant } from '@app/model/grant';
 
 import { CommonModule } from '@angular/common';
@@ -223,20 +223,20 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     hideVersions: boolean = false;
 
-    constructor(
-        private readonly route: ActivatedRoute,
-        private readonly router: Router,
-        private readonly formBuilder: FormBuilder,
-        private readonly translate: TranslateService,
-        private readonly modalService: BsModalService,
-        private readonly configService: ConfigService,
-        public tools: Tools,
-        public eventsManagerService: EventsManagerService,
-        public utilsLib: UtilsLib,
-        public apiService: OpenAPIService,
-        public utils: UtilService,
-        public authenticationService: AuthenticationService
-    ) {
+    private readonly route: ActivatedRoute = inject(ActivatedRoute);
+    private readonly router: Router = inject(Router);
+    private readonly formBuilder: FormBuilder = inject(FormBuilder);
+    private readonly translate: TranslateService = inject(TranslateService);
+    private readonly modalService: BsModalService = inject(BsModalService);
+    private readonly configService: ConfigService = inject(ConfigService);
+    public tools: Tools = inject(Tools);
+    public eventsManagerService: EventsManagerService = inject(EventsManagerService);
+    public utilsLib: UtilsLib = inject(UtilsLib);
+    public apiService: OpenAPIService = inject(OpenAPIService);
+    public utils: UtilService = inject(UtilService);
+    public authenticationService: AuthenticationService = inject(AuthenticationService);
+
+    constructor() {
         this.route.data.subscribe((data) => {
             if (!data.componentBreadcrumbs) return;
             this._componentBreadcrumbs = data.componentBreadcrumbs;
@@ -294,7 +294,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                                     this._initBreadcrumb();
                                     this._initRuoli();
                                     this._initOtherActionMenu();
-                    
+
                                     if (this.servizioApi) {
                                         this.eventsManagerService.broadcast('INIT_DATA');
                                     }
@@ -661,26 +661,52 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             }
         }
 
-        if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length && !this._isPDND) {
-            const proprieta_custom: ApiCustomProperty[] = [];
-            _newBody.dati_custom = {proprieta_custom: proprieta_custom};
-            Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
-                // Use nome_gruppo from the first item in the group instead of the grouping key
-                const firstItem = this._apiProprietaCustomGrouped[k][0];
-                const _customGrouped: any = {
-                    gruppo: firstItem.nome_gruppo,
-                    proprieta: []
-                };
-                this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
-                        _customGrouped.proprieta.push({
-                            nome: kk.nome,
-                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
-                        });
+        const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
+        const hasOriginalCustomProps = this._servizioApi?.proprieta_custom?.length;
+        if ((hasCurrentCustomProps || hasOriginalCustomProps) && !this._isPDND) {
+            const risultato: Record<string, { nome: string; valore: string }[]> = {};
+
+            if (hasCurrentCustomProps) {
+                Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
+                    this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
+                        const valoriGruppo = body.proprieta_custom?.[campo.nome_gruppo];
+
+                        if (!risultato[campo.nome_gruppo]) {
+                            risultato[campo.nome_gruppo] = [];
+                        }
+
+                        if (!valoriGruppo) return;
+
+                        const nome = campo.nome;
+                        const valore = valoriGruppo[nome];
+
+                        const valoreNonValido =
+                            valore === undefined ||
+                            valore === null ||
+                            (typeof valore === 'string' && valore.trim() === '') ||
+                            (typeof valore === 'number' && Number.isNaN(valore));
+
+                        if (!valoreNonValido) {
+                            risultato[campo.nome_gruppo].push({ nome, valore });
+                        }
+                    });
+                });
+            }
+
+            if (hasOriginalCustomProps) {
+                this._servizioApi?.proprieta_custom?.forEach((originalGroup: any) => {
+                    if (!risultato[originalGroup.gruppo]) {
+                        risultato[originalGroup.gruppo] = [];
                     }
                 });
-                proprieta_custom.push(_customGrouped);
-            });
+            }
+
+            _newBody.dati_custom = {
+                proprieta_custom: Object.entries(risultato).map(([gruppo, proprieta]) => ({
+                    gruppo,
+                    proprieta
+                }))
+            };
         }
 
         return this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
