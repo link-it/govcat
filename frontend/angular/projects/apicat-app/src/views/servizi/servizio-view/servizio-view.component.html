@@ -74,23 +74,32 @@
                       }
                     </div>
                     <div class="organizzazione-block stato-block mt-2">
-                      <p class="lead pt-3 pb-3 project__desc">
-                        <span class="text-break">{{ data?.dominio?.soggetto_referente?.organizzazione?.nome }}</span>
-                        <span class="mx-1">-</span>
-                        @if (!data?.dominio?.tag) {
-                          <span class="me-2">{{ data?.dominio?.nome }}</span>
-                        }
-                        @if (data?.dominio?.tag) {
-                          <span class="me-2">{{ data?.dominio?.tag }}</span>
-                        }
-                        @if (data) {
-                          <ui-data-type
-                            [data]="data"
-                            [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                            [config]="config">
-                          </ui-data-type>
-                        }
-                      </p>
+                      <div class="d-flex align-items-center pt-3 pb-3">
+                        <p class="lead project__desc cursor-pointer"
+                          [tooltip]="('APP.TOOLTIP.SoggettoReferente' | translate: { soggetto: data?.dominio?.soggetto_referente?.nome } )"
+                          [placement]="'top'"
+                          [delay]="300"
+                          container="body"
+                        >
+                          <span class="text-break">{{ data?.dominio?.soggetto_referente?.organizzazione?.nome }}</span>
+                          <span class="mx-1">-</span>
+                          @if (!data?.dominio?.tag) {
+                            <span class="me-2">{{ data?.dominio?.nome }}</span>
+                          }
+                          @if (data?.dominio?.tag) {
+                            <span class="me-2">{{ data?.dominio?.tag }}</span>
+                          }
+                        </p>
+                        <p>
+                          @if (data) {
+                            <ui-data-type
+                              [data]="data"
+                              [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                              [config]="config">
+                            </ui-data-type>
+                          }
+                        </p>
+                      </div>
                     </div>
                     <div class="descrizione-block mt-3">
                       <p>{{ data.descrizione_sintetica }}</p>

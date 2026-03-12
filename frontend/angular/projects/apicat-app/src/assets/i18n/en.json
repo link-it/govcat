@@ -2170,6 +2170,7 @@
 			"ServiceList": "Service list",
 			"Show": "Show",
 			"ShowDetails": "Show details",
+			"SoggettoReferente": "Referent subject: {{soggetto}}",
 			"StatoConfigurazioneAutomatica": "Automatic Configuration status",
 			"StatusChange": "Status change",
 			"TempoRispostaServizio": "Service Response Time",
