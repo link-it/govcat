@@ -276,34 +276,86 @@
       ]
     },
     {
-      "name": "configs_collaudo_DISABLED",
-      "condition": "false",
+      "name": "configs_collaudo",
+      "condition": "configsCollaudo != null && configsCollaudo.row != null && !configsCollaudo.row.isEmpty()",
       "height": 93,
       "elements": [
         {
-          "type": "nested",
+          "type": "table",
           "x": 0,
           "y": 43,
           "width": 555,
-          "dataPath": "configs.collaudo",
-          "headerLabel": "Configurazioni (Ambiente di collaudo)",
-          "headerStyleRef": "nestedHeader"
+          "dataPath": "configsCollaudo.row",
+          "alternateRowStyle": true,
+          "headerRow": {
+            "height": 30,
+            "columns": [
+              {
+                "width": 555,
+                "labelDataPath": "configsCollaudo.titolo",
+                "styleRef": "nestedHeader"
+              }
+            ]
+          },
+          "dataRow": {
+            "minHeight": 30,
+            "columns": [
+              {
+                "width": 145,
+                "dataPath": "label",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              },
+              {
+                "width": 410,
+                "dataPath": "valore",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              }
+            ]
+          }
         }
       ]
     },
     {
-      "name": "configs_produzione_DISABLED",
-      "condition": "false",
+      "name": "configs_produzione",
+      "condition": "configsProduzione != null && configsProduzione.row != null && !configsProduzione.row.isEmpty()",
       "height": 93,
       "elements": [
         {
-          "type": "nested",
+          "type": "table",
           "x": 0,
           "y": 43,
           "width": 555,
-          "dataPath": "configs.produzione",
-          "headerLabel": "Configurazioni (Ambiente di produzione)",
-          "headerStyleRef": "nestedHeader"
+          "dataPath": "configsProduzione.row",
+          "alternateRowStyle": true,
+          "headerRow": {
+            "height": 30,
+            "columns": [
+              {
+                "width": 555,
+                "labelDataPath": "configsProduzione.titolo",
+                "styleRef": "nestedHeader"
+              }
+            ]
+          },
+          "dataRow": {
+            "minHeight": 30,
+            "columns": [
+              {
+                "width": 145,
+                "dataPath": "label",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              },
+              {
+                "width": 410,
+                "dataPath": "valore",
+                "styleRef": "tableDataCell",
+                "stretchWithOverflow": true
+              }
+            ]
+          }
         }
       ]
     },

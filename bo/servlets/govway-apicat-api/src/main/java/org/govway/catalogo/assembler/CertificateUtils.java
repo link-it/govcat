@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.security.Principal;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Date;
 import java.util.Optional;
 
 import org.govway.catalogo.core.orm.entity.ClientEntity;
@@ -56,6 +57,22 @@ public class CertificateUtils {
 			// Ottieni il soggetto (subject) del certificato
 			Principal subject = certificate.getSubjectDN();
 			return subject.getName();
+		}
+	}
+
+	public static Date getNotAfter(DocumentoEntity documento) throws Exception {
+		if(documento.getRawData().length == 0) {
+			throw new Exception("certificato vuoto");
+		}
+
+		// Carica il certificato
+		try(InputStream certificateFile = new ByteArrayInputStream(documento.getRawData())) {
+
+			CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+			X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(certificateFile);
+
+			// Ottieni la data di scadenza del certificato
+			return certificate.getNotAfter();
 		}
 	}		
 	

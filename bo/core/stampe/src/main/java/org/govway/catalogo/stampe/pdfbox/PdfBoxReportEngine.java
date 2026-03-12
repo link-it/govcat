@@ -57,6 +57,34 @@ public class PdfBoxReportEngine {
     private final ObjectMapper objectMapper;
     private final Map<String, PDFont> fontCache;
 
+    /**
+     * Context class to track pagination state during PDF generation
+     */
+    private static class PageContext {
+        PDDocument document;
+        PDPage currentPage;
+        PDPageContentStream contentStream;
+        float currentY;
+        float marginTop;
+        float marginBottom;
+        float marginLeft;
+        float pageWidth;
+        float pageHeight;
+        PDRectangle pageSize;
+
+        float getContentStartY() {
+            return pageHeight - marginTop;
+        }
+
+        float getMinY() {
+            return marginBottom;
+        }
+
+        boolean needsNewPage(float requiredHeight) {
+            return (currentY - requiredHeight) < marginBottom;
+        }
+    }
+
     // TrueType font file paths in resources
     private static final Map<String, String> TRUETYPE_FONTS = new HashMap<>();
 
@@ -88,6 +116,42 @@ public class PdfBoxReportEngine {
     }
 
     /**
+     * Create a new page and update the PageContext
+     */
+    private void createNewPage(PageContext ctx) throws IOException {
+        // Close current content stream if exists
+        if (ctx.contentStream != null) {
+            ctx.contentStream.close();
+        }
+
+        // Create new page
+        ctx.currentPage = new PDPage(ctx.pageSize);
+        ctx.document.addPage(ctx.currentPage);
+
+        // Create new content stream
+        ctx.contentStream = new PDPageContentStream(ctx.document, ctx.currentPage);
+
+        // Reset Y position to top of new page
+        ctx.currentY = ctx.getContentStartY();
+
+        logger.debug("Created new page, total pages: {}", ctx.document.getNumberOfPages());
+    }
+
+    /**
+     * Check if we need a new page and create one if necessary
+     * @param ctx The page context
+     * @param requiredHeight The height needed for the next element
+     * @return true if a new page was created
+     */
+    private boolean checkAndCreateNewPage(PageContext ctx, float requiredHeight) throws IOException {
+        if (ctx.needsNewPage(requiredHeight)) {
+            createNewPage(ctx);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Load TrueType fonts from resources into the document
      */
     private void loadTrueTypeFonts(PDDocument document) throws IOException {
@@ -97,14 +161,15 @@ public class PdfBoxReportEngine {
 
             try (InputStream fontStream = getClass().getResourceAsStream(fontPath)) {
                 if (fontStream != null) {
-                    PDFont font = PDType0Font.load(document, fontStream);
+                    // Load TrueType font with explicit UTF-8/Unicode support
+                    PDFont font = PDType0Font.load(document, fontStream, true);
                     fontCache.put(fontKey, font);
                     logger.debug("Loaded TrueType font: {} from {}", fontKey, fontPath);
                 } else {
-                    logger.warn("TrueType font not found: {}", fontPath);
+                    logger.warn("TrueType font not found: {}, will use fallback", fontPath);
                 }
             } catch (IOException e) {
-                logger.warn("Failed to load TrueType font: {}", fontPath, e);
+                logger.warn("Failed to load TrueType font: {}, will use fallback", fontPath, e);
             }
         }
     }
@@ -123,15 +188,20 @@ public class PdfBoxReportEngine {
             // Load TrueType fonts from resources
             loadTrueTypeFonts(document);
 
+            // Initialize page context for pagination support
+            PageContext ctx = new PageContext();
+            ctx.document = document;
+            ctx.pageSize = new PDRectangle(template.getPage().getWidth(), template.getPage().getHeight());
+            ctx.marginTop = template.getPage().getMarginTop();
+            ctx.marginBottom = template.getPage().getMarginBottom();
+            ctx.marginLeft = template.getPage().getMarginLeft();
+            ctx.pageWidth = template.getPage().getWidth();
+            ctx.pageHeight = template.getPage().getHeight();
+
             // Create first page
-            PDRectangle pageSize = new PDRectangle(template.getPage().getWidth(), template.getPage().getHeight());
-            PDPage page = new PDPage(pageSize);
-            document.addPage(page);
+            createNewPage(ctx);
 
-            // Render sections
-            float currentY = template.getPage().getHeight() - template.getPage().getMarginTop();
-
-            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+            try {
                 for (SectionConfig section : template.getSections()) {
                     // Check condition
                     if (section.getCondition() != null) {
@@ -141,8 +211,13 @@ public class PdfBoxReportEngine {
                         }
                     }
 
-                    // Render section elements
-                    currentY = renderSection(document, contentStream, page, template, section, dataModel, currentY);
+                    // Render section elements with pagination support
+                    renderSectionWithPagination(ctx, template, section, dataModel);
+                }
+            } finally {
+                // Close the last content stream
+                if (ctx.contentStream != null) {
+                    ctx.contentStream.close();
                 }
             }
 
@@ -151,6 +226,109 @@ public class PdfBoxReportEngine {
             document.save(baos);
             return baos.toByteArray();
         }
+    }
+
+    /**
+     * Render a section with pagination support
+     */
+    private void renderSectionWithPagination(PageContext ctx, ReportTemplate template,
+                                              SectionConfig section, Object dataModel) throws Exception {
+
+        for (ElementConfig element : section.getElements()) {
+            // Check element condition
+            if (element.getCondition() != null) {
+                boolean shouldRender = evaluateCondition(element.getCondition(), dataModel);
+                if (!shouldRender) {
+                    continue;
+                }
+            }
+
+            // Render based on element type - only if it has content
+            if (element instanceof TextFieldConfig) {
+                TextFieldConfig textConfig = (TextFieldConfig) element;
+                if (hasContent(dataModel, textConfig.getDataPath(), textConfig.getStaticText())) {
+                    // Estimate height needed for text
+                    float estimatedHeight = estimateTextHeight(template, textConfig, dataModel);
+                    checkAndCreateNewPage(ctx, estimatedHeight + 20); // Add margin
+
+                    ctx.currentY = renderTextFieldFlowing(ctx.contentStream, template, textConfig, dataModel, ctx.currentY);
+
+                    // Add spacing based on element style
+                    if ("subtitleBox".equals(textConfig.getStyleRef())) {
+                        ctx.currentY -= 15;
+                    } else if ("sectionTitleBox".equals(textConfig.getStyleRef())) {
+                        ctx.currentY -= 3;
+                    } else {
+                        ctx.currentY -= 5;
+                    }
+                }
+            } else if (element instanceof ImageFieldConfig) {
+                ImageFieldConfig imageConfig = (ImageFieldConfig) element;
+                if (hasContent(dataModel, imageConfig.getDataPath(), null)) {
+                    // Check if image fits on current page
+                    checkAndCreateNewPage(ctx, imageConfig.getHeight() + 10);
+
+                    ctx.currentY = renderImageFieldFlowing(ctx.document, ctx.contentStream, template, imageConfig, dataModel, ctx.currentY);
+                    ctx.currentY -= 5;
+                }
+            } else if (element instanceof TableConfig) {
+                TableConfig tableConfig = (TableConfig) element;
+                Object dataValue = getNestedValue(dataModel, tableConfig.getDataPath());
+                if (dataValue instanceof Collection && !((Collection<?>) dataValue).isEmpty()) {
+                    // Render table with pagination
+                    renderTableWithPagination(ctx, template, tableConfig, dataModel);
+                    ctx.currentY -= 15;
+                }
+            } else if (element instanceof NestedReportConfig) {
+                NestedReportConfig nestedConfig = (NestedReportConfig) element;
+                Object dataValue = getNestedValue(dataModel, nestedConfig.getDataPath());
+                if (dataValue instanceof Collection && !((Collection<?>) dataValue).isEmpty()) {
+                    // Render nested element with pagination
+                    renderNestedElementWithPagination(ctx, template, nestedConfig, dataModel);
+                    ctx.currentY -= 15;
+                }
+            }
+        }
+    }
+
+    /**
+     * Estimate the height needed for a text field
+     */
+    private float estimateTextHeight(ReportTemplate template, TextFieldConfig config, Object dataModel) throws IOException {
+        String text = config.getStaticText();
+        if (text == null && config.getDataPath() != null) {
+            Object value = getNestedValue(dataModel, config.getDataPath());
+            text = value != null ? value.toString() : "";
+        }
+
+        if (text == null || text.isEmpty()) {
+            return 0;
+        }
+
+        StyleConfig style = config.getStyleRef() != null ? template.getStyles().get(config.getStyleRef()) : null;
+        FontConfig fontConfig = style != null && style.getFontRef() != null ?
+            template.getFonts().get(style.getFontRef()) : null;
+
+        if (fontConfig == null) {
+            fontConfig = new FontConfig();
+        }
+
+        PDFont font = resolveFont(fontConfig);
+        float fontSize = fontConfig.getSize();
+
+        float paddingLeft = 0, paddingRight = 0, paddingTop = 0, paddingBottom = 0;
+        if (style != null && style.getPadding() != null) {
+            paddingLeft = style.getPadding().getLeft();
+            paddingRight = style.getPadding().getRight();
+            paddingTop = style.getPadding().getTop();
+            paddingBottom = style.getPadding().getBottom();
+        }
+
+        float availableWidth = config.getWidth() - paddingLeft - paddingRight;
+        java.util.List<String> lines = wrapText(text, font, fontSize, availableWidth);
+
+        float textHeight = lines.size() * fontSize * 1.2f + paddingTop + paddingBottom;
+        return Math.max(textHeight, config.getHeight());
     }
 
     private float renderSection(PDDocument document, PDPageContentStream contentStream, PDPage page,
@@ -592,6 +770,57 @@ public class PdfBoxReportEngine {
     }
 
     /**
+     * Sanitize text for PDF rendering - handles UTF-8 characters that might cause issues
+     */
+    private String sanitizeTextForPdf(String text, PDFont font) {
+        if (text == null) {
+            return null;
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            try {
+                // Try to encode the character with the font
+                font.encode(String.valueOf(c));
+                result.append(c);
+            } catch (Exception e) {
+                // Character can't be encoded - try to find a replacement
+                char replacement = getReplacementChar(c);
+                if (replacement != '\0') {
+                    result.append(replacement);
+                } else {
+                    // Skip the character if no replacement found
+                    logger.debug("Skipping unencodable character: U+{}", String.format("%04X", (int) c));
+                }
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Get a replacement character for characters that can't be encoded
+     */
+    private char getReplacementChar(char c) {
+        // Map common problematic characters to their ASCII equivalents
+        switch (c) {
+            case '\u2018': // Left single quotation mark
+            case '\u2019': // Right single quotation mark
+                return '\'';
+            case '\u201C': // Left double quotation mark
+            case '\u201D': // Right double quotation mark
+                return '"';
+            case '\u2013': // En dash
+            case '\u2014': // Em dash
+                return '-';
+            case '\u2026': // Ellipsis
+                return '.';
+            default:
+                return '\0'; // No replacement
+        }
+    }
+
+    /**
      * Wrap text to fit within specified width
      */
     private java.util.List<String> wrapText(String text, PDFont font, float fontSize, float maxWidth) throws IOException {
@@ -605,6 +834,9 @@ public class PdfBoxReportEngine {
         text = text.replace('\u00A0', ' ')  // Non-breaking space
                    .replace('\u2007', ' ')  // Figure space
                    .replace('\u202F', ' '); // Narrow no-break space
+
+        // Sanitize text for the specific font being used
+        text = sanitizeTextForPdf(text, font);
 
         // Check if text fits in one line
         float textWidth = font.getStringWidth(text) / 1000 * fontSize;
@@ -968,6 +1200,100 @@ public class PdfBoxReportEngine {
         }
     }
 
+    /**
+     * Render table with pagination support - handles tables that span multiple pages
+     */
+    private void renderTableWithPagination(PageContext ctx, ReportTemplate template,
+                                            TableConfig config, Object dataModel) throws Exception {
+
+        Object dataValue = getNestedValue(dataModel, config.getDataPath());
+        if (!(dataValue instanceof Collection)) {
+            logger.warn("Table data path does not resolve to a collection: {}", config.getDataPath());
+            return;
+        }
+
+        Collection<?> rows = (Collection<?>) dataValue;
+        if (rows.isEmpty()) {
+            return;
+        }
+
+        float startX = ctx.marginLeft + config.getX();
+
+        // Render header - check if it fits
+        if (config.getHeaderRow() != null) {
+            float headerHeight = config.getHeaderRow().getHeight();
+            checkAndCreateNewPage(ctx, headerHeight + 30); // Header + at least one row
+            ctx.currentY = renderTableHeaderRow(ctx.contentStream, template, config, dataModel, startX, ctx.currentY);
+        }
+
+        // Render data rows with pagination
+        int rowIndex = 0;
+        for (Object row : rows) {
+            // Estimate row height
+            float rowHeight = estimateTableRowHeight(template, config, row);
+
+            // Check if row fits on current page
+            if (ctx.needsNewPage(rowHeight)) {
+                createNewPage(ctx);
+                // Re-render header on new page
+                if (config.getHeaderRow() != null) {
+                    ctx.currentY = renderTableHeaderRow(ctx.contentStream, template, config, dataModel, startX, ctx.currentY);
+                }
+            }
+
+            ctx.currentY = renderTableDataRowInternal(ctx.contentStream, template, config, row, rowIndex, startX, ctx.currentY);
+            rowIndex++;
+        }
+    }
+
+    /**
+     * Estimate the height needed for a table row
+     */
+    private float estimateTableRowHeight(ReportTemplate template, TableConfig config, Object row) throws IOException {
+        TableConfig.DataRowConfig dataConfig = config.getDataRow();
+        float requiredHeight = dataConfig.getMinHeight();
+
+        // Get font config from first column's style
+        StyleConfig firstColumnStyle = null;
+        if (!dataConfig.getColumns().isEmpty()) {
+            TableConfig.ColumnConfig firstColumn = dataConfig.getColumns().get(0);
+            firstColumnStyle = firstColumn.getStyleRef() != null ?
+                template.getStyles().get(firstColumn.getStyleRef()) : null;
+        }
+
+        FontConfig fontConfig = firstColumnStyle != null && firstColumnStyle.getFontRef() != null ?
+            template.getFonts().get(firstColumnStyle.getFontRef()) : null;
+        if (fontConfig == null) {
+            fontConfig = new FontConfig();
+        }
+        PDFont font = resolveFont(fontConfig);
+        float fontSize = fontConfig.getSize();
+        float paddingLeft = firstColumnStyle != null && firstColumnStyle.getPadding() != null ? firstColumnStyle.getPadding().getLeft() : 0;
+        float paddingRight = firstColumnStyle != null && firstColumnStyle.getPadding() != null ? firstColumnStyle.getPadding().getRight() : 0;
+        float paddingTop = firstColumnStyle != null && firstColumnStyle.getPadding() != null ? firstColumnStyle.getPadding().getTop() : 0;
+        float paddingBottom = firstColumnStyle != null && firstColumnStyle.getPadding() != null ? firstColumnStyle.getPadding().getBottom() : 0;
+
+        // Check each column for wrapped text
+        for (TableConfig.ColumnConfig column : dataConfig.getColumns()) {
+            String cellText = "";
+            if (column.getDataPath() != null) {
+                Object value = getNestedValue(row, column.getDataPath());
+                cellText = value != null ? value.toString() : "";
+            }
+
+            if (cellText != null && !cellText.isEmpty()) {
+                float availableWidth = column.getWidth() - paddingLeft - paddingRight;
+                java.util.List<String> lines = wrapText(cellText, font, fontSize, availableWidth);
+                float textHeight = lines.size() * fontSize * 1.2f + paddingTop + paddingBottom;
+                if (textHeight > requiredHeight) {
+                    requiredHeight = textHeight;
+                }
+            }
+        }
+
+        return requiredHeight;
+    }
+
     private float renderTable(PDPageContentStream contentStream, ReportTemplate template,
                               TableConfig config, Object dataModel, float baseY) throws Exception {
 
@@ -999,6 +1325,111 @@ public class PdfBoxReportEngine {
         }
 
         return currentY;
+    }
+
+    /**
+     * Render nested element with pagination support
+     */
+    private void renderNestedElementWithPagination(PageContext ctx, ReportTemplate template,
+                                                    NestedReportConfig config, Object dataModel) throws Exception {
+
+        Object dataValue = getNestedValue(dataModel, config.getDataPath());
+        if (!(dataValue instanceof Collection)) {
+            logger.warn("Nested data path does not resolve to a collection: {}", config.getDataPath());
+            return;
+        }
+
+        Collection<?> items = (Collection<?>) dataValue;
+        if (items.isEmpty()) {
+            return;
+        }
+
+        float startX = ctx.marginLeft + config.getX();
+        float tableWidth = config.getWidth();
+
+        // Get style for header
+        StyleConfig headerStyle = config.getHeaderStyleRef() != null ?
+            template.getStyles().get(config.getHeaderStyleRef()) : null;
+
+        // Render header label if present
+        if (config.getHeaderLabel() != null && !config.getHeaderLabel().isEmpty()) {
+            float headerHeight = 30;
+            checkAndCreateNewPage(ctx, headerHeight + 50); // Header + some content
+            renderTableCell(ctx.contentStream, template, config.getHeaderLabel(), headerStyle,
+                startX, ctx.currentY, tableWidth, headerHeight, false);
+            ctx.currentY -= headerHeight;
+        }
+
+        // Get font config for data cells
+        FontConfig fontConfig = headerStyle != null && headerStyle.getFontRef() != null ?
+            template.getFonts().get(headerStyle.getFontRef()) : null;
+        if (fontConfig == null) {
+            fontConfig = new FontConfig();
+        }
+        PDFont font = resolveFont(fontConfig);
+        float fontSize = fontConfig.getSize();
+
+        // Style for data cells
+        StyleConfig dataStyle = template.getStyles().get("tableDataCell");
+
+        // Render each item with pagination
+        int rowIndex = 0;
+        for (Object item : items) {
+            // Estimate height for this item
+            float itemHeight = estimateNestedItemHeight(item, font, fontSize, tableWidth, dataStyle);
+
+            // Check if item fits on current page
+            if (ctx.needsNewPage(itemHeight)) {
+                createNewPage(ctx);
+                // Re-render header on new page
+                if (config.getHeaderLabel() != null && !config.getHeaderLabel().isEmpty()) {
+                    float headerHeight = 30;
+                    renderTableCell(ctx.contentStream, template, config.getHeaderLabel() + " (cont.)", headerStyle,
+                        startX, ctx.currentY, tableWidth, headerHeight, false);
+                    ctx.currentY -= headerHeight;
+                }
+            }
+
+            ctx.currentY = renderNestedItemRows(ctx.contentStream, template, item, startX, ctx.currentY, tableWidth, dataStyle, font, fontSize, rowIndex);
+            rowIndex++;
+        }
+    }
+
+    /**
+     * Estimate the height needed for a nested item
+     */
+    private float estimateNestedItemHeight(Object item, PDFont font, float fontSize, float tableWidth, StyleConfig dataStyle) throws IOException {
+        float labelWidth = 145;
+        float valueWidth = tableWidth - labelWidth;
+        float minRowHeight = 25;
+        float totalHeight = 0;
+
+        String[][] properties = {
+            {"tipoReferente", "Tipo"},
+            {"nome", "Dati referente"},
+            {"cognome", "Cognome"},
+            {"businessTelefono", "Telefono"},
+            {"businessEmail", "Email"},
+            {"organization", "Organizzazione"}
+        };
+
+        float paddingLeft = dataStyle != null && dataStyle.getPadding() != null ? dataStyle.getPadding().getLeft() : 10;
+        float paddingRight = dataStyle != null && dataStyle.getPadding() != null ? dataStyle.getPadding().getRight() : 10;
+
+        for (String[] prop : properties) {
+            String propertyName = prop[0];
+            Object value = getNestedValue(item, propertyName);
+
+            if (value != null && !value.toString().isEmpty()) {
+                float availableWidth = valueWidth - paddingLeft - paddingRight;
+                java.util.List<String> lines = wrapText(value.toString(), font, fontSize, availableWidth);
+                float textHeight = lines.size() * fontSize * 1.2f + 16;
+                float rowHeight = Math.max(minRowHeight, textHeight);
+                totalHeight += rowHeight;
+            }
+        }
+
+        return totalHeight + 5; // Add spacing between items
     }
 
     /**
@@ -1408,7 +1839,14 @@ public class PdfBoxReportEngine {
             }
         }
 
-        return fontCache.getOrDefault(fontKey, PDType1Font.TIMES_ROMAN);
+        PDFont font = fontCache.get(fontKey);
+        if (font != null) {
+            return font;
+        }
+
+        // TrueType font not found - use Type1 fallback
+        logger.warn("TrueType font '{}' not available, using Type1 fallback (limited UTF-8 support)", fontKey);
+        return PDType1Font.TIMES_ROMAN;
     }
 
     private Color parseColor(String colorHex) {

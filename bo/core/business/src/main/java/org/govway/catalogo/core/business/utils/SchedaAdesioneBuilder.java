@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
+
 import jakarta.xml.bind.JAXBException;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
@@ -178,6 +180,10 @@ public class SchedaAdesioneBuilder {
 		ConfigType collaudoConfig = new ConfigType();
 		ConfigType produzioneConfig = new ConfigType();
 
+		// Nuove sezioni configsCollaudo e configsProduzione per visualizzazione nel PDF
+		ApiType configsCollaudoApi = new ApiType();
+		ApiType configsProduzioneApi = new ApiType();
+
 		for(ClientAdesioneEntity client: adesione.getClient()) {
 
 			if(client.getClient()!=null) {
@@ -194,18 +200,44 @@ public class SchedaAdesioneBuilder {
 				row2.setLabel(this.stampeLabels.getScheda().getLabel().getProfilo());
 				row2.setValore(this.configurazione.getProfili().get(client.getProfilo()));
 				apiConf.getRow().add(row2);
-				
+
 				// Common Name
 				RowType row3 = new RowType();
 //				row3.setLabel("Common Name");
 				row3.setLabel(getLabelConfClient(client.getClient()));
 				row3.setValore(getValoreConfClient(client.getClient()));
-				
+
 				apiConf.getRow().add(row3);
+
+				// Aggiungi alle nuove sezioni configs per il PDF
+				// Riga: Client - Profilo - Valore Config - Scadenza Certificato
+				RowType configRow = new RowType();
+				configRow.setLabel(client.getClient().getNome());
+
+				StringBuilder configValue = new StringBuilder();
+				String profilo = this.configurazione.getProfili().get(client.getProfilo());
+				if(profilo != null) {
+					configValue.append(profilo);
+				}
+				String valoreConf = getValoreConfClient(client.getClient());
+				if(valoreConf != null && !valoreConf.isEmpty()) {
+					if(configValue.length() > 0) configValue.append(" | ");
+					configValue.append(getLabelConfClient(client.getClient())).append(": ").append(valoreConf);
+				}
+				// Scadenza certificato di autenticazione
+				String scadenza = getScadenzaCertificatoAutenticazione(client.getClient());
+				if(scadenza != null) {
+					if(configValue.length() > 0) configValue.append(" | ");
+					configValue.append(this.stampeLabels.getScheda().getLabel().getScadenzaCertificato()).append(": ").append(scadenza);
+				}
+				configRow.setValore(configValue.toString());
+
 				if(client.getClient().getAmbiente().equals(AmbienteEnum.COLLAUDO)) {
 					collaudoConfig.getApi().add(apiConf);
+					configsCollaudoApi.getRow().add(configRow);
 				} else {
 					produzioneConfig.getApi().add(apiConf);
+					configsProduzioneApi.getRow().add(configRow);
 				}
 			}
 		}
@@ -235,6 +267,16 @@ public class SchedaAdesioneBuilder {
 		configs.getCollaudo().add(collaudoConfig);
 		configs.getProduzione().add(produzioneConfig);
 		a.setConfigs(configs);
+
+		// Imposta le nuove sezioni configs per il PDF
+		if(!configsCollaudoApi.getRow().isEmpty()) {
+			configsCollaudoApi.setTitolo(this.stampeLabels.getScheda().getBaseurl().getConfigurazioniCollaudo());
+			a.setConfigsCollaudo(configsCollaudoApi);
+		}
+		if(!configsProduzioneApi.getRow().isEmpty()) {
+			configsProduzioneApi.setTitolo(this.stampeLabels.getScheda().getBaseurl().getConfigurazioniProduzione());
+			a.setConfigsProduzione(configsProduzioneApi);
+		}
 
 		if(mostraReferenti) {
 			ReferentsType referents = new ReferentsType();
@@ -483,9 +525,63 @@ public class SchedaAdesioneBuilder {
 		case OAUTH_AUTHORIZATION_CODE:return getClientId(client.getEstensioni());
 		case OAUTH_CLIENT_CREDENTIALS:return getClientId(client.getEstensioni());
 		}
-		
+
 		this.logger.debug("Implementare authtype: " + client.getAuthType());
 		return null;
+	}
+
+	/**
+	 * Restituisce la data di scadenza del certificato di autenticazione, se presente.
+	 * Viene restituita solo per i tipi di autenticazione che prevedono un certificato di autenticazione.
+	 */
+	private String getScadenzaCertificatoAutenticazione(ClientEntity client) {
+		AuthType authType = client.getAuthType();
+		if(authType == null) {
+			return null;
+		}
+
+		// Verifica se il tipo di autenticazione prevede un certificato di autenticazione
+		switch(authType) {
+		case HTTPS:
+		case HTTPS_SIGN:
+		case HTTPS_PDND:
+		case HTTPS_PDND_SIGN:
+			// Questi tipi prevedono un certificato di autenticazione
+			return getScadenzaDaCertificato(client.getEstensioni(), CERTIFICATO_AUTENTICAZIONE);
+		default:
+			// Altri tipi non hanno certificato di autenticazione
+			return null;
+		}
+	}
+
+	/**
+	 * Estrae la data di scadenza da un certificato X.509 presente nelle estensioni.
+	 */
+	private String getScadenzaDaCertificato(Set<EstensioneClientEntity> estensioni, String key) {
+		Optional<EstensioneClientEntity> oE = estensioni.stream().filter(e -> e.getNome().equals(key)).findAny();
+		if(oE.isPresent() && oE.get().getDocumento() != null && oE.get().getDocumento().getRawData() != null) {
+
+			// Carica il certificato
+			try(InputStream certificateFile = new ByteArrayInputStream(oE.get().getDocumento().getRawData())) {
+
+				CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+				X509Certificate certificate = (X509Certificate) certificateFactory.generateCertificate(certificateFile);
+
+				// Ottieni la data di scadenza del certificato
+				Date notAfter = certificate.getNotAfter();
+				if(notAfter != null) {
+					SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+					return sdf.format(notAfter);
+				}
+				return null;
+
+			} catch(Exception e) {
+				this.logger.error("Errore nella lettura della scadenza di un certificato: " + e.getMessage());
+				return null;
+			}
+		} else {
+			return null;
+		}
 	}
 
 	private String getUsername(Set<EstensioneClientEntity> estensioni) {

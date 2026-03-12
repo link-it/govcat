@@ -262,6 +262,7 @@ public class StampeLabels {
         private String clientId = "Client ID";
         private String autenticazione = "Autenticazione";
         private String firma = "Firma";
+        private String scadenzaCertificato = "Scadenza Certificato";
 
         public String getAderente() {
             return aderente;
@@ -374,6 +375,14 @@ public class StampeLabels {
         public void setFirma(String firma) {
             this.firma = firma;
         }
+
+        public String getScadenzaCertificato() {
+            return scadenzaCertificato;
+        }
+
+        public void setScadenzaCertificato(String scadenzaCertificato) {
+            this.scadenzaCertificato = scadenzaCertificato;
+        }
     }
 
     /**
@@ -386,6 +395,8 @@ public class StampeLabels {
         private String produzione = "(Ambiente di Produzione)";
         private String rateLimitingCollaudo = "Rate Limiting (Ambiente di Collaudo)";
         private String rateLimitingProduzione = "Rate Limiting (Ambiente di Produzione)";
+        private String configurazioniCollaudo = "Configurazioni (Ambiente di Collaudo)";
+        private String configurazioniProduzione = "Configurazioni (Ambiente di Produzione)";
 
         public String getPubbliche() {
             return pubbliche;
@@ -433,6 +444,22 @@ public class StampeLabels {
 
         public void setRateLimitingProduzione(String rateLimitingProduzione) {
             this.rateLimitingProduzione = rateLimitingProduzione;
+        }
+
+        public String getConfigurazioniCollaudo() {
+            return configurazioniCollaudo;
+        }
+
+        public void setConfigurazioniCollaudo(String configurazioniCollaudo) {
+            this.configurazioniCollaudo = configurazioniCollaudo;
+        }
+
+        public String getConfigurazioniProduzione() {
+            return configurazioniProduzione;
+        }
+
+        public void setConfigurazioniProduzione(String configurazioniProduzione) {
+            this.configurazioniProduzione = configurazioniProduzione;
         }
     }
 

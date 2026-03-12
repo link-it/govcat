@@ -20,9 +20,11 @@
 package org.govway.catalogo.controllers.csv;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,6 +71,8 @@ public class AdesioneCsvBuilder {
 	private Map<Long, Set<EstensioneClientEntity>> clientEstensioniCache;
 	// Cache per i subject dei certificati X.509 (evita di parsare più volte lo stesso certificato)
 	private Map<String, String> certificatoSubjectCache;
+	// Cache per le date di scadenza dei certificati X.509
+	private Map<String, Date> certificatoScadenzaCache;
 
 	public AdesioneCsvBuilder() {
 		this.custom = new ArrayList<>();
@@ -82,6 +86,7 @@ public class AdesioneCsvBuilder {
 		this.servizioCache = new ConcurrentHashMap<>();
 		this.clientEstensioniCache = new ConcurrentHashMap<>();
 		this.certificatoSubjectCache = new ConcurrentHashMap<>();
+		this.certificatoScadenzaCache = new ConcurrentHashMap<>();
 	}
 
 	private void clearCaches() {
@@ -89,6 +94,7 @@ public class AdesioneCsvBuilder {
 		if (this.servizioCache != null) this.servizioCache.clear();
 		if (this.clientEstensioniCache != null) this.clientEstensioniCache.clear();
 		if (this.certificatoSubjectCache != null) this.certificatoSubjectCache.clear();
+		if (this.certificatoScadenzaCache != null) this.certificatoScadenzaCache.clear();
 	}
 
 	private AdesioneCsv toListEntries(AdesioneEntity adesione) {
@@ -135,9 +141,10 @@ public class AdesioneCsvBuilder {
 			a.setRateLimitingCollaudo(getRateLimitingValoreAggregato(adesione, AmbienteEnum.COLLAUDO));
 			a.setProprietaCollaudo(getProprietaAggregata(adesione, AmbienteEnum.COLLAUDO));
 
-			// Autenticazione Valore e Applicativi Autorizzati aggregati da ClientAdesioneEntity
+			// Autenticazione Valore, Scadenza Certificato e Applicativi Autorizzati aggregati da ClientAdesioneEntity
 			List<ClientAdesioneEntity> clientsCollaudo = getClients(adesione, AmbienteEnum.COLLAUDO);
 			a.setAutenticazioneValoreCollaudo(getAutenticazioneValoreAggregato(clientsCollaudo));
+			a.setScadenzaCertificatoCollaudo(getScadenzaCertificatoAggregato(clientsCollaudo));
 			a.setApplicativiAutorizzatiCollaudo(getApplicativiAutorizzatiAggregato(clientsCollaudo));
 		}
 
@@ -146,9 +153,10 @@ public class AdesioneCsvBuilder {
 			a.setRateLimitingProduzione(getRateLimitingValoreAggregato(adesione, AmbienteEnum.PRODUZIONE));
 			a.setProprietaProduzione(getProprietaAggregata(adesione, AmbienteEnum.PRODUZIONE));
 
-			// Autenticazione Valore e Applicativi Autorizzati aggregati da ClientAdesioneEntity
+			// Autenticazione Valore, Scadenza Certificato e Applicativi Autorizzati aggregati da ClientAdesioneEntity
 			List<ClientAdesioneEntity> clientsProduzione = getClients(adesione, AmbienteEnum.PRODUZIONE);
 			a.setAutenticazioneValoreProduzione(getAutenticazioneValoreAggregato(clientsProduzione));
+			a.setScadenzaCertificatoProduzione(getScadenzaCertificatoAggregato(clientsProduzione));
 			a.setApplicativiAutorizzatiProduzione(getApplicativiAutorizzatiAggregato(clientsProduzione));
 		}
 
@@ -503,6 +511,53 @@ public class AdesioneCsvBuilder {
 				return null;
 			}
 		});
+	}
+
+	/**
+	 * Ottiene la data di scadenza del certificato X.509 dalla cache, oppure la parsa e la salva in cache.
+	 */
+	private Date getCachedCertificatoScadenza(DocumentoEntity documento) {
+		if (documento == null || documento.getUuid() == null) {
+			return null;
+		}
+
+		String uuid = documento.getUuid();
+		return this.certificatoScadenzaCache.computeIfAbsent(uuid, id -> {
+			try {
+				return CertificateUtils.getNotAfter(documento);
+			} catch (Exception e) {
+				this.logger.error("Errore nel parsing della scadenza del certificato con UUID [" + uuid + "]: " + e.getMessage());
+				return null;
+			}
+		});
+	}
+
+	/**
+	 * Ottiene la scadenza del certificato di autenticazione aggregata da tutti i client.
+	 */
+	private String getScadenzaCertificatoAggregato(List<ClientAdesioneEntity> clients) {
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		List<String> scadenze = new ArrayList<>();
+
+		for(ClientAdesioneEntity clientAdesione: clients) {
+			ClientEntity client = clientAdesione.getClient();
+			if(client != null) {
+				Set<EstensioneClientEntity> estensioni = getCachedClientEstensioni(client);
+				DocumentoEntity documento = getDocumentoEstensione(estensioni, AUTENTICAZIONE_CERTIFICATO_PROPERTY);
+				if(documento != null) {
+					Date scadenza = getCachedCertificatoScadenza(documento);
+					if(scadenza != null) {
+						String scadenzaStr = client.getNome() + ": " + sdf.format(scadenza);
+						scadenze.add(scadenzaStr);
+					}
+				}
+			}
+		}
+
+		if(scadenze.isEmpty()) {
+			return null;
+		}
+		return String.join("\n", scadenze);
 	}
 
 	private static String getReferentiString(Set<ReferenteAdesioneEntity> referenti) {

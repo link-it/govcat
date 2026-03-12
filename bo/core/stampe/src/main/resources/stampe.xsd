@@ -21,6 +21,8 @@
 			<xsd:element name="data_stampa" type="xsd:string"/>
 			<xsd:element name="api" type="ApiType"/>
 			<xsd:element name="configs" type="ConfigsType"/>
+			<xsd:element name="configsCollaudo" type="ApiType" minOccurs="0"/>
+			<xsd:element name="configsProduzione" type="ApiType" minOccurs="0"/>
 			<xsd:element name="referents" type="ReferentsType" minOccurs="0"/>
 			<xsd:element name="baseUrlCollaudo" type="ApiType"/>
 			<xsd:element name="baseUrlProduzione" type="ApiType"/>
