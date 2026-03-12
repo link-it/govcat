@@ -691,6 +691,12 @@
         }
       ]
     },
+    "dati_sempre_modificabili": [
+      {
+        "classe_dato": "referenti",
+        "ruoli": ["referente", "referente_superiore", "gestore"]
+      }
+    ],
     "workflow": {
       "stati": [
         "bozza",
@@ -1206,6 +1212,12 @@
     "visualizza_elenco_client_esistenti": false,
     "referente_obbligatorio": false,
     "workflow_produzione_senza_collaudo": "disabilitato",
+    "dati_sempre_modificabili": [
+      {
+        "classe_dato": "referenti",
+        "ruoli": ["referente", "referente_superiore", "gestore"]
+      }
+    ],
     "workflow": {
       "stati": [
         "bozza",

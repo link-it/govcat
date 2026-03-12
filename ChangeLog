@@ -1,3 +1,21 @@
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #213: aggiunto, nella vetrina del servizio, tooltip con soggetto
+	referente del dominio sull'organizzazione/dominio.
+
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #204: aggiunto URL di esposizione anche per le API SOAP.
+	Componente WSDL aggiornato per mostrare l'endpoint esposto.
+
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [CI/CD]
+	Modificata pipeline GitHub per ignorare branch di sviluppo
+	"angular-21-standalone".
+
 2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

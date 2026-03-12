@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -172,18 +172,18 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         [AccordionType.ACCORDION_PRODUZIONE]: ClassiEnum.PRODUZIONE
     };
 
-    constructor(
-        private readonly route: ActivatedRoute,
-        private readonly router: Router,
-        private readonly translate: TranslateService,
-        private readonly modalService: BsModalService,
-        private readonly configService: ConfigService,
-        private readonly eventsManagerService: EventsManagerService,
-        private readonly apiService: OpenAPIService,
-        private readonly authenticationService: AuthenticationService,
-        private readonly utils: UtilService,
-        private readonly ckeckProvider: CkeckProvider
-    ) {
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
+    private readonly translate = inject(TranslateService);
+    private readonly modalService = inject(BsModalService);
+    private readonly configService = inject(ConfigService);
+    private readonly eventsManagerService = inject(EventsManagerService);
+    private readonly apiService = inject(OpenAPIService);
+    private readonly authenticationService = inject(AuthenticationService);
+    private readonly utils = inject(UtilService);
+    private readonly ckeckProvider = inject(CkeckProvider);
+
+    constructor() {
         this.route.data.subscribe((data) => {
             if (!data.serviceBreadcrumbs) return;
             this.serviceBreadcrumbs = data.serviceBreadcrumbs;
@@ -306,7 +306,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             };
         }
         const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === statoAdesione) : -1;
-        const currentState = (index !== -1) ? workflow.cambi_stato[index] : null;
+        const currentState = (index === -1) ? null : workflow.cambi_stato[index];
         if (statoAdesione === Tools.StatoAdesione.BOZZA.Code && this.adesione.skip_collaudo) {
             const stati_ulteriori = currentState?.stati_ulteriori;
             if (stati_ulteriori?.length > 0) {
@@ -327,7 +327,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const stato = currentState.stato_successivo?.nome || currentState.nome;
             const workflow = Tools.Configurazione?.adesione.workflow || null;
             const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === stato) : -1;
-            return (index !== -1) ? workflow.cambi_stato[index] : null;
+            return (index === -1) ? null : workflow.cambi_stato[index];
         }
         return null;
     }
@@ -691,6 +691,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     canAddMapper = (): boolean => {
+        const _grant: any = this.grant?.ruoli || [];
+        if (this.authenticationService._isDatoSempreModificabile('adesione', 'referenti', _grant)) {
+            return true;
+        }
         const _cnm = this.authenticationService._getClassesNotModifiable('adesione', 'adesione', this.adesione?.stato);
         const _lstPerm = [];
         if (_.indexOf(_cnm, 'referente') === -1) {

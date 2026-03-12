@@ -29,6 +29,7 @@
  * Do not edit the class manually.
  */
 import { ConfigurazioneApi } from './configurazioneApi';
+import { DatoSempreModificabile } from './configurazioneAdesione';
 
 
 export interface ConfigurazioneServizio {
@@ -36,5 +37,6 @@ export interface ConfigurazioneServizio {
     adesioni_multiple: boolean;
     api: ConfigurazioneApi;
     max_image_size?: number;
+    dati_sempre_modificabili?: DatoSempreModificabile[];
 }
 
