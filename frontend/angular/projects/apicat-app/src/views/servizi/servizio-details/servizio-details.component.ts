@@ -169,7 +169,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         {
             title: 'APP.SERVICES.TITLE.ComponentsInformations',
             subTitle: 'APP.SERVICES.TITLE.ComponentsInformations_sub',
-            buttonTitle: 'SERVICES.TITLE.ComponentsInformations',
+            buttonTitle: 'APP.SERVICES.TITLE.ComponentsInformations',
             buttonIcon: 'bi bi-code-slash',
             route: 'componenti',
             show: true

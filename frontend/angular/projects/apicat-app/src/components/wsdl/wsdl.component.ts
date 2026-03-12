@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -33,10 +33,10 @@ import { OpenAPIService } from '@app/services/openAPI.service';
   standalone: true,
   imports: [CommonModule, TooltipModule, TranslateModule]
 })
-export class WsdlComponent implements OnInit {
+export class WsdlComponent implements OnChanges {
 
-  @Input('api') api: any = null;
-  @Input('environment') environment: string = '';
+  @Input() api: any = null;
+  @Input() environment: string = '';
   
   // @ViewChild('wsdlui') wsdlDom!: ElementRef<HTMLDivElement>;
 
@@ -52,13 +52,7 @@ export class WsdlComponent implements OnInit {
   _error: boolean = false;
   _errorMsg: string = '';
 
-  constructor(
-    private elementRef: ElementRef,
-    public apiService: OpenAPIService
-  ) { }
-
-  ngOnInit() {
-  }
+  apiService = inject(OpenAPIService);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
@@ -81,7 +75,9 @@ export class WsdlComponent implements OnInit {
           document: {
             type: 'uuid',
             uuid: _uuid
-          }
+          },
+          id_api: this.api.id_api,
+          ambiente: this.environment
         };
   
         this._loading = true;

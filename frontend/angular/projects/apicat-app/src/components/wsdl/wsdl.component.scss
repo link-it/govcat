@@ -38,7 +38,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     font-size: 18px;
     margin-bottom: 12px;
   }
-  
+
+  .opblock {
+      border: 1px solid #000;
+      border-radius: 4px;
+      box-shadow: 0 0 3px rgba(0, 0, 0, .19);
+      margin: 0 0 15px;
+
+      &.opblock-url {
+        background: rgba(97, 175, 254, .1);
+        border-color: #61affe;
+      }
+  }
+
+
   .opblock-tag {
     color: #3b4151;
     font-family: sans-serif;

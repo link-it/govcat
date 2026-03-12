@@ -2420,7 +2420,8 @@
 				"Operation": "Operation",
 				"Pattern": "Pattern",
 				"SOAPAction": "SOAPAction",
-				"Version": "Version"
+				"Version": "Version",
+				"UrlInvocazione": "Display URL"
 			}
 		}
 	}
