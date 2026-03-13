@@ -123,6 +123,15 @@
   },
   "overrides": {
     "autoprefixer": "10.4.5",
-    "memfs": "4.17.0"
+    "memfs": "4.17.0",
+    "@swimlane/ngx-charts": {
+      "@angular/animations": "$@angular/animations",
+      "@angular/cdk": "$@angular/cdk",
+      "@angular/core": "$@angular/core",
+      "@angular/forms": "$@angular/forms",
+      "@angular/common": "$@angular/common",
+      "@angular/platform-browser": "$@angular/platform-browser",
+      "@angular/platform-browser-dynamic": "$@angular/platform-browser-dynamic"
+    }
   }
 }
