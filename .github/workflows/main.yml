@@ -2,8 +2,7 @@ name: GovCat workflow for BE and FE
 
 on:
   push:
-    branches-ignore:
-      - 'angular-21-standalone'
+    branches: [ "*" ]
     tags:
       - '*'  # Trigger per tutti i tag
   pull_request:
