@@ -6770,6 +6770,10 @@ components:
         profilo_modifica_email_richiede_verifica:
           type: "boolean"
           description: "Se true, la modifica dell'email del profilo richiede verifica via codice"
+        coordinatore_abilitato:
+          type: "boolean"
+          description: "Se true, il ruolo coordinatore è disponibile per gli utenti. Default: true"
+          default: true
     ConfigurazioneTipiDistribuzione:
       type: "string"
       enum:

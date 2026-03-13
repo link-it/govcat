@@ -1358,6 +1358,11 @@
 				"Unauthorized": "Non autorizzato",
 				"Unprocessable Entity": "Entità non elaborabile",
 				"UT": {
+					"400": {
+						"COORDINATORE": {
+							"DISABLED": "Ruolo coordinatore non abilitato"
+						}
+					},
 					"403": {
 						"DEFAULT": "Utente non abilitato",
 						"EMAIL": {
