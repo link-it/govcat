@@ -181,12 +181,6 @@ jobs:
         with:
           name: fe-third-party-licenses
           path: frontend/angular/third-party-licenses
-      - name: Build packages
-        run: |
-          set -euo pipefail
-          cd frontend/angular/
-          npm ci
-          npm run build-packages
       - name: Build
         run: |
           set -euo pipefail
