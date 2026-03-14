@@ -35,10 +35,11 @@ describe('DominiComponent', () => {
     Tools.TipiVisibilitaServizio = [];
     Tools.VisibilitaServizioEnum = {};
     component = new DominiComponent(
-      mockRoute, mockRouter, mockTranslate,
+      mockRouter,
       mockConfigService, mockTools, mockEventsManager,
       mockApiService, mockUtils, mockNavigationService
     );
+    component.ngOnInit();
   });
 
   afterEach(() => {

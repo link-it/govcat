@@ -42,6 +42,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
     isGestore: vi.fn().mockReturnValue(false),
     canChangeStatus: vi.fn().mockReturnValue(false),
     _getClassesNotModifiable: vi.fn().mockReturnValue([]),
+    _isDatoSempreModificabile: vi.fn().mockReturnValue(false),
   } as any;
   const mockUtils = {
     GetErrorMsg: vi.fn().mockReturnValue('Error'),

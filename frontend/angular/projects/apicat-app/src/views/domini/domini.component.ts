@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, inject, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 
@@ -127,13 +127,15 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   soggettiInput$ = new Subject<string>();
   soggettiLoading: boolean = false;
 
-  private readonly router = inject(Router);
-  private readonly configService = inject(ConfigService);
-  public tools = inject(Tools);
-  private readonly eventsManagerService = inject(EventsManagerService);
-  public apiService = inject(OpenAPIService);
-  private readonly utils = inject(UtilService);
-  private readonly navigationService = inject(NavigationService);
+  constructor(
+    private readonly router: Router,
+    private readonly configService: ConfigService,
+    public tools: Tools,
+    private readonly eventsManagerService: EventsManagerService,
+    public apiService: OpenAPIService,
+    private readonly utils: UtilService,
+    private readonly navigationService: NavigationService
+  ) {}
 
   @HostListener('window:resize') _onResize() {
     this.desktop = (window.innerWidth >= 992);

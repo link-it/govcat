@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { inject, AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
@@ -185,17 +185,17 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
 
   fieldToGroup = 'label_gruppo'; // nome_gruppo | label_gruppo
 
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly formBuilder = inject(FormBuilder);
-  private readonly translate = inject(TranslateService);
-  private readonly configService = inject(ConfigService);
-  private readonly tools = inject(Tools);
-  private readonly apiService = inject(OpenAPIService);
-  private readonly utils = inject(UtilService);
-  private readonly authenticationService = inject(AuthenticationService);
-
-  constructor() {
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly formBuilder: FormBuilder,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    private readonly tools: Tools,
+    private readonly apiService: OpenAPIService,
+    private readonly utils: UtilService,
+    private readonly authenticationService: AuthenticationService
+  ) {
     this.route.data.subscribe((data) => {
       if (!data.componentBreadcrumbs) return;
       this._componentBreadcrumbs = data.componentBreadcrumbs;

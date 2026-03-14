@@ -293,7 +293,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -307,7 +307,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -321,7 +321,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({ from: 'dashboard' }),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -335,7 +335,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({ from: 'other' }),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -360,7 +360,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, localRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -383,7 +383,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         localConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -400,7 +400,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         localConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -418,7 +418,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -435,7 +435,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -451,7 +451,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -478,7 +478,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, localRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -494,7 +494,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );
@@ -509,7 +509,7 @@ describe('ServizioApiConfigurationComponent', () => {
         queryParams: of({}),
         parent: { params: of({}) }
       } as any;
-      const comp = new ServizioApiConfigurationComponent(
+      const comp = new (ServizioApiConfigurationComponent as any)(
         localRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockConfigService, mockTools, mockApiService, mockUtils, mockAuthenticationService
       );

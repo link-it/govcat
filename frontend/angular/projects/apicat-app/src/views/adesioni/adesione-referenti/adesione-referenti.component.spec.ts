@@ -33,6 +33,7 @@ describe('AdesioneReferentiComponent', () => {
     isGestore: vi.fn().mockReturnValue(false),
     canChangeStatus: vi.fn().mockReturnValue(false),
     _getClassesNotModifiable: vi.fn().mockReturnValue([]),
+    _isDatoSempreModificabile: vi.fn().mockReturnValue(false),
   } as any;
 
   beforeEach(() => {
@@ -613,8 +614,8 @@ describe('AdesioneReferentiComponent', () => {
 
   // -------- ngOnDestroy --------
 
-  it('ngOnDestroy should not throw', () => {
-    expect(() => component.ngOnDestroy()).not.toThrow();
+  it('ngOnDestroy should not exist (component does not implement OnDestroy)', () => {
+    expect((component as any).ngOnDestroy).toBeUndefined();
   });
 
   // -------- _onSort --------

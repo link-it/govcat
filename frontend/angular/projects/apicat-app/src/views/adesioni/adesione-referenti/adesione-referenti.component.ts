@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, inject, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -142,17 +142,17 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked {
 
   _updateMapper: string = '';
 
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly modalService = inject(BsModalService);
-  private readonly translate = inject(TranslateService);
-  private readonly configService = inject(ConfigService);
-  public tools = inject(Tools);
-  public apiService = inject(OpenAPIService);
-  public utilService = inject(UtilService);
-  public authenticationService = inject(AuthenticationService);
-
-  constructor() {
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly modalService: BsModalService,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    public tools: Tools,
+    public apiService: OpenAPIService,
+    public utilService: UtilService,
+    public authenticationService: AuthenticationService
+  ) {
     this.route.data.subscribe((data) => {
       if(!data.serviceBreadcrumbs)return;
       this._serviceBreadcrumbs = data.serviceBreadcrumbs;

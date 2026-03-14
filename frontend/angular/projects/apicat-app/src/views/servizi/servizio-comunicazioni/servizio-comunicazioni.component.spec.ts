@@ -549,25 +549,24 @@ describe('ServizioComunicazioniComponent', () => {
     });
 
     it('should include /view in url when localStorage SERVIZI_VIEW is TRUE', () => {
-      const spy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('TRUE');
+      localStorage.setItem('SERVIZI_VIEW', 'TRUE');
       component.service = { nome: 'Svc', versione: '1', stato: 'bozza' };
       component.id = 5;
       component._fromDashboard = false;
       component._componentBreadcrumbs = null;
       component._initBreadcrumb();
       expect(component.breadcrumbs[1].url).toContain('/view');
-      spy.mockRestore();
+      localStorage.removeItem('SERVIZI_VIEW');
     });
 
     it('should NOT include /view in url when localStorage SERVIZI_VIEW is not TRUE', () => {
-      const spy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
+      localStorage.removeItem('SERVIZI_VIEW');
       component.service = { nome: 'Svc', versione: '1', stato: 'bozza' };
       component.id = 5;
       component._fromDashboard = false;
       component._componentBreadcrumbs = null;
       component._initBreadcrumb();
       expect(component.breadcrumbs[1].url).not.toContain('/view');
-      spy.mockRestore();
     });
 
     it('should set tooltip from service stato translation', () => {

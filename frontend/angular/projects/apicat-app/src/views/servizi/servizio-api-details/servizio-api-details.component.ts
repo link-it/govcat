@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { inject, AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -223,20 +223,20 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     hideVersions: boolean = false;
 
-    private readonly route: ActivatedRoute = inject(ActivatedRoute);
-    private readonly router: Router = inject(Router);
-    private readonly formBuilder: FormBuilder = inject(FormBuilder);
-    private readonly translate: TranslateService = inject(TranslateService);
-    private readonly modalService: BsModalService = inject(BsModalService);
-    private readonly configService: ConfigService = inject(ConfigService);
-    public tools: Tools = inject(Tools);
-    public eventsManagerService: EventsManagerService = inject(EventsManagerService);
-    public utilsLib: UtilsLib = inject(UtilsLib);
-    public apiService: OpenAPIService = inject(OpenAPIService);
-    public utils: UtilService = inject(UtilService);
-    public authenticationService: AuthenticationService = inject(AuthenticationService);
-
-    constructor() {
+    constructor(
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
+        private readonly formBuilder: FormBuilder,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
+        public tools: Tools,
+        public eventsManagerService: EventsManagerService,
+        public utilsLib: UtilsLib,
+        public apiService: OpenAPIService,
+        public utils: UtilService,
+        public authenticationService: AuthenticationService
+    ) {
         this.route.data.subscribe((data) => {
             if (!data.componentBreadcrumbs) return;
             this._componentBreadcrumbs = data.componentBreadcrumbs;

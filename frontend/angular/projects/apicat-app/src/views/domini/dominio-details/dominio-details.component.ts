@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { inject, AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -114,14 +114,16 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
   anagrafiche: any;
 
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly configService = inject(ConfigService);
-  public tools = inject(Tools);
-  public apiService = inject(OpenAPIService);
-  private readonly utils = inject(UtilService);
-  private readonly translate = inject(TranslateService);
-  private readonly modalService = inject(BsModalService);
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly configService: ConfigService,
+    public tools: Tools,
+    public apiService: OpenAPIService,
+    private readonly utils: UtilService,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService
+  ) {}
 
   ngOnInit() {
     this.appConfig = this.configService.getConfiguration();

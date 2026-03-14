@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
@@ -151,18 +151,18 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
 
   TabType = TabType;
 
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly modalService = inject(BsModalService);
-  private readonly translate = inject(TranslateService);
-  private readonly configService = inject(ConfigService);
-  public tools = inject(Tools);
-  private readonly eventsManagerService = inject(EventsManagerService);
-  public readonly apiService = inject(OpenAPIService);
-  public utils = inject(UtilService);
-  public authenticationService = inject(AuthenticationService);
-
-  constructor() {
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly modalService: BsModalService,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    public tools: Tools,
+    private readonly eventsManagerService: EventsManagerService,
+    public readonly apiService: OpenAPIService,
+    public utils: UtilService,
+    public authenticationService: AuthenticationService
+  ) {
     this.route.data.subscribe((data) => {
       if (!data.componentBreadcrumbs) return;
       this._componentBreadcrumbs = data.componentBreadcrumbs;

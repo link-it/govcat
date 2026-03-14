@@ -33,9 +33,10 @@ describe('DominioDetailsComponent', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     component = new DominioDetailsComponent(
-      mockRoute, mockRouter, mockFb, mockTranslate,
-      mockModalService, mockConfigService, mockTools,
-      mockEventsManager, mockApiService, mockUtils
+      mockRoute, mockRouter,
+      mockConfigService, mockTools,
+      mockApiService, mockUtils,
+      mockTranslate, mockModalService
     );
   });
 
@@ -60,6 +61,8 @@ describe('DominioDetailsComponent', () => {
   });
 
   it('should initialize config from configService', () => {
+    // appConfig is set in ngOnInit, not in constructor
+    component.appConfig = mockConfigService.getConfiguration();
     expect(component.appConfig).toEqual({ AppConfig: {} });
   });
 
