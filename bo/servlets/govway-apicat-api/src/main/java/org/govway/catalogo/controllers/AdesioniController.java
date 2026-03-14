@@ -341,12 +341,9 @@ public class AdesioniController implements AdesioniApi {
 				this.service.save(messaggio);
 
 				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneAdesioneEnum> target = null;
-				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
-					target = messaggioCreate.getTarget().stream()
-						.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
-						.collect(Collectors.toSet());
-				}
+				Set<TargetComunicazioneAdesioneEnum> target = messaggioCreate.getTarget().stream()
+					.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
+					.collect(Collectors.toSet());
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio, target, includiTecnici);

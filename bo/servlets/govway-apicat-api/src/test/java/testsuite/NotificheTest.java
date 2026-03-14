@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,6 +59,7 @@ import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoNotifica;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
 import org.govway.catalogo.servlets.model.TipoEntitaNotifica;
+import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.TipoNotificaEnum;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.UpdateNotifica;
@@ -374,6 +376,7 @@ public class NotificheTest {
     	MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Comunicazione");
         messaggioComunicazione.setTesto("Si richiede di procedere con la configurazione dell'adesione al servizio");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
     	
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
@@ -603,6 +606,7 @@ public class NotificheTest {
     	MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Comunicazione");
         messaggioComunicazione.setTesto("Si richiede di procedere con la configurazione dell'adesione al servizio");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
@@ -729,6 +733,7 @@ public class NotificheTest {
         MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Test Email");
         messaggioComunicazione.setTesto("Testo per verificare esclusione email");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
@@ -769,6 +774,7 @@ public class NotificheTest {
         MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Test Email Count");
         messaggioComunicazione.setTesto("Testo per verificare esclusione email count");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
@@ -825,6 +831,7 @@ public class NotificheTest {
         MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Dashboard Test");
         messaggioComunicazione.setTesto("Testo per test dashboard filter");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
@@ -859,6 +866,7 @@ public class NotificheTest {
         MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Dashboard Count Test");
         messaggioComunicazione.setTesto("Testo per test dashboard count");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
@@ -889,6 +897,7 @@ public class NotificheTest {
         MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Ruoli Referente Test");
         messaggioComunicazione.setTesto("Testo per test ruoli referente");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
@@ -925,6 +934,7 @@ public class NotificheTest {
         MessaggioCreate messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Referente Dominio Test");
         messaggioComunicazione.setTesto("Testo per test referente dominio");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
 
         // La sessione è già UTENTE_GESTORE che è referente del dominio

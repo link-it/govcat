@@ -106,19 +106,14 @@ public class NotificheUtils {
 		ServizioEntity servizio = messaggioServizio.getServizio();
 		UtenteEntity mittente = messaggioServizio.getUtente();
 
-		// Se target è null o vuoto, usa tutti i target
-		Set<TargetComunicazioneServizioEnum> effectiveTarget = (target == null || target.isEmpty())
-			? new HashSet<>(Arrays.asList(TargetComunicazioneServizioEnum.values()))
-			: target;
-
 		// Notifiche push
-		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiPush) {
 			notifiche.add(getNotifica(mittente, servizio, null, messaggioServizio.getUuid(), null, messaggioServizio.getOggetto(), messaggioServizio.getTesto(), TIPO.COMUNICAZIONE, TIPO_ENTITA.SERVIZIO, utente));
 		}
 
 		// Notifiche email
-		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE_EMAIL, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE_EMAIL, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiEmail) {
 			notifiche.add(getNotifica(mittente, servizio, null, messaggioServizio.getUuid(), null, messaggioServizio.getOggetto(), messaggioServizio.getTesto(), TIPO.COMUNICAZIONE_EMAIL, TIPO_ENTITA.SERVIZIO_EMAIL, utente));
 		}
@@ -179,19 +174,14 @@ public class NotificheUtils {
 		AdesioneEntity adesione = messaggioAdesione.getAdesione();
 		UtenteEntity mittente = messaggioAdesione.getUtente();
 
-		// Se target è null o vuoto, usa tutti i target
-		Set<TargetComunicazioneAdesioneEnum> effectiveTarget = (target == null || target.isEmpty())
-			? new HashSet<>(Arrays.asList(TargetComunicazioneAdesioneEnum.values()))
-			: target;
-
 		// Notifiche push
-		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiPush) {
 			notifiche.add(getNotifica(mittente, null, adesione, messaggioAdesione.getUuid(), null, messaggioAdesione.getOggetto(), messaggioAdesione.getTesto(), TIPO.COMUNICAZIONE, TIPO_ENTITA.ADESIONE, utente));
 		}
 
 		// Notifiche email
-		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE_EMAIL, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE_EMAIL, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiEmail) {
 			notifiche.add(getNotifica(mittente, null, adesione, messaggioAdesione.getUuid(), null, messaggioAdesione.getOggetto(), messaggioAdesione.getTesto(), TIPO.COMUNICAZIONE_EMAIL, TIPO_ENTITA.ADESIONE_EMAIL, utente));
 		}

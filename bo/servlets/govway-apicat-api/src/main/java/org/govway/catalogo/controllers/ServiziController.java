@@ -511,12 +511,9 @@ public class ServiziController implements ServiziApi {
 				this.service.save(messaggio);
 
 				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneServizioEnum> target = null;
-				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
-					target = messaggioCreate.getTarget().stream()
-						.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
-						.collect(Collectors.toSet());
-				}
+				Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
+					.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
+					.collect(Collectors.toSet());
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);

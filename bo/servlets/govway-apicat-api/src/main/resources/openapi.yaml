@@ -9699,6 +9699,7 @@ components:
       type: object
       required:
         - oggetto
+        - target
       properties:
         oggetto:
           $ref: "#/components/schemas/String255"
@@ -9706,7 +9707,8 @@ components:
           $ref: "#/components/schemas/String4000"
         target:
           type: "array"
-          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          minItems: 1
+          description: "Lista dei target per i destinatari della comunicazione."
           items:
             $ref: "#/components/schemas/TargetComunicazioneServizioEnum"
         includi_tecnici:
@@ -9721,6 +9723,7 @@ components:
       type: object
       required:
         - oggetto
+        - target
       properties:
         oggetto:
           $ref: "#/components/schemas/String255"
@@ -9728,7 +9731,8 @@ components:
           $ref: "#/components/schemas/String4000"
         target:
           type: "array"
-          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          minItems: 1
+          description: "Lista dei target per i destinatari della comunicazione."
           items:
             $ref: "#/components/schemas/TargetComunicazioneAdesioneEnum"
         includi_tecnici:
