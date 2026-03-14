@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { inject, AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -212,16 +212,18 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   debugMandatoryFields: boolean = false;
 
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly translate = inject(TranslateService);
-  private readonly modalService = inject(BsModalService);
-  private readonly configService = inject(ConfigService);
-  public tools = inject(Tools);
-  private readonly apiService = inject(OpenAPIService);
-  private readonly authenticationService = inject(AuthenticationService);
-  private readonly utils = inject(UtilService);
-  private readonly eventsManagerService = inject(EventsManagerService);
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
+    public tools: Tools,
+    private readonly apiService: OpenAPIService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly utils: UtilService,
+    private readonly eventsManagerService: EventsManagerService
+  ) { }
 
   ngOnInit() {
     this.appConfig = this.configService.getConfiguration();

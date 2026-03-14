@@ -3675,7 +3675,7 @@ const routeWithData = {
         })
       } as any;
 
-      const comp = new ServizioApiDetailsComponent(
+      const comp = new (ServizioApiDetailsComponent as any)(
         routeWithData, routerWithState, mockFormBuilder, mockTranslate,
         mockModalService, mockConfigService, mockTools, mockEventsManagerService,
         mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
@@ -3693,7 +3693,7 @@ const routeWithDashboard = {
         parent: { params: of({}) }
       } as any;
 
-      const comp = new ServizioApiDetailsComponent(
+      const comp = new (ServizioApiDetailsComponent as any)(
         routeWithDashboard, mockRouter, mockFormBuilder, mockTranslate,
         mockModalService, mockConfigService, mockTools, mockEventsManagerService,
         mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
@@ -3726,7 +3726,7 @@ const safeRoute = {
         parent: { params: of({}) }
       } as any;
 
-      const comp = new ServizioApiDetailsComponent(
+      const comp = new (ServizioApiDetailsComponent as any)(
         safeRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockModalService, mockConfigService, mockTools, mockEventsManagerService,
         mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
@@ -3756,7 +3756,7 @@ const safeRoute = {
         parent: { params: of({}) }
       } as any;
 
-      const comp = new ServizioApiDetailsComponent(
+      const comp = new (ServizioApiDetailsComponent as any)(
         safeRoute, mockRouter, mockFormBuilder, mockTranslate,
         mockModalService, mockConfigService, mockTools, mockEventsManagerService,
         mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService
@@ -3777,7 +3777,7 @@ const routeWithBc = {
         parent: { params: of({}) }
       } as any;
 
-      const comp = new ServizioApiDetailsComponent(
+      const comp = new (ServizioApiDetailsComponent as any)(
         routeWithBc, mockRouter, mockFormBuilder, mockTranslate,
         mockModalService, mockConfigService, mockTools, mockEventsManagerService,
         mockUtilsLib, mockApiService, mockUtils, mockAuthenticationService

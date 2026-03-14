@@ -66,6 +66,7 @@ describe('AdesioneViewComponent', () => {
     hasPermission: vi.fn().mockReturnValue(true),
     canDownloadSchedaAdesione: vi.fn().mockReturnValue(false),
     _getConfigModule: vi.fn().mockReturnValue({ api: { auth_type: [] } }),
+    _isDatoSempreModificabile: vi.fn().mockReturnValue(false),
   } as any;
   const mockNavigationService = {
     getState: vi.fn().mockReturnValue(null),

@@ -100,6 +100,15 @@ describe('ServiziComponent', () => {
     openInNewTab: vi.fn()
   } as any;
 
+  const mockRoute = {
+    snapshot: { queryParams: {} }
+  } as any;
+
+  const mockLocation = {
+    path: vi.fn().mockReturnValue('/servizi'),
+    replaceState: vi.fn()
+  } as any;
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Restore default mock return values (clearAllMocks does NOT reset mockReturnValue)
@@ -134,8 +143,12 @@ describe('ServiziComponent', () => {
     mockBreadcrumbService.getBreadcrumbs.mockReturnValue(null);
     mockUtilService._queryToHttpParams.mockReturnValue({});
     mockUtilService.GetErrorMsg.mockReturnValue('Error');
+    mockRoute.snapshot = { queryParams: {} };
+    mockLocation.path.mockReturnValue('/servizi');
     component = new ServiziComponent(
+      mockRoute,
       mockRouter,
+      mockLocation,
       mockModalService,
       mockTranslate,
       mockConfigService,
@@ -184,7 +197,9 @@ describe('ServiziComponent', () => {
     mockAuthenticationService.isAnonymous.mockReturnValue(true);
     mockLocalStorageService.getItem.mockReturnValue(null);
     const comp = new ServiziComponent(
+      mockRoute,
       mockRouter,
+      mockLocation,
       mockModalService,
       mockTranslate,
       mockConfigService,
@@ -1156,7 +1171,7 @@ describe('ServiziComponent', () => {
     it('should set tipo_servizio to Generico when url is /servizi-generici', () => {
       mockRouter.url = '/servizi-generici';
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1166,7 +1181,7 @@ describe('ServiziComponent', () => {
     it('should build breadcrumb with both API and Generico labels when both are enabled', () => {
       mockAuthenticationService._getConfigModule.mockReturnValue({ api: { abilitato: true }, generico: { abilitato: true }, tassonomie_abilitate: false });
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1176,7 +1191,7 @@ describe('ServiziComponent', () => {
     it('should restore settings from localStorage when settings exist', () => {
       mockLocalStorageService.getItem.mockReturnValue({ groupsView: false, isMyServices: true });
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1188,7 +1203,7 @@ describe('ServiziComponent', () => {
     it('should restore _groupsView from settings when _isMyServices is false', () => {
       mockLocalStorageService.getItem.mockReturnValue({ groupsView: true, isMyServices: false });
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1199,7 +1214,7 @@ describe('ServiziComponent', () => {
     it('should add componente to visibilita options when gestore', () => {
       mockAuthenticationService.isGestore.mockReturnValue(true);
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1210,7 +1225,7 @@ describe('ServiziComponent', () => {
     it('should set _showTaxonomies from config when tassonomie_abilitate is true', () => {
       mockAuthenticationService._getConfigModule.mockReturnValue({ api: { abilitato: true }, generico: { abilitato: false }, tassonomie_abilitate: true });
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1229,7 +1244,7 @@ describe('ServiziComponent', () => {
         }
       });
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1250,7 +1265,7 @@ describe('ServiziComponent', () => {
       });
 
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );
@@ -1274,7 +1289,7 @@ describe('ServiziComponent', () => {
       });
 
       const comp = new ServiziComponent(
-        mockRouter, mockModalService, mockTranslate, mockConfigService, mockTools,
+        mockRoute, mockRouter, mockLocation, mockModalService, mockTranslate, mockConfigService, mockTools,
         mockEventsManagerService, mockLocalStorageService, mockUtilsLib, mockUtilService,
         mockApiService, mockAuthenticationService, mockBreadcrumbService, mockNavigationService
       );

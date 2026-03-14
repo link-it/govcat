@@ -65,7 +65,8 @@ describe('ServizioReferentiComponent', () => {
     _getConfigModule: vi.fn().mockReturnValue({}),
     isGestore: vi.fn().mockReturnValue(false),
     getRole: vi.fn().mockReturnValue('referente_servizio'),
-    _getClassesNotModifiable: vi.fn().mockReturnValue([])
+    _getClassesNotModifiable: vi.fn().mockReturnValue([]),
+    _isDatoSempreModificabile: vi.fn().mockReturnValue(false),
   } as any;
 
   let _loadDominioReferentiSpy: any;

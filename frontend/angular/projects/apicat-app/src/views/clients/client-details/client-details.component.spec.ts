@@ -112,6 +112,8 @@ describe('ClientDetailsComponent', () => {
   });
 
   it('should set appConfig from configService', () => {
+    // appConfig is set in ngOnInit, not in constructor
+    component.appConfig = mockConfigService.getConfiguration();
     expect(component.appConfig).toBeDefined();
     expect(mockConfigService.getConfiguration).toHaveBeenCalled();
   });

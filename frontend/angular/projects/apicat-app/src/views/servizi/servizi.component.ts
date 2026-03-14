@@ -17,7 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule, Location } from '@angular/common';
 import { AbstractControl, FormGroup, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HttpHeaders } from '@angular/common/http';
 
@@ -37,14 +38,13 @@ import { NavigationService } from '@app/services/navigation.service';
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
-import { concat, Observable, of, Subject, throwError } from 'rxjs';
+import { concat, firstValueFrom, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
 import { CardType } from '@app/lib/ui/card/card.component';
 
-import { CommonModule } from '@angular/common';
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { TassonomiaTokenComponent } from '@app/components/token/tassonomia-token.component';
 import { ExportDropdwnComponent, ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
@@ -260,7 +260,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ActionEnum = ActionEnum;
 
     constructor(
+        private readonly route: ActivatedRoute,
         private readonly router: Router,
+        private readonly location: Location,
         private readonly modalService: BsModalService,
         private readonly translate: TranslateService,
         private readonly configService: ConfigService,
@@ -274,7 +276,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         private readonly breadCrumbService: BreadcrumbService,
         private readonly navigationService: NavigationService
     ) {
-        this.tipo_servizio = (this.router.url === '/servizi') ? TipoServizioEnum.API : TipoServizioEnum.Generico;
+        this.tipo_servizio = this.router.url.startsWith('/servizi-generici') ? TipoServizioEnum.Generico : TipoServizioEnum.API;
 
         const servizio = this.authenticationService._getConfigModule('servizio');
         const hasServiziApi = servizio?.api?.abilitato || false;
@@ -356,11 +358,19 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     ngOnInit() {
-        const groupsBreadcrumbs = this.breadCrumbService.getBreadcrumbs();
-        if (groupsBreadcrumbs) {
-            this._currIdGruppoPadre = groupsBreadcrumbs.currIdGruppoPadre;
-            this._gruppoPadreNull = groupsBreadcrumbs.gruppoPadreNull;
-            this.groupsBreadcrumbs = groupsBreadcrumbs.groupsBreadcrumbs;
+        const idGruppoFromUrl = this.route.snapshot.queryParams['gruppo'];
+        if (idGruppoFromUrl) {
+            this._groupsView = true;
+            this._currIdGruppoPadre = idGruppoFromUrl;
+            this._gruppoPadreNull = false;
+            this._resolveGroupHierarchy(idGruppoFromUrl);
+        } else {
+            const groupsBreadcrumbs = this.breadCrumbService.getBreadcrumbs();
+            if (groupsBreadcrumbs) {
+                this._currIdGruppoPadre = groupsBreadcrumbs.currIdGruppoPadre;
+                this._gruppoPadreNull = groupsBreadcrumbs.gruppoPadreNull;
+                this.groupsBreadcrumbs = groupsBreadcrumbs.groupsBreadcrumbs;
+            }
         }
 
         this.configService.getConfig(this.model).subscribe(
@@ -417,7 +427,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const currentSession = this.authenticationService.getCurrentSession();
         const _userSettings = currentSession?.settings;
 
-        if (_userSettings && _userSettings.servizi) {
+        if (_userSettings?.servizi) {
             this._groupsView = (_userSettings.servizi.view === 'card');
             if (this._isMyServices) {
                 this.resetElements();
@@ -592,7 +602,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 }
                 this._allElements = this._page.totalElements || 0;
 
-                if (response && response.content) {
+                if (response?.content) {
                     const _list: any = response.content.map((service: any, index: number) => {            
                         const _meta: string[] = [];
                         if (service.descrizione_sintetica) {
@@ -710,6 +720,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 { label: param.primaryText, url: param.id, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group' }
             );
             this._saveGroupsBreadcrumbs();
+            this._updateUrlGruppo(param.id);
             this.refresh();
         }
     }
@@ -721,9 +732,11 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             if (group.url === 'root') {
                 this._currIdGruppoPadre = '';
                 this._gruppoPadreNull = true;
+                this._updateUrlGruppo(null);
             } else {
                 this._currIdGruppoPadre = group.url;
                 this._gruppoPadreNull = false;
+                this._updateUrlGruppo(group.url);
             }
             this._saveGroupsBreadcrumbs();
             this.refresh();
@@ -793,6 +806,46 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this._gruppoPadreNull = true;
         this.groupsBreadcrumbs = [];
         this._removeGroupsBreadcrumbs();
+        this._updateUrlGruppo(null);
+    }
+
+    _updateUrlGruppo(idGruppo: string | null) {
+        const basePath = this.location.path().split('?')[0];
+        if (idGruppo) {
+            this.location.replaceState(basePath, `gruppo=${idGruppo}`);
+        } else {
+            this.location.replaceState(basePath);
+        }
+    }
+
+    async _resolveGroupHierarchy(idGruppo: string) {
+        try {
+            const query = { id_gruppo_padre: idGruppo, tipo_servizio: this.tipo_servizio };
+            const params = this.utils._queryToHttpParams(query);
+            const response: any = await firstValueFrom(this.apiService.getList('servizi_gruppi', { params }));
+            const firstItem = response?.content?.[0];
+            const pathGruppo: { id_gruppo: string; nome: string }[] = firstItem?.path_gruppo || [];
+            if (pathGruppo.length > 0) {
+                this.groupsBreadcrumbs = pathGruppo.map((g) => ({
+                    label: g.nome, url: g.id_gruppo, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group'
+                }));
+            } else {
+                // Fallback: il gruppo potrebbe essere root o non avere path_gruppo, usa il nome dal gruppo stesso
+                const gruppo: any = await firstValueFrom(this.apiService.getDetails('gruppi', idGruppo));
+                this.groupsBreadcrumbs = [
+                    { label: gruppo.nome, url: gruppo.id_gruppo, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group' }
+                ];
+            }
+            this._currIdGruppoPadre = idGruppo;
+            this._gruppoPadreNull = false;
+            this._groupsView = true;
+            this._saveGroupsBreadcrumbs();
+        } catch (error) {
+            console.error('Error resolving group hierarchy', error);
+            this._currIdGruppoPadre = '';
+            this._gruppoPadreNull = true;
+            this.groupsBreadcrumbs = [];
+        }
     }
 
     _resetForm() {
@@ -842,6 +895,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._gruppoPadreNull = groupsBreadcrumbs.gruppoPadreNull;
                 this.groupsBreadcrumbs = groupsBreadcrumbs.groupsBreadcrumbs;
                 this._saveGroupsBreadcrumbs();
+                this._updateUrlGruppo(this._currIdGruppoPadre);
             }
             if (event.url === 'root') {
                 this._resetGroupsBreadcrumbs();
@@ -862,8 +916,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this._groupsView) {
             this._isMyServices = false;
         }
-        // this._saveSettings();
-        this._manualSelected = this._groupsView ? false : true;
+        this._manualSelected = !this._groupsView;
         this.refresh();
     }
 
@@ -1324,21 +1377,20 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const headers = new HttpHeaders().set('timeout', '300000');
 
         this._downloading = true;
-        this.apiService.download(`${this.model}-export`, null, undefined, undefined, headers)
-            .subscribe({
-                next: (response: any) => {
-                    let filename: string = Tools.GetFilenameFromHeader(response);
-                    saveAs(response.body, filename);
-                    this._downloading = false;
-                },
-                error: (error: any) => {
-                    this._downloading = false;
-                    if (error.name === 'TimeoutError') {
-                        Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
-                    } else {
-                        Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
-                    }
+        this.apiService.download(`${this.model}-export`, null, undefined, undefined, headers).subscribe({
+            next: (response: any) => {
+                let filename: string = Tools.GetFilenameFromHeader(response);
+                saveAs(response.body, filename);
+                this._downloading = false;
+            },
+            error: (error: any) => {
+                this._downloading = false;
+                if (error.name === 'TimeoutError') {
+                    Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+                } else {
+                    Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
                 }
-            });
+            }
+        });
     }
 }

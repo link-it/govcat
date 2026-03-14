@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -172,18 +172,18 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         [AccordionType.ACCORDION_PRODUZIONE]: ClassiEnum.PRODUZIONE
     };
 
-    private readonly route = inject(ActivatedRoute);
-    private readonly router = inject(Router);
-    private readonly translate = inject(TranslateService);
-    private readonly modalService = inject(BsModalService);
-    private readonly configService = inject(ConfigService);
-    private readonly eventsManagerService = inject(EventsManagerService);
-    private readonly apiService = inject(OpenAPIService);
-    private readonly authenticationService = inject(AuthenticationService);
-    private readonly utils = inject(UtilService);
-    private readonly ckeckProvider = inject(CkeckProvider);
-
-    constructor() {
+    constructor(
+        private readonly route: ActivatedRoute,
+        private readonly router: Router,
+        private readonly translate: TranslateService,
+        private readonly modalService: BsModalService,
+        private readonly configService: ConfigService,
+        private readonly eventsManagerService: EventsManagerService,
+        private readonly apiService: OpenAPIService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly utils: UtilService,
+        private readonly ckeckProvider: CkeckProvider
+    ) {
         this.route.data.subscribe((data) => {
             if (!data.serviceBreadcrumbs) return;
             this.serviceBreadcrumbs = data.serviceBreadcrumbs;

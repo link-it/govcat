@@ -1316,23 +1316,22 @@ describe('StatisticheComponent', () => {
     });
 
     it('breadcrumb url should include /view when localStorage flag is set', () => {
-      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('TRUE');
+      localStorage.setItem('SERVIZI_VIEW', 'TRUE');
       component.service = { nome: 'MyService', versione: '1.0', stato: 'pubblicato' };
       component.id = 42;
       component._initBreadcrumb();
 
       expect(component.breadcrumbs[1].url).toContain('/view');
-      getItemSpy.mockRestore();
+      localStorage.removeItem('SERVIZI_VIEW');
     });
 
     it('breadcrumb url should not include /view when localStorage flag is not set', () => {
-      const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
+      localStorage.removeItem('SERVIZI_VIEW');
       component.service = { nome: 'MyService', versione: '1.0', stato: 'pubblicato' };
       component.id = 42;
       component._initBreadcrumb();
 
       expect(component.breadcrumbs[1].url).toBe('/servizi/42');
-      getItemSpy.mockRestore();
     });
   });
 
