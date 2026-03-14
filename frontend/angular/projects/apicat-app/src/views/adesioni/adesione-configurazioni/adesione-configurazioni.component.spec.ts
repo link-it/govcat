@@ -1393,4 +1393,1712 @@ describe('AdesioneConfigurazioniComponent', () => {
     component.closeModal();
     expect(unsubSpy).toHaveBeenCalled();
   });
+
+  // ─── _onSaveModalClient ───
+
+  describe('_onSaveModalClient', () => {
+    let formControls: any;
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      component.adesione = {
+        soggetto: { id_soggetto: 's-1', organizzazione: { id_organizzazione: 'org-1' } },
+        servizio: { nome: 'S', versione: '1' },
+        id_adesione: 'ade-1',
+        stato: 'bozza'
+      };
+      component.environmentId = 'collaudo';
+      component._auth_type = 'https';
+      component._isHttps = true;
+      component._codice_interno_profilo = 'profilo1';
+      component._tipo_client = 'nuovo';
+      component._show_erogazione_rate_limiting = false;
+      component._show_erogazione_finalita = false;
+
+      // Create form with all controls
+      component._editFormGroupClients = new FormGroup({
+        credenziali: new FormControl('c-1'),
+        nome_proposto: new FormControl(null),
+        nome: new FormControl('ClientName'),
+        tipo_certificato: new FormControl('fornito'),
+        tipo_certificato_firma: new FormControl(null),
+        filename: new FormControl('cert.pem'),
+        estensione: new FormControl('application/x-pem-file'),
+        content: new FormControl('base64data'),
+        uuid: new FormControl(null),
+        filename_firma: new FormControl(null),
+        estensione_firma: new FormControl(null),
+        content_firma: new FormControl(null),
+        uuid_firma: new FormControl(null),
+        filename_csr: new FormControl(null),
+        estensione_csr: new FormControl(null),
+        content_csr: new FormControl(null),
+        uuid_csr: new FormControl(null),
+        filename_csr_firma: new FormControl(null),
+        estensione_csr_firma: new FormControl(null),
+        content_csr_firma: new FormControl(null),
+        uuid_csr_firma: new FormControl(null),
+        cn: new FormControl(null),
+        cn_firma: new FormControl(null),
+        csr: new FormControl(null),
+        modulo_richiesta_csr: new FormControl(null),
+        modulo_richiesta_csr_firma: new FormControl(null),
+        ip_fruizione: new FormControl(null),
+        descrizione: new FormControl(null),
+        rate_limiting: new FormGroup({
+          quota: new FormControl(null),
+          periodo: new FormControl(null)
+        }),
+        finalita: new FormControl(null),
+        id_utente: new FormControl(null),
+        url_redirezione: new FormControl(null),
+        url_esposizione: new FormControl(null),
+        help_desk: new FormControl(null),
+        nome_applicazione_portale: new FormControl(null),
+        client_id: new FormControl(null),
+        username: new FormControl(null),
+      });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should create new client via PUT when no existing id_client', () => {
+      component._currClient = {};
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      const body = { credenziali: 'c-1', estensione: 'application/x-pem-file', content: 'base64data', filename: 'cert.pem' };
+      component._onSaveModalClient(body);
+
+      expect(mockApiService.putElementRelated).toHaveBeenCalledWith(
+        'adesioni', 'ade-1', 'collaudo/client/profilo1', expect.any(Object)
+      );
+      expect(component._loadAdesioneConfigClients).toHaveBeenCalled();
+      expect(component.closeModal).toHaveBeenCalled();
+    });
+
+    it('should update existing client via PUT when id_client is present', () => {
+      component._currClient = { id_client: 'c-1', nome: 'Existing', soggetto: { id_soggetto: 's-2' } };
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      const body = { credenziali: 'c-1', estensione: 'application/x-pem-file', content: 'base64data', filename: 'cert.pem' };
+      component._onSaveModalClient(body);
+
+      expect(mockApiService.putElementRelated).toHaveBeenCalledWith(
+        'adesioni', 'ade-1', 'collaudo/client/profilo1', expect.objectContaining({ id_soggetto: 's-2' })
+      );
+    });
+
+    it('should handle error on update existing client', () => {
+      component._currClient = { id_client: 'c-1', nome: 'Existing', soggetto: { id_soggetto: 's-2' } };
+      mockApiService.putElementRelated.mockReturnValue(throwError(() => ({ status: 500 })));
+      mockUtils.GetErrorMsg.mockReturnValue('Server Error');
+
+      const body = { credenziali: 'c-1' };
+      component._onSaveModalClient(body);
+
+      expect(component._error).toBe(true);
+      expect(component._errorMsg).toBe('Server Error');
+    });
+
+    it('should handle error on create new client', () => {
+      component._currClient = {};
+      mockApiService.putElementRelated.mockReturnValue(throwError(() => ({ status: 400 })));
+      mockUtils.GetErrorMsg.mockReturnValue('Bad Request');
+
+      const body = { credenziali: 'c-1' };
+      component._onSaveModalClient(body);
+
+      expect(component._error).toBe(true);
+      expect(component._errorMsg).toBe('Bad Request');
+    });
+
+    it('should set richiesto_cn certificate in dati_specifici', () => {
+      component._currClient = {};
+      component._editFormGroupClients.get('tipo_certificato')!.setValue('richiesto_cn');
+      component._editFormGroupClients.get('cn')!.setValue('CN=test');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({ credenziali: 'c-1' });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.certificato_autenticazione.tipo_certificato).toBe('richiesto_cn');
+      expect(payload.dati_specifici.certificato_autenticazione.cn).toBe('CN=test');
+    });
+
+    it('should set richiesto_csr certificate in dati_specifici', () => {
+      component._currClient = {};
+      component._certificato_csr = null;
+      component._modulo_richiesta_csr = null;
+      component._editFormGroupClients.get('tipo_certificato')!.setValue('richiesto_csr');
+      component._editFormGroupClients.get('content_csr')!.setValue('csrdata');
+      component._editFormGroupClients.get('filename_csr')!.setValue('req.csr');
+      component._editFormGroupClients.get('estensione_csr')!.setValue('application/pkcs10');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({
+        credenziali: 'c-1', content_csr: 'csrdata', filename_csr: 'req.csr',
+        estensione_csr: 'application/pkcs10', content: 'modulodata', filename: 'modulo.pem', estensione: 'pem'
+      });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.certificato_autenticazione.tipo_certificato).toBe('richiesto_csr');
+      expect(payload.dati_specifici.certificato_autenticazione.richiesta).toBeDefined();
+      expect(payload.dati_specifici.certificato_autenticazione.modulo_richiesta).toBeDefined();
+    });
+
+    it('should include client_id for pdnd auth type', () => {
+      component._currClient = {};
+      component._isPdnd = true;
+      component._isHttps = false;
+      component._auth_type = 'pdnd';
+      component._editFormGroupClients.get('tipo_certificato')!.setValue(null);
+      component._editFormGroupClients.get('client_id')!.setValue('pdnd-client-id');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({ credenziali: 'c-1' });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.client_id).toBe('pdnd-client-id');
+    });
+
+    it('should include rate_limiting when show_erogazione_rate_limiting is true', () => {
+      component._currClient = {};
+      component._show_erogazione_rate_limiting = true;
+      component._editFormGroupClients.get('tipo_certificato')!.setValue(null);
+      (component._editFormGroupClients.get('rate_limiting') as FormGroup).get('quota')!.setValue(100);
+      (component._editFormGroupClients.get('rate_limiting') as FormGroup).get('periodo')!.setValue('giorno');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({ credenziali: 'c-1' });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.rate_limiting).toEqual({ quota: 100, periodo: 'giorno' });
+    });
+
+    it('should include finalita when show_erogazione_finalita is true', () => {
+      component._currClient = {};
+      component._show_erogazione_finalita = true;
+      component._editFormGroupClients.get('tipo_certificato')!.setValue(null);
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({ credenziali: 'c-1', finalita: 'purpose-uuid' });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.finalita).toBe('purpose-uuid');
+    });
+
+    it('should set fornito firma certificate in dati_specifici', () => {
+      component._currClient = {};
+      component._certificato_fornito_firma = null;
+      component._editFormGroupClients.get('tipo_certificato')!.setValue(null);
+      component._editFormGroupClients.get('tipo_certificato_firma')!.setValue('fornito');
+      component._editFormGroupClients.get('content_firma')!.setValue('firmabase64');
+      component._editFormGroupClients.get('filename_firma')!.setValue('firma.pem');
+      component._editFormGroupClients.get('estensione_firma')!.setValue('application/x-pem-file');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({
+        credenziali: 'c-1', content_firma: 'firmabase64', filename_firma: 'firma.pem',
+        estensione_firma: 'application/x-pem-file'
+      });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.certificato_firma.tipo_certificato).toBe('fornito');
+      expect(payload.dati_specifici.certificato_firma.certificato).toBeDefined();
+    });
+
+    it('should set richiesto_cn firma certificate in dati_specifici', () => {
+      component._currClient = {};
+      component._editFormGroupClients.get('tipo_certificato')!.setValue(null);
+      component._editFormGroupClients.get('tipo_certificato_firma')!.setValue('richiesto_cn');
+      component._editFormGroupClients.get('cn_firma')!.setValue('CN=firma');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({ credenziali: 'c-1' });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.certificato_firma.tipo_certificato).toBe('richiesto_cn');
+      expect(payload.dati_specifici.certificato_firma.cn).toBe('CN=firma');
+    });
+
+    it('should set richiesto_csr firma certificate in dati_specifici', () => {
+      component._currClient = {};
+      component._certificato_csr_firma = null;
+      component._modulo_richiesta_csr_firma = null;
+      component._editFormGroupClients.get('tipo_certificato')!.setValue(null);
+      component._editFormGroupClients.get('tipo_certificato_firma')!.setValue('richiesto_csr');
+      component._editFormGroupClients.get('content_csr_firma')!.setValue('csrfirmadata');
+      component._editFormGroupClients.get('filename_csr_firma')!.setValue('firmacsr.pem');
+      component._editFormGroupClients.get('estensione_csr_firma')!.setValue('pem');
+      component._editFormGroupClients.get('content_firma')!.setValue('modulofirmadata');
+      component._editFormGroupClients.get('filename_firma')!.setValue('modulofirma.pem');
+      component._editFormGroupClients.get('estensione_firma')!.setValue('pem');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({
+        credenziali: 'c-1',
+        content_csr_firma: 'csrfirmadata', filename_csr_firma: 'firmacsr.pem', estensione_csr_firma: 'pem',
+        content_firma: 'modulofirmadata', filename_firma: 'modulofirma.pem', estensione_firma: 'pem'
+      });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.certificato_firma.tipo_certificato).toBe('richiesto_csr');
+      expect(payload.dati_specifici.certificato_firma.richiesta).toBeDefined();
+      expect(payload.dati_specifici.certificato_firma.modulo_richiesta).toBeDefined();
+    });
+
+    it('should include oauth fields for oauth_authorization_code auth type', () => {
+      component._currClient = {};
+      component._isOauthAuthCode = true;
+      component._isHttps = false;
+      component._auth_type = 'oauth_authorization_code';
+      component._editFormGroupClients.get('tipo_certificato')!.setValue(null);
+      component._editFormGroupClients.get('client_id')!.setValue('oauth-client');
+      component._editFormGroupClients.get('url_redirezione')!.setValue('http://redirect');
+      component._editFormGroupClients.get('url_esposizione')!.setValue('http://expose');
+      component._editFormGroupClients.get('help_desk')!.setValue('http://help');
+      component._editFormGroupClients.get('nome_applicazione_portale')!.setValue('MyApp');
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalClient({ credenziali: 'c-1' });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.dati_specifici.client_id).toBe('oauth-client');
+      expect(payload.dati_specifici.url_redirezione).toBe('http://redirect');
+      expect(payload.dati_specifici.url_esposizione).toBe('http://expose');
+      expect(payload.dati_specifici.help_desk).toBe('http://help');
+      expect(payload.dati_specifici.nome_applicazione_portale).toBe('MyApp');
+    });
+  });
+
+  // ─── _onSaveModalErogazioni ───
+
+  describe('_onSaveModalErogazioni', () => {
+    beforeEach(() => {
+      component.adesione = {
+        soggetto: { id_soggetto: 's-1' },
+        servizio: { nome: 'S', versione: '1' },
+        id_adesione: 'ade-1',
+        stato: 'bozza'
+      };
+      component.environmentId = 'collaudo';
+      component.id_erogazione = 'erog-1';
+    });
+
+    it('should save erogazione and reload on success', () => {
+      vi.spyOn(component, '_loadAdesioneConfigErogazioni').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalErogazioni({ url: 'http://api', indirizzi_ip: '1.2.3.4' });
+
+      expect(mockApiService.putElementRelated).toHaveBeenCalledWith(
+        'adesioni', 'ade-1', 'collaudo/erogazioni/erog-1',
+        expect.objectContaining({ url: 'http://api', indirizzi_ip: '1.2.3.4' })
+      );
+      expect(component._loadAdesioneConfigErogazioni).toHaveBeenCalled();
+      expect(component.closeModal).toHaveBeenCalled();
+    });
+
+    it('should handle error on save erogazione', () => {
+      mockApiService.putElementRelated.mockReturnValue(throwError(() => ({ status: 500 })));
+      mockUtils.GetErrorMsg.mockReturnValue('Error msg');
+
+      component._onSaveModalErogazioni({ url: 'http://api', indirizzi_ip: null });
+
+      expect(component._error).toBe(true);
+      expect(component._errorMsg).toBe('Error msg');
+    });
+
+    it('should remove null properties from payload', () => {
+      vi.spyOn(component, '_loadAdesioneConfigErogazioni').mockImplementation(() => {});
+      vi.spyOn(component, 'closeModal').mockImplementation(() => {});
+      mockApiService.putElementRelated.mockReturnValue(of({}));
+
+      component._onSaveModalErogazioni({ url: 'http://api', indirizzi_ip: null });
+
+      const payload = mockApiService.putElementRelated.mock.calls[0][3];
+      expect(payload.indirizzi_ip).toBeUndefined();
+      expect(payload.url).toBe('http://api');
+    });
+  });
+
+  // ─── _onEditClient ───
+
+  describe('_onEditClient', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      component.adesione = {
+        soggetto: { organizzazione: { id_organizzazione: 'org-1' } },
+        servizio: { nome: 'S', versione: '1' },
+        id_adesione: 'ade-1',
+        stato: 'bozza'
+      };
+      component.environmentId = 'collaudo';
+      component._generalConfig = { adesione: { visualizza_elenco_client_esistenti: false } };
+      component._grant = { collaudo: 'lettura', ruoli: [] } as any;
+
+      mockAuthService._getConfigModule.mockImplementation((module: string) => {
+        if (module === 'adesione') return { proprieta_custom: [] };
+        return {
+          api: {
+            auth_type: [
+              { type: 'https', indirizzi_ip: false, rate_limiting: false, finalita: false },
+            ],
+            profili: []
+          }
+        };
+      });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should set up new client when no id_client and not configured', () => {
+      const client = {
+        id_client: null,
+        ip_richiesto: false,
+        auth_type: 'https',
+        source: { codice_interno: 'prof1', stato: StatoConfigurazioneEnum.NONCONFIGURATO }
+      };
+      mockModalService.show.mockReturnValue({ hide: vi.fn() });
+      component.editClients = {} as any;
+
+      component._onEditClient(client);
+
+      expect(component.client).toBe(client);
+      expect(component._auth_type).toBe('https');
+      expect(component._isEdit).toBe(false);
+      expect(component._codice_interno_profilo).toBe('prof1');
+    });
+
+    it('should load client details for existing configured client', () => {
+      const client = {
+        id_client: 'c-1',
+        ip_richiesto: false,
+        auth_type: 'https',
+        source: { codice_interno: 'prof1', stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      const clientDetails = {
+        id_client: 'c-1',
+        nome: 'Client1',
+        dati_specifici: { auth_type: 'https' },
+        soggetto: { id_soggetto: 's-1' }
+      };
+      mockApiService.getDetails.mockReturnValue(of(clientDetails));
+      mockModalService.show.mockReturnValue({ hide: vi.fn() });
+      component.editClients = {} as any;
+
+      component._onEditClient(client);
+
+      expect(component._isEdit).toBe(true);
+      expect(mockApiService.getDetails).toHaveBeenCalledWith('client', 'c-1');
+    });
+
+    it('should handle error on getDetails for existing client', () => {
+      const client = {
+        id_client: 'c-1',
+        ip_richiesto: false,
+        auth_type: 'https',
+        source: { codice_interno: 'prof1', stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      mockApiService.getDetails.mockReturnValue(throwError(() => ({ status: 404 })));
+      mockUtils.GetErrorMsg.mockReturnValue('Not Found');
+
+      component._onEditClient(client);
+
+      expect(component._error).toBe(true);
+      expect(component._errorMsg).toBe('Not Found');
+    });
+
+    it('should handle nome_proposto client as not configured', () => {
+      const client = {
+        id_client: null,
+        ip_richiesto: false,
+        auth_type: 'https',
+        source: { codice_interno: 'prof1', stato: StatoConfigurazioneEnum.NONCONFIGURATO, nome_proposto: 'Proposed' }
+      };
+      mockModalService.show.mockReturnValue({ hide: vi.fn() });
+      component.editClients = {} as any;
+
+      component._onEditClient(client);
+
+      expect(component._show_nome_proposto).toBe(true);
+      expect(component._isEdit).toBe(false);
+    });
+  });
+
+  // ─── onChangeCredenziali ───
+
+  describe('onChangeCredenziali', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      component.adesione = {
+        soggetto: { organizzazione: { id_organizzazione: 'org-1' } },
+        servizio: { nome: 'S', versione: '1' },
+        id_adesione: 'ade-1',
+        stato: 'bozza'
+      };
+      component.environmentId = 'collaudo';
+      component._auth_type = 'https';
+      component._isHttps = true;
+      component._grant = { collaudo: 'scrittura', ruoli: [] } as any;
+      component.client = { source: {} };
+
+      mockAuthService._getConfigModule.mockImplementation((module: string) => {
+        if (module === 'adesione') return { proprieta_custom: [] };
+        return {
+          api: {
+            auth_type: [
+              { type: 'https', indirizzi_ip: false, rate_limiting: false, finalita: false },
+              { type: 'pdnd', indirizzi_ip: false, rate_limiting: false, finalita: true },
+            ],
+            profili: []
+          }
+        };
+      });
+
+      // Create the full form
+      component._editFormGroupClients = new FormGroup({
+        credenziali: new FormControl(''),
+        nome_proposto: new FormControl(null),
+        nome: new FormControl({ value: null, disabled: true }),
+        tipo_certificato: new FormControl({ value: null, disabled: true }),
+        tipo_certificato_firma: new FormControl({ value: null, disabled: true }),
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null),
+        filename_firma: new FormControl(null),
+        estensione_firma: new FormControl(null),
+        content_firma: new FormControl(null),
+        uuid_firma: new FormControl(null),
+        filename_csr: new FormControl(null),
+        estensione_csr: new FormControl(null),
+        content_csr: new FormControl(null),
+        uuid_csr: new FormControl(null),
+        filename_csr_firma: new FormControl(null),
+        estensione_csr_firma: new FormControl(null),
+        content_csr_firma: new FormControl(null),
+        uuid_csr_firma: new FormControl(null),
+        cn: new FormControl(null),
+        cn_firma: new FormControl(null),
+        csr: new FormControl(null),
+        modulo_richiesta_csr: new FormControl(null),
+        modulo_richiesta_csr_firma: new FormControl(null),
+        ip_fruizione: new FormControl({ value: null, disabled: true }),
+        descrizione: new FormControl({ value: null, disabled: true }),
+        rate_limiting: new FormGroup({
+          quota: new FormControl({ value: null, disabled: true }),
+          periodo: new FormControl({ value: null, disabled: true })
+        }),
+        finalita: new FormControl({ value: null, disabled: true }),
+        id_utente: new FormControl(null),
+        url_redirezione: new FormControl({ value: null, disabled: true }),
+        url_esposizione: new FormControl({ value: null, disabled: true }),
+        help_desk: new FormControl({ value: null, disabled: true }),
+        nome_applicazione_portale: new FormControl({ value: null, disabled: true }),
+        client_id: new FormControl({ value: null, disabled: true }),
+        username: new FormControl({ value: null, disabled: true }),
+      });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should handle NuovoCliente selection', () => {
+      component.onChangeCredenziali(SelectedClientEnum.NuovoCliente);
+
+      expect(component._tipo_client).toBe(TipoClientEnum.Nuovo);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome'].enabled).toBe(true);
+    });
+
+    it('should handle UsaClientEsistente selection', () => {
+      component.onChangeCredenziali(SelectedClientEnum.UsaClientEsistente);
+
+      expect(component._tipo_client).toBe(TipoClientEnum.Proposto);
+      expect(component._show_nome_proposto).toBe(true);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome_proposto'].enabled).toBe(true);
+    });
+
+    it('should handle default (existing client) selection with https + fornito cert', () => {
+      const existingClient = {
+        id_client: 'c-1',
+        nome: 'ExistingClient',
+        descrizione: 'desc',
+        indirizzo_ip: '1.2.3.4',
+        dati_specifici: {
+          certificato_autenticazione: { tipo_certificato: 'fornito', certificato: { uuid: 'u1', filename: 'cert.pem' } },
+          rate_limiting: null,
+          finalita: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-1');
+
+      expect(component._tipo_client).toBe(TipoClientEnum.Riferito);
+      expect(component._isFornito).toBe(true);
+    });
+
+    it('should handle default selection with https + richiesto_cn cert', () => {
+      const existingClient = {
+        id_client: 'c-2',
+        nome: 'ClientCN',
+        dati_specifici: {
+          certificato_autenticazione: { tipo_certificato: 'richiesto_cn', cn: 'CN=test', certificato: {} },
+          rate_limiting: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-2');
+
+      expect(component._isRichiesto_cn).toBe(true);
+      expect(component._certificato_cn).toEqual({});
+    });
+
+    it('should handle default selection with https + richiesto_csr cert', () => {
+      const existingClient = {
+        id_client: 'c-3',
+        nome: 'ClientCSR',
+        dati_specifici: {
+          certificato_autenticazione: { tipo_certificato: 'richiesto_csr', richiesta: { uuid: 'r1' }, modulo_richiesta: { uuid: 'm1' } },
+          rate_limiting: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-3');
+
+      expect(component._isRichiesto_csr).toBe(true);
+      expect(component._certificato_csr).toEqual({ uuid: 'r1' });
+      expect(component._modulo_richiesta_csr).toEqual({ uuid: 'm1' });
+    });
+
+    it('should handle null/empty selection (falsy)', () => {
+      component.onChangeCredenziali(null);
+
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome'].disabled).toBe(true);
+    });
+
+    it('should handle "null" string selection', () => {
+      component.onChangeCredenziali('null');
+
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome'].disabled).toBe(true);
+    });
+
+    it('should handle firma cert for https_sign auth type', () => {
+      component._auth_type = 'https_sign';
+      component._isHttps = false;
+      component._isHttpsSign = true;
+
+      const existingClient = {
+        id_client: 'c-sign',
+        nome: 'ClientSign',
+        dati_specifici: {
+          certificato_autenticazione: { tipo_certificato: 'fornito', certificato: { uuid: 'ua' } },
+          certificato_firma: { tipo_certificato: 'fornito', certificato: { uuid: 'uf' } },
+          rate_limiting: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-sign');
+
+      expect(component._isFornito).toBe(true);
+      expect(component._isFornito_firma).toBe(true);
+    });
+
+    it('should handle firma cert richiesto_cn for https_sign', () => {
+      component._auth_type = 'https_sign';
+      component._isHttps = false;
+      component._isHttpsSign = true;
+
+      const existingClient = {
+        id_client: 'c-sign-cn',
+        nome: 'ClientSignCN',
+        dati_specifici: {
+          certificato_autenticazione: { tipo_certificato: 'fornito', certificato: { uuid: 'ua' } },
+          certificato_firma: { tipo_certificato: 'richiesto_cn', cn: 'CN=firma', certificato: { uuid: 'ufcn' } },
+          rate_limiting: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-sign-cn');
+
+      expect(component._isRichiesto_cn_firma).toBe(true);
+      expect(component._certificato_cn_firma).toEqual({ uuid: 'ufcn' });
+    });
+
+    it('should handle firma cert richiesto_csr for https_sign', () => {
+      component._auth_type = 'https_sign';
+      component._isHttps = false;
+      component._isHttpsSign = true;
+
+      const existingClient = {
+        id_client: 'c-sign-csr',
+        nome: 'ClientSignCSR',
+        dati_specifici: {
+          certificato_autenticazione: { tipo_certificato: 'fornito', certificato: { uuid: 'ua' } },
+          certificato_firma: { tipo_certificato: 'richiesto_csr', richiesta: { uuid: 'rfirma' }, modulo_richiesta: { uuid: 'mfirma' }, certificato: { uuid: 'cfirma' } },
+          rate_limiting: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-sign-csr');
+
+      expect(component._isRichiesto_csr_firma).toBe(true);
+      expect(component._certificato_csr_firma).toEqual({ uuid: 'rfirma' });
+      expect(component._modulo_richiesta_csr_firma).toEqual({ uuid: 'mfirma' });
+      expect(component._modulo_richiesta_csr_firma_ceritifato).toEqual({ uuid: 'cfirma' });
+    });
+
+    it('should handle pdnd with client_id disable', () => {
+      component._auth_type = 'pdnd';
+      component._isHttps = false;
+      component._isPdnd = true;
+
+      const existingClient = {
+        id_client: 'c-pdnd',
+        nome: 'ClientPdnd',
+        dati_specifici: {
+          client_id: 'pdnd-id-123',
+          rate_limiting: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-pdnd');
+
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['client_id'].value).toBe('pdnd-id-123');
+      expect(controls['client_id'].disabled).toBe(true);
+    });
+
+    it('should handle oauth_authorization_code disable fields in default case', () => {
+      component._auth_type = 'oauth_authorization_code';
+      component._isHttps = false;
+      component._isOauthAuthCode = true;
+
+      const existingClient = {
+        id_client: 'c-oauth',
+        nome: 'ClientOAuth',
+        dati_specifici: {
+          client_id: 'oauth-id',
+          url_redirezione: 'http://redir',
+          url_esposizione: 'http://expose',
+          help_desk: 'http://help',
+          nome_applicazione_portale: 'App',
+          rate_limiting: null
+        }
+      };
+      component._arr_clients_riuso = [existingClient];
+      component._currClient = { source: existingClient };
+
+      component.onChangeCredenziali('c-oauth');
+
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['url_redirezione'].value).toBe('http://redir');
+      expect(controls['url_redirezione'].disabled).toBe(true);
+      expect(controls['help_desk'].value).toBe('http://help');
+      expect(controls['help_desk'].disabled).toBe(true);
+    });
+
+    it('should enable oauth fields for NuovoCliente with oauth auth type', () => {
+      component._auth_type = 'oauth_authorization_code';
+      component._isHttps = false;
+      component._isOauthAuthCode = true;
+
+      component.onChangeCredenziali(SelectedClientEnum.NuovoCliente);
+
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['url_redirezione'].enabled).toBe(true);
+      expect(controls['url_esposizione'].enabled).toBe(true);
+      expect(controls['help_desk'].enabled).toBe(true);
+      expect(controls['nome_applicazione_portale'].enabled).toBe(true);
+    });
+
+    it('should handle empty string selection (falsy with oauth)', () => {
+      component._auth_type = 'oauth_authorization_code';
+      component._isHttps = false;
+      component._isOauthAuthCode = true;
+
+      component.onChangeCredenziali('');
+
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['url_redirezione'].disabled).toBe(true);
+      expect(controls['nome'].disabled).toBe(true);
+    });
+  });
+
+  // ─── updateAllValidators ───
+
+  describe('updateAllValidators', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      component._isHttps = true;
+      component._isPdnd = false;
+      component._isHttpsPdnd = false;
+      component._isSign = false;
+      component._isSignPdnd = false;
+      component._isHttpsSign = false;
+      component._isHttpsPdndSign = false;
+      component._isOauthAuthCode = false;
+      component._show_nome_proposto = false;
+
+      mockAuthService._getConfigModule.mockImplementation((module: string) => {
+        if (module === 'adesione') return { proprieta_custom: [] };
+        return {
+          api: {
+            auth_type: [{ type: 'https', indirizzi_ip: false, rate_limiting: false, finalita: false }],
+            profili: []
+          }
+        };
+      });
+
+      component._editFormGroupClients = new FormGroup({
+        credenziali: new FormControl(''),
+        nome_proposto: new FormControl(null),
+        nome: new FormControl(null),
+        tipo_certificato: new FormControl(null),
+        tipo_certificato_firma: new FormControl(null),
+        filename: new FormControl(null),
+        estensione: new FormControl(null),
+        content: new FormControl(null),
+        uuid: new FormControl(null),
+        filename_firma: new FormControl(null),
+        estensione_firma: new FormControl(null),
+        content_firma: new FormControl(null),
+        uuid_firma: new FormControl(null),
+        filename_csr: new FormControl(null),
+        estensione_csr: new FormControl(null),
+        content_csr: new FormControl(null),
+        uuid_csr: new FormControl(null),
+        filename_csr_firma: new FormControl(null),
+        estensione_csr_firma: new FormControl(null),
+        content_csr_firma: new FormControl(null),
+        uuid_csr_firma: new FormControl(null),
+        cn: new FormControl(null),
+        cn_firma: new FormControl(null),
+        csr: new FormControl(null),
+        modulo_richiesta_csr: new FormControl(null),
+        modulo_richiesta_csr_firma: new FormControl(null),
+        ip_fruizione: new FormControl(null),
+        descrizione: new FormControl(null),
+        rate_limiting: new FormGroup({
+          quota: new FormControl(null),
+          periodo: new FormControl(null)
+        }),
+        finalita: new FormControl(null),
+        id_utente: new FormControl(null),
+        url_redirezione: new FormControl(null),
+        url_esposizione: new FormControl(null),
+        help_desk: new FormControl(null),
+        nome_applicazione_portale: new FormControl(null),
+        client_id: new FormControl(null),
+        username: new FormControl(null),
+      });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should clear nome_proposto validators for NuovoCliente', () => {
+      component.updateAllValidators(SelectedClientEnum.NuovoCliente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome_proposto'].hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('should set client_id required for pdnd with NuovoCliente', () => {
+      component._isHttps = false;
+      component._isPdnd = true;
+      component.updateAllValidators(SelectedClientEnum.NuovoCliente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['client_id'].hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('should clear client_id validators for non-pdnd with NuovoCliente', () => {
+      component.updateAllValidators(SelectedClientEnum.NuovoCliente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['client_id'].hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('should set tipo_certificato_firma required for https_sign with NuovoCliente', () => {
+      component._isHttpsSign = true;
+      component.updateAllValidators(SelectedClientEnum.NuovoCliente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['tipo_certificato_firma'].hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('should enable tipo_certificato_firma and clear tipo_certificato for sign', () => {
+      component._isHttps = false;
+      component._isSign = true;
+      component.updateAllValidators(SelectedClientEnum.NuovoCliente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['tipo_certificato_firma'].enabled).toBe(true);
+      expect(controls['tipo_certificato'].hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('should set oauth validators for NuovoCliente with oauth_authorization_code', () => {
+      component._isHttps = false;
+      component._isOauthAuthCode = true;
+      component.updateAllValidators(SelectedClientEnum.NuovoCliente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['url_redirezione'].hasValidator(Validators.required)).toBe(true);
+      expect(controls['url_esposizione'].hasValidator(Validators.required)).toBe(true);
+      expect(controls['help_desk'].hasValidator(Validators.required)).toBe(true);
+      expect(controls['nome_applicazione_portale'].hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('should clear all validators for UsaClientEsistente', () => {
+      component.updateAllValidators(SelectedClientEnum.UsaClientEsistente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome'].hasValidator(Validators.required)).toBe(false);
+      expect(controls['ip_fruizione'].hasValidator(Validators.required)).toBe(false);
+      expect(controls['client_id'].hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('should set nome_proposto required for UsaClientEsistente', () => {
+      component.updateAllValidators(SelectedClientEnum.UsaClientEsistente);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome_proposto'].hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('should handle default case with show_nome_proposto true', () => {
+      component._show_nome_proposto = true;
+      component.updateAllValidators('some-id' as any);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome_proposto'].hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('should handle default case with show_nome_proposto false', () => {
+      component._show_nome_proposto = false;
+      component.updateAllValidators('some-id' as any);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome_proposto'].value).toBeNull();
+      expect(controls['nome_proposto'].hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('should also work for Default enum value (same as NuovoCliente)', () => {
+      component.updateAllValidators(SelectedClientEnum.Default);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['nome_proposto'].hasValidator(Validators.required)).toBe(false);
+    });
+  });
+
+  // ─── _loadClientsRiuso ───
+
+  describe('_loadClientsRiuso', () => {
+    it('should add clients from API response', () => {
+      mockApiService.getList.mockReturnValue(of({
+        content: [
+          { id_client: 'c-1', nome: 'Client1' },
+          { id_client: 'c-2', nome: 'Client2' },
+        ]
+      }));
+
+      component._loadClientsRiuso('https', 'org-1', 'collaudo');
+
+      expect(mockApiService.getList).toHaveBeenCalledWith('client', expect.objectContaining({
+        params: expect.objectContaining({ auth_type: 'https', id_organizzazione: 'org-1', ambiente: 'collaudo' })
+      }));
+      expect(component._arr_clients_riuso.length).toBe(2);
+    });
+
+    it('should prepend NuoveCredenziali when checkRiuso=true and no riuso obbligatorio', () => {
+      component._generalConfig = { adesione: { riuso_client_obbligatorio: false } };
+      mockApiService.getList.mockReturnValue(of({
+        content: [{ id_client: 'c-1', nome: 'Client1' }]
+      }));
+
+      component._loadClientsRiuso('https', 'org-1', 'collaudo', true);
+
+      expect(component._arr_clients_riuso.length).toBe(3); // ScegliCredenziali + NuoveCredenziali + Client1
+      expect(component._arr_clients_riuso[0].id_client).toBe(SelectedClientEnum.Default);
+      expect(component._arr_clients_riuso[1].id_client).toBe(SelectedClientEnum.NuovoCliente);
+    });
+
+    it('should prepend NuoveCredenziali when checkRiuso=true and empty list', () => {
+      component._generalConfig = { adesione: { riuso_client_obbligatorio: true } };
+      mockApiService.getList.mockReturnValue(of({ content: [] }));
+
+      component._loadClientsRiuso('https', 'org-1', 'collaudo', true);
+
+      expect(component._arr_clients_riuso.length).toBe(2); // ScegliCredenziali + NuoveCredenziali
+    });
+
+    it('should not prepend when checkRiuso=true and riuso obbligatorio with existing clients', () => {
+      component._generalConfig = { adesione: { riuso_client_obbligatorio: true } };
+      mockApiService.getList.mockReturnValue(of({
+        content: [{ id_client: 'c-1', nome: 'Client1' }]
+      }));
+
+      component._loadClientsRiuso('https', 'org-1', 'collaudo', true);
+
+      expect(component._arr_clients_riuso.length).toBe(1); // only Client1
+    });
+
+    it('should handle error on loadClientsRiuso', () => {
+      mockApiService.getList.mockReturnValue(throwError(() => ({ status: 500 })));
+
+      component._loadClientsRiuso('https', 'org-1', 'collaudo');
+
+      expect(component._error).toBe(true);
+      expect(component._preventMultiCall).toBe(false);
+    });
+  });
+
+  // ─── _resetUploadCertificateComponents ───
+
+  it('should reset all certificate upload controls', () => {
+    component._editFormGroupClients = new FormGroup({
+      filename: new FormControl('test.pem'),
+      estensione: new FormControl('pem'),
+      content: new FormControl('data', Validators.required),
+      cn: new FormControl('CN=test', Validators.required),
+      filename_csr: new FormControl('test.csr'),
+      estensione_csr: new FormControl('csr'),
+      content_csr: new FormControl('csrdata', Validators.required),
+      filename_firma: new FormControl(null),
+      estensione_firma: new FormControl(null),
+      content_firma: new FormControl(null),
+      cn_firma: new FormControl(null),
+      filename_csr_firma: new FormControl(null),
+      estensione_csr_firma: new FormControl(null),
+      content_csr_firma: new FormControl(null),
+    });
+    component._resetUploadCertificateComponents(component._editFormGroupClients.controls);
+
+    expect(component._editFormGroupClients.get('filename')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('content')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('cn')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('filename_csr')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('content_csr')!.value).toBeNull();
+  });
+
+  // ─── _resetUploadCertificateComponentsFirma ───
+
+  it('should reset all firma certificate upload controls', () => {
+    component._editFormGroupClients = new FormGroup({
+      filename: new FormControl(null),
+      estensione: new FormControl(null),
+      content: new FormControl(null),
+      cn: new FormControl(null),
+      filename_csr: new FormControl(null),
+      estensione_csr: new FormControl(null),
+      content_csr: new FormControl(null),
+      filename_firma: new FormControl('firma.pem'),
+      estensione_firma: new FormControl('pem'),
+      content_firma: new FormControl('firmadata', Validators.required),
+      cn_firma: new FormControl('CN=firma', Validators.required),
+      filename_csr_firma: new FormControl('csr_firma.pem'),
+      estensione_csr_firma: new FormControl('pem'),
+      content_csr_firma: new FormControl('csrfirmadata', Validators.required),
+    });
+    component._resetUploadCertificateComponentsFirma(component._editFormGroupClients.controls);
+
+    expect(component._editFormGroupClients.get('filename_firma')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('content_firma')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('cn_firma')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('filename_csr_firma')!.value).toBeNull();
+    expect(component._editFormGroupClients.get('content_csr_firma')!.value).toBeNull();
+  });
+
+  // ─── __descrittoreChangeFirma ───
+
+  describe('__descrittoreChangeFirma', () => {
+    beforeEach(() => {
+      component._editFormGroupClients = new FormGroup({
+        filename_firma: new FormControl(null),
+        estensione_firma: new FormControl(null),
+        content_firma: new FormControl(null),
+        filename_csr_firma: new FormControl(null),
+        estensione_csr_firma: new FormControl(null),
+        content_csr_firma: new FormControl(null),
+      });
+    });
+
+    it('should update non-csr firma file fields', () => {
+      component.__descrittoreChangeFirma({ file: 'firma.pem', type: 'application/x-pem-file', data: 'firmadata' });
+      expect(component._editFormGroupClients.get('filename_firma')!.value).toBe('firma.pem');
+      expect(component._editFormGroupClients.get('estensione_firma')!.value).toBe('application/x-pem-file');
+      expect(component._editFormGroupClients.get('content_firma')!.value).toBe('firmadata');
+    });
+
+    it('should update csr firma file fields when csr=true', () => {
+      component.__descrittoreChangeFirma({ file: 'csr_firma.pem', type: 'application/pkcs10', data: 'csrfirmadata' }, true);
+      expect(component._editFormGroupClients.get('filename_csr_firma')!.value).toBe('csr_firma.pem');
+      expect(component._editFormGroupClients.get('estensione_csr_firma')!.value).toBe('application/pkcs10');
+      expect(component._editFormGroupClients.get('content_csr_firma')!.value).toBe('csrfirmadata');
+    });
+
+    it('should clear error on change', () => {
+      component._error = true;
+      component._errorMsg = 'previous error';
+      component.__descrittoreChangeFirma({ file: 'f', type: 't', data: 'd' });
+      expect(component._error).toBe(false);
+      expect(component._errorMsg).toBe('');
+    });
+  });
+
+  // ─── _downloadAllegato ───
+
+  describe('_downloadAllegato', () => {
+    beforeEach(() => {
+      component.id = 42;
+      component.environmentId = 'collaudo';
+      (globalThis as any).saveAs = vi.fn();
+    });
+
+    afterEach(() => {
+      delete (globalThis as any).saveAs;
+    });
+
+    it('should download file and call saveAs on success', () => {
+      const blob = new Blob(['content']);
+      mockApiService.download.mockReturnValue(of({ body: blob }));
+
+      component._downloadAllegato({ uuid: 'u-1', filename: 'cert.pem' });
+
+      expect(mockApiService.download).toHaveBeenCalledWith('adesioni', 42, 'collaudo/client/u-1/download');
+      expect((globalThis as any).saveAs).toHaveBeenCalledWith(blob, 'cert.pem');
+      expect(component._downloading).toBe(false);
+    });
+
+    it('should set _downloading true while in progress', () => {
+      mockApiService.download.mockReturnValue(of({ body: new Blob() }));
+
+      // _downloading is set true at start, then false on completion
+      component._downloadAllegato({ uuid: 'u-1', filename: 'cert.pem' });
+      expect(component._downloading).toBe(false); // already completed synchronously
+    });
+
+    it('should handle error on download', () => {
+      mockApiService.download.mockReturnValue(throwError(() => ({ status: 500 })));
+      mockUtils.GetErrorMsg.mockReturnValue('Download Error');
+
+      component._downloadAllegato({ uuid: 'u-1', filename: 'cert.pem' });
+
+      expect(component._error).toBe(true);
+      expect(component._errorMsg).toBe('Download Error');
+      expect(component._downloading).toBe(false);
+    });
+  });
+
+  // ─── _showDialogDissociaClient ───
+
+  describe('_showDialogDissociaClient', () => {
+    beforeEach(() => {
+      component.adesione = {
+        id_adesione: 'ade-1',
+        stato: 'bozza',
+        soggetto: { organizzazione: { nome: 'Org' } },
+        servizio: { nome: 'S', versione: '1' }
+      };
+      component.environmentId = 'collaudo';
+    });
+
+    it('should open confirmation dialog', () => {
+      const mockOnClose = { subscribe: vi.fn() };
+      mockModalService.show.mockReturnValue({ content: { onClose: mockOnClose } });
+
+      const item = { source: { codice_interno: 'prof1' } };
+      component._showDialogDissociaClient(item);
+
+      expect(mockModalService.show).toHaveBeenCalled();
+      expect(mockOnClose.subscribe).toHaveBeenCalled();
+    });
+
+    it('should delete client on confirm', () => {
+      const onCloseCallback: any[] = [];
+      const mockOnClose = {
+        subscribe: vi.fn((cb: any) => { onCloseCallback.push(cb); })
+      };
+      mockModalService.show.mockReturnValue({ content: { onClose: mockOnClose } });
+      vi.spyOn(component, '_loadAdesioneConfigClients').mockImplementation(() => {});
+      mockApiService.deleteElement.mockReturnValue(of({}));
+
+      const item = { source: { codice_interno: 'prof1' } };
+      component._showDialogDissociaClient(item);
+
+      // Simulate user confirming
+      onCloseCallback[0](true);
+
+      expect(mockApiService.deleteElement).toHaveBeenCalledWith('adesioni', 'ade-1/collaudo/client/prof1');
+      expect(component._loadAdesioneConfigClients).toHaveBeenCalled();
+    });
+
+    it('should not delete client when dialog is cancelled', () => {
+      const onCloseCallback: any[] = [];
+      const mockOnClose = {
+        subscribe: vi.fn((cb: any) => { onCloseCallback.push(cb); })
+      };
+      mockModalService.show.mockReturnValue({ content: { onClose: mockOnClose } });
+
+      const item = { source: { codice_interno: 'prof1' } };
+      component._showDialogDissociaClient(item);
+
+      // Simulate user cancelling
+      onCloseCallback[0](false);
+
+      expect(mockApiService.deleteElement).not.toHaveBeenCalled();
+    });
+
+    it('should handle error on delete client', () => {
+      const onCloseCallback: any[] = [];
+      const mockOnClose = {
+        subscribe: vi.fn((cb: any) => { onCloseCallback.push(cb); })
+      };
+      mockModalService.show.mockReturnValue({ content: { onClose: mockOnClose } });
+      mockApiService.deleteElement.mockReturnValue(throwError(() => ({ status: 500 })));
+      mockUtils.GetErrorMsg.mockReturnValue('Delete Error');
+
+      const item = { source: { codice_interno: 'prof1' } };
+      component._showDialogDissociaClient(item);
+      onCloseCallback[0](true);
+
+      expect(component._error).toBe(true);
+      expect(component._errorMsg).toBe('Delete Error');
+    });
+  });
+
+  // ─── _isModifiableMapperOld ───
+
+  describe('_isModifiableMapperOld', () => {
+    it('should return true when user is gestore and collaudo not blocked', () => {
+      mockAuthService.isGestore.mockReturnValue(true);
+      mockAuthService._getClassesNotModifiable.mockReturnValue([]);
+      mockAuthService.canChangeStatus.mockReturnValue(false);
+      component._collaudo = true;
+      component._grant = { ruoli: ['gestore'] } as any;
+      component.adesione = { stato: 'bozza' };
+
+      expect(component._isModifiableMapperOld()).toBe(true);
+    });
+
+    it('should return false when all classes are blocked', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      mockAuthService._getClassesNotModifiable.mockReturnValue(['collaudo', 'collaudo_configurato', 'produzione', 'produzione_configurato']);
+      component._collaudo = true;
+      component._grant = { ruoli: [] } as any;
+      component.adesione = { stato: 'bozza' };
+
+      expect(component._isModifiableMapperOld()).toBe(false);
+    });
+
+    it('should return true for non-configurato item even without other permissions', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      mockAuthService._getClassesNotModifiable.mockReturnValue([]);
+      mockAuthService.canChangeStatus.mockReturnValue(false);
+      component._collaudo = true;
+      component._grant = { ruoli: [] } as any;
+      component.adesione = { stato: 'bozza' };
+
+      const item = { source: { stato: StatoConfigurazioneEnum.NONCONFIGURATO } };
+      expect(component._isModifiableMapperOld(item)).toBe(true);
+    });
+
+    it('should return true for nome_proposto item', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      mockAuthService._getClassesNotModifiable.mockReturnValue([]);
+      mockAuthService.canChangeStatus.mockReturnValue(false);
+      component._collaudo = true;
+      component._grant = { ruoli: [] } as any;
+      component.adesione = { stato: 'bozza' };
+
+      const item = { source: { stato: StatoConfigurazioneEnum.CONFIGURATO, nome_proposto: 'Proposed' } };
+      expect(component._isModifiableMapperOld(item)).toBe(true);
+    });
+
+    it('should check produzione permissions when not collaudo', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      mockAuthService._getClassesNotModifiable.mockReturnValue(['collaudo', 'collaudo_configurato']);
+      mockAuthService.canChangeStatus.mockReturnValue(true);
+      component._collaudo = false;
+      component._grant = { ruoli: [] } as any;
+      component.adesione = { stato: 'produzione' };
+
+      expect(component._isModifiableMapperOld()).toBe(true);
+    });
+
+    it('should return false for configurato item without stato change permission', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      mockAuthService._getClassesNotModifiable.mockReturnValue([]);
+      mockAuthService.canChangeStatus.mockReturnValue(false);
+      component._collaudo = true;
+      component._grant = { ruoli: [] } as any;
+      component.adesione = { stato: 'bozza' };
+
+      const item = { source: { stato: StatoConfigurazioneEnum.CONFIGURATO } };
+      expect(component._isModifiableMapperOld(item)).toBe(false);
+    });
+
+    it('should handle item without source', () => {
+      mockAuthService.isGestore.mockReturnValue(false);
+      mockAuthService._getClassesNotModifiable.mockReturnValue([]);
+      mockAuthService.canChangeStatus.mockReturnValue(false);
+      component._collaudo = true;
+      component._grant = { ruoli: [] } as any;
+      component.adesione = { stato: 'bozza' };
+
+      const item = { stato: StatoConfigurazioneEnum.NONCONFIGURATO };
+      expect(component._isModifiableMapperOld(item)).toBe(true);
+    });
+  });
+
+  // ─── _resetDescrittoriAll ───
+
+  it('should reset all descriptors and firma descriptors', () => {
+    component._descrittoreCtrl.setValue('abc');
+    component._descrittoreCtrl_csr.setValue('def');
+    component._descrittoreCtrl_csr_modulo.setValue('ghi');
+    component._descrittoreCtrl_firma.setValue('jkl');
+    component._descrittoreCtrl_csr_firma.setValue('mno');
+    component._descrittoreCtrl_csr_modulo_firma.setValue('pqr');
+    component._resetDescrittoriAll();
+    expect(component._descrittoreCtrl.value).toBe('');
+    expect(component._descrittoreCtrl_csr.value).toBe('');
+    expect(component._descrittoreCtrl_csr_modulo.value).toBe('');
+    expect(component._descrittoreCtrl_firma.value).toBe('');
+    expect(component._descrittoreCtrl_csr_firma.value).toBe('');
+    expect(component._descrittoreCtrl_csr_modulo_firma.value).toBe('');
+  });
+
+  // ─── _loadCredenziali with visualizza_elenco_client_esistenti ───
+
+  describe('_loadCredenziali with visualizza_elenco', () => {
+    it('should call _loadClientsRiuso with checkRiuso when visualizza is true', () => {
+      component._generalConfig = { adesione: { visualizza_elenco_client_esistenti: true } };
+      vi.spyOn(component, '_loadClientsRiuso').mockImplementation(() => {});
+
+      component._loadCredenziali('https', 'org-1', 'collaudo');
+
+      expect(component._loadClientsRiuso).toHaveBeenCalledWith('https', 'org-1', 'collaudo', true);
+    });
+
+    it('should call _loadClientsRiuso for gestore when visualizza is false', () => {
+      component._generalConfig = { adesione: { visualizza_elenco_client_esistenti: false } };
+      mockAuthService.isGestore.mockReturnValue(true);
+      vi.spyOn(component, '_loadClientsRiuso').mockImplementation(() => {});
+
+      component._loadCredenziali('https', 'org-1', 'collaudo');
+
+      expect(component._loadClientsRiuso).toHaveBeenCalledWith('https', 'org-1', 'collaudo');
+    });
+  });
+
+  // ─── _showMandatoryFields with debugMandatoryFields ───
+
+  it('should log mandatory fields when debugMandatoryFields is true', () => {
+    component.debugMandatoryFields = true;
+    const consoleGroupSpy = vi.spyOn(console, 'group').mockImplementation(() => {});
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleGroupEndSpy = vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
+
+    const controls = {
+      nome: new FormControl('', Validators.required),
+      optional: new FormControl('')
+    };
+    component._showMandatoryFields(controls);
+
+    expect(consoleGroupSpy).toHaveBeenCalledWith('Mandatory fields');
+    expect(consoleLogSpy).toHaveBeenCalled();
+    expect(consoleGroupEndSpy).toHaveBeenCalled();
+  });
+
+  it('should log NESSUN CAMPO when no required fields and debugMandatoryFields is true', () => {
+    component.debugMandatoryFields = true;
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'group').mockImplementation(() => {});
+    vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
+
+    const controls = {
+      optional1: new FormControl(''),
+      optional2: new FormControl('')
+    };
+    component._showMandatoryFields(controls);
+
+    expect(consoleLogSpy).toHaveBeenCalledWith('NESSUN CAMPO OBBLIGATORIO');
+  });
+
+  // ─── _initEditFormClients with more scenarios ───
+
+  describe('_initEditFormClients advanced', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      mockAuthService._getConfigModule.mockImplementation((module: string) => {
+        if (module === 'adesione') return { proprieta_custom: [] };
+        return {
+          api: {
+            auth_type: [
+              { type: 'https', indirizzi_ip: false, rate_limiting: false, finalita: false },
+              { type: 'pdnd', indirizzi_ip: false, rate_limiting: false, finalita: true },
+              { type: 'https_sign', indirizzi_ip: false, rate_limiting: false, finalita: false },
+              { type: 'sign', indirizzi_ip: false, rate_limiting: false, finalita: false },
+              { type: 'oauth_authorization_code', indirizzi_ip: false, rate_limiting: false, finalita: false },
+              { type: 'http_basic', indirizzi_ip: false, rate_limiting: false, finalita: false },
+            ],
+            profili: []
+          }
+        };
+      });
+      component.adesione = {
+        soggetto: { organizzazione: { id_organizzazione: 'org-1' } },
+        servizio: { nome: 'S', versione: '1' },
+        id_adesione: 'a-1', stato: 'bozza'
+      };
+      component.environmentId = 'collaudo';
+      component._generalConfig = { adesione: { visualizza_elenco_client_esistenti: false } };
+      component._grant = { collaudo: 'scrittura', ruoli: [] } as any;
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should set richiesto_cn fields from existing data', () => {
+      component._auth_type = 'https';
+      component._isHttps = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: {
+          auth_type: 'https',
+          certificato_autenticazione: { tipo_certificato: 'richiesto_cn', cn: 'CN=test' }
+        },
+        source: { stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._isRichiesto_cn).toBe(true);
+      expect(component._editFormGroupClients.get('cn')!.value).toBe('CN=test');
+    });
+
+    it('should set richiesto_csr fields from existing data', () => {
+      component._auth_type = 'https';
+      component._isHttps = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: {
+          auth_type: 'https',
+          certificato_autenticazione: {
+            tipo_certificato: 'richiesto_csr',
+            richiesta: { uuid: 'r-1', filename: 'req.csr', content_type: 'csr' },
+            modulo_richiesta: { uuid: 'm-1', filename: 'mod.pem', content_type: 'pem' }
+          }
+        },
+        source: { stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._isRichiesto_csr).toBe(true);
+      expect(component._certificato_csr).toEqual({ uuid: 'r-1', filename: 'req.csr', content_type: 'csr' });
+      expect(component._modulo_richiesta_csr).toEqual({ uuid: 'm-1', filename: 'mod.pem', content_type: 'pem' });
+    });
+
+    it('should handle pdnd auth type and set client_id validators', () => {
+      component._auth_type = 'pdnd';
+      component._isHttps = false;
+      component._isPdnd = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: { auth_type: 'pdnd', client_id: 'pdnd-123' },
+        source: { stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._editFormGroupClients.get('client_id')!.value).toBe('pdnd-123');
+      expect(component._editFormGroupClients.get('client_id')!.hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('should handle https_sign auth type setting firma cert validators', () => {
+      component._auth_type = 'https_sign';
+      component._isHttps = false;
+      component._isHttpsSign = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: {
+          auth_type: 'https_sign',
+          certificato_autenticazione: { tipo_certificato: 'fornito', certificato: { uuid: 'u1' } },
+          certificato_firma: { tipo_certificato: 'fornito', certificato: { uuid: 'u2' } }
+        },
+        source: { stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._editFormGroupClients.get('tipo_certificato_firma')!.hasValidator(Validators.required)).toBe(true);
+    });
+
+    it('should handle sign auth type enabling tipo_certificato_firma', () => {
+      component._auth_type = 'sign';
+      component._isHttps = false;
+      component._isSign = true;
+      component._initEditFormClients(null);
+      const controls = component._editFormGroupClients.controls;
+      expect(controls['tipo_certificato_firma'].enabled).toBe(true);
+      expect(controls['tipo_certificato'].hasValidator(Validators.required)).toBe(false);
+    });
+
+    it('should handle oauth_authorization_code form fields', () => {
+      component._auth_type = 'oauth_authorization_code';
+      component._isHttps = false;
+      component._isOauthAuthCode = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: {
+          auth_type: 'oauth_authorization_code',
+          client_id: 'oauth-id',
+          url_redirezione: 'http://redir',
+          url_esposizione: 'http://expose',
+          help_desk: 'http://help',
+          nome_applicazione_portale: 'App'
+        },
+        source: { stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._editFormGroupClients.get('url_redirezione')!.value).toBe('http://redir');
+      expect(component._editFormGroupClients.get('url_redirezione')!.enabled).toBe(true);
+    });
+
+    it('should handle http_basic auth type setting username', () => {
+      component._auth_type = 'http_basic';
+      component._isHttps = false;
+      component._isHttpBasic = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: { auth_type: 'http_basic', username: 'user1' },
+        source: { stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._editFormGroupClients.get('username')!.value).toBe('user1');
+    });
+
+    it('should disable all fields when not modifiable', () => {
+      component._auth_type = 'https';
+      component._isHttps = true;
+      component._grant = { collaudo: 'lettura', ruoli: [] } as any;
+      component._initEditFormClients(null);
+      const controls = component._editFormGroupClients.controls;
+      // When grant is lettura, all fields should be disabled
+      expect(controls['credenziali'].disabled).toBe(true);
+    });
+
+    it('should set NONCONFIGURATO nullify certs', () => {
+      component._auth_type = 'https';
+      component._isHttps = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: {
+          auth_type: 'https',
+          certificato_autenticazione: { tipo_certificato: 'fornito', certificato: { uuid: 'u1' } }
+        },
+        source: { stato: StatoConfigurazioneEnum.NONCONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._certificato_csr).toBeNull();
+      expect(component._modulo_richiesta_csr).toBeNull();
+      expect(component._certificato_fornito).toBeNull();
+    });
+
+    it('should set firma richiesto_csr from existing data', () => {
+      component._auth_type = 'https_sign';
+      component._isHttps = false;
+      component._isHttpsSign = true;
+      const data = {
+        id_client: 'c-1', nome: 'C1',
+        dati_specifici: {
+          auth_type: 'https_sign',
+          certificato_autenticazione: { tipo_certificato: 'fornito', certificato: { uuid: 'ua' } },
+          certificato_firma: {
+            tipo_certificato: 'richiesto_csr',
+            richiesta: { uuid: 'rf' },
+            modulo_richiesta: { uuid: 'mf' },
+            certificato: { uuid: 'cf' }
+          }
+        },
+        source: { stato: StatoConfigurazioneEnum.CONFIGURATO }
+      };
+      component._initEditFormClients(data);
+      expect(component._isRichiesto_csr_firma).toBe(true);
+      expect(component._certificato_csr_firma).toEqual({ uuid: 'rf' });
+      expect(component._modulo_richiesta_csr_firma).toEqual({ uuid: 'mf' });
+      expect(component._modulo_richiesta_csr_firma_ceritifato).toEqual({ uuid: 'cf' });
+    });
+  });
+
+  // ─── _loadAdesioneConfigErogazioni error ───
+
+  it('should handle error on _loadAdesioneConfigErogazioni', () => {
+    component.id = 1;
+    component.environmentId = 'collaudo';
+    mockApiService.getDetails.mockReturnValue(throwError(() => ({ status: 500 })));
+
+    component._loadAdesioneConfigErogazioni();
+
+    expect(component._error).toBe(true);
+    expect(component._preventMultiCall).toBe(false);
+  });
+
+  // ─── _loadAdesioneConfigErogazioni with url (append) ───
+
+  it('should append erogazioni when url is provided', () => {
+    component.id = 1;
+    component.environmentId = 'collaudo';
+    component.adesione = {
+      erogazioni_richieste: [
+        { api: { id_api: 'api-1', nome: 'Api1', protocollo: 'rest', versione: '1' } }
+      ],
+      client_richiesti: []
+    };
+    component.adesioneConfigErogazioni = [{ existing: true } as any];
+    mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+    component._loadAdesioneConfigErogazioni(null, 'next-url');
+
+    expect(component.adesioneConfigErogazioni[0]).toEqual({ existing: true });
+    expect(component.adesioneConfigErogazioni.length).toBe(2);
+  });
+
+  // ─── constructor with navigation state ───
+
+  it('should set adesione from navigation extras state', () => {
+    const mockRouterWithState = {
+      navigate: vi.fn(),
+      getCurrentNavigation: vi.fn().mockReturnValue({
+        extras: { state: { id_adesione: 'nav-1', stato: 'bozza' } }
+      })
+    } as any;
+
+    const comp = new AdesioneConfigurazioniComponent(
+      mockRoute, mockRouterWithState, mockModalService, mockTranslate,
+      mockConfigService, mockApiService, mockAuthService, mockUtils
+    );
+
+    expect(comp.adesione).toEqual({ id_adesione: 'nav-1', stato: 'bozza' });
+  });
+
+  // ─── constructor with serviceBreadcrumbs ───
+
+  it('should set _serviceBreadcrumbs from route data', () => {
+    const routeWithData = {
+      params: of({ id: 'ade-1' }),
+      parent: { params: of({ id: 'ade-1' }) },
+      data: of({ serviceBreadcrumbs: { service: { id_servizio: 's-1' }, breadcrumbs: [] } })
+    } as any;
+
+    const comp = new AdesioneConfigurazioniComponent(
+      routeWithData, mockRouter, mockModalService, mockTranslate,
+      mockConfigService, mockApiService, mockAuthService, mockUtils
+    );
+
+    expect(comp._serviceBreadcrumbs).toEqual({ service: { id_servizio: 's-1' }, breadcrumbs: [] });
+  });
+
+  // ─── _loadAdesioneConfigClients with nome_proposto + non-gestore ───
+
+  it('should set NONCONFIGURATO for non-gestore when nome_proposto without nome', () => {
+    component.id = 1;
+    component.environmentId = 'collaudo';
+    component.adesione = {
+      client_richiesti: [{ profilo: 'profilo1' }],
+      erogazioni_richieste: []
+    };
+    component._generalConfig = {
+      servizio: {
+        api: {
+          profili: [{ codice_interno: 'profilo1', auth_type: 'https', etichetta: 'Prof1' }],
+          auth_type: [{ type: 'https', indirizzi_ip: false }]
+        }
+      }
+    };
+    mockAuthService.isGestore.mockReturnValue(false);
+    const mockResponse = {
+      content: [{ profilo: 'profilo1', id_client: 'c-1', nome_proposto: 'Proposed', nome: null, dati_specifici: {} }],
+      page: {}
+    };
+    mockApiService.getDetails.mockReturnValue(of(mockResponse));
+
+    component._loadAdesioneConfigClients();
+
+    expect(component.adesioneConfigClients[0].source.stato).toBe(StatoConfigurazioneEnum.NONCONFIGURATO);
+  });
+
+  // ─── _loadAdesioneConfigClients ignoreSpin ───
+
+  it('should not set _spin when ignoreSpin is true', () => {
+    component.id = 1;
+    component.environmentId = 'collaudo';
+    component.adesione = {
+      client_richiesti: [{ profilo: 'profilo1' }],
+      erogazioni_richieste: []
+    };
+    component._generalConfig = {
+      servizio: {
+        api: {
+          profili: [{ codice_interno: 'profilo1', auth_type: 'https', etichetta: 'Prof1' }],
+          auth_type: [{ type: 'https', indirizzi_ip: false }]
+        }
+      }
+    };
+    mockApiService.getDetails.mockReturnValue(of({ content: [], page: {} }));
+
+    component._loadAdesioneConfigClients(null, '', true);
+
+    // _spin should be false since ignoreSpin=true
+    expect(component._spin).toBe(false);
+  });
+
+  // ─── _loadAdesioneConfigErogazioni ignoreSpin ───
+
+  it('should not reset adesioneConfigErogazioni when url and ignoreSpin', () => {
+    component.id = 1;
+    component.environmentId = 'collaudo';
+    component.adesione = {
+      erogazioni_richieste: [],
+      client_richiesti: []
+    };
+    component.adesioneConfigErogazioni = [{ existing: true } as any];
+    mockApiService.getDetails.mockReturnValue(of({ content: [] }));
+
+    component._loadAdesioneConfigErogazioni(null, 'http://api/page2', true);
+
+    // Should not clear the existing array when url is provided and ignoreSpin is true
+    expect(component.adesioneConfigErogazioni[0]).toEqual({ existing: true });
+  });
 });
