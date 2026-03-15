@@ -196,6 +196,7 @@ export class AgidJwtDialogComponent implements OnInit {
         } else {
             this._error = true;
             this._errorMsg = 'Formato della chiave non supportato';
+            return '';
         }
 
         try {

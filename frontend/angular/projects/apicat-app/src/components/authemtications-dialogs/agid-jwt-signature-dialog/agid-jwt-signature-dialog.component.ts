@@ -231,6 +231,7 @@ export class AgidJwtSignatureDialogComponent implements OnInit {
         } else {
             this._error = true;
             this._errorMsg = 'Formato della chiave non supportato';
+            return;
         }
 
         // Calcola l'hash SHA-256 del token firmato

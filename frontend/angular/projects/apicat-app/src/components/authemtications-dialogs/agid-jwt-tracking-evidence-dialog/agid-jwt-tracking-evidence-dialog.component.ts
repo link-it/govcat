@@ -234,6 +234,7 @@ export class AgidJwtTrackingEvidenceDialogComponent implements OnInit {
         } else {
             this._error = true;
             this._errorMsg = 'Formato della chiave non supportato';
+            return;
         }
 
         // creo JWS con le informazioni supplementari usando la chiave privata
