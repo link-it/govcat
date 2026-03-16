@@ -836,7 +836,7 @@ public class NotificheTest {
 
         CommonUtils.getSessionUtente(UTENTE_REFERENTE_TECNICO, securityContext, authentication, utenteService);
 
-        // Test con dashboard=true: deve filtrare solo tipo COMUNICAZIONE e stato NUOVA
+        // Test con dashboard=true: deve filtrare tutte le notifiche (di tutti i tipi) con stato NUOVA o LETTA (esclude ARCHIVIATA)
         ResponseEntity<PagedModelItemNotifica> response = notificheController.listNotifiche(
             null, null, null, null, null, null, null, null, true, 0, 10, null);
 
@@ -844,11 +844,11 @@ public class NotificheTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
 
-        // Tutte le notifiche dovrebbero essere di tipo COMUNICAZIONE e stato NUOVA
+        // Tutte le notifiche dovrebbero avere stato NUOVA o LETTA (esclude ARCHIVIATA)
         for (ItemNotifica item : response.getBody().getContent()) {
-            assertNotNull(item.getTipo());
-            assertEquals(TipoNotificaEnum.COMUNICAZIONE.getValue(), item.getTipo().getTipo());
-            assertEquals(StatoNotifica.NUOVA, item.getStato());
+            assertNotNull(item.getStato());
+            assertTrue(item.getStato() == StatoNotifica.NUOVA || item.getStato() == StatoNotifica.LETTA,
+                "Lo stato dovrebbe essere NUOVA o LETTA, trovato: " + item.getStato());
         }
     }
 
@@ -877,7 +877,7 @@ public class NotificheTest {
 
         assertNotNull(response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        // Deve contare solo le notifiche COMUNICAZIONE con stato NUOVA
+        // Deve contare tutte le notifiche (di tutti i tipi) con stato NUOVA o LETTA
         assertTrue(response.getBody().getCount() >= 0);
     }
 
