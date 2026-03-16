@@ -480,7 +480,7 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         note varchar(255),
         principal varchar(255) not null,
         referente_tecnico boolean not null,
-        ruoli_notifiche_abilitate varchar(255),
+        ruoli_notifiche_abilitate varchar(1024),
         ruolo varchar(255),
         stato varchar(255) not null,
         telefono varchar(255),

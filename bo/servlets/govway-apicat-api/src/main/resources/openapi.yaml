@@ -8272,6 +8272,10 @@ components:
         - adesione_referente_adesione_email
         - adesione_referente_tecnico_adesione_email
         - adesione_richiedente_adesione_email
+        - gestore
+        - gestore_email
+        - coordinatore
+        - coordinatore_email
     UpdateNotifica:
       type: "object"
       properties:
