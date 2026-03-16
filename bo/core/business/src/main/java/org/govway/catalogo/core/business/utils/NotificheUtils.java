@@ -43,17 +43,23 @@ import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.StatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.core.services.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 
 public class NotificheUtils {
 
 	@Autowired
 	private ServizioService servizioService;
-	
+
 	@Autowired
 	private AdesioneService adesioneService;
+
+	@Autowired
+	private UtenteService utenteService;
 	
 	public List<NotificaEntity> getNotificheCreazioneServizio(ServizioEntity servizio) {
 
@@ -219,6 +225,12 @@ public class NotificheUtils {
 				case ADERENTI:
 					addDestinatariAderenti(destinatari, servizio, includiTecnici, isEmail);
 					break;
+				case GESTORE:
+					addGestori(destinatari, isEmail);
+					break;
+				case COORDINATORE:
+					addCoordinatori(destinatari, isEmail);
+					break;
 			}
 		}
 
@@ -364,6 +376,12 @@ public class NotificheUtils {
 					break;
 				case RICHIEDENTE_ADESIONE:
 					addRichiedenteAdesione(destinatari, adesione, isEmail);
+					break;
+				case GESTORE:
+					addGestori(destinatari, isEmail);
+					break;
+				case COORDINATORE:
+					addCoordinatori(destinatari, isEmail);
 					break;
 			}
 		}
@@ -552,6 +570,30 @@ public class NotificheUtils {
 			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE_EMAIL, Arrays.asList(adesione.getRichiedente()));
 		} else {
 			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE, Arrays.asList(adesione.getRichiedente()));
+		}
+	}
+
+	private void addGestori(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, boolean isEmail) {
+		UtenteSpecification spec = new UtenteSpecification();
+		spec.setRuoli(Arrays.asList(UtenteEntity.Ruolo.AMMINISTRATORE));
+		spec.setStato(java.util.Optional.of(UtenteEntity.Stato.ABILITATO));
+		List<UtenteEntity> gestori = this.utenteService.findAll(spec, Pageable.unpaged()).getContent();
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.GESTORE_EMAIL, gestori);
+		} else {
+			destinatari.put(RuoloNotificaEnum.GESTORE, gestori);
+		}
+	}
+
+	private void addCoordinatori(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, boolean isEmail) {
+		UtenteSpecification spec = new UtenteSpecification();
+		spec.setRuoli(Arrays.asList(UtenteEntity.Ruolo.COORDINATORE));
+		spec.setStato(java.util.Optional.of(UtenteEntity.Stato.ABILITATO));
+		List<UtenteEntity> coordinatori = this.utenteService.findAll(spec, Pageable.unpaged()).getContent();
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.COORDINATORE_EMAIL, coordinatori);
+		} else {
+			destinatari.put(RuoloNotificaEnum.COORDINATORE, coordinatori);
 		}
 	}
 

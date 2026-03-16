@@ -514,6 +514,12 @@ public class ServiziController implements ServiziApi {
 				Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
 					.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
 					.collect(Collectors.toSet());
+
+				// Verifica che il target COORDINATORE sia usabile solo se abilitato
+				if (target.contains(TargetComunicazioneServizioEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+				}
+
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
@@ -2548,6 +2554,18 @@ public class ServiziController implements ServiziApi {
 					throw new InternalException(ErrorCode.SYS_500);
 				}
 
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato)
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true; // default: abilitato
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato; // default: true
 	}
 
 }

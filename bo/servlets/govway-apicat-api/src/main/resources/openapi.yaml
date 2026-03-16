@@ -9686,6 +9686,8 @@ components:
         - REFERENTI_DOMINIO
         - RICHIEDENTE
         - ADERENTI
+        - GESTORE
+        - COORDINATORE
     TargetComunicazioneAdesioneEnum:
       type: "string"
       description: "Target per i destinatari della comunicazione dell'adesione"
@@ -9695,6 +9697,8 @@ components:
         - RICHIEDENTE_SERVIZIO
         - REFERENTI_ADESIONE
         - RICHIEDENTE_ADESIONE
+        - GESTORE
+        - COORDINATORE
     MessaggioCreate:
       type: object
       required:

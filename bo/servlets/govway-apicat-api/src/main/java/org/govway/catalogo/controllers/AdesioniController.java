@@ -344,6 +344,12 @@ public class AdesioniController implements AdesioniApi {
 				Set<TargetComunicazioneAdesioneEnum> target = messaggioCreate.getTarget().stream()
 					.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
 					.collect(Collectors.toSet());
+
+				// Verifica che il target COORDINATORE sia usabile solo se abilitato
+				if (target.contains(TargetComunicazioneAdesioneEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+				}
+
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio, target, includiTecnici);
@@ -2185,6 +2191,18 @@ public class AdesioniController implements AdesioniApi {
 		}
 
 		return ruoli;
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato)
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true; // default: abilitato
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato; // default: true
 	}
 
 }
