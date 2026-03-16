@@ -370,6 +370,10 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._currIdGruppoPadre = groupsBreadcrumbs.currIdGruppoPadre;
                 this._gruppoPadreNull = groupsBreadcrumbs.gruppoPadreNull;
                 this.groupsBreadcrumbs = groupsBreadcrumbs.groupsBreadcrumbs;
+                if (this.groupsBreadcrumbs?.length > 0) {
+                    this._groupsView = true;
+                    this._updateUrlGruppo(this._currIdGruppoPadre || null);
+                }
             }
         }
 

@@ -55,9 +55,9 @@ export class BreadcrumbService {
 
     naviagationEnd.pipe(pairwise()).subscribe(([previousEvent, currentEvent]) => {
          // split the urls into segments and check if first segement has changed then clear the breadcrumbs
-          const previousUrlSegments = previousEvent.urlAfterRedirects.split('/');
-          const currentUrlSegments = currentEvent.urlAfterRedirects.split('/');
-          
+          const previousUrlSegments = previousEvent.urlAfterRedirects.split('?')[0].split('/');
+          const currentUrlSegments = currentEvent.urlAfterRedirects.split('?')[0].split('/');
+
           if (previousUrlSegments[1] !== currentUrlSegments[1]) {
             this.clearBreadcrumbs();
           }
