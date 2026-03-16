@@ -526,8 +526,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             const dashboardConfig = this._config.AppConfig.Layout.dashboard;
             this._dashboardEnabled = dashboardConfig?.enabled || false;
 
-            // Se il gestore ha la dashboard abilitata e hideNotificationMenu e' true, nasconde le notifiche
-            if (this._dashboardEnabled && dashboardConfig?.hideNotificationMenu && this.authenticationService.isGestore()) {
+            // Se la dashboard è abilitata, nasconde le notifiche in alto a destra (previa configurazione)
+            if (this._dashboardEnabled) {
                 this._showNotificationsBar = false;
                 this._showNotificationsMenu = false;
                 this._enablePollingNotifications = false;

@@ -64,7 +64,7 @@ export class SenderComponent implements AfterContentChecked {
   _formGroup: FormGroup = new FormGroup({});
   _msgCtrl = new FormControl('', Validators.required);
   _allegatiCtrl: FormControl = new FormControl('');
-  _targetCtrl: FormControl = new FormControl([]);
+  _targetCtrl: FormControl = new FormControl([], Validators.required);
   _includiTecniciCtrl: FormControl = new FormControl(true);
 
   @ViewChild('targetDropdown', { static: false, read: ElementRef }) _targetDropdown!: ElementRef;
@@ -86,10 +86,10 @@ export class SenderComponent implements AfterContentChecked {
   }
 
   get targetLabel(): string {
-    if (this.allSelected) {
-      return this.translate.instant('APP.LABEL.TargetTutti');
-    }
     const selected: string[] = this._targetCtrl.value || [];
+    if (selected.length === 0) {
+      return this.translate.instant('APP.LABEL.TargetSeleziona');
+    }
     if (selected.length === 1) {
       const opt = this.targetOptions.find(o => o.value === selected[0]);
       return opt ? this.translate.instant(opt.label) : selected[0];
@@ -101,22 +101,8 @@ export class SenderComponent implements AfterContentChecked {
     this._dropdownOpen = !this._dropdownOpen;
   }
 
-  get showIncludiTecnici(): boolean {
-    return this._targetCtrl.value && this._targetCtrl.value.length > 0;
-  }
-
-  get allSelected(): boolean {
-    return !this._targetCtrl.value || this._targetCtrl.value.length === 0;
-  }
-
   isTargetSelected(value: string): boolean {
     return this._targetCtrl.value && this._targetCtrl.value.includes(value);
-  }
-
-  toggleAll(checked: boolean) {
-    if (checked) {
-      this._targetCtrl.setValue([]);
-    }
   }
 
   toggleTarget(value: string, checked: boolean) {
@@ -125,11 +111,6 @@ export class SenderComponent implements AfterContentChecked {
       if (!current.includes(value)) {
         current.push(value);
       }
-      // Se tutti i target sono selezionati, torna a "Tutti" (array vuoto)
-      if (current.length === this.targetOptions.length) {
-        this._targetCtrl.setValue([]);
-        return;
-      }
     } else {
       current = current.filter(v => v !== value);
     }
@@ -137,7 +118,11 @@ export class SenderComponent implements AfterContentChecked {
   }
 
   ngAfterContentChecked() {
-    this._formValid = (this._formGroup && this._formGroup.valid);
+    if (this.showTarget) {
+      this._formValid = (this._formGroup && this._formGroup.valid && this._targetCtrl.value?.length > 0);
+    } else {
+      this._formValid = (this._formGroup && this._formGroup.valid);
+    }
   }
 
   _downloadAllegato(allegato: any) {

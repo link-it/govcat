@@ -140,7 +140,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   ngOnInit() {
     this._statoArr = Object.values(Stato);
-    this._ruoloArr = Object.values(Ruolo);
+    const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    this._ruoloArr = coordinatoreAbilitato
+      ? Object.values(Ruolo)
+      : Object.values(Ruolo).filter(r => r !== Ruolo.COORDINATORE);
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {

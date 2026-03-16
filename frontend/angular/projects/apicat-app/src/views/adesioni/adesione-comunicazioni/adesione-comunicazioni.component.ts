@@ -126,13 +126,20 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
 
   _serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
-  targetOptionsAdesione: TargetOption[] = [
-    { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
-    { label: 'APP.LABEL.TargetReferentiDominioServizio', value: 'REFERENTI_DOMINIO_SERVIZIO' },
-    { label: 'APP.LABEL.TargetRichiedenteServizio', value: 'RICHIEDENTE_SERVIZIO' },
-    { label: 'APP.LABEL.TargetReferentiAdesione', value: 'REFERENTI_ADESIONE' },
-    { label: 'APP.LABEL.TargetRichiedenteAdesione', value: 'RICHIEDENTE_ADESIONE' }
-  ];
+  targetOptionsAdesione: TargetOption[] = [];
+
+  _initTargetOptions() {
+    const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    this.targetOptionsAdesione = [
+      { label: 'APP.LABEL.TargetGestore', value: 'GESTORE' },
+      ...(coordinatoreAbilitato ? [{ label: 'APP.LABEL.TargetCoordinatore', value: 'COORDINATORE' }] : []),
+      { label: 'APP.LABEL.TargetReferentiDominioServizio', value: 'REFERENTI_DOMINIO_SERVIZIO' },
+      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+      { label: 'APP.LABEL.TargetRichiedenteServizio', value: 'RICHIEDENTE_SERVIZIO' },
+      { label: 'APP.LABEL.TargetReferentiAdesione', value: 'REFERENTI_ADESIONE' },
+      { label: 'APP.LABEL.TargetRichiedenteAdesione', value: 'RICHIEDENTE_ADESIONE' }
+    ];
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -152,6 +159,7 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
 
     this.config = this.configService.getConfiguration();
     this._initSearchForm();
+    this._initTargetOptions();
   }
 
   @HostListener('window:resize') _onResize() {

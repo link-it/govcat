@@ -124,12 +124,19 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
 
   hideVersions: boolean = false;
 
-  targetOptionsServizio: TargetOption[] = [
-    { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
-    { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO' },
-    { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' },
-    { label: 'APP.LABEL.TargetAderenti', value: 'ADERENTI' }
-  ];
+  targetOptionsServizio: TargetOption[] = [];
+
+  _initTargetOptions() {
+    const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    this.targetOptionsServizio = [
+      { label: 'APP.LABEL.TargetGestore', value: 'GESTORE' },
+      ...(coordinatoreAbilitato ? [{ label: 'APP.LABEL.TargetCoordinatore', value: 'COORDINATORE' }] : []),
+      { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO' },
+      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+      { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' },
+      { label: 'APP.LABEL.TargetAderenti', value: 'ADERENTI' }
+    ];
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -155,6 +162,7 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     this._grant = _state?.grant;
 
     this._initSearchForm();
+    this._initTargetOptions();
 
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
