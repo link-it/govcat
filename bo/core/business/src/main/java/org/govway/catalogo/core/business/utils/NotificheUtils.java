@@ -275,7 +275,7 @@ public class NotificheUtils {
 	private Boolean isAbilitato(UtenteEntity destinatario, TIPO tipo) {
 
 		List<TIPO> tipi = getTipi(destinatario.getTipiNotificheAbilitate());
-		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+		if(tipi == null) return true;
 
 		return tipi.contains(tipo);
 
@@ -284,7 +284,7 @@ public class NotificheUtils {
 	private Boolean isAbilitato(UtenteEntity destinatario, TIPO_ENTITA tipoEntita) {
 
 		List<TIPO_ENTITA> tipi = getTipiEntita(destinatario.getTipiEntitaNotificheAbilitate());
-		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+		if(tipi == null) return true;
 
 		return tipi.contains(tipoEntita);
 
@@ -293,22 +293,10 @@ public class NotificheUtils {
 	private Boolean isRuoloAbilitato(UtenteEntity destinatario, RuoloNotificaEnum ruolo) {
 
 		List<RuoloNotificaEnum> tipi = this.getRuoli(destinatario.getRuoliNotificheAbilitate());
-		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+		if(tipi == null) return true;
 
 		return tipi.contains(ruolo);
 
-	}
-
-	/**
-	 * Restituisce il valore di default per le notifiche quando non sono configurate nel DB.
-	 * Per gli utenti con ruolo AMMINISTRATORE (gestore), il default è false (notifiche disabilitate).
-	 * Per tutti gli altri utenti, il default è true (notifiche abilitate).
-	 */
-	private Boolean getDefaultNotificheAbilitate(UtenteEntity utente) {
-		if(utente.getRuolo() != null && utente.getRuolo() == UtenteEntity.Ruolo.AMMINISTRATORE) {
-			return false;
-		}
-		return true;
 	}
 
 	private static final String SEPARATOR = ","; 
@@ -576,7 +564,7 @@ public class NotificheUtils {
 	private void addGestori(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, boolean isEmail) {
 		UtenteSpecification spec = new UtenteSpecification();
 		spec.setRuoli(Arrays.asList(UtenteEntity.Ruolo.AMMINISTRATORE));
-		spec.setStato(java.util.Optional.of(UtenteEntity.Stato.ABILITATO));
+		spec.setStati(Arrays.asList(UtenteEntity.Stato.ABILITATO, UtenteEntity.Stato.PENDING_UPDATE));
 		List<UtenteEntity> gestori = this.utenteService.findAll(spec, Pageable.unpaged()).getContent();
 		if (isEmail) {
 			destinatari.put(RuoloNotificaEnum.GESTORE_EMAIL, gestori);
@@ -588,7 +576,7 @@ public class NotificheUtils {
 	private void addCoordinatori(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, boolean isEmail) {
 		UtenteSpecification spec = new UtenteSpecification();
 		spec.setRuoli(Arrays.asList(UtenteEntity.Ruolo.COORDINATORE));
-		spec.setStato(java.util.Optional.of(UtenteEntity.Stato.ABILITATO));
+		spec.setStati(Arrays.asList(UtenteEntity.Stato.ABILITATO, UtenteEntity.Stato.PENDING_UPDATE));
 		List<UtenteEntity> coordinatori = this.utenteService.findAll(spec, Pageable.unpaged()).getContent();
 		if (isEmail) {
 			destinatari.put(RuoloNotificaEnum.COORDINATORE_EMAIL, coordinatori);
