@@ -121,6 +121,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   selectedOrganizzazione: any;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   minLengthTerm = 1;
 
@@ -140,7 +141,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   ngOnInit() {
     this._statoArr = Object.values(Stato);
-    this._ruoloArr = Object.values(Ruolo);
+    const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    this._ruoloArr = coordinatoreAbilitato
+      ? Object.values(Ruolo)
+      : Object.values(Ruolo).filter(r => r !== Ruolo.COORDINATORE);
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -171,6 +175,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -448,8 +453,9 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _initBreadcrumb() {
     const _title = this.utente ? `${this.utente.nome} ${this.utente.cognome}` : this.translate.instant('APP.TITLE.New');
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: '', type: 'title' }
       ];
     } else {
@@ -498,7 +504,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      if (event.params) {
+        this.router.navigate([event.url], { queryParams: event.params });
+      } else {
+        this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      }
     } else {
       this._onClose();
     }

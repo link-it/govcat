@@ -74,10 +74,9 @@ export class DashboardService {
   }
 
   computeRoleConfig(ruolo: string, ruoliReferente: string[]): DashboardRoleConfig {
-    // Gestore: tutto visibile (comunicazioni controllate da hideNotificationGestore)
+    // Gestore: tutto visibile (comunicazioni sempre abilitate)
     if (ruolo === 'gestore') {
-      const hideCom = this._isHideComunicazioniGestore();
-      return { servizi: true, adesioni: true, client: true, comunicazioni: !hideCom, utenti: true };
+      return { servizi: true, adesioni: true, client: true, comunicazioni: true, utenti: true };
     }
 
     // Coordinatore: servizi, adesioni, comunicazioni, utenti

@@ -221,6 +221,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   debugMandatoryFields: boolean = false;
 
@@ -305,6 +306,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._notificationMessageId = '';
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
       if (val.notificationId && val.messageid) {
@@ -998,9 +1000,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
+    const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
     if (this._fromDashboard && !this._serviceBreadcrumbs) {
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: title, url: ``, type: 'link' }
       ];
     } else {
@@ -1203,7 +1206,11 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      if (event.params) {
+        this.router.navigate([event.url], { queryParams: event.params });
+      } else {
+        this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      }
     } else {
       this._onClose();
     }

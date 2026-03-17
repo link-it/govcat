@@ -18,7 +18,7 @@
  */
 import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -128,7 +128,10 @@ export class DashboardComponent implements OnInit {
     utenti: 'utenti'
   };
 
+  private _restoreSection: string | null = null;
+
   constructor(
+    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly translate: TranslateService,
     private readonly configService: ConfigService,
@@ -136,7 +139,9 @@ export class DashboardComponent implements OnInit {
     private readonly dashboardService: DashboardService,
     private readonly apiService: OpenAPIService,
     private readonly utils: UtilService
-  ) {}
+  ) {
+    this._restoreSection = this.route.snapshot.queryParams['section'] || null;
+  }
 
   ngOnInit() {
     this._loadConfigs();
@@ -317,6 +322,13 @@ export class DashboardComponent implements OnInit {
         error: () => { this.loadingUtenti = false; }
       });
     }
+
+    // Ripristina la sezione espansa se si torna dalla navigazione
+    if (this._restoreSection && this.roleConfig[this._restoreSection as keyof DashboardRoleConfig]) {
+      const section = this._restoreSection;
+      this._restoreSection = null;
+      setTimeout(() => this.onSummaryClick(section));
+    }
   }
 
   // --- Expanded view methods ---
@@ -402,20 +414,21 @@ export class DashboardComponent implements OnInit {
   }
 
   onViewItem(item: any, panelType: string) {
+    const section = this.expandedSection || panelType;
     switch (panelType) {
       case 'servizi':
         if (item.id_servizio) {
-          this.router.navigate(['/servizi', item.id_servizio], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/servizi', item.id_servizio], { queryParams: { from: 'dashboard', section } });
         }
         break;
       case 'adesioni':
         if (item.id_adesione) {
-          this.router.navigate(['/adesioni', item.id_adesione], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/adesioni', item.id_adesione], { queryParams: { from: 'dashboard', section } });
         }
         break;
       case 'client':
         if (item.id_client) {
-          this.router.navigate(['/client', item.id_client], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/client', item.id_client], { queryParams: { from: 'dashboard', section } });
         }
         break;
       case 'comunicazioni': {
@@ -427,9 +440,9 @@ export class DashboardComponent implements OnInit {
 
         let url = '';
         if (servizio) {
-          url = `/servizi/${servizio.id_servizio}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard`;
+          url = `/servizi/${servizio.id_servizio}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard&section=${section}`;
         } else if (adesione) {
-          url = `/adesioni/${adesione.id_adesione}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard`;
+          url = `/adesioni/${adesione.id_adesione}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard&section=${section}`;
         } else {
           this.router.navigate(['/notifications']);
           break;
@@ -439,7 +452,7 @@ export class DashboardComponent implements OnInit {
       }
       case 'utenti':
         if (item.id_utente) {
-          this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard', section } });
         }
         break;
     }

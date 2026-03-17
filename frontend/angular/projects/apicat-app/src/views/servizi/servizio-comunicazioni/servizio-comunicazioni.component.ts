@@ -121,15 +121,23 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   hideVersions: boolean = false;
 
-  targetOptionsServizio: TargetOption[] = [
-    { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
-    { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO' },
-    { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' },
-    { label: 'APP.LABEL.TargetAderenti', value: 'ADERENTI' }
-  ];
+  targetOptionsServizio: TargetOption[] = [];
+
+  _initTargetOptions() {
+    const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    this.targetOptionsServizio = [
+      { label: 'APP.LABEL.TargetGestore', value: 'GESTORE' },
+      ...(coordinatoreAbilitato ? [{ label: 'APP.LABEL.TargetCoordinatore', value: 'COORDINATORE' }] : []),
+      { label: 'APP.LABEL.TargetReferentiDominio', value: 'REFERENTI_DOMINIO' },
+      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+      { label: 'APP.LABEL.TargetRichiedente', value: 'RICHIEDENTE' },
+      { label: 'APP.LABEL.TargetAderenti', value: 'ADERENTI' }
+    ];
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -155,10 +163,12 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     this._grant = _state?.grant;
 
     this._initSearchForm();
+    this._initTargetOptions();
 
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -243,8 +253,9 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
     if (this._fromDashboard && !this._componentBreadcrumbs) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${title}`, url: `${baseUrl}/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.TITLE.ServiceCommunications', url: ``, type: 'link' }
       ];
@@ -396,7 +407,11 @@ export class ServizioComunicazioniComponent implements OnInit, AfterContentCheck
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {

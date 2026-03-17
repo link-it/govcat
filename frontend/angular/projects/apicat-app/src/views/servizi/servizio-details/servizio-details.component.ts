@@ -310,6 +310,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
     _fromDashboard: boolean = false;
+    _dashboardSection: string = '';
 
     hideVersions: boolean = false;
 
@@ -405,6 +406,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._notificationMessageId = '';
             if (val.from === 'dashboard') {
                 this._fromDashboard = true;
+                this._dashboardSection = val.section || '';
                 this._initBreadcrumb();
             }
             if (val.notificationId && val.messageid) {
@@ -1223,8 +1225,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
         if (this._fromDashboard && !this._componentBreadcrumbs) {
+            const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
             this.breadcrumbs = [
-                { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+                { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
                 { label: title, url: ``, type: 'link' },
             ];
         } else {
@@ -1297,7 +1300,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
 
     onBreadcrumb(event: any) {
         if (this._useRoute) {
-            this.router.navigate([event.url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
+            if (event.params) {
+                this.router.navigate([event.url], { queryParams: event.params });
+            } else {
+                this.router.navigate([event.url], { relativeTo: this.route, queryParamsHandling: 'preserve' });
+            }
         } else {
             this._onClose();
         }

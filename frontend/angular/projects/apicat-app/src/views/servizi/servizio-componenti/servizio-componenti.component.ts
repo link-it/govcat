@@ -130,6 +130,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
   api_url: string = '';
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -155,6 +156,7 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -202,8 +204,9 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
     const _title = this.service ? this.service.nome + ' v. ' + this.service.versione : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: `/${this.model}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.SERVICES.TITLE.ServiceComponents', url: ``, type: 'link' }
       ];
@@ -364,7 +367,11 @@ export class ServizioComponentiComponent implements OnInit, AfterContentChecked,
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {

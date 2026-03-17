@@ -23,6 +23,7 @@ import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModu
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -47,6 +48,7 @@ import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
         ReactiveFormsModule,
         TranslateModule,
         ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
         MapperPipe
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]

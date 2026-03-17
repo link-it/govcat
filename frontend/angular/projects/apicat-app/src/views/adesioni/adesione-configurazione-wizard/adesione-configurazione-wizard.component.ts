@@ -49,6 +49,7 @@ import * as _ from 'lodash';
 declare const saveAs: any;
 
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
+import { NotificationBarComponent } from '@app/views/notifications/notification-bar/notification-bar.component';
 
 export enum AccordionType {
     GENERAL_INFO = 'accordion-general-info',
@@ -72,7 +73,8 @@ export enum AccordionType {
         ErrorViewComponent,
         AdesioneListaClientsComponent,
         AdesioneListaErogazioniComponent,
-        AdesioneFormComponent
+        AdesioneFormComponent,
+        NotificationBarComponent
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
@@ -117,6 +119,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     _errors: any[] = [];
     _fromStatus: string = '';
     _toStatus: string = '';
+
+    _fromDashboard: boolean = false;
+    _dashboardSection: string = '';
+    _notification: any = null;
+    _notificationId: string = '';
+    _notificationMessageId: string = '';
 
     breadcrumbs: any[] = [
         { label: 'APP.TITLE.Subscriptions', url: '', type: 'title', iconBs: 'display' },
@@ -197,6 +205,27 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 this.config = config;
             }
         );
+
+        this.route.queryParams.subscribe((val) => {
+            this._notification = null;
+            this._notificationId = '';
+            this._notificationMessageId = '';
+            if (val.from === 'dashboard') {
+                this._fromDashboard = true;
+                this._dashboardSection = val.section || '';
+                this._initBreadcrumb();
+            }
+            if (val.notificationId && val.messageid) {
+                this._notificationId = val.notificationId;
+                this._notificationMessageId = val.messageid;
+            }
+            if (val.notification) {
+                const _notification = JSON.parse(decodeURI(atob(val.notification)));
+                this._notification = _notification;
+                this._notificationId = this._notification.id_notifica;
+                this._notificationMessageId = this._notification.entita.id_entita;
+            }
+        });
     }
 
     ngOnInit() {
@@ -359,7 +388,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     onBreadcrumb(event: any) {
-        this.router.navigate([event.url]);
+        if (event.params) {
+            this.router.navigate([event.url], { queryParams: event.params });
+        } else {
+            this.router.navigate([event.url]);
+        }
     }
 
     _geServicetTitle() {
@@ -388,7 +421,21 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             title = `${this.adesione.id_logico} (${_organizzazione})`;
         }
 
-        if (this.config?.useEditWizard) {
+        const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
+        if (this._fromDashboard && !this.serviceBreadcrumbs) {
+            if (this.config?.useEditWizard) {
+                this.breadcrumbs = [
+                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
+                    { label: title, url: '', type: 'link' },
+                ];
+            } else {
+                this.breadcrumbs = [
+                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
+                    { label: title, url: `/${this.model}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
+                    { label: 'APP.TITLE.SubscriptionConfiguration', url: ``, type: 'link' }
+                ];
+            }
+        } else if (this.config?.useEditWizard) {
             this.breadcrumbs = [
                 { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
                 { label: title, url: '', type: 'link' },
@@ -401,9 +448,13 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             ];
         }
 
-        if (this.serviceBreadcrumbs){
+        if (this.serviceBreadcrumbs) {
             this.breadcrumbs.unshift(...this.serviceBreadcrumbs.breadcrumbs);
         }
+    }
+
+    _onCloseNotificationBar(event: any) {
+        this.router.navigate([this.model, this.id]);
     }
 
     backAdesione() {

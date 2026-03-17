@@ -191,6 +191,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   _isBack: boolean = false;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   _bsDateConfig: Partial<BsDatepickerConfig> = {
     withTimepicker: true,
@@ -234,6 +235,7 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -291,8 +293,9 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.TITLE.Transactions', url: ``, type: 'link' }
       ];
@@ -740,7 +743,11 @@ export class TransazioniComponent implements OnInit, AfterViewInit, AfterContent
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {

@@ -143,6 +143,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   hideVersions: boolean = false;
 
@@ -173,6 +174,7 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -249,7 +251,8 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
     }
 
     if (this._fromDashboard && !this._componentBreadcrumbs) {
-      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
+      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams };
     }
   }
 
@@ -427,7 +430,11 @@ export class ServizioApiSubscribersComponent implements OnInit, AfterContentChec
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {
