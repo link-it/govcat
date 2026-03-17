@@ -115,10 +115,10 @@
 		</dependency>
 		<!-- End Servlet -->
 
-		<!-- Proxy -->
+		<!-- Proxy (Jetty 12 ee10) -->
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-proxy</artifactId>
+			<groupId>org.eclipse.jetty.ee10</groupId>
+			<artifactId>jetty-ee10-proxy</artifactId>
 		</dependency>
 		<!-- End Proxy -->
 

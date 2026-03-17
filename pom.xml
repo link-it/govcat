@@ -258,7 +258,7 @@
 		<json-path.version>2.9.0</json-path.version>
 
 		<!-- proxy -->
-		<jetty-proxy.version>11.0.26</jetty-proxy.version>
+		<jetty.version>12.0.32</jetty.version>
 
 		<dynamicreports-core.version>6.20.1</dynamicreports-core.version>
 		<bouncycastle.version>1.79</bouncycastle.version>
@@ -986,47 +986,47 @@
 				<version>${commons.logging.version}</version>
 			</dependency>
 
-			<!-- Proxy -->
+			<!-- Proxy (Jetty 12 with ee10 for Jakarta Servlet 6) -->
 			<dependency>
-				<groupId>org.eclipse.jetty</groupId>
-				<artifactId>jetty-proxy</artifactId>
-				<version>${jetty-proxy.version}</version>
+				<groupId>org.eclipse.jetty.ee10</groupId>
+				<artifactId>jetty-ee10-proxy</artifactId>
+				<version>${jetty.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-io</artifactId>
-				<version>${jetty-proxy.version}</version>
+				<version>${jetty.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-http</artifactId>
-				<version>${jetty-proxy.version}</version>
+				<version>${jetty.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-util</artifactId>
-				<version>${jetty-proxy.version}</version>
+				<version>${jetty.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-client</artifactId>
-				<version>${jetty-proxy.version}</version>
+				<version>${jetty.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-alpn-client</artifactId>
-				<version>${jetty-proxy.version}</version>
+				<version>${jetty.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-server</artifactId>
-				<version>${jetty-proxy.version}</version>
+				<version>${jetty.version}</version>
 			</dependency>
 
 			<dependency>
@@ -1267,6 +1267,8 @@
 								${owasp.dir}/suppression/CVE-2025-15104.xml</suppressionFile>
 							<suppressionFile>
 								${owasp.dir}/suppression/CVE-2020-29582.xml</suppressionFile>
+							<suppressionFile>
+								${owasp.dir}/suppression/CVE-2026-23907.xml</suppressionFile>
 							</suppressionFiles>
 							<nvdApiDelay>120000</nvdApiDelay><!-- 2 minuti -->
 							<nvdMaxRetryCount>3</nvdMaxRetryCount> <!-- 3 max

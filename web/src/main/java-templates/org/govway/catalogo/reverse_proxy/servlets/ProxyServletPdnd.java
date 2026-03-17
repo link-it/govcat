@@ -22,13 +22,13 @@ package org.govway.catalogo.reverse_proxy.servlets;
 import jakarta.servlet.annotation.WebServlet;
 
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.client.transport.HttpClientTransportOverHTTP;
 import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ProcessorUtils;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 @WebServlet("${org.govway.catalogo.servlet.pdnd.path}")
-public class ProxyServletPdnd extends org.eclipse.jetty.proxy.ProxyServlet.Transparent {
+public class ProxyServletPdnd extends org.eclipse.jetty.ee10.proxy.ProxyServlet.Transparent {
 	
 	/**
 	 * 
@@ -46,7 +46,7 @@ public class ProxyServletPdnd extends org.eclipse.jetty.proxy.ProxyServlet.Trans
 	        if (value != null)
 	            selectors = Integer.parseInt(value);
 
-            // TLS config (Jetty 11): create SSL context factory and configure via ClientConnector
+            // TLS config (Jetty 12): create SSL context factory and configure via ClientConnector
             SslContextFactory.Client ssl = new SslContextFactory.Client();
             ssl.setTrustAll(true);
             ssl.setEndpointIdentificationAlgorithm(null);
