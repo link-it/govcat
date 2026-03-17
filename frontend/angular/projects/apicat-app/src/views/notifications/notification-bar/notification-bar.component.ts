@@ -52,6 +52,7 @@ export class NotificationBarComponent implements OnInit, OnChanges {
 
   _notification: any = null;
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   NotificationState = NotificationState;
 
@@ -67,6 +68,7 @@ export class NotificationBarComponent implements OnInit, OnChanges {
     this.route.queryParams.subscribe((params) => {
       if (params['from'] === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = params['section'] || '';
       }
     });
 
@@ -129,7 +131,12 @@ export class NotificationBarComponent implements OnInit, OnChanges {
   }
 
   onBack() {
-    this.router.navigate([this._fromDashboard ? '/dashboard' : '/notifications']);
+    if (this._fromDashboard) {
+      const queryParams = this._dashboardSection ? { section: this._dashboardSection } : undefined;
+      this.router.navigate(['/dashboard'], { queryParams });
+    } else {
+      this.router.navigate(['/notifications']);
+    }
   }
 
   onClose() {

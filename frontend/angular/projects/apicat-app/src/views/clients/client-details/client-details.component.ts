@@ -209,6 +209,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   ];
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   debugMandatoryFields: boolean = false;
 
@@ -261,6 +262,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -1043,8 +1045,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _initBreadcrumb() {
     const _title = this.client ? `${this.client.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: '', type: 'title' }
       ];
     } else {
@@ -1102,7 +1105,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      if (event.params) {
+        this.router.navigate([event.url], { queryParams: event.params });
+      } else {
+        this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      }
     } else {
       this._onClose();
     }

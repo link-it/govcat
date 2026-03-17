@@ -89,6 +89,7 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
   breadcrumbs: any[] = [];
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -106,6 +107,7 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -161,8 +163,9 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
 
   _initBreadcrumb() {
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${this.id}`, url: `/${this.model}/${this.id}`, type: 'link' },
         { label: 'APP.SERVICES.TITLE.Messages', url: ``, type: 'link' }
       ];
@@ -295,7 +298,11 @@ export class ServizioMessaggiComponent implements OnInit, AfterContentChecked, O
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {

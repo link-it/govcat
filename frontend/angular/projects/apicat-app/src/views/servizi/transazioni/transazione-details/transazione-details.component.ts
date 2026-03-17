@@ -124,6 +124,7 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
   _hasFocus: boolean = false;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   environment: string = 'collaudo';
 
@@ -155,6 +156,7 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -310,8 +312,9 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: `/servizi/${this.sid}${_view}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.TITLE.Transactions', url: `/servizi/${this.sid}/transazioni`, type: 'link', params: { back: true } },
         { label: `${this.data.id_traccia}`, url: ``, type: 'link' },
@@ -345,7 +348,11 @@ export class TransazioneDetailsComponent implements OnInit, OnChanges, AfterCont
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { state: event.params || null, queryParamsHandling: 'preserve' });
+      if (event.params?.section) {
+        this.router.navigate([event.url], { queryParams: event.params });
+      } else {
+        this.router.navigate([event.url], { state: event.params || null, queryParamsHandling: 'preserve' });
+      }
     }
   }
 

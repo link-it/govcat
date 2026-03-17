@@ -126,6 +126,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   hideVersions: boolean = false;
 
@@ -169,6 +170,7 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -247,8 +249,9 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
     if (this._fromDashboard && !this._componentBreadcrumbs) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
         { label: _allegati, url: ``, type: 'link' }
       ];
@@ -419,7 +422,11 @@ export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, O
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {

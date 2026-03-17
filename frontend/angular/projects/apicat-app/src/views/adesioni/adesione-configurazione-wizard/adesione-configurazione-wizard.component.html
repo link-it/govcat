@@ -23,6 +23,16 @@
     <div class="nav-controls">
     </div>
   </div>
+  @if (!spin && (_notification || _notificationId)) {
+    <div class="notification-area container-fluid px-0">
+      <app-notification-bar
+        [notification]="_notification"
+        [notificationId]="_notification ? '' : _notificationId"
+        [top]="0"
+        (close)="_onCloseNotificationBar($event)">
+      </app-notification-bar>
+    </div>
+  }
   <div class="top-area">
     <h3 class="page-title">{{ 'APP.TITLE.Empty' | translate }}</h3>
     <div class="d-flex flex-grow-1">&nbsp;</div>
