@@ -45,6 +45,8 @@ public abstract class AdesioneCsvFormat {
 	abstract String getApplicativiAutorizzatiProduzione();
 	@JsonProperty("Config. Autenticazione (Prod)")
 	abstract String getAutenticazioneValoreProduzione();
+	@JsonProperty("Scadenza Certificato (Prod)")
+	abstract String getScadenzaCertificatoProduzione();
 	@JsonProperty("Rate Limiting (Prod)")
 	abstract String getRateLimitingProduzione();
 	@JsonProperty("Proprietà (Prod)")
@@ -53,6 +55,8 @@ public abstract class AdesioneCsvFormat {
 	abstract String getApplicativiAutorizzatiCollaudo();
 	@JsonProperty("Config. Autenticazione (Coll)")
 	abstract String getAutenticazioneValoreCollaudo();
+	@JsonProperty("Scadenza Certificato (Coll)")
+	abstract String getScadenzaCertificatoCollaudo();
 	@JsonProperty("Rate Limiting (Coll)")
 	abstract String getRateLimitingCollaudo();
 	@JsonProperty("Proprietà (Coll)")

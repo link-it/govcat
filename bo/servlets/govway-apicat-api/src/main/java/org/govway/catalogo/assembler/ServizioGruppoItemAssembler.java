@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.govway.catalogo.controllers.ServiziController;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity;
 import org.govway.catalogo.core.orm.entity.ServizioGruppoEntity.TipoServizioGruppoEnum;
+import org.govway.catalogo.servlets.model.Documento;
 import org.govway.catalogo.servlets.model.ItemServizioGruppo;
 import org.govway.catalogo.servlets.model.TipoServizioGruppo;
 import org.springframework.beans.BeanUtils;
@@ -73,7 +74,9 @@ public class ServizioGruppoItemAssembler extends RepresentationModelAssemblerSup
 			dettaglio.setPathGruppo(gruppoEngineAssembler.getPathGruppo(entity.getGruppo()));
 		}
 		if(entity.getImmagine()!=null) {
-			dettaglio.setImmagine(documentoAssembler.toModel(entity.getImmagine()));
+			Documento immagine = new Documento();
+			immagine.setUuid(UUID.fromString(entity.getImmagine().getUuid()));
+			dettaglio.setImmagine(immagine);
 		}
 		
 		return dettaglio;

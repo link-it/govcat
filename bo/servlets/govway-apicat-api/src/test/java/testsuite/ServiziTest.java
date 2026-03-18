@@ -55,6 +55,7 @@ import org.govway.catalogo.servlets.model.CategorieCreate;
 import org.govway.catalogo.servlets.model.DatiGenericiServizioUpdate;
 import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.DocumentoUpdate.TipoDocumentoEnum;
+import org.govway.catalogo.servlets.model.DocumentoUpdateId;
 import org.govway.catalogo.servlets.model.DocumentoUpdateNew;
 import org.govway.catalogo.servlets.model.Dominio;
 import org.govway.catalogo.servlets.model.DominioCreate;
@@ -624,6 +625,7 @@ public class ServiziTest {
 
         MessaggioCreate messaggio = new MessaggioCreate();
         messaggio.setOggetto("Oggetto Test");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
 
         ResponseEntity<ItemMessaggio> itemMessaggio = serviziController.createMessaggioServizio(idServizio, messaggio);
 
@@ -750,6 +752,7 @@ public class ServiziTest {
         MessaggioCreate messaggioCreate = new MessaggioCreate();
         messaggioCreate.setOggetto("Oggetto Test");
         messaggioCreate.setTesto("Testo del messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
 
         ResponseEntity<ItemMessaggio> responseMessaggio = serviziController.createMessaggioServizio(idServizio, messaggioCreate);
         assertEquals(HttpStatus.OK, responseMessaggio.getStatusCode());
@@ -773,6 +776,7 @@ public class ServiziTest {
         MessaggioCreate messaggioCreate = new MessaggioCreate();
         messaggioCreate.setOggetto("Oggetto Test");
         messaggioCreate.setTesto("Questo è un messaggio di test per la ricerca");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
 
         ResponseEntity<ItemMessaggio> responseMessaggio = serviziController.createMessaggioServizio(idServizio, messaggioCreate);
         assertEquals(HttpStatus.OK, responseMessaggio.getStatusCode());
@@ -1186,6 +1190,7 @@ public class ServiziTest {
 
         MessaggioCreate messaggio = new MessaggioCreate();
         messaggio.setOggetto("Oggetto Test");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         ResponseEntity<ItemMessaggio> itemMessaggio = serviziController.createMessaggioServizio(idServizio, messaggio);
         UUID idMessaggio = itemMessaggio.getBody().getIdMessaggio();
 
@@ -1829,11 +1834,12 @@ public class ServiziTest {
 	@Test
 	void testListComunicazioniServizio_Success() {
 		Servizio servizio = this.getServizio();
-		
+
 		MessaggioCreate messaggio = new MessaggioCreate();
         messaggio.setTesto("Testo del messaggio");
         messaggio.setOggetto("Oggetto Test");
-        
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
+
         serviziController.createMessaggioServizio(servizio.getIdServizio(), messaggio);
         entityManager.flush();
         entityManager.clear();
@@ -2067,10 +2073,16 @@ public class ServiziTest {
 		Servizio servizio = this.getServizio();
 		UUID idServizio = servizio.getIdServizio();
 
-		// Messaggio senza target specificato (deve usare il default PUBBLICA)
+		// Messaggio con tutti i target specificati esplicitamente
 		MessaggioCreate messaggio = new MessaggioCreate();
 		messaggio.setOggetto("Test Target Default");
-		messaggio.setTesto("Messaggio senza target specificato");
+		messaggio.setTesto("Messaggio con tutti i target specificati esplicitamente");
+		messaggio.setTarget(Arrays.asList(
+			TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO,
+			TargetComunicazioneServizioEnum.REFERENTI_DOMINIO,
+			TargetComunicazioneServizioEnum.RICHIEDENTE,
+			TargetComunicazioneServizioEnum.ADERENTI
+		));
 
 		ResponseEntity<ItemMessaggio> response = serviziController.createMessaggioServizio(idServizio, messaggio);
 

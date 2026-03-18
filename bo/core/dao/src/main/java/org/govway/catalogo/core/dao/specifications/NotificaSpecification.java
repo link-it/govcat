@@ -180,18 +180,12 @@ public class NotificaSpecification implements Specification<NotificaEntity> {
 			predLst.add(cb.notEqual(root.get(NotificaEntity_.tipo), TIPO.CAMBIO_STATO_EMAIL));
 		}
 
-		// Filtra solo email non ancora inviate (per il servizio di invio email)
+		// Filtra solo email da inviare o in errore (per il servizio di invio email con retry)
 		if(this.soloEmailNonInviate) {
-			// Include solo tipi email
-			List<Predicate> tipiEmail = new ArrayList<>();
-			tipiEmail.add(cb.equal(root.get(NotificaEntity_.tipo), TIPO.COMUNICAZIONE_EMAIL));
-			tipiEmail.add(cb.equal(root.get(NotificaEntity_.tipo), TIPO.CAMBIO_STATO_EMAIL));
-			predLst.add(cb.or(tipiEmail.toArray(new Predicate[]{})));
-
-			// Email non ancora inviate (null o false)
+			// Include notifiche con stato DA_INVIARE o ERRORE (retry automatico)
 			predLst.add(cb.or(
-				cb.isNull(root.get(NotificaEntity_.emailInviata)),
-				cb.equal(root.get(NotificaEntity_.emailInviata), false)
+				cb.equal(root.get(NotificaEntity_.statoNotificaEmail), NotificaEntity.STATO_EMAIL.DA_INVIARE),
+				cb.equal(root.get(NotificaEntity_.statoNotificaEmail), NotificaEntity.STATO_EMAIL.ERRORE)
 			));
 		}
 

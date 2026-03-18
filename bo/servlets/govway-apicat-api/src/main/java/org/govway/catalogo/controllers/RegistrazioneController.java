@@ -440,6 +440,11 @@ public class RegistrazioneController implements RegistrazioneApi {
             utente.setTelefonoAziendale(idm.getTelefono() != null ? idm.getTelefono() : "00-000000");
             utente.setReferenteTecnico(false);
 
+            // Default notifiche: solo COMUNICAZIONE (no CAMBIO_STATO), tutte le entità e ruoli (no EMAIL)
+            utente.setTipiNotificheAbilitate("COMUNICAZIONE");
+            utente.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
+            utente.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
+
             // Imposta lo stato in base alla configurazione
             if (Boolean.TRUE.equals(this.configurazione.getUtente().isAutoabilitazioneAbilitata())) {
                 utente.setStato(Stato.ABILITATO);

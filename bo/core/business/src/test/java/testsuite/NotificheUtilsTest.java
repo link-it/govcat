@@ -13,6 +13,10 @@ import org.govway.catalogo.core.business.utils.NotificheUtils;
 import org.govway.catalogo.core.orm.entity.*;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.core.services.UtenteService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +33,9 @@ public class NotificheUtilsTest {
     @Mock
     private AdesioneService adesioneService;
 
+    @Mock
+    private UtenteService utenteService;
+
     @InjectMocks
     private NotificheUtils notificheUtils;
 
@@ -44,6 +51,10 @@ public class NotificheUtilsTest {
 		utente.setEmailAziendale("b@b.b");
 		utente.setTelefonoAziendale("+39000000");
 		utente.setPrincipal("sonountest");
+
+        // Mock per UtenteService.findAll() - restituisce una pagina vuota per GESTORE e COORDINATORE
+        Page<UtenteEntity> emptyPage = Page.empty();
+        when(utenteService.findAll(any(Specification.class), any(Pageable.class))).thenReturn(emptyPage);
     }
 
     @Test

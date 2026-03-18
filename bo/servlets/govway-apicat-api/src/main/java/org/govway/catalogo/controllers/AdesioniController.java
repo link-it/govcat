@@ -341,12 +341,15 @@ public class AdesioniController implements AdesioniApi {
 				this.service.save(messaggio);
 
 				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneAdesioneEnum> target = null;
-				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
-					target = messaggioCreate.getTarget().stream()
-						.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
-						.collect(Collectors.toSet());
+				Set<TargetComunicazioneAdesioneEnum> target = messaggioCreate.getTarget().stream()
+					.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
+					.collect(Collectors.toSet());
+
+				// Verifica che il target COORDINATORE sia usabile solo se abilitato
+				if (target.contains(TargetComunicazioneAdesioneEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
 				}
+
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio, target, includiTecnici);
@@ -584,17 +587,19 @@ public class AdesioniController implements AdesioniApi {
 					throw new BadRequestException(ErrorCode.ADE_400_STATE, java.util.Map.of("stato", entity.getStato().toString()));
 				}
 
-				// Determina se mostrare richiedente e referenti nel PDF
+				// Determina se mostrare richiedente, referenti e versione nel PDF
 				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
 				// Se il valore è "disabled", non mostra
 				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getAdesione().getMostraRichiedente());
 				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getAdesione().getMostraReferenti());
+				boolean mostraVersione = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getAdesione().getMostraVersione());
 
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity, mostraRichiedente, mostraReferenti));
+					resource = new ByteArrayResource(this.adesioneBuilder.getSchedaAdesione(entity, mostraRichiedente, mostraReferenti, mostraVersione));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);
@@ -2186,6 +2191,18 @@ public class AdesioniController implements AdesioniApi {
 		}
 
 		return ruoli;
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato)
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true; // default: abilitato
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato; // default: true
 	}
 
 }

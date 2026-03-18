@@ -511,12 +511,15 @@ public class ServiziController implements ServiziApi {
 				this.service.save(messaggio);
 
 				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneServizioEnum> target = null;
-				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
-					target = messaggioCreate.getTarget().stream()
-						.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
-						.collect(Collectors.toSet());
+				Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
+					.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
+					.collect(Collectors.toSet());
+
+				// Verifica che il target COORDINATORE sia usabile solo se abilitato
+				if (target.contains(TargetComunicazioneServizioEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
 				}
+
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
@@ -1119,25 +1122,27 @@ public class ServiziController implements ServiziApi {
 
 				this.logger.debug("Autorizzazione completata con successo");
 
-				// Determina se mostrare richiedente e referenti nel PDF
+				// Determina se mostrare richiedente, referenti e versione nel PDF
 				// Se il valore è "enabled" o "onlypdf" (o null, che equivale al default "enabled"), mostra nel PDF
 				// Se il valore è "disabled", non mostra
 				boolean mostraRichiedente = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getServizio().getMostraRichiedente());
 				boolean mostraReferenti = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
 						this.configurazione.getServizio().getMostraReferenti());
+				boolean mostraVersione = !VisibilitaRichiedenteReferentiEnum.DISABLED.equals(
+						this.configurazione.getServizio().getMostraVersione());
 
 				Resource resource;
 				try {
-					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity, mostraRichiedente, mostraReferenti));
+					resource = new ByteArrayResource(this.serviceBuilder.getEService(entity, mostraRichiedente, mostraReferenti, mostraVersione));
 				} catch (Exception e) {
 					this.logger.error("Errore nel recupero dell'eService: " + e.getMessage(), e);
 					throw new InternalException(ErrorCode.SYS_500);
 				}
 				this.logger.info("Invocazione completata con successo");
 
-				String date = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss").format(new Date());
-				return ResponseEntity.status(HttpStatus.OK).header("Content-Disposition", "attachment; filename=eService-"+entity.getNome()+"-"+entity.getVersione()+"-"+date+".zip").body(resource);
+//				String date = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss").format(new Date());
+				return ResponseEntity.status(HttpStatus.OK).header("Content-Disposition", "attachment; filename=eService.zip").body(resource);
 			});
 		}
 		catch(RuntimeException e) {
@@ -2549,6 +2554,18 @@ public class ServiziController implements ServiziApi {
 					throw new InternalException(ErrorCode.SYS_500);
 				}
 
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato)
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true; // default: abilitato
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato; // default: true
 	}
 
 }

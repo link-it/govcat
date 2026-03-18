@@ -49,6 +49,7 @@ import org.govway.catalogo.servlets.model.AuthTypeEnum;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprietaList;
+import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.Grant;
 import org.govway.catalogo.servlets.model.Ruolo;
@@ -450,5 +451,10 @@ public abstract class AbstractServizioAuthorization extends DefaultWorkflowAutho
 		if(!this.configurazione.getUtente().isConsentiAccessoAnonimo()) {
 			this.coreAuthorization.requireLogged();
 		}
+	}
+
+	@Override
+	protected List<ConfigurazioneDatoSempreModificabile> getDatiSempreModificabili() {
+		return this.configurazione.getServizio().getDatiSempreModificabili();
 	}
 }

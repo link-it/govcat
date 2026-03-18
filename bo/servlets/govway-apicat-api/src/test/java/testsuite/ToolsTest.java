@@ -22,31 +22,23 @@ package testsuite;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 
 import javax.wsdl.WSDLException;
 
-import org.apache.http.HttpStatus;
 import org.govway.catalogo.OpenAPI2SpringBoot;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.controllers.ToolsController;
-import org.govway.catalogo.core.business.utils.ServiceInfo;
-import org.govway.catalogo.core.business.utils.WsdlUtils;
 import org.govway.catalogo.core.orm.entity.DocumentoEntity;
 import org.govway.catalogo.core.services.DocumentoService;
 import org.govway.catalogo.core.services.UtenteService;
 import org.govway.catalogo.exception.BadRequestException;
-import org.govway.catalogo.exception.NotFoundException;
 import org.govway.catalogo.servlets.model.DocumentoApiInline;
 import org.govway.catalogo.servlets.model.DocumentoApiRef;
-import org.govway.catalogo.servlets.model.DocumentoCreate;
 import org.govway.catalogo.servlets.model.ListaRisorseApiRichiesta;
 import org.govway.catalogo.servlets.model.ProtocolloEnum;
 import org.govway.catalogo.servlets.model.ServizioWsdl;
@@ -74,8 +66,13 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import java.util.Date;
+import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)  // JUnit 5 extension
 @SpringBootTest(classes = OpenAPI2SpringBoot.class)
@@ -104,6 +101,16 @@ public class ToolsTest {
 
     @Autowired
     UtenteService utenteService;
+
+    // Servizi reali per test di integrazione
+    @Autowired
+    private ToolsController toolsControllerReal;
+
+    @Autowired
+    private DocumentoService documentoServiceReal;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private static final String UTENTE_GESTORE = "gestore";
     
@@ -279,6 +286,67 @@ public class ToolsTest {
         richiesta.setApiType(ProtocolloEnum.SOAP);
 
         assertThrows(BadRequestException.class, () -> toolsController.listaOperazioniWsdl(richiesta));
+    }
+
+    /**
+     * Test di integrazione che verifica il caricamento di risorse API tramite UUID.
+     * Questo test usa i servizi reali (non mockati) per verificare che il lazy loading
+     * del campo rawData funzioni correttamente anche quando il documento viene
+     * recuperato dal database tramite UUID.
+     *
+     * Prima del fix: questo test falliva con LazyInitializationException perché
+     * il campo rawData (configurato come LAZY) veniva acceduto fuori dalla sessione Hibernate.
+     *
+     * Il test usa Propagation.NOT_SUPPORTED per escluderlo dalla transazione di classe
+     * e simulare il comportamento reale dove ogni operazione ha la sua transazione.
+     */
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void testListaRisorseApi_REST_WithUUID_Success() {
+        // Crea e salva un documento nel database in una transazione separata
+        String documentUuid = UUID.randomUUID().toString();
+
+        TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
+        try {
+            txTemplate.execute(status -> {
+                DocumentoEntity documento = new DocumentoEntity();
+                documento.setUuid(documentUuid);
+                documento.setFilename("test-openapi.yaml");
+                documento.setTipo("application/yaml");
+                documento.setRawData(CommonUtils.openApiSpec.getBytes());
+                documento.setVersione(1);
+                documento.setDataCreazione(new Date());
+                documento.setUtenteCreazione("test-user");
+                documentoServiceReal.save(documento);
+                return null;
+            });
+
+            // Ora chiama il controller con UUID (in una nuova transazione)
+            // Questo simula il comportamento reale dove la sessione originale non è più disponibile
+            DocumentoApiRef documentoRef = new DocumentoApiRef();
+            documentoRef.setUuid(documentUuid);
+            documentoRef.setType(TipoApiRisorsaEnum.UUID);
+
+            ListaRisorseApiRichiesta richiesta = new ListaRisorseApiRichiesta();
+            richiesta.setDocument(documentoRef);
+            richiesta.setApiType(ProtocolloEnum.REST);
+
+            // Questa chiamata falliva con LazyInitializationException prima del fix
+            ResponseEntity<List<String>> response = toolsControllerReal.listaRisorseApi(richiesta);
+
+            assertNotNull(response);
+            assertEquals(200, response.getStatusCodeValue());
+            assertNotNull(response.getBody());
+            // Verifica che le risorse siano state estratte correttamente dalla specifica OpenAPI
+            assertEquals(1, response.getBody().size());
+            assertEquals("GET /hello", response.getBody().get(0));
+        } finally {
+            // Pulizia: elimina il documento creato per il test
+            txTemplate.execute(status -> {
+                documentoServiceReal.find(documentUuid).ifPresent(doc -> documentoServiceReal.delete(doc));
+                return null;
+            });
+        }
     }
 }
 

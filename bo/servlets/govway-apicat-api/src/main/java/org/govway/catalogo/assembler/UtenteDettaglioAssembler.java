@@ -160,9 +160,14 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public UtenteEntity toEntity(UtenteCreate src) {
 		UtenteEntity entity = new UtenteEntity();
 		BeanUtils.copyProperties(src, entity);
-		
+
 		entity.setIdUtente(UUID.randomUUID().toString());
 		entity.setPrincipal(src.getPrincipal());
+
+		// Default notifiche: solo COMUNICAZIONE (no CAMBIO_STATO), tutte le entità e ruoli (no EMAIL)
+		entity.setTipiNotificheAbilitate("COMUNICAZIONE");
+		entity.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
+		entity.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
 					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));

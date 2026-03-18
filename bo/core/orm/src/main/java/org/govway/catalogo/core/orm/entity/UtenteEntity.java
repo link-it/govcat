@@ -106,7 +106,7 @@ public class UtenteEntity {
     @Column(name = "tipi_entita_notifiche_abilitate")
 	private String tipiEntitaNotificheAbilitate;
 	
-    @Column(name = "ruoli_notifiche_abilitate")
+    @Column(name = "ruoli_notifiche_abilitate", length = 1024)
 	private String ruoliNotificheAbilitate;
 
 	@Lob

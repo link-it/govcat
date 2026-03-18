@@ -5531,6 +5531,10 @@ components:
           $ref: '#/components/schemas/ProtocolloEnum'
         document:
             $ref: '#/components/schemas/DocumentoApi'
+        id_api:
+          $ref: '#/components/schemas/IdApi'
+        ambiente:
+          $ref: '#/components/schemas/AmbienteEnum'
     DocumentoApi:
       type: object
       required:
@@ -5572,6 +5576,8 @@ components:
       properties:
         port_type:
           $ref: "#/components/schemas/String255"
+        url_invocazione:
+          type: string
         operations:
           type: array
           items:
@@ -5892,6 +5898,12 @@ components:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         mostra_referenti:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_versione:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        dati_sempre_modificabili:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
     ConfigurazioneProfilo:
       type: "object"
       required:
@@ -6450,10 +6462,16 @@ components:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         mostra_referenti:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        mostra_versione:
+          $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         max_image_size:
           type: "integer"
           description: "Dimensione massima in megabytes per le immagini del servizio"
           default: 2
+        dati_sempre_modificabili:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -6481,6 +6499,18 @@ components:
         - referente
         - referente_superiore
         - gestore
+    ConfigurazioneDatoSempreModificabile:
+      type: "object"
+      required:
+        - classe_dato
+        - ruoli
+      properties:
+        classe_dato:
+          $ref: '#/components/schemas/ConfigurazioneClasseDato'
+        ruoli:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneStato:
       type: "object"
       required:
@@ -6740,6 +6770,10 @@ components:
         profilo_modifica_email_richiede_verifica:
           type: "boolean"
           description: "Se true, la modifica dell'email del profilo richiede verifica via codice"
+        coordinatore_abilitato:
+          type: "boolean"
+          description: "Se true, il ruolo coordinatore è disponibile per gli utenti. Default: true"
+          default: true
     ConfigurazioneTipiDistribuzione:
       type: "string"
       enum:
@@ -8238,6 +8272,10 @@ components:
         - adesione_referente_adesione_email
         - adesione_referente_tecnico_adesione_email
         - adesione_richiedente_adesione_email
+        - gestore
+        - gestore_email
+        - coordinatore
+        - coordinatore_email
     UpdateNotifica:
       type: "object"
       properties:
@@ -9652,6 +9690,8 @@ components:
         - REFERENTI_DOMINIO
         - RICHIEDENTE
         - ADERENTI
+        - GESTORE
+        - COORDINATORE
     TargetComunicazioneAdesioneEnum:
       type: "string"
       description: "Target per i destinatari della comunicazione dell'adesione"
@@ -9661,10 +9701,13 @@ components:
         - RICHIEDENTE_SERVIZIO
         - REFERENTI_ADESIONE
         - RICHIEDENTE_ADESIONE
+        - GESTORE
+        - COORDINATORE
     MessaggioCreate:
       type: object
       required:
         - oggetto
+        - target
       properties:
         oggetto:
           $ref: "#/components/schemas/String255"
@@ -9672,7 +9715,8 @@ components:
           $ref: "#/components/schemas/String4000"
         target:
           type: "array"
-          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          minItems: 1
+          description: "Lista dei target per i destinatari della comunicazione."
           items:
             $ref: "#/components/schemas/TargetComunicazioneServizioEnum"
         includi_tecnici:
@@ -9687,6 +9731,7 @@ components:
       type: object
       required:
         - oggetto
+        - target
       properties:
         oggetto:
           $ref: "#/components/schemas/String255"
@@ -9694,7 +9739,8 @@ components:
           $ref: "#/components/schemas/String4000"
         target:
           type: "array"
-          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          minItems: 1
+          description: "Lista dei target per i destinatari della comunicazione."
           items:
             $ref: "#/components/schemas/TargetComunicazioneAdesioneEnum"
         includi_tecnici:

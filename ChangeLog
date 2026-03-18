@@ -23,7 +23,6 @@
 	* [CI/CD]
 	Modificata pipeline GitHub per ignorare branch di sviluppo
 	"angular-21-standalone".
-
 2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -47,6 +46,49 @@
 
 	* [Frontend]
 	Fix #207: modifica Dominio non perde più il flag skip_collaudo
+
+2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Rese configurabili da app-config.json le proprietà imagePosition
+	(background-size dell'immagine) e defaultBackColor (colore di sfondo
+	di default) per le card dei gruppi servizi (GroupView), con
+	configurazione separata per vista card e vista list.
+
+2026-03-05  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.5
+
+2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiornamento dompurify 3.3.1 -> 3.3.2 (override npm) per fix
+	vulnerabilità XSS CVE-2026-0540 (GHSA-v2wj-7wpq-c8vv).
+
+2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiornamento Angular 19.2.18 -> 19.2.19 per fix vulnerabilità XSS
+	i18n (GHSA-prjf-86w9-mfqv). Aggiunta dipendenza marked@^15.0.0
+	richiesta da ngx-markdown.
+
+2026-03-04  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #193
+	Fix messaggi di errore applicativi.
+
+2026-03-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Gestione accesso dashboard per utenti senza ruolo principale.
+	DashboardGuard reso asincrono per verificare ruoli_referente via API.
+	Aggiunta voce menu dashboard per utenti senza ruolo ma con
+	ruoli_referente. Cachata chiamata getRuoliProfilo con shareReplay
+	per evitare chiamate API multiple.
+	Fix breadcrumb ritorno alla dashboard per le adesioni e per
+	adesione-configurazione-wizard.
+	Fix visualizzazione errori in servizio-api-details.
 
 2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -83,6 +125,32 @@
 	- Rimossi dal repository i file di config locali di sviluppo/test
 	- Aggiornati test e documentazione
 
+2026-03-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #194
+	Disabilitate notifiche email di default. Migliorata gestione dello stato
+	delle notifiche email. Aggiunti timestamp e destinatario email alla notifica.
+
+2026-03-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #188
+	Aggiunta configurazione mostra_versione per PDF e Frontend.
+
+2026-03-02  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Fix immagini in gruppi e servizi. Abilitato lazy loading del raw data.
+
+2026-03-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #195
+	Fix scrolling pagina Dashboard e miglioramenti layout responsive.
+	Migliorata visualizzazione badge menu dashboard.
+
 2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -92,6 +160,32 @@
 	- Migrazione completa a standalone: 154/154 componenti, rimosso AppModule,
 	  eliminati tutti i NgModule wrapper (0 file .module.ts, 61 file .routes.ts)
 	- 292 file di test, 3283 test unitari, 29 test E2E, build produzione OK
+
+2026-02-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.4
+
+2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolte vulnerabilità di sicurezza nelle dipendenze npm (23 vulnerabilità, 8 high).
+	Aggiornati tramite npm audit fix: minimatch, qs, lodash-es, mermaid, chevrotain.
+	Aggiunti override in package.json per: rollup (4.59.0), tar (7.5.9),
+	ajv (8.18.0), webpack (5.105.3).
+
+2026-02-27  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Aggiunto file di soppressione per falso positivo OWASP CVE-2020-29582.
+
+2026-02-27  Giovanni Bussu <giovanni.bussu@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Migliorata generazione nome file per servizi con nomi troppo lunghi (troncamento e divisione in righe).
+	Ottimizzato caricamento immagine: evitata lettura dal DB quando non necessaria.
+	Aggiornato titolo pagina da configurazione app-config.json.
 
 2026-02-27  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -113,6 +207,13 @@
 	* [Frontend]
 	Issue #192
 	Fix skip_collaudo nel salvataggio del servizio.
+
+2026-02-26  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #186
+	Ottimizzato export adesioni tramite caching.
+	Aumentato timeout degli export.
 
 2026-02-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -141,6 +242,19 @@
 	per evitare richieste spurie di loadmore con parametri di paginazione stale.
 	Applicato a tutti i componenti con infinite scroll (22 componenti).
 
+2026-02-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #186
+	Ottimizzato export adesioni preservando colonne Autenticazione ed estensioni.
+
+2026-02-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #185
+	Migliorata gestione immagini caricate per gruppi e servizi:
+	controlli su tipo e dimensione con resize automatico prima della persistenza sul DB.
+
 2026-02-24  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -156,6 +270,12 @@
 	Aggiunto badge counter sulla voce menu Dashboard con polling periodico (30s)
 	Il counter mostra il totale delle azioni pending visibili per il ruolo utente
 	Aggiunto DEFAULT_DASHBOARD_TIMER in app-config.json
+
+2026-02-24  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #186
+	Aggiunte colonne Proprietà all'export CSV delle adesioni.
 
 2026-02-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -184,6 +304,19 @@
 	Aggiunto limite configurabile alle dimensioni delle immagini caricate per gruppi e servizi
 	Corretti e tradotti (i18n) i messaggi di errore del componente photo-base64
 
+2026-02-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #185
+	Aggiunta configurazione max_image_size per gruppo e servizio in configurazione.json.
+
+2026-02-23  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto campo data_ultimo_aggiornamento a ItemServizio.
+	Aggiunto filtro dashboard alle API /notifiche e /client.
+
 2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -197,6 +330,12 @@
 2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Risolto bug #183
+	Dropdown referente e referente tecnico filtrate per organizzazione in creazione servizio.
+
+2026-02-22  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Implementata funzionalità #105
 	Evolutiva comunicazioni: target da stringa singola ad array di enum
 	SenderComponent: dropdown compatto con checkbox multi-select per selezione destinatari
@@ -206,6 +345,32 @@
 	Header: nasconde menu/pulsante notifiche per il gestore quando dashboard abilitata e hideNotificationMenu attivo
 	Bugfix: showNotificationsMenu nel layout ora legge correttamente dal config (era hardcoded a false)
 
+2026-02-22  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto filtro dashboard alle API /utenti e /adesioni.
+
+2026-02-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Migliorata funzionalità #86
+	Dashboard evolutiva: endpoint reali, ruoli dinamici, formato notifiche.
+	Accesso dashboard limitato a utenti con ruolo.
+
+2026-02-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto filtro dashboard all'API /servizi.
+
+2026-02-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Migliorata funzionalità #86
+	Aggiunto stati_dashboard a configurazione.json.
+	Aggiunta API /profilo/ruoli.
+
 2026-02-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -213,6 +378,27 @@
 	Aggiunta visualizzazione e richiesta cambio organizzazione nel profilo utente
 	Aggiunta gestione approvazione cambio organizzazione nel dettaglio utente (admin)
 	Aggiunto stato pending_update con badge nella lista utenti
+
+2026-02-18  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #168
+	Modificata API updateUtente per supportare il nuovo flusso di approvazione organizzazione.
+	Migliorata patch SQL e risolti bug di constraint violation.
+
+2026-02-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #168
+	Aggiunta nuova API e stato utente per aggiornamento organizzazione da profilo.
+
+2026-02-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Implementata funzionalità #105
+	Aggiunto target comunicazioni per adesioni.
+	Refactoring target comunicazioni servizio.
+	Modificato default notifiche per ruolo gestore.
 
 2026-02-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -234,6 +420,38 @@
 	Rinominata vecchia dashboard di monitoraggio in "Monitoraggio" (path /monitoraggio)
 	Nuova direttiva autoFillScroll per auto-caricamento pagine su schermi grandi
 	Supporto hideVersions per nascondere versioni nei pannelli servizi e adesioni
+
+2026-02-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #142
+	Aggiunto filtro di ricerca per Profilo nella lista servizi.
+
+2026-02-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #179
+	Sostituiti i check showReferents da app-config con mostra_referenti e mostra_richiedente
+	dalla configurazione remota.
+	Fix z-index footerbar.
+
+2026-02-13  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue #142
+	Aggiunta ricerca per profilo nell'API listServizi con relativi test.
+
+2026-02-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta funzionalità
+	Migliorate prestazioni export adesioni.
+
+2026-02-11  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Risolto bug #139
+	Corretto reinvio codice verifica email nel profilo che azzerava l'email per il reinvio.
 
 2026-02-09  Giovanni De Luca <giovanni.deluca@link.it>
 
@@ -669,29 +887,29 @@
 2025-11-04  Giovanni Bussu <giovanni.bussu@link.it>
 
 	* [Autenticazione]
-	Aggiunto supporto a OpenID Connect per un’autenticazione più sicura e standardizzata.
+	Aggiunto supporto a OpenID Connect per un'autenticazione più sicura e standardizzata.
 
-2025-11-04  Giovanni Bussu <giovanni.bussu@link.it
+2025-11-04  Giovanni Bussu <giovanni.bussu@link.it>
 
 	* [ModalitàPubblica]
-	Introdotta la modalità pubblica in sola lettura, che consente la consultazione dei dati senza autenticazione 
+	Introdotta la modalità pubblica in sola lettura, che consente la consultazione dei dati senza autenticazione
 	e senza possibilità di modifica o inserimento.
 
 2025-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [InterfacciaUtente]
-	Aggiunto link diretto all’informativa sulla privacy.
-	Introdotto supporto all’internazionalizzazione (multi-lingua).
+	Aggiunto link diretto all'informativa sulla privacy.
+	Introdotto supporto all'internazionalizzazione (multi-lingua).
 	Migliorata la compatibilità con dispositivi mobili.
 	Aggiunta nuova visualizzazione a lista per servizi e gruppi.
 	Estese le possibilità di personalizzazione del tema grafico.
-	Aggiunta l’opzione per nascondere i referenti quando non necessario.
+	Aggiunta l'opzione per nascondere i referenti quando non necessario.
 	Introdotto il supporto a diversi formati di versione dei servizi.
 
 2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [StackTecnologico]
-	Aggiornato lo stack tecnologico a Java 21, Spring 6 e Spring Boot 3.3.0, 
+	Aggiornato lo stack tecnologico a Java 21, Spring 6 e Spring Boot 3.3.0,
 	con supporto al deploy su Tomcat 11 per migliori prestazioni e manutenibilità.
 
 2025-11-04  Giovanni De Luca <giovanni.deluca@link.it>
@@ -700,7 +918,7 @@
 	Risolto Bug #1721
 	Corretta la ricerca dei servizi per gruppo per garantire il corretto ritorno dei risultati associati.
 	Risolto Bug #1722
-	Corretta la creazione dell’adesione a partire dal servizio tramite il tasto “Aderisci al servizio”.
+	Corretta la creazione dell'adesione a partire dal servizio tramite il tasto "Aderisci al servizio".
 
 2025-11-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
