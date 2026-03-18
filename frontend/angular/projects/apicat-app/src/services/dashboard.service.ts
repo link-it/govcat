@@ -25,6 +25,7 @@ import { ConfigService } from '@linkit/components';
 
 import { AuthenticationService } from './authentication.service';
 import { OpenAPIService } from './openAPI.service';
+import { UtilService } from './utils.service';
 import {
   DashboardPagedResponse,
   DashboardItemServizio,
@@ -45,7 +46,8 @@ export class DashboardService {
   constructor(
     private readonly apiService: OpenAPIService,
     private readonly authenticationService: AuthenticationService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly utilService: UtilService
   ) {}
 
   /**
@@ -136,7 +138,24 @@ export class DashboardService {
   }
 
   getComunicazioni(): Observable<DashboardPagedResponse<DashboardItemComunicazione>> {
-    return this.apiService.getList('notifiche', this._dashboardOptions());
+    const params = new HttpParams().set('stato_notifica', 'nuova');
+    return this.apiService.getList('notifiche', { params });
+  }
+
+  getComunicazioniUnreadCount(): Observable<number> {
+    const params = this.utilService._queryToHttpParams({ stato_notifica: 'nuova' });
+    return this.apiService.getDetails('notifiche', 'count', '', { params }).pipe(
+      map((r: any) => r?.count || 0),
+      catchError(() => of(0))
+    );
+  }
+
+  getComunicazioniViewAllCount(): Observable<number> {
+    const params = new HttpParams().set('stato_notifica', 'nuova,letta').set('size', '0');
+    return this.apiService.getList('notifiche', { params }).pipe(
+      map((r: any) => r?.page?.totalElements || 0),
+      catchError(() => of(0))
+    );
   }
 
   getUtenti(): Observable<DashboardPagedResponse<DashboardItemUtente>> {
@@ -202,9 +221,7 @@ export class DashboardService {
       ));
     }
     if (roleConfig.comunicazioni) {
-      calls.push(this.apiService.getList('notifiche', countOptions).pipe(
-        map((r: any) => r?.page?.totalElements || 0), catchError(() => of(0))
-      ));
+      calls.push(this.getComunicazioniUnreadCount());
     }
     if (roleConfig.utenti) {
       calls.push(this.apiService.getList('utenti', countOptions).pipe(

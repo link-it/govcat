@@ -26,23 +26,44 @@
         <ul class="nav gp-border-b-0 gp-tabs-nav">
           <li class="nav-item">
             <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Tutte" (click)="_setCurrentTab(notificationState.Tutte)" [attr.aria-label]="_allElements">
-              <span title="Notifications found">{{ 'APP.FILTER.All' | translate }}</span> @if (currentTab === notificationState.Tutte) {
-              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _allElements || 0 }}</span>
-            }
+              <span title="Notifications found">{{ 'APP.FILTER.All' | translate }}</span>
+              @if (currentTab === notificationState.Tutte) {
+                <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
+                  @if (_spin) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    {{ _allElements || 0 }}
+                  }
+                </span>
+              }
           </a>
         </li>
         <li class="nav-item">
           <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Nuova" (click)="_setCurrentTab(notificationState.Nuova)" [attr.aria-label]="_allElements">
-            <span title="Notifications found">{{ 'APP.FILTER.Unread' | translate }}</span> @if (currentTab === notificationState.Nuova) {
-            <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _allElements || 0 }}</span>
-          }
+            <span title="Notifications found">{{ 'APP.FILTER.Unread' | translate }}</span>
+            @if (currentTab === notificationState.Nuova) {
+              <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
+                @if (_spin) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  {{ _allElements || 0 }}
+                }
+              </span>
+            }
         </a>
       </li>
       <li class="nav-item">
         <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="currentTab === notificationState.Archiviata" (click)="_setCurrentTab(notificationState.Archiviata)" [attr.aria-label]="_allElements">
-          <span title="Notifications found">{{ 'APP.FILTER.Archived' | translate }}</span> @if (currentTab === notificationState.Archiviata) {
-          <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">{{ _allElements || 0 }}</span>
-        }
+          <span title="Notifications found">{{ 'APP.FILTER.Archived' | translate }}</span>
+          @if (currentTab === notificationState.Archiviata) {
+            <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm">
+              @if (_spin) {
+                <span class="spinner-border spinner-border-sm"></span>
+              } @else {
+                {{ _allElements || 0 }}
+              }
+            </span>
+          }
       </a>
     </li>
   </ul>
@@ -150,13 +171,11 @@
                 (itemClick)="_onEdit($event, element)"
                 (openInNewTab)="_onOpenInNewTab($event)">
               </ui-item-row>
-              <!-- <div class="d-flex flex-column flex-sm-row align-items-center px-3"> -->
               <div class="notification-list-item-actions d-none position-absolute top-0 bottom-0 end-0 mr-2 d-flex align-items-center">
                 <div class="action-hover">
                   @if (element.stato !== notificationState.Archiviata) {
                     <button class="btn btn-default btn-sm gl-button btn-default-tertiary- me-2" [tooltip]="('APP.NOTIFICATIONS.TOOLTIP.Archive' | translate)" [placement]="'top'" [container]="'body'" (click)="markNotification(element, notificationState.Archiviata, true)">
                       <i class="bi bi-check-lg"></i>
-                      <!-- <span class="ms-1">{{ 'APP.NOTIFICATIONS.BUTTON.Archive' | translate }}</span> -->
                     </button>
                   }
                   @if (element.unread) {

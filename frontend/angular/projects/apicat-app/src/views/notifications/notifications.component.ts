@@ -16,14 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { COMPONENTS_IMPORTS, ConfigService, SearchBarFormComponent, Tools, EventsManagerService, LocalStorageService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, SearchBarFormComponent, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -33,7 +33,7 @@ import { Page } from '@app/models/page';
 
 import * as _ from 'lodash';
 
-import { NotificationType, NotificationState, NotificationEntityType, MenuSelectType } from './notifications';
+import { NotificationType, NotificationState, MenuSelectType } from './notifications';
 import { NavigationService } from '@app/services/navigation.service';
 
 import { Observable } from 'rxjs/internal/Observable';
@@ -49,7 +49,7 @@ import { Observable } from 'rxjs/internal/Observable';
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class NotificationsComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class NotificationsComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'NotificationsComponent';
   readonly model: string = 'notifiche';
 
@@ -142,19 +142,16 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   _timeRefresh: string|null = null;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private location: Location,
-    private translate: TranslateService,
-    private configService: ConfigService,
-    public tools: Tools,
-    private eventsManagerService: EventsManagerService,
-    private localStorageService: LocalStorageService,
+    private readonly router: Router,
+    private readonly location: Location,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    public readonly tools: Tools,
     public apiService: OpenAPIService,
     public utilService: UtilService,
     public authenticationService: AuthenticationService,
-    private notificationsService: NotificationsService,
-    private navigationService: NavigationService
+    private readonly notificationsService: NotificationsService,
+    private readonly navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._enablePollingNotifications = this.config.AppConfig.Layout.enablePollingNotifications || false;
@@ -195,10 +192,8 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
     this._startCounters();
   }
 
-  ngOnDestroy() {}
-
   ngAfterViewInit() {
-    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+    if (!(this.searchBarForm?._isPinned())) {
       setTimeout(() => {
         this.clearSearch();
       }, 100);
@@ -259,8 +254,10 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
     
     let aux: any;
     if (this.currentTab === NotificationState.Tutte) {
-      query = { ...query, stato_notifica: `${NotificationState.Nuova},${NotificationState.Letta}` };
-    } else {
+      if (!url) {
+        query = { ...query, stato_notifica: `${NotificationState.Nuova},${NotificationState.Letta}` };
+      }
+    } else if (!url) {
       query = { ...query, stato_notifica: this.currentTab };
     }
     if (query) { aux = { params: this.utilService._queryToHttpParams(query) }; }
@@ -269,12 +266,14 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
     this.apiService.getList(this.model, aux, url).subscribe({
       next: (response: any) => {
 
-        response ? this._page = new Page(response.page) : null;
-        response ? this._links = response._links || null : null;
+        if (response) {
+          this._page = new Page(response.page);
+          this._links = response._links || null;
+        }
 
         this._allElements = this._page.totalElements || 0;
 
-        if (response && response.content) {
+        if (response?.content) {
           const _list: any = response.content.map((notification: any, index: number) => {
             const _servizio = notification.entita.servizio;
             const _adesione = notification.entita.adesione;
@@ -312,7 +311,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
+    if (this._links?.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
       this._loadNotifications(null, this._links.next.href);
     }
@@ -427,6 +426,7 @@ export class NotificationsComponent implements OnInit, AfterViewInit, AfterConte
   }
 
   _setCurrentTab(value: string) {
+    this._allElements = 0;
     this.currentTab = value;
     this._onSearch(this._filterData);
   }

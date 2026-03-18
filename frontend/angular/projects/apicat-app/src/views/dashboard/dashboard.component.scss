@@ -199,6 +199,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   }
 }
 
+// Comunicazioni tabs
+.comunicazioni-tabs {
+  flex-shrink: 0;
+  background-color: #fafbfc;
+
+  .nav {
+    gap: 0;
+  }
+}
+
+// Comunicazioni item actions on hover
+.comunicazioni-item-actions {
+  display: none;
+}
+
+.comunicazioni-item-wrapper:hover {
+  .comunicazioni-item-actions {
+    display: flex;
+    background: linear-gradient(to right, transparent, #f0f4f8 30%);
+    padding-left: 2rem;
+  }
+}
+
 .expanded-footer {
   padding: 0.5rem 1rem;
   border-top: 1px solid rgba(0, 0, 21, 0.075);

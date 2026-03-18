@@ -81,6 +81,7 @@ export class DashboardComponent implements OnInit {
   adesioniTotal: number = 0;
   clientTotal: number = 0;
   comunicazioniTotal: number = 0;
+  comunicazioniViewAllTotal: number = 0;
   utentiTotal: number = 0;
 
   loadingServizi: boolean = false;
@@ -100,6 +101,9 @@ export class DashboardComponent implements OnInit {
   clientStatusConfig: any = {};
   comunicazioniStatusConfig: any = {};
   utentiStatusConfig: any = {};
+
+  // Comunicazioni tab state
+  comunicazioniTab: string = 'tutte';
 
   // Expanded view state
   expandedSection: string | null = null;
@@ -304,10 +308,15 @@ export class DashboardComponent implements OnInit {
       this.dashboardService.getComunicazioni().subscribe({
         next: (response) => {
           this.comunicazioniItems = response.content || [];
-          this.comunicazioniTotal = response.page?.totalElements || 0;
           this.loadingComunicazioni = false;
         },
         error: () => { this.loadingComunicazioni = false; }
+      });
+      this.dashboardService.getComunicazioniUnreadCount().subscribe({
+        next: (count) => { this.comunicazioniTotal = count; }
+      });
+      this.dashboardService.getComunicazioniViewAllCount().subscribe({
+        next: (count) => { this.comunicazioniViewAllTotal = count; }
       });
     }
 
@@ -354,6 +363,7 @@ export class DashboardComponent implements OnInit {
     this.expandedFilterData = null;
     this._expandedLinks = null;
     this._expandedPreventMultiCall = false;
+    this.comunicazioniTab = 'tutte';
   }
 
   onExpandedSearch(values: any) {
@@ -363,20 +373,30 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  _loadExpandedData(section: string, query: any = null, url: string = '') {
+  _loadExpandedData(section: string, query: any = null, url: string = '', silent: boolean = false) {
     const model = this._sectionModels[section];
     if (!model) return;
 
-    if (!url) {
+    if (!url && !silent) {
       this.expandedItems = [];
       this._expandedLinks = null;
     }
 
     let _params = query ? this.utils._queryToHttpParams(query) : new HttpParams();
-    _params = _params.set('dashboard', 'true');
+    if (section === 'comunicazioni' && !url) {
+      if (this.comunicazioniTab === 'tutte') {
+        _params = _params.set('stato_notifica', 'nuova,letta');
+      } else {
+        _params = _params.set('stato_notifica', this.comunicazioniTab);
+      }
+    } else {
+      _params = _params.set('dashboard', 'true');
+    }
     let aux: any = { params: _params };
 
-    this.expandedLoading = true;
+    if (!silent) {
+      this.expandedLoading = true;
+    }
     this.apiService.getList(model, aux, url).subscribe({
       next: (response: any) => {
         this._expandedLinks = response?._links || null;
@@ -456,6 +476,57 @@ export class DashboardComponent implements OnInit {
         }
         break;
     }
+  }
+
+  onComunicazioniTabChange(tab: string) {
+    this.comunicazioniTab = tab;
+    if (this.expandedSection === 'comunicazioni') {
+      this._loadExpandedData('comunicazioni', this.expandedFilterData);
+    }
+  }
+
+  markNotification(item: any, stato: string) {
+    this.apiService.putElement('notifiche', item.id_notifica, { stato }).subscribe({
+      next: () => {
+        if (this.expandedSection === 'comunicazioni') {
+          if (stato === 'archiviata' && this.comunicazioniTab !== 'archiviata') {
+            // Rimuove l'item dalla lista visibile (non è più in questo tab)
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
+          } else if (this.comunicazioniTab === 'nuova' && stato === 'letta') {
+            // Tab "Non letti": l'item letto esce dalla lista
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
+          } else if (this.comunicazioniTab === 'archiviata' && stato === 'nuova') {
+            // Tab "Archiviati": l'item non letto esce dalla lista
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
+          } else {
+            // Aggiorna lo stato in-place
+            const idx = this.expandedItems.findIndex(i => i.id_notifica === item.id_notifica);
+            if (idx !== -1) {
+              this.expandedItems[idx] = { ...this.expandedItems[idx], stato };
+            }
+          }
+        }
+        this._reloadComunicazioniCounts();
+      }
+    });
+  }
+
+  private _reloadComunicazioniCounts() {
+    this.dashboardService.getComunicazioniUnreadCount().subscribe({
+      next: (count) => { this.comunicazioniTotal = count; }
+    });
+    this.dashboardService.getComunicazioniViewAllCount().subscribe({
+      next: (count) => { this.comunicazioniViewAllTotal = count; }
+    });
+    // Ricarica anche la card collapsed
+    this.dashboardService.getComunicazioni().subscribe({
+      next: (response) => {
+        this.comunicazioniItems = response.content || [];
+      }
+    });
   }
 
   onRefresh() {

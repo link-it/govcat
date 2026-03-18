@@ -35,7 +35,7 @@
     @if (!loading && items.length === 0) {
       <div class="d-flex flex-column align-items-center justify-content-center py-4 empty-state">
         <i class="bi bi-check-circle fs-2 text-success mb-2"></i>
-        <span class="fw-semibold">{{ 'APP.DASHBOARD_PENDING.NoResults' | translate }}</span>
+        <span class="fw-semibold">{{ (panelType === 'comunicazioni' ? 'APP.DASHBOARD_PENDING.NoResultsComunicazioni' : 'APP.DASHBOARD_PENDING.NoResults') | translate }}</span>
       </div>
     }
 
@@ -146,13 +146,13 @@
   </div>
   @if (!loading) {
     <div class="card-footer bg-transparent py-2 text-center">
-      @if (totalCount > 0) {
+      @if ((viewAllCount ?? totalCount) > 0) {
         <lnk-button
           [label]="'APP.DASHBOARD_PENDING.ViewAll'"
           [icon]="'bi bi-arrow-right'"
           [secondary]="true"
           [size]="'sm'"
-          [badgeCount]="totalCount"
+          [badgeCount]="viewAllCount ?? totalCount"
           (onAction)="onViewAll()">
         </lnk-button>
       }

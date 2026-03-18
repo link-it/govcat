@@ -365,6 +365,7 @@
 			"Utenti": "Utenti",
 			"ViewAll": "Vedi tutti",
 			"NoResults": "Nessuna azione pending",
+			"NoResultsComunicazioni": "Nessuna comunicazione",
 			"LastUpdate": "Ultimo aggiornamento",
 			"TotalItems": "{{count}} elementi",
 			"RUOLO": {
