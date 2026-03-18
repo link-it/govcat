@@ -1,10 +1,56 @@
+2026-03-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #105: revisione dashboard comunicazioni/notifiche.
+	- Card riepilogo mostra solo notifiche non lette (stato=nuova)
+	- Count card e sidebar basato su GET /notifiche/count?stato_notifica=nuova
+	- Pulsante "Vedi tutti" mostra totale nuove+lette
+	- Vista espansa con tab filtri (Tutti/Non letti/Archiviati)
+	- Azioni hover su items: archivia, segna come letto/non letto
+	- Aggiornamento in-place degli items senza reset scroll
+
+2026-03-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Ripristino vista dashboard espansa su navigazione back.
+	Fix NG01203/NG0306 in AdesioneFormComponent.
+
+2026-03-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #105 Evolutiva: rework notifiche e comunicazioni.
+	- SenderComponent: target obbligatorio, rimosso "Tutti"
+	- Nuovi target GESTORE e COORDINATORE nelle comunicazioni
+	- Profilo notifiche semplificato (4 toggle)
+	- Dashboard: bell nascosta con dashboard abilitata
+	Fix test WaitForResponse: rimossi accessi a proprietà statiche cross-modulo.
+	Issue #215: fix breadcrumb gruppi persi navigando a servizio da URL con
+	query parameter.
+
+2026-03-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aumento copertura test Batch 4: da 8040 a 8382 test (+342),
+	focus su file sotto 50% di copertura.
+
 2026-03-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
-	Issue #215: aggiunto accesso diretto a servizi_gruppi filtrato per
-	gruppo tramite URL con query parameter ?gruppo={uuid}. L'URL si
-	sincronizza automaticamente durante la navigazione nei gruppi e il
-	breadcrumb mostra la gerarchia completa.
+	Aumento copertura test Batch 3: da 7575 a 8040 test (+465), 82.34% stmts.
+	Migrazione inject() a constructor injection per 8 componenti.
+	Issue #215: accesso diretto a servizi_gruppi filtrato per gruppo via URL.
+
+2026-03-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [CI/CD]
+	Fix pipeline CI: risolto conflitto peer dependency @swimlane/ngx-charts
+	con Angular 21.
+
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #205: referenti adesione/servizio sempre modificabili in base
+	a configurazione.
 
 2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -23,6 +69,7 @@
 	* [CI/CD]
 	Modificata pipeline GitHub per ignorare branch di sviluppo
 	"angular-21-standalone".
+
 2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -46,6 +93,7 @@
 
 	* [Frontend]
 	Fix #207: modifica Dominio non perde più il flag skip_collaudo
+	Fix errore "Parameter key is required" in search-bar-form.
 
 2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -89,6 +137,12 @@
 	Fix breadcrumb ritorno alla dashboard per le adesioni e per
 	adesione-configurazione-wizard.
 	Fix visualizzazione errori in servizio-api-details.
+
+2026-03-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aumento copertura test unitari Batch 2c: da 7223 a 7575 test (+352).
+	Aumento copertura test unitari: da 4594 a 7223 test (+2629).
 
 2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
