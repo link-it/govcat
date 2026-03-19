@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -28,7 +28,6 @@ import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, FieldCl
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
-
 
 import { Organizzazione } from './organizzazione';
 import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
@@ -44,8 +43,7 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     ...COMPONENTS_IMPORTS,
     HasPermissionDirective,
     TrimOnBlurDirective
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'OrganizzazioneDetailsComponent';

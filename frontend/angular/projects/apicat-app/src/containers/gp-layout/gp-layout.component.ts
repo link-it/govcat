@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
@@ -64,8 +64,7 @@ import * as _ from 'lodash';
         NewsBoxComponent,
         AboutMiniBoxComponent,
         MultiSnackbarComponent
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    ]
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GpLayoutComponent';

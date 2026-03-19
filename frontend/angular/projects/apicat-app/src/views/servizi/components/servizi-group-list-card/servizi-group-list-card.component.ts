@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
@@ -29,8 +29,7 @@ import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
   templateUrl: './servizi-group-list-card.component.html',
   styleUrls: ['./servizi-group-list-card.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, SetBackgroundImageDirective, HttpImgSrcPipe],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, SetBackgroundImageDirective, HttpImgSrcPipe]
 })
 export class ServiziGroupListCardComponent implements OnInit {
 

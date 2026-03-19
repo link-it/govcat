@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
@@ -53,8 +53,7 @@ import { ComunicazioniSearchFormComponent } from './search-forms/comunicazioni-s
     AdesioniSearchFormComponent,
     UtentiSearchFormComponent,
     ComunicazioniSearchFormComponent
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class DashboardComponent implements OnInit {
   static readonly Name = 'DashboardComponent';
@@ -426,7 +425,6 @@ export class DashboardComponent implements OnInit {
       this._loadExpandedData(this.expandedSection, null, this._expandedLinks.next.href);
     }
   }
-
 
   onExpandedViewItem(item: any) {
     if (!this.expandedSection) return;

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -27,7 +27,6 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { ConfigService, Tools, EventsManagerService, FieldClass, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { CustomValidators } from '@linkit/validators';
-
 
 import { ClasseUtente } from './classe-utente';
 import { UtilService } from '@app/services/utils.service';
@@ -46,8 +45,7 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     ...COMPONENTS_IMPORTS,
     HasPermissionDirective,
     TrimOnBlurDirective
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class ClasseUtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClasseUtenteDetailsComponent';

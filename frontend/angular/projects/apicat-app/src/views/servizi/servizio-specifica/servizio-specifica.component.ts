@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent, YesnoDialogBsComponent } from '@linkit/components';
@@ -35,7 +35,6 @@ import { OpenAPIService } from '@services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
-
 import { Page } from '@app/models/page';
 import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
 import { Grant } from '@app/model/grant';
@@ -50,8 +49,7 @@ declare const saveAs: any;
   templateUrl: 'servizio-specifica.component.html',
   styleUrls: ['servizio-specifica.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, AutoFillScrollDirective, MarkAsteriskDirective, MonitorDropdwnComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, AutoFillScrollDirective, MarkAsteriskDirective, MonitorDropdwnComponent]
 })
 export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioSpecificaComponent';

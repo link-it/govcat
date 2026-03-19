@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -36,7 +36,6 @@ import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-d
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-
 
 import { Adesione } from './adesione';
 import { AdesioneCreate } from './adesioneCreate';
@@ -73,8 +72,7 @@ import { Grant } from '@app/model/grant';
     MonitorDropdwnComponent,
     NgSelectModule,
     TooltipModule
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneDetailsComponent';
@@ -145,7 +143,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _organizations: any[] = [];
   // _subscriptions: any[] = [];
   _selectedSubscription: any = null;
-
 
   servizi$!: Observable<any[]>;
   serviziInput$ = new Subject<string>();

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpParams } from '@angular/common/http';
@@ -92,8 +92,7 @@ export enum ViewType {
     ])
   ],
   standalone: true,
-  imports: [CommonModule, TranslateModule, ...COMPONENTS_IMPORTS, MapperPipe, VerificaApiComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, TranslateModule, ...COMPONENTS_IMPORTS, MapperPipe, VerificaApiComponent]
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnChanges, OnDestroy {
   static readonly Name = 'VerificheComponent';

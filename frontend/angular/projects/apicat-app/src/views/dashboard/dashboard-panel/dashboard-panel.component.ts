@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
@@ -32,8 +32,7 @@ import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
     CommonModule,
     TranslateModule,
     ...APP_COMPONENTS_IMPORTS
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class DashboardPanelComponent {
 

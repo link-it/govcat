@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -48,8 +48,7 @@ declare const saveAs: any;
   templateUrl: 'servizio-allegati.component.html',
   styleUrls: ['servizio-allegati.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, AutoFillScrollDirective, MonitorDropdwnComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, AutoFillScrollDirective, MonitorDropdwnComponent]
 })
 export class ServizioAllegatiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioAllegatiComponent';

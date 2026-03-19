@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -33,7 +33,6 @@ import { ApiCustomPropertiesComponent } from '@app/components/api-custom-propert
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-
 
 import { Page } from '@app/models/page';
 
@@ -84,8 +83,7 @@ import * as _ from 'lodash';
         TooltipModule,
         MonitorDropdwnComponent,
         ApiCustomPropertiesComponent
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    ]
 })
 export class AdesioneConfigurazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'AdesioneConfigurazioniComponent';

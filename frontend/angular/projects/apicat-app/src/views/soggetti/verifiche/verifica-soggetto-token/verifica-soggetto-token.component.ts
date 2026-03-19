@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, HostListener, Input, SimpleChanges, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, HostListener, Input, SimpleChanges } from '@angular/core';
 
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
@@ -40,8 +40,7 @@ import { OrderByPipe } from '@app/lib/pipes/ordeby.pipe';
     TranslateModule,
     MapperPipe,
     OrderByPipe
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class VerificaSoggettoTokenComponent {
 

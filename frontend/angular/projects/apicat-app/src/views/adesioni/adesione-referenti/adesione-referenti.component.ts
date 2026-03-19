@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -36,7 +36,6 @@ import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-d
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
@@ -64,8 +63,7 @@ import * as _ from 'lodash';
     AutoFillScrollDirective,
     MarkAsteriskDirective,
     MonitorDropdwnComponent
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class AdesioneReferentiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'AdesioneReferentiComponent';

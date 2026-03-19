@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
@@ -26,7 +26,6 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
@@ -124,7 +123,6 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
     { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
     { label: 'APP.TITLE.Subjects', url: '', type: 'title', icon: '' }
   ];
-
 
   organizzazioni$!: Observable<any[]>;
   organizzazioniInput$ = new Subject<string>();

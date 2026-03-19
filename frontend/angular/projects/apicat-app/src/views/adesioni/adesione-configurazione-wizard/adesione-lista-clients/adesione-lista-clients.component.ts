@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -25,6 +25,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { NgSelectModule } from '@ng-select/ng-select';
 
 import { COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { OpenAPIService } from '@app/services/openAPI.service';
@@ -53,12 +54,12 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
         ReactiveFormsModule,
         TranslateModule,
         ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
         MapperPipe,
         TooltipModule,
         NgSelectModule,
         MarkAsteriskDirective
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    ]
 })
 export class AdesioneListaClientsComponent implements OnInit {
 

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
@@ -53,8 +53,7 @@ import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-
     CommonModule,
     ...COMPONENTS_IMPORTS,
     MonitorDropdwnComponent
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class ServizioGruppiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioGruppiComponent';

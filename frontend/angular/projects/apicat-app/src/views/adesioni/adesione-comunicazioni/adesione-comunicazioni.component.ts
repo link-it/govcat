@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
@@ -52,8 +52,7 @@ import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/servic
     InfiniteScrollDirective,
     AutoFillScrollDirective,
     NotificationBarComponent
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class AdesioneComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneComunicazioniComponent';

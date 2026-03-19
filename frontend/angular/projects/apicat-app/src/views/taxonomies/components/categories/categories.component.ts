@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 
 import { TranslateService } from '@ngx-translate/core';
 
@@ -37,8 +37,7 @@ import { TreeViewCategoryComponent } from '@app/components/tree-view-category/tr
     CommonModule,
     ...COMPONENTS_IMPORTS,
     TreeViewCategoryComponent
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class CategoriesComponent implements OnInit, OnChanges {
   static readonly Name = 'CategoriesComponent';

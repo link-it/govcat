@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnDestroy, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
@@ -26,7 +26,6 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { ConfigService, Tools, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-
 
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
@@ -41,8 +40,7 @@ import { CommonModule } from '@angular/common';
   imports: [
     CommonModule,
     ...COMPONENTS_IMPORTS
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class TaxonomiesComponent implements OnInit, OnDestroy {
   static readonly Name = 'TaxonomiesComponent';

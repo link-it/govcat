@@ -326,7 +326,6 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       params: new HttpParams()
     };
 
-
     if (query)  aux = { params: this.utils._queryToHttpParams(query) };
 
     if (this.service?.id_servizio){

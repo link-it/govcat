@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -193,8 +193,7 @@ const domainStatistics = [
   templateUrl: 'statistiche.component.html',
   styleUrls: ['statistiche.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
 export class StatisticheComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'StatisticheComponent';

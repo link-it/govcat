@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
@@ -53,8 +53,7 @@ import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-
     PluralTranslatePipe,
     InfiniteScrollDirective,
     AutoFillScrollDirective
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioApiComponent';

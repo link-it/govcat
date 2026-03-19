@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -121,7 +121,6 @@ const descriptorDownloadsListConfiguration = {
   }
 }
 
-
 const agreementDetailsConfiguration = [
   { "label": "APP.LABEL.State", "field": "state", "type": "text" }
 ];
@@ -158,7 +157,6 @@ const agreementAttributesListConfiguration = {
   }
 }
 
-
 const purposeListConfiguration = {
   "itemRow": {
     "primaryText": [
@@ -186,7 +184,6 @@ const purposeListConfiguration = {
     }
   }
 }
-
 
 const purposeDetailsConfiguration = [
   { "label": "APP.LABEL.Id", "field": "id", "type": "text", "columns": 6 },
@@ -255,8 +252,7 @@ const eventListConfiguration = {
     ...COMPONENTS_IMPORTS,
     MarkAsteriskDirective,
     PdndEServiceViewComponent
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class PdndComponent {
   model = 'pdnd';

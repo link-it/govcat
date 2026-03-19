@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { CommonModule } from "@angular/common";
 
 import { TranslateModule } from "@ngx-translate/core";
@@ -144,8 +144,7 @@ const attributeListConfiguration = {
     CommonModule,
     TranslateModule,
     ...COMPONENTS_IMPORTS
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class PdndEServiceViewComponent implements OnChanges {
   public views: PdndView[] = [

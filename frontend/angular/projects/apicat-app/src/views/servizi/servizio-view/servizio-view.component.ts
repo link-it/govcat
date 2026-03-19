@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 
@@ -121,8 +121,7 @@ export enum ApiMode {
         MapperPipe,
         HttpImgSrcPipe,
         PluralTranslatePipe
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    ]
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioViewComponent';

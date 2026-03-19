@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 
@@ -74,8 +74,7 @@ import moment from 'moment';
         MarkdownModule,
         MapperPipe,
         HttpImgSrcPipe
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    ]
 })
 export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioDetailsComponent';
@@ -1188,7 +1187,6 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             this._hideSoggettoDropdown = true;
         }
     }
-
 
     async loadAnagrafiche() {
         const tables: any[] = [

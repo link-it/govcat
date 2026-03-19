@@ -16,14 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 
 import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-
 
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
@@ -182,7 +181,6 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
       this._messageHelp = 'APP.MESSAGE.NoResultsHelp';
     }
   }
-
 
   _initSearchForm() {
     this._formGroup = new FormGroup({

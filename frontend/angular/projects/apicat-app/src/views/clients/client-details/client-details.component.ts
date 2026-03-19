@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -28,7 +28,6 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService, Certificato } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
-
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -43,7 +42,6 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
 
 import * as _ from 'lodash';
 declare const saveAs: any;
-
 
 import { CommonModule } from '@angular/common';
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
@@ -60,8 +58,7 @@ import { ErrorViewComponent } from '@app/components/error-view/error-view.compon
     RouterModule,
     TrimOnBlurDirective,
     ErrorViewComponent
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'ClientDetailsComponent';

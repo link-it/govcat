@@ -16,9 +16,13 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<mat-progress-spinner color="accent" mode="indeterminate" diameter="60" class="center-spinner"></mat-progress-spinner>
+<div class="center-spinner">
+  <div class="spinner-border text-primary" role="status" style="width: 60px; height: 60px; border-width: 4px;">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
 <span class="rescue-spinner">
-  <button mat-button mat-icon-button type="button" (click)="_rescueCall()">
-    <span class="material-icons-outlined">close</span>
+  <button type="button" class="btn btn-link p-0" (click)="_rescueCall()">
+    <i class="bi bi-x-lg"></i>
   </button>
 </span>

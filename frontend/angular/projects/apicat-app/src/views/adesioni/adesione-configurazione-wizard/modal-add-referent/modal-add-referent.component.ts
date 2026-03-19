@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -38,9 +39,9 @@ import { map, tap } from 'rxjs/operators';
     imports: [
         ReactiveFormsModule,
         TranslateModule,
-        ...COMPONENTS_IMPORTS
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS
+    ]
 })
 export class ModalAddReferentComponent implements OnInit {
 

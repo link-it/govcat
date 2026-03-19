@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
@@ -27,7 +27,6 @@ import { ConfigService, Tools, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-
 
 import { Soggetto, TipoGateway } from './soggetto';
 import { SoggettoCreate } from './soggettoCreate';
@@ -50,8 +49,7 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     RouterModule,
     HasPermissionDirective,
     TrimOnBlurDirective
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'SoggettoDetailsComponent';

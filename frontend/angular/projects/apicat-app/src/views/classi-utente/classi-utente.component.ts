@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
@@ -28,7 +28,6 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-
 
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
@@ -44,8 +43,7 @@ import { HasPermissionDirective } from '@app/directives/has-permission/has-permi
     CommonModule,
     ...COMPONENTS_IMPORTS,
     HasPermissionDirective
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class ClassiUtenteComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClassiUtenteComponent';

@@ -185,7 +185,7 @@
                         </div>
                       }
                       <div class="col-12">
-                        @for (referent of referents; track referent) {
+                        @for (referent of referents; track referent.id) {
                           <div class="d-flex justify-content-between align-items-center- border-bottom">
                             <ui-collapse-row class="flex-grow-1"
                               [data]="referent.source"

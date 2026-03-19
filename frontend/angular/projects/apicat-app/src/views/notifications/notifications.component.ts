@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
@@ -46,8 +46,7 @@ import { Observable } from 'rxjs/internal/Observable';
   imports: [
     CommonModule,
     ...COMPONENTS_IMPORTS
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  ]
 })
 export class NotificationsComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'NotificationsComponent';

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -24,7 +24,9 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { WorkflowComponent } from '@app/components/workflow/workflow.component';
 import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
 import { ApiCustomPropertiesComponent } from '@app/components/api-custom-properties/api-custom-properties.component';
 import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
@@ -66,6 +68,7 @@ export enum AccordionType {
     imports: [
         TranslateModule,
         ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
         MapperPipe,
         TooltipModule,
         MonitorDropdwnComponent,
@@ -74,9 +77,9 @@ export enum AccordionType {
         AdesioneListaClientsComponent,
         AdesioneListaErogazioniComponent,
         AdesioneFormComponent,
-        NotificationBarComponent
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+        NotificationBarComponent,
+        WorkflowComponent
+    ]
 })
 export class AdesioneConfigurazioneWizardComponent implements OnInit {
 

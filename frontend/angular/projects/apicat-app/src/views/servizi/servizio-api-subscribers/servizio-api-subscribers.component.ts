@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
@@ -47,8 +47,7 @@ import * as _ from 'lodash';
   templateUrl: 'servizio-api-subscribers.component.html',
   styleUrls: ['servizio-api-subscribers.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, MonitorDropdwnComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, MonitorDropdwnComponent]
 })
 export class ServizioApiSubscribersComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiSubscribersComponent';

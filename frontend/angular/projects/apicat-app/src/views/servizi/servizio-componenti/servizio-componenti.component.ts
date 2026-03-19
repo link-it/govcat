@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
@@ -35,7 +35,6 @@ import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
 
@@ -49,8 +48,7 @@ import * as _ from 'lodash';
   templateUrl: 'servizio-componenti.component.html',
   styleUrls: ['servizio-componenti.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, AutoFillScrollDirective, MarkAsteriskDirective, MonitorDropdwnComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, AutoFillScrollDirective, MarkAsteriskDirective, MonitorDropdwnComponent]
 })
 export class ServizioComponentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioComponentiComponent';

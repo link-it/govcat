@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
@@ -33,6 +33,7 @@ import moment from 'moment';
 import * as _ from 'lodash';
 
 import { CommonModule } from '@angular/common';
+import { VerificaSoggettoTokenComponent } from './verifica-soggetto-token/verifica-soggetto-token.component';
 
 @Component({
   selector: 'app-verifiche',
@@ -41,9 +42,9 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     CommonModule,
-    ...COMPONENTS_IMPORTS
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    ...COMPONENTS_IMPORTS,
+    VerificaSoggettoTokenComponent
+  ]
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
 import { AbstractControl, FormGroup, FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -54,7 +54,6 @@ import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.di
 import * as _ from 'lodash';
 declare const saveAs: any;
 
-
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
@@ -71,8 +70,7 @@ declare const saveAs: any;
         MapperPipe,
         InfiniteScrollDirective,
         AutoFillScrollDirective
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    ]
 })
 export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked {
     static readonly Name = 'ServiziComponent';

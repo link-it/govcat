@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild, Renderer2 } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, Renderer2 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { UntypedFormGroup } from '@angular/forms';
@@ -44,8 +44,7 @@ import moment from 'moment';
   templateUrl: 'servizio-comunicazioni.component.html',
   styleUrls: ['servizio-comunicazioni.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, NotificationBarComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, AutoFillScrollDirective, NotificationBarComponent]
 })
 export class ServizioComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioComunicazioniComponent';

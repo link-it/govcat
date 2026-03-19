@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { COMPONENTS_IMPORTS, Tools, ConfigService } from '@linkit/components';
@@ -77,8 +77,7 @@ type Raggruppamento = {
   templateUrl: 'servizio-api-configuration.component.html',
   styleUrls: ['servizio-api-configuration.component.scss'],
   standalone: true,
-  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, MarkAsteriskDirective, MonitorDropdwnComponent, MarkdownModule, DisablePermissionDirective]
 })
 export class ServizioApiConfigurationComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioApiConfigurationComponent';
@@ -463,7 +462,6 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
       proprieta_custom: [],
       descrittore: null
     });
-
 
     if (this.environmentId === 'collaudo') {
       this._hasSpecifica = configuration?.specifica || !configuration?.protocollo ? true : false;

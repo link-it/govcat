@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Tools } from '../services';
 
@@ -24,8 +24,7 @@ import { Tools } from '../services';
     selector: 'app-spinner',
     templateUrl: './spinner.component.html',
     styleUrls: ['./spinner.component.scss'],
-    standalone: true,
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    standalone: true
 })
 export class SpinnerComponent {
   _rescueCall() {
