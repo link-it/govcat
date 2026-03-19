@@ -8,6 +8,7 @@ describe('DashboardService', () => {
   let mockApiService: any;
   let mockAuthService: any;
   let mockConfigService: any;
+  let mockUtilService: any;
 
   beforeEach(() => {
     mockApiService = {
@@ -19,8 +20,11 @@ describe('DashboardService', () => {
     mockConfigService = {
       getConfiguration: vi.fn().mockReturnValue({ AppConfig: { Layout: {} } })
     };
+    mockUtilService = {
+      _queryToHttpParams: vi.fn().mockReturnValue({})
+    };
 
-    service = new DashboardService(mockApiService, mockAuthService, mockConfigService);
+    service = new DashboardService(mockApiService, mockAuthService, mockConfigService, mockUtilService);
 
     // Reset Tools.Configurazione
     (Tools as any).Configurazione = null;
@@ -49,12 +53,12 @@ describe('DashboardService', () => {
         expect(config.comunicazioni).toBe(true);
       });
 
-      it('should hide comunicazioni when hideNotificationGestore is true', () => {
+      it('should always show comunicazioni for gestore regardless of hideNotificationGestore', () => {
         mockConfigService.getConfiguration.mockReturnValue({
           AppConfig: { Layout: { dashboard: { hideNotificationGestore: true } } }
         });
         const config = service.computeRoleConfig('gestore', []);
-        expect(config.comunicazioni).toBe(false);
+        expect(config.comunicazioni).toBe(true);
       });
     });
 

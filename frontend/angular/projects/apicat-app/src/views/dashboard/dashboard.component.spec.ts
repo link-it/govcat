@@ -5,6 +5,7 @@ import { DashboardComponent } from './dashboard.component';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
+  const mockRoute = { snapshot: { queryParams: {} } } as any;
   const mockRouter = { navigate: vi.fn(), navigateByUrl: vi.fn() } as any;
   const mockTranslate = { instant: vi.fn((k: string) => k) } as any;
   const mockConfigService = {
@@ -25,6 +26,8 @@ describe('DashboardComponent', () => {
     getAdesioni: vi.fn().mockReturnValue(of({ content: [], page: { totalElements: 0 } })),
     getClient: vi.fn().mockReturnValue(of({ content: [], page: { totalElements: 0 } })),
     getComunicazioni: vi.fn().mockReturnValue(of({ content: [], page: { totalElements: 0 } })),
+    getComunicazioniUnreadCount: vi.fn().mockReturnValue(of(0)),
+    getComunicazioniViewAllCount: vi.fn().mockReturnValue(of(0)),
     getUtenti: vi.fn().mockReturnValue(of({ content: [], page: { totalElements: 0 } })),
   } as any;
   const mockApiService = {
@@ -48,10 +51,12 @@ describe('DashboardComponent', () => {
     mockDashboardService.getAdesioni.mockReturnValue(of({ content: [], page: { totalElements: 0 } }));
     mockDashboardService.getClient.mockReturnValue(of({ content: [], page: { totalElements: 0 } }));
     mockDashboardService.getComunicazioni.mockReturnValue(of({ content: [], page: { totalElements: 0 } }));
+    mockDashboardService.getComunicazioniUnreadCount.mockReturnValue(of(0));
+    mockDashboardService.getComunicazioniViewAllCount.mockReturnValue(of(0));
     mockDashboardService.getUtenti.mockReturnValue(of({ content: [], page: { totalElements: 0 } }));
     mockApiService.getList.mockReturnValue(of({ content: [], page: { totalElements: 0 }, _links: {} }));
     component = new DashboardComponent(
-      mockRouter, mockTranslate, mockConfigService,
+      mockRoute, mockRouter, mockTranslate, mockConfigService,
       mockAuthService, mockDashboardService, mockApiService, mockUtils
     );
   });
@@ -71,7 +76,7 @@ describe('DashboardComponent', () => {
 
   it('should have default roleConfig all false', () => {
     const comp = new DashboardComponent(
-      mockRouter, mockTranslate, mockConfigService,
+      mockRoute, mockRouter, mockTranslate, mockConfigService,
       mockAuthService, mockDashboardService, mockApiService, mockUtils
     );
     expect(comp.roleConfig.servizi).toBe(false);
@@ -179,22 +184,22 @@ describe('DashboardComponent', () => {
 
   it('should navigate to servizio on onViewItem', () => {
     component.onViewItem({ id_servizio: 's1' }, 'servizi');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/servizi', 's1'], { queryParams: { from: 'dashboard' } });
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/servizi', 's1'], { queryParams: { from: 'dashboard', section: 'servizi' } });
   });
 
   it('should navigate to adesione on onViewItem', () => {
     component.onViewItem({ id_adesione: 'a1' }, 'adesioni');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/adesioni', 'a1'], { queryParams: { from: 'dashboard' } });
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/adesioni', 'a1'], { queryParams: { from: 'dashboard', section: 'adesioni' } });
   });
 
   it('should navigate to client on onViewItem', () => {
     component.onViewItem({ id_client: 'c1' }, 'client');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client', 'c1'], { queryParams: { from: 'dashboard' } });
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/client', 'c1'], { queryParams: { from: 'dashboard', section: 'client' } });
   });
 
   it('should navigate to utente on onViewItem', () => {
     component.onViewItem({ id_utente: 'u1' }, 'utenti');
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/utenti', 'u1'], { queryParams: { from: 'dashboard' } });
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/utenti', 'u1'], { queryParams: { from: 'dashboard', section: 'utenti' } });
   });
 
   it('should navigate to comunicazione servizio', () => {
@@ -347,6 +352,8 @@ describe('DashboardComponent', () => {
       mockDashboardService.getAdesioni.mockReturnValue(of({ content: [{ id: 'a1' }], page: { totalElements: 2 } }));
       mockDashboardService.getClient.mockReturnValue(of({ content: [{ id: 'c1' }], page: { totalElements: 3 } }));
       mockDashboardService.getComunicazioni.mockReturnValue(of({ content: [{ id: 'n1' }], page: { totalElements: 4 } }));
+      mockDashboardService.getComunicazioniUnreadCount.mockReturnValue(of(4));
+      mockDashboardService.getComunicazioniViewAllCount.mockReturnValue(of(10));
       mockDashboardService.getUtenti.mockReturnValue(of({ content: [{ id: 'u1' }], page: { totalElements: 5 } }));
       component.ngOnInit();
       expect(component.serviziItems).toEqual([{ id: 's1' }]);
@@ -534,13 +541,13 @@ describe('DashboardComponent', () => {
     it('should navigate for servizio in expanded view', () => {
       component.expandedSection = 'servizi';
       component.onExpandedViewItem({ id_servizio: 's1' });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/servizi', 's1'], { queryParams: { from: 'dashboard' } });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/servizi', 's1'], { queryParams: { from: 'dashboard', section: 'servizi' } });
     });
 
     it('should navigate for adesione in expanded view', () => {
       component.expandedSection = 'adesioni';
       component.onExpandedViewItem({ id_adesione: 'a1' });
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/adesioni', 'a1'], { queryParams: { from: 'dashboard' } });
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/adesioni', 'a1'], { queryParams: { from: 'dashboard', section: 'adesioni' } });
     });
 
     it('should navigate for comunicazione in expanded view', () => {

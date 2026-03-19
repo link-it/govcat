@@ -576,6 +576,9 @@
 			"MyServices": "I miei servizi",
 			"Open": "Aperti",
 			"Production": "Produzione",
+			"ReferenteAdesione": "Referente adesione",
+			"ReferenteServizioDominio": "Referente servizio/dominio",
+			"Richiedente": "Richiedente",
 			"SelectAll": "Seleziona tutto",
 			"Testing": "Collaudo",
 			"Unread": "Non letti"
@@ -884,6 +887,7 @@
 			"Role": "Ruolo",
 			"RootGroup": "Nessun padre",
 			"ruolo": "Ruolo",
+			"ruolo_referente": "Ruolo referente",
 			"ScheduledExpeditionDate": "Data di spedizione pianificata",
 			"SearchType": "Tipo ricerca",
 			"ServerURL": "Server URL",
@@ -1716,6 +1720,8 @@
 			"referente_tecnico_adesione": "Referente tecnico adesione",
 			"referente_tecnico_dominio": "Referente tecnico dominio",
 			"referente_tecnico_servizio": "Referente tecnico servizio",
+			"richiedente_adesione": "Richiedente adesione",
+			"richiedente_servizio": "Richiedente servizio",
 			"ServiceContact": "Referente servizio"
 		},
 		"SEARCH": {

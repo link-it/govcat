@@ -64,9 +64,9 @@ describe('NotificationsComponent', () => {
     Tools.ScrollTo = vi.fn() as any;
     Tools.ScrollElement = vi.fn() as any;
     component = new NotificationsComponent(
-      mockRoute, mockRouter, mockLocation, mockTranslate,
-      mockConfigService, mockTools, mockEventsManager,
-      mockLocalStorage, mockApiService, mockUtilService,
+      mockRouter, mockLocation, mockTranslate,
+      mockConfigService, mockTools,
+      mockApiService, mockUtilService,
       mockAuthService, mockNotificationsService, mockNavigationService
     );
   });
@@ -126,9 +126,9 @@ describe('NotificationsComponent', () => {
         AppConfig: { Layout: { enablePollingNotifications: true, fullScroll: true } }
       });
       const comp = new NotificationsComponent(
-        mockRoute, mockRouter, mockLocation, mockTranslate,
-        mockConfigService, mockTools, mockEventsManager,
-        mockLocalStorage, mockApiService, mockUtilService,
+        mockRouter, mockLocation, mockTranslate,
+        mockConfigService, mockTools,
+        mockApiService, mockUtilService,
         mockAuthService, mockNotificationsService, mockNavigationService
       );
       expect(comp._enablePollingNotifications).toBe(true);
@@ -201,12 +201,6 @@ describe('NotificationsComponent', () => {
       const spy = vi.spyOn(component, '_startCounters').mockImplementation(() => {});
       component.ngOnInit();
       expect(spy).toHaveBeenCalled();
-    });
-  });
-
-  describe('ngOnDestroy', () => {
-    it('should be callable', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
     });
   });
 

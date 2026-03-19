@@ -25,11 +25,30 @@
       <div class="">
         @if (!_groupsView) {
           <ul class="nav gp-border-b-0 gp-tabs-nav">
-            <li class="nav-item">
-              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
-                <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || 0 }}</span>
-              </a>
-            </li>
+            @if (_isMyServices) {
+              @for (tab of roleTabs; track tab.key) {
+                <li class="nav-item">
+                  <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="roleTab === tab.key" (click)="onRoleTabChange(tab.key)">
+                    <span>{{ tab.label | translate }}</span>
+                    @if (roleTab === tab.key) {
+                      <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
+                        @if (_spin) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        } @else {
+                          {{ _allElements || 0 }}
+                        }
+                      </span>
+                    }
+                  </a>
+                </li>
+              }
+            } @else {
+              <li class="nav-item">
+                <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" (click)="_showAllServices()" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
+                  <span title="Services found">{{ 'APP.FILTER.Found' | translate }}</span> <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm" [title]="_allElements">{{ _allElements || 0 }}</span>
+                </a>
+              </li>
+            }
           </ul>
         }
       </div>
@@ -517,7 +536,7 @@
       <div class="row">
         <div class="col-12">
           <form>
-            @for (element of elements; track element.id || $index) {
+            @for (element of elements; track element.idServizio ?? $index) {
               <div class="px-2 border-bottom">
                 <div class="d-flex flex-column flex-md-row align-md-items-center">
                   <div class="d-flex flex-row flex-md-fill align-items-center position-relative" [class.gap-3]="hasMultiSelection">

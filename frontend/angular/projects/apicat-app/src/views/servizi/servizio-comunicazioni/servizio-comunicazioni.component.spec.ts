@@ -121,7 +121,7 @@ describe('ServizioComunicazioniComponent', () => {
 
   it('should have targetOptionsServizio defined', () => {
     expect(component.targetOptionsServizio).toBeDefined();
-    expect(component.targetOptionsServizio.length).toBe(4);
+    expect(component.targetOptionsServizio.length).toBe(6);
   });
 
   it('_setErrorCommunications should toggle error messages', () => {

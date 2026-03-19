@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 :host {
     display: block;
     position: relative;
-    // background-color: var(--item-row-background-color, #fff);
     font-size: 0.875rem;
 }
 
@@ -104,14 +103,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .main-data .primary-text,
 .main-data .secondary-text {
     font-size: .875rem;
-    // padding-bottom: .35rem;
     min-width: calc(50% - 1.5rem);
     white-space: normal;
 }
 
 .main-data .secondary-text {
     padding-left: .75rem;
-    // padding-right: .75rem;
     background-color: var(--item-row-secondary-text-background-color, transparent);
 }
 
@@ -128,13 +125,11 @@ p {
 
 .secondary-text p {
     font-size: .875rem;
-    // font-weight: 600;
     text-align: right;
     color: var(--item-row-secondary-text-color, inherit);
 }
 
 .meta-data {
-    // color: var(--item-row-metadata-color, #333);
     font-size: var(--item-row-metadata-font-size, 14px);
 
     p,
@@ -154,10 +149,8 @@ p {
     }
 
     div {
-        padding: 0px 8px 4px 8px;
-        // font-size: .875rem;
+        padding: 0px 0px 4px 0px;
         line-height: 1.5;
-        // word-break: break-all;
     }
 }
 
@@ -184,7 +177,6 @@ p {
 }
 
 .box-area-status {
-    // min-width: 120px;
     
     .box-status {
         .box-status-1 {

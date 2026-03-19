@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterViewInit, Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, HostListener, Input, OnInit, Output } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -36,13 +36,13 @@ import { ConfigService } from '../../services/config.service';
   standalone: true,
   imports: [TooltipModule, ItemRowMobileComponent, ItemTypeComponent]
 })
-export class ItemRowComponent implements OnInit, AfterViewInit {
+export class ItemRowComponent implements OnInit {
   @HostBinding('class.notify') get notifyClass(): boolean {
     return this.notify;
   }
 
-  @Input('data') _data: any = null;
-  @Input('config') _config: any = null;
+  @Input() data: any = null;
+  @Input() config: any = null;
   @Input() configRow: string = 'itemRow';
   @Input() actionDisabled: boolean = false;
   @Input() notify: boolean = false;
@@ -79,11 +79,10 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   openInNewTabTooltip: string = '';
 
   constructor(
-    private element: ElementRef,
-    private sanitized: DomSanitizer,
-    private translate: TranslateService,
-    private utilsLib: UtilsLib,
-    private configService: ConfigService
+    private readonly sanitized: DomSanitizer,
+    private readonly translate: TranslateService,
+    private readonly utilsLib: UtilsLib,
+    private readonly configService: ConfigService
   ) { }
 
   @HostListener('window:resize') _onResize() {
@@ -100,7 +99,7 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
 
     document.documentElement.style.setProperty('--item-row-background-color', this.hostBackground);
 
-    this._itemRowConfig = this._config ? this._config[this.configRow] || this._config.itemRow || this._config.simpleItem : null;
+    this._itemRowConfig = this.config ? this.config[this.configRow] || this.config.itemRow || this.config.simpleItem : null;
     if (this._itemRowConfig?.boxStatus1) {
       this._tooltipBox1 = this._setTooltip(this._itemRowConfig.boxStatus1);
       this._tooltipPlacementBox1 = this._setTooltipPlacement(this._itemRowConfig.boxStatus1);
@@ -111,40 +110,37 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-  }
-
   _sanitizeHtml(html: string) {
     return this.sanitized.bypassSecurityTrustHtml(html);
   }
 
   __itemClick(event: MouseEvent, activeItem: any) {
     if (!this.rowClick) {
-      this.itemClick.emit({ data: this._data, event });
+      this.itemClick.emit({ data: this.data, event });
     }
   }
 
   __itemClickRow(event: MouseEvent, activeItem: any) {
     if (this.rowClick) {
-      this.itemClick.emit({ data: this._data, event });
+      this.itemClick.emit({ data: this.data, event });
     }
   }
 
   __actionlick(event: any) {
     event.stopImmediatePropagation();
     event.preventDefault();
-    this.actionClick.emit(this._data);
+    this.actionClick.emit(this.data);
   }
 
   __openInNewTab(event: MouseEvent) {
     event.stopImmediatePropagation();
     event.preventDefault();
-    this.openInNewTab.emit({ data: this._data, event });
+    this.openInNewTab.emit({ data: this.data, event });
   }
 
   _showEmpty(field: any) {
-    const _value = this.utilsLib.getObjectValue(this._data.source || this._data, field.field);
-    return (!_value && field.hideEmpty) ? false : true;
+    const _value = this.utilsLib.getObjectValue(this.data.source || this.data, field.field);
+    return !((!_value && field.hideEmpty));
   }
 
   _hideAnonymous(field: any) {
@@ -166,10 +162,10 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     let configValue = appConfig;
 
     for (const part of pathParts) {
-      if (configValue && configValue[part] !== undefined) {
-        configValue = configValue[part];
-      } else {
+      if (configValue?.[part] === undefined) {
         return true; // Se il percorso non esiste, mostra l'elemento
+      } else {
+        configValue = configValue[part];
       }
     }
 
@@ -180,10 +176,9 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   _getBackground(boxOptions: any) {
     let _background = '';
     if (typeof boxOptions.background === 'object') {
-      const _value = this.utilsLib.getObjectValue(this._data.source || this._data, boxOptions.background.field);
+      const _value = this.utilsLib.getObjectValue(this.data.source || this.data, boxOptions.background.field);
       const _optionsName = boxOptions.background.options;
-      _background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_value]) ? this._config.options[_optionsName].values[_value].background : '#1f1f1f';
-      const _color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_value]) ? this._config.options[_optionsName].values[_value].color : '#fff';
+      _background = (this.config.options[_optionsName]?.values[_value]) ? this.config.options[_optionsName].values[_value].background : '#1f1f1f';
     } else {
       _background = boxOptions.background;
     }
@@ -193,9 +188,9 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
   _getColor(boxOptions: any) {
     let _color = '';
     if (typeof boxOptions.background === 'object') {
-      const _value = this.utilsLib.getObjectValue(this._data.source || this._data, boxOptions.background.field);
+      const _value = this.utilsLib.getObjectValue(this.data.source || this.data, boxOptions.background.field);
       const _optionsName = boxOptions.background.options;
-      _color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_value]) ? this._config.options[_optionsName].values[_value].color : '#fff';
+      _color = (this.config.options[_optionsName]?.values[_value]) ? this.config.options[_optionsName].values[_value].color : '#fff';
     } else {
       _color = boxOptions.color;
     }
@@ -206,15 +201,15 @@ export class ItemRowComponent implements OnInit, AfterViewInit {
     let _tooltip = '';
     let _tooltip2 = '';
     if (typeof boxOptions.tooltip === 'object') {
-      let _value = this.utilsLib.getObjectValue(this._data.source || this._data, boxOptions.tooltip.field);
+      let _value = this.utilsLib.getObjectValue(this.data.source || this.data, boxOptions.tooltip.field);
       const _origValue = _value;
 
       const _optionsName = boxOptions.tooltip.options;
-      const _optionElem = this._config.options[_optionsName] ? this._config.options[_optionsName].values[_origValue] : null;
+      const _optionElem = this.config.options[_optionsName] ? this.config.options[_optionsName].values[_origValue] : null;
       _value = _optionElem ? _optionElem.icon: _origValue;
 
       if (boxOptions.tooltip.type === 'mstime') {
-        _value = this.utilsLib.msToTime(this.utilsLib.getObjectValue(this._data.source || this._data, boxOptions.tooltip.field));
+        _value = this.utilsLib.msToTime(this.utilsLib.getObjectValue(this.data.source || this.data, boxOptions.tooltip.field));
       }
 
       let _label = this.translate.instant(boxOptions.tooltip.label);

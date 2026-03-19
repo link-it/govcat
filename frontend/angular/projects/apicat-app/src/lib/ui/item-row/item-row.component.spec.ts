@@ -66,7 +66,7 @@ describe('ItemRowComponent', () => {
         };
         const mockSetTooltip = vi.fn();
         const mockSetTooltipPlacement = vi.fn();
-        component._config = mockConfig;
+        component.config = mockConfig;
         component.configRow = 'itemRow';
         component._setTooltip = mockSetTooltip;
         component._setTooltipPlacement = mockSetTooltipPlacement;
@@ -83,7 +83,7 @@ describe('ItemRowComponent', () => {
         const mockEventEmitter = { emit: vi.fn() } as any;
         component.itemClick = mockEventEmitter;
         component.rowClick = false;
-        component._data = { id: 1 };
+        component.data = { id: 1 };
 
         const mouseEvent = new MouseEvent('click');
         component.__itemClick(mouseEvent, {});
@@ -95,7 +95,7 @@ describe('ItemRowComponent', () => {
         const mockEventEmitter = { emit: vi.fn() } as any;
         component.itemClick = mockEventEmitter;
         component.rowClick = true;
-        component._data = { id: 1 };
+        component.data = { id: 1 };
 
         const mouseEvent = new MouseEvent('click');
         component.__itemClickRow(mouseEvent, {});
@@ -107,7 +107,7 @@ describe('ItemRowComponent', () => {
         const mockEvent = { stopImmediatePropagation: vi.fn(), preventDefault: vi.fn() } as any;
         const mockEventEmitter = { emit: vi.fn() } as any;
         component.actionClick = mockEventEmitter;
-        component._data = { id: 1 };
+        component.data = { id: 1 };
 
         component.__actionlick(mockEvent);
 
@@ -119,7 +119,7 @@ describe('ItemRowComponent', () => {
     it('should return false when _value is falsy and field.hideEmpty is true', () => {
         const mockUtilsLib = { getObjectValue: vi.fn().mockReturnValue(null) };
         (component as any).utilsLib = mockUtilsLib;
-        component._data = { source: {} };
+        component.data = { source: {} };
         const field = { field: 'test', hideEmpty: true };
 
         const result = component._showEmpty(field);
@@ -130,7 +130,7 @@ describe('ItemRowComponent', () => {
     it('should return true when _value is truthy or field.hideEmpty is false', () => {
         const mockUtilsLib = { getObjectValue: vi.fn().mockReturnValue('value') };
         (component as any).utilsLib = mockUtilsLib;
-        component._data = { source: {} };
+        component.data = { source: {} };
         const field = { field: 'test', hideEmpty: false };
 
         const result = component._showEmpty(field);
@@ -141,8 +141,8 @@ describe('ItemRowComponent', () => {
     it('should return the correct background when boxOptions.background is an object', () => {
         const mockUtilsLib = { getObjectValue: vi.fn().mockReturnValue('value') };
         (component as any).utilsLib = mockUtilsLib;
-        component._data = { source: {} };
-        component._config = { options: { optionName: { values: { value: { background: 'red' } } } } };
+        component.data = { source: {} };
+        component.config = { options: { optionName: { values: { value: { background: 'red' } } } } };
         const boxOptions = { background: { field: 'test', options: 'optionName' } };
 
         const result = component._getBackground(boxOptions);
@@ -161,8 +161,8 @@ describe('ItemRowComponent', () => {
     it('should return the correct color when boxOptions.background is an object', () => {
         const mockUtilsLib = { getObjectValue: vi.fn().mockReturnValue('value') };
         (component as any).utilsLib = mockUtilsLib;
-        component._data = { source: {} };
-        component._config = { options: { optionName: { values: { value: { color: 'red' } } } } };
+        component.data = { source: {} };
+        component.config = { options: { optionName: { values: { value: { color: 'red' } } } } };
         const boxOptions = { background: { field: 'test', options: 'optionName' } };
 
         const result = component._getColor(boxOptions);
@@ -183,8 +183,8 @@ describe('ItemRowComponent', () => {
         const mockTranslate = { instant: vi.fn().mockReturnValue('translated') };
         (component as any).utilsLib = mockUtilsLib;
         (component as any).translate = mockTranslate;
-        component._data = { source: {} };
-        component._config = { options: { optionName: { values: { value: { icon: 'icon', tooltip: 'tooltip', tooltip2: 'tooltip2' } } } } };
+        component.data = { source: {} };
+        component.config = { options: { optionName: { values: { value: { icon: 'icon', tooltip: 'tooltip', tooltip2: 'tooltip2' } } } } };
         const boxOptions = { tooltip: { field: 'test', options: 'optionName', type: 'mstime', label: 'label' } };
 
         const result = component._setTooltip(boxOptions);

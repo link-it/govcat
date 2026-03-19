@@ -12,7 +12,7 @@ import { ClassiEnum } from '@app/provider/check.provider';
 describe('AdesioneConfigurazioneWizardComponent', () => {
   let component: AdesioneConfigurazioneWizardComponent;
 
-  const mockRoute = { params: of({ id: '1' }), data: of({}) } as any;
+  const mockRoute = { params: of({ id: '1' }), data: of({}), queryParams: of({}) } as any;
   const mockRouter = { navigate: vi.fn(), getCurrentNavigation: vi.fn().mockReturnValue(null) } as any;
   const mockTranslate = { instant: vi.fn((k: string) => k) } as any;
   const mockModalService = { show: vi.fn() } as any;
@@ -122,7 +122,7 @@ describe('AdesioneConfigurazioneWizardComponent', () => {
         breadcrumbs: [{ label: 'Test', url: '/test', type: 'link' }]
       }
     };
-    const routeWithData = { params: of({}), data: of(breadcrumbsData) } as any;
+    const routeWithData = { params: of({}), data: of(breadcrumbsData), queryParams: of({}) } as any;
     const comp = new AdesioneConfigurazioneWizardComponent(
       routeWithData, mockRouter, mockTranslate, mockModalService,
       mockConfigService, mockEventsManager, mockApiService,

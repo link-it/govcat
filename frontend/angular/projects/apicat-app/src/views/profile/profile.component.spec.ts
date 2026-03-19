@@ -136,30 +136,6 @@ describe('ProfileComponent', () => {
     expect(body.email).toBe('new@test.it');
   });
 
-  it('should toggle notifications', () => {
-    component.profile = { id_utente: '1' };
-    component._initServerForm({});
-    component.toggleAllNotifications(false);
-    expect(component._formSettingsSettings.get('emetti_per_tipi')!.value).toEqual([]);
-    component.toggleAllNotifications(true);
-    expect(component._formSettingsSettings.get('emetti_per_tipi')!.value.length).toBeGreaterThan(0);
-  });
-
-  it('should check isValueSelected', () => {
-    component.profile = { id_utente: '1' };
-    component._initServerForm({});
-    expect(component.isValueSelected('emetti_per_tipi', 'comunicazione')).toBe(true);
-  });
-
-  it('should toggle value', () => {
-    component.profile = { id_utente: '1' };
-    component._initServerForm({});
-    component.toggleValue('emetti_per_tipi', 'comunicazione', false);
-    expect(component.isValueSelected('emetti_per_tipi', 'comunicazione')).toBe(false);
-    component.toggleValue('emetti_per_tipi', 'comunicazione', true);
-    expect(component.isValueSelected('emetti_per_tipi', 'comunicazione')).toBe(true);
-  });
-
   it('should set avatar fallback on error', () => {
     const event = { target: { src: '' } };
     component.onAvatarError(event);
@@ -863,49 +839,45 @@ describe('ProfileComponent', () => {
       component.profile = { id_utente: '1' };
     });
 
-    it('should create _formSettingsSettings with three controls', () => {
+    it('should create _formSettingsSettings with four boolean controls', () => {
       component._initServerForm({});
-      expect(component._formSettingsSettings.get('emetti_per_tipi')).toBeTruthy();
-      expect(component._formSettingsSettings.get('emetti_per_entita')).toBeTruthy();
-      expect(component._formSettingsSettings.get('emetti_per_ruoli')).toBeTruthy();
+      expect(component._formSettingsSettings.get('notifiche_inapp')).toBeTruthy();
+      expect(component._formSettingsSettings.get('notifiche_email')).toBeTruthy();
+      expect(component._formSettingsSettings.get('cambio_stato_inapp')).toBeTruthy();
+      expect(component._formSettingsSettings.get('cambio_stato_email')).toBeTruthy();
     });
 
-    it('should set all values when data has undefined sections (all enabled)', () => {
+    it('should enable notifiche_inapp when emetti_per_tipi is undefined (all enabled)', () => {
       component._initServerForm({});
-      const tipi = component._formSettingsSettings.get('emetti_per_tipi')!.value;
-      // 2 options * 2 (base + _email) = 4
-      expect(tipi.length).toBe(4);
-      expect(tipi).toContain('comunicazione');
-      expect(tipi).toContain('comunicazione_email');
-      expect(tipi).toContain('cambio_stato');
-      expect(tipi).toContain('cambio_stato_email');
+      expect(component._formSettingsSettings.get('notifiche_inapp')!.value).toBe(true);
     });
 
-    it('should set empty array when data section is empty array (all disabled)', () => {
-      component._initServerForm({ emetti_per_tipi: [], emetti_per_entita: [], emetti_per_ruoli: [] });
-      expect(component._formSettingsSettings.get('emetti_per_tipi')!.value).toEqual([]);
-      expect(component._formSettingsSettings.get('emetti_per_entita')!.value).toEqual([]);
-      expect(component._formSettingsSettings.get('emetti_per_ruoli')!.value).toEqual([]);
+    it('should disable all when emetti_per_tipi is empty array', () => {
+      component._initServerForm({ emetti_per_tipi: [] });
+      expect(component._formSettingsSettings.get('notifiche_inapp')!.value).toBe(false);
+      expect(component._formSettingsSettings.get('notifiche_email')!.value).toBe(false);
+      expect(component._formSettingsSettings.get('cambio_stato_inapp')!.value).toBe(false);
+      expect(component._formSettingsSettings.get('cambio_stato_email')!.value).toBe(false);
     });
 
-    it('should pass through specific values', () => {
-      component._initServerForm({ emetti_per_tipi: ['comunicazione'], emetti_per_entita: ['servizio'], emetti_per_ruoli: ['servizio_referente_dominio'] });
-      expect(component._formSettingsSettings.get('emetti_per_tipi')!.value).toEqual(['comunicazione']);
-      expect(component._formSettingsSettings.get('emetti_per_entita')!.value).toEqual(['servizio']);
-      expect(component._formSettingsSettings.get('emetti_per_ruoli')!.value).toEqual(['servizio_referente_dominio']);
+    it('should set specific values from emetti_per_tipi array', () => {
+      component._initServerForm({ emetti_per_tipi: ['comunicazione', 'cambio_stato'] });
+      expect(component._formSettingsSettings.get('notifiche_inapp')!.value).toBe(true);
+      expect(component._formSettingsSettings.get('notifiche_email')!.value).toBe(false);
+      expect(component._formSettingsSettings.get('cambio_stato_inapp')!.value).toBe(true);
+      expect(component._formSettingsSettings.get('cambio_stato_email')!.value).toBe(false);
     });
 
     it('should subscribe to valueChanges and call _updateServerSettings', () => {
       const updateSpy = vi.spyOn(component, '_updateServerSettings').mockImplementation(() => {});
       component._initServerForm({});
-      component._formSettingsSettings.get('emetti_per_tipi')!.setValue(['comunicazione']);
+      component._formSettingsSettings.get('notifiche_inapp')!.setValue(false);
       expect(updateSpy).toHaveBeenCalled();
     });
 
-    it('should handle null data (defaults to all enabled)', () => {
+    it('should handle null data (defaults to all enabled for notifiche_inapp)', () => {
       component._initServerForm(null);
-      const tipi = component._formSettingsSettings.get('emetti_per_tipi')!.value;
-      expect(tipi.length).toBe(4); // all values for emetti_per_tipi
+      expect(component._formSettingsSettings.get('notifiche_inapp')!.value).toBe(true);
     });
   });
 
@@ -913,31 +885,23 @@ describe('ProfileComponent', () => {
   // _getInitialValues (tested indirectly)
   // ---------------------------------------------------------------
 
-  describe('_getInitialValues (via _initServerForm)', () => {
+  describe('_initServerForm toggle mapping', () => {
     beforeEach(() => {
       component.profile = { id_utente: '1' };
     });
 
-    it('should return all values (base + _email) when data is undefined', () => {
-      component._initServerForm({});
-      const entita = component._formSettingsSettings.get('emetti_per_entita')!.value;
-      expect(entita).toContain('servizio');
-      expect(entita).toContain('servizio_email');
-      expect(entita).toContain('adesione');
-      expect(entita).toContain('adesione_email');
-      expect(entita.length).toBe(4);
+    it('should map comunicazione_email to notifiche_email', () => {
+      component._initServerForm({ emetti_per_tipi: ['comunicazione_email'] });
+      expect(component._formSettingsSettings.get('notifiche_email')!.value).toBe(true);
+      expect(component._formSettingsSettings.get('notifiche_inapp')!.value).toBe(false);
     });
 
-    it('should return empty array when data is []', () => {
-      component._initServerForm({ emetti_per_entita: [] });
-      const entita = component._formSettingsSettings.get('emetti_per_entita')!.value;
-      expect(entita).toEqual([]);
-    });
-
-    it('should return values as-is when data has specific values', () => {
-      component._initServerForm({ emetti_per_entita: ['servizio'] });
-      const entita = component._formSettingsSettings.get('emetti_per_entita')!.value;
-      expect(entita).toEqual(['servizio']);
+    it('should map cambio_stato_email to cambio_stato_email toggle (disabled when no notifiche)', () => {
+      // When only cambio_stato_email is set, notifiche_inapp and notifiche_email are both false,
+      // so _updateCambioStatoState disables and resets cambio_stato controls to false
+      component._initServerForm({ emetti_per_tipi: ['cambio_stato_email'] });
+      expect(component._formSettingsSettings.get('cambio_stato_email')!.value).toBe(false);
+      expect(component._formSettingsSettings.get('cambio_stato_inapp')!.value).toBe(false);
     });
   });
 
@@ -950,58 +914,25 @@ describe('ProfileComponent', () => {
       component.profile = { id_utente: '1' };
     });
 
-    it('should return true when at least one section has values', () => {
-      component._initServerForm({ emetti_per_tipi: ['comunicazione'], emetti_per_entita: [], emetti_per_ruoli: [] });
+    it('should return true when at least one toggle is enabled', () => {
+      component._initServerForm({ emetti_per_tipi: ['comunicazione'] });
       expect(component.notificationsEnabled).toBe(true);
     });
 
-    it('should return true when all sections have values', () => {
+    it('should return true when all enabled by default (undefined)', () => {
       component._initServerForm({});
       expect(component.notificationsEnabled).toBe(true);
     });
 
-    it('should return false when all sections are empty', () => {
-      component._initServerForm({ emetti_per_tipi: [], emetti_per_entita: [], emetti_per_ruoli: [] });
+    it('should return false when all toggles are off', () => {
+      component._initServerForm({ emetti_per_tipi: [] });
       expect(component.notificationsEnabled).toBe(false);
-    });
-
-    it('should return true when only ruoli has values', () => {
-      component._initServerForm({ emetti_per_tipi: [], emetti_per_entita: [], emetti_per_ruoli: ['servizio_referente_dominio'] });
-      expect(component.notificationsEnabled).toBe(true);
     });
   });
 
   // ---------------------------------------------------------------
   // toggleAllNotifications
   // ---------------------------------------------------------------
-
-  describe('toggleAllNotifications', () => {
-    beforeEach(() => {
-      component.profile = { id_utente: '1' };
-      component._initServerForm({});
-    });
-
-    it('should set all arrays to full when enabled=true', () => {
-      component.toggleAllNotifications(false); // first disable
-      component._preventMultiCall = false;
-      component.toggleAllNotifications(true);
-
-      const tipi = component._formSettingsSettings.get('emetti_per_tipi')!.value;
-      const entita = component._formSettingsSettings.get('emetti_per_entita')!.value;
-      const ruoli = component._formSettingsSettings.get('emetti_per_ruoli')!.value;
-
-      expect(tipi.length).toBe(4); // 2 options * 2
-      expect(entita.length).toBe(4); // 2 options * 2
-      expect(ruoli.length).toBe(26); // 13 options * 2
-    });
-
-    it('should set all arrays to empty when enabled=false', () => {
-      component.toggleAllNotifications(false);
-      expect(component._formSettingsSettings.get('emetti_per_tipi')!.value).toEqual([]);
-      expect(component._formSettingsSettings.get('emetti_per_entita')!.value).toEqual([]);
-      expect(component._formSettingsSettings.get('emetti_per_ruoli')!.value).toEqual([]);
-    });
-  });
 
   // ---------------------------------------------------------------
   // _updateServerSettings
@@ -1014,7 +945,7 @@ describe('ProfileComponent', () => {
     });
 
     it('should call putElementRelated with prepared body', () => {
-      const body = { emetti_per_tipi: ['comunicazione'], emetti_per_entita: [], emetti_per_ruoli: [] };
+      const body = { notifiche_inapp: true, notifiche_email: false, cambio_stato_inapp: false, cambio_stato_email: false };
       component._updateServerSettings(body);
       expect(mockApiService.putElementRelated).toHaveBeenCalledWith(
         'utenti', '99', 'settings/notifiche', expect.any(Object)
@@ -1022,7 +953,7 @@ describe('ProfileComponent', () => {
     });
 
     it('should set _preventMultiCall to true during call and false after success', () => {
-      const body = { emetti_per_tipi: [], emetti_per_entita: [], emetti_per_ruoli: [] };
+      const body = { notifiche_inapp: false, notifiche_email: false, cambio_stato_inapp: false, cambio_stato_email: false };
       component._updateServerSettings(body);
       // After success, _preventMultiCall should be reset
       expect(component._preventMultiCall).toBe(false);
@@ -1031,19 +962,19 @@ describe('ProfileComponent', () => {
     it('should update _serverSettings on success', () => {
       const respData = { emetti_per_tipi: ['comunicazione'] };
       mockApiService.putElementRelated.mockReturnValue(of(respData));
-      component._updateServerSettings({ emetti_per_tipi: ['comunicazione'], emetti_per_entita: [], emetti_per_ruoli: [] });
+      component._updateServerSettings({ notifiche_inapp: true, notifiche_email: false, cambio_stato_inapp: false, cambio_stato_email: false });
       expect(component._serverSettings).toEqual(respData);
     });
 
     it('should not make call if _preventMultiCall is true', () => {
       component._preventMultiCall = true;
-      component._updateServerSettings({ emetti_per_tipi: [] });
+      component._updateServerSettings({ notifiche_inapp: false });
       expect(mockApiService.putElementRelated).not.toHaveBeenCalled();
     });
 
     it('should set error messages and reset _preventMultiCall on error', () => {
       mockApiService.putElementRelated.mockReturnValue(throwError(() => new Error('fail')));
-      component._updateServerSettings({ emetti_per_tipi: [], emetti_per_entita: [], emetti_per_ruoli: [] });
+      component._updateServerSettings({ notifiche_inapp: false, notifiche_email: false, cambio_stato_inapp: false, cambio_stato_email: false });
       expect(component._error).toBe(true);
       expect(component._preventMultiCall).toBe(false);
     });
@@ -1054,49 +985,28 @@ describe('ProfileComponent', () => {
   // ---------------------------------------------------------------
 
   describe('_prepareBody', () => {
-    it('should return undefined for sections where all values are selected (all enabled)', () => {
-      // All tipi selected = 4 values
-      const allTipi = ['comunicazione', 'comunicazione_email', 'cambio_stato', 'cambio_stato_email'];
-      const allEntita = ['servizio', 'servizio_email', 'adesione', 'adesione_email'];
-      const body = component._prepareBody({ emetti_per_tipi: allTipi, emetti_per_entita: allEntita, emetti_per_ruoli: [] });
-      expect(body.emetti_per_tipi).toBeUndefined();
-      expect(body.emetti_per_entita).toBeUndefined();
-      expect(body.emetti_per_ruoli).toEqual([]);
-    });
-
-    it('should return [] for sections with no values (all disabled)', () => {
-      const body = component._prepareBody({ emetti_per_tipi: [], emetti_per_entita: [], emetti_per_ruoli: [] });
-      expect(body.emetti_per_tipi).toEqual([]);
-      expect(body.emetti_per_entita).toEqual([]);
-      expect(body.emetti_per_ruoli).toEqual([]);
-    });
-
-    it('should return partial values as-is', () => {
+    it('should map all enabled toggles to emetti_per_tipi array', () => {
       const body = component._prepareBody({
-        emetti_per_tipi: ['comunicazione'],
-        emetti_per_entita: ['servizio', 'adesione'],
-        emetti_per_ruoli: ['servizio_referente_dominio']
+        notifiche_inapp: true, notifiche_email: true,
+        cambio_stato_inapp: true, cambio_stato_email: true
+      });
+      expect(body.emetti_per_tipi).toEqual(['comunicazione', 'comunicazione_email', 'cambio_stato', 'cambio_stato_email']);
+    });
+
+    it('should return empty emetti_per_tipi when all disabled', () => {
+      const body = component._prepareBody({
+        notifiche_inapp: false, notifiche_email: false,
+        cambio_stato_inapp: false, cambio_stato_email: false
+      });
+      expect(body.emetti_per_tipi).toEqual([]);
+    });
+
+    it('should return partial values', () => {
+      const body = component._prepareBody({
+        notifiche_inapp: true, notifiche_email: false,
+        cambio_stato_inapp: false, cambio_stato_email: false
       });
       expect(body.emetti_per_tipi).toEqual(['comunicazione']);
-      expect(body.emetti_per_entita).toEqual(['servizio', 'adesione']);
-      expect(body.emetti_per_ruoli).toEqual(['servizio_referente_dominio']);
-    });
-
-    it('should return [] when section values are undefined/falsy', () => {
-      const body = component._prepareBody({ emetti_per_tipi: undefined, emetti_per_entita: null, emetti_per_ruoli: undefined });
-      expect(body.emetti_per_tipi).toEqual([]);
-      expect(body.emetti_per_entita).toEqual([]);
-      expect(body.emetti_per_ruoli).toEqual([]);
-    });
-
-    it('should return undefined when all ruoli (26 values) are selected', () => {
-      const allRuoli: string[] = [];
-      component._emetti_per_ruoli.forEach(opt => {
-        allRuoli.push(opt.value);
-        allRuoli.push(`${opt.value}_email`);
-      });
-      const body = component._prepareBody({ emetti_per_tipi: [], emetti_per_entita: [], emetti_per_ruoli: allRuoli });
-      expect(body.emetti_per_ruoli).toBeUndefined();
     });
   });
 
@@ -1108,7 +1018,7 @@ describe('ProfileComponent', () => {
     it('should call _updateServerSettings with form data', () => {
       component.profile = { id_utente: '1' };
       const updateSpy = vi.spyOn(component, '_updateServerSettings').mockImplementation(() => {});
-      const formData = { emetti_per_tipi: ['comunicazione'], emetti_per_entita: [], emetti_per_ruoli: [] };
+      const formData = { notifiche_inapp: true, notifiche_email: false, cambio_stato_inapp: false, cambio_stato_email: false };
       component._onSubmit(formData);
       expect(updateSpy).toHaveBeenCalledWith(formData);
     });
@@ -1331,38 +1241,7 @@ describe('ProfileComponent', () => {
   // ---------------------------------------------------------------
 
   describe('showNotificationsSettings', () => {
-    it('should return true when user is not gestore', () => {
-      mockAuthService.isGestore.mockReturnValue(false);
-      expect(component.showNotificationsSettings).toBe(true);
-    });
-
-    it('should return true when gestore but dashboard not enabled', () => {
-      mockAuthService.isGestore.mockReturnValue(true);
-      component.config = { AppConfig: { Layout: { dashboard: { enabled: false } } } };
-      expect(component.showNotificationsSettings).toBe(true);
-    });
-
-    it('should return true when gestore with dashboard enabled but hideNotificationMenu false', () => {
-      mockAuthService.isGestore.mockReturnValue(true);
-      component.config = { AppConfig: { Layout: { dashboard: { enabled: true, hideNotificationMenu: false } } } };
-      expect(component.showNotificationsSettings).toBe(true);
-    });
-
-    it('should return false when gestore with dashboard enabled and hideNotificationMenu true', () => {
-      mockAuthService.isGestore.mockReturnValue(true);
-      component.config = { AppConfig: { Layout: { dashboard: { enabled: true, hideNotificationMenu: true } } } };
-      expect(component.showNotificationsSettings).toBe(false);
-    });
-
-    it('should return true when config is null', () => {
-      mockAuthService.isGestore.mockReturnValue(true);
-      component.config = null;
-      expect(component.showNotificationsSettings).toBe(true);
-    });
-
-    it('should return true when Layout is missing', () => {
-      mockAuthService.isGestore.mockReturnValue(true);
-      component.config = { AppConfig: {} };
+    it('should always return true', () => {
       expect(component.showNotificationsSettings).toBe(true);
     });
   });
@@ -1462,66 +1341,6 @@ describe('ProfileComponent', () => {
     });
   });
 
-  // ---------------------------------------------------------------
-  // isValueSelected
-  // ---------------------------------------------------------------
-
-  describe('isValueSelected', () => {
-    beforeEach(() => {
-      component.profile = { id_utente: '1' };
-    });
-
-    it('should return false for non-selected value', () => {
-      component._initServerForm({ emetti_per_tipi: ['comunicazione'] });
-      expect(component.isValueSelected('emetti_per_tipi', 'cambio_stato')).toBe(false);
-    });
-
-    it('should return true for selected value', () => {
-      component._initServerForm({ emetti_per_tipi: ['comunicazione'] });
-      expect(component.isValueSelected('emetti_per_tipi', 'comunicazione')).toBe(true);
-    });
-
-    it('should return false when form field does not exist', () => {
-      component._formSettingsSettings = new FormGroup({});
-      expect(component.isValueSelected('nonexistent', 'val')).toBe(false);
-    });
-  });
-
-  // ---------------------------------------------------------------
-  // toggleValue
-  // ---------------------------------------------------------------
-
-  describe('toggleValue', () => {
-    beforeEach(() => {
-      component.profile = { id_utente: '1' };
-      component._initServerForm({ emetti_per_tipi: ['comunicazione'] });
-    });
-
-    it('should add value when checked=true and not already present', () => {
-      const updateSpy = vi.spyOn(component, '_updateServerSettings').mockImplementation(() => {});
-      component.toggleValue('emetti_per_tipi', 'cambio_stato', true);
-      expect(component._formSettingsSettings.get('emetti_per_tipi')!.value).toContain('cambio_stato');
-    });
-
-    it('should not duplicate value when checked=true and already present', () => {
-      const updateSpy = vi.spyOn(component, '_updateServerSettings').mockImplementation(() => {});
-      component.toggleValue('emetti_per_tipi', 'comunicazione', true);
-      const values = component._formSettingsSettings.get('emetti_per_tipi')!.value;
-      expect(values.filter((v: string) => v === 'comunicazione').length).toBe(1);
-    });
-
-    it('should remove value when checked=false', () => {
-      const updateSpy = vi.spyOn(component, '_updateServerSettings').mockImplementation(() => {});
-      component.toggleValue('emetti_per_tipi', 'comunicazione', false);
-      expect(component._formSettingsSettings.get('emetti_per_tipi')!.value).not.toContain('comunicazione');
-    });
-
-    it('should do nothing when control does not exist', () => {
-      component._formSettingsSettings = new FormGroup({});
-      // Should not throw
-      expect(() => component.toggleValue('nonexistent', 'val', true)).not.toThrow();
-    });
-  });
 
   // ---------------------------------------------------------------
   // _setErrorMessages
@@ -1605,49 +1424,20 @@ describe('ProfileComponent', () => {
   });
 
   // ---------------------------------------------------------------
-  // _showRuoliServizio / _showRuoliAdesione flags
+  // cambioStatoDisabled getter
   // ---------------------------------------------------------------
 
-  describe('ruoli collapse flags', () => {
-    it('should have _showRuoliServizio default false', () => {
-      expect(component._showRuoliServizio).toBe(false);
+  describe('cambioStatoDisabled', () => {
+    it('should return true when both notifiche are off', () => {
+      component.profile = { id_utente: '1' };
+      component._initServerForm({ emetti_per_tipi: [] });
+      expect(component.cambioStatoDisabled).toBe(true);
     });
 
-    it('should have _showRuoliAdesione default false', () => {
-      expect(component._showRuoliAdesione).toBe(false);
-    });
-
-    it('should be toggleable', () => {
-      component._showRuoliServizio = true;
-      expect(component._showRuoliServizio).toBe(true);
-      component._showRuoliAdesione = true;
-      expect(component._showRuoliAdesione).toBe(true);
-    });
-  });
-
-  // ---------------------------------------------------------------
-  // _ruoliServizio / _ruoliAdesione arrays
-  // ---------------------------------------------------------------
-
-  describe('ruoli arrays', () => {
-    it('should have 5 ruoli servizio', () => {
-      expect(component._ruoliServizio.length).toBe(5);
-    });
-
-    it('should have 8 ruoli adesione', () => {
-      expect(component._ruoliAdesione.length).toBe(8);
-    });
-
-    it('should have 13 total emetti_per_ruoli', () => {
-      expect(component._emetti_per_ruoli.length).toBe(13);
-    });
-
-    it('should have 2 emetti_per_tipi options', () => {
-      expect(component._emetti_per_tipi.length).toBe(2);
-    });
-
-    it('should have 2 emetti_per_entita options', () => {
-      expect(component._emetti_per_entita.length).toBe(2);
+    it('should return false when notifiche_inapp is on', () => {
+      component.profile = { id_utente: '1' };
+      component._initServerForm({ emetti_per_tipi: ['comunicazione'] });
+      expect(component.cambioStatoDisabled).toBe(false);
     });
   });
 

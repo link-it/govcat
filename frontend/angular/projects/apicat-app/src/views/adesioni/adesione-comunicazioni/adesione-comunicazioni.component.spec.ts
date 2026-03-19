@@ -75,10 +75,12 @@ describe('AdesioneComunicazioniComponent', () => {
     expect(component.breadcrumbs[2].label).toBe('APP.TITLE.ServiceCommunications');
   });
 
-  it('should have targetOptionsAdesione with 5 options', () => {
-    expect(component.targetOptionsAdesione.length).toBe(5);
-    expect(component.targetOptionsAdesione[0].value).toBe('REFERENTI_SERVIZIO');
-    expect(component.targetOptionsAdesione[4].value).toBe('RICHIEDENTE_ADESIONE');
+  it('should have targetOptionsAdesione with 7 options (including GESTORE and COORDINATORE)', () => {
+    expect(component.targetOptionsAdesione.length).toBe(7);
+    expect(component.targetOptionsAdesione[0].value).toBe('GESTORE');
+    expect(component.targetOptionsAdesione[1].value).toBe('COORDINATORE');
+    expect(component.targetOptionsAdesione[2].value).toBe('REFERENTI_DOMINIO_SERVIZIO');
+    expect(component.targetOptionsAdesione[6].value).toBe('RICHIEDENTE_ADESIONE');
   });
 
   // --- _setErrorCommunications ---

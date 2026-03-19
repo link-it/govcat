@@ -125,6 +125,25 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   service: Servizio|null = null;
 
+  roleTab: string = 'tutte';
+  roleTabs: { key: string, label: string, roles: string[] }[] = [
+    { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
+    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione'] },
+    { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
+  ];
+  _allRuoliAdesioni: { value: string, label: string }[] = [
+    { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
+    { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
+    { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
+    { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
+    { value: 'referente_adesione', label: 'APP.ROLE.referente_adesione' },
+    { value: 'referente_tecnico_adesione', label: 'APP.ROLE.referente_tecnico_adesione' },
+    { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' },
+    { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' }
+  ];
+  _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliAdesioni.map(r => [r.value, r.label]));
+
   configStatusList: any = [
     { value: StatoConfigurazione.FALLITA, label: 'APP.STATUS.fallita' },
     { value: StatoConfigurazione.IN_CODA, label: 'APP.STATUS.in_coda' },
@@ -147,6 +166,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { field: 'id_soggetto', label: 'APP.ADESIONI.LABEL.Subject', type: 'text', condition: 'equal', params: { resource: 'soggetti', field: 'nome' } },
     { field: 'id_client', label: 'APP.ADESIONI.LABEL.Client', type: 'text', condition: 'equal', params: { resource: 'client', field: 'nome' }  },
     { field: 'stato_configurazione_automatica', label: 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus', type: 'enum', condition: 'equal', enumValues: this.configStatusEnum },
+    { field: 'ruolo_referente', label: 'APP.LABEL.ruolo_referente', type: 'enum', condition: 'equal', enumValues: this._ruoloReferenteEnumValues },
   ];
   useCondition: boolean = false;
 
@@ -314,6 +334,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       id_soggetto: new UntypedFormControl(null),
       id_client: new UntypedFormControl(null),
       stato_configurazione_automatica: new UntypedFormControl(''),
+      ruolo_referente: new UntypedFormControl(''),
     });
   }
 
@@ -322,11 +343,17 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     if (!url) { this.adesioni = []; this._links = null; }
     
-    let aux = {
-      params: new HttpParams()
-    };
+    let params = query ? this.utils._queryToHttpParams(query) : new HttpParams();
 
-    if (query)  aux = { params: this.utils._queryToHttpParams(query) };
+    // Inietta ruolo_referente dal tab attivo (solo se non c'è già un filtro avanzato)
+    if (!query?.ruolo_referente) {
+      const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+      if (activeTab && activeTab.roles.length > 0) {
+        activeTab.roles.forEach(r => { params = params.append('ruolo_referente', r); });
+      }
+    }
+
+    let aux = { params };
 
     if (this.service?.id_servizio){
       aux.params = aux.params.set('id_servizio', this.service.id_servizio.toString() || '');
@@ -343,7 +370,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
         if (response && response.content) {
           const _list: any = response.content.map((adesione: any) => {
-            const _adesione = { ...adesione, id_logico: this._adesioni_multiple ? adesione.id_logico : null };
+            const _adesione = { ...adesione, id_logico: this._adesioni_multiple ? adesione.id_logico : null, ruoli_referente_label: adesione.ruoli_referente || [] };
             const element = {
               id: adesione.id_adesione,
               editMode: false,
@@ -629,6 +656,27 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this.updateMultiSelectionMapper();
     this._updateMapper = new Date().getTime().toString();
     this._loadAdesioni(this._filterData);
+  }
+
+  onRoleTabChange(tab: string) {
+    if (this.roleTab === tab) return;
+    this.roleTab = tab;
+    this._updateRuoloReferenteFilter();
+    this._formGroup.get('ruolo_referente')?.setValue('');
+    this.refresh();
+  }
+
+  _updateRuoloReferenteFilter() {
+    const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+    const availableRoles = activeTab && activeTab.roles.length > 0
+      ? this._allRuoliAdesioni.filter(r => activeTab.roles.includes(r.value))
+      : this._allRuoliAdesioni;
+    this._ruoloReferenteEnumValues = {};
+    availableRoles.forEach(r => { this._ruoloReferenteEnumValues[r.value] = r.label; });
+    const searchField = this.searchFields.find((f: any) => f.field === 'ruolo_referente');
+    if (searchField) {
+      searchField.enumValues = this._ruoloReferenteEnumValues;
+    }
   }
 
   _resetForm() {

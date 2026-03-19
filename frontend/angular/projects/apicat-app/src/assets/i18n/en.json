@@ -576,6 +576,9 @@
 			"MyServices": "My Services",
 			"Open": "Open",
 			"Production": "Production",
+			"ReferenteAdesione": "Subscription referent",
+			"ReferenteServizioDominio": "Service/domain referent",
+			"Richiedente": "Applicant",
 			"SelectAll": "Select All",
 			"Testing": "Testing",
 			"Unread": "Unread"
@@ -884,6 +887,7 @@
 			"Role": "Role",
 			"RootGroup": "No parent",
 			"ruolo": "Role",
+			"ruolo_referente": "Referent role",
 			"ScheduledExpeditionDate": "Scheduled expedition date",
 			"SearchType": "Search Type",
 			"ServerURL": "Server URL",
@@ -1716,6 +1720,8 @@
 			"referente_tecnico_adesione": "Membership technical contact",
 			"referente_tecnico_dominio": "Domain technical contact",
 			"referente_tecnico_servizio": "Technical service contact",
+			"richiedente_adesione": "Subscription applicant",
+			"richiedente_servizio": "Service applicant",
 			"ServiceContact": "Service contact person"
 		},
 		"SEARCH": {

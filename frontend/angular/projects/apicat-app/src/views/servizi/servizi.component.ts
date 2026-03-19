@@ -146,6 +146,15 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ];
     _tipiVisibilitaServizioEnum: any = { ...Tools.VisibilitaServizioEnum };
 
+    _allRuoliServizi: { value: string, label: string }[] = [
+        { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
+        { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
+        { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
+        { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
+        { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' }
+    ];
+    _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliServizi.map(r => [r.value, r.label]));
+
     searchFields: any[] = [
         // { field: 'creationDateFrom', label: 'APP.LABEL.Date', type: 'date', condition: 'gt', format: 'DD/MM/YYYY' },
         // { field: 'creationDateTo', label: 'APP.LABEL.Date', type: 'date', condition: 'lt', format: 'DD/MM/YYYY' },
@@ -170,6 +179,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'categoriaLabel', label: 'APP.LABEL.categoria', type: 'related', condition: 'equal', params: { resource: 'tassonomie', path: 'categorie', field: 'nome' }, options: { hide: true } },
         { field: 'id_gruppo_padre', label: 'APP.LABEL.gruppo', type: 'text', condition: 'equal', params: { resource: 'gruppi', path: '', field: 'nome' } },
         { field: 'id_gruppo_padre_label', label: 'APP.LABEL.gruppo', type: 'related', condition: 'equal', options: { hide: true } },
+        { field: 'ruolo_referente', label: 'APP.LABEL.ruolo_referente', type: 'enum', condition: 'equal', enumValues: this._ruoloReferenteEnumValues },
         // { field: 'taxonomiesGroup', label: 'APP.LABEL.tassonomie', type: 'group', condition: 'equal', options: { hide: true } }
     ];
     useCondition: boolean = false;
@@ -192,6 +202,12 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _isMyServices: boolean = false;
     _myServicesCount: number = 0;
 
+    roleTab: string = 'tutti';
+    roleTabs: { key: string, label: string, roles: string[] }[] = [
+        { key: 'tutti', label: 'APP.FILTER.All', roles: [] },
+        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+        { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio'] }
+    ];
     _currIdGruppoPadre: string = '';
     _gruppoPadreNull: boolean = true;
     groupsBreadcrumbs: any[] = [
@@ -495,6 +511,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             stato: new FormControl(''),
             type: new FormControl(''),
             referente: new FormControl(''),
+            ruolo_referente: new FormControl(''),
             id_dominio: new FormControl(''),
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(''),
@@ -590,8 +607,18 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (query) {
             const _categoriaLabel = query.categoriaLabel;
             delete query.categoriaLabel;
-        
-            aux = { params: this.utils._queryToHttpParams(query) };
+
+            let params = this.utils._queryToHttpParams(query);
+
+            // Inietta ruolo_referente dal tab attivo (solo se non c'è già un filtro avanzato)
+            if (this._isMyServices && !query.ruolo_referente) {
+                const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+                if (activeTab && activeTab.roles.length > 0) {
+                    activeTab.roles.forEach(r => { params = params.append('ruolo_referente', r); });
+                }
+            }
+
+            aux = { params };
         }
 
         this._spin = !this._hideLoader;
@@ -616,10 +643,11 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             _visibilita = service.visibilita ? service.visibilita : `${service.dominio.visibilita}`;
                         }
                         service.visibilita = _visibilita;
+                        const _ruoliLabel = service.ruoli_referente || [];
                         const element = {
                             id: service.id || index,
                             editMode: false,
-                            source: { ...service, visibilita: _visibilita, logo: service.immagine ? `${this.api_url}/servizi/${service.id_servizio}/immagine`: '' },
+                            source: { ...service, visibilita: _visibilita, ruoli_referente_label: _ruoliLabel, logo: service.immagine ? `${this.api_url}/servizi/${service.id_servizio}/immagine`: '' },
                             idServizio: service.id_servizio,
                             nome: service.nome,
                             versione: service.versione || '',
@@ -793,7 +821,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this._groupsView = false;
         this._filterDataEmpty = !Object.values(_tempFilter).some(x => (x !== null && x !== ''));
         if (this._filterDataEmpty) {
-            this._groupsView = !this._manualSelected;
+            this._groupsView = !this._manualSelected && !this._isMyServices;
         }
         if (this._groupsView) {
             this._loadServiziGruppi();
@@ -933,6 +961,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             this._groupsView = false;
         } else {
             this._groupsView = !this._manualSelected;
+            this.roleTab = 'tutti';
+            this._updateRuoloReferenteFilter();
         }
         this._saveSettings();
         this.refresh();
@@ -940,7 +970,30 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _showAllServices() {
         this._isMyServices = false;
+        this.roleTab = 'tutti';
+        this._updateRuoloReferenteFilter();
         this.refresh();
+    }
+
+    onRoleTabChange(tab: string) {
+        if (this.roleTab === tab) return;
+        this.roleTab = tab;
+        this._updateRuoloReferenteFilter();
+        this._formGroup.get('ruolo_referente')?.setValue('');
+        this.refresh();
+    }
+
+    _updateRuoloReferenteFilter() {
+        const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+        const availableRoles = activeTab && activeTab.roles.length > 0
+            ? this._allRuoliServizi.filter(r => activeTab.roles.includes(r.value))
+            : this._allRuoliServizi;
+        this._ruoloReferenteEnumValues = {};
+        availableRoles.forEach(r => { this._ruoloReferenteEnumValues[r.value] = r.label; });
+        const searchField = this.searchFields.find((f: any) => f.field === 'ruolo_referente');
+        if (searchField) {
+            searchField.enumValues = this._ruoloReferenteEnumValues;
+        }
     }
 
     _isGestore() {

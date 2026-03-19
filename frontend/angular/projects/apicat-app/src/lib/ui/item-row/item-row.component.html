@@ -20,8 +20,8 @@
 <!-- Mobile version -->
 @if (!desktop) {
   <ui-item-row-mobile
-    [data]="_data"
-    [config]="_config"
+    [data]="data"
+    [config]="config"
     [configRow]="configRow"
     [actionDisabled]="actionDisabled"
     [notify]="notify"
@@ -52,9 +52,9 @@
         @if (_itemRowConfig?.avatar) {
           <div class="avatar-image">
             <ui-item-type
-              [data]="_data"
+              [data]="data"
               [elem]="_itemRowConfig?.avatar"
-              [config]="_config">
+              [config]="config">
             </ui-item-type>
           </div>
         }
@@ -65,9 +65,9 @@
                 @for (elem of _itemRowConfig?.primaryText; track elem) {
                   @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                     <ui-item-type
-                      [data]="_data"
+                      [data]="data"
                       [elem]="elem"
-                      [config]="_config">
+                      [config]="config">
                     </ui-item-type>
                   }
                 }
@@ -85,9 +85,9 @@
                 @for (elem of _itemRowConfig?.metadata.text; track elem) {
                   @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                     <ui-item-type
-                      [data]="_data"
+                      [data]="data"
                       [elem]="elem"
-                      [config]="_config">
+                      [config]="config">
                     </ui-item-type>
                   }
                 }
@@ -98,15 +98,30 @@
                 @for (elem of _itemRowConfig?.metadata.label; track elem) {
                   @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                     <ui-item-type
-                      [data]="_data"
+                      [data]="data"
                       [elem]="elem"
-                      [config]="_config">
+                      [config]="config">
                     </ui-item-type>
                   }
                 }
               </div>
             }
           </div>
+          @if (_itemRowConfig?.footer) {
+            <div class="footer-info">
+              @for (elem of _itemRowConfig?.footer; track elem) {
+                @if (_itemRowConfig?.footer.length > 0 && _showEmpty(elem) && _checkConfigDependency(elem)) {
+                  <div class="d-inline-block text">
+                    <ui-item-type
+                      [data]="data"
+                      [elem]="elem"
+                      [config]="config">
+                    </ui-item-type>
+                  </div>
+                }
+              }
+            </div>
+          }
         </div>
         @if (_itemRowConfig?.secondaryText?.length > 0 || _itemRowConfig?.secondaryMetadata?.length > 0) {
           <div class="meta-info main-content" [class.pb-0]="_itemRowConfig?.footer">
@@ -115,9 +130,9 @@
                 @for (elem of _itemRowConfig?.secondaryText; track elem) {
                   @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                     <ui-item-type
-                      [data]="_data"
+                      [data]="data"
                       [elem]="elem"
-                      [config]="_config">
+                      [config]="config">
                     </ui-item-type>
                   }
                 }
@@ -128,9 +143,9 @@
                 @for (elem of _itemRowConfig?.secondaryMetadata; track elem) {
                   @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                     <ui-item-type
-                      [data]="_data"
+                      [data]="data"
                       [elem]="elem"
-                      [config]="_config">
+                      [config]="config">
                     </ui-item-type>
                   }
                 }
@@ -147,9 +162,9 @@
                   @for (elem of _itemRowConfig?.boxStatus1?.primaryText; track elem) {
                     @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                       <ui-item-type
-                        [data]="_data"
+                        [data]="data"
                         [elem]="elem"
-                        [config]="_config">
+                        [config]="config">
                       </ui-item-type>
                     }
                   }
@@ -158,9 +173,9 @@
                   @for (elem of _itemRowConfig?.boxStatus1?.metadata; track elem) {
                     @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                       <ui-item-type
-                        [data]="_data"
+                        [data]="data"
                         [elem]="elem"
-                        [config]="_config">
+                        [config]="config">
                       </ui-item-type>
                     }
                   }
@@ -174,9 +189,9 @@
                   @for (elem of _itemRowConfig?.boxStatus2?.primaryText; track elem) {
                     @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                       <ui-item-type
-                        [data]="_data"
+                        [data]="data"
                         [elem]="elem"
-                        [config]="_config">
+                        [config]="config">
                       </ui-item-type>
                     }
                   }
@@ -185,9 +200,9 @@
                   @for (elem of _itemRowConfig?.boxStatus2?.metadata; track elem) {
                     @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
                       <ui-item-type
-                        [data]="_data"
+                        [data]="data"
                         [elem]="elem"
-                        [config]="_config">
+                        [config]="config">
                       </ui-item-type>
                     }
                   }
@@ -208,20 +223,5 @@
         </div>
       }
     </div>
-    @if (_itemRowConfig?.footer) {
-      <div class="footer-info">
-        @for (elem of _itemRowConfig?.footer; track elem) {
-          @if (_itemRowConfig?.footer.length > 0 && _showEmpty(elem) && _checkConfigDependency(elem)) {
-            <div class="d-inline-block text">
-              <ui-item-type
-                [data]="_data"
-                [elem]="elem"
-                [config]="_config">
-              </ui-item-type>
-            </div>
-          }
-        }
-      </div>
-    }
   </div>
 }

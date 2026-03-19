@@ -40,11 +40,12 @@
         { "field": "soggetto.organizzazione.nome", "type": "text", "tooltip": "APP.TOOLTIP.Organization" },
         { "field": "id_logico", "type": "text", "hideEmpty": true }
       ],
-      "label": [
-        
-      ]
+      "label": []
     },
     "secondaryMetadata": [
+    ],
+    "footer": [
+      { "field": "ruoli_referente_label", "type": "tags", "options": "roles", "hideEmpty": true }
     ]
   },
 
@@ -124,6 +125,20 @@
         "referente_adesione": { "label": "APP.ROLE.referente_adesione", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
         "referente_dominio": { "label": "APP.ROLE.referente_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
         "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" }
+      }
+    },
+    "roles": {
+      "label": "APP.LABEL.Role",
+      "small": true,
+      "values": {
+        "referente_dominio": { "label": "APP.ROLE.referente_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+        "referente_tecnico_dominio": { "label": "APP.ROLE.referente_tecnico_dominio", "background": "#57cc99", "border": "#57cc99", "color": "#1f1f1f" },
+        "referente_servizio": { "label": "APP.ROLE.referente_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
+        "referente_tecnico_servizio": { "label": "APP.ROLE.referente_tecnico_servizio", "background": "#3492eb", "border": "#3492eb", "color": "#ffffff" },
+        "referente_adesione": { "label": "APP.ROLE.referente_adesione", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "referente_tecnico_adesione": { "label": "APP.ROLE.referente_tecnico_adesione", "background": "#E87823", "border": "#E87823", "color": "#ffffff" },
+        "richiedente_servizio": { "label": "APP.ROLE.richiedente_servizio", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" },
+        "richiedente_adesione": { "label": "APP.ROLE.richiedente_adesione", "background": "#e7f9cc", "border": "#e7f9cc", "color": "#1f1f1f" }
       }
     },
     "configuration_status": {

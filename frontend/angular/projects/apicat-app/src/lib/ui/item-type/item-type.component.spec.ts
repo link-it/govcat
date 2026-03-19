@@ -42,38 +42,38 @@ describe('ItemTypeComponent', () => {
     });
 
     it('should return _elem.emptySpace when emptySpace getter is called', () => {
-        component._elem = { emptySpace: true };
+        component.elem = { emptySpace: true };
         expect(component.emptySpace).toEqual(true);
     });
 
     it('should return _elem.blockSpace when blockSpace getter is called', () => {
-        component._elem = { blockSpace: true };
+        component.elem = { blockSpace: true };
         expect(component.blockSpace).toEqual(true);
     });
 
     it('should format _value as date when elem.type is date', () => {
-        component._elem = { type: 'date', field: 'testField', format: 'DD/MM/YYYY' };
-        component._data = { source: { testField: '2022-01-01T00:00:00Z' } };
+        component.elem = { type: 'date', field: 'testField', format: 'DD/MM/YYYY' };
+        component.data = { source: { testField: '2022-01-01T00:00:00Z' } };
         component.ngOnInit();
         expect(component._value).toEqual('01/01/2022');
     });
 
     it('should format _value as timeago when elem.type is timeago', () => {
-        component._elem = { type: 'timeago', field: 'testField' };
-        component._data = { source: { testField: moment().subtract(1, 'hours').toISOString() } };
+        component.elem = { type: 'timeago', field: 'testField' };
+        component.data = { source: { testField: moment().subtract(1, 'hours').toISOString() } };
         component.ngOnInit();
         expect(component._value).toBeTruthy(); // locale-dependent: 'an hour ago' (en) or 'un\'ora fa' (it)
     });
 
     it('should format _value as mstime when elem.type is mstime', () => {
-        component._elem = { type: 'mstime', field: 'testField' };
-        component._data = { source: { testField: 3600000 } }; // 1 hour in milliseconds
+        component.elem = { type: 'mstime', field: 'testField' };
+        component.data = { source: { testField: 3600000 } }; // 1 hour in milliseconds
         component.ngOnInit();
         expect(component._value).toEqual('1 h 0 ms');
     });
 
     it('should format _value as status when elem.type is status', () => {
-        component._config = {
+        component.config = {
             options: {
                 statusLabel: 'Status',
                 status: { active: { background: '#1f1f1f', border: '#1f1f1f', color: '#fff' } },
@@ -81,14 +81,14 @@ describe('ItemTypeComponent', () => {
                 active: { values: { active: { label: 'Active' } } } // include values here
             }
         };
-        component._elem = { type: 'status', field: 'testField', options: 'active' };
-        component._data = { source: { testField: 'active' } };
+        component.elem = { type: 'status', field: 'testField', options: 'active' };
+        component.data = { source: { testField: 'active' } };
         component.ngOnInit();
         expect(component._value).toEqual('Active');
     });
 
     it('should format _value as label when elem.type is label', () => {
-        component._config = {
+        component.config = {
             options: {
                 active: {
                     label: 'Active Label',
@@ -100,14 +100,14 @@ describe('ItemTypeComponent', () => {
                 }
             }
         };
-        component._elem = { type: 'label', field: 'testField', options: 'active' };
-        component._data = { source: { testField: 'active' } };
+        component.elem = { type: 'label', field: 'testField', options: 'active' };
+        component.data = { source: { testField: 'active' } };
         component.ngOnInit();
         expect(component._value).toEqual('Active');
     });
 
     it('should use default values when _origValue is not defined in options', () => {
-        component._config = {
+        component.config = {
             options: {
                 active: {
                     label: 'Active Label',
@@ -118,8 +118,8 @@ describe('ItemTypeComponent', () => {
                 }
             }
         };
-        component._elem = { type: 'label', field: 'testField', options: 'active' };
-        component._data = { source: { testField: 'nonexistent' } }; // _origValue will be 'nonexistent', which is not defined in options
+        component.elem = { type: 'label', field: 'testField', options: 'active' };
+        component.data = { source: { testField: 'nonexistent' } }; // _origValue will be 'nonexistent', which is not defined in options
         component.ngOnInit();
         expect(component._background).toEqual('#1f1f1f');
         expect(component._border).toEqual('#1f1f1f');
@@ -127,7 +127,7 @@ describe('ItemTypeComponent', () => {
     });
 
     it('should format _value as tag when elem.type is tag', () => {
-        component._config = {
+        component.config = {
             options: {
                 active: {
                     small: false,
@@ -138,8 +138,8 @@ describe('ItemTypeComponent', () => {
                 }
             }
         };
-        component._elem = { type: 'tag', field: 'testField', options: 'active', class: 'testClass' };
-        component._data = { source: { testField: 'active' } };
+        component.elem = { type: 'tag', field: 'testField', options: 'active', class: 'testClass' };
+        component.data = { source: { testField: 'active' } };
         component.ngOnInit();
         expect(component._value).toEqual('Active');
         expect(component._background).toEqual('#1f1f1f');
@@ -149,7 +149,7 @@ describe('ItemTypeComponent', () => {
     });
 
     it('should format _value as labelI18n when elem.type is labelI18n', () => {
-        component._config = {
+        component.config = {
             options: {
                 active: {
                     values: {
@@ -159,52 +159,52 @@ describe('ItemTypeComponent', () => {
                 }
             }
         };
-        component._elem = { type: 'labelI18n', field: 'testField', options: 'active', appendValue: 'appendField' };
-        component._data = { source: { testField: 'active', appendField: 'Appended' } };
+        component.elem = { type: 'labelI18n', field: 'testField', options: 'active', appendValue: 'appendField' };
+        component.data = { source: { testField: 'active', appendField: 'Appended' } };
         component.ngOnInit();
         expect(component._value).toEqual('Active');
         expect(component._appendOriginalValue).toEqual('Appended');
     });
 
     it('should set _tooltip when elem.type is image and elem.tooltip is defined', () => {
-        component._elem = { type: 'image', tooltip: 'tooltipField' };
-        component._data = { source: { tooltipField: 'Tooltip Text' } };
+        component.elem = { type: 'image', tooltip: 'tooltipField' };
+        component.data = { source: { tooltipField: 'Tooltip Text' } };
         component.ngOnInit();
         expect(component._tooltip).toEqual('Tooltip Text');
     });
 
     it('should set _tooltip when elem.type is avatar and elem.tooltip is defined', () => {
-        component._elem = { type: 'avatar', tooltip: 'tooltipField' };
-        component._data = { source: { tooltipField: 'Tooltip Text' } };
+        component.elem = { type: 'avatar', tooltip: 'tooltipField' };
+        component.data = { source: { tooltipField: 'Tooltip Text' } };
         component.ngOnInit();
         expect(component._tooltip).toEqual('Tooltip Text');
     });
 
     it('should set _tooltip when elem.type is avatar-image and elem.tooltip is defined', () => {
-        component._elem = { type: 'avatar-image', tooltip: 'tooltipField' };
-        component._data = { source: { tooltipField: 'Tooltip Text' } };
+        component.elem = { type: 'avatar-image', tooltip: 'tooltipField' };
+        component.data = { source: { tooltipField: 'Tooltip Text' } };
         component.ngOnInit();
         expect(component._tooltip).toEqual('Tooltip Text');
     });
 
     it('should set _tooltip when elem.type is gravatar-image and elem.tooltip is defined', () => {
-        component._elem = { type: 'gravatar-image', tooltip: 'tooltipField' };
-        component._data = { source: { tooltipField: 'Tooltip Text' } };
+        component.elem = { type: 'gravatar-image', tooltip: 'tooltipField' };
+        component.data = { source: { tooltipField: 'Tooltip Text' } };
         component.ngOnInit();
         expect(component._tooltip).toEqual('Tooltip Text');
     });
 
     it('should truncate _value when elem.type is text and elem.truncate is defined', () => {
-        component._elem = { type: 'text', truncate: 10, field: 'testField' };
+        component.elem = { type: 'text', truncate: 10, field: 'testField' };
         component._value = 'This is a long text that should be truncated';
-        component._data = { source: { testField: 'This is a long text that should be truncated' } };
+        component.data = { source: { testField: 'This is a long text that should be truncated' } };
         component.ngOnInit();
         expect(component._value).toEqual('This is a...');
     });
 
     it('should set _tooltip to time format when elem.type is mstime and elem.tooltip is defined', () => {
-        component._elem = { type: 'mstime', tooltip: 'tooltipField' };
-        component._data = { source: { tooltipField: 60000 } }; // 1 minute in milliseconds
+        component.elem = { type: 'mstime', tooltip: 'tooltipField' };
+        component.data = { source: { tooltipField: 60000 } }; // 1 minute in milliseconds
         component.ngOnInit();
         expect(component._tooltip).toEqual('1 m 0 ms');
     });
@@ -214,7 +214,7 @@ describe('ItemTypeComponent', () => {
         mockTranslate.instant.mockImplementation((arg: any) => arg);
         component.translate = mockTranslate;
 
-        component._data = {
+        component.data = {
             source: {
                 value1: {
                     icon: 'icon1',
@@ -224,12 +224,12 @@ describe('ItemTypeComponent', () => {
                 }
             }
         };
-        component._elem = { type: 'icon', options: 'value1', class: 'class1' };
+        component.elem = { type: 'icon', options: 'value1', class: 'class1' };
         component._value = 'value1';
-        component._config = {
+        component.config = {
             options: {
                 value1: {
-                    values: component._data.source
+                    values: component.data.source
                 }
             }
         };

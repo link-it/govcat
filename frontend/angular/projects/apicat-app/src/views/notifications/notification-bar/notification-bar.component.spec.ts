@@ -311,8 +311,9 @@ describe('NotificationBarComponent', () => {
 
     it('should navigate to /dashboard when _fromDashboard is true', () => {
       component._fromDashboard = true;
+      component._dashboardSection = '';
       component.onBack();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard'], { queryParams: undefined });
     });
   });
 

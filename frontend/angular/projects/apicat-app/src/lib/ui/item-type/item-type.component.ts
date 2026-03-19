@@ -18,7 +18,6 @@
  */
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -42,15 +41,15 @@ import moment from 'moment/moment';
 })
 export class ItemTypeComponent implements OnInit {
     @HostBinding('class.empty-space') get emptySpace(): boolean {
-        return this._elem.emptySpace;
+        return this.elem.emptySpace;
     }
     @HostBinding('class.block-space') get blockSpace(): boolean {
-        return this._elem.blockSpace;
+        return this.elem.blockSpace;
     }
 
-    @Input('data') _data: any = null;
-    @Input('elem') _elem: any = null;
-    @Input('config') _config: any = null;
+    @Input() data: any = null;
+    @Input() elem: any = null;
+    @Input() config: any = null;
 
     @Output() itemClick: EventEmitter<any> = new EventEmitter();
 
@@ -69,6 +68,7 @@ export class ItemTypeComponent implements OnInit {
     _color: string = '';
     _class: string = '';
     _showBadged: boolean = false;
+    _tagsResolved: { label: string, background: string, border: string, color: string }[] = [];
     _tooltip: string = '';
     _tooltipDelay: number = 300;
     _tooltipPlacement: any = 'top';
@@ -78,78 +78,79 @@ export class ItemTypeComponent implements OnInit {
     _backColorText: string = '#000000';
 
     constructor(
-        private sanitized: DomSanitizer,
-        private translate: TranslateService,
+        private readonly translate: TranslateService,
         public utilsLib: UtilsLib
     ) { }
 
     ngOnInit() {
-        this._sourceData = this._data.source || this._data
+        this._sourceData = this.data.source || this.data
 
-        this._value = this.utilsLib.getObjectValue(this._sourceData, this._elem.field);
-        this._logoText = this._elem.alt ? this._sourceData[this._elem.alt]?.slice(0, 2) : '';
-        if ( !this._value && this._elem.default) {
-            this._value = this._elem.default;
+        this._value = this.utilsLib.getObjectValue(this._sourceData, this.elem.field);
+        this._logoText = this.elem.alt ? this._sourceData[this.elem.alt]?.slice(0, 2) : '';
+        if ( !this._value && this.elem.default) {
+            this._value = this.elem.default;
         }
-        if (this._elem.tooltip) {
-            const _objectValueTooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
-            this._tooltip = _objectValueTooltip || this.translate.instant(this._elem.tooltip);
-            this._tooltipPlacement = this._elem.tooltipPlacement || this._tooltipPlacement;
+        if (this.elem.tooltip) {
+            const _objectValueTooltip = this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip);
+            this._tooltip = _objectValueTooltip || this.translate.instant(this.elem.tooltip);
+            this._tooltipPlacement = this.elem.tooltipPlacement || this._tooltipPlacement;
         }
-        if (this._elem.type === 'date') {
-            this._value = this.utilsLib.dateFormatter(this._value, this._elem.format);
+        if (this.elem.type === 'date') {
+            this._value = this.utilsLib.dateFormatter(this._value, this.elem.format);
         }
-        if (this._elem.type === 'timeago') {
+        if (this.elem.type === 'timeago') {
             this._value = moment(this._value).fromNow();
         }
-        if (this._elem.type === 'mstime') {
+        if (this.elem.type === 'mstime') {
             this._value = this.utilsLib.msToTime(this._value);
         }
-        if (this._elem.type === 'status') {
-            if (this._config.options) {
+        if (this.elem.type === 'status') {
+            if (this.config.options) {
                 const _origValue = this._value;
-                const _optionsName = this._elem.options;
-                this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : 'undefined';
-                this._label = (this._config.options.statusLabel) ? this._config.options.statusLabel : 'Status';
-                this._background = (this._config.options.status && this._config.options.status[_origValue]) ? this._config.options.status[_origValue].background : '#1f1f1f';
-                this._border = (this._config.options.status && this._config.options.status[_origValue]) ? this._config.options.status[_origValue].border : '#1f1f1f';
-                this._color = (this._config.options.status && this._config.options.status[_origValue]) ? this._config.options.status[_origValue].color : '#fff';
-                this._class = this._config.options.statusSmall ? 'status-label-sm' : '';
+                const _optionsName = this.elem.options;
+                const _optionElem = this.config.options[_optionsName] ? this.config.options[_optionsName].values[_origValue] : null;
+                this._value = this._value ? (_optionElem ? _optionElem.label : this._value) : 'undefined';
+                this._label = (this.config.options.statusLabel) ? this.config.options.statusLabel : 'Status';
+                this._background = (this.config.options.status?.[_origValue]) ? this.config.options.status[_origValue].background : '#1f1f1f';
+                this._border = (this.config.options.status?.[_origValue]) ? this.config.options.status[_origValue].border : '#1f1f1f';
+                this._color = (this.config.options.status?.[_origValue]) ? this.config.options.status[_origValue].color : '#fff';
+                this._class = this.config.options.statusSmall ? 'status-label-sm' : '';
             }
         }
-        if (this._elem.type === 'label') {
-            if (this._config.options) {
+        if (this.elem.type === 'label') {
+            if (this.config.options) {
                 const _origValue = this._value;
-                const _optionsName = this._elem.options;
+                const _optionsName = this.elem.options;
+                const _optionElem = this.config.options[_optionsName] ? this.config.options[_optionsName].values[_origValue] : null;
                 if (_origValue) {
-                    this._label = (this._config.options[_optionsName].label) ? this._config.options[_optionsName].label : _optionsName;
-                    this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : this._config.options[_optionsName].values[_origValue].label;
-                    this._background = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].background : '#1f1f1f';
-                    this._border = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].border : '#1f1f1f';
-                    this._color = (this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue]) ? this._config.options[_optionsName].values[_origValue].color : '#fff';
-                    if (!((this._config.options[_optionsName] && this._config.options[_optionsName].values[_origValue])) && this._config.options[_optionsName].values['default']) {
-                        this._background = this._config.options[_optionsName].values['default'].background;
-                        this._border = this._config.options[_optionsName].values['default'].border;
-                        this._color = this._config.options[_optionsName].values['default'].color;
+                    this._label = (this.config.options[_optionsName].label) ? this.config.options[_optionsName].label : _optionsName;
+                    this._value = this._value ? (_optionElem ? _optionElem.label : this._value) : _optionElem.label;
+                    this._background = (this.config.options[_optionsName] && _optionElem) ? _optionElem.background : '#1f1f1f';
+                    this._border = (this.config.options[_optionsName] && _optionElem) ? _optionElem.border : '#1f1f1f';
+                    this._color = (this.config.options[_optionsName] && _optionElem) ? _optionElem.color : '#fff';
+                    if (!((this.config.options[_optionsName] && _optionElem)) && this.config.options[_optionsName].values['default']) {
+                        this._background = this.config.options[_optionsName].values['default'].background;
+                        this._border = this.config.options[_optionsName].values['default'].border;
+                        this._color = this.config.options[_optionsName].values['default'].color;
                     }
-                    this._class = this._config.options[_optionsName].small ? 'status-label-sm' : '';
+                    this._class = this.config.options[_optionsName].small ? 'status-label-sm' : '';
                 }
             }
         }
-        if (this._elem.type === 'tag') {
-            this._tooltip = this._elem.tooltip ? this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip) : '';
+        if (this.elem.type === 'tag') {
+            this._tooltip = this.elem.tooltip ? this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip) : '';
             this._class = 'badge badge-pill';
-            this._class += this._elem.class ? ' ' + this._elem.class : '';
-            this._showBadged = (this._elem.badged !== undefined) ? this._elem.badged : true;
-            if (this._config.options) {
+            this._class += this.elem.class ? ' ' + this.elem.class : '';
+            this._showBadged = (this.elem.badged === undefined) ? true : this.elem.badged;
+            if (this.config.options) {
                 const _origValue = this._value;
-                const _optionsName = this._elem.options;
-                if (!this._config.options[_optionsName]) {
+                const _optionsName = this.elem.options;
+                if (!this.config.options[_optionsName]) {
                     return;
                 }
-                let _optionValue = this._config.options[_optionsName].values[_origValue];
+                let _optionValue = this.config.options[_optionsName].values[_origValue];
                 if (!_optionValue) {
-                    _optionValue = this._config.options[_optionsName].values['default'];
+                    _optionValue = this.config.options[_optionsName].values['default'];
                     if (!_optionValue) {
                         return;
                     }
@@ -159,65 +160,81 @@ export class ItemTypeComponent implements OnInit {
                 this._background = (_optionValue) ? _optionValue.background : '#1f1f1f';
                 this._border = (_optionValue) ? _optionValue.border : '#1f1f1f';
                 this._color = (_optionValue) ? _optionValue.color : '#fff';
-                this._class += this._config.options[_optionsName].small ? ' gl-badge-sm' : ' gl-badge';
+                this._class += this.config.options[_optionsName].small ? ' gl-badge-sm' : ' gl-badge';
             }
         }
-        if (this._elem.type === 'labelI18n') {
+        if (this.elem.type === 'labelI18n') {
             const _origValue = this._value;
-            if (this._config.options) {
-                const _optionsName = this._elem.options;
-                this._value = this._value ? (this._config.options[_optionsName].values[_origValue] ? this._config.options[_optionsName].values[_origValue].label : this._value) : this._config.options[_optionsName].values[_origValue].label;
+            if (this.config.options) {
+                const _optionsName = this.elem.options;
+                const _optionElem = this.config.options[_optionsName] ? this.config.options[_optionsName].values[_origValue] : null;
+                this._value = this._value ? (_optionElem ? _optionElem.label : this._value) : _optionElem.label;
             }
-            if (this._elem.appendValue) {
-                this._appendOriginalValue = this.utilsLib.getObjectValue(this._sourceData, this._elem.appendValue);
+            if (this.elem.appendValue) {
+                this._appendOriginalValue = this.utilsLib.getObjectValue(this._sourceData, this.elem.appendValue);
             }
         }
-        if (this._elem.type === 'image' && this._elem.tooltip) {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+        if (this.elem.type === 'image' && this.elem.tooltip) {
+            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip);
         }
-        if (this._elem.type === 'avatar' && this._elem.tooltip) {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+        if (this.elem.type === 'avatar' && this.elem.tooltip) {
+            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip);
         }
-        if (this._elem.type === 'avatar-image' && this._elem.tooltip) {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+        if (this.elem.type === 'avatar-image' && this.elem.tooltip) {
+            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip);
         }
-        if (this._elem.type === 'gravatar-image' && this._elem.tooltip) {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
+        if (this.elem.type === 'gravatar-image' && this.elem.tooltip) {
+            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip);
         }
-        if (this._elem.type === 'text' && this._elem.truncate) {
-            this._value = this.truncateRows(this._value, 2, this._elem.truncate)
+        if (this.elem.type === 'text' && this.elem.truncate) {
+            this._value = this.truncateRows(this._value, 2, this.elem.truncate)
         }
-        if (this._elem.type === 'mstime' && this._elem.tooltip) {
-            this._tooltip = this.utilsLib.msToTime(this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip));
+        if (this.elem.type === 'mstime' && this.elem.tooltip) {
+            this._tooltip = this.utilsLib.msToTime(this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip));
         }
-        if (this._elem.type === 'icon') {
-            if (this._config.options) {
+        if (this.elem.type === 'icon') {
+            if (this.config.options) {
                 const _origValue = this._value;
-                const _optionsName = this._elem.options;
-                const _optionElem = _optionsName ? this._config.options[_optionsName].values[_origValue] : null;
-                this._value = _optionElem ? _optionElem.icon: (this._elem.icon || _origValue);
-                this._class = this._elem.class || '';
-                if (_optionElem?.tooltip && !this._elem.hideTooltip) {
+                const _optionsName = this.elem.options;
+                const _optionElem = _optionsName ? this.config.options[_optionsName].values[_origValue] : null;
+                this._value = _optionElem ? _optionElem.icon: (this.elem.icon || _origValue);
+                this._class = this.elem.class || '';
+                if (_optionElem?.tooltip && !this.elem.hideTooltip) {
                     this._tooltip = this.translate.instant(_optionElem.tooltip);
                     this._tooltipPlacement = _optionElem.tooltipPlacement || this._tooltipPlacement;
                 }
-                if (_optionElem?.tooltip2 && !this._elem.hideTooltip) {
+                if (_optionElem?.tooltip2 && !this.elem.hideTooltip) {
                     const _tooltip2 = this.translate.instant(_optionElem.tooltip2);
                     this._tooltip = `${this._tooltip}<br><br>${_tooltip2}`;
                 }
             }
         }
-        if (this._elem.type === 'tags') {
-            this._class = this._elem.class || '';
+        if (this.elem.type === 'tags') {
+            this._class = this.elem.class || '';
+            if (Array.isArray(this._value) && this.config?.options && this.elem.options) {
+                const _optionsName = this.elem.options;
+                const _optionsConfig = this.config.options[_optionsName];
+                if (_optionsConfig) {
+                    this._tagsResolved = this._value.map((tag: string) => {
+                        const opt = _optionsConfig.values[tag] || _optionsConfig.values['default'];
+                        return {
+                            label: opt ? this.translate.instant(opt.label) : tag,
+                            background: opt ? opt.background : '#e9ecef',
+                            border: opt ? opt.border : '#dee2e6',
+                            color: opt ? opt.color : '#000000'
+                        };
+                    });
+                }
+            }
         }
-        if (this._elem.type === 'simplelabel') {
-            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this._elem.tooltip);
-            this._class = this._elem.class || '';
+        if (this.elem.type === 'simplelabel') {
+            this._tooltip = this.utilsLib.getObjectValue(this._sourceData, this.elem.tooltip);
+            this._class = this.elem.class || '';
         }
-        this._bkMode = this._elem.mode || 'contain';
+        this._bkMode = this.elem.mode || 'contain';
 
-        if (this._elem.showLabel) {
-            const _label = this.translate.instant(this._elem.label);
+        if (this.elem.showLabel) {
+            const _label = this.translate.instant(this.elem.label);
             this._value = `${_label}: ${this._value}`;
         }
     }

@@ -1,3 +1,28 @@
+2026-03-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Rimozione CUSTOM_ELEMENTS_SCHEMA da ~60 componenti standalone.
+	- Fix import mancanti in 4 componenti adesione-configurazione-wizard
+	  (modal-add-referent, lista-clients, lista-erogazioni, wizard)
+	- Aggiunto import WorkflowComponent, PdndEServiceViewComponent,
+	  VerificaSoggettoTokenComponent dove mancavano
+	- Sostituito mat-progress-spinner con spinner Bootstrap CSS
+	- Rimosso defineCustomElements orfano (xml-viewer-component) da bootstrap.ts
+	- Rimosso codice morto mascherato dallo schema: [showUsername],
+	  [placeholder] su ui-sender, [labelAlignRight], [barPadding]
+
+	Issue #169: filtri per ruolo referente su servizi e adesioni.
+	- Tab pre-filtro rapido su servizi (Tutti/Referente servizio-dominio/
+	  Richiedente) visibili con "I miei servizi" attivo
+	- Tab pre-filtro rapido su adesioni (Tutte/Referente servizio-dominio/
+	  Referente adesione/Richiedente) sempre visibili
+	- Filtro avanzato ruolo_referente con enum dinamiche per tab attivo
+	- Badge ruoli colorati nel footer item-row via config JSON options
+	- Esteso item-type: tipo "tags" con colori da options config
+	- Refactoring item-row/item-type: Input diretti, rimosso codice morto
+	- Fix vista gruppi con "I miei servizi" attivo
+	- Fix track duplicati lista servizi
+
 2026-03-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
