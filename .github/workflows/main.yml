@@ -63,7 +63,7 @@ jobs:
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: Archive JaCoCo report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: jacoco-report
           path: target/site/jacoco-aggregate
@@ -103,7 +103,7 @@ jobs:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
       - name: Archive OWASP dependency check report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: dependency-check-report
           path: tools/owasp/report
@@ -119,7 +119,7 @@ jobs:
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: Archive licenses analysis results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: be-third-party-licenses
           path: third-party-licenses
@@ -161,7 +161,7 @@ jobs:
             --nodeAuditSkipDevDependencies
             --nodePackageSkipDevDependencies
       - name: Upload HTML report artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: fe-dependency-check-report
           path: reports
@@ -177,7 +177,7 @@ jobs:
           python3 ../../.github/workflows/scripts/analyze_npm_licenses.py --exceptions ../../.github/workflows/scripts/npm-license-exceptions.json
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
       - name: Archive licenses analysis results
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: fe-third-party-licenses
           path: frontend/angular/third-party-licenses
