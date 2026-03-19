@@ -1157,7 +1157,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			return this.service.runTransaction( () -> {
@@ -1248,7 +1248,49 @@ public class ServiziController implements ServiziApi {
 					}
 				} else if(mieiServizi!= null && mieiServizi) {
 					if(!anounymous) {
-						if(admin) {
+						if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
+							// Validazione: i ruoli di adesione non sono ammessi per il filtro servizi
+							for(RuoloReferenteEnum r : ruoloReferente) {
+								if(r == RuoloReferenteEnum.REFERENTE_ADESIONE || r == RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE || r == RuoloReferenteEnum.RICHIEDENTE_ADESIONE) {
+									throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+								}
+							}
+
+							UtenteEntity utenteRuolo = this.coreAuthorization.getUtenteSessione();
+							Specification<ServizioEntity> specRuoli = null;
+
+							for(RuoloReferenteEnum r : ruoloReferente) {
+								Specification<ServizioEntity> specRuolo = null;
+								switch(r) {
+									case REFERENTE_SERVIZIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+										break;
+									case REFERENTE_TECNICO_SERVIZIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+										break;
+									case REFERENTE_DOMINIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+										break;
+									case REFERENTE_TECNICO_DOMINIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+										break;
+									case RICHIEDENTE_SERVIZIO:
+										specRuolo = ServizioSpecificationUtils.byRichiedente(utenteRuolo);
+										break;
+									default:
+										break;
+								}
+								if(specRuolo != null) {
+									specRuoli = (specRuoli == null) ? specRuolo : specRuoli.or(specRuolo);
+								}
+							}
+
+							if(specRuoli != null) {
+								realSpecification = specification.and(specRuoli);
+							} else {
+								realSpecification = specification.and((root, query, cb) -> cb.disjunction());
+							}
+						} else if(admin) {
 							realSpecification = specification;
 						} else {
 							specification.setTipoMieiServizi(TipoMieiServizi.MIEI_SERVIZI);
@@ -1258,6 +1300,9 @@ public class ServiziController implements ServiziApi {
 					} else {
 						throw new BadRequestException(ErrorCode.SRV_400_NOT_REGISTERED);
 					}
+				} else if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
+					// ruolo_referente senza miei_servizi=true non è ammesso
+					throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 				} else if(dashboard != null && dashboard) {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
@@ -1334,22 +1379,28 @@ public class ServiziController implements ServiziApi {
 				PagedModelItemServizio list = new PagedModelItemServizio();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 
-				// Popola ruoli_referente se dashboard=true
-				if(dashboard != null && dashboard && !anounymous) {
+				// Popola ruoli_referente per utenti autenticati
+				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
-					// Calcola i set di domini e servizi per cui l'utente è referente
+					// Calcola i set di domini e servizi per cui l'utente è referente (e referente tecnico)
 					Set<Long> dominiReferente = new HashSet<>();
+					Set<Long> dominiReferenteTecnico = new HashSet<>();
 					Set<Long> serviziReferente = new HashSet<>();
+					Set<Long> serviziReferenteTecnico = new HashSet<>();
 
 					for(var ref : this.service.findReferentiDominioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							dominiReferente.add(ref.getDominio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							dominiReferenteTecnico.add(ref.getDominio().getId());
 						}
 					}
 					for(var ref : this.service.findReferentiServizioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							serviziReferente.add(ref.getServizio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							serviziReferenteTecnico.add(ref.getServizio().getId());
 						}
 					}
 
@@ -1363,7 +1414,7 @@ public class ServiziController implements ServiziApi {
 					for(ItemServizio item : list.getContent()) {
 						ServizioEntity se = servizioEntityMap.get(item.getIdServizio().toString());
 						if(se != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, serviziReferente);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -1554,17 +1605,31 @@ public class ServiziController implements ServiziApi {
 	}
 
 	private List<RuoloReferenteEnum> calcolaRuoliReferente(ServizioEntity servizio, UtenteEntity utente,
-			Set<Long> dominiReferente, Set<Long> serviziReferente) {
+			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico, Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
 		// Verifica se l'utente è referente del dominio del servizio
-		if (servizio.getDominio() != null && dominiReferente.contains(servizio.getDominio().getId())) {
-			ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+		if (servizio.getDominio() != null) {
+			Long idDominio = servizio.getDominio().getId();
+			if (dominiReferente.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+			}
+			if (dominiReferenteTecnico.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_DOMINIO);
+			}
 		}
 
 		// Verifica se l'utente è referente del servizio
 		if (serviziReferente.contains(servizio.getId())) {
 			ruoli.add(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+		}
+		if (serviziReferenteTecnico.contains(servizio.getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_SERVIZIO);
+		}
+
+		// Verifica se l'utente è richiedente del servizio
+		if (servizio.getRichiedente() != null && servizio.getRichiedente().getId().equals(utente.getId())) {
+			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO);
 		}
 
 		return ruoli;

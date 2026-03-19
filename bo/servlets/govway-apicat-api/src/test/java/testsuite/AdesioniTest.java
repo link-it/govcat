@@ -1623,7 +1623,7 @@ public class AdesioniTest {
         // Act
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-            null, null, null, null, false, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1670,7 +1670,7 @@ public class AdesioniTest {
         
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1719,7 +1719,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1769,7 +1769,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1817,7 +1817,7 @@ public class AdesioniTest {
         	
         	ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                     null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                    null, null, null, null, false, null, null, null, n, numeroElementiPerPagina, null);
+                    null, null, null, null, false, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1859,7 +1859,7 @@ public class AdesioniTest {
 
         assertThrows(NotAuthorizedException.class, () -> adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, null));
+                null, null, null, null, false, null, null, null, null, 0, 10, null));
     }
 
     @Test
@@ -1879,7 +1879,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true come gestore
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1903,7 +1903,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

@@ -754,7 +754,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemAdesione> listAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
-			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, Boolean dashboard, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, String q,  Integer page,
+			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, String q,  Integer page,
 			Integer size, List<String> sort) {
 
 		try {
@@ -801,7 +801,55 @@ public class AdesioniController implements AdesioniApi {
 
 				Specification<AdesioneEntity> realSpecification = null;
 
-				if(dashboard != null && dashboard) {
+				if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
+					if(!anounymous) {
+						UtenteEntity utenteRuolo = this.coreAuthorization.getUtenteSessione();
+						Specification<AdesioneEntity> specRuoli = null;
+
+						for(RuoloReferenteEnum r : ruoloReferente) {
+							Specification<AdesioneEntity> specRuolo = null;
+							switch(r) {
+								case REFERENTE_DOMINIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+									break;
+								case REFERENTE_TECNICO_DOMINIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+									break;
+								case REFERENTE_SERVIZIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+									break;
+								case REFERENTE_TECNICO_SERVIZIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+									break;
+								case REFERENTE_ADESIONE:
+									specRuolo = AdesioneSpecificationUtils.byReferenteAdesioneWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+									break;
+								case REFERENTE_TECNICO_ADESIONE:
+									specRuolo = AdesioneSpecificationUtils.byReferenteAdesioneWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+									break;
+								case RICHIEDENTE_SERVIZIO:
+									specRuolo = AdesioneSpecificationUtils.byRichiedenteServizio(utenteRuolo);
+									break;
+								case RICHIEDENTE_ADESIONE:
+									specRuolo = AdesioneSpecificationUtils.byRichiedente(utenteRuolo);
+									break;
+								default:
+									break;
+							}
+							if(specRuolo != null) {
+								specRuoli = (specRuoli == null) ? specRuolo : specRuoli.or(specRuolo);
+							}
+						}
+
+						if(specRuoli != null) {
+							realSpecification = specification.and(specRuoli);
+						} else {
+							realSpecification = specification.and((root, query, cb) -> cb.disjunction());
+						}
+					} else {
+						throw new BadRequestException(ErrorCode.ADE_400_STATE);
+					}
+				} else if(dashboard != null && dashboard) {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
@@ -878,22 +926,37 @@ public class AdesioniController implements AdesioniApi {
 				PagedModelItemAdesione list = new PagedModelItemAdesione();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 
-				// Popola ruoli_referente se dashboard=true
-				if(dashboard != null && dashboard && !anounymous) {
+				// Popola ruoli_referente per utenti autenticati
+				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
-					// Calcola i set di domini, servizi e adesioni per cui l'utente è referente
+					// Calcola i set di domini, servizi e adesioni per cui l'utente è referente (e referente tecnico)
 					Set<Long> dominiReferente = new HashSet<>();
+					Set<Long> dominiReferenteTecnico = new HashSet<>();
 					Set<Long> serviziReferente = new HashSet<>();
+					Set<Long> serviziReferenteTecnico = new HashSet<>();
+					Set<Long> adesioniReferente = new HashSet<>();
+					Set<Long> adesioniReferenteTecnico = new HashSet<>();
 
 					for(var ref : this.service.findReferentiDominioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							dominiReferente.add(ref.getDominio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							dominiReferenteTecnico.add(ref.getDominio().getId());
 						}
 					}
 					for(var ref : this.service.findReferentiServizioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							serviziReferente.add(ref.getServizio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							serviziReferenteTecnico.add(ref.getServizio().getId());
+						}
+					}
+					for(var ref : this.service.findReferentiAdesioneByUtente(utente)) {
+						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
+							adesioniReferente.add(ref.getAdesione().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							adesioniReferenteTecnico.add(ref.getAdesione().getId());
 						}
 					}
 
@@ -907,7 +970,7 @@ public class AdesioniController implements AdesioniApi {
 					for(ItemAdesione item : list.getContent()) {
 						AdesioneEntity ae = adesioneEntityMap.get(item.getIdAdesione().toString());
 						if(ae != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, serviziReferente);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, adesioniReferente, adesioniReferenteTecnico);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -2176,18 +2239,47 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	private List<RuoloReferenteEnum> calcolaRuoliReferenteAdesione(AdesioneEntity adesione, UtenteEntity utente,
-			Set<Long> dominiReferente, Set<Long> serviziReferente) {
+			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico,
+			Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico,
+			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
-		// Verifica se l'utente è referente del dominio del servizio dell'adesione
-		if (adesione.getServizio() != null && adesione.getServizio().getDominio() != null
-				&& dominiReferente.contains(adesione.getServizio().getDominio().getId())) {
-			ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+		// Ruoli di dominio
+		if (adesione.getServizio() != null && adesione.getServizio().getDominio() != null) {
+			Long idDominio = adesione.getServizio().getDominio().getId();
+			if (dominiReferente.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+			}
+			if (dominiReferenteTecnico.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_DOMINIO);
+			}
 		}
 
-		// Verifica se l'utente è referente del servizio dell'adesione
-		if (adesione.getServizio() != null && serviziReferente.contains(adesione.getServizio().getId())) {
-			ruoli.add(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+		// Ruoli di servizio
+		if (adesione.getServizio() != null) {
+			if (serviziReferente.contains(adesione.getServizio().getId())) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+			}
+			if (serviziReferenteTecnico.contains(adesione.getServizio().getId())) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_SERVIZIO);
+			}
+			// Richiedente del servizio
+			if (adesione.getServizio().getRichiedente() != null && adesione.getServizio().getRichiedente().getId().equals(utente.getId())) {
+				ruoli.add(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO);
+			}
+		}
+
+		// Ruoli di adesione
+		if (adesioniReferente.contains(adesione.getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_ADESIONE);
+		}
+		if (adesioniReferenteTecnico.contains(adesione.getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE);
+		}
+
+		// Richiedente dell'adesione
+		if (adesione.getRichiedente() != null && adesione.getRichiedente().getId().equals(utente.getId())) {
+			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_ADESIONE);
 		}
 
 		return ruoli;
