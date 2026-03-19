@@ -13,20 +13,17 @@ permissions:
   id-token: write
   actions: write
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build_BE:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Clona tutta la history Git
       - name: Set timezone to Europe/Rome
         run: sudo timedatectl set-timezone Europe/Rome
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -42,7 +39,7 @@ jobs:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
       #  Cache .dependency-check/data
       - name: Cache OWASP Dependency-Check DB
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .dependency-check/data
           key: ${{ runner.os }}-owasp-${{ github.sha }}
@@ -66,7 +63,7 @@ jobs:
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: Archive JaCoCo report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: jacoco-report
           path: target/site/jacoco-aggregate
@@ -106,7 +103,7 @@ jobs:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
       - name: Archive OWASP dependency check report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: dependency-check-report
           path: tools/owasp/report
@@ -122,7 +119,7 @@ jobs:
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
 
       - name: Archive licenses analysis results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: be-third-party-licenses
           path: third-party-licenses
@@ -135,13 +132,13 @@ jobs:
   build_FE:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Clona tutta la history Git
       - name: Set timezone to Europe/Rome
         run: sudo timedatectl set-timezone Europe/Rome
       - name: Set up Node 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           check-latest: true
@@ -164,7 +161,7 @@ jobs:
             --nodeAuditSkipDevDependencies
             --nodePackageSkipDevDependencies
       - name: Upload HTML report artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: fe-dependency-check-report
           path: reports
@@ -180,7 +177,7 @@ jobs:
           python3 ../../.github/workflows/scripts/analyze_npm_licenses.py --exceptions ../../.github/workflows/scripts/npm-license-exceptions.json
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
       - name: Archive licenses analysis results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: fe-third-party-licenses
           path: frontend/angular/third-party-licenses
