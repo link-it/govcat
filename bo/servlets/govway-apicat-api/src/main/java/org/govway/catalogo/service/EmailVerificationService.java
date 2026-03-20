@@ -21,14 +21,20 @@ package org.govway.catalogo.service;
 
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.context.MessageSource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
 
 /**
  * Servizio per la generazione e invio di codici di verifica email.
@@ -45,6 +51,9 @@ public class EmailVerificationService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
+    @Autowired
+    private MessageSource messageSource;
+
     @Value("${email.verification.code.length:6}")
     private int codeLength;
 
@@ -59,6 +68,9 @@ public class EmailVerificationService {
 
     @Value("${profilo.email.verification.mail.subject:GovCat - Conferma modifica email}")
     private String profiloMailSubject;
+
+    @Value("${email.notifiche.locale:it}")
+    private String localeCode;
 
     /**
      * Genera un codice alfanumerico casuale.
@@ -136,7 +148,10 @@ public class EmailVerificationService {
      * @throws IllegalStateException se il mail sender non è configurato
      */
     public void sendVerificationEmail(String toEmail, String code, String nome, String cognome) {
-        sendEmail(toEmail, firstloginMailSubject, buildRegistrationEmailBody(code, nome, cognome));
+        Object[] args = new Object[] { nome, cognome, code, codeDurationMinutes };
+        String textBody = getMessage("email.verification.registration.text", args);
+        String htmlBody = buildHtmlEmail(getMessage("email.verification.registration.html", args));
+        sendEmail(toEmail, firstloginMailSubject, textBody, htmlBody);
     }
 
     /**
@@ -149,13 +164,16 @@ public class EmailVerificationService {
      * @throws IllegalStateException se il mail sender non è configurato
      */
     public void sendEmailChangeVerification(String toEmail, String code, String nome, String cognome) {
-        sendEmail(toEmail, profiloMailSubject, buildEmailChangeBody(code, nome, cognome));
+        Object[] args = new Object[] { nome, cognome, code, codeDurationMinutes };
+        String textBody = getMessage("email.verification.email_change.text", args);
+        String htmlBody = buildHtmlEmail(getMessage("email.verification.email_change.html", args));
+        sendEmail(toEmail, profiloMailSubject, textBody, htmlBody);
     }
 
     /**
-     * Metodo interno per l'invio email.
+     * Metodo interno per l'invio email in formato multipart/alternative (plain text + HTML).
      */
-    private void sendEmail(String toEmail, String subject, String body) {
+    private void sendEmail(String toEmail, String subject, String textBody, String htmlBody) {
         if (mailSender == null) {
             logger.error("JavaMailSender non configurato. Impossibile inviare email di verifica.");
             throw new IllegalStateException("Servizio email non configurato");
@@ -163,14 +181,28 @@ public class EmailVerificationService {
 
         logger.info("Invio email di verifica a: {}", toEmail);
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(mailFrom);
-        message.setTo(toEmail);
-        message.setSubject(subject);
-        message.setText(body);
-
         try {
-            mailSender.send(message);
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+
+            helper.setFrom(mailFrom);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            MimeMultipart multipart = new MimeMultipart("alternative");
+
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setText(textBody, "UTF-8", "plain");
+
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setText(htmlBody, "UTF-8", "html");
+
+            multipart.addBodyPart(textPart);
+            multipart.addBodyPart(htmlPart);
+
+            mimeMessage.setContent(multipart);
+
+            mailSender.send(mimeMessage);
             logger.info("Email di verifica inviata con successo a: {}", toEmail);
         } catch (Exception e) {
             logger.error("Errore durante l'invio dell'email di verifica a {}: {}", toEmail, e.getMessage(), e);
@@ -179,35 +211,30 @@ public class EmailVerificationService {
     }
 
     /**
-     * Costruisce il corpo dell'email di verifica per la registrazione.
+     * Avvolge il contenuto HTML nel template strutturale dell'email.
      */
-    private String buildRegistrationEmailBody(String code, String nome, String cognome) {
-        return String.format(
-            "Gentile %s %s,\n\n" +
-            "Per completare la registrazione su GovCat, inserisci il seguente codice di verifica:\n\n" +
-            "    %s\n\n" +
-            "Il codice è valido per %d minuti.\n\n" +
-            "Se non hai richiesto questa registrazione, ignora questa email.\n\n" +
-            "Cordiali saluti,\n" +
-            "Il team GovCat",
-            nome, cognome, code, codeDurationMinutes
-        );
+    private String buildHtmlEmail(String bodyContent) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<!DOCTYPE html>");
+        sb.append("<html>");
+        sb.append("<head>");
+        sb.append("<meta charset=\"UTF-8\">");
+        sb.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+        sb.append("</head>");
+        sb.append("<body style=\"margin:0;padding:20px;font-family:Arial,Helvetica,sans-serif;background-color:#f5f5f5;\">");
+        sb.append("<div style=\"max-width:600px;margin:0 auto;background-color:#ffffff;padding:30px;border-radius:8px;\">");
+        sb.append(bodyContent);
+        sb.append("</div>");
+        sb.append("</body>");
+        sb.append("</html>");
+        return sb.toString();
     }
 
     /**
-     * Costruisce il corpo dell'email di verifica per la modifica email.
+     * Ottiene un messaggio localizzato dal MessageSource.
      */
-    private String buildEmailChangeBody(String code, String nome, String cognome) {
-        return String.format(
-            "Gentile %s %s,\n\n" +
-            "Per confermare la modifica del tuo indirizzo email su GovCat, inserisci il seguente codice di verifica:\n\n" +
-            "    %s\n\n" +
-            "Il codice è valido per %d minuti.\n\n" +
-            "Se non hai richiesto questa modifica, ignora questa email e il tuo indirizzo email non sarà modificato.\n\n" +
-            "Cordiali saluti,\n" +
-            "Il team GovCat",
-            nome, cognome, code, codeDurationMinutes
-        );
+    private String getMessage(String key, Object... args) {
+        return messageSource.getMessage(key, args, new Locale(localeCode));
     }
 
     /**
