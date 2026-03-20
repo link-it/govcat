@@ -150,6 +150,9 @@ public class UtentiTest {
         InfoProfilo infoProfiloGestore = new InfoProfilo(UTENTE_GESTORE, this.utenteService.findByPrincipal(UTENTE_GESTORE).get(), List.of());
         when(this.authentication.getPrincipal()).thenReturn(infoProfiloGestore);
 
+        // Setup mock per l'invio email MIME multipart
+        when(this.mailSender.createMimeMessage()).thenReturn(new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
+
         SecurityContextHolder.setContext(this.securityContext);
     }
 
