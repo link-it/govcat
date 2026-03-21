@@ -23,6 +23,7 @@ describe('HttpImgSrcPipe', () => {
       markForCheck: vi.fn()
     };
 
+    HttpImgSrcPipe.invalidateCache('');
     pipe = new HttpImgSrcPipe(mockHttpClient, mockSanitizer, mockCdr);
   });
 

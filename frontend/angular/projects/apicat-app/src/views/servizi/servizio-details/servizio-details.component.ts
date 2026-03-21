@@ -679,6 +679,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._spin = false;
                 this._isEdit = false;
                 this._isNew = false;
+                HttpImgSrcPipe.invalidateCache(`/servizi/${this.id}/immagine`);
                 this.save.emit({ id: this.id, service: response, update: false });
                 this.router.navigate([this.model, this.id], { replaceUrl: true });
             },
@@ -756,6 +757,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 } else {
                     this._loadService(false);
                 }
+                HttpImgSrcPipe.invalidateCache(`/servizi/${this.id}/immagine`);
                 this.save.emit({ id: this.id, data: response, update: true });
                 this._spin = false;
             },

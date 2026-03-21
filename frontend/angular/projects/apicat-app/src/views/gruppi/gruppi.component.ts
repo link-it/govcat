@@ -420,6 +420,9 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         _resultObject.subscribe({
             next: (response: any) => {
                 this._saving = false;
+                if (this._editCurrent?.id_gruppo) {
+                    HttpImgSrcPipe.invalidateCache(`/gruppi/${this._editCurrent.id_gruppo}/immagine`);
+                }
                 this._modalEditRef.hide();
                 this._onCloseEdit(null);
                 this._loadGruppi();
