@@ -344,6 +344,7 @@ describe('ServiziComponent', () => {
     expect(component._formGroup.get('stato')).toBeTruthy();
     expect(component._formGroup.get('visibilita')).toBeTruthy();
     expect(component._formGroup.get('id_dominio')).toBeTruthy();
+    expect(component._formGroup.get('ruolo_referente')).toBeTruthy();
   });
 
   it('should check hasCategory', () => {
