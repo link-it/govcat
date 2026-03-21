@@ -97,7 +97,7 @@
         </div>
       }
       <div class="gl-filtered-search-scrollable" style="border-top-right-radius: 0.25rem;border-bottom-right-radius: 0.25rem;">
-        @for (token of _tokens; track token; let index = $index) {
+        @for (token of _tokens; track $index; let index = $index) {
           <ui-token-segment
             [token]="token"
             [index]="index"
