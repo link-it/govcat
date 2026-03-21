@@ -83,7 +83,12 @@
               <div class="summary-card-body" [ngStyle]="getSummaryStyle('comunicazioni')">
                 <div class="summary-card-icon"><i class="bi" [ngClass]="getSectionIcon('comunicazioni')"></i></div>
                 <div class="summary-card-content">
-                  <div class="summary-card-value">{{ comunicazioniTotal }}</div>
+                  <div class="summary-card-value d-flex align-items-center gap-2">
+                    {{ comunicazioniTotal }}
+                    @if (comunicazioniTotal > 0) {
+                      <span class="unread-dot" [tooltip]="'APP.DASHBOARD_PENDING.UnreadComunicazioni' | translate" [placement]="'top'" [container]="'body'"></span>
+                    }
+                  </div>
                   <div class="summary-card-label">{{ 'APP.DASHBOARD_PENDING.Comunicazioni' | translate }}</div>
                 </div>
               </div>

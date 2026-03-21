@@ -366,6 +366,7 @@
 			"ViewAll": "Vedi tutti",
 			"NoResults": "Nessuna azione pending",
 			"NoResultsComunicazioni": "Nessuna comunicazione",
+			"UnreadComunicazioni": "Comunicazioni non lette",
 			"LastUpdate": "Ultimo aggiornamento",
 			"TotalItems": "{{count}} elementi",
 			"RUOLO": {

@@ -78,6 +78,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.1;
+
+  .unread-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    cursor: help;
+  }
 }
 
 .summary-card-label {

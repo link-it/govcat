@@ -32,6 +32,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       border-bottom: 1px solid rgba(0, 0, 21, 0.075);
       border-radius: 8px 8px 0 0;
       flex-shrink: 0;
+
+      .unread-dot-top {
+        position: absolute;
+        top: 0px;
+        right: -4px;
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #0d6efd;
+      }
     }
 
     .panel-body-scroll {

@@ -20,6 +20,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
@@ -31,6 +32,7 @@ import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
   imports: [
     CommonModule,
     TranslateModule,
+    TooltipModule,
     ...APP_COMPONENTS_IMPORTS
   ]
 })

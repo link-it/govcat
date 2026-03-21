@@ -366,6 +366,7 @@
 			"ViewAll": "View all",
 			"NoResults": "No pending actions",
 			"NoResultsComunicazioni": "No notifications",
+			"UnreadComunicazioni": "Unread communications",
 			"LastUpdate": "Last update",
 			"TotalItems": "{{count}} items",
 			"RUOLO": {
