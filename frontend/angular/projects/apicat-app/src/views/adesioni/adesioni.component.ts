@@ -143,6 +143,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' }
   ];
   _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliAdesioni.map(r => [r.value, r.label]));
+  _availableRuoliAdesioni: { value: string, label: string }[] = [...this._allRuoliAdesioni];
 
   configStatusList: any = [
     { value: StatoConfigurazione.FALLITA, label: 'APP.STATUS.fallita' },
@@ -334,7 +335,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       id_soggetto: new UntypedFormControl(null),
       id_client: new UntypedFormControl(null),
       stato_configurazione_automatica: new UntypedFormControl(''),
-      ruolo_referente: new UntypedFormControl(''),
+      ruolo_referente: new UntypedFormControl([]),
     });
   }
 
@@ -343,10 +344,16 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     if (!url) { this.adesioni = []; this._links = null; }
     
+    // Estrai ruolo_referente (array) prima di _queryToHttpParams
+    const ruoloReferenteFilter: string[] = query?.ruolo_referente || [];
+    if (query) { delete query.ruolo_referente; }
+
     let params = query ? this.utils._queryToHttpParams(query) : new HttpParams();
 
-    // Inietta ruolo_referente dal tab attivo (solo se non c'è già un filtro avanzato)
-    if (!query?.ruolo_referente) {
+    // Inietta ruolo_referente: dal filtro avanzato se presente, altrimenti dal tab attivo
+    if (ruoloReferenteFilter.length > 0) {
+      ruoloReferenteFilter.forEach(r => { params = params.append('ruolo_referente', r); });
+    } else {
       const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
       if (activeTab && activeTab.roles.length > 0) {
         activeTab.roles.forEach(r => { params = params.append('ruolo_referente', r); });
@@ -662,7 +669,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     if (this.roleTab === tab) return;
     this.roleTab = tab;
     this._updateRuoloReferenteFilter();
-    this._formGroup.get('ruolo_referente')?.setValue('');
+    this._formGroup.get('ruolo_referente')?.setValue([]);
     this.refresh();
   }
 
@@ -671,6 +678,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     const availableRoles = activeTab && activeTab.roles.length > 0
       ? this._allRuoliAdesioni.filter(r => activeTab.roles.includes(r.value))
       : this._allRuoliAdesioni;
+    this._availableRuoliAdesioni = availableRoles;
     this._ruoloReferenteEnumValues = {};
     availableRoles.forEach(r => { this._ruoloReferenteEnumValues[r.value] = r.label; });
     const searchField = this.searchFields.find((f: any) => f.field === 'ruolo_referente');

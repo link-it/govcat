@@ -154,6 +154,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' }
     ];
     _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliServizi.map(r => [r.value, r.label]));
+    _availableRuoliServizi: { value: string, label: string }[] = [...this._allRuoliServizi];
 
     searchFields: any[] = [
         // { field: 'creationDateFrom', label: 'APP.LABEL.Date', type: 'date', condition: 'gt', format: 'DD/MM/YYYY' },
@@ -511,7 +512,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             stato: new FormControl(''),
             type: new FormControl(''),
             referente: new FormControl(''),
-            ruolo_referente: new FormControl(''),
+            ruolo_referente: new FormControl([]),
             id_dominio: new FormControl(''),
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(''),
@@ -608,10 +609,16 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             const _categoriaLabel = query.categoriaLabel;
             delete query.categoriaLabel;
 
+            // Estrai ruolo_referente (array) prima di _queryToHttpParams
+            const ruoloReferenteFilter: string[] = query.ruolo_referente || [];
+            delete query.ruolo_referente;
+
             let params = this.utils._queryToHttpParams(query);
 
-            // Inietta ruolo_referente dal tab attivo (solo se non c'è già un filtro avanzato)
-            if (this._isMyServices && !query.ruolo_referente) {
+            // Inietta ruolo_referente: dal filtro avanzato se presente, altrimenti dal tab attivo
+            if (ruoloReferenteFilter.length > 0) {
+                ruoloReferenteFilter.forEach(r => { params = params.append('ruolo_referente', r); });
+            } else if (this._isMyServices) {
                 const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
                 if (activeTab && activeTab.roles.length > 0) {
                     activeTab.roles.forEach(r => { params = params.append('ruolo_referente', r); });
@@ -979,7 +986,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this.roleTab === tab) return;
         this.roleTab = tab;
         this._updateRuoloReferenteFilter();
-        this._formGroup.get('ruolo_referente')?.setValue('');
+        this._formGroup.get('ruolo_referente')?.setValue([]);
         this.refresh();
     }
 
@@ -988,6 +995,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const availableRoles = activeTab && activeTab.roles.length > 0
             ? this._allRuoliServizi.filter(r => activeTab.roles.includes(r.value))
             : this._allRuoliServizi;
+        this._availableRuoliServizi = availableRoles;
         this._ruoloReferenteEnumValues = {};
         availableRoles.forEach(r => { this._ruoloReferenteEnumValues[r.value] = r.label; });
         const searchField = this.searchFields.find((f: any) => f.field === 'ruolo_referente');

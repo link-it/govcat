@@ -203,7 +203,8 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
   __isEmptyValues(values: any) {
     let _isEmpty = true;
     Object.keys(values).forEach(key => {
-      if (values[key] !== '' && values[key] !== null) {
+      const val = values[key];
+      if (val !== '' && val !== null && !(Array.isArray(val) && val.length === 0)) {
         _isEmpty = false;
         return false;
       }
@@ -225,7 +226,9 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
         return;
       }
       const isDisabled = this.formGroup.get(key)?.disabled;
-      if (_data[key] && _data[key] !== '' && key !== 'q' && !isDisabled) {
+      const _val = _data[key];
+      const _hasValue = _val && _val !== '' && !(Array.isArray(_val) && _val.length === 0);
+      if (_hasValue && key !== 'q' && !isDisabled) {
         const _field = this.__getField(key);
 
         // Se il campo non è valido, salta questo elemento
@@ -353,8 +356,15 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
     } else {
       switch (_field.type) {
         case 'enum': {
-          const _enumKey = _field.enumValues?.[value];
-          _value = _enumKey ? this.translate.instant(_enumKey) : value;
+          if (Array.isArray(value)) {
+            _value = value.map((v: string) => {
+              const k = _field.enumValues?.[v];
+              return k ? this.translate.instant(k) : v;
+            }).join(', ');
+          } else {
+            const _enumKey = _field.enumValues?.[value];
+            _value = _enumKey ? this.translate.instant(_enumKey) : value;
+          }
           break;
         }
         case 'boolean': {
@@ -415,8 +425,9 @@ export class SearchBarFormComponent implements OnInit, OnChanges, AfterViewInit 
       if (this._tokens.length === 0) {
         this._placeholder = this.placeholder;
       }
+      const currentVal = this.formGroup.get(token.key)?.value;
       this.formGroup.patchValue({
-        [token.key]: ''
+        [token.key]: Array.isArray(currentVal) ? [] : ''
       });
     }
     this._onSearch();

@@ -235,15 +235,25 @@
                       <div class="col-sm-2">
                         <label class="col-form-label col-form-label-fix" for="ruolo_referente">{{ 'APP.LABEL.ruolo_referente' | translate }}</label>
                       </div>
-                      <div class="col-sm-10 pt-2">
-                        <select class="form-select form-control-sm" id="ruolo_referente" formControlName="ruolo_referente">
-                          <option value="">{{ 'APP.LABEL.All' | translate }}</option>
-                          @for (ruolo of _allRuoliServizi; track ruolo.value) {
-                            @if (_ruoloReferenteEnumValues[ruolo.value]) {
-                              <option [value]="ruolo.value">{{ ruolo.label | translate }}</option>
-                            }
-                          }
-                        </select>
+                      <div class="col-sm-10">
+                        <ng-select (click)="onSelectedSearchDropdwon($event)"
+                          [items]="_availableRuoliServizi"
+                          [multiple]="true"
+                          [closeOnSelect]="false"
+                          bindValue="value"
+                          bindLabel="label"
+                          labelForId="ruolo_referente"
+                          formControlName="ruolo_referente"
+                          [placeholder]="'APP.LABEL.All' | translate"
+                        >
+                          <ng-template ng-label-tmp let-item="item" let-clear="clear">
+                            <span class="ng-value-icon left" (click)="clear(item)" aria-hidden="true">×</span>
+                            <span class="ng-value-label">{{ item.label | translate }}</span>
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                            <input id="ruolo-ref-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.label | translate }}
+                          </ng-template>
+                        </ng-select>
                       </div>
                     </div>
                   }
@@ -349,7 +359,7 @@
                         [closeOnSelect]="false"
                         formControlName="tag"
                         (close)="onChangeSearchDropdwon($event)"
-                        >
+                      >
                         <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
                           <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item }}
                         </ng-template>
