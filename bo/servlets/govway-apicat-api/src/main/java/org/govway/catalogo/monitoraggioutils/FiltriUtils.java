@@ -235,7 +235,7 @@ public class FiltriUtils {
 			}
 
 			if(apiLst.isEmpty()) {
-				throw new BadRequestException(ErrorCode.API_404, Map.of("idServizio", idServizio.toString()));
+				throw new BadRequestException(ErrorCode.API_404_FOR_SERVICE, Map.of("idServizio", idServizio.toString()));
 			}
 			
 			return apiLst;

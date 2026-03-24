@@ -283,8 +283,8 @@ public class AdesioniController implements AdesioniApi {
 
 		aspec.setIdAdesioni(List.of(idAdesione));
 
-		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404));
-		
+		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404, Map.of("idAdesione", idAdesione.toString())));
+
 	}
 	
 	@Override
@@ -301,7 +301,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -447,7 +447,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
@@ -526,7 +526,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -1486,7 +1486,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1519,7 +1519,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1567,7 +1567,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 				
 				if(allegato == null) {
-					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_ALLEGATO, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -1610,7 +1610,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 
 				if(allegato == null) {
-					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_ALLEGATO, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -1653,7 +1653,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.CLT_404, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.CLT_404_PROFILE, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -1694,7 +1694,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.CLT_404, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.CLT_404_PROFILE, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -1735,7 +1735,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.API_404_EROGATION, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -1776,7 +1776,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.API_404_EROGATION, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -2172,7 +2172,7 @@ public class AdesioniController implements AdesioniApi {
 						.collect(Collectors.toList());
 
 				if(lst.size() != 1) {
-					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_ALLEGATO, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				DocumentoEntity allegato = lst.get(0).getDocumento();

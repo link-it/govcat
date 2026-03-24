@@ -23,6 +23,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -225,7 +226,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", classe.toString()))));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -256,7 +257,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 
 	private void saveDominioServizio(UUID idDominio, UUID idSoggetto, ServizioEntity entity) {
 		DominioEntity newDominio = dominioService.find(idDominio).
-				orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404));
+				orElseThrow(() -> new NotFoundException(ErrorCode.DOM_404, Map.of("idDominio", idDominio.toString())));
 		
 		if(entity.isFruizione()) {
 			if(idSoggetto==null) {
@@ -264,7 +265,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			}
 			
 			SoggettoEntity soggettoInterno = this.soggettoService.find(idSoggetto).
-					orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
+					orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", idSoggetto.toString())));
 			
 			if(soggettoInterno.getOrganizzazione().isEsterna()) {
 				throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422);
@@ -380,7 +381,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", classe.toString()))));
 			}
 		} else {
 			entity.getClassi().clear();

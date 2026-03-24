@@ -63,6 +63,18 @@ public enum ErrorCode {
     /** Specifica non presente */
     API_400_SPEC("Specifica non presente"),
 
+    /** API ha erogazioni, non eliminabile */
+    API_400_HAS_EROGATIONS("API ha erogazioni attive"),
+
+    /** API non trovata per il servizio */
+    API_404_FOR_SERVICE("API non trovata per il servizio"),
+
+    /** API non trovata per nome/versione/erogatore */
+    API_404_BY_NAME("API non trovata per nome"),
+
+    /** Erogazione non trovata per l'adesione */
+    API_404_EROGATION("Erogazione non trovata per l'adesione"),
+
     // ==================== SERVIZI ====================
 
     /** Servizio non trovato */
@@ -95,6 +107,12 @@ public enum ErrorCode {
     /** Impossibile aggiungere utente come referente del package */
     SRV_403_ADD_REFERENT("Impossibile aggiungere referente al package"),
 
+    /** Conflitto servizio */
+    SRV_409_CONFLICT("Conflitto servizio"),
+
+    /** Operazione non valida sul servizio */
+    SRV_400_INVALID("Operazione non valida sul servizio"),
+
     // ==================== ORGANIZZAZIONI ====================
 
     /** Organizzazione non trovata */
@@ -102,6 +120,12 @@ public enum ErrorCode {
 
     /** Organizzazione già esistente */
     ORG_409("Organizzazione già esistente"),
+
+    /** Organizzazione ha dipendenze, non eliminabile */
+    ORG_400_HAS_DEPENDENCIES("Organizzazione ha dipendenze"),
+
+    /** Vincolo organizzazione non rispettato */
+    ORG_400_CONSTRAINT_VIOLATION("Vincolo organizzazione non rispettato"),
 
     // ==================== DOMINI ====================
 
@@ -119,6 +143,12 @@ public enum ErrorCode {
     /** Soggetto già esistente */
     SOG_409("Soggetto già esistente"),
 
+    /** Soggetto non trovato per nome */
+    SOG_404_BY_NAME("Soggetto non trovato per nome"),
+
+    /** Soggetto non trovato nell'organizzazione */
+    SOG_404_IN_ORG("Soggetto non trovato nell'organizzazione"),
+
     // ==================== UTENTI ====================
 
     /** Utente non trovato */
@@ -127,11 +157,20 @@ public enum ErrorCode {
     /** Utente già esistente */
     UT_409("Utente già esistente"),
 
-    /** Utente già esistente */
+    /** Utente non abilitato */
+    UT_400_NOT_ENABLED("Utente non abilitato"),
+
+    /** Utente non appartenente all'organizzazione richiesta */
+    UT_400_ORG_MISMATCH("Utente non appartenente all'organizzazione"),
+
+    /** Utente non abilitato */
     UT_403("Utente non abilitato"),
 
     /** Modifica email non consentita tramite updateProfilo quando verifica è abilitata */
     UT_403_EMAIL_CHANGE("Modifica email non consentita. Utilizzare il flusso di verifica email"),
+
+    /** Utente non trovato per nome */
+    UT_404_BY_NAME("Utente non trovato per nome"),
 
     /** Ruolo coordinatore non abilitato nella configurazione */
     UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
@@ -148,6 +187,15 @@ public enum ErrorCode {
 
     /** Client non trovato */
     CLT_404("Client non trovato"),
+
+    /** Client senza adesioni valide */
+    CLT_404_NO_ADHESION("Client senza adesioni valide"),
+
+    /** Client non trovato per nome/soggetto/ambiente */
+    CLT_404_BY_NAME("Client non trovato per nome"),
+
+    /** Profilo client non trovato per adesione */
+    CLT_404_PROFILE("Profilo client non trovato per adesione"),
 
     /** Client già esistente */
     CLT_409("Client già esistente"),
@@ -175,6 +223,9 @@ public enum ErrorCode {
     /** Referente adesione non autorizzato */
     ADE_403_REFERENT("Referente non autorizzato"),
 
+    /** Adesione non trovata per contesto specifico */
+    ADE_404_BY_CONTEXT("Adesione non trovata per contesto"),
+
     // ==================== TASSONOMIE ====================
 
     /** Tassonomia non trovata */
@@ -183,6 +234,12 @@ public enum ErrorCode {
     /** Tassonomia già esistente */
     TAX_409("Tassonomia già esistente"),
 
+    /** Tassonomia ha categorie, non eliminabile */
+    TAX_400_HAS_CATEGORIES("Tassonomia ha categorie"),
+
+    /** Categoria padre in tassonomia diversa */
+    TAX_400_CATEGORY_MISMATCH("Categoria padre in tassonomia diversa"),
+
     // ==================== CATEGORIE ====================
 
     /** Categoria non trovata */
@@ -190,6 +247,12 @@ public enum ErrorCode {
 
     /** Categoria già esistente */
     CAT_409("Categoria già esistente"),
+
+    /** Categoria ha sotto-categorie, non eliminabile */
+    CAT_400_HAS_CHILDREN("Categoria ha sotto-categorie"),
+
+    /** Tassonomia visibile senza categorie */
+    CAT_400_EMPTY_TAXONOMY("Tassonomia visibile senza categorie"),
 
     // ==================== GRUPPI ====================
 
@@ -209,6 +272,9 @@ public enum ErrorCode {
 
     /** Documento con UUID e versione non trovato */
     DOC_404_VERSION("Documento versione non trovata"),
+
+    /** Allegato non trovato per l'adesione */
+    DOC_404_ALLEGATO("Allegato non trovato per l'adesione"),
 
     /** Formato documento non supportato */
     DOC_400_FORMAT("Formato documento non supportato"),

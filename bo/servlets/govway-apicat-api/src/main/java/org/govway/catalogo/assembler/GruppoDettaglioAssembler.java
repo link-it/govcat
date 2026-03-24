@@ -21,6 +21,7 @@ package org.govway.catalogo.assembler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.GruppiController;
@@ -99,14 +100,14 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	
 	public GruppoEntity toEntity(GruppoUpdate src, GruppoEntity entity) {
 		BeanUtils.copyProperties(src, entity);
-		
+
 		if(src.getPadre()!= null) {
 			if(src.getPadre().toString().equals(entity.getIdGruppo())) {
-				throw new NotFoundException(ErrorCode.GRP_404);
+				throw new NotFoundException(ErrorCode.GRP_404, Map.of("idGruppo", src.getPadre().toString()));
 			}
-			
+
 			entity.setGruppoPadre(this.gruppoService.find(src.getPadre())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_404))
+					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_404, Map.of("idGruppo", src.getPadre().toString())))
 					);
 		} else {
 			entity.setGruppoPadre(null);
@@ -136,11 +137,11 @@ public class GruppoDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		if(src.getPadre()!= null) {
 			if(src.getPadre().toString().equals(entity.getIdGruppo())) {
-				throw new NotFoundException(ErrorCode.GRP_404);
+				throw new NotFoundException(ErrorCode.GRP_404, Map.of("idGruppo", src.getPadre().toString()));
 			}
-			
+
 			entity.setGruppoPadre(this.gruppoService.find(src.getPadre())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_404))
+					.orElseThrow(() -> new NotFoundException(ErrorCode.GRP_404, Map.of("idGruppo", src.getPadre().toString())))
 					);
 		}
 		

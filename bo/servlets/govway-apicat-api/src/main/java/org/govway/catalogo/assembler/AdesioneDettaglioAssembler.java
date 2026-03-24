@@ -399,9 +399,9 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		ServizioSpecification spec = new ServizioSpecification();
 		spec.setStatiAderibili(this.configurazione.getServizio().getStatiAdesioneConsentita());
 		spec.setIdServizi(Arrays.asList(idServizio));
-		
+
 		ServizioEntity servizio = this.servizioService.findOne(spec).
-				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404));
+				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 
 		return servizio;
 	}
@@ -421,7 +421,7 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 			ErogazioneEntity erog = new ErogazioneEntity();
 			
 			erog.setAmbiente(ambiente);
-			erog.setApi(this.apiService.find(idErogazione).orElseThrow(() -> new NotFoundException(ErrorCode.API_404)));
+			erog.setApi(this.apiService.find(idErogazione).orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", idErogazione.toString()))));
 			erog.setStato(StatoEnum.CONFIGURATO);
 			
 			entity.getErogazioni().add(erog);
@@ -475,11 +475,11 @@ public class AdesioneDettaglioAssembler extends RepresentationModelAssemblerSupp
 		List<ClientRichiesto> cr = this.adesioneAuthorization.getClientRichiesti(entity.getServizio());
 		
 		ApiEntity api = idApi != null ? this.apiService.find(idApi)
-				.orElseThrow(() -> new NotFoundException(ErrorCode.API_404)) : null;
+				.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", idApi.toString()))) : null;
 
 		ConfigurazioneCustomAdesioneProprietaList g = configurazione.getAdesione().getProprietaCustom().stream()
 				.filter(c -> c.getNomeGruppo().equals(apc.getGruppo()) && this.adesioneAuthorization.applies(c, cr))
-				.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404));
+				.findAny().orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404, Map.of("idGruppo", apc.getGruppo())));
 
 		AmbienteEnum ambiente = g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO)
 				|| g.getClasseDato().equals(ConfigurazioneClasseDato.COLLAUDO_CONFIGURATO) ? AmbienteEnum.COLLAUDO

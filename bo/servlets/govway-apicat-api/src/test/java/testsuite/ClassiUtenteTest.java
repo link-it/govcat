@@ -161,7 +161,7 @@ public class ClassiUtenteTest {
         });
 
         // Asserzioni
-        assertEquals("CLS.404", exception.getMessage());
+        assertEquals("CLS.409", exception.getMessage());
     }
 
     @Test

@@ -1119,7 +1119,12 @@
 					"403": {
 						"REFERENT": "Referente adesione [{{referente}}] non autorizzato"
 					},
-					"404": "Adesione [{{idAdesione}}] non trovata",
+					"404": {
+						"DEFAULT": "Adesione [{{idAdesione}}] non trovata",
+						"BY": {
+							"CONTEXT": "Adesione non trovata per soggetto [{{nomeSoggetto}}] al servizio [{{nomeServizio}} v{{versioneServizio}}]"
+						}
+					},
 					"409": {
 						"DEFAULT": "Adesione [{{nome}}] già esistente",
 						"STATE": "Impossibile modificare adesione in stato [{{stato}}]"
@@ -1129,12 +1134,22 @@
 					"400": {
 						"DELETE": "Impossibile eliminare l'API [{{nome}}/{{versione}}] perché è utilizzata in [{{numeroAdesioni}}] adesioni",
 						"DUPLICATE": "Allegato [{{allegato}}] duplicato",
+						"HAS": {
+							"EROGATIONS": "Impossibile eliminare l'API [{{nome}}/{{versione}}] perché ha [{{count}}] erogazioni attive"
+						},
 						"SPEC": "Specifica non presente",
 						"VISIBILITY": "Visibilita [{{visibilita}}] non consentita"
 					},
 					"404": {
 						"DEFAULT": "API [{{idApi}}] non trovata",
-						"ATTACHMENT": "Allegato [{{idAllegato}}] non trovato per l'API [{{idApi}}]"
+						"ATTACHMENT": "Allegato [{{idAllegato}}] non trovato per l'API [{{idApi}}]",
+						"BY": {
+							"NAME": "API [{{nomeApi}}/{{versione}}/{{erogatore}}] non trovata"
+						},
+						"EROGATION": "Erogazione [{{idErogazione}}] non trovata per l'adesione [{{idAdesione}}]",
+						"FOR": {
+							"SERVICE": "Nessuna API trovata per il servizio [{{idServizio}}]"
+						}
 					},
 					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia"
 				},
@@ -1156,6 +1171,14 @@
 					}
 				},
 				"CAT": {
+					"400": {
+						"EMPTY": {
+							"TAXONOMY": "Tassonomia visibile ma senza categorie configurate"
+						},
+						"HAS": {
+							"CHILDREN": "Impossibile eliminare la categoria [{{nome}}] perché ha sotto-categorie"
+						}
+					},
 					"404": "Categoria [{{idCategoria}}] non trovata",
 					"409": "Categoria [{{nome}}] già esistente per tassonomia [{{tassonomia}}]"
 				},
@@ -1169,7 +1192,16 @@
 						"CONFIG": "Configurazione client non valida: {{dettagli}}",
 						"EXTENSION": "Estensione client [{{tipo}}] non supportata"
 					},
-					"404": "Client [{{idClient}}] non trovato",
+					"404": {
+						"DEFAULT": "Client non trovato",
+						"NO": {
+							"ADHESION": "Client [{{nomeClient}}] non ha adesioni valide"
+						},
+						"BY": {
+							"NAME": "Client [{{nomeClient}}] non trovato per soggetto [{{nomeSoggetto}}] e ambiente [{{ambiente}}]"
+						},
+						"PROFILE": "Profilo [{{profilo}}] non trovato per l'adesione [{{idAdesione}}]"
+					},
 					"409": "Client [{{nome}}] già esistente per soggetto [{{soggetto}}] e ambiente [{{ambiente}}]"
 				},
 				"Default": "Si è verificato un problema non previsto",
@@ -1180,7 +1212,8 @@
 						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]"
 					},
 					"404": {
-						"DEFAULT": "Documento [{{idDocumento}}] non trovato",
+						"DEFAULT": "Documento non trovato",
+						"ALLEGATO": "Allegato [{{idAllegato}}] non trovato per l'adesione [{{idAdesione}}]",
 						"VERSION": "Documento con UUID [{{uuid}}] e versione [{{versione}}] non trovato"
 					},
 					"500": "Impossibile elaborare il documento: {{errore}}"
@@ -1259,6 +1292,14 @@
 					"500": "Impossibile inviare notifica: {{errore}}"
 				},
 				"ORG": {
+					"400": {
+						"CONSTRAINT": {
+							"VIOLATION": "Impossibile modificare l'attributo dell'organizzazione perché è in uso"
+						},
+						"HAS": {
+							"DEPENDENCIES": "Impossibile eliminare l'organizzazione [{{nome}}] perché ha dipendenze attive"
+						}
+					},
 					"404": "Organizzazione [{{idOrganizzazione}}] non trovata",
 					"409": "Organizzazione [{{nome}}] già esistente"
 				},
@@ -1309,7 +1350,15 @@
 					}
 				},
 				"SOG": {
-					"404": "Soggetto [{{idSoggetto}}] non trovato",
+					"404": {
+						"DEFAULT": "Soggetto non trovato",
+						"BY": {
+							"NAME": "Soggetto [{{nome}}] non trovato"
+						},
+						"IN": {
+							"ORG": "Soggetto [{{nomeSoggetto}}] non trovato nell'organizzazione [{{nomeOrganizzazione}}]"
+						}
+					},
 					"409": "Soggetto [{{nome}}] già esistente"
 				},
 				"SRV": {
@@ -1319,6 +1368,7 @@
 								"LEAF": "Impossibile associare la Categoria [{{categoria}}] al servizio [{{nome}}/{{versione}}]. categoria non foglia"
 							}
 						},
+						"INVALID": "Operazione non valida sul servizio",
 						"NOT": {
 							"DELETABLE": "Il servizio non è eliminabile",
 							"REGISTERED": "Utente non registrato, impossibile recuperare servizi in attesa"
@@ -1340,6 +1390,7 @@
 					"409": {
 						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste gia",
 						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
+						"CONFLICT": "Conflitto sul servizio",
 						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
 						"STATE": ""
 					}
@@ -1355,6 +1406,14 @@
 					"503": "Risorsa [{{risorsa}}] temporaneamente non disponibile"
 				},
 				"TAX": {
+					"400": {
+						"CATEGORY": {
+							"MISMATCH": "Categoria padre [{{idCategoria}}] appartiene a una tassonomia diversa [{{tassonomia}}]"
+						},
+						"HAS": {
+							"CATEGORIES": "Impossibile eliminare la tassonomia [{{nome}}] perché ha categorie associate"
+						}
+					},
 					"404": "Tassonomia [{{idTassonomia}}] non trovata",
 					"409": "Tassonomia [{{nome}}] già esistente"
 				},
@@ -1367,13 +1426,29 @@
 				"Unauthorized": "Non autorizzato",
 				"Unprocessable Entity": "Entità non elaborabile",
 				"UT": {
-					"404": "Utente [{{idUtente}}] non trovato",
-					"409": "Utente [{{principal}}] già esistente",
+					"400": {
+						"COORDINATORE": {
+							"DISABLED": "Ruolo coordinatore non abilitato"
+						},
+						"NOT": {
+							"ENABLED": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato"
+						},
+						"ORG": {
+							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]"
+						}
+					},
 					"403": {
 						"EMAIL": {
 							"CHANGE": "Modifica email non consentita. Utilizzare il flusso di verifica email."
 						}
-					}
+					},
+					"404": {
+						"DEFAULT": "Utente non trovato",
+						"BY": {
+							"NAME": "Utente [{{nomeUtente}} {{cognomeUtente}}] non trovato"
+						}
+					},
+					"409": "Utente [{{principal}}] già esistente"
 				},
 				"VAL": {
 					"400": {

@@ -259,7 +259,7 @@ public class NotificheController implements NotificheApi {
 
 		ServizioEntity servizio = null;
 		if(idServizio != null) {
-			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
+			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 		}
 
 		AdesioneEntity adesione = null;
@@ -373,7 +373,7 @@ public class NotificheController implements NotificheApi {
 
 				if(!this.coreAuthorization.isAdmin()) {
 					if(!this.coreAuthorization.getUtenteSessione().getId().equals(entity.getDestinatario().getId())) {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING);
+						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					}
 				}
 				

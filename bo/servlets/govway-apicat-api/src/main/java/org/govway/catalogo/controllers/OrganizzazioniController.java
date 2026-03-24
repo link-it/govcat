@@ -135,7 +135,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(entity.getUtenti().size() > 0) {
-					throw new BadRequestException(ErrorCode.ORG_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.ORG_400_HAS_DEPENDENCIES, Map.of("nome", entity.getNome()));
 				}
 
 				SoggettoEntity sd = null;
@@ -156,7 +156,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				int size = sd == null ? 0: 1;
 				
 				if(entity.getSoggetti().size() > size) {
-					throw new BadRequestException(ErrorCode.ORG_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.ORG_400_HAS_DEPENDENCIES, Map.of("nome", entity.getNome()));
 				}
 
 				this.service.delete(entity);
