@@ -269,7 +269,7 @@ public class UtentiController implements UtentiApi {
 
 					for(UUID classeUtente: classiUtente) {
 						entities.add(this.classeUtenteService.findByIdClasseUtente(classeUtente)
-								.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+								.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, Map.of("idClasseUtente", classeUtente.toString()))));
 					}
 					spec.setIdClassiUtente(entities);
 				}
@@ -477,7 +477,7 @@ public class UtentiController implements UtentiApi {
 
 				// Recupera la nuova organizzazione
 				OrganizzazioneEntity nuovaOrg = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazione().toString())));
 
 				// Imposta organizzazione pending e stato
 				entity.setOrganizzazionePending(nuovaOrg);

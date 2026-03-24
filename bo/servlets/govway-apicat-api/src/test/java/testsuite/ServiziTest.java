@@ -526,7 +526,7 @@ public class ServiziTest {
         Exception exception = assertThrows(BadRequestException.class, () -> {
             serviziController.createAllegatoServizio(createdServizio.getBody().getIdServizio(), allegati);
         });
-        assertTrue(exception.getMessage().contains("SRV.409"));  // Error code check
+        assertTrue(exception.getMessage().contains("SRV.400.INVALID"));  // Error code check
     }
 
     @Test
@@ -1878,7 +1878,7 @@ public class ServiziTest {
 	    Exception exception = assertThrows(NotFoundException.class, () -> {
 	        serviziController.listComponentiPackage(idPackageNonEsistente, pageable);
 	    });
-        assertTrue(exception.getMessage().contains("SRV.409"));  // Error code check
+        assertTrue(exception.getMessage().contains("SRV.404"));  // Error code check
 	}
 
 	@Test

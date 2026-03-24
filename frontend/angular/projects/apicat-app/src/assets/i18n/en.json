@@ -1110,7 +1110,12 @@
 					"403": {
 						"REFERENT": "Membership referent not authorized"
 					},
-					"404": "Membership [{{idAdesione}}] not found",
+					"404": {
+						"DEFAULT": "Membership [{{idAdesione}}] not found",
+						"BY": {
+							"CONTEXT": "Membership not found for subject [{{nomeSoggetto}}] to service [{{nomeServizio}} v{{versioneServizio}}]"
+						}
+					},
 					"409": {
 						"DEFAULT": "Membership for subject [{{soggetto}}] to service [{{servizio}} v{{versione}}] already exists",
 						"STATE": "Cannot modify membership in current state"
@@ -1120,12 +1125,22 @@
 					"400": {
 						"DELETE": "Cannot delete API [{{nome}}/{{versione}}] because it is used in [{{numeroAdesioni}}] memberships",
 						"DUPLICATE": "Attachment [{{allegato}}] duplicated",
+						"HAS": {
+							"EROGATIONS": "Cannot delete API [{{nome}}/{{versione}}] because it has [{{count}}] active erogations"
+						},
 						"SPEC": "Specification not present",
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed"
 					},
 					"404": {
 						"DEFAULT": "API [{{idApi}}] not found",
-						"ATTACHMENT": "Attachment [{{idAllegato}}] not found for API [{{idApi}}]"
+						"ATTACHMENT": "Attachment [{{idAllegato}}] not found for API [{{idApi}}]",
+						"BY": {
+							"NAME": "API [{{nomeApi}}/{{versione}}/{{erogatore}}] not found"
+						},
+						"EROGATION": "Erogation [{{idErogazione}}] not found for membership [{{idAdesione}}]",
+						"FOR": {
+							"SERVICE": "No API found for service [{{idServizio}}]"
+						}
 					},
 					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] already exists"
 				},
@@ -1147,7 +1162,15 @@
 					}
 				},
 				"CAT": {
-					"404": "Category [{{nome}}] not found",
+					"400": {
+						"EMPTY": {
+							"TAXONOMY": "Visible taxonomy with no configured categories"
+						},
+						"HAS": {
+							"CHILDREN": "Cannot delete category [{{nome}}] because it has sub-categories"
+						}
+					},
+					"404": "Category [{{idCategoria}}] not found",
 					"409": "Category [{{nome}}] already exists for taxonomy [{{tassonomia}}]"
 				},
 				"CheckPrivateKey": "An error was found in the data you entered. Please check the data you entered and try again.",
@@ -1160,7 +1183,16 @@
 						"CONFIG": "Invalid client configuration",
 						"EXTENSION": "Client extension [{{tipo}}] not supported"
 					},
-					"404": "Client [{{nomeClient}}] not found",
+					"404": {
+						"DEFAULT": "Client not found",
+						"NO": {
+							"ADHESION": "Client [{{nomeClient}}] has no valid memberships"
+						},
+						"BY": {
+							"NAME": "Client [{{nomeClient}}] not found for subject [{{nomeSoggetto}}] and environment [{{ambiente}}]"
+						},
+						"PROFILE": "Profile [{{profilo}}] not found for membership [{{idAdesione}}]"
+					},
 					"409": "Client [{{nome}}] already exists for subject [{{soggetto}}] and environment [{{ambiente}}]"
 				},
 				"Default": "Sorry, unpredictable problem",
@@ -1171,7 +1203,8 @@
 						"SIZE": "Document size [{{dimensione}}] exceeds limit of [{{limite}}]"
 					},
 					"404": {
-						"DEFAULT": "Document [{{idAllegato}}] not found for membership [{{idAdesione}}]",
+						"DEFAULT": "Document not found",
+						"ALLEGATO": "Attachment [{{idAllegato}}] not found for membership [{{idAdesione}}]",
 						"VERSION": "Document with UUID [{{uuid}}] and version [{{versione}}] not found"
 					},
 					"500": "Cannot process document: {{errore}}"
@@ -1250,7 +1283,15 @@
 					"500": "Cannot send notification: {{errore}}"
 				},
 				"ORG": {
-					"404": "Organization [{{nome}}] not found",
+					"400": {
+						"CONSTRAINT": {
+							"VIOLATION": "Cannot modify organization attribute because it is in use"
+						},
+						"HAS": {
+							"DEPENDENCIES": "Cannot delete organization [{{nome}}] because it has active dependencies"
+						}
+					},
+					"404": "Organization [{{idOrganizzazione}}] not found",
 					"409": "Organization [{{nome}}] already exists"
 				},
 				"PRF": {
@@ -1300,7 +1341,15 @@
 					}
 				},
 				"SOG": {
-					"404": "Subject [{{nome}}] not found",
+					"404": {
+						"DEFAULT": "Subject not found",
+						"BY": {
+							"NAME": "Subject [{{nome}}] not found"
+						},
+						"IN": {
+							"ORG": "Subject [{{nomeSoggetto}}] not found in organization [{{nomeOrganizzazione}}]"
+						}
+					},
 					"409": "Subject [{{nome}}] already exists"
 				},
 				"SRV": {
@@ -1310,6 +1359,7 @@
 								"LEAF": "Cannot associate category [{{categoria}}] to service [{{nome}}/{{versione}}]. Category is not a leaf"
 							}
 						},
+						"INVALID": "Invalid operation on service",
 						"NOT": {
 							"DELETABLE": "Service cannot be deleted",
 							"REGISTERED": "User not registered, cannot retrieve pending services"
@@ -1331,6 +1381,7 @@
 					"409": {
 						"DEFAULT": "Service [{{nome}} v{{versione}}] already exists",
 						"CATEGORY": "Category [{{categoria}}] already associated to service [{{nome}}/{{versione}}]",
+						"CONFLICT": "Service conflict",
 						"GROUP": "Group [{{gruppo}}] already associated to service [{{nome}}/{{versione}}]",
 						"STATE": "Cannot modify service in current state"
 					}
@@ -1346,7 +1397,15 @@
 					"503": "Resource temporarily unavailable"
 				},
 				"TAX": {
-					"404": "Taxonomy [{{nome}}] not found",
+					"400": {
+						"CATEGORY": {
+							"MISMATCH": "Parent category [{{idCategoria}}] belongs to a different taxonomy [{{tassonomia}}]"
+						},
+						"HAS": {
+							"CATEGORIES": "Cannot delete taxonomy [{{nome}}] because it has associated categories"
+						}
+					},
+					"404": "Taxonomy [{{idTassonomia}}] not found",
 					"409": "Taxonomy [{{nome}}] already exists"
 				},
 				"Timeout": "Download timeout. Please try again later.",
@@ -1361,6 +1420,12 @@
 					"400": {
 						"COORDINATORE": {
 							"DISABLED": "Coordinator role not enabled"
+						},
+						"NOT": {
+							"ENABLED": "User [{{nomeUtente}} {{cognomeUtente}}] not enabled"
+						},
+						"ORG": {
+							"MISMATCH": "User [{{nomeUtente}} {{cognomeUtente}}] does not belong to organization [{{nomeOrganizzazione}}]"
 						}
 					},
 					"403": {
@@ -1369,7 +1434,12 @@
 							"CHANGE": "Email change not allowed. Please use the email verification flow."
 						}
 					},
-					"404": "User [{{idUtente}}] not found",
+					"404": {
+						"DEFAULT": "User not found",
+						"BY": {
+							"NAME": "User [{{nomeUtente}} {{cognomeUtente}}] not found"
+						}
+					},
 					"409": "User [{{principal}}] already exists"
 				},
 				"VAL": {

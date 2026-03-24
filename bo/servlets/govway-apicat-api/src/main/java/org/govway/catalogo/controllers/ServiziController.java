@@ -303,7 +303,7 @@ public class ServiziController implements ServiziApi {
 
 				for(AllegatoItemCreate allegato: allegatoCreate) {
 					if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegato.getVisibilita())) {
-						throw new BadRequestException(ErrorCode.SRV_409);
+						throw new BadRequestException(ErrorCode.SRV_400_INVALID);
 					}
 					
 					AllegatoServizioEntity allEntity = this.allegatoAssembler.toEntity(allegato, entity);
@@ -413,7 +413,7 @@ public class ServiziController implements ServiziApi {
 					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
 						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					} else {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE);
+						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					}
 				}
 				
@@ -443,9 +443,9 @@ public class ServiziController implements ServiziApi {
 		
 		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 			} else {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 			}
 		}
 		
@@ -499,7 +499,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione in corso ...");
 
 				ServizioEntity entity = this.service.find(idServizio)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 
 
 				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -563,7 +563,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-					throw new ConflictException(ErrorCode.SRV_404);
+					throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
 				}
 
 				this.service.save(entity);
@@ -1010,7 +1010,7 @@ public class ServiziController implements ServiziApi {
 
 					if(nomeCambiato || versioneCambiata) {
 						if(this.service.existsByNomeVersioneNonArchiviato(servizioUpdate.getIdentificativo().getNome(), servizioUpdate.getIdentificativo().getVersione(), configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-							throw new ConflictException(ErrorCode.SRV_404);
+							throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
 						}
 
 					}
@@ -1069,7 +1069,7 @@ public class ServiziController implements ServiziApi {
 				boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
 				if(wasArchiviato && !isArchiviato) {
 					if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-						throw new ConflictException(ErrorCode.SRV_404);
+						throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
 					}
 				}
 
@@ -1713,7 +1713,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegatoUpdate.getVisibilita())) {
-					throw new BadRequestException(ErrorCode.SRV_409);
+					throw new BadRequestException(ErrorCode.SRV_400_INVALID);
 				}
 				
 				String key = allegatoUpdate.getFilename()+ "_" + this.allegatoAssembler.toTipologia(allegatoUpdate.getTipologia());
@@ -1996,7 +1996,7 @@ public class ServiziController implements ServiziApi {
 
 		aspec.setIdServizi(List.of(idServizio));
 
-		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
+		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 
 	}
 	
@@ -2503,7 +2503,7 @@ public class ServiziController implements ServiziApi {
 					specification.setIdServizi(List.of(idPackage));
 					
 					ServizioEntity _package = this.service.findOne(specification)
-							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idPackage", idPackage.toString())));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idPackage", idPackage.toString())));
 
 					ServizioEntity componente = this.findOne(idComponente);
 

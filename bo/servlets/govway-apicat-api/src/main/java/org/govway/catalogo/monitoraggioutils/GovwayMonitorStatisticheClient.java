@@ -1139,7 +1139,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 				long count = this.catalogoCache.countAdesioni(servizio.getIdServizio(), soggProvider.getIdSoggetto());
 
 				if(count <= 0) {
-					throw new NotFoundException(ErrorCode.ADE_404, Map.of("nomeSoggetto", request.getProvider(), "nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
+					throw new NotFoundException(ErrorCode.ADE_404_BY_CONTEXT, Map.of("nomeSoggetto", request.getProvider(), "nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
 				}
 	
 				origine = erogatore+"/"+request.getProvider()+"/"+request.getName()+"/v"+request.getVersion();

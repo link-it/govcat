@@ -123,7 +123,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_404);
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
 				}
 				
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -137,7 +137,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		if(src.isReferente() != null) {
 			if(!src.isReferente() && entity.isReferente()) {
 				if(isVincolaReferente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_404);
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
 				}
 
 				for(SoggettoEntity s: entity.getSoggetti()) {
@@ -152,7 +152,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 			
 			if(src.isEsterna().booleanValue() != entity.isEsterna()) {
 				if(!isCambioConsentito(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_404);
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
 				}
 			}
 			

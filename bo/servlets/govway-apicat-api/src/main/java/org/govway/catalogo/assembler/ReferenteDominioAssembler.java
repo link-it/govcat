@@ -118,12 +118,12 @@ public class ReferenteDominioAssembler extends RepresentationModelAssemblerSuppo
 				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO) && !utente.getStato().equals(Stato.PENDING_UPDATE)) {
-			throw new BadRequestException(ErrorCode.UT_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+			throw new BadRequestException(ErrorCode.UT_400_NOT_ENABLED, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.UT_409, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+				throw new BadRequestException(ErrorCode.UT_400_NOT_ENABLED, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 			}
 
 		}

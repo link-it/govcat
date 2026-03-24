@@ -91,7 +91,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 				ClasseUtenteEntity entity = this.dettaglioAssembler.toEntity(classeUtenteCreate);
 
 				if(this.service.exists(entity)) {
-					throw new ConflictException(ErrorCode.CLS_404, java.util.Map.of("nome", classeUtenteCreate.getNome()));
+					throw new ConflictException(ErrorCode.CLS_409, java.util.Map.of("nome", classeUtenteCreate.getNome()));
 				}
 
 				this.service.save(entity);
@@ -120,7 +120,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", idClasseUtente.toString())));
 
 			this.authorization.authorizeDelete(entity);
 			this.logger.debug("Autorizzazione completata con successo");     
@@ -146,7 +146,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", idClasseUtente.toString())));
 
 			this.authorization.authorizeGet(entity);
 			this.logger.debug("Autorizzazione completata con successo");     
@@ -217,7 +217,7 @@ public class ClassiUtenteController implements ClassiUtenteApi {
 
 				this.logger.info("Invocazione in corso ...");     
 				ClasseUtenteEntity entity = this.service.findByIdClasseUtente(idClasseUtente)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", idClasseUtente.toString())));
 
 				this.authorization.authorizeUpdate(classeUtenteUpdate,entity);
 				this.logger.debug("Autorizzazione completata con successo");     

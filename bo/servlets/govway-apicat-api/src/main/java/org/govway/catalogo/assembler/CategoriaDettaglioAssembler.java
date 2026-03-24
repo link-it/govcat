@@ -115,10 +115,10 @@ public class CategoriaDettaglioAssembler extends RepresentationModelAssemblerSup
 		entity.setTassonomia(tassonomia);
 		
 		if(src.getCategoriaPadre()!=null) {
-			CategoriaEntity padre = this.service.findCategoria(src.getCategoriaPadre()).orElseThrow(() -> new BadRequestException(ErrorCode.TAX_404));
+			CategoriaEntity padre = this.service.findCategoria(src.getCategoriaPadre()).orElseThrow(() -> new BadRequestException(ErrorCode.CAT_404, java.util.Map.of("idCategoria", src.getCategoriaPadre().toString())));
 
 			if(!padre.getTassonomia().getIdTassonomia().equals(entity.getTassonomia().getIdTassonomia())) {
-				throw new BadRequestException(ErrorCode.TAX_409, java.util.Map.of("idCategoria", src.getCategoriaPadre().toString(), "tassonomia", entity.getTassonomia().toString()));
+				throw new BadRequestException(ErrorCode.TAX_400_CATEGORY_MISMATCH, java.util.Map.of("idCategoria", src.getCategoriaPadre().toString(), "tassonomia", entity.getTassonomia().toString()));
 			}
 
 			if(!padre.getServizi().isEmpty()) {

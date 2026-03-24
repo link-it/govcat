@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -267,7 +268,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 		entity.setIdApi(UUID.randomUUID().toString());
 
 		entity.getServizi().add(servizioService.find(src.getIdServizio()).
-				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404)));
+				orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", src.getIdServizio().toString()))));
 
 		entity.setRuolo(this.apiEngineAssembler.toRuolo(src.getRuolo()));
 
@@ -366,7 +367,7 @@ public class ApiDettaglioAssembler extends RepresentationModelAssemblerSupport<A
 				.stream()
 				.filter(c -> c.getNomeGruppo().equals(apc.getGruppo()))
 				.findAny()
-				.orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404));
+				.orElseThrow(() -> new BadRequestException(ErrorCode.GRP_404, Map.of("idGruppo", apc.getGruppo())));
 
 				for(AuthTypeApiResourceProprietaCustom p: apc.getProprieta()) {
 					Optional<ConfigurazioneCustomProprieta> configurazioneCustomProprieta = g.getProprieta()

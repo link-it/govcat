@@ -209,7 +209,7 @@ public class AllarmiClient {
 
 		if(!c.getAdesioni().stream().filter(a -> this.configurazione.getAdesione().getStatiSchedaAdesione().contains(a.getAdesione().getStato()))
 			.findAny().isPresent()) {
-			throw new BadRequestException(ErrorCode.CLT_404, Map.of("nomeClient", c.getNome()));
+			throw new BadRequestException(ErrorCode.CLT_404_NO_ADHESION, Map.of("nomeClient", c.getNome()));
 		}
 		return c.getEstensioni().stream().filter(e -> e.getNome().equals(PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY))
 			.findAny()
@@ -287,7 +287,7 @@ public class AllarmiClient {
 
 		}
 		return this.clientService.findByNomeSoggettoAmbiente(nomeApplicativo, UUID.fromString(soggetto.getIdSoggetto()), ambiente)
-				.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_404, Map.of("nomeClient", nomeApplicativo, "nomeSoggetto", organization, "ambiente", connessione.getAmbiente().toString())));
+				.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_404_BY_NAME, Map.of("nomeClient", nomeApplicativo, "nomeSoggetto", organization, "ambiente", connessione.getAmbiente().toString())));
 	}
 
 	private Optional<ServizioEntity> getOptionalServizio(String nome, Integer versione, String erogatore) {

@@ -158,7 +158,7 @@ public class PackageAuthorization extends AbstractServizioAuthorization {
 		this.coreAuthorization.requireAdmin();
 		super.authorizeModifica(entity, classiDato);
 		if(!entity.getApi().isEmpty()) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ROLE);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
 

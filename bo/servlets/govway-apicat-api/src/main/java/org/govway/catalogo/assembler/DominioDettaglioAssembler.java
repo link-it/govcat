@@ -109,7 +109,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", classe.toString()))));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -153,7 +153,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", classe.toString()))));
 			}
 		} else {
 			entity.getClassi().clear();

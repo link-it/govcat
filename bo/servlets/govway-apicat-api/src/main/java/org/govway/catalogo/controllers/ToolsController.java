@@ -157,7 +157,7 @@ public class ToolsController implements ToolsApi {
 			if(listaRisorseApiRichiesta.getIdApi() != null && listaRisorseApiRichiesta.getAmbiente() != null) {
 				urlInvocazione = this.apiService.runTransaction(() -> {
 					ApiEntity apiEntity = this.apiService.find(listaRisorseApiRichiesta.getIdApi())
-							.orElseThrow(() -> new NotFoundException(ErrorCode.API_404));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("idApi", listaRisorseApiRichiesta.getIdApi().toString())));
 					boolean isCollaudo = listaRisorseApiRichiesta.getAmbiente().equals(AmbienteEnum.COLLAUDO);
 					return this.eServiceBuilder.getUrlInvocazione(apiEntity, isCollaudo);
 				});
@@ -198,7 +198,7 @@ public class ToolsController implements ToolsApi {
 			return ResponseEntity.ok(lst);
 		} catch(Exception e) {
 			this.logger.error("Invocazione terminata con errore '4xx': " +e.getMessage(),e);
-			throw new BadRequestException(ErrorCode.DOC_500);
+			throw new BadRequestException(ErrorCode.DOC_500, Map.of("errore", e.getMessage()));
 		}
 	}
 
