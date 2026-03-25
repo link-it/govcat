@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -74,7 +74,7 @@ import { Grant } from '@app/model/grant';
     TooltipModule
   ]
 })
-export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'AdesioneDetailsComponent';
   readonly model: string = 'adesioni';
 
@@ -223,17 +223,17 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   debugMandatoryFields: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
     public tools: Tools,
     public eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
     public utils: UtilService,
     public authenticationService: AuthenticationService,
-    private location: Location
+    private readonly location: Location
   ) {
     this.route.data.subscribe((data) => {
       if (!data.serviceBreadcrumbs) return;
@@ -333,9 +333,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     });
   }
 
-  ngOnDestroy() {
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.id) {
       this.id = changes.id.currentValue;
@@ -400,7 +397,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   _isVisibilita(type: string) {
-    return (this.f['visibilita'] && this.f['visibilita'].value === type);
+    return (this.f['visibilita']?.value === type);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -425,11 +422,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, []);
             break;
-          case 'referente':
+          case 'referente':{
             value = data[key] ? data[key] : null;
             const _referente_obbligatorio = this.generalConfig?.adesione.referente_obbligatorio || false;
             _group[key] = new FormControl(value, (this._isNew &&_referente_obbligatorio) ? [Validators.required] : []);
             break;
+          }
           case 'servizio_nome':
           case 'soggetto_nome':
             value = data[key] ? data[key] : null;
@@ -440,19 +438,15 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             _group[key] = new FormControl({ value: value, disabled: !!value }, [Validators.required]);
             break;
           case 'data_creazione':
-          case 'data_ultimo_aggiornamento':
+          case 'data_ultimo_aggiornamento':{
             const _now = moment().format('DD-MM-YYYY HH:mm:ss');
             value = data[key] ? moment(data[key]).format('DD-MM-YYYY HH:mm:ss') : _now;
             _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
+          }
           case 'id_logico':
-            // if (this.generalConfig?.servizio.adesioni_multiple == true) {
-            //   value = data[key] ? data[key] : null;
-            //   _group[key] = new FormControl(value, [Validators.required]);
-            // } else {
-              value = data[key] ? data[key] : null;
-              _group[key] = new FormControl(value, []);
-            // }
+            value = data[key] ? data[key] : null;
+            _group[key] = new FormControl(value, []);
             break;
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
@@ -477,10 +471,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     if (this.debugMandatoryFields) {
       console.group('_showMandatoryFields');
       Object.keys(data).forEach((key) => {
-        if (this._formGroup.controls[key].hasValidator(Validators.required))
-          console.log(key, this._formGroup.controls[key].value);
-        // console.log(key, this._formGroup.controls[key].hasValidator(Validators.required))
+        const ctrl = this._formGroup.controls[key];
+        if (ctrl.hasValidator(Validators.required)) {
+          console.log(`${key}: value=${JSON.stringify(ctrl.value)}, disabled=${ctrl.disabled}, invalid=${ctrl.invalid}, status=${ctrl.status}`);
+        }
       });
+      console.log(`FORM valid=${this._formGroup.valid}, invalid=${this._formGroup.invalid}, status=${this._formGroup.status}`);
       console.groupEnd();
     }
   }
@@ -623,15 +619,15 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElement(this.model, this.adesione.id).subscribe(
-            (response) => {
+          this.apiService.deleteElement(this.model, this.adesione.id).subscribe({
+            next: (response) => {
               this.save.emit({ id: this.id, subscription: response, update: false });
             },
-            (error) => {
+            error: (error) => {
               this._error = true;
               this._errorMsg = this.utils.GetErrorMsg(error);
             }
-          );
+          });
         }
       }
     );
@@ -642,7 +638,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     return this.apiService.getList('servizi', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
@@ -663,13 +659,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     }
     return this.apiService.getList('soggetti', _options)
       .pipe(map(resp => {
-        if (resp.Error) {
-          throwError(resp.Error);
+        if (resp?.Error) {
+          throwError(() => resp.Error);
         } else {
-          const _items = resp.content.map((item: any) => {
-            return item;
-          });
-          return _items;
+          return resp?.content || [];
         }
       })
       );
@@ -680,7 +673,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
@@ -696,7 +689,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     return this.apiService.getList('domini', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
@@ -717,7 +710,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       .pipe(
         map(resp => {
           if (resp.Error) {
-            throwError(resp.Error);
+            throwError(() => resp.Error);
           } else {
             const _items = resp.content.map((item: any) => {
               item.nome_completo = `${item.nome} ${item.cognome}`;
@@ -757,7 +750,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           console.log('grant', this._grant);
           this.apiService.getDetails(this.model, this.id).subscribe({
             next: (response: any) => {
-              this.adesione = response; // new Service({ ...response });
+              this.adesione = response;
               
               this._isBozza = (this.adesione.stato == 'bozza');
 
@@ -780,8 +773,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
               this._initForm({ ...this._adesione });
 
               // Non più necessaria con soggetto di default
-              this.getSoggetti().subscribe(
-                (result) => {
+              this.getSoggetti().subscribe({
+                next: (result) => {
                   this._elencoSoggetti = [...result];
 
                   const controls = this._formGroup.controls;
@@ -797,11 +790,11 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._formGroup.updateValueAndValidity();
                   }
                 },
-                (error: any) => {
+                error: (error: any) => {
                   Tools.OnError(error);
                   this._spin = false;
                 }
-              );
+              });
 
               this._spin = false;
 
@@ -1049,8 +1042,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     if(event) {
       this.selectedOrganizzazione = event;
       console.log('_checkSoggetto selectedOrganizzazione', this.selectedOrganizzazione);
-      this.getSoggetti().subscribe(
-        (result) => {
+      this.getSoggetti().subscribe({
+        next: (result) => {
           const controls = this._formGroup.controls;
           console.log('_checkSoggetto result', result);
           if (result.length === 1) {
@@ -1074,18 +1067,25 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
             this._elencoSoggetti = [...result];
 
-            if (this.selectedOrganizzazione?.soggetto_default) {
-              controls.id_soggetto.patchValue(this.selectedOrganizzazione?.soggetto_default.id_soggetto);
-              controls.soggetto_nome.patchValue(this.selectedOrganizzazione?.soggetto_default.nome);
+            // Cerca soggetto_default sull'organizzazione (anche se event è un soggetto da _loadOrganizzazione)
+            const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
+            if (_orgObj?.soggetto_default) {
+              controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
+              controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
               controls.id_soggetto.updateValueAndValidity();
               controls.soggetto_nome.updateValueAndValidity();
+              this._hideSoggettoDropdown = true;
+            } else if (result.length > 1) {
+              // Soggetti multipli senza default: mostra il dropdown per permettere la scelta
+              this._hideSoggettoDropdown = false;
+            } else {
+              this._hideSoggettoDropdown = true;
             }
             controls.referente.enable();
             controls.id_soggetto.enable();
             controls.referente.updateValueAndValidity();
             controls.id_soggetto.updateValueAndValidity();
             this._disabled_id_soggetto = null;
-            this._hideSoggettoDropdown = true;
           }
 
           this._initReferentiSelect([]);
@@ -1094,8 +1094,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           this._formGroup.updateValueAndValidity();
           this._showMandatoryFields(this._formGroup.controls);
         },
-        (err) => console.log(err)
-      );
+        error: (err) => console.log(err)
+      });
       
     } else {
 
@@ -1121,14 +1121,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._idDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
     this._idSoggettoDominioEsterno = this._servizio?.dominio?.soggetto_referente?.id_soggetto || null;
 
-    // console.group('_onChangeServizio');
-    // console.log('_servizio', this._servizio);
-    // console.log('_isDominioEsterno', this._isDominioEsterno);
-    // console.log('_idDominioEsterno', this._idDominioEsterno);
-    // console.log('_idSoggettoDominioEsterno', this._idSoggettoDominioEsterno);
-    // console.log('_profilo', this._profilo);
-    // console.groupEnd();
-
     this.updateIdLogico(this._servizio);
     
     if (this._isDominioEsterno) {
@@ -1141,19 +1133,17 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._formGroup.get('id_soggetto')?.disable();
       this._hideSoggettoDropdown = true;
       this._initOrganizzazioniSelect([_organizzazione]);
-    } else {
-      if (this._profilo?.utente.ruolo === RuoloUtenteEnum.ReferenteServizio){
+    } else if (this._profilo?.utente.ruolo === RuoloUtenteEnum.ReferenteServizio) {
         if (servizio && await this.isCurrentUserReferenteServizio(servizio)){
           this._formGroup.get('id_organizzazione')?.enable();
-          this._formGroup.get('id_organizzazione')?.reset();
-          this.ngSelectOrganizazione?.handleClearClick();
-        } else {
-          if (this._profilo.utente.organizzazione) {
+          // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
+          if (!this._formGroup.get('id_organizzazione')?.value) {
+            this._initOrganizzazioniSelect([]);
+          }
+        } else if (this._profilo.utente.organizzazione) {
             this._loadOrganizzazione(this._profilo.utente.organizzazione.id_organizzazione);
           }
-        }
       }
-    }
 
     this._showMandatoryFields(this._formGroup.controls);
   }
@@ -1223,9 +1213,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     const _body: any = {
       stato: event.status.nome
     };
-    this.apiService.saveElement(_url, _body).subscribe(
-      (response: any) => {
-        this.adesione = response; // new Service({ ...response });
+    this.apiService.saveElement(_url, _body).subscribe({
+      next: (response: any) => {
+        this.adesione = response;
         this._adesione = new Adesione({ ...response });
         
         this._adesione.servizio_nome = response.servizio.nome;
@@ -1237,7 +1227,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         Tools.showMessage(_msg, 'success', true);
         this._updateMapper = new Date().getTime().toString();
       },
-      (error: any) => {
+      error: (error: any) => {
         this._changingStatus = false;
         this._error = true;
         this._errorMsg = Tools.WorkflowErrorMsg(error);
@@ -1248,7 +1238,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         Tools.showMessage(_msg, 'danger', true);
         this._updateMapper = new Date().getTime().toString();
       },
-    );
+    });
   }
 
   _downloadSchedaAdesione() {
@@ -1258,8 +1248,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       const _partial = `export`;
       this.apiService.download(this.model, this.id, _partial).subscribe({
         next: (response: any) => {
-          // const _ext = data.filename.split('/')[1];
-          // let name: string = `${data.filename}.${_ext}`;
           let name: string = `SchedaAdesione.pdf`;
           saveAs(response.body, name);
           this._downloading = false;
@@ -1294,7 +1282,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   private async getReferentiServizio(servizio: Servizio):Promise<{utente: Utente, tipo: string}[]>{
     const result = await this.apiService.getList(`servizi/${servizio.id_servizio}/referenti`, {params: {tipo_referente: 'referente'}}).toPromise()
-    return result.content;
+    return result?.content || [];
   }
 
   _onCloseNotificationBar(event: any) {
