@@ -354,16 +354,18 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _prapareData(body: any) {
     let _classi: any[] | null = null;
     if (body.classi_utente?.length) {
-      _classi = body.classi_utente.map((item: any) => item.id_classe_utente);
+      _classi = body.classi_utente.map((item: any) => item.id_classe_utente || item);
     }
     const _newBody: any = {
       ...body,
       ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
-      classi_utente: _classi
     };
     delete _newBody.organizzazione;
+    delete _newBody.classi_utente;
 
-    return this.utils._removeEmpty(_newBody);
+    const result = this.utils._removeEmpty(_newBody);
+    result.classi_utente = _classi;
+    return result;
   }
 
   _onSubmit(form: any, close: boolean = true) {
