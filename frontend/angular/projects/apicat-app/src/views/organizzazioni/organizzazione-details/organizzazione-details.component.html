@@ -185,7 +185,9 @@
                         </div>
                       </div>
                     </div>
+                    @if (_codiceEnteAbilitato || _codiceFiscaleEnteAbilitato) {
                     <div class="row codice_ente codice_fiscale_soggetto">
+                      @if (_codiceEnteAbilitato) {
                       <div class="col-6">
                         <div class="form-group codice_ente">
                           <label class="label-bold" for="codice_ente">{{ 'APP.ORGANIZATIONS.LABEL.CodiceEnte' | translate }}@if (_isNew || _isEdit) {
@@ -214,6 +216,8 @@
                           }
                         </div>
                       </div>
+                      }
+                      @if (_codiceFiscaleEnteAbilitato) {
                       <div class="col-6">
                         <div class="form-group codice_fiscale_soggetto">
                           <label class="label-bold" for="codice_fiscale_soggetto">{{ 'APP.ORGANIZATIONS.LABEL.CodiceFiscaleSoggetto' | translate }}@if (_isNew || _isEdit) {
@@ -242,8 +246,11 @@
                           }
                         </div>
                       </div>
+                      }
                     </div>
+                    }
                     <div class="row id_tipo_utente id_soggetto_default">
+                      @if (_idTipoUtenteAbilitato) {
                       <div class="col-6">
                         <div class="form-group id_tipo_utente">
                           <label class="label-bold" for="id_tipo_utente">{{ 'APP.ORGANIZATIONS.LABEL.IdTipoUtente' | translate }}@if (_isNew || _isEdit) {
@@ -272,6 +279,7 @@
                           }
                         </div>
                       </div>
+                      }
                       @if (!_isNew && !_hideSoggettoDropdown) {
                         <div class="col-6">
                           <label class="label-bold" for="id_soggetto_default">{{ 'APP.ORGANIZATIONS.LABEL.SoggettoDefault' | translate }} @if (_isEdit) {

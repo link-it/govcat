@@ -96,6 +96,10 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
   _hideSoggettoDropdown: boolean = true;
   _hideSoggettoInfo: boolean = true;
 
+  _codiceEnteAbilitato: boolean = false;
+  _codiceFiscaleEnteAbilitato: boolean = false;
+  _idTipoUtenteAbilitato: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -108,6 +112,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
     private utils: UtilService
   ) {
     this.appConfig = this.configService.getConfiguration();
+    this._initForm({ ...this._organizzazione });
   }
 
   ngOnInit() {
@@ -164,7 +169,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
   }
 
   _hasControlError(name: string) {
-    return !!(this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name]?.errors && this.f[name]?.touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -173,7 +178,10 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
 
   _initForm(data: any = null) {
 
-    const aux_config = Tools.Configurazione.organizzazione
+    const aux_config = Tools.Configurazione?.organizzazione;
+    this._codiceEnteAbilitato = aux_config?.codice_ente_abilitato || false;
+    this._codiceFiscaleEnteAbilitato = aux_config?.codice_fiscale_ente_abilitato || false;
+    this._idTipoUtenteAbilitato = aux_config?.id_tipo_utente_abilitato || false;
 
     if (data) {
       let _group: any = {};
@@ -190,7 +198,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
             break;
           case 'codice_ente':
             value = data[key] ? data[key] : null;
-            if(aux_config.codice_ente_abilitato) {
+            if(aux_config?.codice_ente_abilitato) {
               _group[key] = new UntypedFormControl(value, [Validators.required, Validators.maxLength(255)]);
             } else {
               _group[key] = new UntypedFormControl(value, [Validators.maxLength(255)]);
@@ -198,7 +206,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
             break;
           case 'codice_fiscale_soggetto':
             value = data[key] ? data[key] : null;
-            if(aux_config.codice_fiscale_ente_abilitato) {
+            if(aux_config?.codice_fiscale_ente_abilitato) {
               _group[key] = new UntypedFormControl(value, [Validators.required, Validators.maxLength(255)]);
             } else {
               _group[key] = new UntypedFormControl(value, [Validators.maxLength(255)]);
@@ -206,7 +214,7 @@ export class OrganizzazioneDetailsComponent implements OnInit, OnChanges, AfterC
             break;
           case 'id_tipo_utente':
             value = data[key] ? data[key] : null;
-            if(aux_config.id_tipo_utente_abilitato) {
+            if(aux_config?.id_tipo_utente_abilitato) {
               _group[key] = new UntypedFormControl(value, [Validators.required, Validators.maxLength(255)]);
             } else {
               _group[key] = new UntypedFormControl(value, [Validators.maxLength(255)]);
