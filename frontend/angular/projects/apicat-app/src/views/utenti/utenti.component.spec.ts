@@ -42,8 +42,7 @@ describe('UtentiComponent', () => {
     mockConfigService.getConfig.mockReturnValue(of({}));
     mockApiService.getList.mockReturnValue(of({ content: [], page: {} }));
     component = new UtentiComponent(
-      mockRoute, mockRouter, mockTranslate,
-      mockConfigService, mockTools, mockEventsManager,
+      mockRouter, mockConfigService, mockTools,
       mockApiService, mockUtils, mockNavigationService
     );
   });
@@ -246,13 +245,6 @@ describe('UtentiComponent', () => {
     });
   });
 
-  // --- ngOnDestroy ---
-
-  describe('ngOnDestroy', () => {
-    it('should not throw', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
-    });
-  });
 
   // --- ngAfterContentChecked ---
 

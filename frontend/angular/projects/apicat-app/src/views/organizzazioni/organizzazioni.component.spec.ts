@@ -30,9 +30,9 @@ describe('OrganizzazioniComponent', () => {
     Tools.ScrollTo = vi.fn();
     Tools.ScrollElement = vi.fn();
     component = new OrganizzazioniComponent(
-      mockRoute, mockRouter, mockTranslate,
-      mockConfigService, mockTools, mockEventsManager,
-      mockApiService, mockUtils, mockNavigationService
+      mockRouter, mockTranslate, mockConfigService,
+      mockTools, mockApiService, mockUtils,
+      mockNavigationService
     );
   });
 

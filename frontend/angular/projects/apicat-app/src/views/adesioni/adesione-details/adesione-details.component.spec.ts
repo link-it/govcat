@@ -1294,14 +1294,6 @@ describe('AdesioneDetailsComponent', () => {
     });
   });
 
-  // ─── ngOnDestroy ───
-
-  describe('ngOnDestroy', () => {
-    it('should not throw', () => {
-      expect(() => component.ngOnDestroy()).not.toThrow();
-    });
-  });
-
   // ─── _deleteService ───
 
   describe('_deleteService', () => {

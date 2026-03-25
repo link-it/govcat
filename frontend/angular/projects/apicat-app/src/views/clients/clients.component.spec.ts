@@ -41,9 +41,9 @@ describe('ClientsComponent', () => {
     Tools.StatiClient = [];
     Tools.simpleItemFormatter = vi.fn().mockReturnValue('');
     component = new ClientsComponent(
-      mockRoute, mockRouter, mockTranslate,
-      mockConfigService, mockTools, mockEventsManager,
-      mockApiService, mockUtils, mockNavigationService
+      mockRouter, mockConfigService, mockTools,
+      mockEventsManager, mockApiService, mockUtils,
+      mockNavigationService
     );
   });
 
@@ -689,9 +689,4 @@ describe('ClientsComponent', () => {
     expect(component._preventMultiCall).toBe(false);
   });
 
-  // --- ngOnDestroy ---
-
-  it('ngOnDestroy should not throw', () => {
-    expect(() => component.ngOnDestroy()).not.toThrow();
-  });
 });

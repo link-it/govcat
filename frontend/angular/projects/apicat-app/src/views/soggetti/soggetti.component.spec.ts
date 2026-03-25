@@ -30,8 +30,7 @@ describe('SoggettiComponent', () => {
     Tools.ScrollTo = vi.fn();
     Tools.ScrollElement = vi.fn();
     component = new SoggettiComponent(
-      mockRoute, mockRouter, mockTranslate,
-      mockConfigService, mockTools, mockEventsManager,
+      mockRouter, mockConfigService, mockTools,
       mockApiService, mockUtils, mockNavigationService
     );
   });
