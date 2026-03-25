@@ -435,7 +435,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
   _enableDisableSkipCollaudo(soggetto: any) {
     if (soggetto?.skip_collaudo) {
-      if (this.dominio.vincola_skip_collaudo) {
+      if (this.dominio?.vincola_skip_collaudo) {
         this._formGroup.get('skip_collaudo')?.disable();
       } else {
         this._formGroup.get('skip_collaudo')?.enable();
