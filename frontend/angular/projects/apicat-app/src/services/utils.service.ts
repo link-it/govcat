@@ -135,39 +135,39 @@ export class UtilService {
           const resultContent = results[index].content || results[index].items || [];
           switch (_table) {
             case 'utenti':
-              resultContent.map((item: any) => ({
+              this.cacheAnagrafiche[_table] = resultContent.map((item: any) => ({
                   id: item.id_utente,
                   nome: `${item.nome} ${item.cognome}`
                 })).sort(this._order);
               break;
             case 'domini':
-              resultContent.map((item: any) => ({
+              this.cacheAnagrafiche[_table] = resultContent.map((item: any) => ({
                   id: item.id_dominio,
                   nome: `${item.nome}`
                 })).sort(this._order);
               break;
             case 'organizzazioni':
-              resultContent.map((item: any) => ({
+              this.cacheAnagrafiche[_table] = resultContent.map((item: any) => ({
                   id: item.id_organizzazione,
                   nome: `${item.nome}`,
                   // descrizione: `${item.descrizione}`
                 })).sort(this._order);
               break;
             case 'classi-utente':
-              resultContent.map((item: any) => ({
+              this.cacheAnagrafiche[_table] = resultContent.map((item: any) => ({
                   id_classe_utente: item.id_classe_utente,
                   nome: `${item.nome}`
                 })).sort(this._order);
               break;
             case 'gruppi':
-              resultContent.map((item: any) => ({
+              this.cacheAnagrafiche[_table] = resultContent.map((item: any) => ({
                   id: item.id_gruppo,
                   nome: item.nome,
                   descrizione: item.descrizione_sintetica
                 })).sort(this._order);
               break;
             case 'tassonomie':
-              resultContent.map((item: any) => ({
+              this.cacheAnagrafiche[_table] = resultContent.map((item: any) => ({
                   id: item.id_tassonomia,
                   nome: item.nome,
                   descrizione: item.descrizione,
