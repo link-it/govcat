@@ -16,29 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
-
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
 
-import moment from 'moment';
-
 import { CommonModule } from '@angular/common';
-import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
-import { NgSelectModule } from '@ng-select/ng-select';
-import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
 const fake_ambiente = [ 'collaudo', 'produzione'];
 
@@ -53,7 +45,7 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'ClientsComponent';
   readonly model: string = 'client'; 
 
@@ -136,15 +128,13 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
   _useNewSearchUI : boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly router: Router,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
+    private readonly eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService,
-    private navigationService: NavigationService
+    private readonly utils: UtilService,
+    private readonly navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -177,10 +167,8 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
     });
   }
 
-  ngOnDestroy() {}
-
   ngAfterViewInit() {
-    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+    if (!(this.searchBarForm?._isPinned())) {
       setTimeout(() => {
         this._loadClients();
       }, 100);
@@ -208,8 +196,8 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
       stato: new UntypedFormControl(''),
       auth_type: new UntypedFormControl(''),
       ambiente: new UntypedFormControl(''),
-      id_soggetto: new UntypedFormControl(''),
-      id_organizzazione: new UntypedFormControl(''),
+      id_soggetto: new UntypedFormControl(null),
+      id_organizzazione: new UntypedFormControl(null),
     });
   }
 
@@ -229,8 +217,10 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
     this.apiService.getList(this.model, aux, url).subscribe({
       next: (response: any) => {
 
-        response ? this._paging = new Page(response.page) : null;
-        response ? this._links = response._links || null : null;
+        if (response) {
+          this._paging = new Page(response.page);
+          this._links = response._links || null;
+        }
 
         if (response.content) {
           const _list: any = response.content.map((client: any) => {
@@ -267,7 +257,7 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
+    if (this._links?.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
       this._loadClients(null, this._links.next.href);
     }
@@ -390,7 +380,7 @@ export class ClientsComponent implements OnInit, AfterViewInit, AfterContentChec
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;

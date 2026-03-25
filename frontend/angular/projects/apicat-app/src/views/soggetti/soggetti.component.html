@@ -21,16 +21,6 @@
     <div class="breadcrumbs-area">
       <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
     </div>
-    <div class="flash-container flash-container-page sticky gp-display-block d-none">
-      <div class="flash-notice" data-testid="alert-info">
-        <div class="flash-text">
-          You must sign in to search for specific terms.
-          <div class="close-icon-wrapper">
-            <span class="material-icons-outlined fs-6">close</span>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="top-area">
       <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
         <div class="">
@@ -77,7 +67,7 @@
                   <fieldset>
                     <div class="row mb-1">
                       <div class="col-2">
-                        <label class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
+                        <label for="q" class="col-form-label col-form-label-fix">{{ 'APP.LABEL.FreeSearch' | translate }}</label>
                       </div>
                       <div class="col-10">
                         <input type="text" class="form-control form-control-sm" id="q" formControlName="q">
@@ -104,9 +94,6 @@
                           </ng-template>
                           <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
                             <div class="fw-bold">{{ item.nome }}</div>
-                            <!-- <div class="">
-                            <span class="small text-muted">{{ item.id_organizzazione }}</span>
-                          </div> -->
                         </ng-template>
                       </ng-select>
                     </div>
