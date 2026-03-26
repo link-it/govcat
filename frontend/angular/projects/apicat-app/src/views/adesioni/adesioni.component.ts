@@ -126,12 +126,13 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   service: Servizio|null = null;
 
   roleTab: string = 'tutte';
-  roleTabs: { key: string, label: string, roles: string[] }[] = [
+  _allRoleTabs: { key: string, label: string, roles: string[] }[] = [
     { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
     { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
     { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione'] },
     { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
   ];
+  roleTabs: { key: string, label: string, roles: string[] }[] = this._allRoleTabs;
   _allRuoliAdesioni: { value: string, label: string }[] = [
     { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
     { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
@@ -257,7 +258,12 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   ngOnInit() {
-    this.route.queryParams.subscribe((val) => { 
+    // Per il coordinatore, nascondi il tab "Referente servizio/dominio"
+    if (this.authenticationService.isCoordinatore()) {
+      this.roleTabs = this._allRoleTabs.filter(t => t.key !== 'referente');
+    }
+
+    this.route.queryParams.subscribe((val) => {
       if(val.id_servizio) {
         this._param_id_servizio = val.id_servizio;
         this._param_isWeb = val.web || false;

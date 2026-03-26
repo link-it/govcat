@@ -251,7 +251,7 @@
 
   <div class="row">
     <div class="col-12">
-      @for (item of utenti; track item.id || $index) {
+      @for (item of utenti; track item.id + '_' + $index) {
         <ui-item-row class="border-bottom"
           [data]="item"
           [config]="utentiConfig"

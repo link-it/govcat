@@ -25,19 +25,34 @@
       <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
         <div class="">
           <ul class="nav gp-border-b-0 gp-tabs-nav">
-            @for (tab of roleTabs; track tab.key) {
+            @if (!isGestore) {
+              @for (tab of roleTabs; track tab.key) {
+                <li class="nav-item">
+                  <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="roleTab === tab.key" (click)="onRoleTabChange(tab.key)">
+                    <span>{{ tab.label | translate }}</span>
+                    @if (roleTab === tab.key) {
+                      <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
+                        @if (_spin) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        } @else {
+                          {{ _paging.totalElements || 0 }}
+                        }
+                      </span>
+                    }
+                  </a>
+                </li>
+              }
+            } @else {
               <li class="nav-item">
-                <a class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="roleTab === tab.key" (click)="onRoleTabChange(tab.key)">
-                  <span>{{ tab.label | translate }}</span>
-                  @if (roleTab === tab.key) {
-                    <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1">
-                      @if (_spin) {
-                        <span class="spinner-border spinner-border-sm"></span>
-                      } @else {
-                        {{ _paging.totalElements || 0 }}
-                      }
-                    </span>
-                  }
+                <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer gp-tab-nav-item-active" [attr.aria-label]="('APP.FILTER.Found' | translate) + ' ' + _allElements">
+                  <span>{{ 'APP.FILTER.Found' | translate }}</span>
+                  <span class="badge gp-tab-counter-badge badge-muted badge-pill gp-badge sm ms-1" [title]="_allElements">
+                    @if (_spin) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                      {{ _allElements || 0 }}
+                    }
+                  </span>
                 </a>
               </li>
             }
@@ -300,6 +315,7 @@
                         </ng-select>
                       </div>
                     </div>
+                    @if (!isGestore) {
                     <div class="row mb-1">
                       <div class="col-sm-2">
                         <label class="col-form-label col-form-label-fix" for="ruolo_referente">{{ 'APP.LABEL.ruolo_referente' | translate }}</label>
@@ -325,6 +341,7 @@
                         </ng-select>
                       </div>
                     </div>
+                    }
                     @if (_useNewSearchUI) {
                       <div class="d-flex justify-content-end pt-4">
                         <button type="button" class="btn btn-default btn-md gl-button btn-default-tertiary" (click)="searchBarForm._closeSearchDropDpwn(null)">{{ 'APP.BUTTON.Close' | translate }}</button>
