@@ -191,7 +191,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.GEN_400);
+					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
@@ -315,7 +315,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getDominio().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.GEN_400);
+			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
 		}
 	}
 

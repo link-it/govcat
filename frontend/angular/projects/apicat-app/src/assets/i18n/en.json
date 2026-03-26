@@ -1114,7 +1114,11 @@
 			"ERROR": {
 				"ADE": {
 					"400": {
-						"STATE": "Membership state [{{stato}}] not valid for this operation"
+						"STATE": {
+						"DEFAULT": "Membership state [{{stato}}] not valid for this operation",
+						"MONITORING": "Membership state [{{stato}}] not valid for monitoring (membership [{{idAdesione}}])",
+						"SERVICE": "Service [{{servizio}}] state does not allow memberships"
+					}
 					},
 					"403": {
 						"REFERENT": "Membership referent [{{referente}}] not authorized"
@@ -1122,12 +1126,23 @@
 					"404": {
 						"DEFAULT": "Membership [{{idAdesione}}] not found",
 						"BY": {
-							"CONTEXT": "Membership not found for subject [{{nomeSoggetto}}] to service [{{nomeServizio}} v{{versioneServizio}}]"
+							"CONTEXT": "Membership not found for subject [{{nomeSoggetto}}] and service [{{nomeServizio}} v{{versioneServizio}}]"
 						}
 					},
 					"409": {
-						"DEFAULT": "Membership [{{nome}}] already exists",
-						"STATE": "Cannot modify membership in state [{{stato}}]"
+						"DEFAULT": "Membership for subject [{{soggetto}}] to service [{{servizio}} v{{versione}}] already exists",
+						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] already present as [{{tipoReferente}}]",
+						"STATE": {
+							"DEFAULT": "Cannot modify membership in current state",
+							"SKIP": {
+								"COLLAUDO": "Skip testing not allowed by service [{{nomeServizio}} v{{versioneServizio}}]"
+							},
+							"DISABLED": "Membership disabled for service [{{servizio}}]",
+							"VISIBILITY": "Service [{{servizio}}] visibility does not allow direct memberships",
+							"SUBJECT": {
+								"MISMATCH": "Subject [{{soggetto}}] does not match internal subject [{{soggettoInterno}}] for fruition [{{servizio}}]"
+							}
+						}
 					}
 				},
 				"API": {
@@ -1135,16 +1150,17 @@
 						"DELETE": "",
 						"DUPLICATE": "Attachment [{{allegato}}] duplicated",
 						"HAS": {
-							"EROGATIONS": "Cannot delete API [{{nome}}/{{versione}}] because it has [{{count}}] active erogations"
+							"EROGATIONS": "API [{{nome}} v{{versione}}] has [{{count}}] active erogations, cannot delete"
 						},
 						"SPEC": "Specification not present",
 						"VISIBILITY": "Visibility [{{visibilita}}] not allowed"
 					},
 					"404": {
 						"DEFAULT": "API [{{idApi}}] not found",
+						"ACCESS": "API [{{idApi}}] not found or not accessible",
 						"ATTACHMENT": "Attachment [{{idAllegato}}] not found for API [{{idApi}}]",
 						"BY": {
-							"NAME": "API [{{nomeApi}}/{{versione}}/{{erogatore}}] not found"
+							"NAME": "API [{{nomeApi}} v{{versione}}] not found for provider [{{erogatore}}]"
 						},
 						"EROGATION": "Erogation [{{idErogazione}}] not found for membership [{{idAdesione}}]",
 						"FOR": {
@@ -1163,17 +1179,23 @@
 					"403": {
 						"DEFAULT": "Access not authorized",
 						"ORG": {
+							"ADHESION": "Organization [{{nomeOrganizzazione}}] does not match for membership",
 							"MISMATCH": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is associated with organization [{{userOrgNome}}]",
 							"MISSING": "Organization [{{orgNome}}] is internal, but user [{{userIdUtente}}] is not associated with any organization"
 						},
-						"RESOURCE": "Access denied to resource [{{risorsa}}]",
+						"REFERENT": {
+							"NOT": {
+								"ELIGIBLE": "User [{{nomeUtente}} {{cognomeUtente}}] not eligible as referent"
+							}
+						},
+						"RESOURCE": "Access denied to resource [{{idTraccia}}]",
 						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force"
 					}
 				},
 				"CAT": {
 					"400": {
 						"EMPTY": {
-							"TAXONOMY": "Visible taxonomy with no configured categories"
+							"TAXONOMY": "Visible taxonomy without categories"
 						},
 						"HAS": {
 							"CHILDREN": "Cannot delete category [{{nome}}] because it has sub-categories"
@@ -1189,20 +1211,33 @@
 				},
 				"CLT": {
 					"400": {
-						"CONFIG": "Invalid client configuration: {{dettagli}}",
-						"EXTENSION": "Client extension [{{tipo}}] not supported"
+						"ALARM": {
+							"CONFIG": "Invalid client configuration for alarm"
+						},
+						"AUTH": {
+							"MISMATCH": "Auth type [{{authTypeTrovato}}] does not match profile [{{profilo}}] (expected [{{authTypeRichiesto}}])"
+						},
+						"CONFIG": "Invalid client configuration",
+						"CONFIGURED": "Client [{{nome}}] for subject [{{soggetto}}] and environment [{{ambiente}}] already configured",
+						"EXTENSION": "Client extension [{{tipo}}] not supported",
+						"HAS": {
+							"ADHESIONS": "Client [{{nome}}] for subject [{{soggetto}}] and environment [{{ambiente}}] has [{{numAdesioni}}] active memberships"
+						}
 					},
 					"404": {
 						"DEFAULT": "Client not found",
 						"NO": {
-							"ADHESION": "Client [{{nomeClient}}] has no valid memberships"
+							"ADHESION": "Client [{{nomeClient}}] without valid memberships"
 						},
 						"BY": {
 							"NAME": "Client [{{nomeClient}}] not found for subject [{{nomeSoggetto}}] and environment [{{ambiente}}]"
 						},
 						"PROFILE": "Profile [{{profilo}}] not found for membership [{{idAdesione}}]"
 					},
-					"409": "Client [{{nome}}] already exists for subject [{{soggetto}}] and environment [{{ambiente}}]"
+					"409": {
+						"DEFAULT": "Client [{{nome}}] already exists for subject [{{soggetto}}] and environment [{{ambiente}}]",
+						"DUPLICATES": "Duplicate clients found: [{{duplicati}}]"
+					}
 				},
 				"Default": "Sorry, unpredictable problem",
 				"DefaultHelp": "Please try again later",
@@ -1213,7 +1248,12 @@
 					},
 					"404": {
 						"DEFAULT": "Document not found",
-						"ALLEGATO": "Attachment [{{idAllegato}}] not found for membership [{{idAdesione}}]",
+						"ALLEGATO": {
+							"DEFAULT": "Attachment [{{idAllegato}}] not found for membership [{{idAdesione}}]",
+							"SERVIZIO": "Attachment [{{idAllegato}}] not found for service"
+						},
+						"IMAGE": "Image not found for service [{{idServizio}}]",
+						"MESSAGGIO": "Message [{{idMessaggio}}] not found",
 						"VERSION": "Document with UUID [{{uuid}}] and version [{{versione}}] not found"
 					},
 					"500": "Cannot process document: {{errore}}"
@@ -1224,8 +1264,17 @@
 				},
 				"GEN": {
 					"400": {
-						"DEFAULT": "Bad request",
-						"REQUEST": ""
+						"DEFAULT": "Operation not allowed",
+						"HAS": {
+							"SERVICES": "Domain [{{nome}}] has [{{numServizi}}] active services"
+						},
+						"REPORT": {
+							"TYPE": "Invalid report type"
+						},
+						"REQUEST": "Invalid request",
+						"SKIP": {
+							"COLLAUDO": "Skip testing constrained by parent entity"
+						}
 					},
 					"404": "Resource not found",
 					"409": {
@@ -1252,16 +1301,20 @@
 				},
 				"INT": {
 					"500": {
-						"DEFAULT": "Internal error: {{errore}}",
-						"COMMUNICATION": "",
-						"CONFIG": "Configuration error: {{errore}}",
-						"DB": "Database error: {{errore}}",
-						"GOVWAY": "",
-						"PDND": ""
+						"DEFAULT": "External service integration error",
+						"ALARM": "Alarm communication error [{{idAllarme}}]",
+						"COMMUNICATION": "Communication error with external service",
+						"CONFIG": "Integration configuration error",
+						"DB": "Integration database access error",
+						"GOVWAY": "GovWay error: {{dettagli}}",
+						"PDND": "PDND error: {{dettagli}}"
 					},
-					"502": "",
-					"503": "Service temporarily unavailable",
-					"504": ""
+					"502": {
+						"DEFAULT": "Invalid response from external service",
+						"STATUS": "Invalid response from service for alarm [{{idAllarme}}], status code: [{{statusCode}}]"
+					},
+					"503": "External service temporarily unavailable",
+					"504": "Timeout calling external service"
 				},
 				"MON": {
 					"400": {
@@ -1294,14 +1347,18 @@
 				"ORG": {
 					"400": {
 						"CONSTRAINT": {
-							"VIOLATION": "Cannot modify organization attribute because it is in use"
+							"VIOLATION": "Organization constraint not satisfied"
 						},
 						"HAS": {
-							"DEPENDENCIES": "Cannot delete organization [{{nome}}] because it has active dependencies"
+							"DEPENDENCIES": "Organization [{{nome}}] has active dependencies, cannot delete"
 						}
 					},
 					"404": "Organization [{{idOrganizzazione}}] not found",
-					"409": "Organization [{{nome}}] already exists"
+					"409": {
+						"DEFAULT": "Organization [{{nome}}] already exists",
+						"ADERENTE": "Adhering subject constrained, cannot modify",
+						"REFERENT": "Referent [{{nomeUtente}} {{cognomeUtente}}] of type [{{tipoReferente}}] already exists for domain [{{nomeDominio}}]"
+					}
 				},
 				"PRF": {
 					"400": {
@@ -1350,16 +1407,35 @@
 					}
 				},
 				"SOG": {
+					"400": {
+						"HAS": {
+							"DOMAINS": "Subject [{{nome}}] has active domains"
+						},
+						"IS": {
+							"DEFAULT": "Subject [{{nome}}] is the default subject of the organization"
+						},
+						"NOT": {
+							"ADERENTE": "Subject [{{nomeSoggetto}}] is not an adhering subject"
+						},
+						"ORG": {
+							"MISMATCH": "Subject [{{nomeSoggetto}}] does not belong to organization [{{nomeOrganizzazione}}]"
+						}
+					},
 					"404": {
-						"DEFAULT": "Subject not found",
+						"DEFAULT": "Subject [{{idSoggetto}}] not found",
 						"BY": {
-							"NAME": "Subject [{{nome}}] not found"
+							"NAME": "Subject [{{nomeSoggetto}}] not found"
 						},
 						"IN": {
 							"ORG": "Subject [{{nomeSoggetto}}] not found in organization [{{nomeOrganizzazione}}]"
 						}
 					},
-					"409": "Subject [{{nome}}] already exists"
+					"409": {
+						"DEFAULT": "Subject [{{nome}}] already exists",
+						"IN": {
+							"ORG": "Subject [{{nome}}] already exists in organization [{{orgNome}}]"
+						}
+					}
 				},
 				"SRV": {
 					"400": {
@@ -1368,6 +1444,7 @@
 								"LEAF": ""
 							}
 						},
+						"DUPLICATE": "Duplicate attachment for service",
 						"INVALID": "Invalid operation on service",
 						"NOT": {
 							"DELETABLE": "",
@@ -1385,7 +1462,8 @@
 					},
 					"404": {
 						"DEFAULT": "Service [{{idServizio}}] not found",
-						"IMAGE": ""
+						"IMAGE": "Image for group [{{idGruppo}}] not found",
+						"PACKAGE": "Package [{{idPackage}}] not found"
 					},
 					"409": {
 						"DEFAULT": "Service [{{nome}} v{{versione}}] already exists",
@@ -1411,7 +1489,7 @@
 							"MISMATCH": "Parent category [{{idCategoria}}] belongs to a different taxonomy [{{tassonomia}}]"
 						},
 						"HAS": {
-							"CATEGORIES": "Cannot delete taxonomy [{{nome}}] because it has associated categories"
+							"CATEGORIES": "Taxonomy [{{nome}}] has categories, cannot delete"
 						}
 					},
 					"404": "Taxonomy [{{idTassonomia}}] not found",
@@ -1455,8 +1533,17 @@
 						"CF": "Tax code [{{codiceFiscale}}] not valid",
 						"DATE": "Date [{{data}}] not valid",
 						"EMAIL": "Email [{{email}}] not valid",
-						"FORMAT": "Field format [{{campo}}] not valid: {{formato}}",
+						"ENUM": "Cannot convert [{{source}}] to type [{{tipo}}]",
+						"ENVIRONMENT": {
+							"MISMATCH": "URL environment [{{ambienteUrl}}] does not match body environment [{{ambienteBody}}]"
+						},
+						"FORMAT": "Invalid format",
+						"GROUP": {
+							"DEFAULT": "API group [{{gruppo}}] not valid",
+							"ROLE": "Role [{{ruoloRichiesto}}] does not match for API [{{nomeApi}} v{{versioneApi}}] in group [{{gruppo}}] (API role: [{{ruoloApi}}])"
+						},
 						"LENGTH": "Field length [{{campo}}] not valid: expected {{lunghezzaAttesa}}, found {{lunghezzaTrovata}}",
+						"ORIGIN": "Origin [{{origine}}] not valid for parsing",
 						"PATTERN": "Pattern [{{pattern}}] not satisfied for field [{{campo}}]",
 						"PIVA": "VAT number [{{partitaIva}}] not valid",
 						"RANGE": "Value [{{valore}}] out of allowed range [{{min}} - {{max}}]",
@@ -1464,8 +1551,21 @@
 						"URL": "URL [{{url}}] not valid"
 					},
 					"422": {
-						"DEFAULT": "Semantically invalid request: {{dettagli}}",
-						"COMPLEX": "Semantically invalid complex entity update: {{dettagli}}"
+						"API": {
+							"SERVICE": {
+								"MISMATCH": "API [{{nomeApi}} v{{versioneApi}}] does not belong to service [{{nomeServizio}} v{{versioneServizio}}]"
+							}
+						},
+						"CLIENT": {
+							"HAS": {
+								"ADHESIONS": "Cannot delete client [{{nome}}] for subject [{{soggetto}}] and environment [{{ambiente}}] because it has [{{numAdesioni}}] memberships"
+							}
+						},
+						"COMPLEX": "Semantically invalid complex entity update",
+						"DEFAULT": "Semantically invalid request",
+						"SKIP": {
+							"COLLAUDO": "Skip testing not allowed for service [{{servizio}}]"
+						}
 					}
 				},
 				"WFL": {

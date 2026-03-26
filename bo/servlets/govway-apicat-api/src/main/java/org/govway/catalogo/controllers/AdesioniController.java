@@ -791,7 +791,7 @@ public class AdesioniController implements AdesioniApi {
 				specification.setIdRichiedente(Optional.ofNullable(richiedente));
 				specification.setIdServizio(Optional.ofNullable(idServizio));
 
-				boolean admin = this.coreAuthorization.isAdmin();
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				if(!admin) {
 					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
@@ -847,7 +847,7 @@ public class AdesioniController implements AdesioniApi {
 							realSpecification = specification.and((root, query, cb) -> cb.disjunction());
 						}
 					} else {
-						throw new BadRequestException(ErrorCode.ADE_400_STATE);
+						throw new BadRequestException(ErrorCode.ADE_400_STATE, Map.of("stato", "richiesto ruolo utente per filtro"));
 					}
 				} else if(dashboard != null && dashboard) {
 					if(!anounymous) {
@@ -905,7 +905,7 @@ public class AdesioniController implements AdesioniApi {
 							}
 						}
 					} else {
-						throw new BadRequestException(ErrorCode.ADE_400_STATE);
+						throw new BadRequestException(ErrorCode.ADE_400_STATE, Map.of("stato", "richiesto utente autenticato per dashboard"));
 					}
 				} else {
 					realSpecification = specification;

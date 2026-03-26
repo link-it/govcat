@@ -206,12 +206,12 @@ public class APIController implements ApiApi {
 	
 	private ApiEntity findApi(UUID idApi) {
 		ApiEntity entity = this.service.find(idApi)
-				.orElseThrow(() -> new NotFoundException(ErrorCode.API_400_VISIBILITY, java.util.Map.of("idApi", idApi.toString())));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.API_404_ACCESS, java.util.Map.of("idApi", idApi.toString())));
 
 		Optional<ServizioEntity> oS = this.findOne(UUID.fromString(entity.getServizio().getIdServizio()));
 
 		if(!oS.isPresent()) {
-			throw new NotFoundException(ErrorCode.API_400_VISIBILITY, java.util.Map.of("idApi", idApi.toString()));
+			throw new NotFoundException(ErrorCode.API_404_ACCESS, java.util.Map.of("idApi", idApi.toString()));
 		}
 		
 		return entity;

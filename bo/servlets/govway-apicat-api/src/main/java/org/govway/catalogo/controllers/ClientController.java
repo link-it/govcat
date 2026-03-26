@@ -153,7 +153,7 @@ public class ClientController implements ClientApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getAdesioni().isEmpty()) {
-					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(entity.getAdesioni().size())));
+					throw new RichiestaNonValidaSemanticamenteException(ErrorCode.VAL_422_CLIENT_HAS_ADHESIONS, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(entity.getAdesioni().size())));
 				}
 				this.service.delete(entity);
 				this.logger.info("Invocazione completata con successo");
@@ -301,17 +301,17 @@ public class ClientController implements ClientApi {
 					}
 
 					if(entity.getStato().equals(StatoEnum.CONFIGURATO)) {
-						throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString()));
+						throw new BadRequestException(ErrorCode.CLT_400_CONFIGURED, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString()));
 					}
 
-					
+
 					if(soggettoCambiato || ambienteCambiato) {
 						AdesioneSpecification spec = new AdesioneSpecification();
 						spec.setClient(Optional.of(idClient));
 						long cnt = adesioneService.count(spec);
-						
+
 						if(cnt > 0) {
-							throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(cnt)));
+							throw new BadRequestException(ErrorCode.CLT_400_HAS_ADHESIONS, Map.of("nome", entity.getNome(), "soggetto", entity.getSoggetto().getNome(), "ambiente", entity.getAmbiente().toString(), "numAdesioni", String.valueOf(cnt)));
 						}
 
 					}
