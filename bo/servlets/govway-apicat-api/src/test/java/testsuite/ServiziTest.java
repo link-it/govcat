@@ -583,7 +583,7 @@ public class ServiziTest {
             serviziController.createAllegatoServizio(createdServizio.getBody().getIdServizio(), allegati);
         });
 
-        assertTrue(exception.getMessage().contains("API.400.DUPLICATE"));  // Error code check
+        assertTrue(exception.getMessage().contains("SRV.400.DUPLICATE"));  // Error code check
     }
 
     @Test

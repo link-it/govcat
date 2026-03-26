@@ -104,7 +104,7 @@ public class TransazioniController implements TransazioniApi {
 		this.soggettoService.runTransaction(() -> {
 
 			if(transazione.getApi()!=null) {
-				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
+				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
 
 				ItemSoggetto itemSoggetto = new ItemSoggetto();
 
@@ -139,7 +139,7 @@ public class TransazioniController implements TransazioniApi {
 		this.soggettoService.runTransaction(() -> {
 
 			if(transazione.getApi()!=null) {
-				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
+				SoggettoEntity soggetto = this.soggettoService.findByNome(transazione.getApi().getErogatore().getNome()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", transazione.getApi().getErogatore().getNome())));
 
 				ItemSoggetto itemSoggetto = new ItemSoggetto();
 

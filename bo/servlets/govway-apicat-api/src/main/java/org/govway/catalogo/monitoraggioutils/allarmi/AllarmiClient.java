@@ -200,11 +200,11 @@ public class AllarmiClient {
 
 	private String getClientId(ClientEntity c) {
 		if(!isApplicativoPdnd(c)) {
-			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("authType", c.getAuthType().toString()));
+			throw new BadRequestException(ErrorCode.CLT_400_ALARM_CONFIG, Map.of("authType", c.getAuthType().toString()));
 		}
 
 		if(!c.getStato().equals(StatoEnum.CONFIGURATO)) {
-			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("stato", c.getStato().toString()));
+			throw new BadRequestException(ErrorCode.CLT_400_ALARM_CONFIG, Map.of("stato", c.getStato().toString()));
 		}
 
 		if(!c.getAdesioni().stream().filter(a -> this.configurazione.getAdesione().getStatiSchedaAdesione().contains(a.getAdesione().getStato()))
@@ -213,7 +213,7 @@ public class AllarmiClient {
 		}
 		return c.getEstensioni().stream().filter(e -> e.getNome().equals(PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY))
 			.findAny()
-			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_400_CONFIG, Map.of("property", PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY)))
+			.orElseThrow(() -> new BadRequestException(ErrorCode.CLT_400_ALARM_CONFIG, Map.of("property", PdndEstensioneClientAssembler.CLIENT_ID_PROPERTY)))
 			.getValore();
 	}
 
@@ -274,7 +274,7 @@ public class AllarmiClient {
 	}
 
 	private ClientEntity getClient(String organization, String nomeApplicativo, ConfigurazioneConnessione connessione) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(organization).orElseThrow(() -> new BadRequestException(ErrorCode.SOG_404, Map.of("nomeSoggetto", organization)));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(organization).orElseThrow(() -> new BadRequestException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", organization)));
 
 		AmbienteEnum ambiente = null;
 		switch(connessione.getAmbiente()) {
@@ -497,13 +497,13 @@ public class AllarmiClient {
 	}
 	
 	private String getTipo(String nomeSoggetto) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.SOG_404, Map.of("nomeSoggetto", nomeSoggetto)));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", nomeSoggetto)));
 		if (soggetto.getTipoGateway()==null) return this.configurazione.getSoggetto().getProfiloGatewayDefault().toString();
 		else return soggetto.getTipoGateway();
 	}
 
 	private String getNomeSoggetto(String nomeSoggetto) {
-		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.SOG_404, Map.of("nomeSoggetto", nomeSoggetto)));
+		SoggettoEntity soggetto = this.soggettoService.findByNome(nomeSoggetto).orElseThrow(() -> new BadRequestException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", nomeSoggetto)));
 		if (soggetto.getNomeGateway()==null) return soggetto.getNome();
 		else return soggetto.getNomeGateway();
 	}

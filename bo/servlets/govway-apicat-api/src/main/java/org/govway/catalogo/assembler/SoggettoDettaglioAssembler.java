@@ -105,7 +105,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_409);
+					throw new BadRequestException(ErrorCode.ORG_409_ADERENTE);
 				}
 			}
 		}

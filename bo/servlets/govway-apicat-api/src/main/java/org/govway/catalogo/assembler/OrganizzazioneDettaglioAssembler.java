@@ -160,7 +160,7 @@ public class OrganizzazioneDettaglioAssembler extends RepresentationModelAssembl
 		}
 
 		if(src.getIdSoggettoDefault()!=null) {
-			entity.setSoggettoDefault(this.soggettoService.find(src.getIdSoggettoDefault()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
+			entity.setSoggettoDefault(this.soggettoService.find(src.getIdSoggettoDefault()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, java.util.Map.of("idSoggetto", src.getIdSoggettoDefault().toString()))));
 		}
 		
 		if(configurazione.getOrganizzazione().isCodiceFiscaleEnteAbilitato()) {
