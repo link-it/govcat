@@ -791,7 +791,7 @@ public class AdesioniController implements AdesioniApi {
 				specification.setIdRichiedente(Optional.ofNullable(richiedente));
 				specification.setIdServizio(Optional.ofNullable(idServizio));
 
-				boolean admin = this.coreAuthorization.isAdmin();
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				if(!admin) {
 					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
