@@ -1020,6 +1020,13 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         return this._isAnonymous();
     }
 
+    _canAddServiceMapper = (): boolean => {
+        if (this._isAnonymous()) { return false; }
+        const user: any = this.authenticationService.getUser();
+        if (!user?.ruolo && !user?.referente_tecnico) { return false; }
+        return true;
+    }
+
     _initProfili() {
         const _srv: any = Tools.Configurazione?.servizio || null;
         if (_srv) {

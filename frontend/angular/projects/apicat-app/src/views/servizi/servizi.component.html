@@ -152,7 +152,7 @@
           </button>
         </div>
       }
-      @if (!(_updateMapper | mapper:_isAnonymousMapper)) {
+      @if (_updateMapper | mapper:_canAddServiceMapper) {
         <div class="btn-group">
           <button aria-label="Add service" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
             <i class="bi bi-plus-lg"></i><span class="text-nowrap ms-2">{{ 'APP.MENU.AddService' | translate }}</span>
