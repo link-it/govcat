@@ -311,13 +311,13 @@ public class ServiziController implements ServiziApi {
 					String keyString = "Nome: " + allEntity.getDocumento().getFilename()+ " di tipo: " + allegato.getTipologia();
 					
 					if(keys.contains(key)) {
-						throw new BadRequestException(ErrorCode.API_400_DUPLICATE);
+						throw new BadRequestException(ErrorCode.SRV_400_DUPLICATE, Map.of("allegato", keyString));
 					}
-					
+
 					keys.add(key);
-					
+
 					if(entity.getAllegati().stream().anyMatch(a-> key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-						throw new BadRequestException(ErrorCode.API_400_DUPLICATE);
+						throw new BadRequestException(ErrorCode.SRV_400_DUPLICATE, Map.of("allegato", keyString));
 					}
 
 					this.service.save(allEntity);
@@ -465,7 +465,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idMessaggio", idMessaggio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 				
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -597,7 +597,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
@@ -631,9 +631,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -718,9 +718,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 				Resource resource = new ByteArrayResource(allegato.getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -749,7 +749,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				Resource resource = new ByteArrayResource(entity.getDocumento().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -1646,7 +1646,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(entity.getImmagine() == null) {
-					throw new NotFoundException(ErrorCode.DOC_400_FORMAT, Map.of("idServizio", idServizio.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_IMAGE, Map.of("idServizio", idServizio.toString()));
 				}
 				Resource resource = new ByteArrayResource(entity.getImmagine().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -1676,7 +1676,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idMessaggio", idMessaggio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1706,7 +1706,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				this.getServizioAuthorization(entity.getServizio()).authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
@@ -1721,7 +1721,7 @@ public class ServiziController implements ServiziApi {
 
 				
 				if(entity.getServizio().getAllegati().stream().anyMatch(a-> !idAllegato.toString().equals(a.getDocumento().getUuid()) && key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-					throw new BadRequestException(ErrorCode.API_400_DUPLICATE);
+					throw new BadRequestException(ErrorCode.SRV_400_DUPLICATE, Map.of("allegato", keyString));
 				}
 
 				this.allegatoAssembler.toEntity(allegatoUpdate,entity);
@@ -1758,7 +1758,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idMessaggio", idMessaggio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -2215,7 +2215,7 @@ public class ServiziController implements ServiziApi {
 
 				boolean added = entity.getGruppi().add(gentity);
 				if(!added) {
-					throw new ConflictException(ErrorCode.GRP_409);
+					throw new ConflictException(ErrorCode.SRV_409_GROUP, Map.of("gruppo", gentity.getNome()));
 				}
 				
 //				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -2364,7 +2364,7 @@ public class ServiziController implements ServiziApi {
 				
 				for(UUID id: categorieCreate.getCategorie()) {
 					CategoriaEntity centity = this.tassonomiaService.findCategoria(id)
-							.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idCategoria", id.toString())));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", id.toString())));
 
 					if(!centity.getFigli().isEmpty()) {
 						throw new ConflictException(ErrorCode.CAT_409, Map.of("nome", centity.getNome(), "tassonomia", centity.getTassonomia().getNome()));
@@ -2416,7 +2416,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CategoriaEntity centity = this.tassonomiaService.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idCategoria", idCategoria.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 				entity.getCategorie().remove(centity);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.SPECIFICA));
@@ -2503,7 +2503,7 @@ public class ServiziController implements ServiziApi {
 					specification.setIdServizi(List.of(idPackage));
 					
 					ServizioEntity _package = this.service.findOne(specification)
-							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idPackage", idPackage.toString())));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404_PACKAGE, Map.of("idPackage", idPackage.toString())));
 
 					ServizioEntity componente = this.findOne(idComponente);
 

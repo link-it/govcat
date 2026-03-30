@@ -120,15 +120,15 @@ public class ReferenteServizioAssembler extends RepresentationModelAssemblerSupp
 		
 		TIPO_REFERENTE tipoReferente = toTipoReferente(src.getTipo());
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
-				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, java.util.Map.of("idUtente", src.getIdUtente().toString())));
 		
 		if(!utente.getStato().equals(Stato.ABILITATO) && !utente.getStato().equals(Stato.PENDING_UPDATE)) {
-			throw new BadRequestException(ErrorCode.AUT_403, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+			throw new BadRequestException(ErrorCode.AUT_403_REFERENT_NOT_ELIGIBLE, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getRuolo() == null) {
-				throw new BadRequestException(ErrorCode.AUT_403, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+				throw new BadRequestException(ErrorCode.AUT_403_REFERENT_NOT_ELIGIBLE, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 			}
 
 		}

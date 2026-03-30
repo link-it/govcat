@@ -105,9 +105,9 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		}
 		
 		if(src.getIdSoggetto()!=null) {
-			entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
+			entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, java.util.Map.of("idSoggetto", src.getIdSoggetto().toString()))));
 		}
-		
+
 		Set<EstensioneClientEntity> estensioni = clientEngineAssembler.getEstensioni(src, entity.getEstensioni());
 		entity.getEstensioni().clear();
 		entity.getEstensioni().addAll(estensioni);
@@ -154,9 +154,9 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		ClientEntity entity = new ClientEntity();
 		BeanUtils.copyProperties(src, entity);
 		entity.setIdClient(UUID.randomUUID().toString());
-		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
+		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, java.util.Map.of("idSoggetto", src.getIdSoggetto().toString()))));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
-		
+
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
 		
 		entity.setAuthType(clientEngineAssembler.getAuthType(src.getDatiSpecifici().getAuthType()));
@@ -181,7 +181,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		ClientEntity entity = new ClientEntity();
 		BeanUtils.copyProperties(src, entity);
 		entity.setIdClient(UUID.randomUUID().toString());
-		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404)));
+		entity.setSoggetto(soggettoService.find(src.getIdSoggetto()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, java.util.Map.of("idSoggetto", src.getIdSoggetto().toString()))));
 		entity.setAmbiente(clientEngineAssembler.toAmbiente(src.getAmbiente()));
 		entity.getEstensioni().addAll(clientEngineAssembler.getEstensioni(src));
 		entity.setStato(StatoEnum.NUOVO);
@@ -196,7 +196,7 @@ public class ClientDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public void checkClientProfilo(ConfigurazioneProfilo cp, ClientEntity c) {
 		AuthTypeEnum authTypeClient = clientEngineAssembler.getAuthType(c.getAuthType());
 		if(!authTypeClient.equals(cp.getAuthType())) {
-			throw new BadRequestException(ErrorCode.CLT_400_CONFIG, java.util.Map.of("profilo", cp.getEtichetta(), "authTypeRichiesto", cp.getAuthType().toString(), "authTypeTrovato", authTypeClient.toString()));
+			throw new BadRequestException(ErrorCode.CLT_400_AUTH_MISMATCH, java.util.Map.of("profilo", cp.getEtichetta(), "authTypeRichiesto", cp.getAuthType().toString(), "authTypeTrovato", authTypeClient.toString()));
 		}
 	}
 

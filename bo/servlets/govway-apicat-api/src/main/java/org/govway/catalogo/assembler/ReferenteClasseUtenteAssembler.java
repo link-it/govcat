@@ -109,7 +109,7 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 		
 		TIPO_REFERENTE tipoReferente = toTipoReferente(src.getTipo());
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
-				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, java.util.Map.of("idUtente", src.getIdUtente().toString())));
 
 		if(!utente.getStato().equals(Stato.ABILITATO) && !utente.getStato().equals(Stato.PENDING_UPDATE)) {
 			throw new BadRequestException(ErrorCode.UT_404_BY_NAME, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));

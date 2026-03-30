@@ -124,11 +124,11 @@ public class SoggettiController implements SoggettiApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(!entity.getDomini().isEmpty()) {
-					throw new BadRequestException(ErrorCode.SOG_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.SOG_400_HAS_DOMAINS, Map.of("nome", entity.getNome()));
 				}
-				
+
 				if(entity.getOrganizzazione().getSoggettoDefault() != null && entity.getOrganizzazione().getSoggettoDefault().getId().equals(entity.getId())) {
-					throw new BadRequestException(ErrorCode.SOG_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.SOG_400_IS_DEFAULT, Map.of("nome", entity.getNome()));
 				}
 				
 				this.service.delete(entity);

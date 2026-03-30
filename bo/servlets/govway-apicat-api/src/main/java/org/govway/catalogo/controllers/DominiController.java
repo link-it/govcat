@@ -145,7 +145,7 @@ public class DominiController implements DominiApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(dominio.getServizi().size() > 0) {
-					throw new BadRequestException(ErrorCode.GEN_400, Map.of("nome", dominio.getNome(), "numServizi", String.valueOf(dominio.getServizi().size())));
+					throw new BadRequestException(ErrorCode.GEN_400_HAS_SERVICES, Map.of("nome", dominio.getNome(), "numServizi", String.valueOf(dominio.getServizi().size())));
 				}
 				
 				this.service.delete(dominio);
