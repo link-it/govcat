@@ -70,9 +70,9 @@ export class UtilService {
   _modalGenerateRef!: BsModalRef;
 
   constructor(
-    private apiService: OpenAPIService,
-    private translate: TranslateService,
-    private modalService: BsModalService,
+    private readonly apiService: OpenAPIService,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
   ) { }
 
   getUtenti(term: string | null = null, role: string | null = null, stato: string = 'abilitato', organizzazione: string | null = null, referenteTecnico: boolean = false): Observable<any> {
@@ -85,17 +85,16 @@ export class UtilService {
     return this.apiService.getList('utenti', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             item.nome_completo = `${item.nome} ${item.cognome}`;
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
         }
       })
-      );
+    );
   }
 
   getAnagrafiche(tables: any[]) {
@@ -111,21 +110,19 @@ export class UtilService {
         if (table.param) _param = { params: this._queryToHttpParams(table.param) };
       }
 
-      // if (!this.cacheAnagrafiche[table]) {
-        this.cacheAnagrafiche[table] = [];
-        switch (table) {
-          default:
-            reqs.push(
-              this.apiService.getList(_table, _param)
-                .pipe(
-                  catchError((err) => {
-                    console.log('getAnagrafiche error', table, err);
-                    return of({ items: [] });
-                  })
-                )
-            );
-        }
-      // }
+      this.cacheAnagrafiche[table] = [];
+      switch (table) {
+        default:
+          reqs.push(
+            this.apiService.getList(_table, _param)
+              .pipe(
+                catchError((err) => {
+                  console.log('getAnagrafiche error', table, err);
+                  return of({ items: [] });
+                })
+              )
+          );
+      }
     });
 
     forkJoin(reqs).subscribe({
@@ -183,12 +180,6 @@ export class UtilService {
                 })).sort(this._order);
                 break;
             default:
-              // this.cacheAnagrafiche[_table] = results[index].content
-              //   .map((item: any) => ({
-              //     id: item.id,
-              //     descrizione: item.nome
-              //   })).sort(this._order);
-              // break;
           }
         });
       },
@@ -264,7 +255,7 @@ export class UtilService {
     const _initialState = {
         title: this.translate.instant('APP.TITLE.Attention'),
         messages: [
-            this.translate.instant(message ? message : 'APP.MESSAGE.AreYouSure')
+            this.translate.instant(message ?? 'APP.MESSAGE.AreYouSure')
         ],
         cancelText: this.translate.instant('APP.BUTTON.Cancel'),
         confirmText: this.translate.instant('APP.BUTTON.Confirm'),
@@ -339,7 +330,7 @@ export class UtilService {
   _openGenerateTokenDialog(component: any, state: any, callback: (data: any) => void) {
     const initialState = { ...state };
 
-    this._modalGenerateRef && this._modalGenerateRef.content? this._modalGenerateRef.content.onClose.unsubscribe() : null;
+    this._modalGenerateRef?.content?.onClose.unsubscribe();
 
     this._modalGenerateRef = this.modalService.show(component, {
       id: 'generate-jwt',
@@ -394,7 +385,7 @@ export class UtilService {
   }
 
   scrollToElm(container: any, elm: any, duration: number){
-      var pos = this.getRelativePos(elm);
+      const pos = this.getRelativePos(elm);
 
       this._scrollTo(container, pos.top, duration);  // duration in seconds
   }
@@ -413,7 +404,7 @@ export class UtilService {
   }
   
   _scrollTo(element: any, to: any, duration: number) {
-      var start = element.scrollTop,
+      const start = element.scrollTop,
           change = to - start;
 
       element.scrollTop = start + change;
@@ -541,7 +532,12 @@ export class UtilService {
         if (error.error.errori?.length > 0) {
           params = error.error.errori[0].params || {};
         }
-        _msg = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
+        let translation = this.translate.instant(`APP.MESSAGE.ERROR.${code}`, params);
+        // Se la traduzione è un oggetto (non una stringa), prova con .DEFAULT
+        if (typeof translation === 'object' && translation !== null) {
+          translation = this.translate.instant(`APP.MESSAGE.ERROR.${code}.DEFAULT`, params);
+        }
+        _msg = typeof translation === 'string' ? translation : code;
       } else if (error.error?.title || error.error?.detail) {
         if (error.error.title) {
           _msgA.push(error.error.title);
@@ -550,20 +546,18 @@ export class UtilService {
           _msgA.push(error.error.detail);
         }
         _msg = _msgA.join(' - ');
-      } else {
-        if (error.status !== 0 && error.statusText) {
-          _msg = error.status + ': ' + error.statusText;
-          if (error.status === 404) {
-            _msg += error.url ? ` ${error.url.split('?')[0]}` : '';
-          }
-        } else {
-          _msg = error.message;
+      } else if (error.status !== 0 && error.statusText) {
+        _msg = error.status + ': ' + error.statusText;
+        if (error.status === 404) {
+          _msg += error.url ? ` ${error.url.split('?')[0]}` : '';
         }
+      } else {
+        _msg = error.message;
       }
       if (error.name && !error.error) {
         _msg = this.translate.instant(`APP.MESSAGE.ERROR.${error.name}`);
       }
-    } catch (e) {
+    } catch {
       _msg = 'Si è verificato un problema non previsto.';
     }
 
