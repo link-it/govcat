@@ -169,7 +169,7 @@ public class SchedaAdesioneBuilder {
 			a.setRichiedente(richiedenteValue);
 			// Aggiungi anche come riga nella tabella per la visualizzazione nel PDF
 			RowType rigaRichiedente = new RowType();
-			rigaRichiedente.setLabel("Richiedente");
+			rigaRichiedente.setLabel("Registrato da");
 			rigaRichiedente.setValore(richiedenteValue);
 			api.getRow().add(rigaRichiedente);
 		}
