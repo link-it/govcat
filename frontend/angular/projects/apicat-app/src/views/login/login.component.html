@@ -25,6 +25,11 @@
     }
     <div class="container navless-container">
       <div class="content">
+        @if (loading && !AUTH_USER) {
+          <div class="gl-text-center mt-5">
+            <span class="spinner-border"></span>
+          </div>
+        } @else {
         <div class="flash-container flash-container-page sticky">
           @if (errorCode) {
             <div class="flash-alert mb-2">
@@ -219,6 +224,7 @@
     </div>
   </div>
 }
+        }
 </div>
 </div>
 </div>

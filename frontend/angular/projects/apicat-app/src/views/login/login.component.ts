@@ -103,6 +103,10 @@ export class LoginComponent implements OnInit {
 
     // Clear MultiSnackbar
     Tools.MultiSnackbarDestroyAll();
+
+    // SSO Auto-redirect: se non c'è login classico e c'è un solo provider OAuth,
+    // avvia automaticamente il flusso SSO senza mostrare la pagina di login
+    this._tryAutoSSORedirect();
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -159,6 +163,10 @@ export class LoginComponent implements OnInit {
   }
 
   logidWithUrlAction(item: any) {
+    // Salva il returnUrl in sessionStorage per ripristinarlo dopo il redirect OAuth
+    if (this.returnUrl && this.returnUrl !== '/') {
+      sessionStorage.setItem('sso_return_url', this.returnUrl);
+    }
     if (item.signin_url) {
       window.location.href = item.signin_url;
     } else {
@@ -168,6 +176,17 @@ export class LoginComponent implements OnInit {
           break;
         default:
       }
+    }
+  }
+
+  _tryAutoSSORedirect() {
+    if (this.error) { return; }
+    if (this.AUTH_USER) { return; }
+
+    const enabledAuths = this.OTHER_AUTHS.filter((a: any) => a.enabled);
+    if (enabledAuths.length === 1) {
+      this.loading = true;
+      this.logidWithUrlAction(enabledAuths[0]);
     }
   }
 }
