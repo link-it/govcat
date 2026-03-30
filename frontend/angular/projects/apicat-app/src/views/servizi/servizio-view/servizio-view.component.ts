@@ -362,6 +362,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     loadCurrentData() {
         this.richiedente = this.data.utente_richiedente;
 
+        this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
         this._loadServiceApi();
     }
