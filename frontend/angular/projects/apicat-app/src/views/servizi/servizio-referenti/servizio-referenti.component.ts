@@ -614,7 +614,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   _canAddMapper = (): boolean => {
-    const _grant: any = this._grant || [];
+    const _grant: any = this._grant?.ruoli || [];
     if (this.authenticationService._isDatoSempreModificabile('servizio', 'referenti', _grant)) {
       return true;
     }
