@@ -263,6 +263,8 @@ public class StampeLabels {
         private String autenticazione = "Autenticazione";
         private String firma = "Firma";
         private String scadenzaCertificato = "Scadenza Certificato";
+        private String registratoDa = "Registrato da";
+        private String rateLimiting = "Rate Limiting";
 
         public String getAderente() {
             return aderente;
@@ -382,6 +384,22 @@ public class StampeLabels {
 
         public void setScadenzaCertificato(String scadenzaCertificato) {
             this.scadenzaCertificato = scadenzaCertificato;
+        }
+
+        public String getRegistratoDa() {
+            return registratoDa;
+        }
+
+        public void setRegistratoDa(String registratoDa) {
+            this.registratoDa = registratoDa;
+        }
+
+        public String getRateLimiting() {
+            return rateLimiting;
+        }
+
+        public void setRateLimiting(String rateLimiting) {
+            this.rateLimiting = rateLimiting;
         }
     }
 
