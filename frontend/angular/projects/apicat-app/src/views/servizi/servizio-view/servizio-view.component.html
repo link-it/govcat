@@ -116,10 +116,10 @@
                           </button>
                         </div>
                         @if (_updateData | mapper:_canJoinMapper) {
-                          <div class="col-12 mt-3">
+                          <div class="col-12 mt-3 d-flex flex-column gap-2">
                             @if ((!(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isReferenteMapper) && !(_updateData | mapper:_isReferenteTecnicoAdesioneMapper) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))) {
-                              <button class="btn btn-link btn-md gl-button ms-2- supports-new-tab" (click)="_joinServizio($event)" (auxclick)="_joinServizio($event)">
-                                <i class="bi bi-link me-2"></i>
+                              <button class="btn btn-confirm btn-md gl-button w-100 supports-new-tab" (click)="_joinServizio($event)" (auxclick)="_joinServizio($event)">
+                                <i class="bi bi-plus-circle me-2"></i>
                                 <span>{{ 'APP.BUTTON.JoinService' | translate }}</span>
                                 @if (enableOpenInNewTab) {
                                   <span class="open-new-tab-icon bi bi-box-arrow-up-right"
@@ -129,9 +129,9 @@
                               </button>
                             }
                             @if ((_updateData | mapper:_isGestoreMapper) || (((_updateData | mapper:_isReferenteMapper) || (_updateData | mapper:_isReferenteTecnicoAdesioneMapper)) && !_hasJoined && (_updateData | mapper:_isAmmissibileMapper))) {
-                              <button class="btn btn-link btn-md gl-button ms-2- supports-new-tab" (click)="_gotoAdesioni($event)" (auxclick)="_gotoAdesioni($event)">
-                                <i class="bi bi-display"></i>
-                                <span class="ms-2">{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
+                              <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesioni($event)" (auxclick)="_gotoAdesioni($event)">
+                                <i class="bi bi-display me-2"></i>
+                                <span>{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
                                 @if (enableOpenInNewTab) {
                                   <span class="open-new-tab-icon bi bi-box-arrow-up-right"
                                     [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
@@ -140,17 +140,82 @@
                               </button>
                             }
                             @if (!(_updateData | mapper:_isGestoreMapper) && _hasJoined) {
-                              <button class="btn btn-link btn-md gl-button ms-2- supports-new-tab" (click)="_gotoAdesione($event)" (auxclick)="_gotoAdesione($event)">
-                                <i class="bi bi-display"></i>
-                                <span class="ms-2">{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
+                              <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesione($event)" (auxclick)="_gotoAdesione($event)">
+                                <i class="bi bi-display me-2"></i>
+                                <span>{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
                                 @if (enableOpenInNewTab) {
                                   <span class="open-new-tab-icon bi bi-box-arrow-up-right"
                                     [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-                                  (click)="_openAdesioneInNewTab($event)"></span>
+                                  (click)="_openAdesioniInNewTab($event)"></span>
                                 }
                               </button>
                             }
+                            @if (_adesioneDataReady) {
+                              <!-- Organizzazione non ammissibile -->
+                              @if (!(_updateData | mapper:_isAmmissibileMapper) && !(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
+                                <div class="alert alert-warning small p-2 mb-0">
+                                  <i class="bi bi-shield-exclamation me-1"></i>
+                                  {{ 'APP.MESSAGE.OrgNonAmmissibile' | translate }}
+                                </div>
+                              }
+                              <!-- Adesione singola già esistente -->
+                              @if (_hasJoined && !data.multi_adesione && !(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
+                                <div class="alert alert-info small p-2 mb-0">
+                                  <i class="bi bi-info-circle me-1"></i>
+                                  {{ 'APP.MESSAGE.AdesioneGiaEsistente' | translate }}
+                                </div>
+                              }
+                            }
                           </div>
+                        }
+                      </div>
+                    }
+                    <!-- Messaggi e navigazione quando adesione non consentita -->
+                    @if (_adesioneDataReady && data && !(_updateData | mapper:_canJoinMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
+                      <div class="mt-3 d-flex flex-column gap-2">
+                        @if (data.adesione_disabilitata) {
+                          <div class="alert alert-warning small p-2 mb-0">
+                            <i class="bi bi-x-circle me-1"></i>
+                            {{ 'APP.MESSAGE.AdesioneDisabilitata' | translate }}
+                          </div>
+                        } @else {
+                          <div class="alert alert-info small p-2 mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {{ 'APP.MESSAGE.AdesioneNonConsentita' | translate }}
+                          </div>
+                        }
+                        <!--
+                          Pulsanti navigazione adesioni esistenti:
+                          anche se l'adesione è disabilitata o il servizio non è in stato aderibile,
+                          potrebbero esistere adesioni create in precedenza a cui l'utente deve poter accedere.
+                        -->
+                        @if ((_updateData | mapper:_isGestoreMapper) || _hasJoined) {
+                          <div class="alert alert-secondary small p-2 mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {{ 'APP.MESSAGE.AdesioniPrecedenti' | translate }}
+                          </div>
+                        }
+                        @if ((_updateData | mapper:_isGestoreMapper)) {
+                          <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesioni($event)" (auxclick)="_gotoAdesioni($event)">
+                            <i class="bi bi-display me-2"></i>
+                            <span>{{ 'APP.BUTTON.GoAdesioni' | translate }}</span>
+                            @if (enableOpenInNewTab) {
+                              <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                              (click)="_openAdesioniInNewTab($event)"></span>
+                            }
+                          </button>
+                        }
+                        @if (!(_updateData | mapper:_isGestoreMapper) && _hasJoined) {
+                          <button class="btn btn-default btn-md gl-button w-100 supports-new-tab" (click)="_gotoAdesione($event)" (auxclick)="_gotoAdesione($event)">
+                            <i class="bi bi-display me-2"></i>
+                            <span>{{ 'APP.BUTTON.GoAdesione' | translate }}</span>
+                            @if (enableOpenInNewTab) {
+                              <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+                                [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+                              (click)="_openAdesioniInNewTab($event)"></span>
+                            }
+                          </button>
                         }
                       </div>
                     }

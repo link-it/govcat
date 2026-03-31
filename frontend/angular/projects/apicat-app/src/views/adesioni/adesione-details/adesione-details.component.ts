@@ -41,7 +41,7 @@ import { Adesione } from './adesione';
 import { AdesioneCreate } from './adesioneCreate';
 import { AdesioneUpdate, Servizio, Soggetto } from './adesioneUpdate';
 
-import { concat, Observable, of, Subject, throwError, forkJoin } from 'rxjs';
+import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 declare const saveAs: any;
@@ -376,7 +376,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._isDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.esterna || false;
       this._idDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
       this._idSoggettoDominioEsterno = this._servizio.dominio?.soggetto_referente?.id_soggetto || null;
-      // this._formGroup.get('id_soggetto')?.setValue(this._idSoggettoDominioEsterno);
 
       this._initServiziSelect([{'id_servizio': serv.id_servizio, 'nome': serv.nome, 'versione': serv.versione}]);
 
@@ -418,10 +417,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
               _group[key] = new FormControl(value, [Validators.required]);
             }
             break;
-          case 'referente_tecnico':
-            value = data[key] ? data[key] : null;
-            _group[key] = new FormControl(value, []);
-            break;
           case 'referente':{
             value = data[key] ? data[key] : null;
             const _referente_obbligatorio = this.generalConfig?.adesione.referente_obbligatorio || false;
@@ -444,10 +439,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
           }
+          case 'referente_tecnico':
           case 'id_logico':
-            value = data[key] ? data[key] : null;
-            _group[key] = new FormControl(value, []);
-            break;
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
@@ -538,10 +531,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
     this._spin = true;
 
-    this.apiService.saveElement(this.model, _body).subscribe(
-      (response: any) => {
+    this.apiService.saveElement(this.model, _body).subscribe({
+      next: (response: any) => {
         this.id = response.id_adesione;
-        this.adesione = response; // new Adesione({ ...response });
+        this.adesione = response;
         this._adesione = new Adesione({ ...response });
 
         this._isEdit = false;
@@ -556,12 +549,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         this.router.navigate([this.id], { replaceUrl: true, relativeTo: this.route.parent });
         this._spin = false;
       },
-      (error: any) => {
+      error: (error: any) => {
         this._error = true;
         this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
-    );
+    });
   }
   __onUpdate(id: string, body: any) {
     this._error = false;
@@ -570,8 +563,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
     this._spin = true;
     if (_body) {
-      this.apiService.putElement(this.model, id, _body).subscribe(
-        (response: any) => {
+      this.apiService.putElement(this.model, id, _body).subscribe({
+        next: (response: any) => {
           this._isEdit = !this._closeEdit;
           this.adesione = response;
           this._adesione = new Adesione({ ...response });
@@ -579,12 +572,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           this._spin = false;
           this.save.emit({ id: this.id, payment: response, update: true });
         },
-        (error: any) => {
+        error: (error: any) => {
           this._error = true;
           this._errorMsg = this.utils.GetErrorMsg(error);
           this._spin = false;
         }
-      );
+      });
     } else {
       console.log('No difference');
     }
@@ -1225,7 +1218,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         const _status: string = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione.stato);
         const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusSuccess', {status: _status});
         Tools.showMessage(_msg, 'success', true);
-        this._updateMapper = new Date().getTime().toString();
+        this._updateMapper = Date.now().toString();
       },
       error: (error: any) => {
         this._changingStatus = false;
@@ -1236,7 +1229,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + event.status.nome);
         const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
         Tools.showMessage(_msg, 'danger', true);
-        this._updateMapper = new Date().getTime().toString();
+        this._updateMapper = Date.now().toString();
       },
     });
   }
@@ -1263,7 +1256,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   _removeNullProperties(obj: any) {
     Object.keys(obj).forEach((k: string) => {
-        obj[k] == null ? delete obj[k] : null;
+        if (obj[k] == null) {
+          delete obj[k];
+        }
       })
   }
 

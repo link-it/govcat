@@ -85,11 +85,13 @@
             (action)="onSelectionAction($event)"
           ></ui-selection-dropdown>
         }
-        <div class="gl-w-full btn-group-">
-          <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
-            <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddSubscription' | translate }}</span>
-          </button>
-        </div>
+        @if (!service || service.multi_adesione || isGestore || adesioni.length === 0) {
+          <div class="gl-w-full btn-group-">
+            <button aria-label="Add subscription" type="button" class="btn btn-confirm btn-md gl-button btn-icon" (click)="_onNew()">
+              <span class="material-icons-outlined">add</span> <span class="text-nowrap ms-2">{{ 'APP.BUTTON.AddSubscription' | translate }}</span>
+            </button>
+          </div>
+        }
       </div>
     </div>
     @if (_hasFilter) {

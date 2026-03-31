@@ -1102,6 +1102,10 @@
 			"WorkflowSendRequest": "Send request"
 		},
 		"MESSAGE": {
+			"AdesioneDisabilitata": "Subscription is disabled for this service",
+			"AdesioneGiaEsistente": "Your organization already has an active subscription. This service does not allow multiple subscriptions",
+			"AdesioneNonConsentita": "The service is not in a state that allows subscriptions",
+			"AdesioniPrecedenti": "There are previously created subscriptions",
 			"AreYouSure": "Are you sure you want to delete the selected item?",
 			"ChooseEnvironment": "Choose an environment",
 			"ChooseEnvironmentHelp": "Testing or Production",
@@ -1111,6 +1115,7 @@
 			"ProfileSaved": "Profile saved successfully",
 			"EmailModified": "Email modified successfully",
 			"EmailRemoved": "Email removed successfully",
+			"OrgNonAmmissibile": "Your organization is not authorized to subscribe to this service",
 			"ERROR": {
 				"ADE": {
 					"400": {

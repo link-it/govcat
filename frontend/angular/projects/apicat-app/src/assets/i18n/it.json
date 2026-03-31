@@ -1102,6 +1102,10 @@
 			"WorkflowSendRequest": "Invia richiesta"
 		},
 		"MESSAGE": {
+			"AdesioneDisabilitata": "L'adesione è disabilitata per questo servizio",
+			"AdesioneGiaEsistente": "La tua organizzazione ha già un'adesione attiva. Questo servizio non consente adesioni multiple",
+			"AdesioneNonConsentita": "Il servizio non è in uno stato che consente l'adesione",
+			"AdesioniPrecedenti": "Sono presenti adesioni create in precedenza",
 			"AreYouSure": "Sei sicuro di voler eliminare l'elemento selezionato?",
 			"ChooseEnvironment": "Scegli un'ambiente",
 			"ChooseEnvironmentHelp": "Collaudo o Produzione",
@@ -1111,6 +1115,7 @@
 			"ProfileSaved": "Profilo salvato con successo",
 			"EmailModified": "Email modificata con successo",
 			"EmailRemoved": "Email rimossa con successo",
+			"OrgNonAmmissibile": "La tua organizzazione non è autorizzata ad aderire a questo servizio",
 			"ERROR": {
 				"ADE": {
 					"400": {
