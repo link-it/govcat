@@ -34,8 +34,6 @@ import { Utente, Ruolo, Stato } from './utente';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
-import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
-
 import * as _ from 'lodash';
 import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
@@ -675,7 +673,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       console.warn('organizationFormControl does not exist');
       return;
     }
-    if(role === RuoloUtenteEnum.Gestore){
+    if(role === Ruolo.GESTORE || role === Ruolo.COORDINATORE){
       organizationFormControl.clearValidators();
     }else{
       organizationFormControl.setValidators([Validators.required]);

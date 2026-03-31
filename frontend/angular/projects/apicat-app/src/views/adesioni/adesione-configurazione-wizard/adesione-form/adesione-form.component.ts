@@ -37,7 +37,7 @@ import { AdesioneUpdate, Servizio, Soggetto } from '../../adesione-details/adesi
 
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
-import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
+import { Ruolo } from '@app/views/utenti/utente-details/utente';
 
 @Component({
     selector: 'app-adesione-form',
@@ -423,7 +423,7 @@ export class AdesioneFormComponent implements OnInit {
             this.formGroup.get('id_soggetto')?.disable();
             this.hideSoggettoDropdown = true;
         } else {
-            if (this.profilo?.utente.ruolo === RuoloUtenteEnum.ReferenteServizio){
+            if (this.profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO){
                 if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
                     this.formGroup.get('id_organizzazione')?.enable();
                     this.formGroup.get('id_organizzazione')?.reset();

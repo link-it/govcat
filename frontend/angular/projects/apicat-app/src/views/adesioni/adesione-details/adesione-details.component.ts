@@ -48,7 +48,7 @@ declare const saveAs: any;
 import moment from 'moment';
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
-import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
+import { Ruolo } from '@app/views/utenti/utente-details/utente';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
 import { Grant } from '@app/model/grant';
@@ -1126,7 +1126,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._formGroup.get('id_soggetto')?.disable();
       this._hideSoggettoDropdown = true;
       this._initOrganizzazioniSelect([_organizzazione]);
-    } else if (this._profilo?.utente.ruolo === RuoloUtenteEnum.ReferenteServizio) {
+    } else if (this._profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO) {
         if (servizio && await this.isCurrentUserReferenteServizio(servizio)){
           this._formGroup.get('id_organizzazione')?.enable();
           // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare

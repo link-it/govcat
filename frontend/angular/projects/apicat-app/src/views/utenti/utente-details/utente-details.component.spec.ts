@@ -354,8 +354,8 @@ describe('UtenteDetailsComponent', () => {
     it('should create default form controls for unknown keys', () => {
       component._isEdit = false;
       component._utente = new Utente({ stato: Stato.ABILITATO });
-      component._initForm({ ruolo: Ruolo.GESTOERE });
-      expect(component._formGroup.get('ruolo')!.value).toBe(Ruolo.GESTOERE);
+      component._initForm({ ruolo: Ruolo.GESTORE });
+      expect(component._formGroup.get('ruolo')!.value).toBe(Ruolo.GESTORE);
     });
 
     it('should default null values properly', () => {
@@ -583,7 +583,7 @@ describe('UtenteDetailsComponent', () => {
 
   describe('__onUpdate', () => {
     it('should update and set state on success', () => {
-      const response = { id: 1, id_utente: 1, nome: 'Mario', cognome: 'Rossi', ruolo: Ruolo.GESTOERE };
+      const response = { id: 1, id_utente: 1, nome: 'Mario', cognome: 'Rossi', ruolo: Ruolo.GESTORE };
       mockApiService.putElement.mockReturnValue(of(response));
       component._closeEdit = true;
       const saveSpy = vi.fn();
@@ -593,8 +593,8 @@ describe('UtenteDetailsComponent', () => {
 
       expect(component._isEdit).toBe(false); // _closeEdit=true => !true = false
       expect(component._spin).toBe(false);
-      expect(component.utente.ruolo).toBe(Ruolo.GESTOERE);
-      expect(component._utente.ruolo).toBe(Ruolo.GESTOERE);
+      expect(component.utente.ruolo).toBe(Ruolo.GESTORE);
+      expect(component._utente.ruolo).toBe(Ruolo.GESTORE);
       // this.id = this.utente.id which comes from new Utente({...response})
       expect(component.id).toBe(1);
       expect(saveSpy).toHaveBeenCalledWith({ id: 1, utente: response, update: true });
@@ -624,7 +624,7 @@ describe('UtenteDetailsComponent', () => {
 
   describe('_checkRuolo', () => {
     it('should return ruolo from data', () => {
-      expect(component._checkRuolo({ ruolo: Ruolo.GESTOERE })).toBe(Ruolo.GESTOERE);
+      expect(component._checkRuolo({ ruolo: Ruolo.GESTORE })).toBe(Ruolo.GESTORE);
     });
 
     it('should return NESSUN_RUOLO when data has no ruolo', () => {
@@ -655,18 +655,18 @@ describe('UtenteDetailsComponent', () => {
       const body = {
         nome: 'Test',
         cognome: 'User',
-        ruolo: Ruolo.GESTOERE,
+        ruolo: Ruolo.GESTORE,
         classi_utente: null,
         organizzazione: {}
       };
       const result = component._prapareData(body);
-      expect(result.ruolo).toBe(Ruolo.GESTOERE);
+      expect(result.ruolo).toBe(Ruolo.GESTORE);
     });
 
     it('should map classi_utente to id array', () => {
       const body = {
         nome: 'Test',
-        ruolo: Ruolo.GESTOERE,
+        ruolo: Ruolo.GESTORE,
         classi_utente: [{ id_classe_utente: 'c1' }, { id_classe_utente: 'c2' }],
         organizzazione: {}
       };
@@ -677,7 +677,7 @@ describe('UtenteDetailsComponent', () => {
     it('should set classi_utente to null when empty array', () => {
       const body = {
         nome: 'Test',
-        ruolo: Ruolo.GESTOERE,
+        ruolo: Ruolo.GESTORE,
         classi_utente: [],
         organizzazione: {}
       };
@@ -748,7 +748,7 @@ describe('UtenteDetailsComponent', () => {
         id_utente: 1,
         nome: 'Mario',
         cognome: 'Rossi',
-        ruolo: Ruolo.GESTOERE,
+        ruolo: Ruolo.GESTORE,
         classi_utente: { id_classe_utente: 'c1', nome: 'Classe1' },
         organizzazione: { id_organizzazione: 'org1', descrizione: 'Org One', nome: 'Org1' }
       };
@@ -759,7 +759,7 @@ describe('UtenteDetailsComponent', () => {
 
       expect(component.utente).toBeDefined();
       expect(component._utente).toBeDefined();
-      expect(component.utente.ruolo).toBe(Ruolo.GESTOERE);
+      expect(component.utente.ruolo).toBe(Ruolo.GESTORE);
       expect(component._spin).toBe(false);
     });
 
@@ -1169,7 +1169,7 @@ describe('UtenteDetailsComponent', () => {
       };
       component._formGroup = new FormGroup({
         nome: new FormControl('Mario'),
-        ruolo: new FormControl(Ruolo.GESTOERE),
+        ruolo: new FormControl(Ruolo.GESTORE),
         id_organizzazione: new FormControl('org1')
       });
     });
@@ -1193,7 +1193,7 @@ describe('UtenteDetailsComponent', () => {
         id_utente: 1,
         nome: 'Mario',
         cognome: 'Rossi',
-        ruolo: Ruolo.GESTOERE,
+        ruolo: Ruolo.GESTORE,
         id_organizzazione: 'org2',
         organizzazione: { id_organizzazione: 'org2', nome: 'Org2' }
       };

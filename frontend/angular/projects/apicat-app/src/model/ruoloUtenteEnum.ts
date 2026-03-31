@@ -30,10 +30,11 @@
  */
 
 
-export type RuoloUtenteEnum = 'referente_servizio' | 'gestore';
+export type RuoloUtenteEnum = 'referente_servizio' | 'gestore' | 'coordinatore';
 
 export const RuoloUtenteEnum = {
     ReferenteServizio: 'referente_servizio' as RuoloUtenteEnum,
-    Gestore: 'gestore' as RuoloUtenteEnum
+    Gestore: 'gestore' as RuoloUtenteEnum,
+    Coordinatore: 'coordinatore' as RuoloUtenteEnum
 };
 

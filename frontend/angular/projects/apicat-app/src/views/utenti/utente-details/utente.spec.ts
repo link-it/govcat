@@ -4,7 +4,7 @@ import { Utente, Ruolo, Stato } from './utente';
 describe('Ruolo enum', () => {
   it('should have correct values', () => {
     expect(Ruolo.NESSUN_RUOLO).toBe('nessun_ruolo');
-    expect(Ruolo.GESTOERE).toBe('gestore');
+    expect(Ruolo.GESTORE).toBe('gestore');
     expect(Ruolo.REFERENTE_SERVIZIO).toBe('referente_servizio');
     expect(Ruolo.COORDINATORE).toBe('coordinatore');
   });
