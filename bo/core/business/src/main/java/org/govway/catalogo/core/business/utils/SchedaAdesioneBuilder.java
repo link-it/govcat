@@ -20,7 +20,6 @@
 package org.govway.catalogo.core.business.utils;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.Principal;
 import java.security.cert.CertificateFactory;
@@ -34,8 +33,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.govway.catalogo.core.orm.entity.ClientEntity.AuthType;
-
-import jakarta.xml.bind.JAXBException;
 
 import org.govway.catalogo.core.orm.entity.AdesioneEntity;
 import org.govway.catalogo.core.orm.entity.AmbienteEnum;
@@ -169,7 +166,7 @@ public class SchedaAdesioneBuilder {
 			a.setRichiedente(richiedenteValue);
 			// Aggiungi anche come riga nella tabella per la visualizzazione nel PDF
 			RowType rigaRichiedente = new RowType();
-			rigaRichiedente.setLabel("Registrato da");
+			rigaRichiedente.setLabel(this.stampeLabels.getScheda().getLabel().getRegistratoDa());
 			rigaRichiedente.setValore(richiedenteValue);
 			api.getRow().add(rigaRichiedente);
 		}
@@ -445,7 +442,7 @@ public class SchedaAdesioneBuilder {
 							api.getNome();
 					row.setLabel(label);
 				} else {
-					row.setLabel("Rate Limiting");
+					row.setLabel(this.stampeLabels.getScheda().getLabel().getRateLimiting());
 				}
 				row.setValore(quota + " / " + periodo);
 				rateLimitingApi.getRow().add(row);
