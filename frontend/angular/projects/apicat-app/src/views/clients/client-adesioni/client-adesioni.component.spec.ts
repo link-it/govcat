@@ -288,12 +288,6 @@ describe('ClientAdesioniComponent', () => {
     expect(component._links).toEqual({ next: { href: '/next' } });
   });
 
-  // --- ngOnDestroy ---
-
-  it('ngOnDestroy should not throw', () => {
-    expect(() => component.ngOnDestroy()).not.toThrow();
-  });
-
   // --- ngAfterContentChecked ---
 
   it('ngAfterContentChecked should set desktop based on window width', () => {

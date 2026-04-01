@@ -265,11 +265,11 @@ describe('AdesioneDetailsComponent', () => {
       expect(component._formGroup.get('soggetto_nome')!.disabled).toBe(true);
     });
 
-    it('should handle id_logico without required validator by default', () => {
+    it('should handle id_logico with required validator by default', () => {
       const data = { ...new AdesioneCreate(), id_logico: 'logico-1' };
       component._initForm(data);
       const ctrl = component._formGroup.get('id_logico')!;
-      expect(ctrl.hasValidator(Validators.required)).toBe(false);
+      expect(ctrl.hasValidator(Validators.required)).toBe(true);
     });
 
     it('should handle data_creazione and data_ultimo_aggiornamento as disabled', () => {
@@ -355,19 +355,30 @@ describe('AdesioneDetailsComponent', () => {
       expect(result.id_soggetto).toBe('disabled-sog');
     });
 
-    it('should include referenti array with referente', () => {
+    it('should include referenti array with current user when _isSelfReferente is true', () => {
+      component._isSelfReferente = true;
+      mockAuthService.getUser.mockReturnValueOnce({ id_utente: 'current-user', ruolo: 'referente_servizio' });
+      const body = { id_soggetto: 'sog-1', id_servizio: 'srv-1', id_logico: null, referente: 'user-1', referente_tecnico: null };
+      const result = component._prepareBodySaveAdesione(body);
+      expect(result.referenti).toEqual([{ id_utente: 'current-user', tipo: 'referente' }]);
+    });
+
+    it('should include referenti array with referente when _isSelfReferente is false', () => {
+      component._isSelfReferente = false;
       const body = { id_soggetto: 'sog-1', id_servizio: 'srv-1', id_logico: null, referente: 'user-1', referente_tecnico: null };
       const result = component._prepareBodySaveAdesione(body);
       expect(result.referenti).toEqual([{ id_utente: 'user-1', tipo: 'referente' }]);
     });
 
     it('should include referenti array with referente_tecnico', () => {
+      component._isSelfReferente = false;
       const body = { id_soggetto: 'sog-1', id_servizio: 'srv-1', id_logico: null, referente: null, referente_tecnico: 'user-2' };
       const result = component._prepareBodySaveAdesione(body);
       expect(result.referenti).toEqual([{ id_utente: 'user-2', tipo: 'referente_tecnico' }]);
     });
 
-    it('should include both referente and referente_tecnico', () => {
+    it('should include both referente and referente_tecnico when _isSelfReferente is false', () => {
+      component._isSelfReferente = false;
       const body = { id_soggetto: 'sog-1', id_servizio: 'srv-1', id_logico: null, referente: 'user-1', referente_tecnico: 'user-2' };
       const result = component._prepareBodySaveAdesione(body);
       expect(result.referenti.length).toBe(2);
@@ -375,7 +386,18 @@ describe('AdesioneDetailsComponent', () => {
       expect(result.referenti[1]).toEqual({ id_utente: 'user-2', tipo: 'referente_tecnico' });
     });
 
+    it('should include current user as referente and referente_tecnico when _isSelfReferente is true', () => {
+      component._isSelfReferente = true;
+      mockAuthService.getUser.mockReturnValueOnce({ id_utente: 'current-user', ruolo: 'referente_servizio' });
+      const body = { id_soggetto: 'sog-1', id_servizio: 'srv-1', id_logico: null, referente: 'user-1', referente_tecnico: 'user-2' };
+      const result = component._prepareBodySaveAdesione(body);
+      expect(result.referenti.length).toBe(2);
+      expect(result.referenti[0]).toEqual({ id_utente: 'current-user', tipo: 'referente' });
+      expect(result.referenti[1]).toEqual({ id_utente: 'user-2', tipo: 'referente_tecnico' });
+    });
+
     it('should set referenti to null when no referente or referente_tecnico', () => {
+      component._isSelfReferente = false;
       const body = { id_soggetto: 'sog-1', id_servizio: 'srv-1', id_logico: null, referente: null, referente_tecnico: null };
       const result = component._prepareBodySaveAdesione(body);
       // referenti is null so _removeNullProperties removes it

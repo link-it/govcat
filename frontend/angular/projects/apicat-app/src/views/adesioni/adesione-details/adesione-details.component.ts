@@ -393,7 +393,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   _hasControlError(name: string) {
-    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name]?.errors && this.f[name]?.touched);
   }
 
   _isVisibilita(type: string) {

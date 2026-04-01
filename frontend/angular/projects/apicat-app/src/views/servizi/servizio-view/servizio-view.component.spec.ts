@@ -422,7 +422,7 @@ describe('ServizioViewComponent', () => {
       expect(loadCurrentDataSpy).toHaveBeenCalled();
     });
 
-    it('should call _loadJoined and _loadAmmissibili when adesione_disabilitata is false and not anonymous', () => {
+    it('should call _loadAdesioneData when not anonymous', () => {
       component.id = 10;
       const grantData = { ruoli: [] };
       const serviceData = { nome: 'Svc', stato: 'pubblicato', adesione_disabilitata: false };
@@ -437,12 +437,13 @@ describe('ServizioViewComponent', () => {
 
       (component as any)._loadService();
 
-      // _loadJoined calls getList, _loadAmmissibili calls getDetails with 'ammissibili'
+      // _loadAdesioneData uses forkJoin with getList('adesioni') and getDetails('servizi', id, 'ammissibili')
       expect(mockApiService.getList).toHaveBeenCalledWith('adesioni', expect.anything());
       expect(mockApiService.getDetails).toHaveBeenCalledWith('servizi', 10, 'ammissibili');
+      expect(component._adesioneDataReady).toBe(true);
     });
 
-    it('should NOT call _loadJoined and _loadAmmissibili when user is anonymous', () => {
+    it('should NOT call _loadAdesioneData when user is anonymous', () => {
       component.id = 10;
       const grantData = { ruoli: [] };
       const serviceData = { nome: 'Svc', stato: 'pubblicato', adesione_disabilitata: false };
@@ -456,6 +457,7 @@ describe('ServizioViewComponent', () => {
       (component as any)._loadService();
 
       expect(mockApiService.getList).not.toHaveBeenCalled();
+      expect(component._adesioneDataReady).toBe(true);
     });
 
     it('should handle grant error', () => {
@@ -505,98 +507,52 @@ describe('ServizioViewComponent', () => {
     });
   });
 
-  describe('_loadJoined', () => {
+  describe('_loadAdesioneData', () => {
     beforeEach(() => {
       vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
     });
 
     it('should do nothing when id is null', () => {
       component.id = null;
-      (component as any)._loadJoined();
+      (component as any)._loadAdesioneData();
       expect(mockApiService.getList).not.toHaveBeenCalled();
-    });
-
-    it('should set _hasJoined to true when content has items', () => {
-      component.id = 5;
-      mockApiService.getList.mockReturnValueOnce(of({ content: [{ id: 1 }] }));
-
-      (component as any)._loadJoined(false);
-
-      expect(component._hasJoined).toBe(true);
-    });
-
-    it('should set _hasJoined to false when content is empty', () => {
-      component.id = 5;
-      mockApiService.getList.mockReturnValueOnce(of({ content: [] }));
-
-      (component as any)._loadJoined(false);
-
-      expect(component._hasJoined).toBe(false);
-    });
-
-    it('should handle error', () => {
-      component.id = 5;
-      mockApiService.getList.mockReturnValueOnce(throwError(() => ({ status: 500 })));
-
-      (component as any)._loadJoined(false);
-
-      expect(Tools.OnError).toHaveBeenCalled();
-      expect(component._spin).toBe(false);
-    });
-
-    it('should set data to null when spin=true', () => {
-      component.id = 5;
-      component.data = { nome: 'test' };
-      mockApiService.getList.mockReturnValue(EMPTY);
-
-      (component as any)._loadJoined(true);
-
-      expect(component.data).toBeNull();
-      expect(component._spin).toBe(true);
-    });
-  });
-
-  describe('_loadAmmissibili', () => {
-    beforeEach(() => {
-      vi.spyOn(Tools, 'OnError').mockImplementation(() => {});
-    });
-
-    it('should do nothing when id is null', () => {
-      component.id = null;
-      (component as any)._loadAmmissibili();
       expect(mockApiService.getDetails).not.toHaveBeenCalled();
     });
 
-    it('should set _ammissibili on success', () => {
-      component.id = 7;
-      const content = [{ id_organizzazione: 'org1' }, { id_organizzazione: 'org2' }];
-      mockApiService.getDetails.mockReturnValueOnce(of({ content }));
+    it('should set _hasJoined to true and _ammissibili on success', () => {
+      component.id = 5;
+      const ammissibiliContent = [{ id_organizzazione: 'org1' }, { id_organizzazione: 'org2' }];
+      mockApiService.getList.mockReturnValue(of({ content: [{ id: 1 }] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: ammissibiliContent }));
 
-      (component as any)._loadAmmissibili(false);
+      (component as any)._loadAdesioneData();
 
-      expect(component._ammissibili).toEqual(content);
+      expect(component._hasJoined).toBe(true);
+      expect(component._ammissibili).toEqual(ammissibiliContent);
+      expect(component._adesioneDataReady).toBe(true);
       expect(component._updateData).toBeTruthy();
     });
 
-    it('should handle error', () => {
-      component.id = 7;
-      mockApiService.getDetails.mockReturnValueOnce(throwError(() => ({ status: 403 })));
+    it('should set _hasJoined to false when joined content is empty', () => {
+      component.id = 5;
+      mockApiService.getList.mockReturnValue(of({ content: [] }));
+      mockApiService.getDetails.mockReturnValue(of({ content: [] }));
 
-      (component as any)._loadAmmissibili(false);
+      (component as any)._loadAdesioneData();
 
-      expect(Tools.OnError).toHaveBeenCalled();
-      expect(component._spin).toBe(false);
+      expect(component._hasJoined).toBe(false);
+      expect(component._adesioneDataReady).toBe(true);
     });
 
-    it('should set data to null when spin=true', () => {
-      component.id = 7;
-      component.data = { nome: 'test' };
-      mockApiService.getDetails.mockReturnValue(EMPTY);
+    it('should handle error', () => {
+      component.id = 5;
+      mockApiService.getList.mockReturnValue(throwError(() => ({ status: 500 })));
+      mockApiService.getDetails.mockReturnValue(throwError(() => ({ status: 500 })));
 
-      (component as any)._loadAmmissibili(true);
+      (component as any)._loadAdesioneData();
 
-      expect(component.data).toBeNull();
-      expect(component._spin).toBe(true);
+      expect(Tools.OnError).toHaveBeenCalled();
+      expect(component._adesioneDataReady).toBe(true);
     });
   });
 
@@ -644,14 +600,6 @@ describe('ServizioViewComponent', () => {
         ]
       };
 
-      mockApiService.getDetails
-        .mockReturnValueOnce(of(serviceReferents)) // servizi referenti
-        .mockReturnValueOnce(of(domainReferents)); // domini referenti
-
-      // forkJoin calls both in parallel via getDetails, but our mock handles by call order.
-      // We need to handle this differently because forkJoin uses object syntax.
-      // Actually, forkJoin with object keys: referenti -> getDetails('servizi', 10, 'referenti'), referentiDominio -> getDetails('domini', 'dom1', 'referenti')
-      // Since getDetails is called for both, we re-mock:
       mockApiService.getDetails.mockImplementation((model: string, id: any, sub?: string) => {
         if (model === 'servizi' && sub === 'referenti') return of(serviceReferents);
         if (model === 'domini' && sub === 'referenti') return of(domainReferents);
@@ -661,10 +609,6 @@ describe('ServizioViewComponent', () => {
       component.loadReferenti();
 
       expect(component.referentiLoading).toBe(false);
-      // u1 appears in both domain and service referents - should be merged
-      // Domain referent u1 has tipo 'referente' -> mapped to 'referente_dominio', included because showDomainReferent is true
-      // Service referent u1 has tipo 'referente' -> mapped to 'referente_servizio', tipo !== 'referente_tecnico_servizio' so included
-      // Service referent u2 has tipo 'referente_tecnico' -> mapped to 'referente_tecnico_servizio', included because showTechnicalReferent is true
       expect(component.referenti.length).toBeGreaterThan(0);
 
       // Check deduplication: u1 should appear once with multiple types
@@ -1417,19 +1361,6 @@ describe('ServizioViewComponent', () => {
       expect(mockEvent.stopImmediatePropagation).toHaveBeenCalled();
       expect(mockEvent.preventDefault).toHaveBeenCalled();
       expect(mockNavigationService.openInNewTab).toHaveBeenCalledWith(['servizi', 42, 'adesioni', 'new', 'edit']);
-    });
-  });
-
-  describe('_openAdesioneInNewTab', () => {
-    it('should stop propagation and open adesione route in new tab', () => {
-      component.id = 42;
-      const mockEvent = { stopImmediatePropagation: vi.fn(), preventDefault: vi.fn() } as any;
-
-      (component as any)._openAdesioneInNewTab(mockEvent);
-
-      expect(mockEvent.stopImmediatePropagation).toHaveBeenCalled();
-      expect(mockEvent.preventDefault).toHaveBeenCalled();
-      expect(mockNavigationService.openInNewTab).toHaveBeenCalledWith(['servizi', 42, 'adesioni']);
     });
   });
 
