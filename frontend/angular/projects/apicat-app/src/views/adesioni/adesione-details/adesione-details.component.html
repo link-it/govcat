@@ -42,7 +42,7 @@
     }
     <div class="d-flex flex-grow-1">&nbsp;</div>
     <div class="nav-controls">
-      @if (!_isEdit) {
+    @if (!_isEdit) {
         <!-- <div *ngIf="!_spin && !_isNew && (_updateMapper | mapper:_canDownloadSchedaAdesioneMapper)" class="position-relative me-2">
         <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" (click)="_downloadSchedaAdesione()">
           <span>{{ 'APP.ADESIONI.LABEL.DownloadScheda' | translate }}</span><i class="bi bi-download ms-2"></i>
@@ -156,7 +156,7 @@
           <!-- edit zone -->
           <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
             <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
-              @if (!_isNew) {
+              @if (true) {
                 <div class="" [class.col-lg-8]="_singleColumn" [class.mb-5]="_singleColumn" [class.col-lg-4]="!_singleColumn">
                   <h4 class="gl-mt-0 text-break">{{ 'APP.ADESIONI.TITLE.GeneralInformations' | translate }}</h4>
                   <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.GeneralInformations_sub' | translate }}</div>
@@ -191,329 +191,347 @@
                         <label class="label-bold" for="servizio_nome">{{ 'APP.LABEL.servizio_nome' | translate }} @if (_isEdit) {
                           <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'servizio_nome'"></span>
                         }
-                      </label>
-                      @if (_isEdit) {
-                        <div class="">
-                          <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('servizio_nome')" type="text" name="servizio_nome" id="servizio_nome" formControlName="servizio_nome">
-                          @if (f['servizio_nome'].invalid && (f['servizio_nome'].dirty || f['servizio_nome'].touched)) {
-                            <p class="form-text text-danger">
-                              @if (f['servizio_nome'].errors && f['servizio_nome'].errors['required']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              }
-                            </p>
-                          }
-                          <ui-input-help field="servizio_nome" context="ADESIONE"></ui-input-help>
-                        </div>
-                      }
-                      @if (!_isEdit) {
-                        <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="servizio_nome" [value]="adesione.servizio.nome + ' v.' + adesione.servizio.versione">
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              }
-              @if (_isNew || (_isEdit && _isBozza)) {
-                <div class="row servizi">
-                  <div class="col-9 form-group id_servizio">
-                    <label class="label-bold" for="id_servizio">{{ 'APP.LABEL.id_servizio' | translate }} @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_servizio'"></span>
-                    }</label>
-                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')"
-                      [items]="(servizi$ | async) || []"
-                      [typeahead]="serviziInput$"
-                      [minTermLength]="minLengthTerm"
-                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                      bindValue="id_servizio"
-                      bindLabel="nome versione"
-                      labelForId="id_servizio"
-                      [editableSearchTerm]="true"
-                      formControlName="id_servizio"
-                      (change)="_onChangeServizio($event)">
-                      <ng-template ng-label-tmp let-item="item">
-                        {{ item.nome }} - v. {{ item.versione }}
-                      </ng-template>
-                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                        <div class="fw-bold">{{ item.nome }} - v. {{ item.versione }}</div>
-                      </ng-template>
-                    </ng-select>
-                    @if (f['id_servizio'].invalid && (f['id_servizio'].dirty || f['id_servizio'].touched)) {
-                      <p class="form-text text-danger">
-                        @if (f['id_servizio'].errors && f['id_servizio'].errors['required']) {
-                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                        </label>
+                        @if (_isEdit) {
+                          <div class="">
+                            <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('servizio_nome')" type="text" name="servizio_nome" id="servizio_nome" formControlName="servizio_nome">
+                            @if (f['servizio_nome'].invalid && (f['servizio_nome'].dirty || f['servizio_nome'].touched)) {
+                              <p class="form-text text-danger">
+                                @if (f['servizio_nome'].errors && f['servizio_nome'].errors['required']) {
+                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                }
+                              </p>
+                            }
+                            <ui-input-help field="servizio_nome" context="ADESIONE"></ui-input-help>
+                          </div>
                         }
-                      </p>
-                    }
-                    <ui-input-help field="id_servizio" context="ADESIONE"></ui-input-help>
-                  </div>
-                </div>
-              }
-              @if (_servizio?.multi_adesione) {
-                <div class="row id_logico">
-                  <div class="col-9">
-                    <div class="form-group id_logico">
-                      <label class="label-bold" for="id_logico">{{ 'APP.LABEL.id_logico' | translate }} @if (_isEdit) {
-                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_logico'"></span>
-                      }</label>
-                      @if (_isEdit) {
-                        <div class="">
-                          <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_logico')" type="text" name="id_logico" id="id_logico" formControlName="id_logico" (change)="_onChangeIdLogico($event)">
-                          @if (f['id_logico'].invalid && (f['id_logico'].dirty || f['id_logico'].touched)) {
-                            <p class="form-text text-danger">
-                              @if (f['id_logico'].errors && f['id_logico'].errors['required']) {
-                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                              }
-                            </p>
-                          }
-                          <ui-input-help field="id_logico" context="ADESIONE"></ui-input-help>
-                        </div>
-                      }
-                      @if (!_isEdit) {
-                        <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="id_logico" [value]="adesione?.id_logico || '--'">
-                        </div>
-                      }
+                        @if (!_isEdit) {
+                          <div class="">
+                            <input type="text" readonly class="form-control-plaintext" id="servizio_nome" [value]="adesione.servizio.nome + ' v.' + adesione.servizio.versione">
+                          </div>
+                        }
+                      </div>
                     </div>
                   </div>
-                </div>
-              }
-              <div class="row organizzazioni" >
-                @if (((_isEdit && _isBozza) || _isNew) || !_isEdit) {
-                  <div class="col-9 form-group id_organizzazione">
-                    <label class="label-bold" for="id_organizzazione">{{ 'APP.LABEL.id_organizzazione' | translate }} @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
-                    }</label>
-                    @if (_isNew  || (_isEdit && _isBozza)) {
-                      <ng-select #ngSelectOrganizazione class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
-                        [items]="(organizzazioni$ | async) || []"
-                        [typeahead]="organizzazioniInput$"
+                }
+                @if (_isNew || (_isEdit && _isBozza)) {
+                  <div class="row servizi">
+                    <div class="col-9 form-group id_servizio">
+                      <label class="label-bold" for="id_servizio">{{ 'APP.LABEL.id_servizio' | translate }} @if (_isEdit) {
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_servizio'"></span>
+                      }</label>
+                      <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_servizio')"
+                        [items]="(servizi$ | async) || []"
+                        [typeahead]="serviziInput$"
+                        [loading]="serviziLoading"
                         [minTermLength]="minLengthTerm"
                         [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
                         [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                        bindValue="id_organizzazione"
-                        bindLabel="nome"
-                        labelForId="id_organizzazione"
+                        [placeholder]="'APP.PLACEHOLDER.SelectService' | translate"
+                        bindValue="id_servizio"
+                        bindLabel="nome versione"
+                        labelForId="id_servizio"
                         [editableSearchTerm]="true"
-                        formControlName="id_organizzazione"
-                        (change)="_checkSoggetto($event)">
+                        formControlName="id_servizio"
+                        (change)="_onChangeServizio($event)"
+                      >
                         <ng-template ng-label-tmp let-item="item">
-                          {{ item.nome }}
+                          {{ item.nome }} - v. {{ item.versione }}
                         </ng-template>
                         <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                          <div class="fw-bold">{{ item.nome }}</div>
-                          <div class="">
-                            <span class="small text-muted">{{ item.descrizione }}</span>
-                          </div>
+                          <div class="fw-bold">{{ item.nome }} - v. {{ item.versione }}</div>
                         </ng-template>
                       </ng-select>
-                    }
-                    @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
-                      <p class="form-text text-danger">
-                        @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
-                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        }
-                      </p>
-                    }
-                    <ui-input-help field="id_organizzazione" context="ADESIONE"></ui-input-help>
-                    @if (!_isEdit) {
-                      <div class="">
-                        <input type="text" readonly class="form-control-plaintext" id="organizzazione_nome" [value]="adesione?.soggetto?.organizzazione.nome">
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-              <div class="row soggetti">
-                @if (((_isEdit && _isBozza) || _isNew)) {
-                  <div class="col-9 form-group id_soggetto" [hidden]="_hideSoggettoDropdown">
-                    <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }} @if (_isEdit) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto'"></span>
-                    }</label>
-                    <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
-                      @for (el of _elencoSoggetti; track el) {
-                        <option [value]="el.id_soggetto">
-                          {{el.nome}}
-                        </option>
+                      @if (f['id_servizio'].invalid && (f['id_servizio'].dirty || f['id_servizio'].touched)) {
+                        <p class="form-text text-danger">
+                          @if (f['id_servizio'].errors && f['id_servizio'].errors['required']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          }
+                        </p>
                       }
-                    </select>
-                    @if (f['id_soggetto'].invalid && (f['id_soggetto'].dirty || f['id_soggetto'].touched)) {
-                      <p class="form-text text-danger">
-                        @if (f['id_soggetto'].errors && f['id_soggetto'].errors['required']) {
-                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        }
-                      </p>
-                    }
+                      <ui-input-help field="id_servizio" context="ADESIONE"></ui-input-help>
+                    </div>
                   </div>
                 }
-                @if (!_isEdit && !_hideSoggettoInfo) {
-                  <div class="col-9 form-group">
-                    <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }}</label>
-                    <input type="text" readonly class="form-control-plaintext" id="id_soggetto" [value]="adesione.soggetto.nome">
-                  </div>
-                }
-                <ui-input-help field="id_soggetto" context="ADESIONE"></ui-input-help>
-              </div>
-              <!-- AREA DEI REFERENTI -->
-              @if (_isNew) {
-                <div class="row referenti">
-                  <div class="col-6 form-group referente">
-                    <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }} @if (_isNew) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
-                    }</label>
-                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')"
-                      [items]="(referenti$ | async) || []"
-                      [typeahead]="referentiInput$"
-                      [minTermLength]="minLengthTerm"
-                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                      bindValue="id_utente"
-                      bindLabel="nome_completo"
-                      labelForId="referente"
-                      [editableSearchTerm]="true"
-                      formControlName="referente">
-                      <ng-template ng-label-tmp let-item="item">
-                        {{ item.nome }} {{ item.cognome }}
-                      </ng-template>
-                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                        <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
-                        <div class="">
-                          <span class="small text-muted">{{ item.email_aziendale }}</span>
-                        </div>
-                      </ng-template>
-                    </ng-select>
-                    @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
-                      <p class="form-text text-danger">
-                        @if (f['referente'].errors && f['referente'].errors['required']) {
-                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                @if (_servizio?.multi_adesione) {
+                  <div class="row id_logico">
+                    <div class="col-9">
+                      <div class="form-group id_logico">
+                        <label class="label-bold" for="id_logico">{{ 'APP.LABEL.id_logico' | translate }} @if (_isEdit) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_logico'"></span>
+                        }</label>
+                        @if (_isEdit) {
+                          <div class="">
+                            <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('id_logico')" type="text" name="id_logico" id="id_logico" formControlName="id_logico" (change)="_onChangeIdLogico($event)">
+                            @if (f['id_logico'].invalid && (f['id_logico'].dirty || f['id_logico'].touched)) {
+                              <p class="form-text text-danger">
+                                @if (f['id_logico'].errors && f['id_logico'].errors['required']) {
+                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                }
+                              </p>
+                            }
+                            <ui-input-help field="id_logico" context="ADESIONE"></ui-input-help>
+                          </div>
                         }
-                      </p>
-                    }
-                    <ui-input-help field="referente" context="ADESIONE"></ui-input-help>
-                  </div>
-                  <div class="col-6 form-group referente_tecnico">
-                    <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }} @if (_isNew) {
-                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
-                    }</label>
-                    <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')"
-                      [items]="(referentiTecnici$ | async) || []"
-                      [typeahead]="referentiTecniciInput$"
-                      [minTermLength]="minLengthTerm"
-                      [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                      [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                      bindValue="id_utente"
-                      bindLabel="nome_completo"
-                      labelForId="referente_tecnico"
-                      [editableSearchTerm]="true"
-                      formControlName="referente_tecnico">
-                      <ng-template ng-label-tmp let-item="item">
-                        {{ item.nome }} {{ item.cognome }}
-                      </ng-template>
-                      <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                        <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
-                        <div class="">
-                          <span class="small text-muted">{{ item.email_aziendale }}</span>
-                        </div>
-                      </ng-template>
-                    </ng-select>
-                    @if (f['referente_tecnico'].invalid && (f['referente_tecnico'].dirty || f['referente_tecnico'].touched)) {
-                      <p class="form-text text-danger">
-                        @if (f['referente_tecnico'].errors && f['referente_tecnico'].errors['required']) {
-                          <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                        }
-                      </p>
-                    }
-                    <ui-input-help field="referente_tecnico" context="ADESIONE"></ui-input-help>
-                  </div>
-                </div>
-              }
-              <!--  -->
-              @if (!_isNew) {
-                <div class="row utente_richiedente data_creazione ">
-                  <div class="col-md-6">
-                    @if (adesione.utente_richiedente != null) {
-                      <div class="form-group utente_richiedente">
-                        <label class="label-bold" for="utente_richiedente">{{ 'APP.LABEL.utente_richiedente' | translate }}</label>
-                        <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="utente_richiedente" [value]="adesione?.utente_richiedente?.nome + ' ' + adesione?.utente_richiedente?.cognome">
-                        </div>
-                      </div>
-                    }
-                  </div>
-                  <div class="col-md-6">
-                    <div class="form-group data_creazione">
-                      <label class="label-bold" for="data_creazione">{{ 'APP.LABEL.data_creazione' | translate }}</label>
-                      <div class="mt-1">
-                        @if (adesione) {
-                          <ui-data-type
-                            [data]="adesione"
-                            [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
-                            [config]="config">
-                          </ui-data-type>
+                        @if (!_isEdit) {
+                          <div class="">
+                            <input type="text" readonly class="form-control-plaintext" id="id_logico" [value]="adesione?.id_logico || '--'">
+                          </div>
                         }
                       </div>
                     </div>
                   </div>
-                </div>
-              }
-              @if (!_isNew) {
-                <div class="row utente_ultimo_aggiornamento data_ultimo_aggiornamento ">
-                  <div class="col-md-6">
-                    @if (adesione.utente_ultimo_aggiornamento != null) {
-                      <div class="form-group utente_ultimo_aggiornamento">
-                        <label class="label-bold" for="utente_ultimo_aggiornamento">{{ 'APP.LABEL.utente_ultimo_aggiornamento' | translate }}</label>
+                }
+                <div class="row organizzazioni" >
+                  @if (((_isEdit && _isBozza) || _isNew) || !_isEdit) {
+                    <div class="col-9 form-group id_organizzazione">
+                      <label class="label-bold" for="id_organizzazione">{{ 'APP.LABEL.id_organizzazione' | translate }} @if (_isEdit) {
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione'"></span>
+                      }</label>
+                      @if (_isNew  || (_isEdit && _isBozza)) {
+                        <ng-select #ngSelectOrganizazione class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione')"
+                          [items]="(organizzazioni$ | async) || []"
+                          [typeahead]="organizzazioniInput$"
+                          [loading]="organizzazioniLoading"
+                          [minTermLength]="minLengthTerm"
+                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                          [placeholder]="'APP.PLACEHOLDER.SelectOrganization' | translate"
+                          bindValue="id_organizzazione"
+                          bindLabel="nome"
+                          labelForId="id_organizzazione"
+                          [editableSearchTerm]="true"
+                          formControlName="id_organizzazione"
+                          (change)="_checkSoggetto($event)"
+                        >
+                          <ng-template ng-label-tmp let-item="item">
+                            {{ item.nome }}
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                            <div class="fw-bold">{{ item.nome }}</div>
+                            <div class="">
+                              <span class="small text-muted">{{ item.descrizione }}</span>
+                            </div>
+                          </ng-template>
+                        </ng-select>
+                      }
+                      @if (f['id_organizzazione'].invalid && (f['id_organizzazione'].dirty || f['id_organizzazione'].touched)) {
+                        <p class="form-text text-danger">
+                          @if (f['id_organizzazione'].errors && f['id_organizzazione'].errors['required']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          }
+                        </p>
+                      }
+                      <ui-input-help field="id_organizzazione" context="ADESIONE"></ui-input-help>
+                      @if (!_isEdit) {
                         <div class="">
-                          <input type="text" readonly class="form-control-plaintext" id="utente_ultimo_aggiornamento" [value]="adesione?.utente_ultimo_aggiornamento?.nome + ' ' + adesione?.utente_ultimo_aggiornamento?.cognome">
+                          <input type="text" readonly class="form-control-plaintext" id="organizzazione_nome" [value]="adesione?.soggetto?.organizzazione.nome">
                         </div>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="row soggetti">
+                  @if (((_isEdit && _isBozza) || _isNew)) {
+                    <div class="col-9 form-group id_soggetto" [hidden]="_hideSoggettoDropdown">
+                      <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }} @if (_isEdit) {
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto'"></span>
+                      }</label>
+                      <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
+                        @for (el of _elencoSoggetti; track el) {
+                          <option [value]="el.id_soggetto">
+                            {{el.nome}}
+                          </option>
+                        }
+                      </select>
+                      @if (f['id_soggetto'].invalid && (f['id_soggetto'].dirty || f['id_soggetto'].touched)) {
+                        <p class="form-text text-danger">
+                          @if (f['id_soggetto'].errors && f['id_soggetto'].errors['required']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          }
+                        </p>
+                      }
+                    </div>
+                  }
+                  @if (!_isEdit && !_hideSoggettoInfo) {
+                    <div class="col-9 form-group">
+                      <label class="label-bold" for="id_soggetto">{{ 'APP.LABEL.id_soggetto' | translate }}</label>
+                      <input type="text" readonly class="form-control-plaintext" id="id_soggetto" [value]="adesione.soggetto.nome">
+                    </div>
+                  }
+                  <ui-input-help field="id_soggetto" context="ADESIONE"></ui-input-help>
+                </div>
+              </div>
+            </div>
+            <div class="row gl-mt-6" [class.justify-content-center]="_isNew || _singleColumn">
+              <div class="" [class.col-lg-8]="_singleColumn" [class.mb-5]="_singleColumn" [class.col-lg-4]="!_singleColumn">
+                <h4 class="gl-mt-0 text-break">{{ 'APP.ADESIONI.TITLE.RolesContacts' | translate }}</h4>
+                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.ADESIONI.TITLE.RolesContacts_sub' | translate }}</div>
+              </div>
+              <div class="col-lg-8">
+                <!-- AREA DEI REFERENTI -->
+                @if (_isNew) {
+                  <div class="row referenti">
+                    <div class="col-9 form-group referente">
+                      <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="selfReferente" [(ngModel)]="_isSelfReferente" [ngModelOptions]="{standalone: true}">
+                        <label class="form-check-label" for="selfReferente">{{ 'APP.LABEL.referente_self' | translate }}</label>
                       </div>
-                    }
+                      @if (!_isSelfReferente) {
+                        <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }} @if (_isNew) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
+                        }</label>
+                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')"
+                          [items]="(referenti$ | async) || []"
+                          [typeahead]="referentiInput$"
+                          [loading]="referentiLoading"
+                          [minTermLength]="minLengthTerm"
+                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                          [placeholder]="'APP.PLACEHOLDER.SelectReferente' | translate"
+                          bindValue="id_utente"
+                          bindLabel="nome_completo"
+                          labelForId="referente"
+                          [editableSearchTerm]="true"
+                          formControlName="referente"
+                        >
+                          <ng-template ng-label-tmp let-item="item">
+                            {{ item.nome }} {{ item.cognome }}
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                            <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                            <div class="">
+                              <span class="small text-muted">{{ item.email_aziendale }}</span>
+                            </div>
+                          </ng-template>
+                        </ng-select>
+                        @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['referente'].errors && f['referente'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                          </p>
+                        }
+                      }
+                      <ui-input-help field="referente" context="ADESIONE"></ui-input-help>
+                    </div>
                   </div>
-                  <div class="col-md-6">
-                    @if (adesione.data_ultimo_aggiornamento != null) {
-                      <div class="form-group data_ultimo_aggiornamento">
-                        <label class="label-bold" for="data_ultimo_aggiornamento">{{ 'APP.LABEL.data_ultimo_aggiornamento' | translate }}</label>
+                  <div class="row referenti_tecnici">
+                    <div class="col-9 form-group referente_tecnico">
+                      <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }} @if (_isNew) {
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
+                      }</label>
+                      <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')"
+                        [items]="(referentiTecnici$ | async) || []"
+                        [typeahead]="referentiTecniciInput$"
+                        [loading]="referentiTecniciLoading"
+                        [minTermLength]="minLengthTerm"
+                        [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                        [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                        [placeholder]="'APP.PLACEHOLDER.SelectReferenteTecnico' | translate"
+                        bindValue="id_utente"
+                        bindLabel="nome_completo"
+                        labelForId="referente_tecnico"
+                        [editableSearchTerm]="true"
+                        formControlName="referente_tecnico"
+                      >
+                        <ng-template ng-label-tmp let-item="item">
+                          {{ item.nome }} {{ item.cognome }}
+                        </ng-template>
+                        <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                          <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                          <div class="">
+                            <span class="small text-muted">{{ item.email_aziendale }}</span>
+                          </div>
+                        </ng-template>
+                      </ng-select>
+                      @if (f['referente_tecnico'].invalid && (f['referente_tecnico'].dirty || f['referente_tecnico'].touched)) {
+                        <p class="form-text text-danger">
+                          @if (f['referente_tecnico'].errors && f['referente_tecnico'].errors['required']) {
+                            <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                          }
+                        </p>
+                      }
+                      <ui-input-help field="referente_tecnico" context="ADESIONE"></ui-input-help>
+                    </div>
+                  </div>
+                }
+                <!--  -->
+                @if (!_isNew) {
+                  <div class="row utente_richiedente data_creazione ">
+                    <div class="col-md-6">
+                      @if (adesione.utente_richiedente != null) {
+                        <div class="form-group utente_richiedente">
+                          <label class="label-bold" for="utente_richiedente">{{ 'APP.LABEL.utente_richiedente' | translate }}</label>
+                          <div class="">
+                            <input type="text" readonly class="form-control-plaintext" id="utente_richiedente" [value]="adesione?.utente_richiedente?.nome + ' ' + adesione?.utente_richiedente?.cognome">
+                          </div>
+                        </div>
+                      }
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group data_creazione">
+                        <label class="label-bold" for="data_creazione">{{ 'APP.LABEL.data_creazione' | translate }}</label>
                         <div class="mt-1">
                           @if (adesione) {
                             <ui-data-type
                               [data]="adesione"
-                              [elem]="{ field: 'data_ultimo_aggiornamento', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
+                              [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
                               [config]="config">
                             </ui-data-type>
                           }
                         </div>
                       </div>
-                    }
+                    </div>
                   </div>
-                </div>
-              }
-              <!-- <div class="row download_btn" *ngIf="!_isNew && (_updateMapper | mapper:_canDownloadSchedaAdesioneMapper)">
-              <div class="col-6 download_btn">
-                <label class="label-bold">{{ 'APP.ADESIONI.LABEL.DownloadScheda' | translate }}</label>
-                <div class="mb-3">
-                  <button class="btn btn-default btn-md gl-button btn-icon input-group-text- bg-white-" (click)="_downloadSchedaAdesione()">
-                    <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                  </button>
-                </div>
+                }
+                @if (!_isNew) {
+                  <div class="row utente_ultimo_aggiornamento data_ultimo_aggiornamento ">
+                    <div class="col-md-6">
+                      @if (adesione.utente_ultimo_aggiornamento != null) {
+                        <div class="form-group utente_ultimo_aggiornamento">
+                          <label class="label-bold" for="utente_ultimo_aggiornamento">{{ 'APP.LABEL.utente_ultimo_aggiornamento' | translate }}</label>
+                          <div class="">
+                            <input type="text" readonly class="form-control-plaintext" id="utente_ultimo_aggiornamento" [value]="adesione?.utente_ultimo_aggiornamento?.nome + ' ' + adesione?.utente_ultimo_aggiornamento?.cognome">
+                          </div>
+                        </div>
+                      }
+                    </div>
+                    <div class="col-md-6">
+                      @if (adesione.data_ultimo_aggiornamento != null) {
+                        <div class="form-group data_ultimo_aggiornamento">
+                          <label class="label-bold" for="data_ultimo_aggiornamento">{{ 'APP.LABEL.data_ultimo_aggiornamento' | translate }}</label>
+                          <div class="mt-1">
+                            @if (adesione) {
+                              <ui-data-type
+                                [data]="adesione"
+                                [elem]="{ field: 'data_ultimo_aggiornamento', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
+                                [config]="config">
+                              </ui-data-type>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
-            </div> -->
-          </div>
+            </div>
+            @if (_isEdit) {
+              <div class="row-content-block footer-block">
+                <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid">
+                  {{ 'APP.BUTTON.Save' | translate }}
+                </button>
+                <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+                  {{ 'APP.BUTTON.Cancel' | translate }}
+                </button>
+              </div>
+            }
+          </form>
+          <!-- edit zone -->
         </div>
-        @if (_isEdit) {
-          <div class="row-content-block footer-block">
-            <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid">
-              {{ 'APP.BUTTON.Save' | translate }}
-            </button>
-            <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
-              {{ 'APP.BUTTON.Cancel' | translate }}
-            </button>
-          </div>
-        }
-      </form>
-      <!-- edit zone -->
+      </div>
     </div>
-  </div>
-</div>
-}
+  }
 </section>
 </div>

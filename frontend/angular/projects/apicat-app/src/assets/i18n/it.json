@@ -43,6 +43,8 @@
 				"LogicID": "Logic ID",
 				"NotRequested": "Non richiesto",
 				"Referents": "Referenti adesione",
+				"RolesContacts": "Ruoli e contatti",
+				"RolesContacts_sub": "",
 				"ServiceReferents": "Referenti servizio",
 				"ShowApi": "API",
 				"ShowApi_sub": "Mostra API",
@@ -873,6 +875,7 @@
 			"protocollo": "Tipo Interfaccia",
 			"PurposeId": "Purpose ID",
 			"referente": "Referente",
+			"referente_self": "Sono il referente dell'adesione",
 			"referente_tecnico": "Referente tecnico",
 			"ReferenteTecnico": "Referente tecnico",
 			"ReportTimeInterval": "Unità di tempo",
@@ -998,6 +1001,8 @@
 		},
 		"LABEL_HELP": {
 			"ADESIONE": {
+				"referente": "Indica il responsabile organizzativo di questa adesione (es. responsabile CED, referente aziendale). Riceverà le comunicazioni istituzionali relative al servizio.",
+				"referente_tecnico": "Indica chi gestirà l'integrazione tecnica e supporterà nella compilazione dell'adesione (es. fornitore software, system integrator). Può coincidere con il referente se è la stessa persona. Riceverà le comunicazioni di natura tecnica.",
 				"FORM": {
 					"POPOVER": {
 						"id_servizio-": "Descrizione campo **id_servizio** con più righe e testo markdown.\n- Item 1\n- item 2",
@@ -1762,7 +1767,9 @@
 			"PasteYourPrivateKey": "Incolla qui la tua chiave privata...",
 			"Search": "Cerca...",
 			"SelectCategoria": "Seleziona una categoria",
-			"SelectOrganization": "Seleziona un'ente",
+			"SelectOrganization": "Seleziona un'organizzazione",
+			"SelectReferente": "Cerca un referente...",
+			"SelectReferenteTecnico": "Cerca un referente tecnico...",
 			"SelectService": "Seleziona un servizio",
 			"SelectTassonomia": "Seleziona una tassonomia",
 			"TypeMessage": "Scrivi un messaggio...",

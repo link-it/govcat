@@ -43,6 +43,8 @@
 				"LogicID": "ID logico",
 				"NotRequested": "Not requested",
 				"Referents": "Adhesion referents",
+				"RolesContacts": "Roles and contacts",
+				"RolesContacts_sub": "",
 				"ServiceReferents": "Service referents",
 				"ShowApi": "API",
 				"ShowApi_sub": "Show API",
@@ -873,6 +875,7 @@
 			"protocollo": "Interface type",
 			"PurposeId": "Purpose ID",
 			"referente": "Contact",
+			"referente_self": "I am the subscription contact",
 			"referente_tecnico": "Technical contact",
 			"ReferenteTecnico": "Technical referent",
 			"ReportTimeInterval": "Time unit",
@@ -998,6 +1001,8 @@
 		},
 		"LABEL_HELP": {
 			"ADESIONE": {
+				"referente": "Specify the organizational responsible for this subscription (e.g. IT manager, company contact). Will receive institutional communications about the service.",
+				"referente_tecnico": "Specify who will manage the technical integration and support the subscription setup (e.g. software vendor, system integrator). Can be the same person as the referent. Will receive technical communications.",
 				"FORM": {
 					"POPOVER": {
 						"id_servizio-": "Field description **service_id** field description with multiple lines and markdown text.\n- Item 1\n- item 2",
@@ -1762,7 +1767,9 @@
 			"PasteYourPrivateKey": "Paste your private key here...",
 			"Search": "Search...",
 			"SelectCategoria": "Select a category",
-			"SelectOrganization": "Select a organization",
+			"SelectOrganization": "Select an organization",
+			"SelectReferente": "Search for a contact...",
+			"SelectReferenteTecnico": "Search for a technical contact...",
 			"SelectService": "Select a service",
 			"SelectTassonomia": "Select a organization",
 			"TypeMessage": "Write a Message...",

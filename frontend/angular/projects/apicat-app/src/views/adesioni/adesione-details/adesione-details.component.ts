@@ -108,6 +108,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _isEdit = false;
   _closeEdit = true;
   _isNew = false;
+  _isSelfReferente: boolean = true;
   _formGroup: FormGroup = new FormGroup({});
   _adesione: Adesione = new Adesione({});
   _adesioneCreate: AdesioneCreate = new AdesioneCreate({});
@@ -439,12 +440,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
           }
-          case 'referente_tecnico':
           case 'id_logico':
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
             break;
+          case 'referente_tecnico':
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, []);
@@ -487,7 +488,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _newBody.referenti = [];
 
-    if (body.referente) {
+    if (this._isSelfReferente) {
+      const currentUser = this.authenticationService.getUser();
+      if (currentUser?.id_utente) {
+        _newBody.referenti.push({ id_utente: currentUser.id_utente, tipo: 'referente' });
+      }
+    } else if (body.referente) {
       _newBody.referenti.push({ id_utente: body.referente, tipo: 'referente' });
     }
 
@@ -495,7 +501,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       _newBody.referenti.push({ id_utente: body.referente_tecnico, tipo: 'referente_tecnico' });
     }
 
-    _newBody.referenti.length > 0 ? null : _newBody.referenti = null;
+    if (_newBody.referenti.length === 0) {
+      _newBody.referenti = null;
+    }
 
     this._removeNullProperties(_newBody);
 
