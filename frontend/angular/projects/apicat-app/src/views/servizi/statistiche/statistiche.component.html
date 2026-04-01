@@ -386,35 +386,37 @@
                         </div>
                       }
 
-                      <div class="row">
-                        <div class="col-12">
-                          <div class="form-group">
-                            <label class="label-bold" for="report_transaction_outcome_type">{{ 'APP.LABEL.ReportTransactionOutcome' | translate }}
-                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_transaction_outcome_type'"></span>
-                            </label>
-                            <ng-select
-                              [items]="transactionOutcomes"
-                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                              labelForId="report_transaction_outcome_type"
-                              bindValue="value"
-                              formControlName="report_transaction_outcome_type">
-                              <ng-template ng-label-tmp let-item="item">
-                                {{ item.label }}
-                              </ng-template>
-                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                <div class="fw-bold">{{ item.label }}</div>
-                              </ng-template>
-                            </ng-select>
-                            @if (_formGroup.get('report_transaction_outcome_type')?.dirty || _formGroup.get('report_transaction_outcome_type')?.touched) {
-                              <p class="form-text text-danger">
-                                @if (_formGroup.get('report_transaction_outcome_type')?.hasError('required')) {
-                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                }
-                              </p>
-                            }
+                      @if (_formGroup.get('distribution_type')?.value?.code !== 'distribuzione_esiti') {
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="form-group">
+                              <label class="label-bold" for="report_transaction_outcome_type">{{ 'APP.LABEL.ReportTransactionOutcome' | translate }}
+                                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'report_transaction_outcome_type'"></span>
+                              </label>
+                              <ng-select
+                                [items]="transactionOutcomes"
+                                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                                labelForId="report_transaction_outcome_type"
+                                bindValue="value"
+                                formControlName="report_transaction_outcome_type">
+                                <ng-template ng-label-tmp let-item="item">
+                                  {{ item.label }}
+                                </ng-template>
+                                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                  <div class="fw-bold">{{ item.label }}</div>
+                                </ng-template>
+                              </ng-select>
+                              @if (_formGroup.get('report_transaction_outcome_type')?.dirty || _formGroup.get('report_transaction_outcome_type')?.touched) {
+                                <p class="form-text text-danger">
+                                  @if (_formGroup.get('report_transaction_outcome_type')?.hasError('required')) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      }
 
                       @if (_formGroup.get('report_transaction_outcome_codes')?.enabled) {
                         <div class="row">

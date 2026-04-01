@@ -548,6 +548,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       }
 
       this.prepareTransactionOutcomeField(current.value === StatisticsUrl.DistribuzioneErrori);
+      // Reset filtro esito quando la distribuzione è per esiti (il filtro viene nascosto)
+      if (current.code === StatisticCode.DistribuzioneEsiti) {
+        this._formGroup.get('report_transaction_outcome_type')?.setValue(null);
+      }
       this.setupAdesioneField(this._formGroup.get('api')?.value);
     });
 
