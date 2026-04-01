@@ -56,7 +56,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .text-hover {
     &:hover {
         color: var(--link-hover-color, #111);
-        filter: brightness(0) saturate(100%) invert(21%) sepia(98%) saturate(2167%) hue-rotate(183deg) brightness(99%) contrast(101%);
+        // filter: brightness(0) saturate(100%) invert(21%) sepia(98%) saturate(2167%) hue-rotate(183deg) brightness(99%) contrast(101%);
     }
 }
 

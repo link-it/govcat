@@ -38,7 +38,12 @@
           <div class="main-info">
             <div class="main-data">
               <div class="primary-text- ms-2 text-break fw-bold-600">
-                <span [class.text-hover]="hasLink" [class.cursor-pointer]="hasLink" (click)="__toggle($event, cr)">
+                <span [class.text-hover]="hasLink" [class.cursor-pointer]="true"
+                  [tooltip]="hasLink ? linkTooltip : ''"
+                  container="body"
+                  [placement]="'auto'"
+                  [delay]="500"
+                  (click)="hasLink ? __itemClick($event) : __toggle($event, cr)">
                   @for (elem of _itemRowConfig?.primaryText; track elem) {
                     <ui-item-type
                       [data]="_data"

@@ -78,6 +78,7 @@ export class CollapseRowComponent extends CdkAccordionItem implements OnInit {
   @Input() enableCollapse: boolean = false;
   @Input() hoverFeedback: boolean = true;
   @Input() hasLink: boolean = false;
+  @Input() linkTooltip: string = '';
   @Input() hasAction: boolean = false;
   @Input() iconAction: string = 'download';
   @Input() iconClass: string = '';

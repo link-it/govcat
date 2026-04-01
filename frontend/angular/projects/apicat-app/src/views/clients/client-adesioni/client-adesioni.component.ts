@@ -16,22 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { COMPONENTS_IMPORTS, ConfigService, Tools, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, SearchBarFormComponent, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { Page } from '@app/models/page';
 
-import { concat, Observable, of, Subject, forkJoin } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
+import { Observable, Subject, forkJoin } from 'rxjs';
 
 import { CommonModule } from '@angular/common';
 
@@ -45,7 +44,7 @@ import { CommonModule } from '@angular/common';
     ...COMPONENTS_IMPORTS
   ]
 })
-export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnDestroy {
+export class ClientAdesioniComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ClientAdesioniComponent';
   readonly model: string = 'client';
 
@@ -68,7 +67,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   _editCurrent: any = null;
 
   _hasFilter: boolean = false;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -113,12 +112,12 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   _selectedAdesione: any = null;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private modalService: BsModalService,
-    private translate: TranslateService,
-    private configService: ConfigService,
-    public tools: Tools,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly modalService: BsModalService,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
+    public readonly tools: Tools,
     public apiService: OpenAPIService,
     public utilService: UtilService
   ) {
@@ -154,10 +153,6 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
     });
   }
 
-  ngOnDestroy() {
-    // this.eventsManagerService.off(EventType.NAVBAR_ACTION);
-  }
-
   ngAfterContentChecked(): void {
     this.desktop = (window.innerWidth >= 992);
   }
@@ -165,7 +160,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   _initBreadcrumb() {
     const _title:string = this.client.nome;
     this.breadcrumbs = [
-      { label: '', url: '', type: 'title', iconBs: 'gear' },
+      { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.TITLE.Client', url: '/client', type: 'link' },
       { label: `${_title}`, url: `/${this.model}/${this.id}`, type: 'link' },
       { label: 'APP.TITLE.Adesioni', url: ``, type: 'link' }
@@ -184,13 +179,13 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      organizationTaxCode: new UntypedFormControl(''),
-      creationDateFrom: new UntypedFormControl(''),
-      creationDateTo: new UntypedFormControl(''),
-      fileName: new UntypedFormControl(''),
-      status: new UntypedFormControl(''),
-      type: new UntypedFormControl(''),
+    this._formGroup = new FormGroup({
+      organizationTaxCode: new FormControl(''),
+      creationDateFrom: new FormControl(''),
+      creationDateTo: new FormControl(''),
+      fileName: new FormControl(''),
+      status: new FormControl(''),
+      type: new FormControl(''),
     });
   }
 
@@ -214,7 +209,6 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
     this._setErrorMessages(false);
 
     if (this.id) {
-      
       if (!url) { this.clientadesioni = []; this._links = null; }
       const _options: any = { params: { id_client: this.id } };
       this.apiService.getList('adesioni', _options).subscribe({
@@ -226,7 +220,6 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
           this._spin = false;
         },
         error: (error: any) => {
-          // this._setErrorMessages(true);
           this._preventMultiCall = false;
           Tools.OnError(error);
           this._spin = false;
@@ -236,7 +229,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
+    if (this._links?.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
       this._loadClientAdesioni(null, this._links.next.href);
     }
@@ -252,9 +245,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _onEdit(event: any, param: any) {
-    if (this._useDialog) {
-
-    } else {
+    if (!this._useDialog) {
       this._editCurrent = param;
       this._isEdit = true;
     }
@@ -314,7 +305,6 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
 
   _addReferente() {
     this.loadAnagrafiche();
-    // this._initReferentiSelect([]);
     this._initEditForm();
 
     this._modalEditRef = this.modalService.show(this.editTemplate, {
@@ -324,15 +314,15 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   saveModal(body: any){
-    this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe(
-      (response: any) => {
+    this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe({
+      next: (response: any) => {
         this._modalEditRef.hide();
         this._loadClientAdesioni();
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('error', error);
       }
-    );
+    });
   }
 
   closeModal(){
@@ -375,7 +365,7 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _hasControlError(name: string) {
-    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name]?.errors && this.f[name]?.touched);
   }
 
   loadAnagrafiche() {
@@ -394,15 +384,22 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
     this._modalEditRef = this.modalService.show(this.editTemplate, _modalConfig);
   }
 
-  _prepareListAdesioni(data: any) {
-    console.log('response: ', data)
+  _gotoAdesione(event: any) {
+    const adesione = event.data;
+    if (adesione?.id_adesione && adesione?.servizio?.id_servizio) {
+      this.router.navigate(['adesioni', adesione.id_adesione]);
+    }
+  }
 
+  _prepareListAdesioni(data: any) {
     this.clientadesioni = [];
 
-    data ? this._paging = new Page(data.page) : null;
-    data ? this._links = data._links || null : null;
+    if (data) {
+      this._paging = new Page(data.page);
+      this._links = data._links || null;
+    }
 
-    if (data && data.content) {
+    if (data?.content) {
       const _itemRow = this.adesioniConfig.itemRow;
       const _options = this.adesioniConfig.options;
       const _list: any = data.content.map((referent: any, index: number) => {
@@ -428,12 +425,4 @@ export class ClientAdesioniComponent implements OnInit, AfterContentChecked, OnD
       this._preventMultiCall = false;
     }
   }
-
-  // onChangeTipo(event: any) {
-  //   this.referentiFilter = event?.filter || null;
-  //   this.referentiTipo = event?.nome || null;
-  //   this._editFormGroup.controls.id_utente.enable();
-  //   this._initReferentiSelect([])
-  //   this._editFormGroup.controls.id_utente.patchValue(null);
-  // }
 }

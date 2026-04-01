@@ -2257,6 +2257,7 @@
 			"BulkEsitoKo": "Errors",
 			"BulkEsitoOk": "Success",
 			"CancelEdit": "Cancel edit",
+			"GoToAdesione": "Go to subscription details",
 			"CancelNew": "Cancel add",
 			"CannotArchive": "You don't have permission to archive. Contact an administrator.",
 			"ChangeStatus": "Change status",
