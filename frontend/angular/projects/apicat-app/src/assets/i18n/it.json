@@ -1001,6 +1001,7 @@
 		},
 		"LABEL_HELP": {
 			"ADESIONE": {
+				"id_logico": "Identificativo univoco dell'adesione, utile per distinguere più adesioni della stessa organizzazione allo stesso servizio.",
 				"referente": "Indica il responsabile organizzativo di questa adesione (es. responsabile CED, referente aziendale). Riceverà le comunicazioni istituzionali relative al servizio.",
 				"referente_tecnico": "Indica chi gestirà l'integrazione tecnica e supporterà nella compilazione dell'adesione (es. fornitore software, system integrator). Può coincidere con il referente se è la stessa persona. Riceverà le comunicazioni di natura tecnica.",
 				"FORM": {
