@@ -345,12 +345,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this._hasFlagConsentiNonSottoscrivibile = Tools.Configurazione?.servizio.consenti_non_sottoscrivibile || false;
         this._hasAdesioniMultiple = Tools.Configurazione?.servizio?.adesioni_multiple || false;
         this.hideVersions = this.appConfig?.AppConfig?.Services?.hideVersions || false;
-
-        this.loadAnagrafiche();
     }
 
     ngOnInit() {
         localStorage.setItem('SERVIZI_VIEW', 'FALSE');
+        this.loadAnagrafiche();
 
         if (this._isGestore()) {
             this._tipiVisibilitaServizio = [ ...this._tipiVisibilitaServizio, { value: 'componente', label: 'componente'} ];
@@ -453,11 +452,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
 
     _hasControlError(name: string) {
-        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name]?.errors && this.f[name]?.touched);
     }
 
     _isVisibilita(type: string) {
-        return (this.f['visibilita'] && this.f['visibilita'].value === type);
+        return this.f['visibilita']?.value === type;
     }
     
     _isVisibilitaNull() {
@@ -670,10 +669,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.__resetError();
         const _body = this._prepareBodySaveServizio(body);
         this._spin = true;
-        this.apiService.saveElement(this.model, _body).subscribe(
-            (response: any) => {
+        this.apiService.saveElement(this.model, _body).subscribe({
+            next: (response: any) => {
                 this.id = response.id_servizio;
-                this.data = response; // new Servizio({ ...response });
+                this.data = response;
                 this._data = new Servizio({ ...response });
                 this._initBreadcrumb();
                 this._spin = false;
@@ -683,13 +682,13 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this.save.emit({ id: this.id, service: response, update: false });
                 this.router.navigate([this.model, this.id], { replaceUrl: true });
             },
-            (error: any) => {
+            error: (error: any) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
-                this._errors = error.error.errori || [];
+                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
             }
-        );
+        });
     }
 
     _prepareBodySaveServizio(body: any) {
@@ -738,11 +737,11 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         this.__resetError();
         const _body = this._prepareBodyUpdateServizio(body);
         this._spin = false;
-        this.apiService.putElement(this.model, id, _body).subscribe(
-            (response: any) => {
+        this.apiService.putElement(this.model, id, _body).subscribe({
+            next: (response: any) => {
                 this._isEdit = !this._closeEdit;
                 if (response) {
-                    this.data = response; // new Servizio({ ...response });
+                    this.data = response;
                     this._data = new Servizio({ ...response });
                     this.id = this.data.id_servizio;
                     this._isDominioDeprecato = this.data.dominio.deprecato || false;
@@ -761,13 +760,13 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this.save.emit({ id: this.id, data: response, update: true });
                 this._spin = false;
             },
-            (error: any) => {
+            error: (error: any) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
                 this._spin = false;
-                this._errors = error.error.errori || [];
+                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
             }
-        );
+        });
     }
 
     _prepareBodyUpdateServizio(body: any) {
@@ -776,7 +775,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         const _classi: any[] = (body.classi || []).map((item: any) => { return (typeof(item) === 'object') ? item.id_classe_utente : item; });
         let _immagine: any = {};
 
-        if (body.immagine && body.immagine.uuid) {
+        if (body.immagine?.uuid) {
             _immagine.tipo_documento = 'uuid';
             _immagine.uuid = body.immagine.uuid;
         } else {
@@ -848,10 +847,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this.apiService.getList('domini', _options)
             .pipe(map(resp => {
                 if (resp.Error) {
-                    throwError(resp.Error);
+                    throwError(() => resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
-                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -874,11 +872,10 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this.apiService.getList('utenti', _options)
             .pipe(map(resp => {
                 if (resp.Error) {
-                    throwError(resp.Error);
+                    throwError(() => resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
                         item.nome_completo = `${item.nome} ${item.cognome}`;
-                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -904,9 +901,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                     this.apiService.getDetails(this.model, this.id).subscribe({
                         next: (response: any) => {
                             this.data = response;
-                            if (!this._canManagement()) {
-                                this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
-                            } else {
+                            if (this._canManagement()) {
                                 this._data = new Servizio({ ...response });
                                 this._isDominioDeprecato = this.data.dominio?.deprecato || false;
                                 this._isDominioEsterno = this.data.fruizione || false;
@@ -921,6 +916,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                                     this._loadApis();
                                 }
                                 this._enableDisableSkipCollaudo(this.data.dominio);
+                            } else {
+                                this.router.navigate(['servizi', this.data.id_servizio, 'view'], { relativeTo: this.route });
                             }
                             this._showDeleteActions = this.data.eliminabile || false;
                         },
@@ -1094,7 +1091,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     }
     
 
-    getOrganizzazioni(term: string | null = null, aderente: true): Observable<any> {
+    getOrganizzazioni(term: string | null, aderente: true): Observable<any> {
         const _options: any = { params: { q: term, esterna: false } };
         if (aderente) {
             _options.params.aderente = aderente;
@@ -1102,7 +1099,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this.apiService.getList('organizzazioni', _options)
             .pipe(map(resp => {
                 if (resp.Error) {
-                    throwError(resp.Error);
+                    throwError(() => resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
                         return item;
@@ -1126,10 +1123,9 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
         return this.apiService.getList('soggetti', _options)
             .pipe(map(resp => {
                 if (resp.Error) {
-                    throwError(resp.Error);
+                    throwError(() => resp.Error);
                 } else {
                     const _items = resp.content.map((item: any) => {
-                        // - item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
                         return item;
                     });
                     return _items;
@@ -1380,7 +1376,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this._changingStatus = false;
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
-                this._errors = error.error.errori || [];
+                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
                 this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.data.stato);
                 this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + event.status.nome);
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
@@ -1648,8 +1644,8 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
             )
         );
 
-        forkJoin(reqs).subscribe(
-            (results: Array<any>) => {
+        forkJoin(reqs).subscribe({
+            next: (results: Array<any>) => {
                 const serviceApiDominio = results[0].content;
                 const serviceApiAderente = results[1].content;
                 this.apiComponentiLoading = false;
@@ -1657,12 +1653,12 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
                 this.enableDisableControlPackage();
                 this._updateOtherLinks();
             },
-            (error: any) => {
+            error: (error: any) => {
                 console.log('_loadApis error', error);
                 this.apiComponentiLoading = false;
                 this._updateOtherLinks();
             }
-        );
+        });
     }
 
     _loadComponenti() {

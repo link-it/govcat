@@ -817,7 +817,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             (error: any) => {
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
-                this._errors = error.error.errori || [];
+                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
                 this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione.stato);
                 this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + newStatus);
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
