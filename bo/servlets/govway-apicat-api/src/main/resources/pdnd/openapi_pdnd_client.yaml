@@ -2083,7 +2083,7 @@ components:
   schemas:
     Client:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       properties:
         id:
           type: string
@@ -2097,6 +2097,7 @@ components:
     EServiceDescriptor:
       description: eservice descriptor model
       type: object
+      additionalProperties: true
       required:
         - id
         - version
@@ -2154,6 +2155,7 @@ components:
     EService:
       description: The eservice model
       type: object
+      additionalProperties: true
       required:
         - id
         - producer
@@ -2165,6 +2167,8 @@ components:
         - state
         - serverUrls
         - isSignalHubEnabled
+        - isConsumerDelegable
+        - isClientAccessDelegable
       properties:
         id:
           description: eservice identifier
@@ -2194,8 +2198,15 @@ components:
         isSignalHubEnabled:
           description: indicates if the signal hub is enabled for this eservice
           type: boolean
+        isConsumerDelegable:
+          description: indicates if the eservice consumer is delegable
+          type: boolean
+        isClientAccessDelegable:
+          description: indicates if the eservice client access is delegable
+          type: boolean
     EServiceAttributes:
       description: the attributes set associated to the EService
+      additionalProperties: true
       properties:
         certified:
           description: certified attributes list
@@ -2219,11 +2230,12 @@ components:
     EServiceAttribute:
       description: |
         EService attribute model.
-        In the resolution of the expression of the attribute, a single attribute is combined with other attributes 
+        In the resolution of the expression of the attribute, a single attribute is combined with other attributes
         with AND operator.
-        A group of attributes combined together with OR oparator; in the resolution of the expression of the attribute, 
+        A group of attributes combined together with OR oparator; in the resolution of the expression of the attribute,
         it is combined with other attributes with AND operator.
       type: object
+      additionalProperties: true
       properties:
         single:
           $ref: '#/components/schemas/EServiceAttributeValue'
@@ -2234,6 +2246,7 @@ components:
     EServiceAttributeValue:
       description: attribute value
       type: object
+      additionalProperties: true
       properties:
         id:
           description: attribute identifier
@@ -2268,6 +2281,7 @@ components:
     EServiceDescriptors:
       description: eservice descriptors list model
       type: object
+      additionalProperties: true
       required:
         - descriptors
       properties:
@@ -2278,6 +2292,7 @@ components:
     EServices:
       description: EServices list model
       type: object
+      additionalProperties: true
       required:
         - eservices
       properties:
@@ -2288,6 +2303,7 @@ components:
     EServiceDoc:
       description: eservice descriptor document model
       type: object
+      additionalProperties: true
       required:
         - id
         - name
@@ -2312,6 +2328,7 @@ components:
     ExternalId:
       description: organization identifier model
       type: object
+      additionalProperties: true
       required:
         - origin
         - id
@@ -2324,7 +2341,7 @@ components:
     Organization:
       type: object
       description: organization model
-      additionalProperties: false
+      additionalProperties: true
       properties:
         id:
           description: internal organization identifier
@@ -2357,7 +2374,7 @@ components:
         - ARCHIVED
     Purpose:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       properties:
         id:
           type: string
@@ -2373,6 +2390,7 @@ components:
         - state
     Purposes:
       type: object
+      additionalProperties: true
       properties:
         purposes:
           type: array
@@ -2388,7 +2406,7 @@ components:
         - VERIFIED
     AttributeSeed:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       title: Attribute
       description: represents the details of a verified attribute bound to the agreement.
       properties:
@@ -2421,7 +2439,7 @@ components:
         - INVALID
     Attribute:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       title: Attribute
       description: represents the details of a verified attribute bound to the agreement.
       properties:
@@ -2441,6 +2459,7 @@ components:
         - kind
     Attributes:
       type: object
+      additionalProperties: true
       properties:
         verified:
           type: array
@@ -2463,7 +2482,7 @@ components:
         - declared
     AttributeValidityState:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       title: AttributeValidityState
       description: represents the validity of a specified attribute
       properties:
@@ -2487,7 +2506,7 @@ components:
         - REJECTED
     Agreement:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       properties:
         id:
           type: string
@@ -2516,6 +2535,7 @@ components:
       description: business representation of an agreement
     Agreements:
       type: object
+      additionalProperties: true
       properties:
         agreements:
           type: array
@@ -2525,6 +2545,7 @@ components:
         - agreements
     Events:
       type: object
+      additionalProperties: true
       properties:
         lastEventId:
           type: integer
@@ -2569,6 +2590,7 @@ components:
     JWK:
       description: 'Models a JWK'
       type: object
+      additionalProperties: true
       properties:
         kty:
           type: string
@@ -2629,6 +2651,7 @@ components:
     OtherPrimeInfo:
       title: OtherPrimeInfo
       type: object
+      additionalProperties: true
       properties:
         r:
           type: string
@@ -2675,13 +2698,14 @@ components:
           minItems: 0
           items:
             $ref: '#/components/schemas/ProblemError'
-      additionalProperties: false
+      additionalProperties: true
       required:
         - type
         - status
         - title
         - errors
     ProblemError:
+      additionalProperties: true
       properties:
         code:
           description: Internal code of the error

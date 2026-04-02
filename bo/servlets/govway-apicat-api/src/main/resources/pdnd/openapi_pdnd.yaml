@@ -2654,6 +2654,8 @@ components:
         - state
         - serverUrls
         - isSignalHubEnabled
+        - isConsumerDelegable
+        - isClientAccessDelegable
       properties:
         id:
           description: eservice identifier
@@ -2682,6 +2684,12 @@ components:
             type: string
         isSignalHubEnabled:
           description: indicates if the signal hub is enabled for this eservice
+          type: boolean
+        isConsumerDelegable:
+          description: indicates if the eservice consumer is delegable
+          type: boolean
+        isClientAccessDelegable:
+          description: indicates if the eservice client access is delegable
           type: boolean
     EServiceAttributes:
       description: the attributes set associated to the EService
