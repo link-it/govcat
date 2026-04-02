@@ -621,10 +621,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     public serviceReferents: any[] = [];
     public domainReferents: any[] = [];
     public referentiLoading: boolean = true;
+    private _referentsLoadCount: number = 0;
     private modalAddReferentRef!: BsModalRef;
 
     private loadReferents() {
         this.referentiLoading = true;
+        this._referentsLoadCount++;
         forkJoin({
             referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
             referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti'),
@@ -650,9 +652,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     return acc;
                 };
 
-                let _list: any = referents.map((referent: any) => {
+                const _lc = this._referentsLoadCount;
+                let _list: any = referents.map((referent: any, index: number) => {
                     const element = {
-                        id: referent.id,
+                        id: `${referent.utente?.id_utente || index}_${referent.tipo}_${_lc}`,
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
@@ -661,9 +664,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 });
                 this.referents = [ ..._list ];
 
-                _list = serviceReferents.map((referent: any) => {
+                _list = serviceReferents.map((referent: any, index: number) => {
                     const element = {
-                        id: referent.id,
+                        id: `${referent.utente?.id_utente || index}_${referent.tipo}_${_lc}`,
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
@@ -672,9 +675,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 });
                 this.serviceReferents = [ ..._list ];
 
-                _list = domainReferents.map((referent: any) => {
+                _list = domainReferents.map((referent: any, index: number) => {
                     const element = {
-                        id: referent.id,
+                        id: `${referent.utente?.id_utente || index}_${referent.tipo}_${_lc}`,
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
@@ -737,7 +740,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     this.loadReferents();
                 },
                 error: (error: any) => {
-                    // this._error = true;
                     const _message = this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent');
                     Tools.showMessage(_message, 'danger', true);
                 }

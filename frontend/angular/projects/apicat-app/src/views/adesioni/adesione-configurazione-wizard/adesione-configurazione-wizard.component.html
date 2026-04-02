@@ -239,7 +239,7 @@
                         </div>
                       }
                       <div class="col-12">
-                        @for (referent of serviceReferents; track referent) {
+                        @for (referent of serviceReferents; track referent.id) {
                           <div class="d-flex justify-content-between align-items-center- border-bottom">
                             <ui-collapse-row class="flex-grow-1"
                               [data]="referent.source"
@@ -283,7 +283,7 @@
                         </div>
                       }
                       <div class="col-12">
-                        @for (referent of domainReferents; track referent) {
+                        @for (referent of domainReferents; track referent.id) {
                           <div class="d-flex justify-content-between align-items-center- border-bottom">
                             <ui-collapse-row class="flex-grow-1"
                               [data]="referent.source"

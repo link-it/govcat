@@ -60,13 +60,15 @@ export class ModalAddReferentComponent implements OnInit {
 
     onClose: Subject<any> = new Subject();
 
-    constructor(
-        private bsModalRef: BsModalRef,
-        private translate: TranslateService,
-        private apiService: OpenAPIService,
-        private utilService: UtilService
-    ) { }
+    _error: boolean = false;
+    _errorMsg: string = '';
 
+    constructor(
+        private readonly bsModalRef: BsModalRef,
+        private readonly translate: TranslateService,
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService
+    ) { }
 
     ngOnInit() {
         this.loadAnagrafiche();
@@ -91,18 +93,20 @@ export class ModalAddReferentComponent implements OnInit {
     }
 
     saveModal(body: any){
-        this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe(
-            (response: any) => {
+        this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe({
+            next: (response: any) => {
                 this.closeModal(true);
             },
-            (error: any) => {
-                console.log('error', error);
+            error: (error: any) => {
+                this._error = true;
+                console.log('saveModal error', error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
-        );
+        });
     }
 
     _hasControlError(name: string) {
-        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!this.f[name]?.errors?.touched;
     }
     
     onChangeTipoReferente(event: any) {
@@ -135,7 +139,6 @@ export class ModalAddReferentComponent implements OnInit {
         }
 
         const _options: any = { params: { q: term } };
-        // _options.params.ruolo = this.referentiFilter;
         _options.params.stato = 'abilitato';
         if (this.referentiTipo === 'referente') {
             _options.params.id_organizzazione = this.adesione.soggetto.organizzazione.id_organizzazione;

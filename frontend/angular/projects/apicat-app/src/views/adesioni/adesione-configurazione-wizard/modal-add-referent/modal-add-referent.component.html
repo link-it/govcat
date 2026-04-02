@@ -73,6 +73,12 @@
 
                 </div>    
             </div>
+
+        @if (_error) {
+            <div class="gl-alert gl-alert-danger col-md-12 mb-5">
+                {{ _errorMsg }}
+            </div>
+        }
         </div>
         <div class="modal-footer py-2">
             <button type="button" class="btn btn-default btn-md gl-button" (click)="closeModal()">{{ 'APP.BUTTON.Close' | translate }}</button>
