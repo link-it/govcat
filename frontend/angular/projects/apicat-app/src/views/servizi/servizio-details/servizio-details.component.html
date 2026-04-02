@@ -480,7 +480,7 @@
                             @if (_isEdit) {
                               <div class="">
                                 <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
-                                  [items]="anagrafiche['classi-utente']"
+                                  [items]="anagrafiche['classi-utente'] || []"
                                   [multiple]="true"
                                   [compareWith]="_compareClassiFn"
                                   bindValue="id_classe_utente"
@@ -742,7 +742,7 @@
                     @if (_isEdit) {
                       <div class="">
                         <ng-select [class.gl-field-error-outline]="_hasControlError('tags')"
-                          [items]="anagrafiche['tags']"
+                          [items]="anagrafiche['tags'] || []"
                           [multiple]="true"
                           [addTag]="true"
                           [hideSelected]="true"

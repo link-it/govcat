@@ -92,7 +92,7 @@ export class ServizioDetailsComponent implements OnInit, OnChanges, AfterContent
     dominio: any = null;
     richiedente: any = null;
     utenteUltimaModifica: any = null;
-    anagrafiche: any = null;
+    anagrafiche: any = {};
 
     appConfig: any;
 
