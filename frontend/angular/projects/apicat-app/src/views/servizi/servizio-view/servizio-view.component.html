@@ -189,7 +189,7 @@
                           anche se l'adesione è disabilitata o il servizio non è in stato aderibile,
                           potrebbero esistere adesioni create in precedenza a cui l'utente deve poter accedere.
                         -->
-                        @if ((_updateData | mapper:_isGestoreMapper) || _hasJoined) {
+                        @if (_hasJoined) {
                           <div class="alert alert-secondary small p-2 mb-0">
                             <i class="bi bi-info-circle me-1"></i>
                             {{ 'APP.MESSAGE.AdesioniPrecedenti' | translate }}
