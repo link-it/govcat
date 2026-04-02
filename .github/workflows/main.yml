@@ -160,8 +160,6 @@ jobs:
             --failOnCVSS 0
             --nodeAuditSkipDevDependencies
             --nodePackageSkipDevDependencies
-            --suppression tools/owasp/suppression/CVE-2026-0540.xml
-            --suppression tools/owasp/suppression/CVE-2025-15599.xml
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v6
         with:
