@@ -1479,7 +1479,7 @@
 					"409": {
 						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste gia",
 						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
-						"CONFLICT": "Conflitto sul servizio",
+						"CONFLICT": "Servizio con stesso nome e versione gia esistente",
 						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
 						"STATE": ""
 					}

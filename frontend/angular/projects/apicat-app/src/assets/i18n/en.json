@@ -1479,7 +1479,7 @@
 					"409": {
 						"DEFAULT": "Service [{{nome}} v{{versione}}] already exists",
 						"CATEGORY": "Category [{{categoria}}] already associated to service [{{nome}}/{{versione}}]",
-						"CONFLICT": "Service conflict",
+						"CONFLICT": "Service with same name and version already exists",
 						"GROUP": "Group [{{gruppo}}] already associated to service [{{nome}}/{{versione}}]",
 						"STATE": "Cannot modify service in current state"
 					}
