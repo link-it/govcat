@@ -632,11 +632,18 @@ export class AuthenticationService {
     const _entry = _datiSempreModificabili.find((item: any) => item.classe_dato === classeDato);
     if (_entry) {
       const _grant: string[] = [...grant];
+      // Mappa ruoli specifici per contesto ai ruoli generici della configurazione
       if (_grant.indexOf('referente_tecnico') !== -1) {
         _grant.push('referente');
       }
       if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
         _grant.push('referente_superiore');
+      }
+      if (_grant.indexOf('referente_adesione') !== -1 || _grant.indexOf('referente_servizio') !== -1 || _grant.indexOf('referente_dominio') !== -1) {
+        _grant.push('referente');
+      }
+      if (_grant.indexOf('referente_tecnico_adesione') !== -1 || _grant.indexOf('referente_tecnico_servizio') !== -1 || _grant.indexOf('referente_tecnico_dominio') !== -1) {
+        _grant.push('referente');
       }
       return _.intersection(_grant, _entry.ruoli).length > 0;
     }

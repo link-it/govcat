@@ -12,6 +12,10 @@
 	  soggetti > 1 mostra dropdown, altrimenti usa soggetto di default.
 	Fix #234: messaggi sidebar vetrina servizi mutuamente esclusivi, priorità
 	  al messaggio "adesione già esistente" rispetto a "non autorizzata".
+	Fix #205: tasto "Aggiungi referente" non visibile in stato pubblicato
+	  produzione per referenti adesione. Aggiunto mapping ruoli specifici
+	  (referente_adesione, referente_servizio, referente_dominio) ai ruoli
+	  generici della configurazione dati_sempre_modificabili.
 
 2026-04-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
