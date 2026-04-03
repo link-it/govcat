@@ -238,6 +238,16 @@ public class SoggettiController implements SoggettiApi {
 						throw new ConflictException(ErrorCode.SOG_409, Map.of("nome", soggettoUpdate.getNome()));
 					}
 				}
+
+				if(entity.isAderente() && !Boolean.TRUE.equals(soggettoUpdate.isAderente())) {
+					var organizzazione = entity.getOrganizzazione();
+					if(organizzazione != null && organizzazione.isAderente()
+							&& organizzazione.getSoggettoDefault() != null
+							&& organizzazione.getSoggettoDefault().getId().equals(entity.getId())) {
+						throw new BadRequestException(ErrorCode.SOG_400_DEFAULT_ORG_ADERENTE,
+								Map.of("nome", entity.getNome(), "organizzazione", organizzazione.getNome()));
+					}
+				}
 				
 				this.logger.debug("Autorizzazione completata con successo");     
 

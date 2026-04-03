@@ -176,6 +176,9 @@ public enum ErrorCode {
     /** Soggetto di organizzazione diversa */
     SOG_400_ORG_MISMATCH("Soggetto di organizzazione diversa"),
 
+    /** Soggetto default di organizzazione aderente, non può essere reso non aderente */
+    SOG_400_DEFAULT_ORG_ADERENTE("Soggetto default di organizzazione aderente non può essere reso non aderente"),
+
     /** Soggetto già esistente in altra organizzazione */
     SOG_409_IN_ORG("Soggetto già esistente in altra organizzazione"),
 

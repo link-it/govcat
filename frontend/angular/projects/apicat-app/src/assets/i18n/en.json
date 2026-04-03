@@ -1419,6 +1419,11 @@
 				},
 				"SOG": {
 					"400": {
+						"DEFAULT": {
+							"ORG": {
+								"ADERENTE": "Subject [{{nome}}] is the default subject of the adhering organization [{{organizzazione}}] and cannot be set as non-adhering"
+							}
+						},
 						"HAS": {
 							"DOMAINS": "Subject [{{nome}}] has active domains"
 						},

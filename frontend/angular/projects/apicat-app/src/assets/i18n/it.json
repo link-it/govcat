@@ -1419,6 +1419,11 @@
 				},
 				"SOG": {
 					"400": {
+						"DEFAULT": {
+							"ORG": {
+								"ADERENTE": "Il soggetto [{{nome}}] è il soggetto default dell'organizzazione aderente [{{organizzazione}}] e non può essere reso non aderente"
+							}
+						},
 						"HAS": {
 							"DOMAINS": "Soggetto [{{nome}}] ha domini attivi"
 						},
