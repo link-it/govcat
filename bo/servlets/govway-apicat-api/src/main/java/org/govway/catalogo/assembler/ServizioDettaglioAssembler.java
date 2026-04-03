@@ -295,6 +295,7 @@ public class ServizioDettaglioAssembler extends RepresentationModelAssemblerSupp
 		BeanUtils.copyProperties(src, entity);
 
 		if(src.getTags()!= null) {
+			entity.getTags().clear();
 			for(String tag: src.getTags()) {
 				entity.getTags().add(this.servizioService.getTag(tag));
 			}
