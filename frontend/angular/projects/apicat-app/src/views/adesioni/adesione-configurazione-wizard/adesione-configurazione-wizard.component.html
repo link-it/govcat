@@ -168,7 +168,7 @@
                   <div class="accordion-body">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                       <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.Referents' | translate }}</h5>
-                      @if (isEdit) {
+                      @if (isEdit || (updateMapper | mapper:canAddMapper)) {
                         <button class="btn btn-default btn-md gl-button ms-3" (click)="addReferenteModal($event)">{{ 'APP.BUTTON.AddReferent' | translate }}</button>
                       }
                     </div>

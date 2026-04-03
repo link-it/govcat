@@ -15,7 +15,9 @@
 	Fix #205: tasto "Aggiungi referente" non visibile in stato pubblicato
 	  produzione per referenti adesione. Aggiunto mapping ruoli specifici
 	  (referente_adesione, referente_servizio, referente_dominio) ai ruoli
-	  generici della configurazione dati_sempre_modificabili.
+	  generici della configurazione dati_sempre_modificabili. Svincolato
+	  il bottone "Aggiungi referente" nel wizard dal flag isEdit generale,
+	  usando canAddMapper per rispettare dati_sempre_modificabili.
 
 2026-04-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
