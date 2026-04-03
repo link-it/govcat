@@ -151,18 +151,17 @@
                               </button>
                             }
                             @if (_adesioneDataReady) {
-                              <!-- Organizzazione non ammissibile -->
-                              @if (!(_updateData | mapper:_isAmmissibileMapper) && !(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
-                                <div class="alert alert-warning small p-2 mb-0">
-                                  <i class="bi bi-shield-exclamation me-1"></i>
-                                  {{ 'APP.MESSAGE.OrgNonAmmissibile' | translate }}
-                                </div>
-                              }
-                              <!-- Adesione singola già esistente -->
+                              <!-- Adesione singola già esistente (ha priorità su non ammissibile) -->
                               @if (_hasJoined && !data.multi_adesione && !(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
                                 <div class="alert alert-info small p-2 mb-0">
                                   <i class="bi bi-info-circle me-1"></i>
                                   {{ 'APP.MESSAGE.AdesioneGiaEsistente' | translate }}
+                                </div>
+                              } @else if (!(_updateData | mapper:_isAmmissibileMapper) && !(_updateData | mapper:_isGestoreMapper) && !(_updateData | mapper:_isAnonymousMapper)) {
+                                <!-- Organizzazione non ammissibile (solo se non ha già un'adesione attiva) -->
+                                <div class="alert alert-warning small p-2 mb-0">
+                                  <i class="bi bi-shield-exclamation me-1"></i>
+                                  {{ 'APP.MESSAGE.OrgNonAmmissibile' | translate }}
                                 </div>
                               }
                             }
