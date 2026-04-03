@@ -10,6 +10,8 @@
 	Issue #227: dropdown selezione soggetto in creazione adesione controllato
 	  da configurazione remota abilita_selezione_soggetto. Se abilitato e
 	  soggetti > 1 mostra dropdown, altrimenti usa soggetto di default.
+	Fix #234: messaggi sidebar vetrina servizi mutuamente esclusivi, priorità
+	  al messaggio "adesione già esistente" rispetto a "non autorizzata".
 
 2026-04-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
