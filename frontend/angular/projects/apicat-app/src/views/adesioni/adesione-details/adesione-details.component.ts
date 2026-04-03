@@ -1042,11 +1042,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _checkSoggetto(event: any) {
     if(event) {
       this.selectedOrganizzazione = event;
-      console.log('_checkSoggetto selectedOrganizzazione', this.selectedOrganizzazione);
       this.getSoggetti().subscribe({
         next: (result) => {
           const controls = this._formGroup.controls;
-          console.log('_checkSoggetto result', result);
           if (result.length === 1) {
             this._hideSoggettoDropdown = true;
 
@@ -1063,25 +1061,41 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             controls.id_soggetto.disable();
             controls.referente.enable();
             this._disabled_id_soggetto = aux.id_soggetto;
-            console.log('_checkSoggetto aux', aux);
           } else {
 
             this._elencoSoggetti = [...result];
 
-            // Cerca soggetto_default sull'organizzazione (anche se event è un soggetto da _loadOrganizzazione)
-            const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
-            if (_orgObj?.soggetto_default) {
-              controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
-              controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
-              controls.id_soggetto.updateValueAndValidity();
-              controls.soggetto_nome.updateValueAndValidity();
-              this._hideSoggettoDropdown = true;
-            } else if (result.length > 1) {
-              // Soggetti multipli senza default: mostra il dropdown per permettere la scelta
+            const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+
+            if (_abilitaSelezioneSoggetto && result.length > 1) {
+              // Config abilitata e soggetti multipli: mostra il dropdown per permettere la scelta
               this._hideSoggettoDropdown = false;
+
+              // Pre-seleziona soggetto_default se presente
+              const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
+              const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
+              if (_soggettoDefaultPresente) {
+                controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
+                controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
+              } else {
+                controls.id_soggetto.patchValue(null);
+                controls.soggetto_nome.patchValue(null);
+              }
             } else {
+              // Selezione disabilitata o soggetto singolo: usa soggetto_default se presente
               this._hideSoggettoDropdown = true;
+              const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
+              const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
+              if (_soggettoDefaultPresente) {
+                controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
+                controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
+              } else {
+                controls.id_soggetto.patchValue(null);
+                controls.soggetto_nome.patchValue(null);
+              }
             }
+            controls.id_soggetto.updateValueAndValidity();
+            controls.soggetto_nome.updateValueAndValidity();
             controls.referente.enable();
             controls.id_soggetto.enable();
             controls.referente.updateValueAndValidity();

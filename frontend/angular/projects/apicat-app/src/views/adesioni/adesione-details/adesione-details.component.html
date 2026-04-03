@@ -338,7 +338,7 @@
                         <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto'"></span>
                       }</label>
                       <select class="form-select" id="id_soggetto" formControlName="id_soggetto" [class.gl-field-error-outline]="_hasControlError('id_soggetto')" (change)="_onChangeSoggetto($event)">
-                        @for (el of _elencoSoggetti; track el) {
+                        @for (el of _elencoSoggetti; track el.id_soggetto) {
                           <option [value]="el.id_soggetto">
                             {{el.nome}}
                           </option>
