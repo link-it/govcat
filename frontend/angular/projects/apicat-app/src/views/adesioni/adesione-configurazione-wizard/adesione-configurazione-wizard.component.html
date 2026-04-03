@@ -207,7 +207,7 @@
                               }
                             </ui-collapse-row>
                             <div class="mt-3">
-                              @if ((updateMapper | mapper:canAddMapper) && isEdit) {
+                              @if ((updateMapper | mapper:canAddMapper) || isEdit) {
                                 <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="confirmDeleteReferente(referent)">
                                   <i class="bi bi-trash text-danger"></i>
                                 </button>
