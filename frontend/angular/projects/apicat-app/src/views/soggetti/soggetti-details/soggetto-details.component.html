@@ -14,7 +14,7 @@
 -- GNU General Public License for more details.
 --
 -- You should have received a copy of the GNU General Public License
--- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.ß
 -->
 <div id="route-section" class="">
   <div class="alert-wrapper gp-force-block-formatting-context">
@@ -48,15 +48,15 @@
         }
         <ng-template [appHasPermission]="'soggetti'" [action]="'delete'">
           @if (!_isEdit && !_spin) {
-            <div role="group" class="btn-group- ms-1">
+            <div class="btn-group- ms-1">
               <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="actions">
                 <button aria-label="Altre azioni" aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle btn-default-tertiary dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static" id="other_actions">
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
-                <ul role="menu" tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
+                <ul tabindex="-1" class="dropdown-menu dropdown-menu-end" aria-labelledby="sort_toggle">
                   <div class="gl-new-dropdown-inner">
                     <div class="gl-new-dropdown-contents">
-                      <li role="presentation" class="gl-new-dropdown-item">
+                      <li class="gl-new-dropdown-item">
                         <button role="menuitem" type="button" class="dropdown-item" (click)="_deleteSoggetto()">
                           <div class="gl-icon s16 gl-new-dropdown-item-check-icon gl-mt-3 gl-align-self-start">
                             <i class="bi bi-trash text-danger"></i>
@@ -74,7 +74,7 @@
           }
         </ng-template>
         @if (_isEdit && !_spin) {
-          <div role="group" class="gl-w-full btn-group- position-relative">
+          <div class="gl-w-full btn-group- position-relative">
             <button aria-label="Annulla" aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-default btn-md gl-button btn-default-tertiary ms-2" [tooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit') | translate" (click)="_onCancelEdit()">
               <i class="bi bi-x-lg"></i>
             </button>
@@ -235,7 +235,7 @@
                     @if (_isEdit) {
                       <div class="">
                         <div class="form-check form-switch ml-3">
-                          <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="soggetto?.aderente" (click)="_changeAderente($event)" [disabled]="soggetto.vincola_aderente && soggetto.aderente">
+                          <input class="form-check-input" type="checkbox" id="aderente" [checked]="soggetto?.aderente" (click)="_changeAderente($event)" [disabled]="soggetto.vincola_aderente && soggetto.aderente">
                         </div>
                         @if (f['aderente'].invalid && (f['aderente'].dirty || f['aderente'].touched)) {
                           <p class="form-text text-danger">
@@ -250,7 +250,7 @@
                     @if (!_isEdit) {
                       <div class="">
                         <div class="form-check form-switch ml-3">
-                          <input class="form-check-input" type="checkbox" role="switch" id="aderente" [checked]="soggetto.aderente" (click)="_changeAderente($event)" disabled>
+                          <input class="form-check-input" type="checkbox" id="aderente" [checked]="soggetto.aderente" (click)="_changeAderente($event)" disabled>
                         </div>
                       </div>
                     }
@@ -267,7 +267,7 @@
                   @if (_isEdit) {
                     <div class="">
                       <div class="form-check form-switch ml-3">
-                        <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="soggetto?.referente" (click)="_changeReferente($event)" [disabled]="soggetto.vincola_referente && soggetto.referente">
+                        <input class="form-check-input" type="checkbox" id="referente" [checked]="soggetto?.referente" (click)="_changeReferente($event)" [disabled]="soggetto.vincola_referente && soggetto.referente">
                       </div>
                       @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
                         <p class="form-text text-danger">
@@ -282,7 +282,7 @@
                   @if (!_isEdit) {
                     <div class="">
                       <div class="form-check form-switch ml-3">
-                        <input class="form-check-input" type="checkbox" role="switch" id="referente" [checked]="soggetto.referente" disabled>
+                        <input class="form-check-input" type="checkbox" id="referente" [checked]="soggetto.referente" disabled>
                       </div>
                     </div>
                   }
@@ -363,7 +363,7 @@
               @if (_isEdit) {
                 <div class="">
                   <div class="form-check form-switch ml-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="soggetto?.skip_collaudo" formControlName="skip_collaudo">
+                    <input class="form-check-input" type="checkbox" id="skip_collaudo" [checked]="soggetto?.skip_collaudo" formControlName="skip_collaudo">
                   </div>
                   @if (f['skip_collaudo'].invalid && (f['skip_collaudo'].dirty || f['skip_collaudo'].touched)) {
                     <p class="form-text text-danger">
@@ -378,7 +378,7 @@
               @if (!_isEdit) {
                 <div class="">
                   <div class="form-check form-switch ml-3">
-                    <input class="form-check-input" type="checkbox" role="switch" id="skip_collaudo" [checked]="soggetto.skip_collaudo" disabled>
+                    <input class="form-check-input" type="checkbox" id="skip_collaudo" [checked]="soggetto.skip_collaudo" disabled>
                   </div>
                 </div>
               }
@@ -488,10 +488,10 @@
       }
       @if (_isEdit) {
         <div class="row-content-block footer-block">
-          <button aria-label="Save" type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
+          <button type="submit" class="gl-button btn btn-confirm gl-mr-2" [disabled]="_formGroup.invalid || _spin">
             {{ 'APP.BUTTON.Save' | translate }}
           </button>
-          <button aria-label="Cancel" type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
+          <button type="button" class="btn gl-button btn-default" (click)="_onCancelEdit()">
             {{ 'APP.BUTTON.Cancel' | translate }}
           </button>
         </div>

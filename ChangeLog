@@ -1,3 +1,133 @@
+2026-04-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 227: aggiunge configurazione abilita_selezione_soggetto (default è true).
+	Issue 251: aggiunge controllo in update soggetto aderente per evitare
+	  incongruenze del flag aderente tra soggetto e organizzazione.
+
+	* [Frontend]
+	Issue 251: aggiunte label errore per controllo incongruenza soggetto/organizzazione.
+	Issue #227: dropdown selezione soggetto in creazione adesione controllato
+	  da configurazione remota abilita_selezione_soggetto. Se abilitato e
+	  soggetti > 1 mostra dropdown, altrimenti usa soggetto di default.
+
+2026-04-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 244: fix valori di default per il tipo delle api statistiche di govway.
+	Aggiunta campi isConsumerDelegable e isClientAccessDelegable al modello
+	  EService PDND e tolleranza a campi sconosciuti nel client.
+
+	* [Frontend]
+	Aggiornamento dipendenze per vulnerabilità OWASP: Angular 21.2.6,
+	  jsrsasign 11.1.1, swagger-ui-dist 5.32.1, override dompurify 3.3.3
+	  e picomatch 4.0.4.
+	Aggiornamento lodash 4.18.1 per vulnerabilità OWASP GHSA-f23m-r5fr.
+	Fix #234: messaggio adesioni precedenti mostrato solo quando esistono
+	  effettivamente adesioni.
+	Issue #246: filtrati oggetti errore vuoti dalla risposta API per mostrare
+	  il messaggio di errore tradotto invece della ui-error-view vuota.
+	Issue #247: corretto tracking expression nelle liste referenti per evitare
+	  duplicazione e visualizzazione errata dopo aggiunta/rimozione.
+	Issue #249: corretto TypeError su anagrafiche null nel dettaglio servizio,
+	  inizializzato come oggetto vuoto.
+	Fix label errore SRV_409_CONFLICT.
+
+2026-04-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #239: aggiunto link di navigazione all'adesione nella lista adesioni
+	  del client, con tooltip e separazione tra click titolo e icona accordion.
+	Issue #241: nascosto filtro Esito quando il tipo di distribuzione è
+	  Distribuzione per Esiti.
+	Issue #236: migliorata creazione adesione con testi di aiuto per referenti,
+	  flag "Sono il referente", placeholder e loading nei dropdown, rivisto
+	  layout del form.
+	Issue #235: aggiunto testo di aiuto esplicativo per il campo Identificativo
+	  Adesione.
+	Aggiornati test per allineamento a refactoring servizio-view,
+	  adesione-details e client-adesioni.
+
+2026-03-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 240: label configurabili da file di properties per pdf scheda adesione.
+
+	* [Frontend]
+	Issue #234: migliorata sidebar vetrina servizi con pulsanti adesione più
+	  evidenti, messaggi informativi per stati di non-aderibilità e navigazione
+	  adesioni esistenti anche con adesione disabilitata.
+	Issue #231: organizzazione opzionale per utenti coordinatore, corretto typo
+	  Ruolo.GESTOERE, unificato uso enum Ruolo e allineato RuoloUtenteEnum
+	  all'OpenAPI.
+
+2026-03-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Cambia label richiedente in pdf scheda adesione.
+
+	* [Frontend]
+	Issue #230: nascosto bottone "Aggiungi servizio" a utenti con ruolo null
+	  e referente_tecnico=false.
+	Issue #232: corretto TypeError in servizio-referenti causato da _grant
+	  passato come oggetto invece di array a _isDatoSempreModificabile.
+	Issue #238: corretto descrizione troncata in dettaglio API e servizio
+	  usando white-space pre-wrap.
+	Issue #233: gestione redirect SSO automatico senza mostrare pagina di login,
+	  con ripristino della rotta originale tramite sessionStorage.
+	Fix referenti non visibili nella vetrina servizio dopo refresh della pagina
+	  (race condition con Tools.Configurazione).
+	Fix messaggi di errore applicativi.
+
+2026-03-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix listAdesioni API per ruolo coordinatore.
+	Fix messaggi di errore applicativi.
+
+	* [Frontend]
+	Issue #169: nascosti roleTabs e filtro ruolo_referente per gestore
+	  in adesioni, aggiunto tab Trovati con loading.
+
+2026-03-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix messaggi di errore applicativi.
+
+	* [Frontend]
+	Issue #220: fix tasto Salva disabilitato in creazione adesione.
+	Issue #221: fix classi utente non selezionabili in creazione dominio
+	  riservato.
+	Issue #225: fix classi utente non inviate nel payload di creazione/update
+	  utente.
+	Issue #223: fix filtri ng-select con "x" visibile senza selezione attiva.
+	Issue #222: fix errore in creazione dominio con soggetto skip collaudo.
+	Issue #226: fix label disallineate nei filtri avanzati dopo rimozione token.
+	Issue #228: fix campi configurabili organizzazione visibili anche se
+	  disabilitati.
+	Aggiornati test dopo refactoring costruttori componenti.
+
+2026-03-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #169: convertito filtro ruolo referente da dropdown singolo
+	  a multi-select.
+
+2026-03-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #169: aggiunto filtro avanzato ruolo_referente nella form di ricerca
+	  di servizi e adesioni.
+	Dashboard: aggiunto indicatore visivo (dot blu) per comunicazioni non lette.
+	Cache immagini servizi e gruppi per evitare richieste HTTP ripetute.
+	Aggiornato test servizi: aggiunto controllo form control ruolo_referente.
+
+2026-03-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [GovwayAPICatalogo]
+	Add notifications cleanup in v2.3.6 DB patch.
+	Issue 216: review first login and update email verification email templates.
+
 2026-03-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]

@@ -16,11 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { ConfigService, Tools, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
@@ -28,7 +28,7 @@ import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { Soggetto, TipoGateway } from './soggetto';
+import { Soggetto } from './soggetto';
 import { SoggettoCreate } from './soggettoCreate';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
@@ -51,7 +51,7 @@ import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.d
     TrimOnBlurDirective
   ]
 })
-export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'SoggettoDetailsComponent';
   readonly model: string = 'soggetti';
 
@@ -128,15 +128,15 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
   vincolaSkipCollaudo: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
-    private tools: Tools,
-    private utils: UtilService,
-    private apiService: OpenAPIService,
-    private authenticationService: AuthenticationService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
+    private readonly tools: Tools,
+    private readonly utils: UtilService,
+    private readonly apiService: OpenAPIService,
+    private readonly authenticationService: AuthenticationService
   ) {
     this.appConfig = this.configService.getConfiguration();
     this._soggettoConfig = this.authenticationService._getConfigModule('soggetto');
@@ -171,9 +171,6 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
     });
   }
 
-  ngOnDestroy() {
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.id) {
       this.id = changes.id.currentValue;
@@ -206,7 +203,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
 
   _initForm(data: any = null) {
     console.log('data: ', data)
-    data.descrizione ? null : data.descrizione = '';
+    data.descrizione = data.descrizione || '';
     if (data) {
       let _group: any = {};
       Object.keys(data).forEach((key) => {
@@ -338,9 +335,6 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
             this.soggetto = new Soggetto({ ...response });
             this._soggetto = new Soggetto({ ...response });
 
-            // this._showAderente = this.soggetto.organizzazione.aderente
-            // this._showReferente = this.soggetto.organizzazione.referente
-
             this._isEdit = false;
             this._isNew = false;
             
@@ -358,7 +352,6 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
   __onUpdate(id: number, body: any) {
     const _body = { ...body };
     console.log('__onUpdate body', _body)
-    // _body.id_organizzazione = this.soggetto.organizzazione?.id_organizzazione || body.organizzazione;
     _body.id_organizzazione = body.organizzazione;
     if (_body.vincola_referente) {
       _body.referente = true; 
@@ -385,19 +378,19 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
 
     if (_DVLP_invia) {
 
-      this.apiService.putElement(this.model, id, _body).subscribe(
-        (response: any) => {
+      this.apiService.putElement(this.model, id, _body).subscribe({
+        next: (response: any) => {
           this._isEdit = !this._closeEdit;
           this.soggetto = new Soggetto({ ...response });
           this._soggetto = new Soggetto({ ...response });
           this.id = this.soggetto.id_soggetto;
           this.save.emit({ id: this.id, payment: response, update: true });
         },
-        (error: any) => {
+        error: (error: any) => {
           this._error = true;
           this._errorMsg = this.utils.GetErrorMsg(error);
         }
-      );
+      });
     }
   }
 
@@ -440,15 +433,15 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElement(this.model, this.soggetto.id_soggetto).subscribe(
-            (response) => {
+          this.apiService.deleteElement(this.model, this.soggetto.id_soggetto).subscribe({
+            next: (response) => {
               this.router.navigate([this.model]);
             },
-            (error) => {
+            error: (error) => {
               this._error = true;
               this._errorMsg = this.utils.GetErrorMsg(error);
             }
-          );
+          });
         }
       }
     );
@@ -464,7 +457,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
 
       this.apiService.getDetails(this.model, this.id).subscribe({
         next: (response: any) => {
-          this.soggetto = response; // new Soggetto({ ...response });
+          this.soggetto = response;
           this._soggetto = new Soggetto({ ...response });
 
           this.soggetto.id_organizzazione = this.soggetto.organizzazione.id_organizzazione;
@@ -582,7 +575,7 @@ export class SoggettoDetailsComponent implements OnInit, OnChanges, AfterContent
     const _options: any = { params: { q: term } };
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {        if (resp.Error) {
-          throwError(resp.Error);
+          throwError(()=> resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
