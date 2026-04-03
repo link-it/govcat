@@ -5875,6 +5875,9 @@ components:
           type: "boolean"
         referente_obbligatorio:
           type: "boolean"
+        abilita_selezione_soggetto:
+          type: "boolean"
+          default: true
         workflow_produzione_senza_collaudo:
           $ref: '#/components/schemas/WorkflowProduzioneSenzaCollaudoEnum'
         workflow:

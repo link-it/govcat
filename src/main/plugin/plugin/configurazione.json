@@ -1211,6 +1211,7 @@
     "riuso_client_obbligatorio": false,
     "visualizza_elenco_client_esistenti": false,
     "referente_obbligatorio": false,
+    "abilita_selezione_soggetto": true,
     "workflow_produzione_senza_collaudo": "disabilitato",
     "dati_sempre_modificabili": [
       {
