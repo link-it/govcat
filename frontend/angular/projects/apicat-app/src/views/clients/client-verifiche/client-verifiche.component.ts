@@ -21,16 +21,21 @@ import { Router, ActivatedRoute } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { Page } from '@app/models/page';
+
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-client-verifiche',
   templateUrl: 'client-verifiche.component.html',
   styleUrls: ['client-verifiche.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class ClientVerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

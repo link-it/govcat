@@ -17,13 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, Output, OnInit, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
-import { ConfigService } from '@linkit/components';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { COMPONENTS_IMPORTS, ConfigService } from '@linkit/components';
+import { CustomPropertiesComponent } from '../custom-properties/custom-properties.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { CkeckProvider } from '@app/provider/check.provider';
-import { ClassiEnum, CheckStructure, DataStructure, Sottotipo, Errore } from '@app/provider/check.provider';
+import { CkeckProvider, ClassiEnum, CheckStructure, DataStructure, Sottotipo, Errore } from '@app/provider/check.provider';
 
 export enum SpecificoPerEnum {
     Adesione = 'adesione',
@@ -36,7 +40,8 @@ export enum SpecificoPerEnum {
     selector: 'app-api-custom-properties',
     templateUrl: './api-custom-properties.component.html',
     styleUrls: ['./api-custom-properties.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, TooltipModule, TranslateModule, ...COMPONENTS_IMPORTS, CustomPropertiesComponent]
 })
 export class ApiCustomPropertiesComponent implements OnInit {
 

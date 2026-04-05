@@ -1,4 +1,7 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { TranslateModule } from '@ngx-translate/core';
 
 declare const bootstrap: any;
 
@@ -30,7 +33,8 @@ export interface MenuExportAction {
   selector: 'app-export-dropdown',
   templateUrl: './export-dropdown.component.html',
   styleUrls: ['./export-dropdown.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule]
 })
 export class ExportDropdwnComponent implements OnInit, OnChanges {
 

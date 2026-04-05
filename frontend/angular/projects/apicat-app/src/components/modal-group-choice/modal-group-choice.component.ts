@@ -17,9 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { TreeViewComponent } from '@app/components/tree-view/tree-view.component';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { OpenAPIService } from '@services/openAPI.service';
@@ -32,7 +36,8 @@ import { HttpParams } from '@angular/common/http';
   selector: 'app-modal-group-choice',
   templateUrl: './modal-group-choice.component.html',
   styleUrls: ['./modal-group-choice.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS, TreeViewComponent]
 })
 export class ModalGroupChoiceComponent implements OnInit {
 

@@ -1554,14 +1554,18 @@ components:
       type: "object"
       properties:
         tipo:
-          $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          allOf:
+            - $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          default: "numero_transazioni"
     TipoInformazioneReportOccupazioneBanda:
       required:
       - "tipo"
       type: "object"
       properties:
         tipo:
-          $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          allOf:
+            - $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          default: "occupazione_banda"
         occupazione_banda:
           $ref: "#/components/schemas/OccupazioneBandaEnum"
     TipoInformazioneReportTempoMedioRisposta:
@@ -1570,7 +1574,9 @@ components:
       type: "object"
       properties:
         tipo:
-          $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          allOf:
+            - $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          default: "tempo_medio_risposta"
         tempo_medio_risposta:
           $ref: "#/components/schemas/TempoMedioRispostaEnum"
     OpzioniGenerazioneReportMultiLine:
@@ -1596,14 +1602,18 @@ components:
       type: "object"
       properties:
         tipo:
-          $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          allOf:
+            - $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          default: "numero_transazioni"
     TipoInformazioneReportMultiLineOccupazioneBanda:
       required:
       - "tipo"
       type: "object"
       properties:
         tipo:
-          $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          allOf:
+            - $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          default: "occupazione_banda"
         occupazione_banda:
           $ref: "#/components/schemas/OccupazioneBandaTipi"
     TipoInformazioneReportMultiLineTempoMedioRisposta:
@@ -1612,7 +1622,9 @@ components:
       type: "object"
       properties:
         tipo:
-          $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          allOf:
+            - $ref: "#/components/schemas/TipoInformazioneReportEnum"
+          default: "tempo_medio_risposta"
         tempo_medio_risposta:
           $ref: "#/components/schemas/TempoMedioRispostaTipi"
     OccupazioneBandaTipi:

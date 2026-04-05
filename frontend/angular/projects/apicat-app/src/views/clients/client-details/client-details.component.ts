@@ -16,33 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild, TemplateRef } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, EventType, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { UtilService } from '@app/services/utils.service';
-import { EventsManagerService, EventType } from '@linkit/components';
+import { UtilService, Certificato } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
-
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
-import { Client, PeriodEnum } from './client';
-import { Soggetto } from './client';
+import { Client, PeriodEnum, Soggetto } from './client';
 
-import { DatiSpecItem } from './clientUpdate';
-import { CommonName } from './clientUpdate';
-import { DoubleCert } from './clientUpdate';
-import { Datispecifici } from './clientUpdate';
+import { DatiSpecItem, CommonName, DoubleCert, Datispecifici } from './clientUpdate';
 
 const fake_tipoCertificatoEnum = [ 'fornito', 'richiesto_cn', 'richiesto_csr'];
 const fake_stato = [ 'nuovo', 'configurato'];
@@ -51,15 +43,24 @@ const fake_ambiente = [ 'collaudo', 'produzione'];
 import * as _ from 'lodash';
 declare const saveAs: any;
 
-import { Certificato } from '@app/services/utils.service';
+import { CommonModule } from '@angular/common';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 
 @Component({
   selector: 'app-client-details',
   templateUrl: 'client-details.component.html',
   styleUrls: ['client-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    RouterModule,
+    TrimOnBlurDirective,
+    ErrorViewComponent
+  ]
 })
-export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'ClientDetailsComponent';
   readonly model: string = 'client';
 
@@ -205,25 +206,26 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   ];
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   debugMandatoryFields: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private apiService: OpenAPIService,
-    private authenticationService: AuthenticationService,
-    private utils: UtilService,
-    private eventsManagerService: EventsManagerService
-  ) {
-    this.appConfig = this.configService.getConfiguration();
-  }
+    private readonly apiService: OpenAPIService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly utils: UtilService,
+    private readonly eventsManagerService: EventsManagerService
+  ) { }
 
   ngOnInit() {
+    this.appConfig = this.configService.getConfiguration();
+
     this._statoEnum = fake_stato;
     this._ambienteEnum = fake_ambiente;
     if (Tools.Configurazione) {
@@ -257,6 +259,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -265,9 +268,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       Tools.Configurazione.servizio.api.auth_type.map((item: any) => this._authTypeEnum.push(item.type));
       this.initTipiCertificato();
     });
-  }
-
-  ngOnDestroy() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -291,7 +291,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -483,7 +483,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
       if (this._isPdnd || this._isHttpsPdnd || this._isHttpsPdndSign || this._isSignPdnd || this._isOauthClientCredentials) {
         controls.client_id.patchValue(data.dati_specifici.client_id)
-        // controls.client_id.setValidators(Validators.required);
       }
 
       if (this._isOauthAuthCode) {
@@ -620,7 +619,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
           this._client = new Client({ ...response, rate_limiting: _rateLimiting, finalita: _finalita });
 
           this._isAnyCertificateUpdated ? this._loadAll() : null;
-          // this.id = this.client.id;
           this.save.emit({ id: this.id, payment: response, update: true });
         },
         error: (error: any) => {
@@ -1044,8 +1042,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _initBreadcrumb() {
     const _title = this.client ? `${this.client.nome}` : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: '', type: 'title' }
       ];
     } else {
@@ -1103,7 +1102,11 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      if (event.params) {
+        this.router.navigate([event.url], { queryParams: event.params });
+      } else {
+        this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      }
     } else {
       this._onClose();
     }
@@ -1422,7 +1425,7 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
       error: (error: any) => {
         this._error = true;
         this._errorMsg = this.utils.GetErrorMsg(error);
-        this._errors = error.error.errori || [];
+        this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
         this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.client.stato);
         this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + event);
         const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
@@ -1658,10 +1661,9 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('soggetti', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -1675,20 +1677,15 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
         }
       })
-      );
-  }
-
-  trackByFn(item: any) {
-    return item.id;
+    );
   }
 
   _checkSoggetto(event: any) {  
@@ -1713,11 +1710,13 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
             controls.id_soggetto.clearValidators();
             controls.id_soggetto.updateValueAndValidity();
           } else {
+            const currentValue = controls.id_soggetto.value;
             this._elencoSoggetti = [...result];
             controls.id_soggetto.enable();
             controls.id_soggetto.setValidators(Validators.required);
             controls.id_soggetto.updateValueAndValidity();
             this._hideSoggettoDropdown = false;
+            setTimeout(() => controls.id_soggetto.setValue(currentValue));
           }
 
           this._formGroup.updateValueAndValidity();
@@ -1746,7 +1745,6 @@ export class ClientDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _hasVerifica = (): boolean => {
     const monitoraggio: any = this.authenticationService._getConfigModule('monitoraggio');
 
-    // const _isSoggettoMonitoraggio = (monitoraggio.soggetto_modi?.nome == this.client.nome) || (monitoraggio.soggetto_pdnd?.nome === this.client.nome);
     const _showMonitoraggio: boolean = monitoraggio.abilitato;
     const _showVerifiche: boolean = monitoraggio.verifiche_abilitate;
 

@@ -18,11 +18,13 @@
  */
 import { Component, Input, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { Tools } from '@linkit/components';
+import { Tools, COMPONENTS_IMPORTS } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -31,18 +33,24 @@ import { Grant } from '@app/model/grant';
 
 import { map, of, tap } from 'rxjs';
 
-import { AdesioneUpdate, Servizio } from '../../adesione-details/adesioneUpdate';
-import { Soggetto } from '../../adesione-details/adesioneUpdate';
+import { AdesioneUpdate, Servizio, Soggetto } from '../../adesione-details/adesioneUpdate';
 
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
-import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
+import { Ruolo } from '@app/views/utenti/utente-details/utente';
 
 @Component({
     selector: 'app-adesione-form',
     templateUrl: './adesione-form.component.html',
     styleUrls: ['./adesione-form.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        MapperPipe
+    ]
 })
 export class AdesioneFormComponent implements OnInit {
 
@@ -415,7 +423,7 @@ export class AdesioneFormComponent implements OnInit {
             this.formGroup.get('id_soggetto')?.disable();
             this.hideSoggettoDropdown = true;
         } else {
-            if (this.profilo?.utente.ruolo === RuoloUtenteEnum.ReferenteServizio){
+            if (this.profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO){
                 if (this.servizio && await this.isCurrentUserReferenteServizio(this.servizio)){
                     this.formGroup.get('id_organizzazione')?.enable();
                     this.formGroup.get('id_organizzazione')?.reset();
@@ -483,18 +491,40 @@ export class AdesioneFormComponent implements OnInit {
 
                         this.elencoSoggetti = [...result];
 
-                        if (this.selectedOrganizzazione?.soggetto_default) {
-                            controls.id_soggetto.patchValue(this.selectedOrganizzazione?.soggetto_default.id_soggetto);
-                            controls.soggetto_nome.patchValue(this.selectedOrganizzazione?.soggetto_default.nome);
-                            controls.id_soggetto.updateValueAndValidity();
-                            controls.soggetto_nome.updateValueAndValidity();
+                        const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+
+                        if (_abilitaSelezioneSoggetto && result.length > 1) {
+                            // Config abilitata e soggetti multipli: mostra il dropdown
+                            this.hideSoggettoDropdown = false;
+
+                            // Pre-seleziona soggetto_default se presente nella lista
+                            const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === this.selectedOrganizzazione?.soggetto_default?.id_soggetto);
+                            if (_soggettoDefaultPresente) {
+                                controls.id_soggetto.patchValue(this.selectedOrganizzazione.soggetto_default.id_soggetto);
+                                controls.soggetto_nome.patchValue(this.selectedOrganizzazione.soggetto_default.nome);
+                            } else {
+                                controls.id_soggetto.patchValue(null);
+                                controls.soggetto_nome.patchValue(null);
+                            }
+                        } else {
+                            // Selezione disabilitata o soggetto singolo: usa soggetto_default se presente nella lista
+                            this.hideSoggettoDropdown = true;
+                            const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === this.selectedOrganizzazione?.soggetto_default?.id_soggetto);
+                            if (_soggettoDefaultPresente) {
+                                controls.id_soggetto.patchValue(this.selectedOrganizzazione.soggetto_default.id_soggetto);
+                                controls.soggetto_nome.patchValue(this.selectedOrganizzazione.soggetto_default.nome);
+                            } else {
+                                controls.id_soggetto.patchValue(null);
+                                controls.soggetto_nome.patchValue(null);
+                            }
                         }
+                        controls.id_soggetto.updateValueAndValidity();
+                        controls.soggetto_nome.updateValueAndValidity();
                         controls.referente.enable();
                         controls.id_soggetto.enable();
                         controls.referente.updateValueAndValidity();
                         controls.id_soggetto.updateValueAndValidity();
                         this.disabled_id_soggetto = null;
-                        this.hideSoggettoDropdown = true;
                     }
 
                     // this._initReferentiSelect([]);

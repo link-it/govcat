@@ -24,23 +24,23 @@
 <div class="modal-body">
   <form [formGroup]="form">
     <!-- Step 1: Enter new email and send code -->
-    <ng-container *ngIf="step === 'send'">
+    @if (step === 'send') {
       <div class="alert alert-warning mb-3">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.ConfirmChange' | translate }}
       </div>
-
       <div class="email-info mb-3">
         <div class="email-row">
           <span class="email-label">{{ 'APP.PROFILE.EMAIL_VERIFICATION.LABEL.CurrentEmail' | translate }}:</span>
           <span class="email-value">{{ currentEmail || '-' }}</span>
         </div>
       </div>
-
       <div class="form-group mb-3">
         <label for="newEmail" class="form-label">
           {{ 'APP.PROFILE.EMAIL_VERIFICATION.LABEL.NewEmail' | translate }}
-          <span *ngIf="!canClearEmail">*</span>
+          @if (!canClearEmail) {
+            <span>*</span>
+          }
         </label>
         <input
           type="email"
@@ -49,36 +49,41 @@
           formControlName="newEmail"
           [class.is-invalid]="newEmailControl?.invalid && newEmailControl?.touched"
           [placeholder]="'APP.PROFILE.EMAIL_VERIFICATION.PLACEHOLDER.NewEmail' | translate">
-        <div class="invalid-feedback" *ngIf="newEmailControl?.errors?.['required'] && newEmailControl?.touched">
-          {{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}
-        </div>
-        <div class="invalid-feedback" *ngIf="newEmailControl?.errors?.['email'] && newEmailControl?.touched">
-          {{ 'APP.MESSAGE.VALIDATION.Email' | translate }}
-        </div>
-        <div class="form-text text-muted" *ngIf="canClearEmail">
-          {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.ClearEmailHint' | translate }}
-        </div>
+        @if (newEmailControl?.errors?.['required'] && newEmailControl?.touched) {
+          <div class="invalid-feedback">
+            {{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}
+          </div>
+        }
+        @if (newEmailControl?.errors?.['email'] && newEmailControl?.touched) {
+          <div class="invalid-feedback">
+            {{ 'APP.MESSAGE.VALIDATION.Email' | translate }}
+          </div>
+        }
+        @if (canClearEmail) {
+          <div class="form-text text-muted">
+            {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.ClearEmailHint' | translate }}
+          </div>
+        }
       </div>
-
-      <div class="alert alert-info" *ngIf="!isNewEmailEmpty">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.SendCode' | translate }}
-      </div>
-    </ng-container>
+      @if (!isNewEmailEmpty) {
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.SendCode' | translate }}
+        </div>
+      }
+    }
 
     <!-- Step 2: Verify Code -->
-    <ng-container *ngIf="step === 'verify'">
+    @if (step === 'verify') {
       <div class="alert alert-success mb-3">
         <i class="bi bi-envelope-check-fill me-2"></i>
         {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.CodeSent' | translate }}
         <strong>{{ form.get('newEmail')?.value }}</strong>
       </div>
-
       <div class="alert alert-info mb-3">
         <i class="bi bi-info-circle-fill me-2"></i>
         {{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.EnterCode' | translate }}
       </div>
-
       <div class="otp-input-container">
         <input
           type="text"
@@ -90,40 +95,45 @@
           (input)="onCodiceInput($event)"
           placeholder="______">
       </div>
-
-      <div class="text-center text-danger mb-3" *ngIf="codiceControl?.errors?.['minlength'] && codiceControl?.touched">
-        {{ 'APP.PROFILE.EMAIL_VERIFICATION.ERROR.CodeLength' | translate }}
-      </div>
-
+      @if (codiceControl?.errors?.['minlength'] && codiceControl?.touched) {
+        <div class="text-center text-danger mb-3">
+          {{ 'APP.PROFILE.EMAIL_VERIFICATION.ERROR.CodeLength' | translate }}
+        </div>
+      }
       <!-- Countdown -->
       <div class="countdown" [class.expired]="isExpired">
-        <ng-container *ngIf="!isExpired">
+        @if (!isExpired) {
           <span class="me-2">{{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.ExpiresIn' | translate }}</span>
           <span class="countdown-timer">{{ countdownFormatted }}</span>
-        </ng-container>
-        <ng-container *ngIf="isExpired">
+        }
+        @if (isExpired) {
           <span class="text-danger">{{ 'APP.PROFILE.EMAIL_VERIFICATION.MESSAGE.Expired' | translate }}</span>
-        </ng-container>
+        }
       </div>
-
       <!-- Tentativi rimanenti -->
-      <div class="attempts-remaining text-warning text-center mt-2" *ngIf="tentativiRimanenti !== null && tentativiRimanenti > 0">
-        {{ 'APP.PROFILE.EMAIL_VERIFICATION.LABEL.AttemptsRemaining' | translate }}: {{ tentativiRimanenti }}
-      </div>
-      <div class="attempts-remaining text-danger text-center mt-2" *ngIf="tentativiRimanenti !== null && tentativiRimanenti === 0">
-        {{ 'APP.PROFILE.EMAIL_VERIFICATION.ERROR.MaxAttempts' | translate }}
-      </div>
-    </ng-container>
+      @if (tentativiRimanenti !== null && tentativiRimanenti > 0) {
+        <div class="attempts-remaining text-warning text-center mt-2">
+          {{ 'APP.PROFILE.EMAIL_VERIFICATION.LABEL.AttemptsRemaining' | translate }}: {{ tentativiRimanenti }}
+        </div>
+      }
+      @if (tentativiRimanenti !== null && tentativiRimanenti === 0) {
+        <div class="attempts-remaining text-danger text-center mt-2">
+          {{ 'APP.PROFILE.EMAIL_VERIFICATION.ERROR.MaxAttempts' | translate }}
+        </div>
+      }
+    }
   </form>
 
   <!-- Error message -->
-  <div class="alert alert-danger mt-3" *ngIf="error">
-    {{ error | translate }}
-  </div>
+  @if (error) {
+    <div class="alert alert-danger mt-3">
+      {{ error | translate }}
+    </div>
+  }
 </div>
 
 <div class="modal-footer">
-  <ng-container *ngIf="step === 'send'">
+  @if (step === 'send') {
     <lnk-button
       [label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
       [ariaLabel]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
@@ -138,9 +148,9 @@
       [spinner]="loading"
       (onAction)="onSendCode()">
     </lnk-button>
-  </ng-container>
+  }
 
-  <ng-container *ngIf="step === 'verify'">
+  @if (step === 'verify') {
     <lnk-button
       [label]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
       [ariaLabel]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.Cancel'"
@@ -162,5 +172,5 @@
       [spinner]="loading"
       (onAction)="onVerify()">
     </lnk-button>
-  </ng-container>
+  }
 </div>

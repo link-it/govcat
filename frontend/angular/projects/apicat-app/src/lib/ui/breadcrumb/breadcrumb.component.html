@@ -1,0 +1,80 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@if (breadcrumbs.length > 0) {
+  <nav class="breadcrumbs container-fluid {{ classContainer }} px-0">
+    <div class="breadcrumbs-container" [class.container-mobile-nav]="optional">
+      @if (!hideToggleMobile) {
+        <button name="button" type="button" class="toggle-mobile-nav" (click)="_onOpenSidebar()">
+          <span class="sr-only">Open sidebar</span>
+          <span class="material-icons-outlined">view_sidebar</span>
+        </button>
+      }
+      <div class="breadcrumbs-links">
+        <ul class="list-unstyled breadcrumbs-list">
+          @for (item of breadcrumbs; track $index; let last = $last) {
+            @if (item.type == 'title') {
+              <li class="d-flex align-self-center">
+                <a class="d-flex align-self-center align-items-center" [class]="{ 'text-decoration-none': item.url === '', 'cursor-default': item.url === '' }" [tooltip]="item.tooltip || '' | translate" container="body">
+                  @if (item.icon) {
+                    <span class="avatar-tile">
+                      <span class="material-icons-outlined">{{ item.icon }}</span>
+                    </span>
+                  }
+                  @if (item.iconBs) {
+                    <span class="avatar-tile">
+                      <em class="bi bi-{{ item.iconBs }}"></em>
+                    </span>
+                  }
+                  {{ item.label | translate }}
+                </a>
+                @if (!last) {
+                  <span class="breadcrumbs-list-angle">
+                    <span class="material-icons-outlined">keyboard_arrow_right</span>
+                  </span>
+                }
+              </li>
+            }
+            @if (item.type == 'link') {
+              <li class="d-flex align-self-center">
+                <a class="group-path breadcrumb-item-text d-flex align-self-center align-items-center" [class.text-decoration-none]="item.url === ''" [class.cursor-default]="item.url === ''" [class.supports-new-tab]="item.url && item.url !== ''" [class.no-icon]="item.url && item.url !== ''" (click)="_onClick($event, item)" (auxclick)="_onClick($event, item)" [tooltip]="item.tooltip || '' | translate" container="body">
+                  @if (item.icon) {
+                    <span class="avatar-tile">
+                      <span class="material-icons-outlined">{{ item.icon }}</span>
+                    </span>
+                  }
+                  @if (item.iconBs) {
+                    <span class="avatar-tile">
+                      <em class="bi bi-{{ item.iconBs }}"></em>
+                    </span>
+                  }
+                  <span>{{ item.label | translate }}</span>
+                </a>
+                @if (!last) {
+                  <span class="breadcrumbs-list-angle">
+                    <span class="material-icons-outlined fs-5">keyboard_arrow_right</span>
+                  </span>
+                }
+              </li>
+            }
+          }
+        </ul>
+      </div>
+    </div>
+  </nav>
+}

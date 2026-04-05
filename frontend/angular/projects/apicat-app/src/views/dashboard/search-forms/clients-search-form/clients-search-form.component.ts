@@ -17,11 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService, Tools, SearchBarFormComponent, EventsManagerService, EventType } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, SearchBarFormComponent, EventsManagerService, EventType } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
@@ -33,7 +35,15 @@ const fake_ambiente = ['collaudo', 'produzione'];
   selector: 'app-clients-search-form',
   templateUrl: './clients-search-form.component.html',
   styleUrls: ['./clients-search-form.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NgSelectModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class ClientsSearchFormComponent implements OnInit {
 
@@ -197,7 +207,4 @@ export class ClientsSearchFormComponent implements OnInit {
     $event.stopPropagation();
   }
 
-  trackBySelectFn(item: any) {
-    return item.id_soggetto || item.id_organizzazione;
-  }
 }

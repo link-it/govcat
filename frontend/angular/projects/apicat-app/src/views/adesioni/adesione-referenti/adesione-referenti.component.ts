@@ -16,23 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
-import { FieldClass } from '@linkit/components';
-
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
@@ -47,9 +50,22 @@ import * as _ from 'lodash';
   selector: 'app-adesione-referenti',
   templateUrl: 'adesione-referenti.component.html',
   styleUrls: ['adesione-referenti.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    MapperPipe,
+    TooltipModule,
+    NgSelectModule,
+    InfiniteScrollDirective,
+    AutoFillScrollDirective,
+    MarkAsteriskDirective,
+    MonitorDropdwnComponent
+  ]
 })
-export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, OnDestroy {
+export class AdesioneReferentiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'AdesioneReferentiComponent';
   readonly model: string = 'adesioni';
 
@@ -125,11 +141,11 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
   _updateMapper: string = '';
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private modalService: BsModalService,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly modalService: BsModalService,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
     public tools: Tools,
     public apiService: OpenAPIService,
     public utilService: UtilService,
@@ -161,22 +177,18 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
         this.configService.getConfig('referenti').subscribe(
           (config: any) => {
             this.referentiConfig = config;
-            if (!this.adesione) {
-              this._loadAdesione();
-            } else {
+            if (this.adesione) {
               console.log('grant', this._grant);
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
               this._loadAdesioneReferenti();
+            } else {
+              this._loadAdesione();
             }
           }
         );
       }
     });
-  }
-
-  ngOnDestroy() {
-    // this.eventsManagerService.off(EventType.NAVBAR_ACTION);
   }
 
   ngAfterContentChecked(): void {
@@ -227,7 +239,7 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
 
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
+      organizationTaxCode: new UntypedFormControl(''),
       creationDateFrom: new UntypedFormControl(''),
       creationDateTo: new UntypedFormControl(''),
       fileName: new UntypedFormControl(''),
@@ -291,10 +303,12 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
 
           console.log('response: ', response)
 
-          response ? this._paging = new Page(response.page) : null;
-          response ? this._links = response._links || null : null;
+          if (response) {
+            this._paging = new Page(response.page);
+            this._links = response._links || null;
+          }
 
-          if (response && response.content) {
+          if (response?.content) {
             const _itemRow = this.referentiConfig.itemRow;
             const _options = this.referentiConfig.options;
             const _list: any = response.content.map((referent: any) => {
@@ -352,9 +366,7 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   _onEdit(event: any, param: any) {
-    if (this._useDialog) {
-
-    } else {
+    if (!this._useDialog) {
       this._editCurrent = param;
       this._isEdit = true;
     }
@@ -420,15 +432,15 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   saveModal(body: any){
-    this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe(
-      (response: any) => {
+    this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe({
+      next: (response: any) => {
         this._modalEditRef.hide();
         this._loadAdesioneReferenti();
       },
-      (error: any) => {
+      error: (error: any) => {
         console.log('error', error);
       }
-    );
+    });
   }
 
   closeModal(){
@@ -471,11 +483,7 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
-  }
-
-  trackByFn(item: any) {
-    return item.id;
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _initReferentiSelect(defaultValue: any[] = []) {
@@ -520,6 +528,10 @@ export class AdesioneReferentiComponent implements OnInit, AfterContentChecked, 
   }
 
   _canAddMapper = (): boolean => {
+    const _grant: any = this._grant || [];
+    if (this.authenticationService._isDatoSempreModificabile('adesione', 'referenti', _grant)) {
+      return true;
+    }
     const _cnm = this.authenticationService._getClassesNotModifiable('adesione', 'adesione', this.adesione?.stato);
     const _lstPerm = [];
     if (_.indexOf(_cnm, 'referente') === -1) {

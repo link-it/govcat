@@ -17,13 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, FormControl, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
-import { Tools } from '@linkit/components';
+import { Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 
 import { Observable, Subject } from 'rxjs';
 
@@ -34,7 +37,8 @@ import { Grant } from '@app/model/grant';
     selector: 'app-allegati-dialog',
     templateUrl: './allegati-dialog.component.html',
     styleUrls: ['./allegati-dialog.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
 export class AllegatiDialogComponent implements OnInit {
 

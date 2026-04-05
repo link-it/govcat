@@ -17,31 +17,42 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
-import { SenderComponent } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools, SearchBarFormComponent, SenderComponent, TargetOption } from '@linkit/components';
+import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
 import { OpenAPIService } from '@services/openAPI.service';
 import { AuthenticationService } from '@services/authentication.service';
 
 import { Page } from '@app/models/page';
 import { Messaggio } from './messaggio';
-import { TargetOption } from '@linkit/components';
 
 declare const saveAs: any;
-import * as moment from 'moment';
+import moment from 'moment';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
 @Component({
   selector: 'app-adesione-comunicazioni',
   templateUrl: 'adesione-comunicazioni.component.html',
   styleUrls: ['adesione-comunicazioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    TooltipModule,
+    InfiniteScrollDirective,
+    AutoFillScrollDirective,
+    NotificationBarComponent
+  ]
 })
 export class AdesioneComunicazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'AdesioneComunicazioniComponent';
@@ -114,13 +125,20 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
 
   _serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
-  targetOptionsAdesione: TargetOption[] = [
-    { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
-    { label: 'APP.LABEL.TargetReferentiDominioServizio', value: 'REFERENTI_DOMINIO_SERVIZIO' },
-    { label: 'APP.LABEL.TargetRichiedenteServizio', value: 'RICHIEDENTE_SERVIZIO' },
-    { label: 'APP.LABEL.TargetReferentiAdesione', value: 'REFERENTI_ADESIONE' },
-    { label: 'APP.LABEL.TargetRichiedenteAdesione', value: 'RICHIEDENTE_ADESIONE' }
-  ];
+  targetOptionsAdesione: TargetOption[] = [];
+
+  _initTargetOptions() {
+    const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    this.targetOptionsAdesione = [
+      { label: 'APP.LABEL.TargetGestore', value: 'GESTORE' },
+      ...(coordinatoreAbilitato ? [{ label: 'APP.LABEL.TargetCoordinatore', value: 'COORDINATORE' }] : []),
+      { label: 'APP.LABEL.TargetReferentiDominioServizio', value: 'REFERENTI_DOMINIO_SERVIZIO' },
+      { label: 'APP.LABEL.TargetReferentiServizio', value: 'REFERENTI_SERVIZIO' },
+      { label: 'APP.LABEL.TargetRichiedenteServizio', value: 'RICHIEDENTE_SERVIZIO' },
+      { label: 'APP.LABEL.TargetReferentiAdesione', value: 'REFERENTI_ADESIONE' },
+      { label: 'APP.LABEL.TargetRichiedenteAdesione', value: 'RICHIEDENTE_ADESIONE' }
+    ];
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -140,6 +158,7 @@ export class AdesioneComunicazioniComponent implements OnInit, AfterContentCheck
 
     this.config = this.configService.getConfiguration();
     this._initSearchForm();
+    this._initTargetOptions();
   }
 
   @HostListener('window:resize') _onResize() {

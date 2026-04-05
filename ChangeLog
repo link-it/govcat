@@ -1,3 +1,328 @@
+2026-04-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.6
+
+2026-04-03  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 252: fix update tags del servizio.
+	Issue 227: aggiunge configurazione abilita_selezione_soggetto (default è true).
+	Issue 251: aggiunge controllo in update soggetto aderente per evitare
+	  incongruenze del flag aderente tra soggetto e organizzazione.
+
+2026-04-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 251: aggiunte label errore per controllo incongruenza soggetto/organizzazione.
+	Issue #227: dropdown selezione soggetto in creazione adesione controllato
+	  da configurazione remota abilita_selezione_soggetto. Se abilitato e
+	  soggetti > 1 mostra dropdown, altrimenti usa soggetto di default.
+	Fix #234: messaggi sidebar vetrina servizi mutuamente esclusivi, priorità
+	  al messaggio "adesione già esistente" rispetto a "non autorizzata".
+	Fix #205: tasto "Aggiungi referente" non visibile in stato pubblicato
+	  produzione per referenti adesione. Aggiunto mapping ruoli specifici
+	  (referente_adesione, referente_servizio, referente_dominio) ai ruoli
+	  generici della configurazione dati_sempre_modificabili. Svincolato
+	  i bottoni "Aggiungi referente" e "Elimina referente" nel wizard dal
+	  flag isEdit generale, usando canAddMapper per rispettare
+	  dati_sempre_modificabili.
+
+2026-04-02  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 244: fix valori di default per il tipo delle api statistiche di govway.
+	Aggiunta campi isConsumerDelegable e isClientAccessDelegable al modello
+	  EService PDND e tolleranza a campi sconosciuti nel client.
+	Fix label errore SRV_409_CONFLICT.
+
+2026-04-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aggiornamento dipendenze per vulnerabilità OWASP: Angular 21.2.6,
+	  jsrsasign 11.1.1, swagger-ui-dist 5.32.1, override dompurify 3.3.3
+	  e picomatch 4.0.4.
+	Aggiornamento lodash 4.18.1 per vulnerabilità OWASP GHSA-f23m-r5fr.
+	Fix #234: messaggio adesioni precedenti mostrato solo quando esistono
+	  effettivamente adesioni.
+	Issue #246: filtrati oggetti errore vuoti dalla risposta API per mostrare
+	  il messaggio di errore tradotto invece della ui-error-view vuota.
+	Issue #247: corretto tracking expression nelle liste referenti per evitare
+	  duplicazione e visualizzazione errata dopo aggiunta/rimozione.
+	Issue #249: corretto TypeError su anagrafiche null nel dettaglio servizio,
+	  inizializzato come oggetto vuoto.
+
+2026-04-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #239: aggiunto link di navigazione all'adesione nella lista adesioni
+	  del client, con tooltip e separazione tra click titolo e icona accordion.
+	Issue #241: nascosto filtro Esito quando il tipo di distribuzione è
+	  Distribuzione per Esiti.
+	Issue #236: migliorata creazione adesione con testi di aiuto per referenti,
+	  flag "Sono il referente", placeholder e loading nei dropdown, rivisto
+	  layout del form.
+	Issue #235: aggiunto testo di aiuto esplicativo per il campo Identificativo
+	  Adesione.
+	Aggiornati test per allineamento a refactoring servizio-view,
+	  adesione-details e client-adesioni.
+
+2026-03-31  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 240: label configurabili da file di properties per pdf scheda adesione.
+
+2026-03-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #234: migliorata sidebar vetrina servizi con pulsanti adesione più
+	  evidenti, messaggi informativi per stati di non-aderibilità e navigazione
+	  adesioni esistenti anche con adesione disabilitata.
+	Issue #231: organizzazione opzionale per utenti coordinatore, corretto typo
+	  Ruolo.GESTOERE, unificato uso enum Ruolo e allineato RuoloUtenteEnum
+	  all'OpenAPI.
+
+2026-03-30  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Cambia label richiedente in pdf scheda adesione.
+
+2026-03-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #230: nascosto bottone "Aggiungi servizio" a utenti con ruolo null
+	  e referente_tecnico=false.
+	Issue #232: corretto TypeError in servizio-referenti causato da _grant
+	  passato come oggetto invece di array a _isDatoSempreModificabile.
+	Issue #238: corretto descrizione troncata in dettaglio API e servizio
+	  usando white-space pre-wrap.
+	Issue #233: gestione redirect SSO automatico senza mostrare pagina di login,
+	  con ripristino della rotta originale tramite sessionStorage.
+	Fix referenti non visibili nella vetrina servizio dopo refresh della pagina
+	  (race condition con Tools.Configurazione).
+	Fix messaggi di errore applicativi.
+
+2026-03-26  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix listAdesioni API per ruolo coordinatore.
+	Fix messaggi di errore applicativi.
+
+2026-03-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #169: nascosti roleTabs e filtro ruolo_referente per gestore
+	  in adesioni, aggiunto tab Trovati con loading.
+
+2026-03-25  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Fix messaggi di errore applicativi.
+
+2026-03-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #220: fix tasto Salva disabilitato in creazione adesione.
+	Issue #221: fix classi utente non selezionabili in creazione dominio
+	  riservato.
+	Issue #225: fix classi utente non inviate nel payload di creazione/update
+	  utente.
+	Issue #223: fix filtri ng-select con "x" visibile senza selezione attiva.
+	Issue #222: fix errore in creazione dominio con soggetto skip collaudo.
+	Issue #226: fix label disallineate nei filtri avanzati dopo rimozione token.
+	Issue #228: fix campi configurabili organizzazione visibili anche se
+	  disabilitati.
+	Aggiornati test dopo refactoring costruttori componenti.
+
+2026-03-23  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #169: convertito filtro ruolo referente da dropdown singolo
+	  a multi-select.
+
+2026-03-21  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #169: aggiunto filtro avanzato ruolo_referente nella form di ricerca
+	  di servizi e adesioni.
+	Dashboard: aggiunto indicatore visivo (dot blu) per comunicazioni non lette.
+	Cache immagini servizi e gruppi per evitare richieste HTTP ripetute.
+	Aggiornato test servizi: aggiunto controllo form control ruolo_referente.
+
+2026-03-20  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Aggiunta pulizia notifiche nella patch DB v2.3.6.
+	Issue 216: revisione primo login e aggiornamento template email di verifica.
+
+2026-03-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 169: aggiunge filtri per ruolo_referente sia nella lista dei servizi
+	  che nella lista delle adesioni (miei servizi e mie adesioni suddivise
+	  per ruolo).
+
+	* [CI/CD]
+	Fix warning pipeline per node.js 20. Aggiornamento pipeline actions a v6.
+
+2026-03-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Rimozione CUSTOM_ELEMENTS_SCHEMA da ~60 componenti standalone.
+	- Fix import mancanti in 4 componenti adesione-configurazione-wizard
+	  (modal-add-referent, lista-clients, lista-erogazioni, wizard)
+	- Aggiunto import WorkflowComponent, PdndEServiceViewComponent,
+	  VerificaSoggettoTokenComponent dove mancavano
+	- Sostituito mat-progress-spinner con spinner Bootstrap CSS
+	- Rimosso defineCustomElements orfano (xml-viewer-component) da bootstrap.ts
+	- Rimosso codice morto mascherato dallo schema: [showUsername],
+	  [placeholder] su ui-sender, [labelAlignRight], [barPadding]
+
+	Issue #169: filtri per ruolo referente su servizi e adesioni.
+	- Tab pre-filtro rapido su servizi (Tutti/Referente servizio-dominio/
+	  Richiedente) visibili con "I miei servizi" attivo
+	- Tab pre-filtro rapido su adesioni (Tutte/Referente servizio-dominio/
+	  Referente adesione/Richiedente) sempre visibili
+	- Filtro avanzato ruolo_referente con enum dinamiche per tab attivo
+	- Badge ruoli colorati nel footer item-row via config JSON options
+	- Esteso item-type: tipo "tags" con colori da options config
+	- Refactoring item-row/item-type: Input diretti, rimosso codice morto
+	- Fix vista gruppi con "I miei servizi" attivo
+	- Fix track duplicati lista servizi
+
+2026-03-18  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #105: revisione dashboard comunicazioni/notifiche.
+	- Card riepilogo mostra solo notifiche non lette (stato=nuova)
+	- Count card e sidebar basato su GET /notifiche/count?stato_notifica=nuova
+	- Pulsante "Vedi tutti" mostra totale nuove+lette
+	- Vista espansa con tab filtri (Tutti/Non letti/Archiviati)
+	- Azioni hover su items: archivia, segna come letto/non letto
+	- Aggiornamento in-place degli items senza reset scroll
+
+2026-03-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risoluzione vulnerabilità OWASP: upgrade Jetty 11→12 e suppression PDFBox.
+	Fix posizione e nomi file patch sql.
+
+2026-03-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Ripristino vista dashboard espansa su navigazione back.
+	Fix NG01203/NG0306 in AdesioneFormComponent.
+
+2026-03-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 105: configurazione per abilitare/disabilitare ruolo coordinatore,
+	  target required nelle comunicazioni, ripristino default notifiche per
+	  ruolo gestore + fix stato PENDING_UPDATE, valori di default stabiliti
+	  per le notifiche + patch sql, nuovo filtro dashboard notifiche per
+	  recuperare tutte le notifiche lette e non lette di tutti i tipi.
+
+2026-03-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #105 Evolutiva: rework notifiche e comunicazioni.
+	- SenderComponent: target obbligatorio, rimosso "Tutti"
+	- Nuovi target GESTORE e COORDINATORE nelle comunicazioni
+	- Profilo notifiche semplificato (4 toggle)
+	- Dashboard: bell nascosta con dashboard abilitata
+	Fix test WaitForResponse: rimossi accessi a proprietà statiche cross-modulo.
+	Issue #215: fix breadcrumb gruppi persi navigando a servizio da URL con
+	query parameter.
+
+2026-03-15  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aumento copertura test Batch 4: da 8040 a 8382 test (+342),
+	focus su file sotto 50% di copertura.
+
+2026-03-14  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aumento copertura test Batch 3: da 7575 a 8040 test (+465), 82.34% stmts.
+	Migrazione inject() a constructor injection per 8 componenti.
+	Issue #215: accesso diretto a servizi_gruppi filtrato per gruppo via URL.
+
+2026-03-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [CI/CD]
+	Fix pipeline CI: risolto conflitto peer dependency @swimlane/ngx-charts
+	con Angular 21. Ripristinata pipeline CI su tutti i branch. Rimosso step
+	build-packages. Fix npx e npm ci per build in ambiente CI.
+
+2026-03-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 181: aggiunge data di scadenza certificato sia nel CSV di export
+	  adesioni che nel PDF della scheda adesione + fix bug pregressi nelle
+	  stampe pdf.
+
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #205: referenti adesione/servizio sempre modificabili in base
+	a configurazione.
+
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #213: aggiunto, nella vetrina del servizio, tooltip con soggetto
+	referente del dominio sull'organizzazione/dominio.
+
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #204: aggiunto URL di esposizione anche per le API SOAP.
+	Componente WSDL aggiornato per mostrare l'endpoint esposto.
+
+2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [CI/CD]
+	Modificata pipeline GitHub per ignorare branch di sviluppo
+	"angular-21-standalone".
+
+2026-03-11  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 205: aggiunge configurazione per dati sempre modificabili in base
+	  al ruolo e modifica workflow authorization.
+	Issue 203: aggiunto rate limiting alla Scheda Adesione PDF.
+
+2026-03-10  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 209: fix ToolsController LazyInitializationException e aggiunta test.
+	Issue 204: aggiunge url di esposizione per le API SOAP in
+	  lisa-operazioni-wsdl API.
+
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #211
+	Fix custom properties non eliminate in update API: in modifica di
+	una API, annullando le proprietà custom il body inviato ora include
+	i gruppi originali con proprietà vuote per consentire la cancellazione
+	lato backend.
+
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue #210: aggiunta validazione campo note API -> note (255 caratteri)
+
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix #208: dropdown Soggetto in modifica Client mantiene il valore corretto
+
+2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Fix #207: modifica Dominio non perde più il flag skip_collaudo
+	Fix errore "Parameter key is required" in search-bar-form.
+
 2026-03-05  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -41,6 +366,23 @@
 	adesione-configurazione-wizard.
 	Fix visualizzazione errori in servizio-api-details.
 
+2026-03-04  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aumento copertura test unitari Batch 2c: da 7223 a 7575 test (+352).
+	Aumento copertura test unitari: da 4594 a 7223 test (+2629).
+
+2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Aumento copertura test unitari: da ~2067 a 4594 test (+2527).
+	- Aggiunta massiva di test per tutti i componenti view principali
+	  (adesioni, servizi, client, dashboard, login, monitoraggio)
+	- Pattern class-only (istanziazione diretta senza TestBed)
+	- Corretti 3 test in dashboard.service con aspettative errate
+	  sulla mappa _REFERENTE_PANELS di computeRoleConfig
+	- 293 file spec, 4594 test, 0 fallimenti
+
 2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
@@ -55,6 +397,15 @@
 	Issue #196
 	Aggiunto flag showMobileTitle nella configurazione Layout.Header per
 	controllare la visibilità del titolo nella header bar su dispositivi mobile.
+
+2026-03-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Sostituito hideVersions da config locale con mostra_versione da config remota.
+	- gp-layout: hideVersions derivato da servizio.mostra_versione (enabled=visibile)
+	- Rimossa sezione Services da app-config.json (ora gestita da remoto)
+	- Rimossi dal repository i file di config locali di sviluppo/test
+	- Aggiornati test e documentazione
 
 2026-03-02  Giovanni De Luca <giovanni.deluca@link.it>
 
@@ -81,6 +432,16 @@
 	Issue #195
 	Fix scrolling pagina Dashboard e miglioramenti layout responsive.
 	Migliorata visualizzazione badge menu dashboard.
+
+2026-03-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Upgrade Angular 21 e migrazione framework test (Vitest + Playwright).
+	- Aggiornato Angular 19 → 21, TypeScript 5.9, zone.js 0.15, dipendenze terze
+	- Migrato framework test da Karma/Jasmine a Vitest, setup Playwright per E2E
+	- Migrazione completa a standalone: 154/154 componenti, rimosso AppModule,
+	  eliminati tutti i NgModule wrapper (0 file .module.ts, 61 file .routes.ts)
+	- 292 file di test, 3283 test unitari, 29 test E2E, build produzione OK
 
 2026-02-27  Giovanni De Luca <giovanni.deluca@link.it>
 

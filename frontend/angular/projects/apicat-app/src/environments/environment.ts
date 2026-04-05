@@ -25,8 +25,8 @@ import { LogLevel } from "../models/log.interface";
 
 export const environment = {
   production: false,
-  version: '2.3.4.dev',
-  build: '260304.1124',
+  version: '2.3.3.dev',
+  build: '260403.1625',
 
   logLevel: LogLevel.debug,
 
@@ -40,4 +40,3 @@ export const environment = {
  * This import should be commented out in production mode because it will have a negative impact
  * on performance if an error is thrown.
  */
-// import 'zone.js/plugins/zone-error';  // Included with Angular CLI.

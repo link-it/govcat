@@ -26,22 +26,27 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent } from '@linkit/components';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { Page} from '../../../models/page';
-import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
+import { Page } from '../../../models/page';
+import { CardType } from '@app/lib/ui/card/card.component';
+
+import { CommonModule } from '@angular/common';
+import { TreeViewCategoryComponent } from '@app/components/tree-view-category/tree-view-category.component';
 
 @Component({
   selector: 'app-taxonomy-categories',
   templateUrl: 'taxonomy-categories.component.html',
   styleUrls: ['taxonomy-categories.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    TreeViewCategoryComponent
+  ]
 })
 export class TaxonomyCategoriesComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'TaxonomyCategoriesComponent';
@@ -454,7 +459,7 @@ export class TaxonomyCategoriesComponent implements OnInit, AfterViewInit, After
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   __resetError() {

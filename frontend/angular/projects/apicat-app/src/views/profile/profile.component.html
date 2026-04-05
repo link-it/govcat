@@ -17,612 +17,569 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div id="route-section" class="">
-    <div class="alert-wrapper gp-force-block-formatting-context">
-        <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  <div class="alert-wrapper gp-force-block-formatting-context">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+  </div>
+  <div class="top-area">
+    <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
+      <div class="">
+        @if (!isEdit) {
+          <ul class="nav gp-border-b-0 gp-tabs-nav">
+            <li class="nav-item">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="isProfile" (click)="_showProfile()" [attr.aria-label]="'APP.PROFILE.TAB.Profile' | translate">
+                <span>{{ 'APP.PROFILE.TAB.Profile' | translate }}</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!isProfile" (click)="_showSettings()" [attr.aria-label]="'APP.PROFILE.TAB.Settings' | translate">
+                <span>{{ 'APP.PROFILE.TAB.Settings' | translate }}</span>
+              </a>
+            </li>
+          </ul>
+        }
+      </div>
     </div>
-    <div class="top-area">
-        <div class="tabs gp-tabs d-flex flex-grow-1 p-0 m-0 mobile-separator issuable-state-filters">
-            <div class="">
-                <ul class="nav gp-border-b-0 gp-tabs-nav" *ngIf="!isEdit">
-                    <li class="nav-item">
-                        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="isProfile" (click)="_showProfile()" [attr.aria-label]="'APP.PROFILE.TAB.Profile' | translate">
-                            <span>{{ 'APP.PROFILE.TAB.Profile' | translate }}</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a tabindex="0" target="_self" class="nav-link gp-tab-nav-item cursor-pointer" [class.gp-tab-nav-item-active]="!isProfile" (click)="_showSettings()" [attr.aria-label]="'APP.PROFILE.TAB.Settings' | translate">
-                            <span>{{ 'APP.PROFILE.TAB.Settings' | translate }}</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="nav-controls" *ngIf="isProfile">
-            <div class="position-relative me-2 d-flex gap-2" *ngIf="!spin && !error">
-                <lnk-button *ngIf="!isEdit && !spin"
-                    [label]="'APP.BUTTON.Modify'"
-                    [ariaLabel]="'APP.BUTTON.Modify'"
-                    [icon]="'bi bi-pencil'"
-                    [onlyIcon]="true"
-                    [btnTooltip]="'APP.TOOLTIP.Modify'"
-                    [otherClass]="''"
-                    (onAction)="onEdit()"
-                ></lnk-button>
-                <lnk-button *ngIf="isEdit && !spin"
-                    [label]="'APP.BUTTON.Cancel'"
-                    [btnTooltip]="'APP.TOOLTIP.CancelEdit'" 
-                    [ariaLabel]="'APP.TOOLTIP.CancelEdit'"
-                    [icon]="'bi bi-x-lg'"
-                    [onlyIcon]="true"
-                    [tertiary]="true"
-                    (onAction)="onCancelEdit()"
-                ></lnk-button>
-            </div>
-        </div>
-    </div>
+    @if (isProfile) {
+      <div class="nav-controls">
+        @if (!spin && !error) {
+          <div class="position-relative me-2 d-flex gap-2">
+            @if (!isEdit && !spin) {
+              <lnk-button
+                [label]="'APP.BUTTON.Modify'"
+                [ariaLabel]="'APP.BUTTON.Modify'"
+                [icon]="'bi bi-pencil'"
+                [onlyIcon]="true"
+                [btnTooltip]="'APP.TOOLTIP.Modify'"
+                [otherClass]="''"
+                (onAction)="onEdit()"
+              ></lnk-button>
+            }
+            @if (isEdit && !spin) {
+              <lnk-button
+                [label]="'APP.BUTTON.Cancel'"
+                [btnTooltip]="'APP.TOOLTIP.CancelEdit'"
+                [ariaLabel]="'APP.TOOLTIP.CancelEdit'"
+                [icon]="'bi bi-x-lg'"
+                [onlyIcon]="true"
+                [tertiary]="true"
+                (onAction)="onCancelEdit()"
+              ></lnk-button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
 
-    <section id="cotainer-scronller" class="container-fluid container-scroller container-scroller-no-search px-0">
-        <div class="row">
-        <ui-box-message *ngIf="!profile && !spin"
-            [size]="64"
-            [icon]="'report_problem'"
-            [image]="'./assets/images/illustrations/profile.svg'"
-            [message]="_message | translate"
-            [subMessage]="_messageHelp | translate">
+  <section id="cotainer-scronller" class="container-fluid container-scroller container-scroller-no-search px-0">
+    <div class="row">
+      @if (!profile && !spin) {
+        <ui-box-message
+          [size]="64"
+          [icon]="'report_problem'"
+          [image]="'./assets/images/illustrations/profile.svg'"
+          [message]="_message | translate"
+          [subMessage]="_messageHelp | translate">
         </ui-box-message>
+      }
 
-        <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="spin"></ui-box-spinner>
+      @if (spin) {
+        <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+      }
 
-        <div class="row justify-content-center" *ngIf="!spin && profile">
-            <div class="col-xs-12 col-lg-12 mx-auto">
-                <div class="profile" *ngIf="isProfile">
-                    <div class="container py-5" *ngIf="!isEdit">
+      @if (!spin && profile) {
+        <div class="row justify-content-center">
+          <div class="col-xs-12 col-lg-12 mx-auto">
+            @if (isProfile) {
+              <div class="profile">
+                @if (!isEdit) {
+                  <div class="container py-5">
+                    <div class="row">
+                      <div class="col-lg-4">
+                        <div class="card mb-4">
+                          <div class="card-body text-center">
+                            <img alt="user gravatar" ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
+                            <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
+                            @if (false) {
+                              <h6 class="my-3" [title]="profile?.id_utente">{{ profile?.principal }}</h6>
+                            }
+                            @if (false) {
+                              <p class="text-muted mb-1">
+                                <span class="badge badge-secondary text-uppercase">
+                                  {{ profile.ruolo }}
+                                </span>
+                              </p>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-8">
+                        <div class="card mb-4">
+                          <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                              <li class="list-group-item py-3">
+                                <div class="row">
+                                  <div class="col-sm-3">
+                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Organization' | translate }}</p>
+                                  </div>
+                                  <div class="col-sm-9">
+                                    @if (profile?.organizzazione) {
+                                      <p class="text-muted mb-0">{{ profile?.organizzazione?.nome }}</p>
+                                      @if (profile?.organizzazione?.descrizione !== profile?.organizzazione?.nome) {
+                                        <p class="text-muted mb-0">{{ profile?.organizzazione?.descrizione }}</p>
+                                      }
+                                    } @else {
+                                      <p class="text-muted mb-0">--</p>
+                                    }
+                                  </div>
+                                </div>
+                              </li>
+                              @if (profile?.organizzazione_pending) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.PROFILE.ORGANIZATION.PendingLabel' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">
+                                        {{ profile?.organizzazione_pending?.nome }}
+                                        <span class="badge bg-warning ms-2">{{ 'APP.USERS.STATUS.pending_update' | translate }}</span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                              @if (false) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Principal' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">{{ profile?.principal }}</p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                              @if (profile?.email_aziendale) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.SETTINGS.LABEL.EmailAziendale' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">{{ profile?.email_aziendale }}</p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                              @if (mostraEmail && profile?.email) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Email' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">{{ profile?.email }}</p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                              @if (profile?.telefono_aziendale) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.SETTINGS.LABEL.TelefonoAziendale' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">{{ profile?.telefono_aziendale }}</p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                              @if (profile?.telefono) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Telefono' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">{{ profile?.telefono }}</p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                              @if (profile?.mobile) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Mobile' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">{{ profile?.mobile }}</p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                              @if (profile?.address) {
+                                <li class="list-group-item py-3">
+                                  <div class="row">
+                                    <div class="col-sm-3">
+                                      <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Address' | translate }}</p>
+                                    </div>
+                                    <div class="col-sm-9">
+                                      <p class="text-muted mb-0">{{ profile?.address }}</p>
+                                    </div>
+                                  </div>
+                                </li>
+                              }
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (isEdit) {
+                  <div class="container py-5 settings mt-0">
+                    <div class="settings-content">
+                      <form [formGroup]="formGroup" (ngSubmit)="submitProfile(formGroup.value)" class="pb-5">
                         <div class="row">
-                            <div class="col-lg-4">
-                                <div class="card mb-4">
-                                    <div class="card-body text-center">
-                                        <img alt="user gravatar" ngxGravatar [email]="profile?.email || profile?.email_aziendale" [size]="150" fallback="mp" (error)="onAvatarError($event)">
-                                        <h5 class="my-3" [title]="profile?.cognome">{{ profile?.nome }} {{ profile?.cognome }}</h5>
-                                        <h6 class="my-3" [title]="profile?.id_utente" *ngIf="false">{{ profile?.principal }}</h6>
-                                        <p class="text-muted mb-1" *ngIf="false">
-                                            <span class="badge badge-secondary text-uppercase">
-                                                {{ profile.ruolo }}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-8">
-                                <div class="card mb-4">
-                                    <div class="card-body">
-                                        <ul class="list-group list-group-flush">
-                                            <li class="list-group-item py-3">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Organization' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <ng-container *ngIf="profile?.organizzazione; else noOrganizzazione">
-                                                            <p class="text-muted mb-0">{{ profile?.organizzazione?.nome }}</p>
-                                                            <p class="text-muted mb-0" *ngIf="profile?.organizzazione?.descrizione !== profile?.organizzazione?.nome">{{ profile?.organizzazione?.descrizione }}</p>
-                                                        </ng-container>
-                                                        <ng-template #noOrganizzazione>
-                                                            <p class="text-muted mb-0">--</p>
-                                                        </ng-template>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.organizzazione_pending">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.PROFILE.ORGANIZATION.PendingLabel' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">
-                                                            {{ profile?.organizzazione_pending?.nome }}
-                                                            <span class="badge bg-warning ms-2">{{ 'APP.USERS.STATUS.pending_update' | translate }}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="false">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Principal' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.principal }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.email_aziendale">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.EmailAziendale' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.email_aziendale }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="mostraEmail && profile?.email">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Email' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.email }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.telefono_aziendale">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.TelefonoAziendale' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.telefono_aziendale }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.telefono">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Telefono' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.telefono }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.mobile">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                    <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Mobile' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                    <p class="text-muted mb-0">{{ profile?.mobile }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                            <li class="list-group-item py-3" *ngIf="profile?.address">
-                                                <div class="row">
-                                                    <div class="col-sm-3">
-                                                        <p class="mb-0">{{ 'APP.SETTINGS.LABEL.Address' | translate }}</p>
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <p class="text-muted mb-0">{{ profile?.address }}</p>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
+                          <div class="col-6">
+                            <lnk-form-field
+                              name="principal"
+                              [label]="'APP.USERS.LABEL.Principal' | translate"
+                              [isEdit]="isEdit"
+                              [formGroup]="formGroup"
+                              [value]="profile?.principal"
+                              [inline]="false"
+                              [singleColumn]="true"
+                              [plainText]="true"
+                              [options]="optionsForm"
+
+                              [disabled]="true"
+                            ></lnk-form-field>
+                          </div>
                         </div>
-                    </div>
-                    <div class="container py-5 settings mt-0" *ngIf="isEdit">
+                        <!-- Organizzazione change section (outside formGroup) -->
+                        @if (profile?.organizzazione_pending) {
+                          <div class="alert alert-warning mb-4 pb-0">
+                            <div class="">
+                              <div class="d-flex align-items-start">
+                                <i class="bi bi-info-circle text-warning me-2"></i>
+                                <span markdown>{{ 'APP.PROFILE.ORGANIZATION.PendingMessage' | translate: { orgName: profile?.organizzazione_pending?.nome } }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                        @if (!profile?.organizzazione_pending) {
+                          <div class="row mb-3">
+                            <div class="col-6">
+                              <div class="form-group">
+                                <label for="organizzazione" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.CurrentLabel' | translate }}</label>
+                                <ng-select
+                                  [items]="(organizzazioni$ | async) || []"
+                                  bindLabel="nome"
+                                  [minTermLength]="minLengthTerm"
+                                  [loading]="organizzazioniLoading"
+                                  [clearable]="!profile?.organizzazione"
+                                  [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                                  [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                                  [typeahead]="organizzazioniInput$"
+                                  [(ngModel)]="selectedOrganizzazione"
+                                  [ngModelOptions]="{standalone: true}"
+                                  >
+                                  <ng-template ng-label-tmp let-item="item">
+                                    {{ item.nome }}
+                                  </ng-template>
+                                  <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                    <div class="fw-bold">{{ item.nome }}</div>
+                                  </ng-template>
+                                </ng-select>
+                              </div>
+                            </div>
+                            <div class="col-6 d-flex flex-column">
+                              <span class="form-label">&nbsp;</span>
+                              <div class="px-2">
+                                <button type="button" class="btn btn-warning gl-button"
+                                  [disabled]="!selectedOrganizzazione || selectedOrganizzazione?.id_organizzazione === profile?.organizzazione?.id_organizzazione"
+                                  (click)="requestOrganizationChange(selectedOrganizzazione?.id_organizzazione)">
+                                  {{ 'APP.PROFILE.ORGANIZATION.ChangeButton' | translate }}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                        <div class="row">
+                          <div class="col-6">
+                            <lnk-form-field
+                              name="nome"
+                              [label]="'APP.USERS.LABEL.Nome' | translate"
+                              [isEdit]="isEdit"
+                              [formGroup]="formGroup"
+                              [value]="profile?.nome"
+                              [inline]="false"
+                              [singleColumn]="true"
+                              [plainText]="true"
+                              [options]="optionsForm"
+
+                            ></lnk-form-field>
+                          </div>
+                          <div class="col-6">
+                            <lnk-form-field
+                              name="cognome"
+                              [label]="'APP.USERS.LABEL.Cognome' | translate"
+                              [isEdit]="isEdit"
+                              [formGroup]="formGroup"
+                              [value]="profile?.nome"
+                              [inline]="false"
+                              [singleColumn]="true"
+                              [plainText]="true"
+                              [options]="optionsForm"
+
+                            ></lnk-form-field>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-6">
+                            @if (!verificaEmailAbilitata) {
+                              <lnk-form-field
+                                name="email_aziendale"
+                                [label]="'APP.USERS.LABEL.CorporateEmail' | translate"
+                                [isEdit]="isEdit"
+                                [formGroup]="formGroup"
+                                [value]="profile?.email_aziendale"
+                                [inline]="false"
+                                [singleColumn]="true"
+                                [plainText]="true"
+                                [options]="optionsForm"
+  
+                              ></lnk-form-field>
+                            }
+                            @if (verificaEmailAbilitata) {
+                              <div class="form-group mb-3">
+                                <label for="email_aziendale" class="form-label">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }} *</label>
+                                <div class="input-group">
+                                  <input type="email" class="form-control" formControlName="email_aziendale" readonly>
+                                  @if (isEdit) {
+                                    <button class="btn btn-sm btn-primary" type="button"
+                                      [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
+                                      (click)="openEmailModificationDialog('email_aziendale')">
+                                      <i class="bi bi-pencil"></i>
+                                    </button>
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                          @if (mostraEmail) {
+                            <div class="col-6">
+                              @if (!verificaEmailAbilitata) {
+                                <lnk-form-field
+                                  name="email"
+                                  [label]="'APP.USERS.LABEL.Email' | translate"
+                                  [isEdit]="isEdit"
+                                  [formGroup]="formGroup"
+                                  [value]="profile?.email"
+                                  [inline]="false"
+                                  [singleColumn]="true"
+                                  [plainText]="true"
+                                  [options]="optionsForm"
+    
+                                ></lnk-form-field>
+                              }
+                              @if (verificaEmailAbilitata) {
+                                <div class="form-group mb-3">
+                                  <label for="email" class="form-label">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
+                                  <div class="input-group">
+                                    <input type="email" class="form-control" formControlName="email" readonly>
+                                    @if (isEdit) {
+                                      <button class="btn btn-sm btn-primary" type="button"
+                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
+                                        (click)="openEmailModificationDialog('email')">
+                                        <i class="bi bi-pencil"></i>
+                                      </button>
+                                    }
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                        <div class="row">
+                          <div class="col-6">
+                            <lnk-form-field
+                              name="telefono_aziendale"
+                              [label]="'APP.USERS.LABEL.CorporatePhone' | translate"
+                              [isEdit]="isEdit"
+                              [formGroup]="formGroup"
+                              [value]="profile?.telefono_aziendale"
+                              [inline]="false"
+                              [singleColumn]="true"
+                              [plainText]="true"
+                              [options]="optionsForm"
+
+                            ></lnk-form-field>
+                          </div>
+                          <div class="col-6">
+                            <lnk-form-field
+                              name="telefono"
+                              [label]="'APP.USERS.LABEL.Phone' | translate"
+                              [isEdit]="isEdit"
+                              [formGroup]="formGroup"
+                              [value]="profile?.telefono"
+                              [inline]="false"
+                              [singleColumn]="true"
+                              [plainText]="true"
+                              [options]="optionsForm"
+
+                            ></lnk-form-field>
+                          </div>
+                        </div>
                         <div class="settings-content">
-                            <form [formGroup]="formGroup" (ngSubmit)="submitProfile(formGroup.value)" class="pb-5">
-                                <div class="row">
-                                    <div class="col-6">
-                                        <lnk-form-field
-                                            name="principal"
-                                            [label]="'APP.USERS.LABEL.Principal' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.principal"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                            [disabled]="true"
-                                        ></lnk-form-field>
-                                    </div>
-                                </div>
-
-                                <!-- Organizzazione change section (outside formGroup) -->
-                                <div class="alert alert-warning mb-4 pb-0" *ngIf="profile?.organizzazione_pending">
-                                    <div class="">
-                                        <div class="d-flex align-items-start">
-                                            <i class="bi bi-info-circle text-warning me-2"></i>
-                                            <span markdown>{{ 'APP.PROFILE.ORGANIZATION.PendingMessage' | translate: { orgName: profile?.organizzazione_pending?.nome } }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3" *ngIf="!profile?.organizzazione_pending">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <label for="organizzazione" class="form-label">{{ 'APP.PROFILE.ORGANIZATION.CurrentLabel' | translate }}</label>
-                                            <ng-select
-                                                [items]="organizzazioni$ | async"
-                                                bindLabel="nome"
-                                                [trackByFn]="trackByFn"
-                                                [minTermLength]="minLengthTerm"
-                                                [loading]="organizzazioniLoading"
-                                                [clearable]="!profile?.organizzazione"
-                                                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                                                [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                                                [typeahead]="organizzazioniInput$"
-                                                [(ngModel)]="selectedOrganizzazione"
-                                                [ngModelOptions]="{standalone: true}"
-                                            >
-                                                <ng-template ng-label-tmp let-item="item">
-                                                    {{ item.nome }}
-                                                </ng-template>
-                                                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                                    <div class="fw-bold">{{ item.nome }}</div>
-                                                </ng-template>
-                                            </ng-select>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 d-flex flex-column">
-                                        <span class="form-label">&nbsp;</span>
-                                        <div class="px-2">
-                                            <button type="button" class="btn btn-warning gl-button"
-                                                [disabled]="!selectedOrganizzazione || selectedOrganizzazione?.id_organizzazione === profile?.organizzazione?.id_organizzazione"
-                                                (click)="requestOrganizationChange(selectedOrganizzazione?.id_organizzazione)">
-                                                {{ 'APP.PROFILE.ORGANIZATION.ChangeButton' | translate }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-6">
-                                        <lnk-form-field
-                                            name="nome"
-                                            [label]="'APP.USERS.LABEL.Nome' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.nome"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
-                                    </div>
-                                    <div class="col-6">
-                                        <lnk-form-field
-                                            name="cognome"
-                                            [label]="'APP.USERS.LABEL.Cognome' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.nome"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <ng-container *ngIf="!verificaEmailAbilitata">
-                                            <lnk-form-field
-                                                name="email_aziendale"
-                                                [label]="'APP.USERS.LABEL.CorporateEmail' | translate"
-                                                [isEdit]="isEdit"
-                                                [formGroup]="formGroup"
-                                                [value]="profile?.email_aziendale"
-                                                [inline]="false"
-                                                [singleColumn]="true"
-                                                [plainText]="true"
-                                                [options]="optionsForm"
-                                                [labelAlignRight]="false"
-                                            ></lnk-form-field>
-                                        </ng-container>
-                                        <ng-container *ngIf="verificaEmailAbilitata">
-                                            <div class="form-group mb-3">
-                                                <label for="email_aziendale" class="form-label">{{ 'APP.USERS.LABEL.CorporateEmail' | translate }} *</label>
-                                                <div class="input-group">
-                                                    <input type="email" class="form-control" formControlName="email_aziendale" readonly>
-                                                    <button *ngIf="isEdit" class="btn btn-sm btn-primary" type="button"
-                                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyCorporateEmail' | translate"
-                                                        (click)="openEmailModificationDialog('email_aziendale')">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </ng-container>
-                                    </div>
-                                    <div class="col-6" *ngIf="mostraEmail">
-                                        <ng-container *ngIf="!verificaEmailAbilitata">
-                                            <lnk-form-field
-                                                name="email"
-                                                [label]="'APP.USERS.LABEL.Email' | translate"
-                                                [isEdit]="isEdit"
-                                                [formGroup]="formGroup"
-                                                [value]="profile?.email"
-                                                [inline]="false"
-                                                [singleColumn]="true"
-                                                [plainText]="true"
-                                                [options]="optionsForm"
-                                                [labelAlignRight]="false"
-                                            ></lnk-form-field>
-                                        </ng-container>
-                                        <ng-container *ngIf="verificaEmailAbilitata">
-                                            <div class="form-group mb-3">
-                                                <label for="email" class="form-label">{{ 'APP.USERS.LABEL.Email' | translate }}</label>
-                                                <div class="input-group">
-                                                    <input type="email" class="form-control" formControlName="email" readonly>
-                                                    <button *ngIf="isEdit" class="btn btn-sm btn-primary" type="button"
-                                                        [tooltip]="'APP.PROFILE.EMAIL_VERIFICATION.BUTTON.ModifyEmail' | translate"
-                                                        (click)="openEmailModificationDialog('email')">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </ng-container>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <lnk-form-field
-                                            name="telefono_aziendale"
-                                            [label]="'APP.USERS.LABEL.CorporatePhone' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.telefono_aziendale"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
-                                    </div>
-                                    <div class="col-6">
-                                        <lnk-form-field
-                                            name="telefono"
-                                            [label]="'APP.USERS.LABEL.Phone' | translate"
-                                            [isEdit]="isEdit"
-                                            [formGroup]="formGroup"
-                                            [value]="profile?.telefono"
-                                            [inline]="false"
-                                            [singleColumn]="true"
-                                            [plainText]="true"
-                                            [options]="optionsForm"
-                                            [labelAlignRight]="false"
-                                        ></lnk-form-field>
-                                    </div>
-                                </div>
-
-                                <div class="settings-content">
-
-                                    <lnk-form-error [message]="errorMsg" *ngIf="isEdit && error"></lnk-form-error>
-
-                                    <lnk-form-submit *ngIf="isEdit"
-                                        [submitLabel]="'APP.BUTTON.Save'"
-                                        [cancelLabel]="'APP.BUTTON.Cancel'"
-                                        [disabled]="formGroup.invalid || saving"
-                                        (cancel)="onCancelEdit()"
-                                    ></lnk-form-submit>
-
-                                </div>
+                          @if (isEdit && error) {
+                            <lnk-form-error [message]="errorMsg"></lnk-form-error>
+                          }
+                          @if (isEdit) {
+                            <lnk-form-submit
+                              [submitLabel]="'APP.BUTTON.Save'"
+                              [cancelLabel]="'APP.BUTTON.Cancel'"
+                              [disabled]="formGroup.invalid || saving"
+                              (cancel)="onCancelEdit()"
+                            ></lnk-form-submit>
+                          }
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+            @if (!isProfile) {
+              <div class="settings">
+                @if (settings?.servizi) {
+                  <div class="container py-5">
+                    <div class="row gl-mt-3 js-preferences-form servizi">
+                      <div class="col-lg-4">
+                        <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Services' | translate }}</h4>
+                        <p>{{ 'APP.SETTINGS.TITLE.Services_sub' | translate }}</p>
+                      </div>
+                      <div class="col-lg-8">
+                        <form class="edit_user" id="profile-preferences-form">
+                          <div class="form-group">
+                            <label class="label-bold" for="user_layout">{{ 'APP.SETTINGS.LABEL.View' | translate }}</label>
+                            <select class="form-select" name="servizi_view" id="servizi_view" [(ngModel)]="settings.servizi.view" (ngModelChange)="_updateSettings($event, 'servizi_view')">
+                              <option selected="selected" value="card">{{ 'APP.SETTINGS.LABEL.Card' | translate }}</option>
+                              <option value="list">{{ 'APP.SETTINGS.LABEL.List' | translate }}</option>
+                            </select>
+                            <div class="form-text text-muted">
+                              <ui-input-help field="servizi_view" context="SETTINGS"></ui-input-help>
+                            </div>
+                          </div>
+                          <div class="form-group">
+                            <label class="label-bold">{{ 'APP.SETTINGS.LABEL.OptionsCard' | translate }}</label>
+                            <div class="gl-form-checkbox custom-control custom-checkbox">
+                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_image" id="servizi_image"  [(ngModel)]="settings.servizi.showImage" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_image')">
+                              <label class="custom-control-label" for="servizi_image"><span>{{ 'APP.SETTINGS.LABEL.ShowImage' | translate }}</span></label>
+                            </div>
+                            <div class="gl-form-checkbox custom-control custom-checkbox">
+                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showEmptyImage" name="servizi_emptyimage" id="servizi_emptyimage" [(ngModel)]="settings.servizi.showEmptyImage" [disabled]="!settings.servizi.showImage || settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_emptyimage')">
+                              <label class="custom-control-label" for="servizi_emptyimage"><span>{{ 'APP.SETTINGS.LABEL.ShowEmptyImage' | translate }}</span></label>
+                            </div>
+                            <div class="gl-form-checkbox custom-control custom-checkbox">
+                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_fillBox" id="servizi_fillBox" [(ngModel)]="settings.servizi.fillBox" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_fillBox')">
+                              <label class="custom-control-label" for="servizi_fillBox"><span>{{ 'APP.SETTINGS.LABEL.FillBox' | translate }}</span></label>
+                            </div>
+                            <div class="gl-form-checkbox custom-control custom-checkbox">
+                              <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showMasonry" name="servizi_showmasonry" id="servizi_showmasonry" [(ngModel)]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_showmasonry')">
+                              <label class="custom-control-label" for="servizi_showmasonry">
+                                <span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span>
+                                <i class="bi bi-info-circle ms-1" [tooltip]="'APP.TOOLTIP.MasonryInfo' | translate" container="body"></i>
+                              </label>
+                            </div>
+                          </div>
+                        </form>
+                      </div>
+                      <div class="col-sm-12">
+                        <hr>
+                        </div>
+                      </div>
+                      @if (showNotificationsSettings) {
+                        <div class="row gl-mt-3 js-preferences-form notifiche">
+                          <div class="col-lg-4">
+                            <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Notifications' | translate }}</h4>
+                            <p>{{ 'APP.SETTINGS.TITLE.Notifications_sub' | translate }}</p>
+                          </div>
+                          <div class="col-lg-8">
+                            <form novalidate class="issue-form common-note-form gl-show-field-errors gfm-form" [formGroup]="_formSettingsSettings">
+                              <!-- Disclaimer -->
+                              <div class="alert alert-info small mb-4">
+                                <i class="bi bi-info-circle me-1"></i>
+                                {{ 'APP.SETTINGS.LABEL.NotificationsDisclaimer' | translate }}
+                              </div>
+                              <!-- Notifiche comunicazioni -->
+                              <div class="form-group mb-3">
+                                <label class="label-bold mb-2">{{ 'APP.SETTINGS.LABEL.NotificheComunicazioni' | translate }}</label>
+                                <table class="table table-sm table-borderless ms-3">
+                                  <thead>
+                                    <tr>
+                                      <th></th>
+                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
+                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td class="align-middle">{{ 'APP.SETTINGS.LABEL.NotificheComunicazioniDesc' | translate }}</td>
+                                      <td class="text-center align-middle">
+                                        <input type="checkbox" class="form-check-input m-0" id="notifiche_inapp" formControlName="notifiche_inapp">
+                                      </td>
+                                      <td class="text-center align-middle">
+                                        <input type="checkbox" class="form-check-input m-0" id="notifiche_email" formControlName="notifiche_email">
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                              <hr>
+                              <!-- Notifiche cambio stato -->
+                              <div class="form-group mb-3">
+                                <label class="label-bold mb-2">{{ 'APP.SETTINGS.LABEL.NotificheCambioStato' | translate }}</label>
+                                <table class="table table-sm table-borderless ms-3">
+                                  <thead>
+                                    <tr>
+                                      <th></th>
+                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
+                                      <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr [class.text-muted]="cambioStatoDisabled">
+                                      <td class="align-middle">{{ 'APP.SETTINGS.LABEL.NotificheCambioStatoDesc' | translate }}</td>
+                                      <td class="text-center align-middle">
+                                        <input type="checkbox" class="form-check-input m-0" id="cambio_stato_inapp" formControlName="cambio_stato_inapp">
+                                      </td>
+                                      <td class="text-center align-middle">
+                                        <input type="checkbox" class="form-check-input m-0" id="cambio_stato_email" formControlName="cambio_stato_email">
+                                      </td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                                @if (cambioStatoDisabled) {
+                                  <p class="small text-muted ms-3 mt-1">{{ 'APP.SETTINGS.LABEL.CambioStatoDisabledHint' | translate }}</p>
+                                }
+                              </div>
                             </form>
+                          </div>
                         </div>
+                      }
+                        </div>
+                      }
                     </div>
+                  }
                 </div>
-                <div class="settings" *ngIf="!isProfile">
-                    <div class="container py-5" *ngIf="settings?.servizi">
-                        <div class="row gl-mt-3 js-preferences-form servizi">
-                            <div class="col-lg-4">
-                                <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Services' | translate }}</h4>
-                                <p>{{ 'APP.SETTINGS.TITLE.Services_sub' | translate }}</p>
-                            </div>
-                            <div class="col-lg-8">
-                                <form class="edit_user" id="profile-preferences-form">
-                                    <div class="form-group">
-                                        <label class="label-bold" for="user_layout">{{ 'APP.SETTINGS.LABEL.View' | translate }}</label>
-                                        <select class="form-select" name="servizi_view" id="servizi_view" [(ngModel)]="settings.servizi.view" (ngModelChange)="_updateSettings($event, 'servizi_view')">
-                                            <option selected="selected" value="card">{{ 'APP.SETTINGS.LABEL.Card' | translate }}</option>
-                                            <option value="list">{{ 'APP.SETTINGS.LABEL.List' | translate }}</option>
-                                        </select>
-                                        <div class="form-text text-muted">
-                                            <ui-input-help field="servizi_view" context="SETTINGS"></ui-input-help>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.OptionsCard' | translate }}</label>
-                                        <div class="gl-form-checkbox custom-control custom-checkbox">
-                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_image" id="servizi_image"  [(ngModel)]="settings.servizi.showImage" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_image')">
-                                            <label class="custom-control-label" for="servizi_image"><span>{{ 'APP.SETTINGS.LABEL.ShowImage' | translate }}</span></label>
-                                        </div>
-                                        <div class="gl-form-checkbox custom-control custom-checkbox">
-                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showEmptyImage" name="servizi_emptyimage" id="servizi_emptyimage" [(ngModel)]="settings.servizi.showEmptyImage" [disabled]="!settings.servizi.showImage || settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_emptyimage')">
-                                            <label class="custom-control-label" for="servizi_emptyimage"><span>{{ 'APP.SETTINGS.LABEL.ShowEmptyImage' | translate }}</span></label>
-                                        </div>
-                                        <div class="gl-form-checkbox custom-control custom-checkbox">
-                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showImage" name="servizi_fillBox" id="servizi_fillBox" [(ngModel)]="settings.servizi.fillBox" [disabled]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_fillBox')">
-                                            <label class="custom-control-label" for="servizi_fillBox"><span>{{ 'APP.SETTINGS.LABEL.FillBox' | translate }}</span></label>
-                                        </div>
-                                        <div class="gl-form-checkbox custom-control custom-checkbox">
-                                            <input class="custom-control-input" type="checkbox" value="1" [checked]="settings.servizi.showMasonry" name="servizi_showmasonry" id="servizi_showmasonry" [(ngModel)]="settings.servizi.showMasonry" (ngModelChange)="_updateSettings($event, 'servizi_showmasonry')">
-                                            <label class="custom-control-label" for="servizi_showmasonry">
-                                                <span>{{ 'APP.SETTINGS.LABEL.ShowMasonry' | translate }}</span>
-                                                <i class="bi bi-info-circle ms-1" [tooltip]="'APP.TOOLTIP.MasonryInfo' | translate" container="body"></i>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="col-sm-12">
-                                <hr>
-                            </div>
-                        </div>
-                        <div class="row gl-mt-3 js-preferences-form notifiche" *ngIf="showNotificationsSettings">
-                            <div class="col-lg-4">
-                                <h4 class="gl-mt-0">{{ 'APP.SETTINGS.TITLE.Notifications' | translate }}</h4>
-                                <p>{{   'APP.SETTINGS.TITLE.Notifications_sub' | translate }}</p>
-                            </div>
-                            <div class="col-lg-8">
-                                <form novalidate class="issue-form common-note-form gl-show-field-errors gfm-form" [formGroup]="_formSettingsSettings">
-
-                                    <!-- Switch globale abilita/disabilita -->
-                                    <div class="form-group mb-4">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="enable_notifications"
-                                                   [checked]="notificationsEnabled"
-                                                   (change)="toggleAllNotifications($any($event.target).checked)">
-                                            <label class="form-check-label ms-2" for="enable_notifications">
-                                                {{ 'APP.SETTINGS.LABEL.EnableNotifications' | translate }}
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <hr class="mb-4">
-
-                                    <!-- emetti_per_tipi -->
-                                    <div class="form-group mb-4">
-                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.EmettiPerTipi' | translate }}</label>
-                                        <table class="table table-sm table-borderless mt-2 ms-3">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
-                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr *ngFor="let option of _emetti_per_tipi">
-                                                    <td class="align-middle">{{ option.label | translate }}</td>
-                                                    <td class="text-center align-middle">
-                                                        <input type="checkbox" class="form-check-input m-0"
-                                                               [id]="'tipi_' + option.value + '_inapp'"
-                                                               [checked]="isValueSelected('emetti_per_tipi', option.value)"
-                                                               (change)="toggleValue('emetti_per_tipi', option.value, $any($event.target).checked)">
-                                                    </td>
-                                                    <td class="text-center align-middle">
-                                                        <input type="checkbox" class="form-check-input m-0"
-                                                               [id]="'tipi_' + option.value + '_email'"
-                                                               [checked]="isValueSelected('emetti_per_tipi', option.value + '_email')"
-                                                               (change)="toggleValue('emetti_per_tipi', option.value + '_email', $any($event.target).checked)">
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <hr>
-
-                                    <!-- emetti_per_entita -->
-                                    <div class="form-group mb-4">
-                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.EmettiPerEntita' | translate }}</label>
-                                        <table class="table table-sm table-borderless mt-2 ms-3">
-                                            <thead>
-                                                <tr>
-                                                    <th></th>
-                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
-                                                    <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr *ngFor="let option of _emetti_per_entita">
-                                                    <td class="align-middle">{{ option.label | translate }}</td>
-                                                    <td class="text-center align-middle">
-                                                        <input type="checkbox" class="form-check-input m-0"
-                                                               [id]="'entita_' + option.value + '_inapp'"
-                                                               [checked]="isValueSelected('emetti_per_entita', option.value)"
-                                                               (change)="toggleValue('emetti_per_entita', option.value, $any($event.target).checked)">
-                                                    </td>
-                                                    <td class="text-center align-middle">
-                                                        <input type="checkbox" class="form-check-input m-0"
-                                                               [id]="'entita_' + option.value + '_email'"
-                                                               [checked]="isValueSelected('emetti_per_entita', option.value + '_email')"
-                                                               (change)="toggleValue('emetti_per_entita', option.value + '_email', $any($event.target).checked)">
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <hr>
-
-                                    <!-- emetti_per_ruoli -->
-                                    <div class="form-group mb-4">
-                                        <label class="label-bold">{{ 'APP.SETTINGS.LABEL.EmettiPerRuoli' | translate }}</label>
-
-                                        <!-- Gruppo Servizio -->
-                                        <div class="mt-3 ms-3">
-                                            <a class="text-decoration-none cursor-pointer d-flex align-items-center" (click)="_showRuoliServizio = !_showRuoliServizio">
-                                                <i class="bi me-1" [class.bi-chevron-right]="!_showRuoliServizio" [class.bi-chevron-down]="_showRuoliServizio"></i>
-                                                <span class="fw-bold small">{{ 'APP.NOTIFICATIONS.GROUP.Servizio' | translate }}</span>
-                                            </a>
-                                            <table class="table table-sm table-borderless mt-1 ms-2" *ngIf="_showRuoliServizio">
-                                                <thead>
-                                                    <tr>
-                                                        <th></th>
-                                                        <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
-                                                        <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr *ngFor="let option of _ruoliServizio">
-                                                        <td class="align-middle">{{ option.label | translate }}</td>
-                                                        <td class="text-center align-middle">
-                                                            <input type="checkbox" class="form-check-input m-0"
-                                                                   [id]="'ruoli_' + option.value + '_inapp'"
-                                                                   [checked]="isValueSelected('emetti_per_ruoli', option.value)"
-                                                                   (change)="toggleValue('emetti_per_ruoli', option.value, $any($event.target).checked)">
-                                                        </td>
-                                                        <td class="text-center align-middle">
-                                                            <input type="checkbox" class="form-check-input m-0"
-                                                                   [id]="'ruoli_' + option.value + '_email'"
-                                                                   [checked]="isValueSelected('emetti_per_ruoli', option.value + '_email')"
-                                                                   (change)="toggleValue('emetti_per_ruoli', option.value + '_email', $any($event.target).checked)">
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <!-- Gruppo Adesione -->
-                                        <div class="mt-2 ms-3">
-                                            <a class="text-decoration-none cursor-pointer d-flex align-items-center" (click)="_showRuoliAdesione = !_showRuoliAdesione">
-                                                <i class="bi me-1" [class.bi-chevron-right]="!_showRuoliAdesione" [class.bi-chevron-down]="_showRuoliAdesione"></i>
-                                                <span class="fw-bold small">{{ 'APP.NOTIFICATIONS.GROUP.Adesione' | translate }}</span>
-                                            </a>
-                                            <table class="table table-sm table-borderless mt-1 ms-2" *ngIf="_showRuoliAdesione">
-                                                <thead>
-                                                    <tr>
-                                                        <th></th>
-                                                        <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.InApp' | translate }}</th>
-                                                        <th class="text-center" style="width: 70px;">{{ 'APP.NOTIFICATIONS.CHANNEL.Email' | translate }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr *ngFor="let option of _ruoliAdesione">
-                                                        <td class="align-middle">{{ option.label | translate }}</td>
-                                                        <td class="text-center align-middle">
-                                                            <input type="checkbox" class="form-check-input m-0"
-                                                                   [id]="'ruoli_' + option.value + '_inapp'"
-                                                                   [checked]="isValueSelected('emetti_per_ruoli', option.value)"
-                                                                   (change)="toggleValue('emetti_per_ruoli', option.value, $any($event.target).checked)">
-                                                        </td>
-                                                        <td class="text-center align-middle">
-                                                            <input type="checkbox" class="form-check-input m-0"
-                                                                   [id]="'ruoli_' + option.value + '_email'"
-                                                                   [checked]="isValueSelected('emetti_per_ruoli', option.value + '_email')"
-                                                                   (change)="toggleValue('emetti_per_ruoli', option.value + '_email', $any($event.target).checked)">
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                </form>
-                            </div>
-                        </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
+              </div>
+            }
+          </div>
+        </section>
+      </div>

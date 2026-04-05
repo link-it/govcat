@@ -16,31 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import { FormControl, FormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
 import { NavigationService } from '@app/services/navigation.service';
 import { Page } from '../../models/page';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
   selector: 'app-organizzazioni',
   templateUrl: 'organizzazioni.component.html',
   styleUrls: ['organizzazioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective
+  ]
 })
-export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnDestroy {
+export class OrganizzazioniComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'OrganizzazioniComponent';
   readonly model: string = 'organizzazioni';
 
@@ -56,7 +59,7 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   _isEdit: boolean = false;
 
   _hasFilter: boolean = true;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -108,15 +111,13 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   _useNewSearchUI : boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService,
-    private navigationService: NavigationService
+    private readonly utils: UtilService,
+    private readonly navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -138,16 +139,12 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
     );
   }
 
-  ngOnDestroy() {
-    // this.eventsManagerService.off(EventType.NAVBAR_ACTION);
-  }
-
   ngAfterContentChecked(): void {
     this.desktop = (window.innerWidth >= 992);
   }
 
   _translateConfig() {
-    if (this.organizzazioniConfig && this.organizzazioniConfig.options) {
+    if (this.organizzazioniConfig?.options) {
       Object.keys(this.organizzazioniConfig.options).forEach((key: string) => {
         if (this.organizzazioniConfig.options[key].label) {
           this.organizzazioniConfig.options[key].label = this.translate.instant(this.organizzazioniConfig.options[key].label);
@@ -173,12 +170,12 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      q: new UntypedFormControl(''),
-      referente: new UntypedFormControl(''),
-      aderente: new UntypedFormControl(''),
-      esterna: new UntypedFormControl(''),
-      // soggetto_aderente: new UntypedFormControl('')
+    this._formGroup = new FormGroup({
+      q: new FormControl(''),
+      referente: new FormControl(''),
+      aderente: new FormControl(''),
+      esterna: new FormControl(''),
+      // soggetto_aderente: new FormControl('')
     });
   }
 
@@ -197,9 +194,10 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
     this._spin = true;
     this.apiService.getList(this.model, aux, url).subscribe({
       next: (response: any) => {
-
-        response ? this._paging = new Page(response.page) : null;
-        response ? this._links = response._links || null : null;
+        if (response) {
+          this._paging = new Page(response.page);
+          this._links = response._links || null;
+        }
 
         if (response.content) {
           const _list: any = response.content.map((org: any) => {
@@ -233,7 +231,7 @@ export class OrganizzazioniComponent implements OnInit, AfterContentChecked, OnD
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
+    if (this._links?.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
       this._loadOrganizzazioni(null, this._links.next.href);
     }

@@ -3,10 +3,12 @@
   <p class="step-description">{{ 'APP.REGISTRAZIONE.MESSAGE.ModificaEmailDesc' | translate }}</p>
 
   <form [formGroup]="form" (ngSubmit)="onInvia()">
-    <div class="mb-3" *ngIf="emailCorrente">
-      <label class="form-label text-muted small">{{ 'APP.REGISTRAZIONE.LABEL.EmailAttuale' | translate }}</label>
-      <div class="form-control-plaintext">{{ emailCorrente }}</div>
-    </div>
+    @if (emailCorrente) {
+      <div class="mb-3">
+        <label class="form-label text-muted small">{{ 'APP.REGISTRAZIONE.LABEL.EmailAttuale' | translate }}</label>
+        <div class="form-control-plaintext">{{ emailCorrente }}</div>
+      </div>
+    }
 
     <div class="mb-3">
       <label for="email" class="form-label">{{ 'APP.REGISTRAZIONE.LABEL.NuovaEmail' | translate }} *</label>
@@ -17,12 +19,16 @@
         formControlName="email"
         [class.is-invalid]="emailControl?.invalid && emailControl?.touched"
         placeholder="nome@esempio.it">
-      <div class="invalid-feedback" *ngIf="emailControl?.errors?.['required']">
-        {{ 'APP.REGISTRAZIONE.ERROR.EmailRequired' | translate }}
-      </div>
-      <div class="invalid-feedback" *ngIf="emailControl?.errors?.['email']">
-        {{ 'APP.REGISTRAZIONE.ERROR.EmailInvalid' | translate }}
-      </div>
+      @if (emailControl?.errors?.['required']) {
+        <div class="invalid-feedback">
+          {{ 'APP.REGISTRAZIONE.ERROR.EmailRequired' | translate }}
+        </div>
+      }
+      @if (emailControl?.errors?.['email']) {
+        <div class="invalid-feedback">
+          {{ 'APP.REGISTRAZIONE.ERROR.EmailInvalid' | translate }}
+        </div>
+      }
     </div>
 
     <div class="mb-3">
@@ -34,15 +40,21 @@
         formControlName="confermaEmail"
         [class.is-invalid]="(confermaEmailControl?.invalid && confermaEmailControl?.touched) || form.errors?.['emailMismatch']"
         placeholder="nome@esempio.it">
-      <div class="invalid-feedback" *ngIf="confermaEmailControl?.errors?.['required']">
-        {{ 'APP.REGISTRAZIONE.ERROR.EmailRequired' | translate }}
-      </div>
-      <div class="invalid-feedback" *ngIf="confermaEmailControl?.errors?.['email']">
-        {{ 'APP.REGISTRAZIONE.ERROR.EmailInvalid' | translate }}
-      </div>
-      <div class="invalid-feedback" *ngIf="form.errors?.['emailMismatch'] && confermaEmailControl?.touched">
-        {{ 'APP.REGISTRAZIONE.ERROR.EmailMismatch' | translate }}
-      </div>
+      @if (confermaEmailControl?.errors?.['required']) {
+        <div class="invalid-feedback">
+          {{ 'APP.REGISTRAZIONE.ERROR.EmailRequired' | translate }}
+        </div>
+      }
+      @if (confermaEmailControl?.errors?.['email']) {
+        <div class="invalid-feedback">
+          {{ 'APP.REGISTRAZIONE.ERROR.EmailInvalid' | translate }}
+        </div>
+      }
+      @if (form.errors?.['emailMismatch'] && confermaEmailControl?.touched) {
+        <div class="invalid-feedback">
+          {{ 'APP.REGISTRAZIONE.ERROR.EmailMismatch' | translate }}
+        </div>
+      }
     </div>
 
     <p class="text-muted small">

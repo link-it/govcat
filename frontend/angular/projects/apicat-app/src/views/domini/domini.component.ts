@@ -16,34 +16,42 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
-
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, EventType, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components'
-
-import { EventType } from '@linkit/components';
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 
-import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { concat, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, startWith, switchMap, tap } from 'rxjs/operators';
+
+import { CommonModule } from '@angular/common';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
   selector: 'app-domini',
   templateUrl: 'domini.component.html',
   styleUrls: ['domini.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective,
+    InfiniteScrollDirective,
+    NgSelectModule,
+    AutoFillScrollDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class DominiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class DominiComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'DominiComponent';
   readonly model: string = 'domini'; // <<==== parametro di routing per la _loadXXXXX
 
@@ -119,26 +127,23 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
   soggettiLoading: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly router: Router,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
+    private readonly eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService,
-    private navigationService: NavigationService
-  ) {
-    this.config = this.configService.getConfiguration();
-
-    this._initSearchForm();
-  }
+    private readonly utils: UtilService,
+    private readonly navigationService: NavigationService
+  ) {}
 
   @HostListener('window:resize') _onResize() {
     this.desktop = (window.innerWidth >= 992);
   }
 
   ngOnInit() {
+    this.config = this.configService.getConfiguration();
+    this._initSearchForm();
+
     this._canAddDomain = this.generalConfig?.dominio.multi_dominio || false;
     
     this.configService.getConfig(this.model).subscribe(
@@ -154,10 +159,8 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     });
   }
 
-  ngOnDestroy() {}
-
   ngAfterViewInit() {
-    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+    if (!(this.searchBarForm?._isPinned())) {
       setTimeout(() => {
         this._loadDomini();
       }, 100);
@@ -178,7 +181,6 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
       this._messageHelp = 'APP.MESSAGE.NoResultsHelp';
     }
   }
-
 
   _initSearchForm() {
     this._formGroup = new FormGroup({
@@ -243,27 +245,6 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
     }
   }
 
-  // Da usare con nuovo componente <ui-form-live-search>
-  // getSearchSoggetto() {
-  //   return this.searchSoggetto.bind(this)
-  // }
-
-  // private searchSoggetto(term: string, page: number = 0) {
-  //     // if (!term) {
-  //     //     return of([]);
-  //     // }
-  //     return this.apiService.getDataPagination('soggetti', { q: term }, page, this.selectLimit, 'nome', 'asc').pipe(
-  //         // tap((response: any) => console.log(response)),
-  //         map((response: any) => response.map(
-  //             (item: any) => item.id_soggetto ? ({
-  //                 label: `${item.nome}`,
-  //                 // meta: `${item.organizzazione?.nome}`,
-  //                 value: item.id_soggetto
-  //             }) : null
-  //         ).filter((item: any) => item !== null))
-  //     )
-  // }
-
   _initSoggettiSelect(defaultValue: any[] = []) {
     this.soggetti$ = concat(
       of(defaultValue),
@@ -287,10 +268,6 @@ export class DominiComponent implements OnInit, AfterViewInit, AfterContentCheck
 
   onSelectedSearchDropdwon($event: Event){
     this.searchBarForm.setNotCloseForm(true)
-  }
-
-  trackBySelectFn(item: any) {
-    return item.id_soggetto;
   }
 
   _onNew() {

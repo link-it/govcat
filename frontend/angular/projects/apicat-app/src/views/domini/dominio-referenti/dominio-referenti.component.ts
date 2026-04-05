@@ -24,26 +24,26 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { SearchBarFormComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
-import { FieldClass } from '@linkit/components';
-
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 
 import { concat, Observable, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-dominio-referenti',
   templateUrl: 'dominio-referenti.component.html',
   styleUrls: ['dominio-referenti.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class DominioReferentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'DominioReferentiComponent';
@@ -181,7 +181,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
 
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
+      organizationTaxCode: new UntypedFormControl(''),
       creationDateFrom: new UntypedFormControl(''),
       creationDateTo: new UntypedFormControl(''),
       fileName: new UntypedFormControl(''),
@@ -399,11 +399,7 @@ export class DominioReferentiComponent implements OnInit, AfterContentChecked, O
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
-  }
-
-  trackByFn(item: any) {
-    return item.id;
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _initReferentiSelect(defaultValue: any[] = []) {

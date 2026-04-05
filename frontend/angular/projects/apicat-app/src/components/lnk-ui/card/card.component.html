@@ -16,58 +16,90 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div class="card e-card d-flex flex-column justify-content-between" (click)="__simpleClick($event)" (auxclick)="__simpleClick($event)" *ngIf="!cardBs">
-  <div class="top">
-    <img [src]="_image" *ngIf="_image" alt="logo">
-    <h1 *ngIf="_primaryText" [attr.title]="_primaryText">{{ _primaryText }}</h1>
-    <h2 *ngIf="_secondaryText">{{ _secondaryText }}</h2>
-    <p *ngIf="_metadata">{{ _metadata }}</p>
-  </div>
-  <div class="bottom">
-    <div class="read-more d-flex align-items-center" (click)="__simpleClick($event)">
-      <i class="material-icons-outlined" *ngIf="false">explore</i> <p>{{ _readMore }}</p>
+@if (!cardBs) {
+  <div class="card e-card d-flex flex-column justify-content-between" (click)="__simpleClick($event)" (auxclick)="__simpleClick($event)">
+    <div class="top">
+      @if (_image) {
+        <img [src]="_image" alt="logo">
+      }
+      @if (_primaryText) {
+        <h1 [attr.title]="_primaryText">{{ _primaryText }}</h1>
+      }
+      @if (_secondaryText) {
+        <h2>{{ _secondaryText }}</h2>
+      }
+      @if (_metadata) {
+        <p>{{ _metadata }}</p>
+      }
     </div>
-  </div>
-</div>
-<div class="card h-100" [class.group]="data.tipo === 'gruppo'" *ngIf="cardBs">
-  <div tabindex="0"
-    class="card-image"
-    [class.cursor-pointer]="_enabledImageLink"
-    (click)="__imageClick($event)" (auxclick)="__imageClick($event)"
-    setBackgroundImage [imageUrl]="{ path: _image } | httpImgSrc"
-    [position]="imagePosition" [ngStyle]="{ 'background-color': _backColor }"
-    *ngIf="_showImage && (_image || _showEmptyImage)"
-  >
-    <span class="logo-text text-nowrap" [ngStyle]="{'color': _textColor}" *ngIf="!_image">{{ _logoText }}</span>
-  </div>
-  <div class="card-body" (click)="__cardClick($event)" (auxclick)="__cardClick($event)">
-    <h5 tabindex="0"
-      class="card-title text-hover cursor-pointer text-break"
-      [class.supports-new-tab]="data.tipo !== 'gruppo'"
-      [attr.title]="_primaryText" *ngIf="_primaryText"
-      (click)="__simpleClick($event)"
-      (auxclick)="__simpleClick($event)"
-    >{{ _primaryText }}<span class="open-new-tab-icon bi bi-box-arrow-up-right"
-          *ngIf="enableOpenInNewTab && data.tipo !== 'gruppo'"
-          [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
-          (click)="__openInNewTab($event)"></span></h5>
-    <p class="card-text"><span *ngIf="_secondaryText">{{ _secondaryText }}</span></p>
-    <p *ngIf="_metadata">{{ _metadata }}</p>
-    <ui-data-type class="me-2" *ngIf="data.stato"
-      [data]="data"
-      [elem]="{ field: 'stato', type: 'label', options: 'status' }"
-      [config]="config">
-    </ui-data-type>
-    <ui-data-type *ngIf="data.visibilita && !isAnonymous"
-      [data]="data"
-      [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-      [config]="config">
-    </ui-data-type>
-  </div>
-  <div class="group-button" *ngIf="(data.tipo === 'gruppo') && showGroupIcon">
-    <div class="group-button-icon">
-      <i class="bi bi-folder"></i>
+    <div class="bottom">
+      <div class="read-more d-flex align-items-center" (click)="__simpleClick($event)">
+        @if (false) {
+          <i class="material-icons-outlined">explore</i>
+          } <p>{{ _readMore }}</p>
+        </div>
+      </div>
     </div>
-    <div class="group-button-label" *ngIf="showGroupLabel">{{ groupLabel }}</div>
-  </div>
-</div>
+  }
+  @if (cardBs) {
+    <div class="card h-100" [class.group]="data.tipo === 'gruppo'">
+      @if (_showImage && (_image || _showEmptyImage)) {
+        <div tabindex="0"
+          class="card-image"
+          [class.cursor-pointer]="_enabledImageLink"
+          (click)="__imageClick($event)" (auxclick)="__imageClick($event)"
+          setBackgroundImage [imageUrl]="{ path: _image } | httpImgSrc"
+          [position]="'cover'" [ngStyle]="{ 'background-color': _backColor }"
+          >
+          @if (!_image) {
+            <span class="logo-text text-nowrap" [ngStyle]="{'color': _textColor}">{{ _logoText }}</span>
+          }
+        </div>
+      }
+      <div class="card-body" (click)="__cardClick($event)" (auxclick)="__cardClick($event)">
+        @if (_primaryText) {
+          <h5 tabindex="0"
+            class="card-title text-hover cursor-pointer text-break"
+            [class.supports-new-tab]="data.tipo !== 'gruppo'"
+            [attr.title]="_primaryText"
+            (click)="__simpleClick($event)"
+            (auxclick)="__simpleClick($event)"
+            >{{ _primaryText }}@if (enableOpenInNewTab && data.tipo !== 'gruppo') {
+            <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+              [title]="'APP.TOOLTIP.OpenInNewTab' | translate"
+            (click)="__openInNewTab($event)"></span>
+          }</h5>
+        }
+        <p class="card-text">@if (_secondaryText) {
+          <span>{{ _secondaryText }}</span>
+        }</p>
+        @if (_metadata) {
+          <p>{{ _metadata }}</p>
+        }
+        @if (data.stato) {
+          <ui-data-type class="me-2"
+            [data]="data"
+            [elem]="{ field: 'stato', type: 'label', options: 'status' }"
+            [config]="config">
+          </ui-data-type>
+        }
+        @if (data.visibilita && !isAnonymous) {
+          <ui-data-type
+            [data]="data"
+            [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
+            [config]="config">
+          </ui-data-type>
+        }
+      </div>
+      @if ((data.tipo === 'gruppo') && showGroupIcon) {
+        <div class="group-button">
+          <div class="group-button-icon">
+            <i class="bi bi-folder"></i>
+          </div>
+          @if (showGroupLabel) {
+            <div class="group-button-label">{{ groupLabel }}</div>
+          }
+        </div>
+      }
+    </div>
+  }

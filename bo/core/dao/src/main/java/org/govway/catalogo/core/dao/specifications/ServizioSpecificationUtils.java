@@ -37,6 +37,7 @@ import org.govway.catalogo.core.orm.entity.ReferenteDominioEntity_;
 import org.govway.catalogo.core.orm.entity.ReferenteServizioEntity_;
 import org.govway.catalogo.core.orm.entity.ServizioEntity;
 import org.govway.catalogo.core.orm.entity.ServizioEntity_;
+import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -51,7 +52,17 @@ public class ServizioSpecificationUtils {
 	public static Specification<ServizioEntity> byReferenteServizio(UtenteEntity referent) {
 		return (Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
 			return cb.literal(referent).in(root.join(ServizioEntity_.referenti, JoinType.LEFT).join(ReferenteServizioEntity_.referente, JoinType.LEFT));
-		};	
+		};
+	}
+
+	public static Specification<ServizioEntity> byReferenteServizioWithTipo(UtenteEntity referent, TIPO_REFERENTE tipo) {
+		return (Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+			var join = root.join(ServizioEntity_.referenti, JoinType.LEFT);
+			return cb.and(
+				cb.equal(join.get(ReferenteServizioEntity_.referente), referent),
+				cb.equal(join.get(ReferenteServizioEntity_.tipo), tipo)
+			);
+		};
 	}
 	
 	public static Specification<ServizioEntity> byVisibilita(VISIBILITA visibilita) {
@@ -107,7 +118,17 @@ public class ServizioSpecificationUtils {
 	public static Specification<ServizioEntity> byReferenteDominio(UtenteEntity referent) {
 		return (Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
 			return cb.literal(referent).in(root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT).join(ReferenteDominioEntity_.referente, JoinType.LEFT));
-		};	
+		};
+	}
+
+	public static Specification<ServizioEntity> byReferenteDominioWithTipo(UtenteEntity referent, TIPO_REFERENTE tipo) {
+		return (Root<ServizioEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) -> {
+			var join = root.join(ServizioEntity_.dominio, JoinType.LEFT).join(DominioEntity_.referenti, JoinType.LEFT);
+			return cb.and(
+				cb.equal(join.get(ReferenteDominioEntity_.referente), referent),
+				cb.equal(join.get(ReferenteDominioEntity_.tipo), tipo)
+			);
+		};
 	}
 	
 }

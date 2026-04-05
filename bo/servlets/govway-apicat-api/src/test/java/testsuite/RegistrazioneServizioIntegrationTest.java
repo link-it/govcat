@@ -89,6 +89,7 @@ import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoClientEnum;
 import org.govway.catalogo.servlets.model.StatoUpdate;
+import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.TipoCertificatoEnum;
 import org.govway.catalogo.servlets.model.TipoNotificaEnum;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
@@ -409,6 +410,7 @@ public class RegistrazioneServizioIntegrationTest {
         messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Comunicazione");
         messaggioComunicazione.setTesto("Questo è il testo di Test comunicazione");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         ResponseEntity<ItemMessaggio> comunicazione = serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
         assertNotNull(comunicazione.getBody().getData());
         assertEquals(messaggioComunicazione.getTesto(), comunicazione.getBody().getTesto());
@@ -426,7 +428,7 @@ public class RegistrazioneServizioIntegrationTest {
 
         // Verifica che un utente anonimo non riceva nulla
         assertThrows(NotAuthorizedException.class, () -> {
-        	serviziController.listServizi(null, null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, null, 0, 10, null);
+        	serviziController.listServizi(null, null, null, null, null, null, null, null, null, false, true, null, null, null, null, null, null, null, null, null, 0, 10, null);
         });
     }
     
@@ -505,6 +507,7 @@ public class RegistrazioneServizioIntegrationTest {
         messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Configurazione completata");
         messaggioComunicazione.setTesto("Configurazione completata come richiesto");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         ResponseEntity<ItemMessaggio> comunicazione = serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
         assertNotNull(comunicazione.getBody().getData());
         assertEquals(messaggioComunicazione.getTesto(), comunicazione.getBody().getTesto());
@@ -632,7 +635,7 @@ public class RegistrazioneServizioIntegrationTest {
         
         List<String> stato = new ArrayList<String>();
         stato.add("autorizzato_collaudo");
-        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
+        ResponseEntity<PagedModelItemServizio> listServizi = serviziController.listServizi(null, null, null, null, idAPI, stato, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 10, null);
         //System.out.println("NOME SERVIZIO: " + listServizi.getBody().getContent().get(0).getNome());
         assertEquals(CommonUtils.NOME_SERVIZIO, listServizi.getBody().getContent().get(0).getNome());
         

@@ -17,23 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { CustomValidators } from '@linkit/validators';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
-
 import { Dominio } from './dominio';
-
-import { VisibilitaEnum } from '@app/model/visibilitaEnum';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
@@ -41,11 +35,22 @@ import { UtilService } from '@app/services/utils.service';
 
 import { DominioCreateUpdateRequest } from './dominio-create-update';
 
+import { CommonModule } from '@angular/common';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+
 @Component({
   selector: 'app-dominio-details',
   templateUrl: 'dominio-details.component.html',
   styleUrls: ['dominio-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    RouterModule,
+    HasPermissionDirective,
+    TrimOnBlurDirective
+  ]
 })
 export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'DominioDetailsComponent';
@@ -109,21 +114,19 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
   anagrafiche: any;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected fb: FormBuilder,
-    protected translate: TranslateService,
-    protected modalService: BsModalService,
-    protected configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    protected eventsManagerService: EventsManagerService,
-    protected apiService: OpenAPIService,
-    protected utils: UtilService
-  ) {
-    this.appConfig = this.configService.getConfiguration();
-  }
+    public apiService: OpenAPIService,
+    private readonly utils: UtilService,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService
+  ) {}
 
   ngOnInit() {
+    this.appConfig = this.configService.getConfiguration();
+
     this._visibilitaEnum = ['privato', 'pubblico', 'riservato'];
 
     this.anagrafiche = this.utils.getAnagrafiche(['classi-utente']);
@@ -136,12 +139,10 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         this.configService.getConfig(this.model).subscribe(
           (config: any) => {
             this.config = config;
-            
             this._loadAll();
           }
         );
       } else {
-
         this._initBreadcrumb();
         this._initSoggettiSelect([]);
         this._initForm({ ...this._dominio });
@@ -149,7 +150,6 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         this._isEdit = true;
         this._spin = false;
       }
-
     });
   }
 
@@ -174,7 +174,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -200,10 +200,11 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
             value = data[key] ? data[key] : null;
             _group[key] = new UntypedFormControl(value, [Validators.required]);
             break;
-          case 'classi':
+          case 'classi': {
             const classi = (data[key] ? data[key] : []);
             _group[key] = new UntypedFormControl(classi.map((classe: any) => classe.id_classe_utente), [Validators.required]);
             break;
+          }
           case 'soggetto_referente':
             value = data[key]?.id_soggetto ? data[key].id_soggetto : null;
             _group[key] = new UntypedFormControl(value, [Validators.required]);
@@ -215,9 +216,6 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
             ]);
             break;
           case 'deprecato':
-            value = data[key] ? data[key] : false;
-            _group[key] = new UntypedFormControl(value, []);
-            break;
           case 'skip_collaudo':
             value = data[key] ? data[key] : false;
             _group[key] = new UntypedFormControl(value, []);
@@ -351,15 +349,15 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElement(this.model, this.dominio.id_dominio).subscribe(
-            (response) => {
+          this.apiService.deleteElement(this.model, this.dominio.id_dominio).subscribe({
+            next: (response) => {
               this.router.navigate([this.model]);
             },
-            (error) => {
+            error: (error) => {
               this._error = true;
               this._errorMsg = this.utils.GetErrorMsg(error);
             }
-          );
+          });
         }
       }
     );
@@ -376,7 +374,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
       this.apiService.getDetails(this.model, this.id).subscribe({
         next: (response: any) => {
-          this.dominio = response; // new Dominio({ ...response });
+          this.dominio = response;
           this._dominio = new Dominio({ ...response });
           this._initBreadcrumb();
           const aux: any = {
@@ -397,10 +395,6 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
         }
       });
     }
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   _initSoggettiSelect(defaultValue: any[] = []) {
@@ -428,10 +422,9 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
     return this.apiService.getList('soggetti', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
-            // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
             return item;
           });
           return _items;
@@ -442,8 +435,7 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
   _enableDisableSkipCollaudo(soggetto: any) {
     if (soggetto?.skip_collaudo) {
-      if (this.dominio.vincola_skip_collaudo) {
-        this._formGroup.get('skip_collaudo')?.setValue(false);
+      if (this.dominio?.vincola_skip_collaudo) {
         this._formGroup.get('skip_collaudo')?.disable();
       } else {
         this._formGroup.get('skip_collaudo')?.enable();
@@ -458,7 +450,14 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
   }
 
   _initBreadcrumb() {
-    const _title = this.dominio ? this.dominio.nome : this.id ? `${this.id}` : this.translate.instant('APP.TITLE.New');
+    let _title: string;
+    if (this.dominio) {
+      _title = this.dominio.nome;
+    } else if (this.id) {
+      _title = `${this.id}`;
+    } else {
+      _title = this.translate.instant('APP.TITLE.New');
+    }
     this.breadcrumbs = [
       { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
       { label: 'APP.LABEL.Domain', url: '/domini', type: 'link' },
@@ -513,8 +512,10 @@ export class DominioDetailsComponent implements OnInit, OnChanges, AfterContentC
 
   _removeNullProperties(obj: any) {
     Object.keys(obj).forEach((k: string) => {
-        obj[k] == null ? delete obj[k] : null;
-      })
+      if (obj[k] == null) {
+        delete obj[k];
+      }
+    });
   }
 
   _isVisibilita(type: string) {

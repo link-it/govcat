@@ -18,14 +18,20 @@
  */
 import { Component, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Attribute, EserviceDescriptor, EserviceResponse, OrganizationResponse, PdndBaseUri, PdndEventType, PdndResponse, PdndService } from './pdnd.service';
 import { forkJoin, of } from 'rxjs';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+
+import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { PdndEServiceViewComponent } from './components/pdnd-eservice-view.component';
 
 import { PdndView } from './components/pdnd-view';
-import { uuid } from 'projects/linkit/validators/src/lib/uuid/validator';
+import { uuid } from '@app/validators/uuid/validator';
 
 interface PdndType {
   uri: PdndBaseUri;
@@ -115,7 +121,6 @@ const descriptorDownloadsListConfiguration = {
   }
 }
 
-
 const agreementDetailsConfiguration = [
   { "label": "APP.LABEL.State", "field": "state", "type": "text" }
 ];
@@ -152,7 +157,6 @@ const agreementAttributesListConfiguration = {
   }
 }
 
-
 const purposeListConfiguration = {
   "itemRow": {
     "primaryText": [
@@ -180,7 +184,6 @@ const purposeListConfiguration = {
     }
   }
 }
-
 
 const purposeDetailsConfiguration = [
   { "label": "APP.LABEL.Id", "field": "id", "type": "text", "columns": 6 },
@@ -240,7 +243,16 @@ const eventListConfiguration = {
   templateUrl: 'pdnd.component.html',
   styleUrls: ['pdnd.component.scss'],
   encapsulation: ViewEncapsulation.None,
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    TooltipModule,
+    ...COMPONENTS_IMPORTS,
+    MarkAsteriskDirective,
+    PdndEServiceViewComponent
+  ]
 })
 export class PdndComponent {
   model = 'pdnd';

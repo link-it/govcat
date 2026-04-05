@@ -128,6 +128,9 @@ public class RegistrazioneTest {
         when(this.securityContext.getAuthentication()).thenReturn(this.authentication);
         SecurityContextHolder.setContext(this.securityContext);
 
+        // Setup mock per l'invio email MIME multipart
+        when(this.mailSender.createMimeMessage()).thenReturn(new jakarta.mail.internet.MimeMessage((jakarta.mail.Session) null));
+
         // Abilita la feature di verifica email al primo login
         if (this.configurazione.getUtente() == null) {
             this.configurazione.setUtente(new ConfigurazioneUtente());

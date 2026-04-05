@@ -108,7 +108,7 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 		case ADESIONE_REFERENTE_TECNICO_DOMINIO: return RuoloNotifica.ADESIONE_REFERENTE_TECNICO_DOMINIO;
 		case ADESIONE_REFERENTE_SERVIZIO: return RuoloNotifica.ADESIONE_REFERENTE_SERVIZIO;
 		case ADESIONE_REFERENTE_TECNICO_ADESIONE: return RuoloNotifica.ADESIONE_REFERENTE_TECNICO_ADESIONE;
-		case ADESIONE_REFERENTE_TECNICO_SERVIZIO: return RuoloNotifica.ADESIONE_REFERENTE_TECNICO_ADESIONE;
+		case ADESIONE_REFERENTE_TECNICO_SERVIZIO: return RuoloNotifica.ADESIONE_REFERENTE_TECNICO_SERVIZIO;
 		case ADESIONE_RICHIEDENTE_ADESIONE: return RuoloNotifica.ADESIONE_RICHIEDENTE_ADESIONE;
 		case ADESIONE_RICHIEDENTE_SERVIZIO: return RuoloNotifica.ADESIONE_RICHIEDENTE_SERVIZIO;
 		case SERVIZIO_REFERENTE_DOMINIO: return RuoloNotifica.SERVIZIO_REFERENTE_DOMINIO;
@@ -128,6 +128,10 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 		case SERVIZIO_REFERENTE_SERVIZIO_EMAIL: return RuoloNotifica.SERVIZIO_REFERENTE_SERVIZIO_EMAIL;
 		case SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL: return RuoloNotifica.SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL;
 		case SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL: return RuoloNotifica.SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL;
+		case GESTORE: return RuoloNotifica.GESTORE;
+		case GESTORE_EMAIL: return RuoloNotifica.GESTORE_EMAIL;
+		case COORDINATORE: return RuoloNotifica.COORDINATORE;
+		case COORDINATORE_EMAIL: return RuoloNotifica.COORDINATORE_EMAIL;
 		}
 		return null;
  	}
@@ -141,7 +145,7 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 		case ADESIONE_REFERENTE_TECNICO_DOMINIO: return RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_DOMINIO;
 		case ADESIONE_REFERENTE_SERVIZIO: return RuoloNotificaEnum.ADESIONE_REFERENTE_SERVIZIO;
 		case ADESIONE_REFERENTE_TECNICO_ADESIONE: return RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_ADESIONE;
-		case ADESIONE_REFERENTE_TECNICO_SERVIZIO: return RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_ADESIONE;
+		case ADESIONE_REFERENTE_TECNICO_SERVIZIO: return RuoloNotificaEnum.ADESIONE_REFERENTE_TECNICO_SERVIZIO;
 		case ADESIONE_RICHIEDENTE_ADESIONE: return RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE;
 		case ADESIONE_RICHIEDENTE_SERVIZIO: return RuoloNotificaEnum.ADESIONE_RICHIEDENTE_SERVIZIO;
 		case SERVIZIO_REFERENTE_DOMINIO: return RuoloNotificaEnum.SERVIZIO_REFERENTE_DOMINIO;
@@ -162,6 +166,10 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 		case SERVIZIO_REFERENTE_SERVIZIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_REFERENTE_SERVIZIO_EMAIL;
 		case SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_REFERENTE_TECNICO_SERVIZIO_EMAIL;
 		case SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL: return RuoloNotificaEnum.SERVIZIO_RICHIEDENTE_SERVIZIO_EMAIL;
+		case GESTORE: return RuoloNotificaEnum.GESTORE;
+		case GESTORE_EMAIL: return RuoloNotificaEnum.GESTORE_EMAIL;
+		case COORDINATORE: return RuoloNotificaEnum.COORDINATORE;
+		case COORDINATORE_EMAIL: return RuoloNotificaEnum.COORDINATORE_EMAIL;
 		}
 
 		return null;
@@ -245,32 +253,18 @@ public class NotificaEngineAssembler extends CoreEngineAssembler {
 
 	public List<TipoEntitaNotifica> getTipiEntitaNotificheAbilitate(UtenteEntity utente) {
 		List<TIPO_ENTITA> lst = this.notificheUtils.getTipiEntita(utente.getTipiEntitaNotificheAbilitate());
-		if(lst == null) return getDefaultNotificheAbilitateForApi(utente) ? null : new ArrayList<>();
+		if(lst == null) return null;
 		return lst.stream().map(e -> this.getTipoEntitaNotifica(e)).collect(Collectors.toList());
 	}
 
 	public List<TipoNotificaEnum> getTipiNotificheAbilitate(UtenteEntity utente) {
 		List<TIPO> lst = this.notificheUtils.getTipi(utente.getTipiNotificheAbilitate());
-		if(lst == null) return getDefaultNotificheAbilitateForApi(utente) ? null : new ArrayList<>();
+		if(lst == null) return null;
 		return lst.stream().map(e -> this.getTipoNotificaEnum(e)).collect(Collectors.toList());
 	}
 
 	public List<RuoloNotifica> getTagNotificheAbilitate(UtenteEntity utente) {
-		List<RuoloNotifica> lst = this.getRuoliNotifica(utente.getRuoliNotificheAbilitate());
-		if(lst == null) return getDefaultNotificheAbilitateForApi(utente) ? null : new ArrayList<>();
-		return lst;
-	}
-
-	/**
-	 * Restituisce il valore di default per le notifiche quando non sono configurate nel DB.
-	 * Per gli utenti con ruolo AMMINISTRATORE (gestore), il default è false (notifiche disabilitate, lista vuota per il FE).
-	 * Per tutti gli altri utenti, il default è true (notifiche abilitate, null per il FE).
-	 */
-	private boolean getDefaultNotificheAbilitateForApi(UtenteEntity utente) {
-		if(utente.getRuolo() != null && utente.getRuolo() == UtenteEntity.Ruolo.AMMINISTRATORE) {
-			return false;
-		}
-		return true;
+		return this.getRuoliNotifica(utente.getRuoliNotificheAbilitate());
 	}
 
 	public String getTipiEntitaNotificheAbilitate(List<TipoEntitaNotifica> lst) {

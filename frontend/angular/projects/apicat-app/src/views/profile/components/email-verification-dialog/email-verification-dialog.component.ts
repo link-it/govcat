@@ -17,11 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subscription, Observable } from 'rxjs';
 
+import { TranslateModule } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
+import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
 import { ProfileEmailVerificationService } from '@app/services/profile-email-verification.service';
 
 export interface EmailVerificationDialogResult {
@@ -35,7 +37,12 @@ export interface EmailVerificationDialogResult {
   selector: 'app-email-verification-dialog',
   templateUrl: './email-verification-dialog.component.html',
   styleUrls: ['./email-verification-dialog.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    TranslateModule,
+    LnkButtonComponent
+  ]
 })
 export class EmailVerificationDialogComponent implements OnInit, OnDestroy {
 

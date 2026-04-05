@@ -16,16 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
+
+import { TranslateModule } from '@ngx-translate/core';
+import { COMPONENTS_IMPORTS } from '@linkit/components';
 
 @Component({
     selector: 'code-grant-authorization',
     templateUrl: 'code-grant-authorization.component.html',
     styleUrls: ['code-grant-authorization.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        TranslateModule,
+        ...COMPONENTS_IMPORTS
+    ]
 })
-export class CodeGrantAuthorizationComponent implements OnInit, OnDestroy {
+export class CodeGrantAuthorizationComponent implements OnInit {
 
     logo = './assets/images/linkit_logo/linkit_logo_2x.png';
 
@@ -44,6 +51,8 @@ export class CodeGrantAuthorizationComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        // http://localhost:6200/code-grant-authorization?return=ok&session_state=5c35aaa3-b918-46b6-919f-a3b7778773bb&code=08243a09-271e-4d52-9f03-243d00abb9c3.5c35aaa3-b918-46b6-919f-a3b7778773bb.a48ccdbe-10e7-46f3-98c7-76026e5e7987
+
         this.route.queryParams.subscribe((val) => { 
             console.log('val', val);
             const _return = val['return'];

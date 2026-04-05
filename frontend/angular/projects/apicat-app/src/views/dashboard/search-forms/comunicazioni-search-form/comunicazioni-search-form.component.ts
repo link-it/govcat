@@ -17,15 +17,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
-import { SearchBarFormComponent } from '@linkit/components';
+import { TranslateModule } from '@ngx-translate/core';
+
+import { COMPONENTS_IMPORTS, SearchBarFormComponent } from '@linkit/components';
 
 @Component({
   selector: 'app-comunicazioni-search-form',
   templateUrl: './comunicazioni-search-form.component.html',
   styleUrls: ['./comunicazioni-search-form.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class ComunicazioniSearchFormComponent {
 

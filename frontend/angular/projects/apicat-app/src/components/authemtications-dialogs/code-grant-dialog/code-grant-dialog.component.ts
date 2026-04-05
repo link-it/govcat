@@ -16,20 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, FormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
 
 import { Subject } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from '@linkit/components';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
-import { Tools } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import { jwtDecode } from "jwt-decode";
@@ -38,10 +40,11 @@ import { jwtDecode } from "jwt-decode";
 selector: 'app-code-grant-dialog',
 templateUrl: './code-grant-dialog.component.html',
 styleUrls: ['./code-grant-dialog.component.scss'],
-standalone: false
+standalone: true,
+imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS, ...APP_COMPONENTS_IMPORTS, MarkAsteriskDirective]
 
 })
-export class CodeGrantDialogComponent implements OnInit {
+export class CodeGrantDialogComponent implements OnInit, OnDestroy {
 
     tipoPolicy: string = 'code_grant';
     title: string = 'APP.AUTHENTICATION.TITLE.GenerateCodeGrant';
@@ -49,7 +52,7 @@ export class CodeGrantDialogComponent implements OnInit {
     tokenPolicy: any = null;
     debug: boolean = false;
 
-    onClose!: Subject<any>;
+    onClose: Subject<any> = new Subject();
 
     _spin: boolean = false;
     
@@ -57,7 +60,19 @@ export class CodeGrantDialogComponent implements OnInit {
     _errorObject: any = null;
     _errorMsg: string = '';
     
-    formGroup: FormGroup = new FormGroup({});
+    formGroup: FormGroup = new FormGroup({
+        clientId: new FormControl('', [Validators.required]),
+        clientSecret: new FormControl('', [Validators.required]),
+        redirectUri: new FormControl('', [Validators.required]),
+        authorizationUrl: new FormControl('', [Validators.required]),
+        tokenUrl: new FormControl('', [Validators.required]),
+        scope: new FormControl('', []),
+        authLocation: new FormControl(null, []),
+        result: new FormControl(null, []),
+        authCode: new FormControl(null, []),
+        accessToken: new FormControl(null, []),
+        decodedToken: new FormControl(null, []),
+    });
 
     _showResult: boolean = false;
     _showMessageClipboard: boolean = false;
@@ -73,14 +88,14 @@ export class CodeGrantDialogComponent implements OnInit {
     authWindow: any = null;
 
     constructor(
-        private http: HttpClient,
-        private clipboard: Clipboard,
-        private bsModalRef: BsModalRef,
-        private translate: TranslateService,
-        private authenticationService: AuthenticationService,
-        private configService: ConfigService,
-        private utils: UtilsLib,
-        private authenticationDialogService: AuthenticationDialogService
+        private readonly http: HttpClient,
+        private readonly clipboard: Clipboard,
+        private readonly bsModalRef: BsModalRef,
+        private readonly translate: TranslateService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly configService: ConfigService,
+        private readonly utils: UtilsLib,
+        private readonly authenticationDialogService: AuthenticationDialogService
     ) { }
 
     ngOnInit() {
@@ -88,7 +103,7 @@ export class CodeGrantDialogComponent implements OnInit {
 
         const _configGenerale = Tools.Configurazione.generale;
         console.log('_configGenerale', _configGenerale);
-        const codeGrantOptions = this.configService.getAppConfig()['AUTH_SETTINGS']['TOKEN_POLICIES'][this.tipoPolicy];
+        const codeGrantOptions = this.configService.getAppConfig()?.['AUTH_SETTINGS']?.['TOKEN_POLICIES']?.[this.tipoPolicy];
 
         this._codicePolicy = this.tokenPolicy ? this.tokenPolicy['codice_policy'] : this._codicePolicy;
 
@@ -100,7 +115,6 @@ export class CodeGrantDialogComponent implements OnInit {
         this._authUrl = this.tokenPolicy ? this.tokenPolicy['auth_url'] : this._authUrl;
         this._tokenUrl = this.tokenPolicy ? this.tokenPolicy['token_url'] : this._tokenUrl;
 
-        this.onClose = new Subject();
         this.initForm();
 
         // Listen authentication value
@@ -121,19 +135,11 @@ export class CodeGrantDialogComponent implements OnInit {
     }
 
     initForm() {
-        this.formGroup = new FormGroup({
-            clientId: new FormControl('', [Validators.required]),
-            clientSecret: new FormControl('', [Validators.required]),
-            redirectUri: new FormControl(this._redirectUri, [Validators.required]),
-            authorizationUrl: new FormControl(this._authUrl, [Validators.required]),
-            tokenUrl: new FormControl(this._tokenUrl, [Validators.required]),
-            scope: new FormControl(this._scope, []),
-            authLocation: new FormControl(null, []),
-
-            result: new FormControl(null, []),
-            authCode: new FormControl(null, []),
-            accessToken: new FormControl(null, []),
-            decodedToken: new FormControl(null, []),
+        this.formGroup.patchValue({
+            redirectUri: this._redirectUri,
+            authorizationUrl: this._authUrl,
+            tokenUrl: this._tokenUrl,
+            scope: this._scope,
         });
     }
 

@@ -18,11 +18,15 @@
  */
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
+import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+
 @Component({
   selector: 'lnk-icon-toggle',
   templateUrl: './icon-toggle.component.html',
   styleUrls: ['./icon-toggle.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, TooltipModule]
 })
 export class LnkIconToggleComponent implements OnInit, OnChanges {
 

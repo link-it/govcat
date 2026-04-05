@@ -17,9 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { CommonModule } from "@angular/common";
+
+import { TranslateModule } from "@ngx-translate/core";
 import { TranslateService } from "@ngx-translate/core";
 import { forkJoin } from "rxjs";
 
+import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { GroupOrSingleAttribute, PdndService } from "../pdnd.service";
 
 import { PdndView } from "./pdnd-view";
@@ -135,7 +139,12 @@ const attributeListConfiguration = {
   selector: 'pdnd-service-view',
   templateUrl: 'pdnd-eservice-view.component.html',
   styleUrls: ['pdnd-eservice-view.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class PdndEServiceViewComponent implements OnChanges {
   public views: PdndView[] = [

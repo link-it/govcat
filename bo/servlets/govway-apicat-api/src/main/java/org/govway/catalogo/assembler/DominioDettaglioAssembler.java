@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -83,18 +84,18 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 
 		entity.setDeprecato(src.isDeprecato());
 
-		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
+		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 
 		if(!soggetto.isReferente()) {
 			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
-		
+
 		entity.setSoggettoReferente(soggetto);
 
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.GEN_400);
+					throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
 				}
 			}
 			setSkipCollaudo(src.isSkipCollaudo(), entity);
@@ -109,7 +110,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", classe.toString()))));
 			}
 		} else {
 			entity.getClassi().clear();
@@ -125,7 +126,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		entity.setSkipCollaudo(skipCollaudo);
 
 		if(entity.isSkipCollaudo() && !entity.getSoggettoReferente().isSkipCollaudo()) {
-			throw new BadRequestException(ErrorCode.GEN_400);
+			throw new BadRequestException(ErrorCode.GEN_400_SKIP_COLLAUDO);
 		}
 	}
 	
@@ -138,12 +139,12 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 		
 		entity.setDeprecato(src.isDeprecato());
 		entity.setIdDominio(UUID.randomUUID().toString());
-		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
+		SoggettoEntity soggetto = soggettoService.find(src.getIdSoggettoReferente()).orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404, Map.of("idSoggetto", src.getIdSoggettoReferente().toString())));
 
 		if(!soggetto.isReferente()) {
 			throw new BadRequestException(ErrorCode.VAL_400_REQUIRED);
 		}
-		
+
 		entity.setSoggettoReferente(soggetto);
 		entity.setVisibilita(this.engine.toVisibilita(src.getVisibilita()));
 		
@@ -153,7 +154,7 @@ public class DominioDettaglioAssembler extends RepresentationModelAssemblerSuppo
 			entity.getClassi().clear();
 			for(UUID classe: src.getClassi()) {
 				entity.getClassi().add(this.classeUtenteService.findByIdClasseUtente(classe)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", classe.toString()))));
 			}
 		} else {
 			entity.getClassi().clear();

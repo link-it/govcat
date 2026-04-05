@@ -16,10 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+
 import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
 
+import { NgSelectModule } from '@ng-select/ng-select';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { UppercaseDirective } from '@app/directives/uppercase/uppercase.directive';
+import { PopoverHelpComponent } from '@app/components/lnk-ui/popover-help/popover-help.component';
+import { LnkFormFieldErrorComponent } from '@app/components/lnk-ui/form-field-error/form-field-error.component';
 
 type InputType = 'text' | 'date' | 'textarea' | 'number' | 'checkbox' | 'password' | 'select';
 
@@ -27,7 +35,8 @@ type InputType = 'text' | 'date' | 'textarea' | 'number' | 'checkbox' | 'passwor
     selector: 'lnk-form-field',
     templateUrl: './form-field.component.html',
     styleUrls: ['./form-field.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule, NgSelectModule, MapperPipe, MarkAsteriskDirective, UppercaseDirective, PopoverHelpComponent, LnkFormFieldErrorComponent]
 })
 export class LnkFormFieldComponent implements OnInit {
 

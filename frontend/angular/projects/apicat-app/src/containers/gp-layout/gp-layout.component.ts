@@ -17,21 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterContentChecked, OnDestroy, HostBinding } from '@angular/core';
-import { Location } from '@angular/common';
-import { Title } from '@angular/platform-browser';
-import { NavigationEnd, Router } from '@angular/router';
+import { CommonModule, Location } from '@angular/common';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 
-import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
+import { TranslateModule, LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OAuthService } from 'angular-oauth2-oidc';
 
-import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService } from '@linkit/components';
+import { Tools, ConfigService, Language, MenuAction, EventType, EventsManagerService, LocalStorageService, BreadcrumbService, HeadBarComponent, SafeHtmlPipe, MapperPipe, MultiSnackbarComponent, RouterLinkMatchDirective } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { OpenAPIService } from '@services/openAPI.service';
 import { DashboardService } from '@services/dashboard.service';
 import { NotificationsCount, NotificationsService } from '@services/notifications.service';
 
 import { AboutDialogComponent } from '@app/components/about-dialog/about-dialog.component';
+import { NewsBoxComponent } from '@app/components/news-box/news-box.component';
+import { AboutMiniBoxComponent } from '@app/components/about-mini-box/about-mini-box.component';
+
+import { FlyOutDirective } from './gp-layout.directive';
 
 import { INavData } from './gp-sidebar-nav';
 import { GpSidebarNavHelper } from './gp-sidebar-nav.helper';
@@ -48,7 +51,20 @@ import * as _ from 'lodash';
     selector: 'gp-layout',
     templateUrl: './gp-layout.component.html',
     styleUrls: ['./gp-layout.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        RouterModule,
+        TranslateModule,
+        SafeHtmlPipe,
+        MapperPipe,
+        HeadBarComponent,
+        FlyOutDirective,
+        RouterLinkMatchDirective,
+        NewsBoxComponent,
+        AboutMiniBoxComponent,
+        MultiSnackbarComponent
+    ]
 })
 export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy {
     static readonly Name = 'GpLayoutComponent';
@@ -134,6 +150,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _stopPropagation: boolean = false; // Fix contextMenu
 
+    _showMobileTitle: boolean = true;
     _showLanguagesMenu: boolean = true;
     _showNotificationsMenu: boolean = false;
     _showNotificationsBar: boolean = true;
@@ -179,7 +196,6 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         private readonly apiService: OpenAPIService,
         private readonly notificationsService: NotificationsService,
         private readonly dashboardService: DashboardService,
-        private readonly titleService: Title,
         public sidebarNavHelper: GpSidebarNavHelper,
     ) {
         this.localStorageService.setItem('PROFILE', false);
@@ -218,7 +234,7 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
         this._enablePollingNotifications = this._config.AppConfig.Layout.enablePollingNotifications || false;
         this._enableOpenInNewTab = this._config.AppConfig.Layout.enableOpenInNewTab || false;
         this._title = this._config.AppConfig.Layout.Header.title;
-        this.titleService.setTitle(this._title);
+        this._showMobileTitle = this._config.AppConfig.Layout.Header.showMobileTitle !== false;
         this._api_url = this._config.AppConfig.SITE;
 
         let offset = 0;
@@ -248,6 +264,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this._hasDashboard = _dashboardRemoteConfig.abilitato || false;
             const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
             this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
+            if (_servizioRemoteConfig?.mostra_versione) {
+                this._config.AppConfig.Services = this._config.AppConfig.Services || {};
+                this._config.AppConfig.Services.hideVersions = _servizioRemoteConfig.mostra_versione !== 'enabled';
+            }
         }
 
         // Scrollbar options
@@ -410,6 +430,10 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             this._hasDashboard = _dashboardRemoteConfig.abilitato || false;
             const _servizioRemoteConfig: any = this.authenticationService._getConfigModule('servizio');
             this._showTaxonomies = _servizioRemoteConfig.tassonomie_abilitate || false;
+            if (_servizioRemoteConfig?.mostra_versione) {
+                this._config.AppConfig.Services = this._config.AppConfig.Services || {};
+                this._config.AppConfig.Services.hideVersions = _servizioRemoteConfig.mostra_versione !== 'enabled';
+            }
 
             console.log('2 - GpLayout Configurazione loaded');
         } catch (error) {
@@ -501,8 +525,8 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             const dashboardConfig = this._config.AppConfig.Layout.dashboard;
             this._dashboardEnabled = dashboardConfig?.enabled || false;
 
-            // Se il gestore ha la dashboard abilitata e hideNotificationMenu e' true, nasconde le notifiche
-            if (this._dashboardEnabled && dashboardConfig?.hideNotificationMenu && this.authenticationService.isGestore()) {
+            // Se la dashboard è abilitata, nasconde le notifiche in alto a destra (previa configurazione)
+            if (this._dashboardEnabled) {
                 this._showNotificationsBar = false;
                 this._showNotificationsMenu = false;
                 this._enablePollingNotifications = false;
@@ -559,15 +583,6 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
             const ruolo = this.authenticationService.getRole();
             if (ruolo && this._dashboardEnabled) {
                 this.navItems = [...navItemsDashboardMenu];
-            } else if (!ruolo && this._dashboardEnabled) {
-                // Utente senza ruolo principale: verifica se ha ruoli_referente
-                this.dashboardService.getRuoliProfilo().subscribe({
-                    next: (profilo) => {
-                        if (profilo.ruoli_referente && profilo.ruoli_referente.length > 0) {
-                            this.navItems = [...navItemsDashboardMenu, ...this.navItems];
-                        }
-                    }
-                });
             }
         }
         this.navItems = [...this.navItems, ...this.prepareNavigation()];
@@ -783,7 +798,6 @@ export class GpLayoutComponent implements OnInit, AfterContentChecked, OnDestroy
 
     _onMenuHeaderAction(event: any) {
         this._title = this._config.AppConfig.Layout.Header.title;
-        this.titleService.setTitle(this._title);
         switch (event.menu.action) {
             case 'login':
                 this.router.navigate(['/auth/login']);

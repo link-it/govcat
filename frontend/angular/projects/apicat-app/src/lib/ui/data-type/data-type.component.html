@@ -1,0 +1,102 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@switch (_elem.type) {
+  @case ('text') {
+    <div class="{{ _elem.class || '' }} overflow-auto" [style.max-height]="_elem.height">{{ _value || '-' }}</div>
+  }
+  @case ('html') {
+    <div class="{{ _elem.class || '' }}" [innerHTML]="_value"></div>
+  }
+  @case ('markdown') {
+    <div markdown class="text-break {{ _elem.class || '' }}">{{ _value }}</div>
+  }
+  @case ('number') {
+    @if (!(_elem.hideZero && _value == 0)) {
+      <div class="d-inline-block">
+        <span class="{{ _elem.class || '' }}" [tooltip]="_elem.tooltip || '' | translate" container="body" [delay]="500">
+          @if (_elem.icon) {
+            <i class="bi bi-{{ _elem.icon }} {{ _elem.iconClass }}"></i>
+          }
+          {{ _value ? utilsLib.formatBytes(_value) : '' }}
+        </span>
+      </div>
+    }
+  }
+  @case ('message') {
+    <span [tooltip]="_elem.tooltip || '' | translate" container="body" [delay]="500" class="{{ _elem.class || '' }}">{{ _elem.field }}</span>
+  }
+  @case ('date') {
+    <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [delay]="500" class="{{ _elem.class || '' }}">{{ _value || '-' }}</span>
+  }
+  @case ('timeago') {
+    <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [delay]="500" class="{{ _elem.class || '' }}">{{ _value || '-' }}</span>
+  }
+  @case ('mstime') {
+    <span [tooltip]="(_elem.tooltip || '') | translate" container="body" [delay]="500" class="{{ _elem.class || '' }}">{{ _value || '-' }}</span>
+  }
+  @case ('label') {
+    <span class="status-label {{_class}} status-label-scoped status-ml-2-" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color"> <span class="status-link status-label-link"> <span class="status-label-text">{{_label | translate}}</span> <span class="status-label-text-scoped">{{_value | translate}}</span></span></span>
+  }
+  @case ('status') {
+    <span class="status-label {{_class}} status-label-scoped status-ml-2-" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color"> <span class="status-link status-label-link"> <span class="status-label-text">{{_label | translate}}</span> <span class="status-label-text-scoped">{{_value | translate}}</span></span></span>
+  }
+  @case ('tag') {
+    @if (_showBadged) {
+      <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color">{{_value | translate}}</span>
+    }
+    @if (!_showBadged) {
+      <span class="">{{_value | translate}}</span>
+    }
+  }
+  @case ('cardinal') {
+    <span [tooltip]="_elem.tooltip || '' | translate" container="body" [delay]="500" class="{{ _elem.class || '' }}">#{{ _value }}</span>
+  }
+  @case ('currency') {
+    <span [tooltip]="_elem.tooltip || '' | translate" container="body" [delay]="500" class="{{ _elem.class || '' }}">{{ utilsLib.currencyFormatter(_value) }}</span>
+  }
+  @case ('progress') {
+    <span class="progress">{{ _value }}</span>
+  }
+  @case ('avatar') {
+    <span class="position-relative" [tooltip]="_value" container="body" [delay]="500">
+      <img class="align-top" ngxGravatar [email]="_value" [size]="20" fallback="mp" fallback="mp" (error)="onAvatarError($event)">
+    </span>
+  }
+  @case ('image') {
+    <span class="position-relative" [tooltip]="_elem.tooltip" container="body" [delay]="500">
+      <img class="align-top border w-50" [src]="_sanitizeUrl(_value)">
+    </span>
+  }
+  @case ('iconBs') {
+    <span class="bi bi-{{ _elem.icon }}" [tooltip]="(_elem.tooltip || '') | translate" container="body" [delay]="500"></span>
+  }
+  @case ('icon') {
+    <span class="bi bi-{{ _value }} {{ _class }}" [tooltip]="(_elem.tooltip || '') | translate" container="body" [delay]="500"></span>
+  }
+  @case ('json') {
+    <div class="{{ _class }} overflow-auto" [style.max-height]="_elem.height" [innerHtml]="_value"></div>
+  }
+  @case ('tags') {
+    <div class="{{ _class }}">
+      @for (tag of _value; track tag) {
+        <span class="badge text-dark border fw-light fs-8 me-2">{{ tag }}</span>
+      }
+    </div>
+  }
+}

@@ -17,17 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
-import { AbstractControl, FormGroup, FormControl } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule, Location } from '@angular/common';
+import { AbstractControl, FormGroup, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { HttpHeaders } from '@angular/common/http';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { NgxMasonryOptions } from 'ngx-masonry';
 
 import { TranslateService } from '@ngx-translate/core';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
-import { Tools, ConfigService, EventsManagerService, LocalStorageService, EventType, BreadcrumbService, SearchBarFormComponent } from '@linkit/components';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { Tools, ConfigService, EventsManagerService, LocalStorageService, EventType, BreadcrumbService, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -36,23 +38,39 @@ import { NavigationService } from '@app/services/navigation.service';
 import { ModalCategoryChoiceComponent } from '@app/components/modal-category-choice/modal-category-choice.component';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
-import { concat, Observable, of, Subject, throwError } from 'rxjs';
+import { concat, firstValueFrom, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Page } from '@app/models/page';
 import { TipoServizioEnum } from '@app/model/tipoServizioEnum';
-import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
+import { CardType } from '@app/lib/ui/card/card.component';
 
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { TassonomiaTokenComponent } from '@app/components/token/tassonomia-token.component';
+import { ExportDropdwnComponent, ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+import { ServiziGroupListCardComponent } from './components/servizi-group-list-card/servizi-group-list-card.component';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 import * as _ from 'lodash';
 declare const saveAs: any;
-
-import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
 
 @Component({
     selector: 'app-servizi',
     templateUrl: 'servizi.component.html',
     styleUrls: ['servizi.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        TassonomiaTokenComponent,
+        ExportDropdwnComponent,
+        ServiziGroupListCardComponent,
+        MapperPipe,
+        InfiniteScrollDirective,
+        AutoFillScrollDirective
+    ]
 })
 export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChecked {
     static readonly Name = 'ServiziComponent';
@@ -128,6 +146,16 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ];
     _tipiVisibilitaServizioEnum: any = { ...Tools.VisibilitaServizioEnum };
 
+    _allRuoliServizi: { value: string, label: string }[] = [
+        { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
+        { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
+        { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
+        { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
+        { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' }
+    ];
+    _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliServizi.map(r => [r.value, r.label]));
+    _availableRuoliServizi: { value: string, label: string }[] = [...this._allRuoliServizi];
+
     searchFields: any[] = [
         // { field: 'creationDateFrom', label: 'APP.LABEL.Date', type: 'date', condition: 'gt', format: 'DD/MM/YYYY' },
         // { field: 'creationDateTo', label: 'APP.LABEL.Date', type: 'date', condition: 'lt', format: 'DD/MM/YYYY' },
@@ -152,6 +180,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         { field: 'categoriaLabel', label: 'APP.LABEL.categoria', type: 'related', condition: 'equal', params: { resource: 'tassonomie', path: 'categorie', field: 'nome' }, options: { hide: true } },
         { field: 'id_gruppo_padre', label: 'APP.LABEL.gruppo', type: 'text', condition: 'equal', params: { resource: 'gruppi', path: '', field: 'nome' } },
         { field: 'id_gruppo_padre_label', label: 'APP.LABEL.gruppo', type: 'related', condition: 'equal', options: { hide: true } },
+        { field: 'ruolo_referente', label: 'APP.LABEL.ruolo_referente', type: 'enum', condition: 'equal', enumValues: this._ruoloReferenteEnumValues },
         // { field: 'taxonomiesGroup', label: 'APP.LABEL.tassonomie', type: 'group', condition: 'equal', options: { hide: true } }
     ];
     useCondition: boolean = false;
@@ -174,6 +203,12 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _isMyServices: boolean = false;
     _myServicesCount: number = 0;
 
+    roleTab: string = 'tutti';
+    roleTabs: { key: string, label: string, roles: string[] }[] = [
+        { key: 'tutti', label: 'APP.FILTER.All', roles: [] },
+        { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+        { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio'] }
+    ];
     _currIdGruppoPadre: string = '';
     _gruppoPadreNull: boolean = true;
     groupsBreadcrumbs: any[] = [
@@ -217,10 +252,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     _lastColor: string = '';
     showGroupIcon: boolean = false;
     showGroupLabel: boolean = false;
-    cardImagePosition: string = 'cover';
-    cardDefaultBackColor: string = '#f1f1f1';
-    listImagePosition: string = 'cover';
-    listDefaultBackColor: string = '#f1f1f1';
 
     masonryOptions: NgxMasonryOptions = {
         itemSelector: '.masonry-item',
@@ -244,7 +275,9 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     ActionEnum = ActionEnum;
 
     constructor(
+        private readonly route: ActivatedRoute,
         private readonly router: Router,
+        private readonly location: Location,
         private readonly modalService: BsModalService,
         private readonly translate: TranslateService,
         private readonly configService: ConfigService,
@@ -258,7 +291,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         private readonly breadCrumbService: BreadcrumbService,
         private readonly navigationService: NavigationService
     ) {
-        this.tipo_servizio = (this.router.url === '/servizi') ? TipoServizioEnum.API : TipoServizioEnum.Generico;
+        this.tipo_servizio = this.router.url.startsWith('/servizi-generici') ? TipoServizioEnum.Generico : TipoServizioEnum.API;
 
         const servizio = this.authenticationService._getConfigModule('servizio');
         const hasServiziApi = servizio?.api?.abilitato || false;
@@ -280,12 +313,6 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this.colors = this.config.AppConfig.Layout.GroupView.colors || [];
         this.showGroupIcon = this.config.AppConfig.Layout.GroupView.showGroupIcon || false;
         this.showGroupLabel = this.config.AppConfig.Layout.GroupView.showGroupLabel || false;
-        const _cardConfig = this.config.AppConfig.Layout.GroupView.card || {};
-        this.cardImagePosition = _cardConfig.imagePosition || 'cover';
-        this.cardDefaultBackColor = _cardConfig.defaultBackColor || '#f1f1f1';
-        const _listConfig = this.config.AppConfig.Layout.GroupView.list || {};
-        this.listImagePosition = _listConfig.imagePosition || 'cover';
-        this.listDefaultBackColor = _listConfig.defaultBackColor || '#f1f1f1';
         this._useNewSearchUI = true;
         this.fullScroll = this.config.AppConfig.Layout.fullScroll || false;
         this._showTaxonomies = servizio?.tassonomie_abilitate || false;
@@ -346,11 +373,23 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
     }
 
     ngOnInit() {
-        const groupsBreadcrumbs = this.breadCrumbService.getBreadcrumbs();
-        if (groupsBreadcrumbs) {
-            this._currIdGruppoPadre = groupsBreadcrumbs.currIdGruppoPadre;
-            this._gruppoPadreNull = groupsBreadcrumbs.gruppoPadreNull;
-            this.groupsBreadcrumbs = groupsBreadcrumbs.groupsBreadcrumbs;
+        const idGruppoFromUrl = this.route.snapshot.queryParams['gruppo'];
+        if (idGruppoFromUrl) {
+            this._groupsView = true;
+            this._currIdGruppoPadre = idGruppoFromUrl;
+            this._gruppoPadreNull = false;
+            this._resolveGroupHierarchy(idGruppoFromUrl);
+        } else {
+            const groupsBreadcrumbs = this.breadCrumbService.getBreadcrumbs();
+            if (groupsBreadcrumbs) {
+                this._currIdGruppoPadre = groupsBreadcrumbs.currIdGruppoPadre;
+                this._gruppoPadreNull = groupsBreadcrumbs.gruppoPadreNull;
+                this.groupsBreadcrumbs = groupsBreadcrumbs.groupsBreadcrumbs;
+                if (this.groupsBreadcrumbs?.length > 0) {
+                    this._groupsView = true;
+                    this._updateUrlGruppo(this._currIdGruppoPadre || null);
+                }
+            }
         }
 
         this.configService.getConfig(this.model).subscribe(
@@ -407,7 +446,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const currentSession = this.authenticationService.getCurrentSession();
         const _userSettings = currentSession?.settings;
 
-        if (_userSettings && _userSettings.servizi) {
+        if (_userSettings?.servizi) {
             this._groupsView = (_userSettings.servizi.view === 'card');
             if (this._isMyServices) {
                 this.resetElements();
@@ -473,6 +512,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             stato: new FormControl(''),
             type: new FormControl(''),
             referente: new FormControl(''),
+            ruolo_referente: new FormControl([]),
             id_dominio: new FormControl(''),
             id_gruppo: new FormControl(''),
             visibilita: new FormControl(''),
@@ -568,8 +608,24 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (query) {
             const _categoriaLabel = query.categoriaLabel;
             delete query.categoriaLabel;
-        
-            aux = { params: this.utils._queryToHttpParams(query) };
+
+            // Estrai ruolo_referente (array) prima di _queryToHttpParams
+            const ruoloReferenteFilter: string[] = query.ruolo_referente || [];
+            delete query.ruolo_referente;
+
+            let params = this.utils._queryToHttpParams(query);
+
+            // Inietta ruolo_referente: dal filtro avanzato se presente, altrimenti dal tab attivo
+            if (ruoloReferenteFilter.length > 0) {
+                ruoloReferenteFilter.forEach(r => { params = params.append('ruolo_referente', r); });
+            } else if (this._isMyServices) {
+                const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+                if (activeTab && activeTab.roles.length > 0) {
+                    activeTab.roles.forEach(r => { params = params.append('ruolo_referente', r); });
+                }
+            }
+
+            aux = { params };
         }
 
         this._spin = !this._hideLoader;
@@ -582,7 +638,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 }
                 this._allElements = this._page.totalElements || 0;
 
-                if (response && response.content) {
+                if (response?.content) {
                     const _list: any = response.content.map((service: any, index: number) => {            
                         const _meta: string[] = [];
                         if (service.descrizione_sintetica) {
@@ -594,10 +650,11 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                             _visibilita = service.visibilita ? service.visibilita : `${service.dominio.visibilita}`;
                         }
                         service.visibilita = _visibilita;
+                        const _ruoliLabel = service.ruoli_referente || [];
                         const element = {
                             id: service.id || index,
                             editMode: false,
-                            source: { ...service, visibilita: _visibilita, logo: service.immagine ? `${this.api_url}/servizi/${service.id_servizio}/immagine`: '' },
+                            source: { ...service, visibilita: _visibilita, ruoli_referente_label: _ruoliLabel, logo: service.immagine ? `${this.api_url}/servizi/${service.id_servizio}/immagine`: '' },
                             idServizio: service.id_servizio,
                             nome: service.nome,
                             versione: service.versione || '',
@@ -700,6 +757,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 { label: param.primaryText, url: param.id, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group' }
             );
             this._saveGroupsBreadcrumbs();
+            this._updateUrlGruppo(param.id);
             this.refresh();
         }
     }
@@ -711,9 +769,11 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             if (group.url === 'root') {
                 this._currIdGruppoPadre = '';
                 this._gruppoPadreNull = true;
+                this._updateUrlGruppo(null);
             } else {
                 this._currIdGruppoPadre = group.url;
                 this._gruppoPadreNull = false;
+                this._updateUrlGruppo(group.url);
             }
             this._saveGroupsBreadcrumbs();
             this.refresh();
@@ -768,7 +828,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this._groupsView = false;
         this._filterDataEmpty = !Object.values(_tempFilter).some(x => (x !== null && x !== ''));
         if (this._filterDataEmpty) {
-            this._groupsView = !this._manualSelected;
+            this._groupsView = !this._manualSelected && !this._isMyServices;
         }
         if (this._groupsView) {
             this._loadServiziGruppi();
@@ -783,6 +843,46 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         this._gruppoPadreNull = true;
         this.groupsBreadcrumbs = [];
         this._removeGroupsBreadcrumbs();
+        this._updateUrlGruppo(null);
+    }
+
+    _updateUrlGruppo(idGruppo: string | null) {
+        const basePath = this.location.path().split('?')[0];
+        if (idGruppo) {
+            this.location.replaceState(basePath, `gruppo=${idGruppo}`);
+        } else {
+            this.location.replaceState(basePath);
+        }
+    }
+
+    async _resolveGroupHierarchy(idGruppo: string) {
+        try {
+            const query = { id_gruppo_padre: idGruppo, tipo_servizio: this.tipo_servizio };
+            const params = this.utils._queryToHttpParams(query);
+            const response: any = await firstValueFrom(this.apiService.getList('servizi_gruppi', { params }));
+            const firstItem = response?.content?.[0];
+            const pathGruppo: { id_gruppo: string; nome: string }[] = firstItem?.path_gruppo || [];
+            if (pathGruppo.length > 0) {
+                this.groupsBreadcrumbs = pathGruppo.map((g) => ({
+                    label: g.nome, url: g.id_gruppo, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group'
+                }));
+            } else {
+                // Fallback: il gruppo potrebbe essere root o non avere path_gruppo, usa il nome dal gruppo stesso
+                const gruppo: any = await firstValueFrom(this.apiService.getDetails('gruppi', idGruppo));
+                this.groupsBreadcrumbs = [
+                    { label: gruppo.nome, url: gruppo.id_gruppo, type: 'link', icon: '', group: true, tooltip: 'APP.TOOLTIP.Group' }
+                ];
+            }
+            this._currIdGruppoPadre = idGruppo;
+            this._gruppoPadreNull = false;
+            this._groupsView = true;
+            this._saveGroupsBreadcrumbs();
+        } catch (error) {
+            console.error('Error resolving group hierarchy', error);
+            this._currIdGruppoPadre = '';
+            this._gruppoPadreNull = true;
+            this.groupsBreadcrumbs = [];
+        }
     }
 
     _resetForm() {
@@ -832,6 +932,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
                 this._gruppoPadreNull = groupsBreadcrumbs.gruppoPadreNull;
                 this.groupsBreadcrumbs = groupsBreadcrumbs.groupsBreadcrumbs;
                 this._saveGroupsBreadcrumbs();
+                this._updateUrlGruppo(this._currIdGruppoPadre);
             }
             if (event.url === 'root') {
                 this._resetGroupsBreadcrumbs();
@@ -852,8 +953,7 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         if (this._groupsView) {
             this._isMyServices = false;
         }
-        // this._saveSettings();
-        this._manualSelected = this._groupsView ? false : true;
+        this._manualSelected = !this._groupsView;
         this.refresh();
     }
 
@@ -868,6 +968,8 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
             this._groupsView = false;
         } else {
             this._groupsView = !this._manualSelected;
+            this.roleTab = 'tutti';
+            this._updateRuoloReferenteFilter();
         }
         this._saveSettings();
         this.refresh();
@@ -875,7 +977,31 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
 
     _showAllServices() {
         this._isMyServices = false;
+        this.roleTab = 'tutti';
+        this._updateRuoloReferenteFilter();
         this.refresh();
+    }
+
+    onRoleTabChange(tab: string) {
+        if (this.roleTab === tab) return;
+        this.roleTab = tab;
+        this._updateRuoloReferenteFilter();
+        this._formGroup.get('ruolo_referente')?.setValue([]);
+        this.refresh();
+    }
+
+    _updateRuoloReferenteFilter() {
+        const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+        const availableRoles = activeTab && activeTab.roles.length > 0
+            ? this._allRuoliServizi.filter(r => activeTab.roles.includes(r.value))
+            : this._allRuoliServizi;
+        this._availableRuoliServizi = availableRoles;
+        this._ruoloReferenteEnumValues = {};
+        availableRoles.forEach(r => { this._ruoloReferenteEnumValues[r.value] = r.label; });
+        const searchField = this.searchFields.find((f: any) => f.field === 'ruolo_referente');
+        if (searchField) {
+            searchField.enumValues = this._ruoloReferenteEnumValues;
+        }
     }
 
     _isGestore() {
@@ -894,8 +1020,11 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         return this._isAnonymous();
     }
 
-    trackBySelectFn(item: any) {
-        return item.id_api;
+    _canAddServiceMapper = (): boolean => {
+        if (this._isAnonymous()) { return false; }
+        const user: any = this.authenticationService.getUser();
+        if (!user?.ruolo && !user?.referente_tecnico) { return false; }
+        return true;
     }
 
     _initProfili() {
@@ -1318,21 +1447,20 @@ export class ServiziComponent implements OnInit, AfterViewInit, AfterContentChec
         const headers = new HttpHeaders().set('timeout', '300000');
 
         this._downloading = true;
-        this.apiService.download(`${this.model}-export`, null, undefined, undefined, headers)
-            .subscribe({
-                next: (response: any) => {
-                    let filename: string = Tools.GetFilenameFromHeader(response);
-                    saveAs(response.body, filename);
-                    this._downloading = false;
-                },
-                error: (error: any) => {
-                    this._downloading = false;
-                    if (error.name === 'TimeoutError') {
-                        Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
-                    } else {
-                        Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
-                    }
+        this.apiService.download(`${this.model}-export`, null, undefined, undefined, headers).subscribe({
+            next: (response: any) => {
+                let filename: string = Tools.GetFilenameFromHeader(response);
+                saveAs(response.body, filename);
+                this._downloading = false;
+            },
+            error: (error: any) => {
+                this._downloading = false;
+                if (error.name === 'TimeoutError') {
+                    Tools.showMessage(this.translate.instant('APP.MESSAGE.ERROR.Timeout'), 'danger', true);
+                } else {
+                    Tools.showMessage(this.utils.GetErrorMsg(error), 'danger', true);
                 }
-            });
+            }
+        });
     }
 }

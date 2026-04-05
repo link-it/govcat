@@ -17,4 +17,3 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 export * from './scrollbar-hover.directive';
-export * from './scrollbar-hover.module';

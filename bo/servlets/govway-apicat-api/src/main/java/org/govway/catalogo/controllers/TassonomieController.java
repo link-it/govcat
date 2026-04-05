@@ -192,19 +192,19 @@ public class TassonomieController implements TassonomieApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException(ErrorCode.CAT_404);
+					throw new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString()));
 				}
 
 				if(!entity.getFigli().isEmpty()) {
-					throw new BadRequestException(ErrorCode.CAT_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.CAT_400_HAS_CHILDREN, Map.of("nome", entity.getNome()));
 				}
 				
 				if(!entity.getServizi().isEmpty()) {
-					throw new BadRequestException(ErrorCode.CAT_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.CAT_400_HAS_CHILDREN, Map.of("nome", entity.getNome()));
 				}
 				
 				if(entity.getTassonomia().isVisibile() && entity.getTassonomia().getCategorie().size() == 1) {
-					throw new BadRequestException(ErrorCode.CAT_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.CAT_400_HAS_CHILDREN, Map.of("nome", entity.getNome()));
 				}
 				
 				this.service.delete(entity);
@@ -236,7 +236,7 @@ public class TassonomieController implements TassonomieApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idTassonomia", idTassonomia.toString())));
 
 				if(!entity.getCategorie().isEmpty()) {
-					throw new BadRequestException(ErrorCode.TAX_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.TAX_400_HAS_CATEGORIES, Map.of("nome", entity.getNome()));
 				}
 				
 				this.service.delete(entity);
@@ -268,7 +268,7 @@ public class TassonomieController implements TassonomieApi {
 						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException(ErrorCode.CAT_404);
+					throw new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString()));
 				}
 
 				Categoria model = this.categoriaDettaglioAssembler.toModel(entity);
@@ -423,7 +423,7 @@ public class TassonomieController implements TassonomieApi {
 
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException(ErrorCode.CAT_404);
+					throw new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString()));
 				}
 
 				entity = this.categoriaDettaglioAssembler.toEntity(categoriaUpdate, entity);
@@ -494,7 +494,7 @@ public class TassonomieController implements TassonomieApi {
 
 
 				if(!entity.getTassonomia().getIdTassonomia().equals(idTassonomia.toString())) {
-					throw new NotFoundException(ErrorCode.CAT_404);
+					throw new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString()));
 				}
 
 

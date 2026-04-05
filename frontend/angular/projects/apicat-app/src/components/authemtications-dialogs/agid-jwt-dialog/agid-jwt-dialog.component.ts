@@ -17,27 +17,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { AbstractControl, FormsModule, FormControl, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
 
 import { Subject } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { AuthenticationService } from '@services/authentication.service';
-import { ConfigService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { AuthenticationDialogService } from '../services/authentication-dialog.service';
 
 import * as rs from 'jsrsasign';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 
 @Component({
     selector: 'app-agid-jwt-dialog',
     templateUrl: './agid-jwt-dialog.component.html',
     styleUrls: ['./agid-jwt-dialog.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS, ...APP_COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
 export class AgidJwtDialogComponent implements OnInit {
 
@@ -47,7 +51,7 @@ export class AgidJwtDialogComponent implements OnInit {
     tokenPolicy: any = null;
     debug: boolean = false;
 
-    onClose!: Subject<any>;
+    onClose: Subject<any> = new Subject();
 
     _spin: boolean = false;
 
@@ -55,7 +59,21 @@ export class AgidJwtDialogComponent implements OnInit {
     _errorObject: any = null;
     _errorMsg: string = '';
 
-    formGroup: FormGroup = new FormGroup({});
+    formGroup: FormGroup = new FormGroup({
+        kid: new FormControl('', [Validators.required]),
+        alg: new FormControl('', [Validators.required]),
+        typ: new FormControl({ value: '', disabled: true }, [Validators.required]),
+        clientId: new FormControl('', [Validators.required]),
+        audience: new FormControl({ value: '', disabled: true }, [Validators.required]),
+        purposeId: new FormControl('', [Validators.required]),
+
+        key: new FormControl(null, [Validators.required]),
+        keyFile: new FormControl(null, [Validators.required]),
+        keyFormat: new FormControl(null, []),
+
+        result: new FormControl('', []),
+        expiresIn: new FormControl(0, []),
+    });
 
     _showResult: boolean = false;
     _showMessageClipboard: boolean = false;
@@ -72,14 +90,14 @@ export class AgidJwtDialogComponent implements OnInit {
     _keyFileCtrl: FormControl = new FormControl(null, [Validators.required]);
 
     constructor(
-        private http: HttpClient,
-        private clipboard: Clipboard,
+        private readonly http: HttpClient,
+        private readonly clipboard: Clipboard,
         public bsModalRef: BsModalRef,
-        private translate: TranslateService,
-        private authenticationService: AuthenticationService,
-        private configService: ConfigService,
+        private readonly translate: TranslateService,
+        private readonly authenticationService: AuthenticationService,
+        private readonly configService: ConfigService,
         public utils: UtilsLib,
-        private authenticationDialogService: AuthenticationDialogService
+        private readonly authenticationDialogService: AuthenticationDialogService
     ) { }
 
     ngOnInit() {
@@ -102,23 +120,12 @@ export class AgidJwtDialogComponent implements OnInit {
     }
 
     initForm() {
-        this.formGroup = new FormGroup({
-            kid: new FormControl('', [Validators.required]),
-            alg: new FormControl(this._algDefault, [Validators.required]),
-            typ: new FormControl({ value: this._type, disabled: true }, [Validators.required]),
-            clientId: new FormControl('', [Validators.required]),
-            // issuer: new FormControl('', [Validators.required]),
-            // subject: new FormControl('', [Validators.required]),
-            audience: new FormControl({ value: this._audience, disabled: true }, [Validators.required]),
-            purposeId: new FormControl('', [Validators.required]),
-
-            key: new FormControl(null, [Validators.required]),
-            keyFile: this._keyFileCtrl,
-            keyFormat: new FormControl(null, []),
-
-            result: new FormControl('', []),
-            expiresIn: new FormControl(0, []),
+        this.formGroup.setControl('keyFile', this._keyFileCtrl);
+        this.formGroup.patchValue({
+            alg: this._algDefault,
         });
+        this.formGroup.get('typ')?.setValue(this._type);
+        this.formGroup.get('audience')?.setValue(this._audience);
     }
 
     closeModal(data: any = null) {
@@ -174,21 +181,22 @@ export class AgidJwtDialogComponent implements OnInit {
                 // Se è DER, convertilo in PEM prima di passarlo a KEYUTIL.getKey
                 const pemKey = this.authenticationDialogService.buildPEMString(values.key, 'PRIVATE KEY');
                 rsaKey = rs.KEYUTIL.getKey(pemKey);
-            } catch (e) {
+            } catch {
                 try {
                     // Se è DER, convertilo in PEM prima di passarlo a KEYUTIL.getKey
                     const pemKey = this.authenticationDialogService.buildPEMString(values.key, 'RSA PRIVATE KEY');
                     rsaKey = rs.KEYUTIL.getKey(pemKey);
-                } catch (e1) {
+                } catch (error) {
                     this._error = true;
                     this._errorMsg = 'Errore durante la lettura della chiave';
-                    console.error("Errore durante la lettura della chiave: ", e1);
+                    console.error("Errore durante la lettura della chiave: ", error);
                     return;
                 }
             }
         } else {
             this._error = true;
             this._errorMsg = 'Formato della chiave non supportato';
+            return '';
         }
 
         try {

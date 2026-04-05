@@ -21,23 +21,30 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { Page } from '@app/models/page';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import * as _ from 'lodash';
+
+import { CommonModule } from '@angular/common';
+import { VerificaSoggettoTokenComponent } from './verifica-soggetto-token/verifica-soggetto-token.component';
 
 @Component({
   selector: 'app-verifiche',
   templateUrl: 'verifiche.component.html',
   styleUrls: ['verifiche.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    VerificaSoggettoTokenComponent
+  ]
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'VerificheComponent';

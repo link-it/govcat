@@ -18,7 +18,7 @@
  */
 import { Component, HostListener, Input, SimpleChanges } from '@angular/core';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 import { OpenAPIService } from '@app/services/openAPI.service';
 
@@ -26,11 +26,21 @@ import _ from 'lodash';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
+import { CommonModule } from '@angular/common';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { OrderByPipe } from '@app/lib/pipes/ordeby.pipe';
+
 @Component({
   selector: 'ui-verifica-soggetto-token',
   styleUrls: ['./verifica-soggetto-token.component.scss'],
   templateUrl: './verifica-soggetto-token.component.html',
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    MapperPipe,
+    OrderByPipe
+  ]
 })
 export class VerificaSoggettoTokenComponent {
 

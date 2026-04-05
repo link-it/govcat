@@ -31,11 +31,17 @@
 import { WorkflowProduzioneSenzaCollaudoEnum } from './workflowProduzioneSenzaCollaudoEnum';
 
 
+export interface DatoSempreModificabile {
+    classe_dato: string;
+    ruoli: string[];
+}
+
 export interface ConfigurazioneAdesione {
     scelta_libera_organizzazione: boolean;
     riuso_client_obbligatorio: boolean;
     workflow_produzione_senza_collaudo: WorkflowProduzioneSenzaCollaudoEnum;
     stati_dashboard_client?: string[];
+    dati_sempre_modificabili?: DatoSempreModificabile[];
 }
 export namespace ConfigurazioneAdesione {
 }

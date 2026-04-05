@@ -17,10 +17,11 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div id="route-section" class="">
-    <div class="top-area container-fluid limit-container-width px-0">
-      <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
-      <div class="d-flex flex-grow-1">&nbsp;</div>
-      <div class="nav-controls" *ngIf="!_spin">
+  <div class="top-area container-fluid limit-container-width px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    @if (!_spin) {
+      <div class="nav-controls">
         <app-monitor-dropdown
           [showComunications]="true"
           [showMonitoring]="false"
@@ -30,99 +31,104 @@
           (action)="onActionMonitor($event)">
         </app-monitor-dropdown>
       </div>
-    </div>
-    <section #myScroll 
-      class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4 container-limited-"
-      (scroll)="onScroll($event)">
+    }
+  </div>
+  <section #myScroll
+    class="container-fluid limit-container-width container-scroller container-scroller-no-top-area container-scroller-no-search px-0 pt-4 container-limited-"
+    (scroll)="onScroll($event)">
 
-      <app-scroll *ngIf="_showScroll" (scrollToTop)="_onScrollToTop()"></app-scroll>
-  
-      <div class="settings-" *ngIf="(adesione && !_spin)">
+    @if (_showScroll) {
+      <app-scroll (scrollToTop)="_onScrollToTop()"></app-scroll>
+    }
+
+    @if ((adesione && !_spin)) {
+      <div class="settings-">
         <div class="settings-content-">
-
           <div id="main">
             <div class="container-fluid">
-
               <div class="row">
                 <div class="col-4 border-end" style="min-height: 400px;">
                   <div class="sticky-top">
-                      <span *ngIf="adesione?.servizio?.immagine">
-                    </span>
-
+                    @if (adesione.servizio.immagine) {
+                      <span>
+                      </span>
+                    }
                     <div class="titolo-block mt-4">
                       <h4 class="d-inline text-break">{{ adesione.servizio.nome }}</h4>
                       <span class="badge badge-pill badge-primary swagger--hero-pill ml-2">v. {{ adesione.servizio.versione }}</span>
                     </div>
-
                     <div class="organizzazione-block stato-block mt-2">
                       <p class="lead pt-3 pb-3 project__desc">
                         <span class="text-break">{{ adesione.soggetto.organizzazione.nome }}</span>
                         <br />
-                        <ui-data-type *ngIf="adesione"
-                          [data]="adesione"
-                          [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                          [config]="config">
-                        </ui-data-type>
+                        @if (adesione) {
+                          <ui-data-type
+                            [data]="adesione"
+                            [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                            [config]="config">
+                          </ui-data-type>
+                        }
                       </p>
                     </div>
-
-                    <div class="" *ngIf="_showRichiedente">
-                      <span class="text-break">{{'APP.LABEL.SubscriptionRequest' | translate: {date: adesione.data_creazione | date: 'dd.MM.yyyy', name: adesione.utente_richiedente.nome, surname: adesione.utente_richiedente.cognome} }}</span>
-                    </div>
-
+                    @if (_showRichiedente) {
+                      <div class="">
+                        <span class="text-break">{{'APP.LABEL.SubscriptionRequest' | translate: {date: adesione.data_creazione | date: 'dd.MM.yyyy', name: adesione.utente_richiedente.nome, surname: adesione.utente_richiedente.cognome} }}</span>
+                      </div>
+                    }
                     <div class="mt-4">
                       <span class="text-break">{{adesione.servizio.descrizione_sintetica}}</span>
                     </div>
-
-                    <div class="download-block row mt-4" *ngIf="canDownloadSchedaAdesioneMapper()">
-                      <div class="col-12">
-                        <button class="btn btn-link btn-md gl-button" (click)="downloadSchedaAdesione()" [class.disabled]="_downloading">
-                          <i class="bi bi-download me-2"></i>
-                          <span>{{ 'APP.ADESIONI.LABEL.DownloadScheda' | translate }}</span>
-                          <span class="spinner-border spinner-border-sm ms-2" *ngIf="_downloading"></span>
-                        </button>
+                    @if (canDownloadSchedaAdesioneMapper()) {
+                      <div class="download-block row mt-4">
+                        <div class="col-12">
+                          <button class="btn btn-link btn-md gl-button" (click)="downloadSchedaAdesione()" [class.disabled]="_downloading">
+                            <i class="bi bi-download me-2"></i>
+                            <span>{{ 'APP.ADESIONI.LABEL.DownloadScheda' | translate }}</span>
+                            @if (_downloading) {
+                              <span class="spinner-border spinner-border-sm ms-2"></span>
+                            }
+                          </button>
+                        </div>
                       </div>
-                    </div>
-
-                    <div class="referenti-block mt-5" *ngIf="_showReferents">
-                      <h5 class="h6 text-uppercase text-muted mb-3">{{ 'APP.SERVICES.TITLE.Referenti' | translate }}</h5>
-                      <div class="d-flex flex-column">
-                        <ng-container *ngIf="referentiLoading; else referentiTmplLeaders">
-                          <span class="spinner-border spinner-border-sm"></span>
-                        </ng-container>
-                        <ng-template #referentiTmplLeaders>
-                          <ul class="list-unstyled">
-                            <ng-container *ngFor="let referente of referents;let index = index;">
-                              <li class="d-flex project__leaders__item mb-3" [class.hide-more]="index >= maxReferenti">
-                                <span title="referente" target="_blank">
-                                  <img class="align-top" alt="Avatar referente" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
-                                </span>
-                                <div class="flex-column">
-                                  <div class="ml-2 mb-1 d-flex referente">
-                                    <span title="referente" target="_blank" class="align-self-center">{{ referente.name }}</span>
+                    }
+                    @if (_showReferents) {
+                      <div class="referenti-block mt-5">
+                        <h5 class="h6 text-uppercase text-muted mb-3">{{ 'APP.SERVICES.TITLE.Referenti' | translate }}</h5>
+                        <div class="d-flex flex-column">
+                          @if (referentiLoading) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <ul class="list-unstyled">
+                              @for (referente of referents; track referente; let index = $index) {
+                                <li class="d-flex project__leaders__item mb-3" [class.hide-more]="index >= maxReferenti">
+                                  <span title="referente" target="_blank">
+                                    <img class="align-top" alt="Avatar referente" ngxGravatar [email]="referente.email || ''" [size]="50" fallback="mp" (error)="onAvatarError($event)">
+                                  </span>
+                                  <div class="flex-column">
+                                    <div class="ml-2 mb-1 d-flex referente">
+                                      <span title="referente" target="_blank" class="align-self-center">{{ referente.name }}</span>
+                                    </div>
+                                    <div class="ml-1 d-flex flex-wrap ref-types">
+                                      @for (type of referente.types; track type) {
+                                        <ui-data-type class="ml-1"
+                                          [data]="{ type: type }"
+                                          [elem]="{ field: 'type', type: 'tag', options: 'type' }"
+                                          [config]="config">
+                                        </ui-data-type>
+                                      }
+                                    </div>
                                   </div>
-                                  <div class="ml-1 d-flex flex-wrap ref-types">
-                                    <ui-data-type class="ml-1" *ngFor="let type of referente.types"
-                                      [data]="{ type: type }"
-                                      [elem]="{ field: 'type', type: 'tag', options: 'type' }"
-                                      [config]="config">
-                                    </ui-data-type>
-                                  </div>
-                                </div>
-                              </li>
-                            </ng-container>
-                          </ul>
-                        </ng-template>
+                                </li>
+                              }
+                            </ul>
+                          }
+                        </div>
                       </div>
-                    </div>
-
-
+                    }
                   </div>
                 </div>
                 <div class="col-8">
-
                   <div class="container-fluid">
-
                     <div class="row justify-content-end">
                       <div class="col-4">
                         <div class="gl-w-full btn-group btn-group-toggle">
@@ -139,17 +145,17 @@
                         </div>
                       </div>
                     </div>
-
-                    <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2" *ngIf="_loadingConfiguration"></ui-box-spinner>
-
+                    @if (_loadingConfiguration) {
+                      <ui-box-spinner [color]="'primary'" [diameter]="24" [strokeWidth]="2"></ui-box-spinner>
+                    }
                     <div class="api-block mt-5">
-                      <ng-container *ngIf="authModes.length > 0">
+                      @if (authModes.length > 0) {
                         <div class="mb-5">
                           <h6 id="api-erogato_soggetto_dominio" class="text-uppercase text-muted mb-5">
                             {{'APP.ADESIONI.TITLE.ConfigurationAuth' | translate}}
                           </h6>
                           <div class="border- border-bottom-0 list-group">
-                            <ng-container *ngFor="let mode of authModes">
+                            @for (mode of authModes; track mode) {
                               <div class="mb-2">
                                 <ui-collapse-row class="border-bottom- list-group-item list-group-item-action p-1"
                                   [data]="mode"
@@ -161,23 +167,27 @@
                                     <div class="d-flex flex-row">
                                       <table class="table">
                                         <tbody>
-                                          <tr *ngIf="mode.canDownloadAuthCertificate">
-                                            <td>{{'APP.CLIENT.LABEL.AuthenticationCertificate' | translate}}</td>
-                                            <td>
-                                              <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.authCertificate" (click)="download(mode, mode.authCertificate)">
-                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                                              </button>
-                                            </td>
-                                          </tr>
-                                          <tr *ngIf="mode.canDownloadSignCertificate">
-                                            <td>{{'APP.CLIENT.LABEL.SignCertificate' | translate}}</td>
-                                            <td>
-                                              <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.signCertificate" (click)="download(mode, mode.authCertificate)">
-                                                <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
-                                              </button>
-                                            </td>
-                                          </tr>
-                                          <ng-container *ngIf="mode.canViewOAuthCode">
+                                          @if (mode.canDownloadAuthCertificate) {
+                                            <tr>
+                                              <td>{{'APP.CLIENT.LABEL.AuthenticationCertificate' | translate}}</td>
+                                              <td>
+                                                <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.authCertificate" (click)="download(mode, mode.authCertificate)">
+                                                  <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                              </td>
+                                            </tr>
+                                          }
+                                          @if (mode.canDownloadSignCertificate) {
+                                            <tr>
+                                              <td>{{'APP.CLIENT.LABEL.SignCertificate' | translate}}</td>
+                                              <td>
+                                                <button class="btn btn-default btn-sm gl-button btn-icon input-group-text- bg-white-" [disabled]="!mode.signCertificate" (click)="download(mode, mode.authCertificate)">
+                                                  <span>{{ 'APP.BUTTON.Download' | translate }}</span><i class="bi bi-download ms-2"></i>
+                                                </button>
+                                              </td>
+                                            </tr>
+                                          }
+                                          @if (mode.canViewOAuthCode) {
                                             <tr>
                                               <td>{{'APP.CLIENT.LABEL.UrlRedirezione' | translate}}</td>
                                               <td>{{mode.url_redirezione}}</td>
@@ -194,43 +204,50 @@
                                               <td>{{'APP.CLIENT.LABEL.NomeApplicazionePortale' | translate}}</td>
                                               <td>{{mode.nome_applicazione_portale}}</td>
                                             </tr>
-                                          </ng-container>
-                                          <tr *ngIf="mode.canViewClientId">
-                                            <td>{{mode.client_id_label | translate}}</td>
-                                            <td>{{mode.client_id}}</td>
-                                          </tr>
-                                          <tr *ngIf="mode.canViewUsername">
-                                            <td>{{'APP.LABEL.Username' | translate}}</td>
-                                            <td>{{mode.username}}</td>
-                                          </tr>
-                                          <tr *ngIf="mode.description">
-                                            <td>{{'APP.LABEL.Description' | translate}}</td>
-                                            <td>{{mode.description}}</td>
-                                          </tr>
-                                          <tr *ngIf="mode.canViewIpfruizione">
-                                            <td>{{'APP.ADESIONI.TITLE.IPfruizione' | translate}}</td>
-                                            <td>{{mode.ip}}</td>
-                                          </tr>
+                                          }
+                                          @if (mode.canViewClientId) {
+                                            <tr>
+                                              <td>{{mode.client_id_label | translate}}</td>
+                                              <td>{{mode.client_id}}</td>
+                                            </tr>
+                                          }
+                                          @if (mode.canViewUsername) {
+                                            <tr>
+                                              <td>{{'APP.LABEL.Username' | translate}}</td>
+                                              <td>{{mode.username}}</td>
+                                            </tr>
+                                          }
+                                          @if (mode.description) {
+                                            <tr>
+                                              <td>{{'APP.LABEL.Description' | translate}}</td>
+                                              <td>{{mode.description}}</td>
+                                            </tr>
+                                          }
+                                          @if (mode.canViewIpfruizione) {
+                                            <tr>
+                                              <td>{{'APP.ADESIONI.TITLE.IPfruizione' | translate}}</td>
+                                              <td>{{mode.ip}}</td>
+                                            </tr>
+                                          }
                                         </tbody>
                                       </table>
                                     </div>
                                   </div>
                                 </ui-collapse-row>
                               </div>
-                            </ng-container>
+                            }
                           </div>
                         </div>
-                      </ng-container>
+                      }
                     </div>
-
                     <div class="api-block mt-5">
-                      <ng-container *ngIf="apis.length > 0">
+                      @if (apis.length > 0) {
                         <div class="mb-5">
                           <h6 id="api-erogato_soggetto_dominio" class="text-uppercase text-muted mb-5">
                             {{'APP.ADESIONI.TITLE.ConfigurationAPI' | translate}}
                           </h6>
                           <div class="border- border-bottom-0 list-group">
-                            <ng-container *ngFor="let api of apis">
+                            @for (api of apis; track api) {
                               <ui-collapse-row class="border-bottom- list-group-item list-group-item-action p-1"
                                 [data]="api"
                                 [config]="clientRowConfig"
@@ -254,12 +271,11 @@
                                   </div>
                                 </div>
                               </ui-collapse-row>
-                            </ng-container>
+                            }
                           </div>
                         </div>
-                      </ng-container>
+                      }
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -267,6 +283,6 @@
           </div>
         </div>
       </div>
-    </section>
-  </div>
-  
+    }
+  </section>
+</div>

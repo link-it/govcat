@@ -57,6 +57,7 @@ import org.govway.catalogo.servlets.model.ConfigurazioneClasseDato;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomAdesioneProprietaList;
 import org.govway.catalogo.servlets.model.ConfigurazioneCustomProprieta;
 import org.govway.catalogo.servlets.model.ConfigurazioneWorkflow;
+import org.govway.catalogo.servlets.model.ConfigurazioneDatoSempreModificabile;
 import org.govway.catalogo.servlets.model.EntitaComplessaError;
 import org.govway.catalogo.servlets.model.ErogazioneRichiesta;
 import org.govway.catalogo.servlets.model.Ruolo;
@@ -572,5 +573,10 @@ public class AdesioneAuthorization extends DefaultWorkflowAuthorization<Adesione
 	protected ConfigurazioneWorkflow getWorkflow(AdesioneEntity entity) {
 		return this.configurazione.getAdesione().getWorkflow();
 	}
-	
+
+	@Override
+	protected List<ConfigurazioneDatoSempreModificabile> getDatiSempreModificabili() {
+		return this.configurazione.getAdesione().getDatiSempreModificabili();
+	}
+
 }	

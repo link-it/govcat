@@ -17,7 +17,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from "@angular/core";
+import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
+
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ConfigService } from '@linkit/components';
 
@@ -30,7 +34,12 @@ import { NotificationState } from '../notifications'
   selector: 'app-notification-bar',
   templateUrl: 'notification-bar.component.html',
   styleUrls: ['notification-bar.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TooltipModule,
+    TranslateModule
+  ]
 })
 export class NotificationBarComponent implements OnInit, OnChanges {
 
@@ -43,6 +52,7 @@ export class NotificationBarComponent implements OnInit, OnChanges {
 
   _notification: any = null;
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   NotificationState = NotificationState;
 
@@ -58,6 +68,7 @@ export class NotificationBarComponent implements OnInit, OnChanges {
     this.route.queryParams.subscribe((params) => {
       if (params['from'] === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = params['section'] || '';
       }
     });
 
@@ -120,7 +131,12 @@ export class NotificationBarComponent implements OnInit, OnChanges {
   }
 
   onBack() {
-    this.router.navigate([this._fromDashboard ? '/dashboard' : '/notifications']);
+    if (this._fromDashboard) {
+      const queryParams = this._dashboardSection ? { section: this._dashboardSection } : undefined;
+      this.router.navigate(['/dashboard'], { queryParams });
+    } else {
+      this.router.navigate(['/notifications']);
+    }
   }
 
   onClose() {

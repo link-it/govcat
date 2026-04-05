@@ -17,12 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { CategoriesComponent } from '../../views/taxonomies/components/categories/categories.component';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import { OpenAPIService } from '@services/openAPI.service';
@@ -33,7 +37,8 @@ import * as _ from 'lodash';
   selector: 'app-modal-category-choice',
   templateUrl: './modal-category-choice.component.html',
   styleUrls: ['./modal-category-choice.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS, CategoriesComponent]
 })
 export class ModalCategoryChoiceComponent implements OnInit {
 
@@ -125,10 +130,6 @@ export class ModalCategoryChoiceComponent implements OnInit {
 
   onChangeSearchDropdwon(event: any){
     this.selectedTassonomia = event;
-  }
-
-  trackBySelectFn(item: any) {
-    return item.id_tassonomia;
   }
 
   _setErrorMessages(error: boolean) {

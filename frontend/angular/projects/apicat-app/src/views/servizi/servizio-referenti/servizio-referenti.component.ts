@@ -24,7 +24,7 @@ import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, FieldClass, YesnoDialogBsComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -39,6 +39,9 @@ import { catchError, debounceTime, distinctUntilChanged, filter, finalize, switc
 
 import * as _ from 'lodash';
 
+import { CommonModule } from '@angular/common';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+
 export enum TabType {
   REFERENTI = 'REFERENTI',
   DOMINIO = 'DOMINIO'
@@ -48,7 +51,12 @@ export enum TabType {
   selector: 'app-servizio-referenti',
   templateUrl: 'servizio-referenti.component.html',
   styleUrls: ['servizio-referenti.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    MonitorDropdwnComponent
+  ]
 })
 export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ServizioReferentiComponent';
@@ -135,6 +143,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   currTab: string = TabType.REFERENTI;
 
@@ -172,6 +181,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -191,15 +201,15 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
         this.configService.getConfig('referenti').subscribe(
           (config: any) => {
             this.referentiConfig = config;
-            if (!this.service) {
-              this._loadServizio();
-            } else {
+            if (this.service) {
               this._isDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.esterna || false;
               this._idDominioEsterno = this.service.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
               this._initBreadcrumb();
               this._updateMapper = new Date().getTime().toString();
               this._loadServizioReferenti();
               this._loadDominioReferenti();
+            } else {
+              this._loadServizio();
             }
           }
         );
@@ -229,8 +239,9 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
     if (this._fromDashboard && !this._componentBreadcrumbs) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.TITLE.ServiceReferents', url: ``, type: 'link' }
       ];
@@ -456,7 +467,11 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {
@@ -548,11 +563,7 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
-  }
-
-  trackByFn(item: any) {
-    return item.id;
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _initReferentiSelect(defaultValue: any[] = []) {
@@ -603,6 +614,10 @@ export class ServizioReferentiComponent implements OnInit, AfterContentChecked {
   }
 
   _canAddMapper = (): boolean => {
+    const _grant: any = this._grant?.ruoli || [];
+    if (this.authenticationService._isDatoSempreModificabile('servizio', 'referenti', _grant)) {
+      return true;
+    }
     const _cnm = this.authenticationService._getClassesNotModifiable('servizio', 'servizio', this.service?.stato);
     const _lstPerm = [];
     if (_.indexOf(_cnm, 'referente') === -1) {

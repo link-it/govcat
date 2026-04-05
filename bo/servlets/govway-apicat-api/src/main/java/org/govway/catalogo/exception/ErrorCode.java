@@ -63,6 +63,24 @@ public enum ErrorCode {
     /** Specifica non presente */
     API_400_SPEC("Specifica non presente"),
 
+    /** API ha erogazioni, non eliminabile */
+    API_400_HAS_EROGATIONS("API ha erogazioni attive"),
+
+    /** API non trovata per il servizio */
+    API_404_FOR_SERVICE("API non trovata per il servizio"),
+
+    /** API non trovata per nome/versione/erogatore */
+    API_404_BY_NAME("API non trovata per nome"),
+
+    /** Erogazione non trovata per l'adesione */
+    API_404_EROGATION("Erogazione non trovata per l'adesione"),
+
+    /** API non trovata o non accessibile */
+    API_404_ACCESS("API non trovata o non accessibile"),
+
+    /** Allegato servizio duplicato */
+    SRV_400_DUPLICATE("Allegato servizio duplicato"),
+
     // ==================== SERVIZI ====================
 
     /** Servizio non trovato */
@@ -95,6 +113,15 @@ public enum ErrorCode {
     /** Impossibile aggiungere utente come referente del package */
     SRV_403_ADD_REFERENT("Impossibile aggiungere referente al package"),
 
+    /** Conflitto servizio */
+    SRV_409_CONFLICT("Conflitto servizio"),
+
+    /** Package non trovato */
+    SRV_404_PACKAGE("Package non trovato"),
+
+    /** Operazione non valida sul servizio */
+    SRV_400_INVALID("Operazione non valida sul servizio"),
+
     // ==================== ORGANIZZAZIONI ====================
 
     /** Organizzazione non trovata */
@@ -102,6 +129,18 @@ public enum ErrorCode {
 
     /** Organizzazione già esistente */
     ORG_409("Organizzazione già esistente"),
+
+    /** Organizzazione ha dipendenze, non eliminabile */
+    ORG_400_HAS_DEPENDENCIES("Organizzazione ha dipendenze"),
+
+    /** Vincolo organizzazione non rispettato */
+    ORG_400_CONSTRAINT_VIOLATION("Vincolo organizzazione non rispettato"),
+
+    /** Referente dominio duplicato */
+    ORG_409_REFERENT("Referente dominio duplicato"),
+
+    /** Soggetto aderente vincolato */
+    ORG_409_ADERENTE("Soggetto aderente vincolato"),
 
     // ==================== DOMINI ====================
 
@@ -119,6 +158,30 @@ public enum ErrorCode {
     /** Soggetto già esistente */
     SOG_409("Soggetto già esistente"),
 
+    /** Soggetto non trovato per nome */
+    SOG_404_BY_NAME("Soggetto non trovato per nome"),
+
+    /** Soggetto non trovato nell'organizzazione */
+    SOG_404_IN_ORG("Soggetto non trovato nell'organizzazione"),
+
+    /** Soggetto ha domini attivi */
+    SOG_400_HAS_DOMAINS("Soggetto ha domini attivi"),
+
+    /** Soggetto è il default dell'organizzazione */
+    SOG_400_IS_DEFAULT("Soggetto è il default dell'organizzazione"),
+
+    /** Soggetto non aderente */
+    SOG_400_NOT_ADERENTE("Soggetto non aderente"),
+
+    /** Soggetto di organizzazione diversa */
+    SOG_400_ORG_MISMATCH("Soggetto di organizzazione diversa"),
+
+    /** Soggetto default di organizzazione aderente, non può essere reso non aderente */
+    SOG_400_DEFAULT_ORG_ADERENTE("Soggetto default di organizzazione aderente non può essere reso non aderente"),
+
+    /** Soggetto già esistente in altra organizzazione */
+    SOG_409_IN_ORG("Soggetto già esistente in altra organizzazione"),
+
     // ==================== UTENTI ====================
 
     /** Utente non trovato */
@@ -127,11 +190,23 @@ public enum ErrorCode {
     /** Utente già esistente */
     UT_409("Utente già esistente"),
 
-    /** Utente già esistente */
+    /** Utente non abilitato */
+    UT_400_NOT_ENABLED("Utente non abilitato"),
+
+    /** Utente non appartenente all'organizzazione richiesta */
+    UT_400_ORG_MISMATCH("Utente non appartenente all'organizzazione"),
+
+    /** Utente non abilitato */
     UT_403("Utente non abilitato"),
 
     /** Modifica email non consentita tramite updateProfilo quando verifica è abilitata */
     UT_403_EMAIL_CHANGE("Modifica email non consentita. Utilizzare il flusso di verifica email"),
+
+    /** Utente non trovato per nome */
+    UT_404_BY_NAME("Utente non trovato per nome"),
+
+    /** Ruolo coordinatore non abilitato nella configurazione */
+    UT_400_COORDINATORE_DISABLED("Ruolo coordinatore non abilitato"),
 
     // ==================== CLASSI UTENTE ====================
 
@@ -145,6 +220,30 @@ public enum ErrorCode {
 
     /** Client non trovato */
     CLT_404("Client non trovato"),
+
+    /** Client senza adesioni valide */
+    CLT_404_NO_ADHESION("Client senza adesioni valide"),
+
+    /** Client non trovato per nome/soggetto/ambiente */
+    CLT_404_BY_NAME("Client non trovato per nome"),
+
+    /** Profilo client non trovato per adesione */
+    CLT_404_PROFILE("Profilo client non trovato per adesione"),
+
+    /** Client già configurato, non modificabile */
+    CLT_400_CONFIGURED("Client già configurato"),
+
+    /** Client ha adesioni, non modificabile */
+    CLT_400_HAS_ADHESIONS("Client ha adesioni attive"),
+
+    /** Configurazione client non valida per allarme */
+    CLT_400_ALARM_CONFIG("Configurazione client non valida per allarme"),
+
+    /** Auth type client non corrisponde al profilo */
+    CLT_400_AUTH_MISMATCH("Auth type client non corrisponde al profilo"),
+
+    /** Client duplicati nell'operazione */
+    CLT_409_DUPLICATES("Client duplicati nell'operazione"),
 
     /** Client già esistente */
     CLT_409("Client già esistente"),
@@ -172,6 +271,30 @@ public enum ErrorCode {
     /** Referente adesione non autorizzato */
     ADE_403_REFERENT("Referente non autorizzato"),
 
+    /** Adesione non trovata per contesto specifico */
+    ADE_404_BY_CONTEXT("Adesione non trovata per contesto"),
+
+    /** Stato adesione non valido per monitoraggio */
+    ADE_400_STATE_MONITORING("Stato adesione non valido per monitoraggio"),
+
+    /** Stato servizio non consente adesione */
+    ADE_400_STATE_SERVICE("Stato servizio non consente adesione"),
+
+    /** Referente adesione duplicato */
+    ADE_409_REFERENT("Referente adesione duplicato"),
+
+    /** Skip collaudo non consentito dal servizio */
+    ADE_409_STATE_SKIP_COLLAUDO("Skip collaudo non consentito"),
+
+    /** Adesione disabilitata per il servizio */
+    ADE_409_STATE_DISABLED("Adesione disabilitata per il servizio"),
+
+    /** Visibilità non consente adesione */
+    ADE_409_STATE_VISIBILITY("Visibilità non consente adesione"),
+
+    /** Soggetto non corrisponde al soggetto interno */
+    ADE_409_STATE_SUBJECT_MISMATCH("Soggetto non corrisponde al soggetto interno"),
+
     // ==================== TASSONOMIE ====================
 
     /** Tassonomia non trovata */
@@ -180,6 +303,12 @@ public enum ErrorCode {
     /** Tassonomia già esistente */
     TAX_409("Tassonomia già esistente"),
 
+    /** Tassonomia ha categorie, non eliminabile */
+    TAX_400_HAS_CATEGORIES("Tassonomia ha categorie"),
+
+    /** Categoria padre in tassonomia diversa */
+    TAX_400_CATEGORY_MISMATCH("Categoria padre in tassonomia diversa"),
+
     // ==================== CATEGORIE ====================
 
     /** Categoria non trovata */
@@ -187,6 +316,12 @@ public enum ErrorCode {
 
     /** Categoria già esistente */
     CAT_409("Categoria già esistente"),
+
+    /** Categoria ha sotto-categorie, non eliminabile */
+    CAT_400_HAS_CHILDREN("Categoria ha sotto-categorie"),
+
+    /** Tassonomia visibile senza categorie */
+    CAT_400_EMPTY_TAXONOMY("Tassonomia visibile senza categorie"),
 
     // ==================== GRUPPI ====================
 
@@ -206,6 +341,18 @@ public enum ErrorCode {
 
     /** Documento con UUID e versione non trovato */
     DOC_404_VERSION("Documento versione non trovata"),
+
+    /** Allegato non trovato per l'adesione */
+    DOC_404_ALLEGATO("Allegato non trovato per l'adesione"),
+
+    /** Allegato servizio non trovato */
+    DOC_404_ALLEGATO_SERVIZIO("Allegato servizio non trovato"),
+
+    /** Messaggio non trovato */
+    DOC_404_MESSAGGIO("Messaggio non trovato"),
+
+    /** Immagine servizio non trovata */
+    DOC_404_IMAGE("Immagine non trovata per il servizio"),
 
     /** Formato documento non supportato */
     DOC_400_FORMAT("Formato documento non supportato"),
@@ -283,6 +430,12 @@ public enum ErrorCode {
     /** Accesso negato alla risorsa */
     AUT_403_RESOURCE("Accesso risorsa negato"),
 
+    /** Organizzazione utente non corrisponde per adesione */
+    AUT_403_ORG_ADHESION("Organizzazione utente non corrisponde per adesione"),
+
+    /** Utente non abilitato come referente */
+    AUT_403_REFERENT_NOT_ELIGIBLE("Utente non abilitato come referente"),
+
     /** Token di autenticazione non valido */
     AUT_401_TOKEN("Token non valido"),
 
@@ -321,11 +474,35 @@ public enum ErrorCode {
     /** Partita IVA non valida */
     VAL_400_PIVA("Partita IVA non valida"),
 
+    /** Tipo enum non valido */
+    VAL_400_ENUM("Tipo enum non valido"),
+
+    /** Origine parsing non valida */
+    VAL_400_ORIGIN("Origine non valida per il parsing"),
+
+    /** Gruppo API non valido */
+    VAL_400_GROUP("Gruppo API non valido"),
+
+    /** Ruolo API non corrispondente al gruppo */
+    VAL_400_GROUP_ROLE("Ruolo API non corrispondente al gruppo"),
+
+    /** Ambiente URL e body non corrispondenti */
+    VAL_400_ENVIRONMENT_MISMATCH("Ambiente URL e body non corrispondenti"),
+
     /** Richiesta non valida semanticamente */
     VAL_422("Richiesta non valida semanticamente"),
 
     /** Update entità complessa non valida semanticamente */
     VAL_422_COMPLEX("Update entità complessa non valida"),
+
+    /** Client non eliminabile con adesioni */
+    VAL_422_CLIENT_HAS_ADHESIONS("Client non eliminabile con adesioni attive"),
+
+    /** API non appartiene al servizio */
+    VAL_422_API_SERVICE_MISMATCH("API non appartiene al servizio"),
+
+    /** Skip collaudo non consentito */
+    VAL_422_SKIP_COLLAUDO("Skip collaudo non consentito"),
 
     // ==================== WORKFLOW ====================
 
@@ -351,6 +528,12 @@ public enum ErrorCode {
 
     /** Risposta non valida dal servizio */
     INT_502("Risposta non valida da servizio"),
+
+    /** Risposta non valida con status code */
+    INT_502_STATUS("Risposta non valida da servizio con status code imprevisto"),
+
+    /** Errore comunicazione allarme */
+    INT_500_ALARM("Errore comunicazione allarme"),
 
     /** Servizio temporaneamente non disponibile */
     INT_503("Servizio temporaneamente non disponibile"),
@@ -397,6 +580,15 @@ public enum ErrorCode {
 
     /** Richiesta non valida */
     GEN_400_REQUEST("Richiesta non valida"),
+
+    /** Dominio ha servizi attivi */
+    GEN_400_HAS_SERVICES("Dominio ha servizi attivi"),
+
+    /** Skip collaudo vincolato */
+    GEN_400_SKIP_COLLAUDO("Skip collaudo vincolato"),
+
+    /** Tipo report non valido */
+    GEN_400_REPORT_TYPE("Tipo report non valido"),
 
     // ==================== REGISTRAZIONE ====================
 

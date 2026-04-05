@@ -20,17 +20,24 @@ import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, EventsManagerService } from '@linkit/components';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
+
+import { CommonModule } from '@angular/common';
+import { TreeViewCategoryComponent } from '@app/components/tree-view-category/tree-view-category.component';
 
 @Component({
   selector: 'app-categories',
   templateUrl: 'categories.component.html',
   styleUrls: ['categories.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    TreeViewCategoryComponent
+  ]
 })
 export class CategoriesComponent implements OnInit, OnChanges {
   static readonly Name = 'CategoriesComponent';

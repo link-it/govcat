@@ -17,6 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, SearchBarFormComponent, YesnoDialogBsComponent } from '@linkit/components';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -24,15 +31,9 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
-
-import { YesnoDialogBsComponent } from '@linkit/components';
 
 import { Page } from '@app/models/page';
 import { TipologiaAllegatoEnum } from '@app/model/tipologiaAllegatoEnum';
@@ -47,7 +48,8 @@ declare const saveAs: any;
   selector: 'app-servizio-specifica',
   templateUrl: 'servizio-specifica.component.html',
   styleUrls: ['servizio-specifica.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MapperPipe, AutoFillScrollDirective, MarkAsteriskDirective, MonitorDropdwnComponent]
 })
 export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioSpecificaComponent';
@@ -123,6 +125,7 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
   _updateMapper: string = '';
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -146,6 +149,7 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -209,7 +213,8 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
     ];
 
     if (this._fromDashboard) {
-      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
+      this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams };
     }
   }
 
@@ -226,7 +231,7 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
 
   _initSearchForm() {
     this._formGroup = new UntypedFormGroup({
-      "organization.taxCode": new UntypedFormControl(''),
+      organizationTaxCode: new UntypedFormControl(''),
       creationDateFrom: new UntypedFormControl(''),
       creationDateTo: new UntypedFormControl(''),
       fileName: new UntypedFormControl(''),
@@ -354,7 +359,11 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {
@@ -488,7 +497,7 @@ export class ServizioSpecificaComponent implements OnInit, AfterContentChecked, 
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
   }
 
   _downloadAllegato(data: any) {

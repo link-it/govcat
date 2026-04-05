@@ -78,6 +78,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.1;
+
+  .unread-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    min-width: 10px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    cursor: help;
+  }
 }
 
 .summary-card-label {
@@ -196,6 +206,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
   .comunicazione-non-letta {
     background-color: #f0f4ff;
+  }
+}
+
+// Comunicazioni tabs
+.comunicazioni-tabs {
+  flex-shrink: 0;
+  background-color: #fafbfc;
+
+  .nav {
+    gap: 0;
+  }
+}
+
+// Comunicazioni item actions on hover
+.comunicazioni-item-actions {
+  display: none;
+}
+
+.comunicazioni-item-wrapper:hover {
+  .comunicazioni-item-actions {
+    display: flex;
+    background: linear-gradient(to right, transparent, #f0f4f8 30%);
+    padding-left: 2rem;
   }
 }
 

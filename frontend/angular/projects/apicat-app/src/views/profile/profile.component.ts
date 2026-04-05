@@ -17,16 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { AfterContentChecked, Component, HostListener, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
-import { Tools, ConfigService, YesnoDialogBsComponent } from '@linkit/components';
+import { Tools, ConfigService, YesnoDialogBsComponent, BreadcrumbComponent, BoxMessageComponent, BoxSpinnerComponent, InputHelpComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
+import { LnkFormFieldComponent } from '@app/components/lnk-ui/form-field/form-field.component';
+import { LnkFormErrorComponent } from '@app/components/lnk-ui/form-error/form-error.component';
+import { LnkFormSubmitComponent } from '@app/components/lnk-ui/form-submit/submit.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -46,7 +52,17 @@ interface BodySettingsType {
   selector: 'app-profile',
   templateUrl: 'profile.component.html',
   styleUrls: ['profile.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    MarkdownModule,
+    InputHelpComponent,
+    LnkButtonComponent,
+    LnkFormFieldComponent,
+    LnkFormErrorComponent,
+    LnkFormSubmitComponent
+  ]
 })
 export class ProfileComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'ProfileComponent';
@@ -85,63 +101,22 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
     { label: 'APP.TITLE.Profile', url: '', type: 'title', iconBs: 'person' }
   ];
   
-  // Opzioni per tipi di notifica (ogni elemento ha versione in-app e _email)
-  _emetti_per_tipi: { label: string; value: string }[] = [
-    { label: 'APP.NOTIFICATIONS.TYPE.Comunicazione', value: 'comunicazione' },
-    { label: 'APP.NOTIFICATIONS.TYPE.CambioStato', value: 'cambio_stato' }
-  ];
-
-  // Opzioni per entità
-  _emetti_per_entita: { label: string; value: string }[] = [
-    { label: 'APP.NOTIFICATIONS.ENTITY.Servizio', value: 'servizio' },
-    { label: 'APP.NOTIFICATIONS.ENTITY.Adesione', value: 'adesione' }
-  ];
-
-  // Opzioni per ruoli - raggruppati per contesto
-  _emetti_per_ruoli: { label: string; value: string }[] = [
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteDominio', value: 'servizio_referente_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoDominio', value: 'servizio_referente_tecnico_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteServizio', value: 'servizio_referente_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoServizio', value: 'servizio_referente_tecnico_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioRichiedenteServizio', value: 'servizio_richiedente_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteDominio', value: 'adesione_referente_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoDominio', value: 'adesione_referente_tecnico_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteServizio', value: 'adesione_referente_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoServizio', value: 'adesione_referente_tecnico_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteServizio', value: 'adesione_richiedente_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteAdesione', value: 'adesione_referente_adesione' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoAdesione', value: 'adesione_referente_tecnico_adesione' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' },
-  ];
-
-  // Ruoli raggruppati per sotto-sezione collassabile
-  _ruoliServizio: { label: string; value: string }[] = [
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteDominio', value: 'servizio_referente_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoDominio', value: 'servizio_referente_tecnico_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteServizio', value: 'servizio_referente_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioReferenteTecnicoServizio', value: 'servizio_referente_tecnico_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.ServizioRichiedenteServizio', value: 'servizio_richiedente_servizio' }
-  ];
-
-  _ruoliAdesione: { label: string; value: string }[] = [
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteDominio', value: 'adesione_referente_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoDominio', value: 'adesione_referente_tecnico_dominio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteServizio', value: 'adesione_referente_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoServizio', value: 'adesione_referente_tecnico_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteServizio', value: 'adesione_richiedente_servizio' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteAdesione', value: 'adesione_referente_adesione' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneReferenteTecnicoAdesione', value: 'adesione_referente_tecnico_adesione' },
-    { label: 'APP.NOTIFICATIONS.TAG.AdesioneRichiedenteAdesione', value: 'adesione_richiedente_adesione' }
-  ];
-
-  _showRuoliServizio: boolean = false;
-  _showRuoliAdesione: boolean = false;
-
   _formSettingsSettings: FormGroup = new FormGroup({
-    emetti_per_tipi: new FormControl([], []),
-    emetti_per_entita: new FormControl([], []),
-    emetti_per_ruoli: new FormControl([], []),
+    notifiche_inapp: new FormControl(true),
+    notifiche_email: new FormControl(false),
+    cambio_stato_inapp: new FormControl(false),
+    cambio_stato_email: new FormControl(false),
   });
+
+  /**
+   * Le opzioni "cambio stato" sono abilitabili solo se almeno una tra
+   * notifiche_inapp e notifiche_email è attiva.
+   */
+  get cambioStatoDisabled(): boolean {
+    const inapp = this._formSettingsSettings.get('notifiche_inapp')?.value;
+    const email = this._formSettingsSettings.get('notifiche_email')?.value;
+    return !inapp && !email;
+  }
 
   /**
    * Verifica se l'utente corrente è un gestore
@@ -152,14 +127,9 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   /**
    * Determina se mostrare la sezione impostazioni notifiche.
-   * Il gestore non vede questa sezione quando la dashboard è abilitata
-   * e hideNotificationMenu è true nella configurazione Layout.
+   * Visibile per tutti gli utenti autenticati.
    */
   get showNotificationsSettings(): boolean {
-    const dashboardConfig = this.config?.AppConfig?.Layout?.dashboard;
-    if (this.isGestore && dashboardConfig?.enabled && dashboardConfig?.hideNotificationMenu) {
-      return false;
-    }
     return true;
   }
 
@@ -500,128 +470,64 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
 
   /**
    * Inizializza il form delle impostazioni notifiche.
-   *
-   * Logica:
-   * - {} o sezione undefined = tutto abilitato per quella sezione
-   * - [] = tutto disabilitato per quella sezione
-   * - Array con valori = solo quei valori abilitati
-   * - Ogni elemento ha versione in-app (base) e email (_email suffix)
+   * Mappa dal formato API (emetti_per_tipi array) ai 4 toggle booleani.
    */
   _initServerForm(data: any = null) {
-    console.log('_initServerForm', data);
+    const tipi: string[] = data?.emetti_per_tipi;
 
-    // Determina i valori iniziali per ogni sezione
-    // Se undefined, consideriamo tutto abilitato (tutti i valori possibili)
-    const tipiValues = this._getInitialValues(data?.emetti_per_tipi, this._emetti_per_tipi);
-    const entitaValues = this._getInitialValues(data?.emetti_per_entita, this._emetti_per_entita);
-    const ruoliValues = this._getInitialValues(data?.emetti_per_ruoli, this._emetti_per_ruoli);
+    // Se undefined = tutto abilitato (default), se [] = tutto disabilitato
+    const allEnabled = tipi === undefined;
+    const notifiche_inapp = allEnabled || (tipi?.includes('comunicazione') ?? false);
+    const notifiche_email = allEnabled ? false : (tipi?.includes('comunicazione_email') ?? false);
+    const cambio_stato_inapp = allEnabled ? false : (tipi?.includes('cambio_stato') ?? false);
+    const cambio_stato_email = allEnabled ? false : (tipi?.includes('cambio_stato_email') ?? false);
 
     this._formSettingsSettings = new FormGroup({
-      emetti_per_tipi: new FormControl(tipiValues, []),
-      emetti_per_entita: new FormControl(entitaValues, []),
-      emetti_per_ruoli: new FormControl(ruoliValues, []),
+      notifiche_inapp: new FormControl(notifiche_inapp),
+      notifiche_email: new FormControl(notifiche_email),
+      cambio_stato_inapp: new FormControl(cambio_stato_inapp),
+      cambio_stato_email: new FormControl(cambio_stato_email),
     });
 
+    this._updateCambioStatoState();
     this._formSettingsSettings.updateValueAndValidity();
 
-    // Sottoscrizione ai cambiamenti del form
-    this._formSettingsSettings.valueChanges.subscribe((body: any) => {
-      this._updateServerSettings(body);
+    // Quando notifiche_inapp o notifiche_email cambiano, aggiorna lo stato di cambio_stato
+    this._formSettingsSettings.get('notifiche_inapp')?.valueChanges.subscribe(() => this._updateCambioStatoState());
+    this._formSettingsSettings.get('notifiche_email')?.valueChanges.subscribe(() => this._updateCambioStatoState());
+
+    // Sottoscrizione ai cambiamenti del form per salvare
+    this._formSettingsSettings.valueChanges.subscribe(() => {
+      this._updateServerSettings(this._formSettingsSettings.value);
     });
   }
 
   /**
-   * Determina i valori iniziali per una sezione.
-   * Se data è undefined → tutto abilitato (ritorna tutti i valori possibili con _email)
-   * Se data è [] → tutto disabilitato (ritorna [])
-   * Altrimenti → ritorna i valori presenti
+   * Abilita/disabilita i toggle cambio_stato in base allo stato di notifiche_inapp/email.
+   * Se entrambi sono off, disabilita e resetta cambio_stato.
    */
-  private _getInitialValues(data: string[] | undefined, options: { value: string }[]): string[] {
-    if (data === undefined) {
-      // Tutto abilitato: genera tutti i valori (base + _email)
-      const allValues: string[] = [];
-      options.forEach(opt => {
-        allValues.push(opt.value);
-        allValues.push(`${opt.value}_email`);
-      });
-      return allValues;
+  private _updateCambioStatoState() {
+    const disabled = this.cambioStatoDisabled;
+    const csInapp = this._formSettingsSettings.get('cambio_stato_inapp');
+    const csEmail = this._formSettingsSettings.get('cambio_stato_email');
+
+    if (disabled) {
+      csInapp?.setValue(false, { emitEvent: false });
+      csEmail?.setValue(false, { emitEvent: false });
+      csInapp?.disable({ emitEvent: false });
+      csEmail?.disable({ emitEvent: false });
+    } else {
+      csInapp?.enable({ emitEvent: false });
+      csEmail?.enable({ emitEvent: false });
     }
-    return data || [];
   }
 
   /**
-   * Verifica se le notifiche sono globalmente abilitate (almeno un checkbox selezionato)
+   * Verifica se le notifiche sono globalmente abilitate
    */
   get notificationsEnabled(): boolean {
-    const tipi = this._formSettingsSettings?.get('emetti_per_tipi')?.value || [];
-    const entita = this._formSettingsSettings?.get('emetti_per_entita')?.value || [];
-    const ruoli = this._formSettingsSettings?.get('emetti_per_ruoli')?.value || [];
-    return tipi.length > 0 || entita.length > 0 || ruoli.length > 0;
-  }
-
-  /**
-   * Abilita o disabilita tutte le notifiche
-   */
-  toggleAllNotifications(enabled: boolean) {
-    if (enabled) {
-      // Abilita tutto: genera tutti i valori possibili per ogni sezione
-      const allTipi = this._getAllValues(this._emetti_per_tipi);
-      const allEntita = this._getAllValues(this._emetti_per_entita);
-      const allRuoli = this._getAllValues(this._emetti_per_ruoli);
-
-      this._formSettingsSettings.patchValue({
-        emetti_per_tipi: allTipi,
-        emetti_per_entita: allEntita,
-        emetti_per_ruoli: allRuoli
-      });
-    } else {
-      // Disabilita tutto: array vuoti
-      this._formSettingsSettings.patchValue({
-        emetti_per_tipi: [],
-        emetti_per_entita: [],
-        emetti_per_ruoli: []
-      });
-    }
-  }
-
-  /**
-   * Genera tutti i valori possibili per una sezione (base + _email)
-   */
-  private _getAllValues(options: { value: string }[]): string[] {
-    const allValues: string[] = [];
-    options.forEach(opt => {
-      allValues.push(opt.value);
-      allValues.push(`${opt.value}_email`);
-    });
-    return allValues;
-  }
-
-  /**
-   * Verifica se un valore è selezionato nell'array del form
-   */
-  isValueSelected(fieldName: string, value: string): boolean {
-    const values = this._formSettingsSettings?.get(fieldName)?.value || [];
-    return values.includes(value);
-  }
-
-  /**
-   * Toggle di un valore nell'array del form
-   */
-  toggleValue(fieldName: string, value: string, checked: boolean) {
-    const control = this._formSettingsSettings.get(fieldName);
-    if (!control) return;
-
-    let values: string[] = [...(control.value || [])];
-
-    if (checked) {
-      if (!values.includes(value)) {
-        values.push(value);
-      }
-    } else {
-      values = values.filter(v => v !== value);
-    }
-
-    control.setValue(values);
+    const v = this._formSettingsSettings?.getRawValue();
+    return v?.notifiche_inapp || v?.notifiche_email || v?.cambio_stato_inapp || v?.cambio_stato_email;
   }
 
   _preventMultiCall: boolean = false;
@@ -653,36 +559,20 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
    * - Se nessun checkbox è selezionato → inviamo [] (= tutto disabilitato)
    * - Altrimenti inviamo l'array con i valori selezionati
    */
+  /**
+   * Mappa i 4 toggle booleani nel formato API emetti_per_tipi.
+   */
   _prepareBody(body: any): BodySettingsType {
     const _body: BodySettingsType = {};
+    const tipi: string[] = [];
 
-    // Per ogni sezione, determina cosa inviare
-    _body.emetti_per_tipi = this._prepareSection(body.emetti_per_tipi, this._emetti_per_tipi);
-    _body.emetti_per_entita = this._prepareSection(body.emetti_per_entita, this._emetti_per_entita);
-    _body.emetti_per_ruoli = this._prepareSection(body.emetti_per_ruoli, this._emetti_per_ruoli);
+    if (body.notifiche_inapp) tipi.push('comunicazione');
+    if (body.notifiche_email) tipi.push('comunicazione_email');
+    if (body.cambio_stato_inapp) tipi.push('cambio_stato');
+    if (body.cambio_stato_email) tipi.push('cambio_stato_email');
 
+    _body.emetti_per_tipi = tipi;
     return _body;
-  }
-
-  /**
-   * Prepara una sezione per l'invio.
-   * Ritorna undefined se tutto abilitato, [] se tutto disabilitato, altrimenti i valori.
-   */
-  private _prepareSection(values: string[] | undefined, options: { value: string }[]): string[] | undefined {
-    if (!values) return [];
-
-    // Calcola tutti i valori possibili (base + _email)
-    const allPossible = options.length * 2;
-
-    if (values.length === 0) {
-      return []; // Tutto disabilitato
-    }
-
-    if (values.length === allPossible) {
-      return undefined; // Tutto abilitato - non inviamo la sezione
-    }
-
-    return values; // Valori specifici
   }
 
   _onSubmit(form: any) {
@@ -723,10 +613,6 @@ export class ProfileComponent implements OnInit, AfterContentChecked {
         }
       })
       );
-  }
-
-  trackByFn(item: any) {
-    return item.id_organizzazione;
   }
 
   requestOrganizationChange(selectedOrgId: string) {

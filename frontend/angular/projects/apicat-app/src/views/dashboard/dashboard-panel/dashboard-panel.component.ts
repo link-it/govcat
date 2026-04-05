@@ -17,12 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+import { TranslateModule } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 @Component({
   selector: 'app-dashboard-panel',
   templateUrl: './dashboard-panel.component.html',
   styleUrls: ['./dashboard-panel.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    TooltipModule,
+    ...APP_COMPONENTS_IMPORTS
+  ]
 })
 export class DashboardPanelComponent {
 
@@ -34,6 +46,7 @@ export class DashboardPanelComponent {
   @Input() loading: boolean = false;
   @Input() borderColor: string = '#0d6efd';
   @Input() hideVersions: boolean = false;
+  @Input() viewAllCount: number | null = null;
   @Input() statusConfig: { [key: string]: { label: string; background: string; color: string } } = {};
 
   @Output() viewAll: EventEmitter<string> = new EventEmitter();

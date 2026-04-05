@@ -1,0 +1,42 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@if (!image) {
+  <div class="box-message-container">
+    <span class="material-icons-outlined" [ngStyle]="{'height': sizePx, 'width': sizePx, 'font-size': sizePx }">{{ icon }}</span>
+    <span class="mt-3">{{ message }}</span>
+  </div>
+}
+
+@if (image) {
+  <section class="d-flex flex-column text-center empty-state-">
+    <div class="max-w-100">
+      <div class="svg-250 svg-content">
+        @if (image) {
+          <img [src]="image" alt="Message icon" class="w-100">
+        }
+      </div>
+    </div>
+    <div class="max-w-100 m-auto">
+      <div class="mx-auto my-0 p-3">
+        <h1 class="font-size-h-display line-height-36 h4">{{ message }}</h1>
+        <p class="mt-3">{{ subMessage }}</p>
+      </div>
+    </div>
+  </section>
+}

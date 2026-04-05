@@ -2110,6 +2110,7 @@ paths:
       - $ref: "#/components/parameters/profilo_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
       - $ref: "#/components/parameters/miei_servizi_query_optional"
+      - $ref: "#/components/parameters/ruolo_referente_servizio_query_optional"
       - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/adesione_consentita_query_optional"
       - $ref: "#/components/parameters/nome_query_optional"
@@ -3989,6 +3990,7 @@ paths:
       - $ref: "#/components/parameters/id_client_query_optional"
       - $ref: "#/components/parameters/richiedente_query_optional"
       - $ref: "#/components/parameters/in_attesa_query_optional"
+      - $ref: "#/components/parameters/ruolo_referente_adesione_query_optional"
       - $ref: "#/components/parameters/dashboard_query_optional"
       - $ref: "#/components/parameters/stato_configurazione_automatica_query_optional"
       - $ref: "#/components/parameters/q_query_optional"
@@ -5531,6 +5533,10 @@ components:
           $ref: '#/components/schemas/ProtocolloEnum'
         document:
             $ref: '#/components/schemas/DocumentoApi'
+        id_api:
+          $ref: '#/components/schemas/IdApi'
+        ambiente:
+          $ref: '#/components/schemas/AmbienteEnum'
     DocumentoApi:
       type: object
       required:
@@ -5572,6 +5578,8 @@ components:
       properties:
         port_type:
           $ref: "#/components/schemas/String255"
+        url_invocazione:
+          type: string
         operations:
           type: array
           items:
@@ -5867,6 +5875,9 @@ components:
           type: "boolean"
         referente_obbligatorio:
           type: "boolean"
+        abilita_selezione_soggetto:
+          type: "boolean"
+          default: true
         workflow_produzione_senza_collaudo:
           $ref: '#/components/schemas/WorkflowProduzioneSenzaCollaudoEnum'
         workflow:
@@ -5894,6 +5905,10 @@ components:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
         mostra_versione:
           $ref: "#/components/schemas/VisibilitaRichiedenteReferentiEnum"
+        dati_sempre_modificabili:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
     ConfigurazioneProfilo:
       type: "object"
       required:
@@ -6458,6 +6473,10 @@ components:
           type: "integer"
           description: "Dimensione massima in megabytes per le immagini del servizio"
           default: 2
+        dati_sempre_modificabili:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
     ConfigurazioneNomeStato:
       $ref: "#/components/schemas/String255"
     ConfigurazioneClasseDato:
@@ -6485,6 +6504,18 @@ components:
         - referente
         - referente_superiore
         - gestore
+    ConfigurazioneDatoSempreModificabile:
+      type: "object"
+      required:
+        - classe_dato
+        - ruoli
+      properties:
+        classe_dato:
+          $ref: '#/components/schemas/ConfigurazioneClasseDato'
+        ruoli:
+          type: "array"
+          items:
+            $ref: '#/components/schemas/ConfigurazioneRuolo'
     ConfigurazioneStato:
       type: "object"
       required:
@@ -6744,6 +6775,10 @@ components:
         profilo_modifica_email_richiede_verifica:
           type: "boolean"
           description: "Se true, la modifica dell'email del profilo richiede verifica via codice"
+        coordinatore_abilitato:
+          type: "boolean"
+          description: "Se true, il ruolo coordinatore è disponibile per gli utenti. Default: true"
+          default: true
     ConfigurazioneTipiDistribuzione:
       type: "string"
       enum:
@@ -8242,6 +8277,10 @@ components:
         - adesione_referente_adesione_email
         - adesione_referente_tecnico_adesione_email
         - adesione_richiedente_adesione_email
+        - gestore
+        - gestore_email
+        - coordinatore
+        - coordinatore_email
     UpdateNotifica:
       type: "object"
       properties:
@@ -9656,6 +9695,8 @@ components:
         - REFERENTI_DOMINIO
         - RICHIEDENTE
         - ADERENTI
+        - GESTORE
+        - COORDINATORE
     TargetComunicazioneAdesioneEnum:
       type: "string"
       description: "Target per i destinatari della comunicazione dell'adesione"
@@ -9665,10 +9706,13 @@ components:
         - RICHIEDENTE_SERVIZIO
         - REFERENTI_ADESIONE
         - RICHIEDENTE_ADESIONE
+        - GESTORE
+        - COORDINATORE
     MessaggioCreate:
       type: object
       required:
         - oggetto
+        - target
       properties:
         oggetto:
           $ref: "#/components/schemas/String255"
@@ -9676,7 +9720,8 @@ components:
           $ref: "#/components/schemas/String4000"
         target:
           type: "array"
-          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          minItems: 1
+          description: "Lista dei target per i destinatari della comunicazione."
           items:
             $ref: "#/components/schemas/TargetComunicazioneServizioEnum"
         includi_tecnici:
@@ -9691,6 +9736,7 @@ components:
       type: object
       required:
         - oggetto
+        - target
       properties:
         oggetto:
           $ref: "#/components/schemas/String255"
@@ -9698,7 +9744,8 @@ components:
           $ref: "#/components/schemas/String4000"
         target:
           type: "array"
-          description: "Lista dei target per i destinatari. Se non specificato, include tutti."
+          minItems: 1
+          description: "Lista dei target per i destinatari della comunicazione."
           items:
             $ref: "#/components/schemas/TargetComunicazioneAdesioneEnum"
         includi_tecnici:
@@ -10616,6 +10663,24 @@ components:
       required: false
       schema:
         type: "boolean"
+    ruolo_referente_servizio_query_optional:
+      name: "ruolo_referente"
+      in: "query"
+      description: "Ruoli ricoperti dall'utente nei servizi da recuperare. Utilizzabile solo con miei_servizi=true. Non sono ammessi ruoli di adesione."
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/RuoloReferenteEnum"
+    ruolo_referente_adesione_query_optional:
+      name: "ruolo_referente"
+      in: "query"
+      description: "Ruoli ricoperti dall'utente nelle adesioni da recuperare."
+      required: false
+      schema:
+        type: array
+        items:
+          $ref: "#/components/schemas/RuoloReferenteEnum"
     dashboard_query_optional:
       name: "dashboard"
       in: "query"

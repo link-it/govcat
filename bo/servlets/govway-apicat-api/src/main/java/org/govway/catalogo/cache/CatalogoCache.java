@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.cache;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,7 +60,7 @@ public class CatalogoCache {
 	
 	public SoggettoEntity getSoggetto(String nome) {
 		return this.findSoggetto(nome)
-				.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404));
+				.orElseThrow(() -> new NotFoundException(ErrorCode.SOG_404_BY_NAME, Map.of("nomeSoggetto", nome)));
 	}
 
 	public long countAdesioni(String idServizio, String idSoggetto) {

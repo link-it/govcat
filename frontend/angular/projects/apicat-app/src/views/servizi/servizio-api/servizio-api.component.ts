@@ -18,15 +18,13 @@
  */
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
-import { ConfigService } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, EventsManagerService, Tools, SearchBarFormComponent, EventType } from '@linkit/components';
 import { OpenAPIService } from '@services/openAPI.service';
-import { SearchBarFormComponent } from '@linkit/components';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
@@ -34,13 +32,28 @@ import { ComponentBreadcrumbsData } from '@app/views/servizi/route-resolver/comp
 
 import { Page } from '@app/models/page';
 import { Grant } from '@app/model/grant';
-import { EventType } from '@linkit/components';
+
+import { CommonModule } from '@angular/common';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
 
 @Component({
   selector: 'app-servizio-api',
   templateUrl: 'servizio-api.component.html',
   styleUrls: ['servizio-api.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    ...COMPONENTS_IMPORTS,
+    MonitorDropdwnComponent,
+    MapperPipe,
+    PluralTranslatePipe,
+    InfiniteScrollDirective,
+    AutoFillScrollDirective
+  ]
 })
 export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ServizioApiComponent';
@@ -112,6 +125,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   _componentBreadcrumbs: ComponentBreadcrumbsData|null = null;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   _profili: any = null;
 
@@ -147,6 +161,7 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -212,8 +227,9 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
     const _mainIcon = this._componentBreadcrumbs ? '' : 'grid-3x3-gap';
 
     if (this._fromDashboard && !this._componentBreadcrumbs) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${title}`, url: `${baseUrl}/${this.id}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.SERVICES.TITLE.API', url: ``, type: 'link' }
       ];
@@ -406,7 +422,11 @@ export class ServizioApiComponent implements OnInit, AfterContentChecked, OnDest
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {

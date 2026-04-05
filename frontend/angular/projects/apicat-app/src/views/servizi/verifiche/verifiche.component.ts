@@ -18,20 +18,23 @@
  */
 import { AfterContentChecked, Component, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { HttpParams } from '@angular/common/http';
 import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, Tools } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+
+import { VerificaApiComponent } from './verifica-api/verifica-api.component';
 
 import { Page } from '@app/models/page';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import * as _ from 'lodash';
 
 export enum ViewType {
@@ -88,7 +91,8 @@ export enum ViewType {
       ])
     ])
   ],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, ...COMPONENTS_IMPORTS, MapperPipe, VerificaApiComponent]
 })
 export class VerificheComponent implements OnInit, AfterContentChecked, OnChanges, OnDestroy {
   static readonly Name = 'VerificheComponent';
@@ -141,6 +145,7 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
   _twoCol: boolean = false;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -162,6 +167,7 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -232,8 +238,9 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.TITLE.Checks', url: ``, type: 'link' }
       ];
@@ -338,7 +345,11 @@ export class VerificheComponent implements OnInit, AfterContentChecked, OnChange
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _showCollaudo() {

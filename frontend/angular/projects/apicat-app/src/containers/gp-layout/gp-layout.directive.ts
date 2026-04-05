@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import {AfterViewInit, Directive, ElementRef, HostBinding, HostListener, Inject, Input, OnInit, Renderer2} from '@angular/core';
-import {DOCUMENT} from '@angular/common';
+import {AfterViewInit, Directive, ElementRef, HostBinding, HostListener, Inject, Input, OnInit, Renderer2, DOCUMENT} from '@angular/core';
+
 
 @Directive({
     selector: '[appSidebarMinimizer]',
-    standalone: false
+    standalone: true
 
 })
 export class SidebarMinimizeDirective {
@@ -42,7 +42,7 @@ export class SidebarMinimizeDirective {
 
 @Directive({
     selector: '[appMobileSidebarToggler]',
-    standalone: false
+    standalone: true
 
 })
 export class MobileSidebarToggleDirective {
@@ -66,7 +66,7 @@ export class MobileSidebarToggleDirective {
  */
 @Directive({
     selector: '[appSidebarClose]',
-    standalone: false
+    standalone: true
 
 })
 export class SidebarOffCanvasCloseDirective {
@@ -90,7 +90,7 @@ export class SidebarOffCanvasCloseDirective {
 
 @Directive({
     selector: '[appBrandMinimizer]',
-    standalone: false
+    standalone: true
 
 })
 export class BrandMinimizeDirective {
@@ -112,7 +112,7 @@ export class BrandMinimizeDirective {
 
 @Directive({
     selector: '[appHtmlAttr]',
-    standalone: false
+    standalone: true
 
 })
 export class HtmlAttributesDirective implements OnInit {
@@ -158,7 +158,7 @@ export class HtmlAttributesDirective implements OnInit {
 
 @Directive({
     selector: '[appFlyOut]',
-    standalone: false
+    standalone: true
 
 })
 export class FlyOutDirective implements AfterViewInit {

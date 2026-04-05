@@ -43,17 +43,23 @@ import org.govway.catalogo.core.orm.entity.StatoAdesioneEntity;
 import org.govway.catalogo.core.orm.entity.StatoServizioEntity;
 import org.govway.catalogo.core.orm.entity.TIPO_REFERENTE;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
+import org.govway.catalogo.core.dao.specifications.UtenteSpecification;
 import org.govway.catalogo.core.services.AdesioneService;
 import org.govway.catalogo.core.services.ServizioService;
+import org.govway.catalogo.core.services.UtenteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 
 public class NotificheUtils {
 
 	@Autowired
 	private ServizioService servizioService;
-	
+
 	@Autowired
 	private AdesioneService adesioneService;
+
+	@Autowired
+	private UtenteService utenteService;
 	
 	public List<NotificaEntity> getNotificheCreazioneServizio(ServizioEntity servizio) {
 
@@ -106,19 +112,14 @@ public class NotificheUtils {
 		ServizioEntity servizio = messaggioServizio.getServizio();
 		UtenteEntity mittente = messaggioServizio.getUtente();
 
-		// Se target è null o vuoto, usa tutti i target
-		Set<TargetComunicazioneServizioEnum> effectiveTarget = (target == null || target.isEmpty())
-			? new HashSet<>(Arrays.asList(TargetComunicazioneServizioEnum.values()))
-			: target;
-
 		// Notifiche push
-		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiPush) {
 			notifiche.add(getNotifica(mittente, servizio, null, messaggioServizio.getUuid(), null, messaggioServizio.getOggetto(), messaggioServizio.getTesto(), TIPO.COMUNICAZIONE, TIPO_ENTITA.SERVIZIO, utente));
 		}
 
 		// Notifiche email
-		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE_EMAIL, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, servizio, TIPO.COMUNICAZIONE_EMAIL, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiEmail) {
 			notifiche.add(getNotifica(mittente, servizio, null, messaggioServizio.getUuid(), null, messaggioServizio.getOggetto(), messaggioServizio.getTesto(), TIPO.COMUNICAZIONE_EMAIL, TIPO_ENTITA.SERVIZIO_EMAIL, utente));
 		}
@@ -179,19 +180,14 @@ public class NotificheUtils {
 		AdesioneEntity adesione = messaggioAdesione.getAdesione();
 		UtenteEntity mittente = messaggioAdesione.getUtente();
 
-		// Se target è null o vuoto, usa tutti i target
-		Set<TargetComunicazioneAdesioneEnum> effectiveTarget = (target == null || target.isEmpty())
-			? new HashSet<>(Arrays.asList(TargetComunicazioneAdesioneEnum.values()))
-			: target;
-
 		// Notifiche push
-		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiPush = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiPush) {
 			notifiche.add(getNotifica(mittente, null, adesione, messaggioAdesione.getUuid(), null, messaggioAdesione.getOggetto(), messaggioAdesione.getTesto(), TIPO.COMUNICAZIONE, TIPO_ENTITA.ADESIONE, utente));
 		}
 
 		// Notifiche email
-		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE_EMAIL, effectiveTarget, includiTecnici);
+		List<UtenteEntity> lstUtentiEmail = getDestinatari(mittente, adesione, TIPO.COMUNICAZIONE_EMAIL, target, includiTecnici);
 		for(UtenteEntity utente: lstUtentiEmail) {
 			notifiche.add(getNotifica(mittente, null, adesione, messaggioAdesione.getUuid(), null, messaggioAdesione.getOggetto(), messaggioAdesione.getTesto(), TIPO.COMUNICAZIONE_EMAIL, TIPO_ENTITA.ADESIONE_EMAIL, utente));
 		}
@@ -228,6 +224,12 @@ public class NotificheUtils {
 					break;
 				case ADERENTI:
 					addDestinatariAderenti(destinatari, servizio, includiTecnici, isEmail);
+					break;
+				case GESTORE:
+					addGestori(destinatari, isEmail);
+					break;
+				case COORDINATORE:
+					addCoordinatori(destinatari, isEmail);
 					break;
 			}
 		}
@@ -273,7 +275,7 @@ public class NotificheUtils {
 	private Boolean isAbilitato(UtenteEntity destinatario, TIPO tipo) {
 
 		List<TIPO> tipi = getTipi(destinatario.getTipiNotificheAbilitate());
-		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+		if(tipi == null) return true;
 
 		return tipi.contains(tipo);
 
@@ -282,7 +284,7 @@ public class NotificheUtils {
 	private Boolean isAbilitato(UtenteEntity destinatario, TIPO_ENTITA tipoEntita) {
 
 		List<TIPO_ENTITA> tipi = getTipiEntita(destinatario.getTipiEntitaNotificheAbilitate());
-		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+		if(tipi == null) return true;
 
 		return tipi.contains(tipoEntita);
 
@@ -291,22 +293,10 @@ public class NotificheUtils {
 	private Boolean isRuoloAbilitato(UtenteEntity destinatario, RuoloNotificaEnum ruolo) {
 
 		List<RuoloNotificaEnum> tipi = this.getRuoli(destinatario.getRuoliNotificheAbilitate());
-		if(tipi == null) return getDefaultNotificheAbilitate(destinatario);
+		if(tipi == null) return true;
 
 		return tipi.contains(ruolo);
 
-	}
-
-	/**
-	 * Restituisce il valore di default per le notifiche quando non sono configurate nel DB.
-	 * Per gli utenti con ruolo AMMINISTRATORE (gestore), il default è false (notifiche disabilitate).
-	 * Per tutti gli altri utenti, il default è true (notifiche abilitate).
-	 */
-	private Boolean getDefaultNotificheAbilitate(UtenteEntity utente) {
-		if(utente.getRuolo() != null && utente.getRuolo() == UtenteEntity.Ruolo.AMMINISTRATORE) {
-			return false;
-		}
-		return true;
 	}
 
 	private static final String SEPARATOR = ","; 
@@ -374,6 +364,12 @@ public class NotificheUtils {
 					break;
 				case RICHIEDENTE_ADESIONE:
 					addRichiedenteAdesione(destinatari, adesione, isEmail);
+					break;
+				case GESTORE:
+					addGestori(destinatari, isEmail);
+					break;
+				case COORDINATORE:
+					addCoordinatori(destinatari, isEmail);
 					break;
 			}
 		}
@@ -562,6 +558,30 @@ public class NotificheUtils {
 			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE_EMAIL, Arrays.asList(adesione.getRichiedente()));
 		} else {
 			destinatari.put(RuoloNotificaEnum.ADESIONE_RICHIEDENTE_ADESIONE, Arrays.asList(adesione.getRichiedente()));
+		}
+	}
+
+	private void addGestori(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, boolean isEmail) {
+		UtenteSpecification spec = new UtenteSpecification();
+		spec.setRuoli(Arrays.asList(UtenteEntity.Ruolo.AMMINISTRATORE));
+		spec.setStati(Arrays.asList(UtenteEntity.Stato.ABILITATO, UtenteEntity.Stato.PENDING_UPDATE));
+		List<UtenteEntity> gestori = this.utenteService.findAll(spec, Pageable.unpaged()).getContent();
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.GESTORE_EMAIL, gestori);
+		} else {
+			destinatari.put(RuoloNotificaEnum.GESTORE, gestori);
+		}
+	}
+
+	private void addCoordinatori(Map<RuoloNotificaEnum, List<UtenteEntity>> destinatari, boolean isEmail) {
+		UtenteSpecification spec = new UtenteSpecification();
+		spec.setRuoli(Arrays.asList(UtenteEntity.Ruolo.COORDINATORE));
+		spec.setStati(Arrays.asList(UtenteEntity.Stato.ABILITATO, UtenteEntity.Stato.PENDING_UPDATE));
+		List<UtenteEntity> coordinatori = this.utenteService.findAll(spec, Pageable.unpaged()).getContent();
+		if (isEmail) {
+			destinatari.put(RuoloNotificaEnum.COORDINATORE_EMAIL, coordinatori);
+		} else {
+			destinatari.put(RuoloNotificaEnum.COORDINATORE, coordinatori);
 		}
 	}
 

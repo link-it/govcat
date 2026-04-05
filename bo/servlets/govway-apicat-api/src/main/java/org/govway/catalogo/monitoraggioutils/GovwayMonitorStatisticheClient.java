@@ -160,7 +160,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 				response.setResource(src);
 				return response;
 			} else {
-				throw new NotFoundException(ErrorCode.GEN_400_REQUEST, Map.of("tipo", "report"));
+				throw new NotFoundException(ErrorCode.GEN_400_REPORT_TYPE, Map.of("tipo", "report"));
 			}
 		} catch(Exception e) {
 			this.logger.error("Errore nell'invocazione del monitoraggio: " +e.getMessage(),e);
@@ -1011,7 +1011,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 		} else if(split.length == 4) {
 			versione = split[3];
 		} else {
-			throw new InternalException(ErrorCode.VAL_400_FORMAT, Map.of("origine", item.getOrigine()));
+			throw new InternalException(ErrorCode.VAL_400_ORIGIN, Map.of("origine", item.getOrigine()));
 		}
 
 		if(versione.contains("(") && versione.contains(")")) {
@@ -1077,7 +1077,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			nomeApi = split[2];
 			versione = split[3];
 		} else {
-			throw new InternalException(ErrorCode.VAL_400_FORMAT, Map.of("origine", origine));
+			throw new InternalException(ErrorCode.VAL_400_ORIGIN, Map.of("origine", origine));
 		}
 
 		if(tipo.contains("RateLimiting")) {
@@ -1128,7 +1128,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 			String erogatore = request.getSoggetto();		
 	
 			ApiEntity api = this.catalogoCache.getApiEntity(erogatore, request.getName(), request.getVersion())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.API_404, Map.of("nomeApi", request.getName(), "versione", String.valueOf(request.getVersion()), "erogatore", erogatore)));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.API_404_BY_NAME, Map.of("nomeApi", request.getName(), "versione", String.valueOf(request.getVersion()), "erogatore", erogatore)));
 			
 			if(request.getProvider() != null) {
 				
@@ -1139,7 +1139,7 @@ public class GovwayMonitorStatisticheClient extends AbstractGovwayMonitorClient 
 				long count = this.catalogoCache.countAdesioni(servizio.getIdServizio(), soggProvider.getIdSoggetto());
 
 				if(count <= 0) {
-					throw new NotFoundException(ErrorCode.ADE_404, Map.of("nomeSoggetto", request.getProvider(), "nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
+					throw new NotFoundException(ErrorCode.ADE_404_BY_CONTEXT, Map.of("nomeSoggetto", request.getProvider(), "nomeServizio", servizio.getNome(), "versioneServizio", servizio.getVersione()));
 				}
 	
 				origine = erogatore+"/"+request.getProvider()+"/"+request.getName()+"/v"+request.getVersion();

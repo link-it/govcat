@@ -17,15 +17,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
+import { CommonModule } from "@angular/common";
 import { Observable } from "rxjs";
 
-import { ConfigService } from '@linkit/components';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 
 @Component({
   selector: "[recursiveCategory]",
   templateUrl: "./tree-view-category.component.html",
   styleUrls: ["./tree-view-category.component.scss"],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TooltipModule, TranslateModule, ...COMPONENTS_IMPORTS]
 })
 export class TreeViewCategoryComponent implements OnChanges {
 

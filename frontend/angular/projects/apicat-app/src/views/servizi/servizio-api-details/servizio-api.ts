@@ -22,7 +22,7 @@ import { ProtocolloEnum } from '@app/model/protocolloEnum';
 import { RuoloAPIEnum } from '@app/model/ruoloAPIEnum';
 import { Documento } from '@app/model/documento';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 export class ServizioApi {
 

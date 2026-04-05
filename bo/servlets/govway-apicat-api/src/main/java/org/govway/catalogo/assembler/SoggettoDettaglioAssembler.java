@@ -19,6 +19,7 @@
  */
 package org.govway.catalogo.assembler;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.govway.catalogo.controllers.SoggettiController;
@@ -94,7 +95,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isSkipCollaudo() != null) {
 			if(!src.isSkipCollaudo() && entity.isSkipCollaudo()) {
 				if(isVincolaSkipCollaudo(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_404);
+					throw new BadRequestException(ErrorCode.ORG_400_CONSTRAINT_VIOLATION);
 				}
 			}
 			entity.setSkipCollaudo(src.isSkipCollaudo());
@@ -104,7 +105,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isAderente() != null) {
 			if(!src.isAderente() && entity.isAderente()) {
 				if(isVincolaAderente(entity)) {
-					throw new BadRequestException(ErrorCode.ORG_409);
+					throw new BadRequestException(ErrorCode.ORG_409_ADERENTE);
 				}
 			}
 		}
@@ -114,18 +115,18 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		if(src.isReferente() != null) {
 			if(!src.isReferente() && entity.isReferente()) {
 				if(isVincolaReferente(entity)) {
-					throw new BadRequestException(ErrorCode.DOM_404);
+					throw new BadRequestException(ErrorCode.DOM_404, Map.of("idDominio", entity.getIdSoggetto()));
 				}
 			}
 		}
 		
 		entity.setReferente(src.isReferente());
 
-		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
+		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", src.getIdOrganizzazione().toString()))));
 		return entity;
 	}
-	
-	
+
+
 	public SoggettoEntity toEntity(SoggettoCreate src) {
 		SoggettoEntity entity = new SoggettoEntity();
 		BeanUtils.copyProperties(src, entity);
@@ -138,7 +139,7 @@ public class SoggettoDettaglioAssembler extends RepresentationModelAssemblerSupp
 		entity.setAderente(src.isAderente());
 		entity.setReferente(src.isReferente());
 		entity.setIdSoggetto(UUID.randomUUID().toString());
-		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
+		entity.setOrganizzazione(orgBd.find(src.getIdOrganizzazione()).orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", src.getIdOrganizzazione().toString()))));
 		return entity;
 	}
 

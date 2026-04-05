@@ -25,12 +25,21 @@ import { AuthenticationService } from '../services/authentication.service';
 export class AuthGuard implements CanActivate {
 
   constructor(
-    private router: Router,
-    private authenticationService: AuthenticationService
+    private readonly router: Router,
+    private readonly authenticationService: AuthenticationService
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     if (this.authenticationService.isLogged()) {
+      // Dopo redirect OAuth, ripristina il returnUrl salvato prima del flusso SSO
+      const ssoReturnUrl = sessionStorage.getItem('sso_return_url');
+      if (ssoReturnUrl) {
+        sessionStorage.removeItem('sso_return_url');
+        if (state.url !== ssoReturnUrl) {
+          this.router.navigateByUrl(ssoReturnUrl);
+          return false;
+        }
+      }
       return true;
     }
 

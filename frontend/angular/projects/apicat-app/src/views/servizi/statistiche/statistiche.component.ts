@@ -19,16 +19,18 @@
 import { AfterContentChecked, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsDatepickerConfig, BsDatepickerDirective } from 'ngx-bootstrap/datepicker';
 
-import { Tools, ConfigService } from '@linkit/components';
+import { Tools, ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { BarVertical2DComponent, BarVerticalComponent, LegendPosition, LineChartComponent, PieChartComponent, ScaleType, colorSets } from '@swimlane/ngx-charts';
 import * as htmlToImage from 'html-to-image';
@@ -190,7 +192,8 @@ const domainStatistics = [
   selector: 'app-statistiche',
   templateUrl: 'statistiche.component.html',
   styleUrls: ['statistiche.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, ...COMPONENTS_IMPORTS, MarkAsteriskDirective]
 })
 export class StatisticheComponent implements OnInit, AfterContentChecked {
   static readonly Name = 'StatisticheComponent';
@@ -224,6 +227,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   _errorMsg: string = '';
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   breadcrumbs: any[] = [
     { label: 'APP.TITLE.Services', url: '', type: 'title', iconBs: 'grid-3x3-gap' },
@@ -399,6 +403,7 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -451,8 +456,9 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
     const _toolTipServizio = this.service ? this.translate.instant('APP.WORKFLOW.STATUS.' + this.service.stato) : '';
     const _view = (localStorage.getItem('SERVIZI_VIEW') === 'TRUE') ? '/view' : '';
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: `/servizi/${this.id}${_view}`, type: 'link', tooltip: _toolTipServizio },
         { label: 'APP.TITLE.Statistics', url: ``, type: 'link' }
       ];
@@ -542,6 +548,10 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
       }
 
       this.prepareTransactionOutcomeField(current.value === StatisticsUrl.DistribuzioneErrori);
+      // Reset filtro esito quando la distribuzione è per esiti (il filtro viene nascosto)
+      if (current.code === StatisticCode.DistribuzioneEsiti) {
+        this._formGroup.get('report_transaction_outcome_type')?.setValue(null);
+      }
       this.setupAdesioneField(this._formGroup.get('api')?.value);
     });
 
@@ -975,7 +985,11 @@ export class StatisticheComponent implements OnInit, AfterContentChecked {
   }
 
   onBreadcrumb(event: any) {
-    this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    if (event.params) {
+      this.router.navigate([event.url], { queryParams: event.params });
+    } else {
+      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+    }
   }
 
   _resetScroll() {

@@ -17,9 +17,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 
 import * as _ from 'lodash';
@@ -28,7 +31,8 @@ import * as _ from 'lodash';
   selector: 'app-modal-choices',
   templateUrl: './modal-choices.component.html',
   styleUrls: ['./modal-choices.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule, ...COMPONENTS_IMPORTS]
 })
 export class ModalChoicesComponent implements OnInit, OnChanges {
 

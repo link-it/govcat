@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { Tools, EventType, ConfigService, EventsManagerService } from '@linkit/components';
 import { OAuthService } from 'angular-oauth2-oidc';
@@ -221,13 +221,13 @@ export class AuthenticationService {
   API_UTENTI: string = '/utenti';
   API_LOGOUT: string = '/logout';
 
-  constructor(
-    private readonly http: HttpClient,
-    public configService: ConfigService,
-    private readonly eventsManagerService: EventsManagerService,
-    private readonly oauthService: OAuthService,
-    private readonly permessiService: PermessiService
-  ) {
+  private readonly http = inject(HttpClient);
+  private readonly configService = inject(ConfigService);
+  private readonly eventsManagerService = inject(EventsManagerService);
+  private readonly oauthService = inject(OAuthService);
+  private readonly permessiService = inject(PermessiService);
+
+  constructor() {
     this.config = this.configService.getConfiguration();
     this.appConfig = this.configService.getAppConfig();
     const _oauthConfig = this.appConfig.AUTH_SETTINGS?.OAUTH;
@@ -400,10 +400,10 @@ export class AuthenticationService {
   }
 
   isAdmin() {
-    if (!this.currentSession) {
-      return false;
-    } else {
+    if (this.currentSession) {
       return (_.includes(this.currentSession.roles, 'apicat_adm'));
+    } else {
+      return false;
     }
   }
 
@@ -442,7 +442,7 @@ export class AuthenticationService {
     let _isGestore = (_.indexOf(grant, 'gestore') !== -1);
     if (!_isGestore) {
       const _user: any = this.getUser();
-      _isGestore = (_user && _user.ruolo === 'gestore');
+      _isGestore = (_user?.ruolo === 'gestore');
     }
     return _isGestore;
   }
@@ -451,7 +451,7 @@ export class AuthenticationService {
     let _isCoordinator = (_.indexOf(grant, 'coordinatore') !== -1);
     if (!_isCoordinator) {
       const _user: any = this.getUser();
-      _isCoordinator = (_user && _user.ruolo === 'coordinatore');
+      _isCoordinator = (_user?.ruolo === 'coordinatore');
     }
     return _isCoordinator;
   }
@@ -460,7 +460,7 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _dnm = (_wfcs && _wfcs.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
 
       return (_dnm.length === 0);
     }
@@ -471,8 +471,8 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _ssra = (_wfcs && _wfcs.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
-      const _dnm = (_wfcs && _wfcs.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+      const _ssra = (_wfcs?.stato_successivo) ? _wfcs.stato_successivo.ruoli_abilitati : [];
+      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
 
       let _can: boolean = true;
       Object.keys(CLASSES[submodule] || []).forEach((key: string) => {
@@ -551,7 +551,7 @@ export class AuthenticationService {
   
   canChangeStatus(module: string, state: string, type: string, grant: string[] = [], currentStatus: string = '') {
     const _wfcs = this._getWorkflowCambiStato(module, state);
-    let _ss = (_wfcs && _wfcs[type]) ? _wfcs[type].ruoli_abilitati : [];
+    let _ss = (_wfcs?.[type]) ? _wfcs[type].ruoli_abilitati : [];
     if (type === 'stati_ulteriori') {
       _ss = _wfcs[type].find((item: any) => item.nome === currentStatus)?.ruoli_abilitati || [];
     }
@@ -584,7 +584,7 @@ export class AuthenticationService {
     if (this.isGestore(grant)) { return true; }
     if (state && type) {
       const _wfcs = this._getWorkflowCambiStato(module, state);
-      const _dnm = (_wfcs && _wfcs.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+      const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
       return (_.indexOf(_dnm, type) === -1 );
     }
     return false;
@@ -593,7 +593,7 @@ export class AuthenticationService {
   _removeDNM(module: string, state: string, body: any, grant: string[] = []) {
     if (this.isGestore(grant)) { return body; }
     const _wfcs = this._getWorkflowCambiStato(module, state);
-    const _dnm = (_wfcs && _wfcs.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+    const _dnm = (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
     _dnm.forEach((key: string) => {
       switch (key) {
         case 'specifica':
@@ -618,12 +618,36 @@ export class AuthenticationService {
 
   _getClassesMandatory(module: string, submodule: string, state: string) {
     const _wfcs = this._getWorkflowCambiStato(module, state);
-    return (_wfcs && _wfcs.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
+    return (_wfcs?.dati_obbligatori) ? _wfcs.dati_obbligatori : [];
   }
 
   _getClassesNotModifiable(module: string, submodule: string, state: string) {
     const _wfcs = this._getWorkflowCambiStato(module, state);
-    return (_wfcs && _wfcs.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+    return (_wfcs?.dati_non_modificabili) ? _wfcs.dati_non_modificabili : [];
+  }
+
+  _isDatoSempreModificabile(module: string, classeDato: string, grant: string[] = []): boolean {
+    const _config = this._getConfigModule(module);
+    const _datiSempreModificabili = _config?.dati_sempre_modificabili || [];
+    const _entry = _datiSempreModificabili.find((item: any) => item.classe_dato === classeDato);
+    if (_entry) {
+      const _grant: string[] = [...grant];
+      // Mappa ruoli specifici per contesto ai ruoli generici della configurazione
+      if (_grant.indexOf('referente_tecnico') !== -1) {
+        _grant.push('referente');
+      }
+      if (_grant.indexOf('referente_tecnico_superiore') !== -1) {
+        _grant.push('referente_superiore');
+      }
+      if (_grant.indexOf('referente_adesione') !== -1 || _grant.indexOf('referente_servizio') !== -1 || _grant.indexOf('referente_dominio') !== -1) {
+        _grant.push('referente');
+      }
+      if (_grant.indexOf('referente_tecnico_adesione') !== -1 || _grant.indexOf('referente_tecnico_servizio') !== -1 || _grant.indexOf('referente_tecnico_dominio') !== -1) {
+        _grant.push('referente');
+      }
+      return _.intersection(_grant, _entry.ruoli).length > 0;
+    }
+    return false;
   }
 
   _getFieldsMandatory(module: string, submodule: string, state: string) {

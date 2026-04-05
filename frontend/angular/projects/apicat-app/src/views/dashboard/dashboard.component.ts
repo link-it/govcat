@@ -17,11 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
 
 import { TranslateService } from '@ngx-translate/core';
-import { ConfigService } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 import { AuthenticationService } from '../../services/authentication.service';
 import { DashboardService } from '../../services/dashboard.service';
@@ -29,11 +31,29 @@ import { OpenAPIService } from '../../services/openAPI.service';
 import { UtilService } from '../../services/utils.service';
 import { DashboardRoleConfig } from '../../model/dashboard';
 
+import { DashboardPanelComponent } from './dashboard-panel/dashboard-panel.component';
+import { ClientsSearchFormComponent } from './search-forms/clients-search-form/clients-search-form.component';
+import { ServiziSearchFormComponent } from './search-forms/servizi-search-form/servizi-search-form.component';
+import { AdesioniSearchFormComponent } from './search-forms/adesioni-search-form/adesioni-search-form.component';
+import { UtentiSearchFormComponent } from './search-forms/utenti-search-form/utenti-search-form.component';
+import { ComunicazioniSearchFormComponent } from './search-forms/comunicazioni-search-form/comunicazioni-search-form.component';
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    ...APP_COMPONENTS_IMPORTS,
+    DashboardPanelComponent,
+    ClientsSearchFormComponent,
+    ServiziSearchFormComponent,
+    AdesioniSearchFormComponent,
+    UtentiSearchFormComponent,
+    ComunicazioniSearchFormComponent
+  ]
 })
 export class DashboardComponent implements OnInit {
   static readonly Name = 'DashboardComponent';
@@ -60,6 +80,7 @@ export class DashboardComponent implements OnInit {
   adesioniTotal: number = 0;
   clientTotal: number = 0;
   comunicazioniTotal: number = 0;
+  comunicazioniViewAllTotal: number = 0;
   utentiTotal: number = 0;
 
   loadingServizi: boolean = false;
@@ -79,6 +100,9 @@ export class DashboardComponent implements OnInit {
   clientStatusConfig: any = {};
   comunicazioniStatusConfig: any = {};
   utentiStatusConfig: any = {};
+
+  // Comunicazioni tab state
+  comunicazioniTab: string = 'tutte';
 
   // Expanded view state
   expandedSection: string | null = null;
@@ -107,7 +131,10 @@ export class DashboardComponent implements OnInit {
     utenti: 'utenti'
   };
 
+  private _restoreSection: string | null = null;
+
   constructor(
+    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly translate: TranslateService,
     private readonly configService: ConfigService,
@@ -115,7 +142,9 @@ export class DashboardComponent implements OnInit {
     private readonly dashboardService: DashboardService,
     private readonly apiService: OpenAPIService,
     private readonly utils: UtilService
-  ) {}
+  ) {
+    this._restoreSection = this.route.snapshot.queryParams['section'] || null;
+  }
 
   ngOnInit() {
     this._loadConfigs();
@@ -278,10 +307,15 @@ export class DashboardComponent implements OnInit {
       this.dashboardService.getComunicazioni().subscribe({
         next: (response) => {
           this.comunicazioniItems = response.content || [];
-          this.comunicazioniTotal = response.page?.totalElements || 0;
           this.loadingComunicazioni = false;
         },
         error: () => { this.loadingComunicazioni = false; }
+      });
+      this.dashboardService.getComunicazioniUnreadCount().subscribe({
+        next: (count) => { this.comunicazioniTotal = count; }
+      });
+      this.dashboardService.getComunicazioniViewAllCount().subscribe({
+        next: (count) => { this.comunicazioniViewAllTotal = count; }
       });
     }
 
@@ -295,6 +329,13 @@ export class DashboardComponent implements OnInit {
         },
         error: () => { this.loadingUtenti = false; }
       });
+    }
+
+    // Ripristina la sezione espansa se si torna dalla navigazione
+    if (this._restoreSection && this.roleConfig[this._restoreSection as keyof DashboardRoleConfig]) {
+      const section = this._restoreSection;
+      this._restoreSection = null;
+      setTimeout(() => this.onSummaryClick(section));
     }
   }
 
@@ -321,6 +362,7 @@ export class DashboardComponent implements OnInit {
     this.expandedFilterData = null;
     this._expandedLinks = null;
     this._expandedPreventMultiCall = false;
+    this.comunicazioniTab = 'tutte';
   }
 
   onExpandedSearch(values: any) {
@@ -330,20 +372,30 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  _loadExpandedData(section: string, query: any = null, url: string = '') {
+  _loadExpandedData(section: string, query: any = null, url: string = '', silent: boolean = false) {
     const model = this._sectionModels[section];
     if (!model) return;
 
-    if (!url) {
+    if (!url && !silent) {
       this.expandedItems = [];
       this._expandedLinks = null;
     }
 
     let _params = query ? this.utils._queryToHttpParams(query) : new HttpParams();
-    _params = _params.set('dashboard', 'true');
+    if (section === 'comunicazioni' && !url) {
+      if (this.comunicazioniTab === 'tutte') {
+        _params = _params.set('stato_notifica', 'nuova,letta');
+      } else {
+        _params = _params.set('stato_notifica', this.comunicazioniTab);
+      }
+    } else {
+      _params = _params.set('dashboard', 'true');
+    }
     let aux: any = { params: _params };
 
-    this.expandedLoading = true;
+    if (!silent) {
+      this.expandedLoading = true;
+    }
     this.apiService.getList(model, aux, url).subscribe({
       next: (response: any) => {
         this._expandedLinks = response?._links || null;
@@ -374,27 +426,27 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-
   onExpandedViewItem(item: any) {
     if (!this.expandedSection) return;
     this.onViewItem(item, this.expandedSection);
   }
 
   onViewItem(item: any, panelType: string) {
+    const section = this.expandedSection || panelType;
     switch (panelType) {
       case 'servizi':
         if (item.id_servizio) {
-          this.router.navigate(['/servizi', item.id_servizio], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/servizi', item.id_servizio], { queryParams: { from: 'dashboard', section } });
         }
         break;
       case 'adesioni':
         if (item.id_adesione) {
-          this.router.navigate(['/adesioni', item.id_adesione], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/adesioni', item.id_adesione], { queryParams: { from: 'dashboard', section } });
         }
         break;
       case 'client':
         if (item.id_client) {
-          this.router.navigate(['/client', item.id_client], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/client', item.id_client], { queryParams: { from: 'dashboard', section } });
         }
         break;
       case 'comunicazioni': {
@@ -406,9 +458,9 @@ export class DashboardComponent implements OnInit {
 
         let url = '';
         if (servizio) {
-          url = `/servizi/${servizio.id_servizio}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard`;
+          url = `/servizi/${servizio.id_servizio}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard&section=${section}`;
         } else if (adesione) {
-          url = `/adesioni/${adesione.id_adesione}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard`;
+          url = `/adesioni/${adesione.id_adesione}${tipoUrl}notificationId=${notificaId}&messageid=${messageId}&from=dashboard&section=${section}`;
         } else {
           this.router.navigate(['/notifications']);
           break;
@@ -418,10 +470,61 @@ export class DashboardComponent implements OnInit {
       }
       case 'utenti':
         if (item.id_utente) {
-          this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard' } });
+          this.router.navigate(['/utenti', item.id_utente], { queryParams: { from: 'dashboard', section } });
         }
         break;
     }
+  }
+
+  onComunicazioniTabChange(tab: string) {
+    this.comunicazioniTab = tab;
+    if (this.expandedSection === 'comunicazioni') {
+      this._loadExpandedData('comunicazioni', this.expandedFilterData);
+    }
+  }
+
+  markNotification(item: any, stato: string) {
+    this.apiService.putElement('notifiche', item.id_notifica, { stato }).subscribe({
+      next: () => {
+        if (this.expandedSection === 'comunicazioni') {
+          if (stato === 'archiviata' && this.comunicazioniTab !== 'archiviata') {
+            // Rimuove l'item dalla lista visibile (non è più in questo tab)
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
+          } else if (this.comunicazioniTab === 'nuova' && stato === 'letta') {
+            // Tab "Non letti": l'item letto esce dalla lista
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
+          } else if (this.comunicazioniTab === 'archiviata' && stato === 'nuova') {
+            // Tab "Archiviati": l'item non letto esce dalla lista
+            this.expandedItems = this.expandedItems.filter(i => i.id_notifica !== item.id_notifica);
+            this.expandedTotal = Math.max(0, this.expandedTotal - 1);
+          } else {
+            // Aggiorna lo stato in-place
+            const idx = this.expandedItems.findIndex(i => i.id_notifica === item.id_notifica);
+            if (idx !== -1) {
+              this.expandedItems[idx] = { ...this.expandedItems[idx], stato };
+            }
+          }
+        }
+        this._reloadComunicazioniCounts();
+      }
+    });
+  }
+
+  private _reloadComunicazioniCounts() {
+    this.dashboardService.getComunicazioniUnreadCount().subscribe({
+      next: (count) => { this.comunicazioniTotal = count; }
+    });
+    this.dashboardService.getComunicazioniViewAllCount().subscribe({
+      next: (count) => { this.comunicazioniViewAllTotal = count; }
+    });
+    // Ricarica anche la card collapsed
+    this.dashboardService.getComunicazioni().subscribe({
+      next: (response) => {
+        this.comunicazioniItems = response.content || [];
+      }
+    });
   }
 
   onRefresh() {

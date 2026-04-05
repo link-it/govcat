@@ -18,26 +18,29 @@
  */
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
+import { ConfigService, Tools, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
+
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-taxonomies',
   templateUrl: 'taxonomies.component.html',
   styleUrls: ['taxonomies.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class TaxonomiesComponent implements OnInit, OnDestroy {
   static readonly Name = 'TaxonomiesComponent';
@@ -268,7 +271,4 @@ export class TaxonomiesComponent implements OnInit, OnDestroy {
     $event.stopPropagation();
   }
 
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio;
-  }
 }

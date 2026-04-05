@@ -16,50 +16,65 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
+import { ReactiveFormsModule, FormsModule, AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { NgSelectComponent, NgSelectModule } from '@ng-select/ng-select';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, YesnoDialogBsComponent, MenuAction, EventType } from '@linkit/components';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { WorkflowComponent } from '@app/components/workflow/workflow.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { NotificationBarComponent } from '../../notifications/notification-bar/notification-bar.component';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { YesnoDialogBsComponent } from '@linkit/components';
-
 import { Adesione } from './adesione';
 import { AdesioneCreate } from './adesioneCreate';
-import { AdesioneUpdate, Servizio } from './adesioneUpdate';
-import { Soggetto } from './adesioneUpdate';
+import { AdesioneUpdate, Servizio, Soggetto } from './adesioneUpdate';
 
-import { concat, Observable, of, Subject, throwError, forkJoin } from 'rxjs';
+import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 declare const saveAs: any;
-import * as moment from 'moment';
+import moment from 'moment';
 import { Utente } from '@app/model/utente';
 import { Profilo } from '@app/model/profilo';
-import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
-import { NgSelectComponent } from '@ng-select/ng-select';
+import { Ruolo } from '@app/views/utenti/utente-details/utente';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
-import { Location } from '@angular/common';
-import { MenuAction } from '@linkit/components';
 
 import { Grant } from '@app/model/grant';
-import { EventType } from '@linkit/components';
 
 @Component({
   selector: 'app-adesione-details',
   templateUrl: 'adesione-details.component.html',
   styleUrls: ['adesione-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    MarkAsteriskDirective,
+    WorkflowComponent,
+    ErrorViewComponent,
+    NotificationBarComponent,
+    MonitorDropdwnComponent,
+    NgSelectModule,
+    TooltipModule
+  ]
 })
-export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
+export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
   static readonly Name = 'AdesioneDetailsComponent';
   readonly model: string = 'adesioni';
 
@@ -93,6 +108,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _isEdit = false;
   _closeEdit = true;
   _isNew = false;
+  _isSelfReferente: boolean = true;
   _formGroup: FormGroup = new FormGroup({});
   _adesione: Adesione = new Adesione({});
   _adesioneCreate: AdesioneCreate = new AdesioneCreate({});
@@ -128,7 +144,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _organizations: any[] = [];
   // _subscriptions: any[] = [];
   _selectedSubscription: any = null;
-
 
   servizi$!: Observable<any[]>;
   serviziInput$ = new Subject<string>();
@@ -204,21 +219,22 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   debugMandatoryFields: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private modalService: BsModalService,
-    private configService: ConfigService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly translate: TranslateService,
+    private readonly modalService: BsModalService,
+    private readonly configService: ConfigService,
     public tools: Tools,
     public eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
     public utils: UtilService,
     public authenticationService: AuthenticationService,
-    private location: Location
+    private readonly location: Location
   ) {
     this.route.data.subscribe((data) => {
       if (!data.serviceBreadcrumbs) return;
@@ -288,6 +304,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._notificationMessageId = '';
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
       if (val.notificationId && val.messageid) {
@@ -315,9 +332,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._initForm(this._adesioneCreate);
       console.log('Configurazione Remota', Tools.Configurazione);
     });
-  }
-
-  ngOnDestroy() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -363,7 +377,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._isDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.esterna || false;
       this._idDominioEsterno = this._servizio.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
       this._idSoggettoDominioEsterno = this._servizio.dominio?.soggetto_referente?.id_soggetto || null;
-      // this._formGroup.get('id_soggetto')?.setValue(this._idSoggettoDominioEsterno);
 
       this._initServiziSelect([{'id_servizio': serv.id_servizio, 'nome': serv.nome, 'versione': serv.versione}]);
 
@@ -380,11 +393,11 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   }
 
   _hasControlError(name: string) {
-    return (this.f[name] && this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name]?.errors && this.f[name]?.touched);
   }
 
   _isVisibilita(type: string) {
-    return (this.f['visibilita'] && this.f['visibilita'].value === type);
+    return (this.f['visibilita']?.value === type);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -405,15 +418,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
               _group[key] = new FormControl(value, [Validators.required]);
             }
             break;
-          case 'referente_tecnico':
-            value = data[key] ? data[key] : null;
-            _group[key] = new FormControl(value, []);
-            break;
-          case 'referente':
+          case 'referente':{
             value = data[key] ? data[key] : null;
             const _referente_obbligatorio = this.generalConfig?.adesione.referente_obbligatorio || false;
             _group[key] = new FormControl(value, (this._isNew &&_referente_obbligatorio) ? [Validators.required] : []);
             break;
+          }
           case 'servizio_nome':
           case 'soggetto_nome':
             value = data[key] ? data[key] : null;
@@ -424,24 +434,18 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             _group[key] = new FormControl({ value: value, disabled: !!value }, [Validators.required]);
             break;
           case 'data_creazione':
-          case 'data_ultimo_aggiornamento':
+          case 'data_ultimo_aggiornamento':{
             const _now = moment().format('DD-MM-YYYY HH:mm:ss');
             value = data[key] ? moment(data[key]).format('DD-MM-YYYY HH:mm:ss') : _now;
             _group[key] = new FormControl({ value: value, disabled: true }, []);
             break;
+          }
           case 'id_logico':
-            // if (this.generalConfig?.servizio.adesioni_multiple == true) {
-            //   value = data[key] ? data[key] : null;
-            //   _group[key] = new FormControl(value, [Validators.required]);
-            // } else {
-              value = data[key] ? data[key] : null;
-              _group[key] = new FormControl(value, []);
-            // }
-            break;
           case 'id_soggetto':
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, [Validators.required]);
             break;
+          case 'referente_tecnico':
           default:
             value = data[key] ? data[key] : null;
             _group[key] = new FormControl(value, []);
@@ -461,10 +465,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     if (this.debugMandatoryFields) {
       console.group('_showMandatoryFields');
       Object.keys(data).forEach((key) => {
-        if (this._formGroup.controls[key].hasValidator(Validators.required))
-          console.log(key, this._formGroup.controls[key].value);
-        // console.log(key, this._formGroup.controls[key].hasValidator(Validators.required))
+        const ctrl = this._formGroup.controls[key];
+        if (ctrl.hasValidator(Validators.required)) {
+          console.log(`${key}: value=${JSON.stringify(ctrl.value)}, disabled=${ctrl.disabled}, invalid=${ctrl.invalid}, status=${ctrl.status}`);
+        }
       });
+      console.log(`FORM valid=${this._formGroup.valid}, invalid=${this._formGroup.invalid}, status=${this._formGroup.status}`);
       console.groupEnd();
     }
   }
@@ -482,7 +488,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
     _newBody.referenti = [];
 
-    if (body.referente) {
+    if (this._isSelfReferente) {
+      const currentUser = this.authenticationService.getUser();
+      if (currentUser?.id_utente) {
+        _newBody.referenti.push({ id_utente: currentUser.id_utente, tipo: 'referente' });
+      }
+    } else if (body.referente) {
       _newBody.referenti.push({ id_utente: body.referente, tipo: 'referente' });
     }
 
@@ -490,7 +501,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       _newBody.referenti.push({ id_utente: body.referente_tecnico, tipo: 'referente_tecnico' });
     }
 
-    _newBody.referenti.length > 0 ? null : _newBody.referenti = null;
+    if (_newBody.referenti.length === 0) {
+      _newBody.referenti = null;
+    }
 
     this._removeNullProperties(_newBody);
 
@@ -526,10 +539,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
     this._spin = true;
 
-    this.apiService.saveElement(this.model, _body).subscribe(
-      (response: any) => {
+    this.apiService.saveElement(this.model, _body).subscribe({
+      next: (response: any) => {
         this.id = response.id_adesione;
-        this.adesione = response; // new Adesione({ ...response });
+        this.adesione = response;
         this._adesione = new Adesione({ ...response });
 
         this._isEdit = false;
@@ -544,12 +557,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         this.router.navigate([this.id], { replaceUrl: true, relativeTo: this.route.parent });
         this._spin = false;
       },
-      (error: any) => {
+      error: (error: any) => {
         this._error = true;
         this._errorMsg = this.utils.GetErrorMsg(error);
         this._spin = false;
       }
-    );
+    });
   }
   __onUpdate(id: string, body: any) {
     this._error = false;
@@ -558,8 +571,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
     this._spin = true;
     if (_body) {
-      this.apiService.putElement(this.model, id, _body).subscribe(
-        (response: any) => {
+      this.apiService.putElement(this.model, id, _body).subscribe({
+        next: (response: any) => {
           this._isEdit = !this._closeEdit;
           this.adesione = response;
           this._adesione = new Adesione({ ...response });
@@ -567,12 +580,12 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           this._spin = false;
           this.save.emit({ id: this.id, payment: response, update: true });
         },
-        (error: any) => {
+        error: (error: any) => {
           this._error = true;
           this._errorMsg = this.utils.GetErrorMsg(error);
           this._spin = false;
         }
-      );
+      });
     } else {
       console.log('No difference');
     }
@@ -607,22 +620,18 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._modalConfirmRef.content.onClose.subscribe(
       (response: any) => {
         if (response) {
-          this.apiService.deleteElement(this.model, this.adesione.id).subscribe(
-            (response) => {
+          this.apiService.deleteElement(this.model, this.adesione.id).subscribe({
+            next: (response) => {
               this.save.emit({ id: this.id, subscription: response, update: false });
             },
-            (error) => {
+            error: (error) => {
               this._error = true;
               this._errorMsg = this.utils.GetErrorMsg(error);
             }
-          );
+          });
         }
       }
     );
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   getServizi(term: string | null = null): Observable<any> {
@@ -630,7 +639,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     return this.apiService.getList('servizi', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
@@ -651,13 +660,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     }
     return this.apiService.getList('soggetti', _options)
       .pipe(map(resp => {
-        if (resp.Error) {
-          throwError(resp.Error);
+        if (resp?.Error) {
+          throwError(() => resp.Error);
         } else {
-          const _items = resp.content.map((item: any) => {
-            return item;
-          });
-          return _items;
+          return resp?.content || [];
         }
       })
       );
@@ -668,7 +674,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
@@ -684,7 +690,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     return this.apiService.getList('domini', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             return item;
@@ -705,7 +711,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       .pipe(
         map(resp => {
           if (resp.Error) {
-            throwError(resp.Error);
+            throwError(() => resp.Error);
           } else {
             const _items = resp.content.map((item: any) => {
               item.nome_completo = `${item.nome} ${item.cognome}`;
@@ -745,7 +751,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           console.log('grant', this._grant);
           this.apiService.getDetails(this.model, this.id).subscribe({
             next: (response: any) => {
-              this.adesione = response; // new Service({ ...response });
+              this.adesione = response;
               
               this._isBozza = (this.adesione.stato == 'bozza');
 
@@ -768,8 +774,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
               this._initForm({ ...this._adesione });
 
               // Non più necessaria con soggetto di default
-              this.getSoggetti().subscribe(
-                (result) => {
+              this.getSoggetti().subscribe({
+                next: (result) => {
                   this._elencoSoggetti = [...result];
 
                   const controls = this._formGroup.controls;
@@ -785,11 +791,11 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
                     this._formGroup.updateValueAndValidity();
                   }
                 },
-                (error: any) => {
+                error: (error: any) => {
                   Tools.OnError(error);
                   this._spin = false;
                 }
-              );
+              });
 
               this._spin = false;
 
@@ -985,9 +991,10 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
+    const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
     if (this._fromDashboard && !this._serviceBreadcrumbs) {
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: title, url: ``, type: 'link' }
       ];
     } else {
@@ -1035,11 +1042,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
   _checkSoggetto(event: any) {
     if(event) {
       this.selectedOrganizzazione = event;
-      console.log('_checkSoggetto selectedOrganizzazione', this.selectedOrganizzazione);
-      this.getSoggetti().subscribe(
-        (result) => {
+      this.getSoggetti().subscribe({
+        next: (result) => {
           const controls = this._formGroup.controls;
-          console.log('_checkSoggetto result', result);
           if (result.length === 1) {
             this._hideSoggettoDropdown = true;
 
@@ -1056,23 +1061,46 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
             controls.id_soggetto.disable();
             controls.referente.enable();
             this._disabled_id_soggetto = aux.id_soggetto;
-            console.log('_checkSoggetto aux', aux);
           } else {
 
             this._elencoSoggetti = [...result];
 
-            if (this.selectedOrganizzazione?.soggetto_default) {
-              controls.id_soggetto.patchValue(this.selectedOrganizzazione?.soggetto_default.id_soggetto);
-              controls.soggetto_nome.patchValue(this.selectedOrganizzazione?.soggetto_default.nome);
-              controls.id_soggetto.updateValueAndValidity();
-              controls.soggetto_nome.updateValueAndValidity();
+            const _abilitaSelezioneSoggetto = this.generalConfig?.adesione?.abilita_selezione_soggetto ?? false;
+
+            if (_abilitaSelezioneSoggetto && result.length > 1) {
+              // Config abilitata e soggetti multipli: mostra il dropdown per permettere la scelta
+              this._hideSoggettoDropdown = false;
+
+              // Pre-seleziona soggetto_default se presente
+              const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
+              const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
+              if (_soggettoDefaultPresente) {
+                controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
+                controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
+              } else {
+                controls.id_soggetto.patchValue(null);
+                controls.soggetto_nome.patchValue(null);
+              }
+            } else {
+              // Selezione disabilitata o soggetto singolo: usa soggetto_default se presente
+              this._hideSoggettoDropdown = true;
+              const _orgObj = this.selectedOrganizzazione?.organizzazione || this.selectedOrganizzazione;
+              const _soggettoDefaultPresente = result.some((sog: any) => sog.id_soggetto === _orgObj?.soggetto_default?.id_soggetto);
+              if (_soggettoDefaultPresente) {
+                controls.id_soggetto.patchValue(_orgObj.soggetto_default.id_soggetto);
+                controls.soggetto_nome.patchValue(_orgObj.soggetto_default.nome);
+              } else {
+                controls.id_soggetto.patchValue(null);
+                controls.soggetto_nome.patchValue(null);
+              }
             }
+            controls.id_soggetto.updateValueAndValidity();
+            controls.soggetto_nome.updateValueAndValidity();
             controls.referente.enable();
             controls.id_soggetto.enable();
             controls.referente.updateValueAndValidity();
             controls.id_soggetto.updateValueAndValidity();
             this._disabled_id_soggetto = null;
-            this._hideSoggettoDropdown = true;
           }
 
           this._initReferentiSelect([]);
@@ -1081,8 +1109,8 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
           this._formGroup.updateValueAndValidity();
           this._showMandatoryFields(this._formGroup.controls);
         },
-        (err) => console.log(err)
-      );
+        error: (err) => console.log(err)
+      });
       
     } else {
 
@@ -1108,14 +1136,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     this._idDominioEsterno = this._servizio?.dominio?.soggetto_referente?.organizzazione?.id_organizzazione || null;
     this._idSoggettoDominioEsterno = this._servizio?.dominio?.soggetto_referente?.id_soggetto || null;
 
-    // console.group('_onChangeServizio');
-    // console.log('_servizio', this._servizio);
-    // console.log('_isDominioEsterno', this._isDominioEsterno);
-    // console.log('_idDominioEsterno', this._idDominioEsterno);
-    // console.log('_idSoggettoDominioEsterno', this._idSoggettoDominioEsterno);
-    // console.log('_profilo', this._profilo);
-    // console.groupEnd();
-
     this.updateIdLogico(this._servizio);
     
     if (this._isDominioEsterno) {
@@ -1128,19 +1148,17 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       this._formGroup.get('id_soggetto')?.disable();
       this._hideSoggettoDropdown = true;
       this._initOrganizzazioniSelect([_organizzazione]);
-    } else {
-      if (this._profilo?.utente.ruolo === RuoloUtenteEnum.ReferenteServizio){
+    } else if (this._profilo?.utente.ruolo === Ruolo.REFERENTE_SERVIZIO) {
         if (servizio && await this.isCurrentUserReferenteServizio(servizio)){
           this._formGroup.get('id_organizzazione')?.enable();
-          this._formGroup.get('id_organizzazione')?.reset();
-          this.ngSelectOrganizazione?.handleClearClick();
-        } else {
-          if (this._profilo.utente.organizzazione) {
+          // Se l'organizzazione è già valorizzata (da _loadProfilo), non resettare
+          if (!this._formGroup.get('id_organizzazione')?.value) {
+            this._initOrganizzazioniSelect([]);
+          }
+        } else if (this._profilo.utente.organizzazione) {
             this._loadOrganizzazione(this._profilo.utente.organizzazione.id_organizzazione);
           }
-        }
       }
-    }
 
     this._showMandatoryFields(this._formGroup.controls);
   }
@@ -1190,7 +1208,11 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      if (event.params) {
+        this.router.navigate([event.url], { queryParams: event.params });
+      } else {
+        this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      }
     } else {
       this._onClose();
     }
@@ -1206,9 +1228,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
     const _body: any = {
       stato: event.status.nome
     };
-    this.apiService.saveElement(_url, _body).subscribe(
-      (response: any) => {
-        this.adesione = response; // new Service({ ...response });
+    this.apiService.saveElement(_url, _body).subscribe({
+      next: (response: any) => {
+        this.adesione = response;
         this._adesione = new Adesione({ ...response });
         
         this._adesione.servizio_nome = response.servizio.nome;
@@ -1218,20 +1240,20 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
         const _status: string = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione.stato);
         const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusSuccess', {status: _status});
         Tools.showMessage(_msg, 'success', true);
-        this._updateMapper = new Date().getTime().toString();
+        this._updateMapper = Date.now().toString();
       },
-      (error: any) => {
+      error: (error: any) => {
         this._changingStatus = false;
         this._error = true;
         this._errorMsg = Tools.WorkflowErrorMsg(error);
-        this._errors = error.error.errori || [];
+        this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
         this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione.stato);
         this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + event.status.nome);
         const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});
         Tools.showMessage(_msg, 'danger', true);
-        this._updateMapper = new Date().getTime().toString();
+        this._updateMapper = Date.now().toString();
       },
-    );
+    });
   }
 
   _downloadSchedaAdesione() {
@@ -1241,8 +1263,6 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
       const _partial = `export`;
       this.apiService.download(this.model, this.id, _partial).subscribe({
         next: (response: any) => {
-          // const _ext = data.filename.split('/')[1];
-          // let name: string = `${data.filename}.${_ext}`;
           let name: string = `SchedaAdesione.pdf`;
           saveAs(response.body, name);
           this._downloading = false;
@@ -1258,7 +1278,9 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   _removeNullProperties(obj: any) {
     Object.keys(obj).forEach((k: string) => {
-        obj[k] == null ? delete obj[k] : null;
+        if (obj[k] == null) {
+          delete obj[k];
+        }
       })
   }
 
@@ -1277,7 +1299,7 @@ export class AdesioneDetailsComponent implements OnInit, OnChanges, AfterContent
 
   private async getReferentiServizio(servizio: Servizio):Promise<{utente: Utente, tipo: string}[]>{
     const result = await this.apiService.getList(`servizi/${servizio.id_servizio}/referenti`, {params: {tipo_referente: 'referente'}}).toPromise()
-    return result.content;
+    return result?.content || [];
   }
 
   _onCloseNotificationBar(event: any) {

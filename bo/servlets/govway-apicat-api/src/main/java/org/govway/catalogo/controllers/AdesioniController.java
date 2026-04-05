@@ -283,8 +283,8 @@ public class AdesioniController implements AdesioniApi {
 
 		aspec.setIdAdesioni(List.of(idAdesione));
 
-		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404));
-		
+		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.ADE_404, Map.of("idAdesione", idAdesione.toString())));
+
 	}
 	
 	@Override
@@ -301,7 +301,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -341,12 +341,15 @@ public class AdesioniController implements AdesioniApi {
 				this.service.save(messaggio);
 
 				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneAdesioneEnum> target = null;
-				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
-					target = messaggioCreate.getTarget().stream()
-						.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
-						.collect(Collectors.toSet());
+				Set<TargetComunicazioneAdesioneEnum> target = messaggioCreate.getTarget().stream()
+					.map(t -> TargetComunicazioneAdesioneEnum.valueOf(t.name()))
+					.collect(Collectors.toSet());
+
+				// Verifica che il target COORDINATORE sia usabile solo se abilitato
+				if (target.contains(TargetComunicazioneAdesioneEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
 				}
+
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioAdesione(messaggio, target, includiTecnici);
@@ -444,7 +447,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
@@ -523,7 +526,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity messaggio = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
 						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404));
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -751,7 +754,7 @@ public class AdesioniController implements AdesioniApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemAdesione> listAdesioni(List<String> stato, UUID idSoggettoAderente, UUID idOrganizzazioneAderente, UUID idGruppo,
-			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, Boolean dashboard, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, String q,  Integer page,
+			UUID idDominio, UUID idServizio, String idLogico, UUID idAdesione, UUID idClient, UUID richiedente, Boolean inAttesa, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, StatoConfigurazioneAutomaticaEnum statoConfigurazioneAutomatica, String q,  Integer page,
 			Integer size, List<String> sort) {
 
 		try {
@@ -788,7 +791,7 @@ public class AdesioniController implements AdesioniApi {
 				specification.setIdRichiedente(Optional.ofNullable(richiedente));
 				specification.setIdServizio(Optional.ofNullable(idServizio));
 
-				boolean admin = this.coreAuthorization.isAdmin();
+				boolean admin = this.coreAuthorization.isAdmin() || this.coreAuthorization.isCoordinatore();
 
 				if(!admin) {
 					specification.setUtente(Optional.of(this.coreAuthorization.getUtenteSessione()));
@@ -798,7 +801,55 @@ public class AdesioniController implements AdesioniApi {
 
 				Specification<AdesioneEntity> realSpecification = null;
 
-				if(dashboard != null && dashboard) {
+				if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
+					if(!anounymous) {
+						UtenteEntity utenteRuolo = this.coreAuthorization.getUtenteSessione();
+						Specification<AdesioneEntity> specRuoli = null;
+
+						for(RuoloReferenteEnum r : ruoloReferente) {
+							Specification<AdesioneEntity> specRuolo = null;
+							switch(r) {
+								case REFERENTE_DOMINIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+									break;
+								case REFERENTE_TECNICO_DOMINIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+									break;
+								case REFERENTE_SERVIZIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+									break;
+								case REFERENTE_TECNICO_SERVIZIO:
+									specRuolo = AdesioneSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+									break;
+								case REFERENTE_ADESIONE:
+									specRuolo = AdesioneSpecificationUtils.byReferenteAdesioneWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+									break;
+								case REFERENTE_TECNICO_ADESIONE:
+									specRuolo = AdesioneSpecificationUtils.byReferenteAdesioneWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+									break;
+								case RICHIEDENTE_SERVIZIO:
+									specRuolo = AdesioneSpecificationUtils.byRichiedenteServizio(utenteRuolo);
+									break;
+								case RICHIEDENTE_ADESIONE:
+									specRuolo = AdesioneSpecificationUtils.byRichiedente(utenteRuolo);
+									break;
+								default:
+									break;
+							}
+							if(specRuolo != null) {
+								specRuoli = (specRuoli == null) ? specRuolo : specRuoli.or(specRuolo);
+							}
+						}
+
+						if(specRuoli != null) {
+							realSpecification = specification.and(specRuoli);
+						} else {
+							realSpecification = specification.and((root, query, cb) -> cb.disjunction());
+						}
+					} else {
+						throw new BadRequestException(ErrorCode.ADE_400_STATE, Map.of("stato", "richiesto ruolo utente per filtro"));
+					}
+				} else if(dashboard != null && dashboard) {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
@@ -854,7 +905,7 @@ public class AdesioniController implements AdesioniApi {
 							}
 						}
 					} else {
-						throw new BadRequestException(ErrorCode.ADE_400_STATE);
+						throw new BadRequestException(ErrorCode.ADE_400_STATE, Map.of("stato", "richiesto utente autenticato per dashboard"));
 					}
 				} else {
 					realSpecification = specification;
@@ -875,22 +926,37 @@ public class AdesioniController implements AdesioniApi {
 				PagedModelItemAdesione list = new PagedModelItemAdesione();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 
-				// Popola ruoli_referente se dashboard=true
-				if(dashboard != null && dashboard && !anounymous) {
+				// Popola ruoli_referente per utenti autenticati
+				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
-					// Calcola i set di domini, servizi e adesioni per cui l'utente è referente
+					// Calcola i set di domini, servizi e adesioni per cui l'utente è referente (e referente tecnico)
 					Set<Long> dominiReferente = new HashSet<>();
+					Set<Long> dominiReferenteTecnico = new HashSet<>();
 					Set<Long> serviziReferente = new HashSet<>();
+					Set<Long> serviziReferenteTecnico = new HashSet<>();
+					Set<Long> adesioniReferente = new HashSet<>();
+					Set<Long> adesioniReferenteTecnico = new HashSet<>();
 
 					for(var ref : this.service.findReferentiDominioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							dominiReferente.add(ref.getDominio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							dominiReferenteTecnico.add(ref.getDominio().getId());
 						}
 					}
 					for(var ref : this.service.findReferentiServizioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							serviziReferente.add(ref.getServizio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							serviziReferenteTecnico.add(ref.getServizio().getId());
+						}
+					}
+					for(var ref : this.service.findReferentiAdesioneByUtente(utente)) {
+						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
+							adesioniReferente.add(ref.getAdesione().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							adesioniReferenteTecnico.add(ref.getAdesione().getId());
 						}
 					}
 
@@ -904,7 +970,7 @@ public class AdesioniController implements AdesioniApi {
 					for(ItemAdesione item : list.getContent()) {
 						AdesioneEntity ae = adesioneEntityMap.get(item.getIdAdesione().toString());
 						if(ae != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, serviziReferente);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferenteAdesione(ae, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico, adesioniReferente, adesioniReferenteTecnico);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -1420,7 +1486,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1453,7 +1519,7 @@ public class AdesioniController implements AdesioniApi {
 				MessaggioAdesioneEntity entity = this.service.findMessaggioAdesione(idAdesione.toString(), idMessaggio.toString())
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.NTF_404, Map.of("idNotifica", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1501,7 +1567,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 				
 				if(allegato == null) {
-					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_ALLEGATO, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -1544,7 +1610,7 @@ public class AdesioniController implements AdesioniApi {
 				}
 
 				if(allegato == null) {
-					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_ALLEGATO, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Resource resource = new ByteArrayResource(allegato.getRawData());
@@ -1587,7 +1653,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.CLT_404, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.CLT_404_PROFILE, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -1628,7 +1694,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.CLT_404, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.CLT_404_PROFILE, java.util.Map.of("profilo", profilo.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -1669,7 +1735,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.API_404_EROGATION, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -1710,7 +1776,7 @@ public class AdesioniController implements AdesioniApi {
 					}
 					this.logger.debug("Autorizzazione completata con successo");     
 				} else {
-					throw new BadRequestException(ErrorCode.API_404, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
+					throw new BadRequestException(ErrorCode.API_404_EROGATION, java.util.Map.of("idErogazione", idErogazione.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				Adesione model = this.dettaglioAssembler.toModel(entity);
@@ -2106,7 +2172,7 @@ public class AdesioniController implements AdesioniApi {
 						.collect(Collectors.toList());
 
 				if(lst.size() != 1) {
-					throw new NotFoundException(ErrorCode.DOC_404, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_ALLEGATO, java.util.Map.of("idAllegato", idAllegato.toString(), "idAdesione", idAdesione.toString()));
 				}
 
 				DocumentoEntity allegato = lst.get(0).getDocumento();
@@ -2173,21 +2239,62 @@ public class AdesioniController implements AdesioniApi {
 	}
 
 	private List<RuoloReferenteEnum> calcolaRuoliReferenteAdesione(AdesioneEntity adesione, UtenteEntity utente,
-			Set<Long> dominiReferente, Set<Long> serviziReferente) {
+			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico,
+			Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico,
+			Set<Long> adesioniReferente, Set<Long> adesioniReferenteTecnico) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
-		// Verifica se l'utente è referente del dominio del servizio dell'adesione
-		if (adesione.getServizio() != null && adesione.getServizio().getDominio() != null
-				&& dominiReferente.contains(adesione.getServizio().getDominio().getId())) {
-			ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+		// Ruoli di dominio
+		if (adesione.getServizio() != null && adesione.getServizio().getDominio() != null) {
+			Long idDominio = adesione.getServizio().getDominio().getId();
+			if (dominiReferente.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+			}
+			if (dominiReferenteTecnico.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_DOMINIO);
+			}
 		}
 
-		// Verifica se l'utente è referente del servizio dell'adesione
-		if (adesione.getServizio() != null && serviziReferente.contains(adesione.getServizio().getId())) {
-			ruoli.add(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+		// Ruoli di servizio
+		if (adesione.getServizio() != null) {
+			if (serviziReferente.contains(adesione.getServizio().getId())) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+			}
+			if (serviziReferenteTecnico.contains(adesione.getServizio().getId())) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_SERVIZIO);
+			}
+			// Richiedente del servizio
+			if (adesione.getServizio().getRichiedente() != null && adesione.getServizio().getRichiedente().getId().equals(utente.getId())) {
+				ruoli.add(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO);
+			}
+		}
+
+		// Ruoli di adesione
+		if (adesioniReferente.contains(adesione.getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_ADESIONE);
+		}
+		if (adesioniReferenteTecnico.contains(adesione.getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE);
+		}
+
+		// Richiedente dell'adesione
+		if (adesione.getRichiedente() != null && adesione.getRichiedente().getId().equals(utente.getId())) {
+			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_ADESIONE);
 		}
 
 		return ruoli;
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato)
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true; // default: abilitato
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato; // default: true
 	}
 
 }

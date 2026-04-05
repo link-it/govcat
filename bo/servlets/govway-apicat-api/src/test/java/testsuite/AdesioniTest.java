@@ -566,18 +566,19 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
-    	
+
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
-    	
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
     	ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
-    	
+
     	AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
     	allegatoMessaggio.setContent(Base64.encodeBase64String("contenuto di test".getBytes()));
     	allegatoMessaggio.setDescrizione("questa è la descrizione di test");
     	allegatoMessaggio.setFilename("nomeallegato.pdf");
     	allegatoMessaggio.setContentType("application/pdf");
-    	
+
     	ResponseEntity<AllegatoMessaggio> response = adesioniController.createAllegatoMessaggioAdesione(adesione.getIdAdesione(), itemMessaggio.getBody().getIdMessaggio(), allegatoMessaggio);
     	assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -629,18 +630,19 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
-    	
+
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
-    	
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
     	ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
-    	
+
     	AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
     	allegatoMessaggio.setContent(Base64.encodeBase64String("contenuto di test".getBytes()));
     	allegatoMessaggio.setDescrizione("questa è la descrizione di test");
     	allegatoMessaggio.setFilename("nomeallegato.pdf");
     	allegatoMessaggio.setContentType("application/pdf");
-    	
+
     	CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
     	
     	assertThrows(NotAuthorizedException.class, () -> {
@@ -666,18 +668,19 @@ public class AdesioniTest {
     	assertNotNull(adesione);
     	
     	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
-    	
+
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
-    	
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
     	ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
-    	
+
     	AllegatoMessaggioCreate allegatoMessaggio = new AllegatoMessaggioCreate();
     	allegatoMessaggio.setContent(Base64.encodeBase64String("contenuto di test".getBytes()));
     	allegatoMessaggio.setDescrizione("questa è la descrizione di test");
     	allegatoMessaggio.setFilename("nomeallegato.pdf");
     	allegatoMessaggio.setContentType("application/pdf");
-    	
+
     	this.tearDown();
     	
     	assertThrows(NotAuthorizedException.class, () -> {
@@ -686,7 +689,7 @@ public class AdesioniTest {
     }
     
     @Test
-    void testCreateMessaggioAdesioneSuccess() { 
+    void testCreateMessaggioAdesioneSuccess() {
     	// Creo il dominio
     	Dominio dominio = this.getDominio(null);
     	// Creo un servizio
@@ -699,22 +702,23 @@ public class AdesioniTest {
 
     	// Creo l'Adesione
     	Adesione adesione = this.getAdesione();
-    	
+
     	assertNotNull(adesione);
-    	
+
     	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
-    	
+
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
-    	
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
     	ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
-    	
+
     	assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
     }
     
     @Test
-    void testCreateMessaggioAdesioneNotAuthorized() { 
+    void testCreateMessaggioAdesioneNotAuthorized() {
     	// Creo il dominio
     	Dominio dominio = this.getDominio(null);
     	// Creo un servizio
@@ -727,23 +731,24 @@ public class AdesioniTest {
 
     	// Creo l'Adesione
     	Adesione adesione = this.getAdesione();
-    	
+
     	assertNotNull(adesione);
-    	
+
     	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
-    	
+
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
-    	
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
     	CommonUtils.getSessionUtente("xxx", securityContext, authentication, utenteService);
-    	
+
     	assertThrows(NotAuthorizedException.class, () -> {
     		adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
         });
     }
     
     @Test
-    void testCreateMessaggioAdesioneUtenteAnonimo() { 
+    void testCreateMessaggioAdesioneUtenteAnonimo() {
     	// Creo il dominio
     	Dominio dominio = this.getDominio(null);
     	// Creo un servizio
@@ -756,16 +761,17 @@ public class AdesioniTest {
 
     	// Creo l'Adesione
     	Adesione adesione = this.getAdesione();
-    	
+
     	assertNotNull(adesione);
-    	
+
     	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
-    	
+
     	messaggio.setOggetto("Oggetti di Prova");
     	messaggio.setTesto("Ecco un esempio di testo");
-    	
+    	messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
+
     	this.tearDown();
-    	
+
     	assertThrows(NotAuthorizedException.class, () -> {
     		adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
         });
@@ -888,8 +894,15 @@ public class AdesioniTest {
 
     	MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
     	messaggio.setOggetto("Test Target Default");
-    	messaggio.setTesto("Messaggio senza target specificato (default tutti)");
-    	// Nessun target specificato = tutti
+    	messaggio.setTesto("Messaggio con tutti i target specificati esplicitamente");
+    	// Tutti i target devono essere specificati esplicitamente
+    	messaggio.setTarget(Arrays.asList(
+    		TargetComunicazioneAdesioneEnum.REFERENTI_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.REFERENTI_DOMINIO_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.RICHIEDENTE_SERVIZIO,
+    		TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE,
+    		TargetComunicazioneAdesioneEnum.RICHIEDENTE_ADESIONE
+    	));
 
     	ResponseEntity<ItemMessaggio> response = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
 
@@ -1152,6 +1165,7 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
         messaggio.setOggetto("Oggetto Test");
         messaggio.setTesto("Testo del messaggio");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
 
         AllegatoMessaggioCreate allegato = new AllegatoMessaggioCreate();
@@ -1183,6 +1197,7 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggio = new MessaggioAdesioneCreate();
         messaggio.setOggetto("Oggetto Test");
         messaggio.setTesto("Testo del messaggio");
+        messaggio.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         ResponseEntity<ItemMessaggio> itemMessaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggio);
 
         AllegatoMessaggioCreate allegato = new AllegatoMessaggioCreate();
@@ -1426,11 +1441,13 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+
         messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
         entityManager.flush();
         entityManager.clear();
@@ -1461,11 +1478,13 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
         entityManager.flush();
         entityManager.clear();
@@ -1497,11 +1516,13 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
         entityManager.flush();
         entityManager.clear();
@@ -1532,6 +1553,7 @@ public class AdesioniTest {
 	        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
 	        messaggioCreate.setOggetto("Oggetto di Test"+num);
 	        messaggioCreate.setTesto("a Testo del Messaggio"+num);
+	        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
 	        adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
     	}
         entityManager.flush();
@@ -1601,7 +1623,7 @@ public class AdesioniTest {
         // Act
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-            null, null, null, null, false, null, null, null, 0, 10, null);
+            null, null, null, null, false, null, null, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1648,7 +1670,7 @@ public class AdesioniTest {
         
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1697,7 +1719,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1747,7 +1769,7 @@ public class AdesioniTest {
 
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, sort);
+                null, null, null, null, false, null, null, null, null, 0, 10, sort);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1795,7 +1817,7 @@ public class AdesioniTest {
         	
         	ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
                     null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                    null, null, null, null, false, null, null, null, n, numeroElementiPerPagina, null);
+                    null, null, null, null, false, null, null, null, null, n, numeroElementiPerPagina, null);
 
             // Verifica del successo
             assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1837,7 +1859,7 @@ public class AdesioniTest {
 
         assertThrows(NotAuthorizedException.class, () -> adesioniController.listAdesioni(
                 null, null, null, null, dominio.getIdDominio(), servizio.getIdServizio(),
-                null, null, null, null, false, null, null, null, 0, 10, null));
+                null, null, null, null, false, null, null, null, null, 0, 10, null));
     }
 
     @Test
@@ -1857,7 +1879,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true come gestore
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1881,7 +1903,7 @@ public class AdesioniTest {
         // Act - chiamata con dashboard=true
         ResponseEntity<PagedModelItemAdesione> response = adesioniController.listAdesioni(
             null, null, null, null, null, null,
-            null, null, null, null, false, true, null, null, 0, 10, null);
+            null, null, null, null, false, null, true, null, null, 0, 10, null);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -1991,11 +2013,13 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+
         messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         // Invocazione del metodo con sort
@@ -2026,11 +2050,13 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         // Invocazione del metodo con sort
@@ -2062,13 +2088,15 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("a Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test 2");
         messaggioCreate.setTesto("z Il testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
-        
+
         // Invocazione del metodo con sort
         ResponseEntity<PagedModelItemMessaggio> response = adesioniController.listMessaggiAdesione(adesione.getIdAdesione(), null, 0, 10, sort);
 
@@ -2097,6 +2125,7 @@ public class AdesioniTest {
 	        MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
 	        messaggioCreate.setOggetto("Oggetto di Test"+num);
 	        messaggioCreate.setTesto("a Testo del Messaggio"+num);
+	        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
 	        adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
     	}
         for(int n = 0; n < (numeroTotaleDiElementi/numeroElementiPerPagina); n++) {
@@ -4645,6 +4674,7 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         // Act
@@ -4666,6 +4696,7 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         // Cambio utente per testare unauthorized
@@ -4697,6 +4728,7 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         MessaggioUpdate messaggioUpdate = new MessaggioUpdate();
@@ -4724,6 +4756,7 @@ public class AdesioniTest {
         MessaggioAdesioneCreate messaggioCreate = new MessaggioAdesioneCreate();
         messaggioCreate.setOggetto("Oggetto di Test");
         messaggioCreate.setTesto("Testo del Messaggio");
+        messaggioCreate.setTarget(Arrays.asList(TargetComunicazioneAdesioneEnum.REFERENTI_ADESIONE));
         ResponseEntity<ItemMessaggio> messaggio = adesioniController.createMessaggioAdesione(adesione.getIdAdesione(), messaggioCreate);
 
         MessaggioUpdate messaggioUpdate = new MessaggioUpdate();

@@ -29,7 +29,7 @@ export interface Organizzazione {
 
 export enum Ruolo {
   NESSUN_RUOLO = 'nessun_ruolo',
-  GESTOERE = 'gestore',
+  GESTORE = 'gestore',
   REFERENTE_SERVIZIO = 'referente_servizio',
   COORDINATORE = 'coordinatore'
 }

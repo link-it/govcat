@@ -185,6 +185,11 @@ public abstract class AbstractRequestUtils implements RequestUtils {
         UtenteEntity utente = new UtenteEntity();
         utente.setIdUtente(UUID.randomUUID().toString());
         utente.setPrincipal(this.getUsername());
+
+        // Default notifiche: solo COMUNICAZIONE (no CAMBIO_STATO), tutte le entità e ruoli (no EMAIL)
+        utente.setTipiNotificheAbilitate("COMUNICAZIONE");
+        utente.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
+        utente.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
         utente.setEmailAziendale(this.getEmail());
         utente.setNome(this.getFirstName());
         utente.setCognome(this.getLastName());

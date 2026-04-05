@@ -19,11 +19,13 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { Tools, ConfigService, EventsManagerService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, EventsManagerService, FieldClass, YesnoDialogBsComponent } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { CustomValidators } from '@linkit/validators';
@@ -32,15 +34,22 @@ import { Utente, Ruolo, Stato } from './utente';
 
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
-import { RuoloUtenteEnum } from '@app/model/ruoloUtenteEnum';
-
 import * as _ from 'lodash';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
 
 @Component({
   selector: 'app-utente-details',
   templateUrl: 'utente-details.component.html',
   styleUrls: ['utente-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    ...APP_COMPONENTS_IMPORTS,
+    HasPermissionDirective,
+    TrimOnBlurDirective
+  ]
 })
 export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'UtenteDetailsComponent';
@@ -110,6 +119,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   selectedOrganizzazione: any;
 
   _fromDashboard: boolean = false;
+  _dashboardSection: string = '';
 
   minLengthTerm = 1;
 
@@ -129,7 +139,10 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   ngOnInit() {
     this._statoArr = Object.values(Stato);
-    this._ruoloArr = Object.values(Ruolo);
+    const coordinatoreAbilitato = Tools.Configurazione?.utente?.coordinatore_abilitato !== false;
+    this._ruoloArr = coordinatoreAbilitato
+      ? Object.values(Ruolo)
+      : Object.values(Ruolo).filter(r => r !== Ruolo.COORDINATORE);
 
     this.route.params.subscribe(params => {
       if (params['id'] && params['id'] !== 'new') {
@@ -160,6 +173,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
     this.route.queryParams.subscribe((val) => {
       if (val.from === 'dashboard') {
         this._fromDashboard = true;
+        this._dashboardSection = val.section || '';
         this._initBreadcrumb();
       }
     });
@@ -190,7 +204,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   }
 
   _hasControlError(name: string) {
-    return (this.f[name].errors && this.f[name].touched);
+    return !!(this.f[name].errors && this.f[name].touched);
   }
 
   get f(): { [key: string]: AbstractControl } {
@@ -338,16 +352,18 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _prapareData(body: any) {
     let _classi: any[] | null = null;
     if (body.classi_utente?.length) {
-      _classi = body.classi_utente.map((item: any) => item.id_classe_utente);
+      _classi = body.classi_utente.map((item: any) => item.id_classe_utente || item);
     }
     const _newBody: any = {
       ...body,
       ruolo: (body.ruolo == Ruolo.NESSUN_RUOLO) ? null : body.ruolo,
-      classi_utente: _classi
     };
     delete _newBody.organizzazione;
+    delete _newBody.classi_utente;
 
-    return this.utils._removeEmpty(_newBody);
+    const result = this.utils._removeEmpty(_newBody);
+    result.classi_utente = _classi;
+    return result;
   }
 
   _onSubmit(form: any, close: boolean = true) {
@@ -437,8 +453,9 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
   _initBreadcrumb() {
     const _title = this.utente ? `${this.utente.nome} ${this.utente.cognome}` : this.translate.instant('APP.TITLE.New');
     if (this._fromDashboard) {
+      const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
       this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
         { label: `${_title}`, url: '', type: 'title' }
       ];
     } else {
@@ -487,7 +504,11 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
 
   onBreadcrumb(event: any) {
     if (this._useRoute) {
-      this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      if (event.params) {
+        this.router.navigate([event.url], { queryParams: event.params });
+      } else {
+        this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+      }
     } else {
       this._onClose();
     }
@@ -502,10 +523,6 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
         Tools.OnError(error);
       }
     });
-  }
-
-  trackByFn(item: any) {
-    return item.id;
   }
 
   _initClassiUtenteSelect(defaultValue: any[] = []) {
@@ -656,7 +673,7 @@ export class UtenteDetailsComponent implements OnInit, OnChanges, AfterContentCh
       console.warn('organizationFormControl does not exist');
       return;
     }
-    if(role === RuoloUtenteEnum.Gestore){
+    if(role === Ruolo.GESTORE || role === Ruolo.COORDINATORE){
       organizationFormControl.clearValidators();
     }else{
       organizationFormControl.setValidators([Validators.required]);

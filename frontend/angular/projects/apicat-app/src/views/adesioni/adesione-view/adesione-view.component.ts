@@ -17,19 +17,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { GravatarModule } from 'ngx-gravatar';
+
+import { COMPONENTS_IMPORTS, ConfigService, Tools, MenuAction } from '@linkit/components';
+import { ScrollComponent } from '@app/components/scroll/scroll.component';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+
 import { AuthenticationService } from '@app/services/authentication.service';
 import { NavigationService } from '@app/services/navigation.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
-import { TranslateService } from '@ngx-translate/core';
-import { ConfigService } from '@linkit/components';
 
-import { Tools } from '@linkit/components';
 import { forkJoin } from 'rxjs';
 import { ComponentAuthTypeEnum } from '@app/model/componentAuthTypeEnum';
-import { MenuAction } from '@linkit/components';
 import { Grant } from '@app/model/grant';
 
 import * as _ from 'lodash';
@@ -240,7 +244,15 @@ const clientRowConfig = {
   selector: 'app-adesione-view',
   templateUrl: './adesione-view.component.html',
   styleUrls: ['./adesione-view.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    ScrollComponent,
+    GravatarModule,
+    MonitorDropdwnComponent
+  ]
 })
 export class AdesioneViewComponent implements OnInit {
 
@@ -269,24 +281,23 @@ export class AdesioneViewComponent implements OnInit {
   _showRichiedente: boolean = true;
 
   private readonly model = 'adesioni';
-  private apiUrl: string = '';
-  private defaultLogo: string = './assets/images/logo-servizio.png';
+  private readonly apiUrl: string = '';
+  private readonly defaultLogo: string = './assets/images/logo-servizio.png';
   private _serviceBreadcrumbs: ServiceBreadcrumbsData | null = null;
-  private _fromDashboard: boolean = false;
 
   public grant: Grant | null = null;
   
   _otherActions: MenuAction[] = [];
   
   constructor(
-    private router: Router,
-    private location: Location,
-    private route: ActivatedRoute,
-    private translate: TranslateService,
-    private apiService: OpenAPIService,
-    private configService: ConfigService,
-    private authenticationService: AuthenticationService,
-    private navigationService: NavigationService
+    private readonly router: Router,
+    private readonly location: Location,
+    private readonly route: ActivatedRoute,
+    private readonly translate: TranslateService,
+    private readonly apiService: OpenAPIService,
+    private readonly configService: ConfigService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly navigationService: NavigationService
   ) {
     const config = this.configService.getConfiguration();
     this.apiUrl = config.AppConfig.GOVAPI.HOST;
@@ -305,13 +316,6 @@ export class AdesioneViewComponent implements OnInit {
       if (params['id']) {
         this.id = params['id'];
         this.loadAdesione(true);
-      }
-    });
-
-    this.route.queryParams.subscribe((val) => {
-      if (val.from === 'dashboard') {
-        this._fromDashboard = true;
-        this._initBreadcrumb();
       }
     });
 
@@ -339,8 +343,10 @@ export class AdesioneViewComponent implements OnInit {
     this._otherActions = []
     const _statiFinali = ['pubblicato_produzione', 'pubblicato_produzione_senza_collaudo'];
     const _isStatoFinale = _statiFinali.includes(this.adesione?.stato || '');
-    const _isGestore = this.authenticationService.isGestore(this.grant?.ruoli || []);
-    if (!_isStatoFinale || _isGestore) {
+    const _grant = this.grant?.ruoli || [];
+    const _isGestore = this.authenticationService.isGestore(_grant);
+    const _canSempreModificareReferenti = this.authenticationService._isDatoSempreModificabile('adesione', 'referenti', _grant);
+    if (!_isStatoFinale || _isGestore || _canSempreModificareReferenti) {
       this._otherActions = [
           new MenuAction({
             type: 'menu',
@@ -461,20 +467,13 @@ export class AdesioneViewComponent implements OnInit {
       title = `${this.adesione.id_logico} (${_organizzazione})`;
     }
 
-    if (this._fromDashboard && !this._serviceBreadcrumbs) {
-      this.breadcrumbs = [
-        { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
-        { label: title, url: ``, type: 'link' },
-      ];
-    } else {
-      this.breadcrumbs = [
-        { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-        { label: title, url: ``, type: 'link' },
-      ];
+    this.breadcrumbs = [
+      { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
+      { label: title, url: ``, type: 'link' },
+    ];
 
-      if (this._serviceBreadcrumbs) {
-        this.breadcrumbs.unshift(...this._serviceBreadcrumbs.breadcrumbs);
-      }
+    if (this._serviceBreadcrumbs) {
+      this.breadcrumbs.unshift(...this._serviceBreadcrumbs.breadcrumbs);
     }
   }
 
@@ -567,7 +566,7 @@ export class AdesioneViewComponent implements OnInit {
     this.apiService.getDetails(this.model, this.id, this.environment + '/erogazioni').subscribe({
       next: (result) => {
         const mapApiDetails = (configuredApis: any[]) => {
-          if (!this.adesione || !this.adesione.erogazioni_richieste) return [];
+          if (!this.adesione?.erogazioni_richieste) return [];
 
           return this.adesione.erogazioni_richieste.map((requestedApi: RichiestaErogazione): ApiView => {
             const associatedApi: any = configuredApis.find((el: any) => { return requestedApi.api.id_api === el.api.id_api })
@@ -594,10 +593,10 @@ export class AdesioneViewComponent implements OnInit {
     // modalita di autenticazione
     this.apiService.getDetails(this.model, this.id, this.environment + '/client').subscribe({
       next: (result) => {
-        if (!this.adesione || !this.adesione.client_richiesti) return;
+        if (!this.adesione?.client_richiesti) return;
 
         const mapClientDetails = (clients: Client[]): AuthModeView[] => {
-          if (!this.adesione || !this.adesione.client_richiesti) return [];
+          if (!this.adesione?.client_richiesti) return [];
 
           return _.uniqWith(this.adesione.client_richiesti, _.isEqual).map((clientRichiesto) => {
             const client: Client | undefined = clients.find((client: Client) => client.profilo === clientRichiesto.profilo);
@@ -610,8 +609,8 @@ export class AdesioneViewComponent implements OnInit {
               client_id_label: this.getLabelClientId(client?.dati_specifici?.auth_type),
               canViewClientId: this.canViewClientId(client?.dati_specifici?.auth_type),
               name: client ? client.nome : '-',
-              description: client && client.descrizione ? client.descrizione : '',
-              ip: client && client.indirizzo_ip ? client.indirizzo_ip : '-',
+              description: client?.descrizione ? client.descrizione : '',
+              ip: client?.indirizzo_ip ? client.indirizzo_ip : '-',
               authCertificate: client?.dati_specifici?.certificato_autenticazione?.certificato,
               canDownloadAuthCertificate: this.canDownloadAuthCertificate(client?.dati_specifici?.auth_type),
               signCertificate: client?.dati_specifici?.certificato_firma?.certificato,
@@ -643,12 +642,12 @@ export class AdesioneViewComponent implements OnInit {
     if (!authType) return false;
     const authTypes: any = this.authenticationService._getConfigModule('servizio').api.auth_type;
     const configAuthType = authTypes.find((x: any) => x.type == authType);
-    return (configAuthType && configAuthType.indirizzi_ip) || false;
+    return (configAuthType?.indirizzi_ip) || false;
   }
 
   private canDownloadSignCertificate(authType: string | undefined): boolean {
     if (!authType) return false;
-    ComponentAuthTypeEnum.HttpsSign
+
     return ['sign', 'https_sign', 'sign_pdnd', 'https_pdnd_sign'].indexOf(authType) !== -1;
   }
 
@@ -669,7 +668,7 @@ export class AdesioneViewComponent implements OnInit {
 
   private getLabelClientId(authType: string | undefined): string {
     if (!authType) return 'APP.CLIENT.LABEL.ClientId';
-    return (['pdnd', 'https_pdnd', 'sign_pdnd', 'https_pdnd_sign'].indexOf(authType) !== -1) ? 'APP.CLIENT.LABEL.ClientIdPDND' : 'APP.CLIENT.LABEL.ClientId';
+    return (['pdnd', 'https_pdnd', 'sign_pdnd', 'https_pdnd_sign'].indexOf(authType) === -1) ? 'APP.CLIENT.LABEL.ClientId' : 'APP.CLIENT.LABEL.ClientIdPDND';
   }
 
   private onEnvironmentChange() {

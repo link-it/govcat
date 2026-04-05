@@ -113,7 +113,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		entity.setPrincipal(src.getPrincipal());
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", src.getIdOrganizzazione().toString()))));
 		} else {
 			entity.setOrganizzazione(null);
 		}
@@ -141,7 +141,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 
 		if(src.getClassiUtente()!=null) {
 			for(UUID idcu: src.getClassiUtente()) {
-				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
+				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", idcu.toString())));
 				cu.getUtentiAssociati().add(entity);
 				entity.getClassi().add(cu);
 			}
@@ -160,14 +160,19 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 	public UtenteEntity toEntity(UtenteCreate src) {
 		UtenteEntity entity = new UtenteEntity();
 		BeanUtils.copyProperties(src, entity);
-		
+
 		entity.setIdUtente(UUID.randomUUID().toString());
 		entity.setPrincipal(src.getPrincipal());
+
+		// Default notifiche: solo COMUNICAZIONE (no CAMBIO_STATO), tutte le entità e ruoli (no EMAIL)
+		entity.setTipiNotificheAbilitate("COMUNICAZIONE");
+		entity.setTipiEntitaNotificheAbilitate("SERVIZIO,ADESIONE");
+		entity.setRuoliNotificheAbilitate("SERVIZIO_REFERENTE_DOMINIO,SERVIZIO_REFERENTE_TECNICO_DOMINIO,SERVIZIO_REFERENTE_SERVIZIO,SERVIZIO_REFERENTE_TECNICO_SERVIZIO,SERVIZIO_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_DOMINIO,ADESIONE_REFERENTE_TECNICO_DOMINIO,ADESIONE_REFERENTE_SERVIZIO,ADESIONE_REFERENTE_TECNICO_SERVIZIO,ADESIONE_RICHIEDENTE_SERVIZIO,ADESIONE_REFERENTE_ADESIONE,ADESIONE_REFERENTE_TECNICO_ADESIONE,ADESIONE_RICHIEDENTE_ADESIONE,GESTORE,COORDINATORE");
 		if(src.getIdOrganizzazione() != null) {
 			entity.setOrganizzazione(organizzazioneService.find(src.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404)));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", src.getIdOrganizzazione().toString()))));
 		}
-		
+
 		if(src.isReferenteTecnico()!=null) {
 			entity.setReferenteTecnico(src.isReferenteTecnico());
 		}
@@ -175,7 +180,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		if(src.getRuolo()!=null) {
 			entity.setRuolo(utenteEngineAssembler.toEntity(src.getRuolo()));
 		}
-		
+
 		if(src.getStato() != null && !src.getStato().getValue().trim().isEmpty()) {
 			entity.setStato(utenteEngineAssembler.toEntity(src.getStato()));
 		} else {
@@ -184,7 +189,7 @@ public class UtenteDettaglioAssembler extends RepresentationModelAssemblerSuppor
 		
 		if(src.getClassiUtente()!=null) {
 			for(UUID idcu: src.getClassiUtente()) {
-				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404));
+				ClasseUtenteEntity cu = this.classeUtenteService.findByIdClasseUtente(idcu).orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, java.util.Map.of("idClasseUtente", idcu.toString())));
 				cu.getUtentiAssociati().add(entity);
 				entity.getClassi().add(cu);
 			}

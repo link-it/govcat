@@ -19,14 +19,12 @@
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { TranslateService } from '@ngx-translate/core';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { COMPONENTS_IMPORTS, ConfigService, Tools, EventsManagerService, FieldClass } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
-import { FieldClass } from '@linkit/components';
 
 import { Message } from './message';
 
@@ -34,7 +32,11 @@ import { Message } from './message';
   selector: 'app-message-details',
   templateUrl: 'message-details.component.html',
   styleUrls: ['message-details.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS
+  ]
 })
 export class MessageDetailsComponent implements OnInit, OnChanges, AfterContentChecked, OnDestroy {
   static readonly Name = 'MessageDetailsComponent';

@@ -16,35 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormControl, FormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 
-import { TranslateService } from '@ngx-translate/core';
-
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 import { Ruolo, Stato } from './utente-details/utente';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
   selector: 'app-utenti',
   templateUrl: 'utenti.component.html',
   styleUrls: ['utenti.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective
+  ]
 })
-export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
+export class UtentiComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'UtentiComponent';
   readonly model: string = 'utenti';
 
@@ -139,15 +140,12 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   classiUtenteLoading: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly router: Router,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService,
-    private navigationService: NavigationService
+    private readonly utils: UtilService,
+    private readonly navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -174,12 +172,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     );
   }
 
-  ngOnDestroy() {
-    // this.eventsManagerService.off(EventType.NAVBAR_ACTION);
-  }
-
   ngAfterViewInit() {
-    if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
+    if (!(this.searchBarForm?._isPinned())) {
       setTimeout(() => {
         this.refresh();
       }, 100);
@@ -212,8 +206,8 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
       ruolo: new FormControl(''),
       stato: new FormControl(''),
       principal: new FormControl(''),
-      id_organizzazione: new FormControl(''),
-      classe_utente: new FormControl(''),
+      id_organizzazione: new FormControl(null),
+      classe_utente: new FormControl(null),
       referente_tecnico: new FormControl('')
     });
   }
@@ -234,8 +228,10 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.apiService.getList(this.model, aux, url).subscribe({
       next: (response: any) => {
 
-        response ? this._paging = new Page(response.page) : null;
-        response ? this._links = response._links || null : null;
+        if (response) {
+          this._paging = new Page(response.page);
+          this._links = response._links || null;
+        }
 
         if (response.content) {
           const _list: any = response.content.map((org: any) => {
@@ -271,7 +267,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   __loadMoreData() {
-    if (this._links && this._links.next && !this._preventMultiCall) {
+    if (this._links?.next && !this._preventMultiCall) {
       this._preventMultiCall = true;
       this._loadUtenti(null, this._links.next.href);
     }
@@ -364,7 +360,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     return this.apiService.getList('organizzazioni', _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = resp.content.map((item: any) => {
             // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
@@ -412,7 +408,7 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     return this.apiService.getList(model, _options)
       .pipe(map(resp => {
         if (resp.Error) {
-          throwError(resp.Error);
+          throwError(() => resp.Error);
         } else {
           const _items = (resp.content || resp).map((item: any) => {
             // item.disabled = _.findIndex(this._toExcluded, (excluded) => excluded.name === item.name) !== -1;
@@ -436,7 +432,4 @@ export class UtentiComponent implements OnInit, AfterContentChecked, OnDestroy {
     $event.stopPropagation();
   }
 
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio;
-  }
 }

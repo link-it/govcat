@@ -18,11 +18,14 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 
+import { TranslateModule } from '@ngx-translate/core';
+
 @Component({
     selector: 'lnk-field-plaintext',
     templateUrl: './field-plaintext.component.html',
     styleUrls: ['./field-plaintext.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [TranslateModule]
 })
 export class LnkFieldPlaintextComponent implements OnInit {
 

@@ -133,16 +133,19 @@ public class UtentiController implements UtentiApi {
 	@Override
 	public ResponseEntity<Utente> createUtente(UtenteCreate utenteCreate) {
 		try {
-			this.logger.info("Invocazione in corso ...");     
+			this.logger.info("Invocazione in corso ...");
 			this.authorization.authorizeCreate(utenteCreate);
-			this.logger.debug("Autorizzazione completata con successo");     
+			this.logger.debug("Autorizzazione completata con successo");
+
+			// Verifica che il ruolo coordinatore sia abilitato
+			checkRuoloCoordinatoreAbilitato(utenteCreate.getRuolo());
 
 			return this.service.runTransaction( () -> {
 
 				if(this.service.existsByPrincipal(utenteCreate.getPrincipal())) {
 					throw new ConflictException(ErrorCode.UT_409, Map.of("principal", utenteCreate.getPrincipal()));
 				}
-				
+
 				UtenteEntity entity = this.dettaglioAssembler.toEntity(utenteCreate);
 
 				this.service.save(entity);
@@ -266,7 +269,7 @@ public class UtentiController implements UtentiApi {
 
 					for(UUID classeUtente: classiUtente) {
 						entities.add(this.classeUtenteService.findByIdClasseUtente(classeUtente)
-								.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404)));
+								.orElseThrow(() -> new NotFoundException(ErrorCode.CLS_404, Map.of("idClasseUtente", classeUtente.toString()))));
 					}
 					spec.setIdClassiUtente(entities);
 				}
@@ -324,6 +327,9 @@ public class UtentiController implements UtentiApi {
 	@Override
 	public ResponseEntity<Utente> updateUtente(UUID idUtente, UtenteUpdate utenteUpdate) {
 		try {
+			// Verifica che il ruolo coordinatore sia abilitato
+			checkRuoloCoordinatoreAbilitato(utenteUpdate.getRuolo());
+
 			return this.service.runTransaction( () -> {
 
 				this.logger.info("Invocazione in corso ...");
@@ -471,7 +477,7 @@ public class UtentiController implements UtentiApi {
 
 				// Recupera la nuova organizzazione
 				OrganizzazioneEntity nuovaOrg = this.organizzazioneService.find(profiloOrganizationUpdate.getIdOrganizzazione())
-					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404));
+					.orElseThrow(() -> new NotFoundException(ErrorCode.ORG_404, Map.of("idOrganizzazione", profiloOrganizationUpdate.getIdOrganizzazione().toString())));
 
 				// Imposta organizzazione pending e stato
 				entity.setOrganizzazionePending(nuovaOrg);
@@ -953,5 +959,30 @@ public class UtentiController implements UtentiApi {
 		if (requestEmailAziendale != null && !requestEmailAziendale.equals(currentEmailAziendale)) {
 			throw new NotAuthorizedException(ErrorCode.UT_403_EMAIL_CHANGE);
 		}
+	}
+
+	/**
+	 * Verifica che il ruolo coordinatore sia abilitato nella configurazione.
+	 * Se il ruolo richiesto è COORDINATORE e la configurazione ha coordinatore_abilitato=false,
+	 * lancia BadRequestException.
+	 *
+	 * @param ruolo il ruolo richiesto
+	 */
+	private void checkRuoloCoordinatoreAbilitato(RuoloUtenteEnum ruolo) {
+		if (RuoloUtenteEnum.COORDINATORE.equals(ruolo) && !isCoordinatoreAbilitato()) {
+			throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
+		}
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato)
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true; // default: abilitato
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato; // default: true
 	}
 }

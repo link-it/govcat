@@ -16,17 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 
-import { ActionEnum } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
+import { ActionEnum, ExportDropdwnComponent } from '@app/components/lnk-ui/export-dropdown/export-dropdown.component';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
 
-import { Tools, ConfigService, EventsManagerService, SearchBarFormComponent, EventType } from '@linkit/components';
+import { COMPONENTS_IMPORTS, Tools, ConfigService, EventsManagerService, SearchBarFormComponent, EventType } from '@linkit/components';
+import { SelectionDropdownComponent } from '@app/components/selection-dropdown/selection-dropdown.component';
+
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -35,7 +42,7 @@ import { concat, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 
 import { Servizio } from '../servizi/servizio-details/servizio';
 import { ServiceBreadcrumbsData } from '../servizi/route-resolver/service-breadcrumbs.resolver';
@@ -54,7 +61,22 @@ export enum StatoConfigurazione {
   selector: 'app-adesioni',
   templateUrl: 'adesioni.component.html',
   styleUrls: ['adesioni.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule,
+    TranslateModule,
+    ...COMPONENTS_IMPORTS,
+    SelectionDropdownComponent,
+    ExportDropdwnComponent,
+    InfiniteScrollDirective,
+    AutoFillScrollDirective,
+    NgSelectModule,
+    TooltipModule
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'AdesioniComponent';
@@ -103,6 +125,27 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
   service: Servizio|null = null;
 
+  roleTab: string = 'tutte';
+  _allRoleTabs: { key: string, label: string, roles: string[] }[] = [
+    { key: 'tutte', label: 'APP.FILTER.All', roles: [] },
+    { key: 'referente', label: 'APP.FILTER.ReferenteServizioDominio', roles: ['referente_dominio', 'referente_tecnico_dominio', 'referente_servizio', 'referente_tecnico_servizio'] },
+    { key: 'referente_adesione', label: 'APP.FILTER.ReferenteAdesione', roles: ['referente_adesione', 'referente_tecnico_adesione'] },
+    { key: 'richiedente', label: 'APP.FILTER.Richiedente', roles: ['richiedente_servizio', 'richiedente_adesione'] }
+  ];
+  roleTabs: { key: string, label: string, roles: string[] }[] = this._allRoleTabs;
+  _allRuoliAdesioni: { value: string, label: string }[] = [
+    { value: 'referente_dominio', label: 'APP.ROLE.referente_dominio' },
+    { value: 'referente_tecnico_dominio', label: 'APP.ROLE.referente_tecnico_dominio' },
+    { value: 'referente_servizio', label: 'APP.ROLE.referente_servizio' },
+    { value: 'referente_tecnico_servizio', label: 'APP.ROLE.referente_tecnico_servizio' },
+    { value: 'referente_adesione', label: 'APP.ROLE.referente_adesione' },
+    { value: 'referente_tecnico_adesione', label: 'APP.ROLE.referente_tecnico_adesione' },
+    { value: 'richiedente_servizio', label: 'APP.ROLE.richiedente_servizio' },
+    { value: 'richiedente_adesione', label: 'APP.ROLE.richiedente_adesione' }
+  ];
+  _ruoloReferenteEnumValues: any = Object.fromEntries(this._allRuoliAdesioni.map(r => [r.value, r.label]));
+  _availableRuoliAdesioni: { value: string, label: string }[] = [...this._allRuoliAdesioni];
+
   configStatusList: any = [
     { value: StatoConfigurazione.FALLITA, label: 'APP.STATUS.fallita' },
     { value: StatoConfigurazione.IN_CODA, label: 'APP.STATUS.in_coda' },
@@ -125,6 +168,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     { field: 'id_soggetto', label: 'APP.ADESIONI.LABEL.Subject', type: 'text', condition: 'equal', params: { resource: 'soggetti', field: 'nome' } },
     { field: 'id_client', label: 'APP.ADESIONI.LABEL.Client', type: 'text', condition: 'equal', params: { resource: 'client', field: 'nome' }  },
     { field: 'stato_configurazione_automatica', label: 'APP.ADESIONI.LABEL.AutomaticConfigurationStatus', type: 'enum', condition: 'equal', enumValues: this.configStatusEnum },
+    { field: 'ruolo_referente', label: 'APP.LABEL.ruolo_referente', type: 'enum', condition: 'equal', enumValues: this._ruoloReferenteEnumValues },
   ];
   useCondition: boolean = false;
 
@@ -214,7 +258,12 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   ngOnInit() {
-    this.route.queryParams.subscribe((val) => { 
+    // Per il coordinatore, nascondi il tab "Referente servizio/dominio"
+    if (this.authenticationService.isCoordinatore()) {
+      this.roleTabs = this._allRoleTabs.filter(t => t.key !== 'referente');
+    }
+
+    this.route.queryParams.subscribe((val) => {
       if(val.id_servizio) {
         this._param_id_servizio = val.id_servizio;
         this._param_isWeb = val.web || false;
@@ -292,6 +341,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
       id_soggetto: new UntypedFormControl(null),
       id_client: new UntypedFormControl(null),
       stato_configurazione_automatica: new UntypedFormControl(''),
+      ruolo_referente: new UntypedFormControl([]),
     });
   }
 
@@ -300,12 +350,23 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
     if (!url) { this.adesioni = []; this._links = null; }
     
-    let aux = {
-      params: new HttpParams()
-    };
+    // Estrai ruolo_referente (array) prima di _queryToHttpParams
+    const ruoloReferenteFilter: string[] = query?.ruolo_referente || [];
+    if (query) { delete query.ruolo_referente; }
 
+    let params = query ? this.utils._queryToHttpParams(query) : new HttpParams();
 
-    if (query)  aux = { params: this.utils._queryToHttpParams(query) };
+    // Inietta ruolo_referente: dal filtro avanzato se presente, altrimenti dal tab attivo
+    if (ruoloReferenteFilter.length > 0) {
+      ruoloReferenteFilter.forEach(r => { params = params.append('ruolo_referente', r); });
+    } else {
+      const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+      if (activeTab && activeTab.roles.length > 0) {
+        activeTab.roles.forEach(r => { params = params.append('ruolo_referente', r); });
+      }
+    }
+
+    let aux = { params };
 
     if (this.service?.id_servizio){
       aux.params = aux.params.set('id_servizio', this.service.id_servizio.toString() || '');
@@ -322,7 +383,7 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
 
         if (response && response.content) {
           const _list: any = response.content.map((adesione: any) => {
-            const _adesione = { ...adesione, id_logico: this._adesioni_multiple ? adesione.id_logico : null };
+            const _adesione = { ...adesione, id_logico: this._adesioni_multiple ? adesione.id_logico : null, ruoli_referente_label: adesione.ruoli_referente || [] };
             const element = {
               id: adesione.id_adesione,
               editMode: false,
@@ -506,10 +567,6 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     }, 200);
   }
 
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio;
-  }
-
   __loadMoreData() {
     if (this._links?.next && !this._preventMultiCall) {
         this._preventMultiCall = true;
@@ -612,6 +669,28 @@ export class AdesioniComponent implements OnInit, AfterViewInit, AfterContentChe
     this.updateMultiSelectionMapper();
     this._updateMapper = new Date().getTime().toString();
     this._loadAdesioni(this._filterData);
+  }
+
+  onRoleTabChange(tab: string) {
+    if (this.roleTab === tab) return;
+    this.roleTab = tab;
+    this._updateRuoloReferenteFilter();
+    this._formGroup.get('ruolo_referente')?.setValue([]);
+    this.refresh();
+  }
+
+  _updateRuoloReferenteFilter() {
+    const activeTab = this.roleTabs.find(t => t.key === this.roleTab);
+    const availableRoles = activeTab && activeTab.roles.length > 0
+      ? this._allRuoliAdesioni.filter(r => activeTab.roles.includes(r.value))
+      : this._allRuoliAdesioni;
+    this._availableRuoliAdesioni = availableRoles;
+    this._ruoloReferenteEnumValues = {};
+    availableRoles.forEach(r => { this._ruoloReferenteEnumValues[r.value] = r.label; });
+    const searchField = this.searchFields.find((f: any) => f.field === 'ruolo_referente');
+    if (searchField) {
+      searchField.enumValues = this._ruoloReferenteEnumValues;
+    }
   }
 
   _resetForm() {

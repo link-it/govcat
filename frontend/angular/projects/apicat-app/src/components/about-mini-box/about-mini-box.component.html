@@ -16,4 +16,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<div class="w-100" *ngIf="!_spin" [innerHTML]="contentHtml | safeHtml"></div>
+@if (!_spin) {
+  <div class="w-100" [innerHTML]="contentHtml | safeHtml"></div>
+}

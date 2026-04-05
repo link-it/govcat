@@ -1,0 +1,146 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@switch (elem.type) {
+  @case ('text') {
+    <span class="{{ elem.class || '' }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{ _value | translate }}</span>
+  }
+  @case ('html') {
+    <span class="{{ elem.class || '' }}" [innerHTML]="_value"></span>
+  }
+  @case ('markdown') {
+    <span markdown class="text-break {{ elem.class || '' }}">{{ _value }}</span>
+  }
+  @case ('number') {
+    @if (!(elem.hideZero && _value == 0)) {
+      <div class="d-inline-block">
+        <span class="{{ elem.class || '' }}" [tooltip]="elem.tooltip || '' | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+          @if (elem.icon) {
+            <i class="bi bi-{{ elem.icon }} {{ elem.iconClass }}"></i>
+          }
+          {{ utilsLib.formatNumberSuff(_value) || 0 }}
+        </span>
+      </div>
+    }
+  }
+  @case ('message') {
+    <span [tooltip]="(elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ elem.class || '' }}">{{ elem.field }}</span>
+  }
+  @case ('date') {
+    <span [tooltip]="(elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ elem.class || '' }}">{{ _value }}</span>
+  }
+  @case ('timeago') {
+    <span [tooltip]="(elem.tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ elem.class || '' }}">{{ _value }}</span>
+  }
+  @case ('mstime') {
+    <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ elem.class || '' }}">{{ _value }}</span>
+  }
+  @case ('label') {
+    @if (_value) {
+      <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+        <span class="status-link status-label-link">
+          <span class="status-label-text">{{_label | translate}}</span>
+          <span class="status-label-text-scoped">{{_value | translate}}</span>
+        </span>
+      </span>
+    }
+  }
+  @case ('simplelabel') {
+    <span class="" [tooltip]="elem.tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
+  }
+  @case ('status') {
+    <span class="status-label {{_class}} status-label-scoped status-ml-2" style="--label-background-color: {{_background}}; --label-inset-border: inset 0 0 0 1px {{_border}};" [style.color]="_color">
+      <span class="status-link status-label-link">
+        <span class="status-label-text">{{_label | translate}}</span>
+        <span class="status-label-text-scoped">{{_value | translate}}</span>
+      </span>
+    </span>
+  }
+  @case ('tag') {
+    @if (_showBadged) {
+      <span class="{{_class}}" [style.background-color]="_background" [style.color]="_color" [tooltip]="_tooltip || ''" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{_value | translate}}</span>
+    }
+    @if (!_showBadged) {
+      <span class="">{{_value | translate}}</span>
+    }
+  }
+  @case ('cardinal') {
+    <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ elem.class || '' }}">#{{ _value }}</span>
+  }
+  @case ('currency') {
+    <span [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay" class="{{ elem.class || '' }}">{{ utilsLib.currencyFormatter(_value) }}</span>
+  }
+  @case ('progress') {
+    <span class="progress">{{ _value }}</span>
+  }
+  @case ('avatar') {
+    <span class="position-relative" [tooltip]="(_value || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+      <img class="align-top" [alt]="'Gravatar'" ngxGravatar [email]="_value" [size]="20" fallback="mp" (error)="onAvatarError($event)">
+    </span>
+  }
+  @case ('image') {
+    <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center" [class.square]="elem.square || false" style="width: 20px;height: 20px;padding: 0.15rem !important;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+      <img class="rounded-circle" [alt]="'Avatar'" [class.square]="elem.square || false" [src]="{ path: _value } | httpImgSrc" style="width: 20px;height: auto;">
+    </span>
+  }
+  @case ('avatar-image') {
+    <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center bg-avatar-image" [class.square]="elem.square || false" style="width: 48px;height: 48px;padding: 0.15rem !important;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+      @if (_value) {
+        <span class="rounded-circle" [class.square]="elem.square || false" setBackgroundImage [imageUrl]="{ path: _value } | httpImgSrc" [position]="_bkMode" style="width: 42px;height: 42px;"></span>
+      }
+      @if (!_value) {
+        <span class="rounded-circle rounded-circle-no-image" [class.square]="elem.square || false" [ngStyle]="{'background-color': _backColor}">
+          <span class="logo-text" [ngStyle]="{'color': _backColorText}">{{ _logoText }}</span>
+        </span>
+      }
+    </span>
+  }
+  @case ('gravatar-image') {
+    <span class="position-relative border rounded-circle d-flex justify-content-center align-content-center" [class.square]="elem.square || false" style="width: 48px;height: 48px;" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+      <img class="align-top" [alt]="'Gravatar'" ngxGravatar [email]="_value" [size]="46" fallback="mp" (error)="onAvatarError($event)">
+    </span>
+  }
+  @case ('iconBs') {
+    <span class="bi bi-{{ elem.icon }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay"></span>
+  }
+  @case ('icontext') {
+    <span class="bi bi-{{ elem.icon }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">
+      <span class="small">{{ _value }}</span>
+    </span>
+  }
+  @case ('icon') {
+    <ng-template #toolTipIconTemplate><div [innerHtml]="_tooltip"></div></ng-template>
+    <span class="bi bi-{{ _value }} {{ _class }}" [tooltip]="elem.hideTooltip ? '' : toolTipIconTemplate" data-bs-html="true" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay"></span>
+  }
+  @case ('tags') {
+    <div class="{{ _class }}">
+      @if (_tagsResolved.length > 0) {
+        @for (tag of _tagsResolved; track tag.label) {
+          <span class="badge badge-pill fw-light fs-8 me-2" [style.background-color]="tag.background" [style.border-color]="tag.border" [style.color]="tag.color">{{ tag.label }}</span>
+        }
+      } @else {
+        @for (tag of _value; track tag) {
+          <span class="badge text-dark border fw-light fs-8 me-1">{{ tag }}</span>
+        }
+      }
+    </div>
+  }
+  @case ('labelI18n') {
+    <span class="{{ elem.class || '' }}" [tooltip]="(_tooltip || '') | translate" container="body" [placement]="_tooltipPlacement" [delay]="_tooltipDelay">{{ _value | translate }} {{ _appendOriginalValue }}</span>
+  }
+}

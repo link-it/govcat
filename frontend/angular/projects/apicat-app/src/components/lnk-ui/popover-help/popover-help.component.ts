@@ -22,6 +22,8 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { TranslateService } from '@ngx-translate/core';
 import _ from 'lodash';
 import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
+import { PopoverModule } from 'ngx-bootstrap/popover';
+import { MarkdownModule } from 'ngx-markdown';
 
 @Component({
     selector: 'lnk-popover-help',
@@ -29,7 +31,8 @@ import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
     styleUrls: [
         './popover-help.component.scss'
     ],
-    standalone: false
+    standalone: true,
+    imports: [PopoverModule, MarkdownModule]
 })
 export class PopoverHelpComponent implements OnInit, OnChanges {
 

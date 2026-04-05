@@ -303,7 +303,7 @@ public class ServiziController implements ServiziApi {
 
 				for(AllegatoItemCreate allegato: allegatoCreate) {
 					if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegato.getVisibilita())) {
-						throw new BadRequestException(ErrorCode.SRV_409);
+						throw new BadRequestException(ErrorCode.SRV_400_INVALID);
 					}
 					
 					AllegatoServizioEntity allEntity = this.allegatoAssembler.toEntity(allegato, entity);
@@ -311,13 +311,13 @@ public class ServiziController implements ServiziApi {
 					String keyString = "Nome: " + allEntity.getDocumento().getFilename()+ " di tipo: " + allegato.getTipologia();
 					
 					if(keys.contains(key)) {
-						throw new BadRequestException(ErrorCode.API_400_DUPLICATE);
+						throw new BadRequestException(ErrorCode.SRV_400_DUPLICATE, Map.of("allegato", keyString));
 					}
-					
+
 					keys.add(key);
-					
+
 					if(entity.getAllegati().stream().anyMatch(a-> key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-						throw new BadRequestException(ErrorCode.API_400_DUPLICATE);
+						throw new BadRequestException(ErrorCode.SRV_400_DUPLICATE, Map.of("allegato", keyString));
 					}
 
 					this.service.save(allEntity);
@@ -413,7 +413,7 @@ public class ServiziController implements ServiziApi {
 					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
 						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					} else {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE);
+						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					}
 				}
 				
@@ -443,9 +443,9 @@ public class ServiziController implements ServiziApi {
 		
 		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 			} else {
-			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING);
+			throw new NotAuthorizedException(ErrorCode.AUT_403);
 			}
 		}
 		
@@ -465,7 +465,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idMessaggio", idMessaggio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 				
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -499,7 +499,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.info("Invocazione in corso ...");
 
 				ServizioEntity entity = this.service.find(idServizio)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 
 
 				this.servizioAuthorization.authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -511,12 +511,15 @@ public class ServiziController implements ServiziApi {
 				this.service.save(messaggio);
 
 				// Determina i target della comunicazione (multi-selezione)
-				Set<TargetComunicazioneServizioEnum> target = null;
-				if (messaggioCreate.getTarget() != null && !messaggioCreate.getTarget().isEmpty()) {
-					target = messaggioCreate.getTarget().stream()
-						.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
-						.collect(Collectors.toSet());
+				Set<TargetComunicazioneServizioEnum> target = messaggioCreate.getTarget().stream()
+					.map(t -> TargetComunicazioneServizioEnum.valueOf(t.name()))
+					.collect(Collectors.toSet());
+
+				// Verifica che il target COORDINATORE sia usabile solo se abilitato
+				if (target.contains(TargetComunicazioneServizioEnum.COORDINATORE) && !isCoordinatoreAbilitato()) {
+					throw new BadRequestException(ErrorCode.UT_400_COORDINATORE_DISABLED);
 				}
+
 				boolean includiTecnici = messaggioCreate.isIncludiTecnici() != null ? messaggioCreate.isIncludiTecnici() : true;
 
 				List<NotificaEntity> lstNotifiche = this.notificheUtils.getNotificheMessaggioServizio(messaggio, target, includiTecnici);
@@ -560,7 +563,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");
 
 				if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-					throw new ConflictException(ErrorCode.SRV_404);
+					throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
 				}
 
 				this.service.save(entity);
@@ -594,7 +597,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				this.servizioAuthorization.authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
@@ -628,9 +631,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -715,9 +718,9 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity messaggio = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 				DocumentoEntity allegato = messaggio.getAllegati().stream().filter(m -> m.getUuid().equals(idAllegato.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 				Resource resource = new ByteArrayResource(allegato.getRawData());
 				this.logger.info("Invocazione completata con successo");
 				return ResponseEntity.status(HttpStatus.OK)
@@ -746,7 +749,7 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 				
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				Resource resource = new ByteArrayResource(entity.getDocumento().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -1007,7 +1010,7 @@ public class ServiziController implements ServiziApi {
 
 					if(nomeCambiato || versioneCambiata) {
 						if(this.service.existsByNomeVersioneNonArchiviato(servizioUpdate.getIdentificativo().getNome(), servizioUpdate.getIdentificativo().getVersione(), configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-							throw new ConflictException(ErrorCode.SRV_404);
+							throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
 						}
 
 					}
@@ -1066,7 +1069,7 @@ public class ServiziController implements ServiziApi {
 				boolean isArchiviato = statoServizioUpdate.getStato().equals(configurazione.getServizio().getWorkflow().getStatoArchiviato());
 				if(wasArchiviato && !isArchiviato) {
 					if(this.service.existsByNomeVersioneNonArchiviato(entity, configurazione.getServizio().getWorkflow().getStatoArchiviato())) {
-						throw new ConflictException(ErrorCode.SRV_404);
+						throw new ConflictException(ErrorCode.SRV_409_CONFLICT);
 					}
 				}
 
@@ -1154,7 +1157,7 @@ public class ServiziController implements ServiziApi {
 
 	@Override
 	public ResponseEntity<PagedModelItemServizio> listServizi(String referente, UUID idDominio, UUID idGruppo, VisibilitaServizioEnum visibilita, UUID idApi,
-			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
+			List<String> stato, List<String> categoria, List<String> tag, List<String> profilo, Boolean inAttesa, Boolean mieiServizi, List<RuoloReferenteEnum> ruoloReferente, Boolean dashboard, Boolean adesioneConsentita, String nome, String versione, List<UUID> idServizi, Boolean _package, TipoServizio tipo, String q, Integer page, Integer size, List<String> sort) {
 		try {
 			this.logger.info("Invocazione in corso ...");     
 			return this.service.runTransaction( () -> {
@@ -1245,7 +1248,49 @@ public class ServiziController implements ServiziApi {
 					}
 				} else if(mieiServizi!= null && mieiServizi) {
 					if(!anounymous) {
-						if(admin) {
+						if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
+							// Validazione: i ruoli di adesione non sono ammessi per il filtro servizi
+							for(RuoloReferenteEnum r : ruoloReferente) {
+								if(r == RuoloReferenteEnum.REFERENTE_ADESIONE || r == RuoloReferenteEnum.REFERENTE_TECNICO_ADESIONE || r == RuoloReferenteEnum.RICHIEDENTE_ADESIONE) {
+									throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
+								}
+							}
+
+							UtenteEntity utenteRuolo = this.coreAuthorization.getUtenteSessione();
+							Specification<ServizioEntity> specRuoli = null;
+
+							for(RuoloReferenteEnum r : ruoloReferente) {
+								Specification<ServizioEntity> specRuolo = null;
+								switch(r) {
+									case REFERENTE_SERVIZIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+										break;
+									case REFERENTE_TECNICO_SERVIZIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteServizioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+										break;
+									case REFERENTE_DOMINIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE);
+										break;
+									case REFERENTE_TECNICO_DOMINIO:
+										specRuolo = ServizioSpecificationUtils.byReferenteDominioWithTipo(utenteRuolo, TIPO_REFERENTE.REFERENTE_TECNICO);
+										break;
+									case RICHIEDENTE_SERVIZIO:
+										specRuolo = ServizioSpecificationUtils.byRichiedente(utenteRuolo);
+										break;
+									default:
+										break;
+								}
+								if(specRuolo != null) {
+									specRuoli = (specRuoli == null) ? specRuolo : specRuoli.or(specRuolo);
+								}
+							}
+
+							if(specRuoli != null) {
+								realSpecification = specification.and(specRuoli);
+							} else {
+								realSpecification = specification.and((root, query, cb) -> cb.disjunction());
+							}
+						} else if(admin) {
 							realSpecification = specification;
 						} else {
 							specification.setTipoMieiServizi(TipoMieiServizi.MIEI_SERVIZI);
@@ -1255,6 +1300,9 @@ public class ServiziController implements ServiziApi {
 					} else {
 						throw new BadRequestException(ErrorCode.SRV_400_NOT_REGISTERED);
 					}
+				} else if(ruoloReferente != null && !ruoloReferente.isEmpty()) {
+					// ruolo_referente senza miei_servizi=true non è ammesso
+					throw new BadRequestException(ErrorCode.GEN_400_REQUEST);
 				} else if(dashboard != null && dashboard) {
 					if(!anounymous) {
 						UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
@@ -1331,22 +1379,28 @@ public class ServiziController implements ServiziApi {
 				PagedModelItemServizio list = new PagedModelItemServizio();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
 
-				// Popola ruoli_referente se dashboard=true
-				if(dashboard != null && dashboard && !anounymous) {
+				// Popola ruoli_referente per utenti autenticati
+				if(!anounymous) {
 					UtenteEntity utente = this.coreAuthorization.getUtenteSessione();
 
-					// Calcola i set di domini e servizi per cui l'utente è referente
+					// Calcola i set di domini e servizi per cui l'utente è referente (e referente tecnico)
 					Set<Long> dominiReferente = new HashSet<>();
+					Set<Long> dominiReferenteTecnico = new HashSet<>();
 					Set<Long> serviziReferente = new HashSet<>();
+					Set<Long> serviziReferenteTecnico = new HashSet<>();
 
 					for(var ref : this.service.findReferentiDominioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							dominiReferente.add(ref.getDominio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							dominiReferenteTecnico.add(ref.getDominio().getId());
 						}
 					}
 					for(var ref : this.service.findReferentiServizioByUtente(utente)) {
 						if(ref.getTipo() == TIPO_REFERENTE.REFERENTE) {
 							serviziReferente.add(ref.getServizio().getId());
+						} else if(ref.getTipo() == TIPO_REFERENTE.REFERENTE_TECNICO) {
+							serviziReferenteTecnico.add(ref.getServizio().getId());
 						}
 					}
 
@@ -1360,7 +1414,7 @@ public class ServiziController implements ServiziApi {
 					for(ItemServizio item : list.getContent()) {
 						ServizioEntity se = servizioEntityMap.get(item.getIdServizio().toString());
 						if(se != null) {
-							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, serviziReferente);
+							List<RuoloReferenteEnum> ruoli = calcolaRuoliReferente(se, utente, dominiReferente, dominiReferenteTecnico, serviziReferente, serviziReferenteTecnico);
 							item.setRuoliReferente(ruoli);
 						}
 					}
@@ -1551,17 +1605,31 @@ public class ServiziController implements ServiziApi {
 	}
 
 	private List<RuoloReferenteEnum> calcolaRuoliReferente(ServizioEntity servizio, UtenteEntity utente,
-			Set<Long> dominiReferente, Set<Long> serviziReferente) {
+			Set<Long> dominiReferente, Set<Long> dominiReferenteTecnico, Set<Long> serviziReferente, Set<Long> serviziReferenteTecnico) {
 		List<RuoloReferenteEnum> ruoli = new ArrayList<>();
 
 		// Verifica se l'utente è referente del dominio del servizio
-		if (servizio.getDominio() != null && dominiReferente.contains(servizio.getDominio().getId())) {
-			ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+		if (servizio.getDominio() != null) {
+			Long idDominio = servizio.getDominio().getId();
+			if (dominiReferente.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_DOMINIO);
+			}
+			if (dominiReferenteTecnico.contains(idDominio)) {
+				ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_DOMINIO);
+			}
 		}
 
 		// Verifica se l'utente è referente del servizio
 		if (serviziReferente.contains(servizio.getId())) {
 			ruoli.add(RuoloReferenteEnum.REFERENTE_SERVIZIO);
+		}
+		if (serviziReferenteTecnico.contains(servizio.getId())) {
+			ruoli.add(RuoloReferenteEnum.REFERENTE_TECNICO_SERVIZIO);
+		}
+
+		// Verifica se l'utente è richiedente del servizio
+		if (servizio.getRichiedente() != null && servizio.getRichiedente().getId().equals(utente.getId())) {
+			ruoli.add(RuoloReferenteEnum.RICHIEDENTE_SERVIZIO);
 		}
 
 		return ruoli;
@@ -1578,7 +1646,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(entity.getImmagine() == null) {
-					throw new NotFoundException(ErrorCode.DOC_400_FORMAT, Map.of("idServizio", idServizio.toString()));
+					throw new NotFoundException(ErrorCode.DOC_404_IMAGE, Map.of("idServizio", idServizio.toString()));
 				}
 				Resource resource = new ByteArrayResource(entity.getImmagine().getRawData());
 				this.logger.info("Invocazione completata con successo");
@@ -1608,7 +1676,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idMessaggio", idMessaggio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1638,14 +1706,14 @@ public class ServiziController implements ServiziApi {
 				this.findOne(idServizio);
 
 				AllegatoServizioEntity entity = this.service.findAllegatoServizio(idServizio, idAllegato)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idAllegato", idAllegato.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_ALLEGATO_SERVIZIO, Map.of("idAllegato", idAllegato.toString())));
 
 				this.getServizioAuthorization(entity.getServizio()).authorizeModifica(entity.getServizio(), Arrays.asList(ConfigurazioneClasseDato.GENERICO));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				if(!this.configurazione.getServizio().getVisibilitaAllegatiConsentite().contains(allegatoUpdate.getVisibilita())) {
-					throw new BadRequestException(ErrorCode.SRV_409);
+					throw new BadRequestException(ErrorCode.SRV_400_INVALID);
 				}
 				
 				String key = allegatoUpdate.getFilename()+ "_" + this.allegatoAssembler.toTipologia(allegatoUpdate.getTipologia());
@@ -1653,7 +1721,7 @@ public class ServiziController implements ServiziApi {
 
 				
 				if(entity.getServizio().getAllegati().stream().anyMatch(a-> !idAllegato.toString().equals(a.getDocumento().getUuid()) && key.equals(a.getDocumento().getFilename()+ "_" + a.getTipologia()))) {
-					throw new BadRequestException(ErrorCode.API_400_DUPLICATE);
+					throw new BadRequestException(ErrorCode.SRV_400_DUPLICATE, Map.of("allegato", keyString));
 				}
 
 				this.allegatoAssembler.toEntity(allegatoUpdate,entity);
@@ -1690,7 +1758,7 @@ public class ServiziController implements ServiziApi {
 				MessaggioServizioEntity entity = this.service.findMessaggioServizio(idServizio, idMessaggio)
 						.stream()
 						.filter(m -> m.getUuid().equals(idMessaggio.toString())).findAny()
-						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404, Map.of("idMessaggio", idMessaggio.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.DOC_404_MESSAGGIO, Map.of("idMessaggio", idMessaggio.toString())));
 
 				this.logger.debug("Autorizzazione completata con successo");     
 
@@ -1928,7 +1996,7 @@ public class ServiziController implements ServiziApi {
 
 		aspec.setIdServizi(List.of(idServizio));
 
-		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
+		return this.service.findOne(aspec).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 
 	}
 	
@@ -2147,7 +2215,7 @@ public class ServiziController implements ServiziApi {
 
 				boolean added = entity.getGruppi().add(gentity);
 				if(!added) {
-					throw new ConflictException(ErrorCode.GRP_409);
+					throw new ConflictException(ErrorCode.SRV_409_GROUP, Map.of("gruppo", gentity.getNome()));
 				}
 				
 //				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.GENERICO));
@@ -2296,7 +2364,7 @@ public class ServiziController implements ServiziApi {
 				
 				for(UUID id: categorieCreate.getCategorie()) {
 					CategoriaEntity centity = this.tassonomiaService.findCategoria(id)
-							.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idCategoria", id.toString())));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", id.toString())));
 
 					if(!centity.getFigli().isEmpty()) {
 						throw new ConflictException(ErrorCode.CAT_409, Map.of("nome", centity.getNome(), "tassonomia", centity.getTassonomia().getNome()));
@@ -2348,7 +2416,7 @@ public class ServiziController implements ServiziApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 
 				CategoriaEntity centity = this.tassonomiaService.findCategoria(idCategoria)
-						.orElseThrow(() -> new NotFoundException(ErrorCode.TAX_404, Map.of("idCategoria", idCategoria.toString())));
+						.orElseThrow(() -> new NotFoundException(ErrorCode.CAT_404, Map.of("idCategoria", idCategoria.toString())));
 
 				entity.getCategorie().remove(centity);
 				this.getServizioAuthorization(entity).authorizeModifica(entity, Arrays.asList(ConfigurazioneClasseDato.SPECIFICA));
@@ -2435,7 +2503,7 @@ public class ServiziController implements ServiziApi {
 					specification.setIdServizi(List.of(idPackage));
 					
 					ServizioEntity _package = this.service.findOne(specification)
-							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idPackage", idPackage.toString())));
+							.orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404_PACKAGE, Map.of("idPackage", idPackage.toString())));
 
 					ServizioEntity componente = this.findOne(idComponente);
 
@@ -2551,6 +2619,18 @@ public class ServiziController implements ServiziApi {
 					throw new InternalException(ErrorCode.SYS_500);
 				}
 
+	}
+
+	/**
+	 * Verifica se il ruolo coordinatore è abilitato nella configurazione.
+	 * Default: true (se non configurato, il ruolo è abilitato)
+	 */
+	private boolean isCoordinatoreAbilitato() {
+		if (this.configurazione.getUtente() == null) {
+			return true; // default: abilitato
+		}
+		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
+		return abilitato == null || abilitato; // default: true
 	}
 
 }

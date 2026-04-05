@@ -17,12 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, Input, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { TranslateService } from '@ngx-translate/core';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { NgSelectModule } from '@ng-select/ng-select';
 
-import { EventsManagerService, Tools, EventType } from '@linkit/components';
+import { COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService, Certificato } from '@app/services/utils.service';
@@ -44,7 +49,17 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
     selector: 'app-adesione-lista-clients',
     templateUrl: './adesione-lista-clients.component.html',
     styleUrls: ['./adesione-lista-clients.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        MapperPipe,
+        TooltipModule,
+        NgSelectModule,
+        MarkAsteriskDirective
+    ]
 })
 export class AdesioneListaClientsComponent implements OnInit {
 
@@ -496,7 +511,7 @@ export class AdesioneListaClientsComponent implements OnInit {
     }
 
     _hasControlError(name: string) {
-        return (this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
     }
 
     _initEditFormClients(data: any) {

@@ -16,36 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { AfterContentChecked, AfterViewInit, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { HttpParams } from '@angular/common/http';
+import { AfterContentChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import { FormControl, FormGroup } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
-
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
 import { concat, Observable, of, Subject, throwError } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
 
-import * as moment from 'moment';
+import { CommonModule } from '@angular/common';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
   selector: 'app-soggetti',
   templateUrl: 'soggetti.component.html',
   styleUrls: ['soggetti.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
-export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChecked, OnDestroy {
+export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChecked {
   static readonly Name = 'SoggettiComponent';
   readonly model: string = 'soggetti';
 
@@ -64,7 +64,7 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
   _editCurrent: any = null;
 
   _hasFilter: boolean = true;
-  _formGroup: UntypedFormGroup = new UntypedFormGroup({});
+  _formGroup: FormGroup = new FormGroup({});
   _filterData: any[] = [];
 
   _preventMultiCall: boolean = false;
@@ -104,7 +104,6 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
   simpleSearch: boolean = false;
   searchFields: any[] = [
     { field: 'q', label: 'APP.LABEL.FreeSearch', type: 'string', condition: 'like' },
-    // { field: 'id_organizzazione', label: 'APP.SOGGETTI.LABEL.Organization', type: 'text', condition: 'equal', callBack: (param: any): string => { return this._getOrganizzazioneSelectedName(param); } }
     { field: 'id_organizzazione', label: 'APP.SOGGETTI.LABEL.Organization', type: 'text', condition: 'equal', params: { resource: 'organizzazioni', field: 'nome' } },
     { field: 'referente', label: 'APP.LABEL.referente', type: 'enum', condition: 'equal', enumValues: this._enabledEnum },
     { field: 'aderente', label: 'APP.LABEL.aderente', type: 'enum', condition: 'equal', enumValues: this._enabledEnum }
@@ -115,7 +114,6 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
     { label: 'APP.TITLE.Configurations', url: '', type: 'title', iconBs: 'gear' },
     { label: 'APP.TITLE.Subjects', url: '', type: 'title', icon: '' }
   ];
-
 
   organizzazioni$!: Observable<any[]>;
   organizzazioniInput$ = new Subject<string>();
@@ -128,15 +126,12 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
   _useNewSearchUI : boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private translate: TranslateService,
-    private configService: ConfigService,
+    private readonly router: Router,
+    private readonly configService: ConfigService,
     public tools: Tools,
-    private eventsManagerService: EventsManagerService,
     public apiService: OpenAPIService,
-    private utils: UtilService,
-    private navigationService: NavigationService
+    private readonly utils: UtilService,
+    private readonly navigationService: NavigationService
   ) {
     this.config = this.configService.getConfiguration();
     this._useNewSearchUI = true; // this.config.AppConfig.Search.newLayout || false;
@@ -157,8 +152,6 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
       }
     );
   }
-
-  ngOnDestroy() {}
 
   ngAfterViewInit() {
     if (!(this.searchBarForm && this.searchBarForm._isPinned())) {
@@ -184,11 +177,11 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
   }
 
   _initSearchForm() {
-    this._formGroup = new UntypedFormGroup({
-      q: new UntypedFormControl(''),
-      id_organizzazione: new UntypedFormControl(''),
-      referente: new UntypedFormControl(''),
-      aderente: new UntypedFormControl(''),
+    this._formGroup = new FormGroup({
+      q: new FormControl(''),
+      id_organizzazione: new FormControl(null),
+      referente: new FormControl(''),
+      aderente: new FormControl(''),
     });
   }
 
@@ -356,10 +349,6 @@ export class SoggettiComponent implements OnInit, AfterViewInit, AfterContentChe
         }
       })
       );
-  }
-
-  trackBySelectFn(item: any) {
-    return item.id_client || item.id_servizio;
   }
 
   __loadMoreData() {

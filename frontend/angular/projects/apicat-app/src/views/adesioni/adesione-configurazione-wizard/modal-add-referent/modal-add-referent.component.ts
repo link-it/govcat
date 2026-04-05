@@ -17,10 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef } from 'ngx-bootstrap/modal';
+
+import { COMPONENTS_IMPORTS } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
@@ -32,7 +35,13 @@ import { map, tap } from 'rxjs/operators';
     selector: 'app-modal-add-referent',
     templateUrl: './modal-add-referent.component.html',
     styleUrls: ['./modal-add-referent.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS
+    ]
 })
 export class ModalAddReferentComponent implements OnInit {
 
@@ -51,13 +60,15 @@ export class ModalAddReferentComponent implements OnInit {
 
     onClose: Subject<any> = new Subject();
 
-    constructor(
-        private bsModalRef: BsModalRef,
-        private translate: TranslateService,
-        private apiService: OpenAPIService,
-        private utilService: UtilService
-    ) { }
+    _error: boolean = false;
+    _errorMsg: string = '';
 
+    constructor(
+        private readonly bsModalRef: BsModalRef,
+        private readonly translate: TranslateService,
+        private readonly apiService: OpenAPIService,
+        private readonly utils: UtilService
+    ) { }
 
     ngOnInit() {
         this.loadAnagrafiche();
@@ -82,24 +93,22 @@ export class ModalAddReferentComponent implements OnInit {
     }
 
     saveModal(body: any){
-        this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe(
-            (response: any) => {
+        this.apiService.postElementRelated(this.model, this.id, 'referenti', body).subscribe({
+            next: (response: any) => {
                 this.closeModal(true);
             },
-            (error: any) => {
-                console.log('error', error);
+            error: (error: any) => {
+                this._error = true;
+                console.log('saveModal error', error);
+                this._errorMsg = this.utils.GetErrorMsg(error);
             }
-        );
+        });
     }
 
     _hasControlError(name: string) {
-        return (this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!this.f[name]?.errors?.touched;
     }
     
-    trackByFn(item: any) {
-        return item.id;
-    }
-
     onChangeTipoReferente(event: any) {
         this.referentiTipo = event.value;
         this.referentiFilter = (this.referentiTipo === 'referente') ? 'referente_servizio,gestore,coordinatore' : '';
@@ -130,7 +139,6 @@ export class ModalAddReferentComponent implements OnInit {
         }
 
         const _options: any = { params: { q: term } };
-        // _options.params.ruolo = this.referentiFilter;
         _options.params.stato = 'abilitato';
         if (this.referentiTipo === 'referente') {
             _options.params.id_organizzazione = this.adesione.soggetto.organizzazione.id_organizzazione;

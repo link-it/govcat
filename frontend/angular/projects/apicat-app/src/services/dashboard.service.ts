@@ -19,12 +19,13 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable, Subject, forkJoin, of, timer } from 'rxjs';
-import { catchError, map, retry, share, shareReplay, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, map, retry, share, switchMap, takeUntil } from 'rxjs/operators';
 
 import { ConfigService } from '@linkit/components';
 
 import { AuthenticationService } from './authentication.service';
 import { OpenAPIService } from './openAPI.service';
+import { UtilService } from './utils.service';
 import {
   DashboardPagedResponse,
   DashboardItemServizio,
@@ -40,13 +41,13 @@ import {
 export class DashboardService {
 
   private _dashboardCount$: Observable<number> | null = null;
-  private _stopPolling = new Subject<void>();
-  private _ruoliProfilo$: Observable<ProfiloRuoli> | null = null;
+  private readonly _stopPolling = new Subject<void>();
 
   constructor(
-    private apiService: OpenAPIService,
-    private authenticationService: AuthenticationService,
-    private configService: ConfigService
+    private readonly apiService: OpenAPIService,
+    private readonly authenticationService: AuthenticationService,
+    private readonly configService: ConfigService,
+    private readonly utilService: UtilService
   ) {}
 
   /**
@@ -75,10 +76,9 @@ export class DashboardService {
   }
 
   computeRoleConfig(ruolo: string, ruoliReferente: string[]): DashboardRoleConfig {
-    // Gestore: tutto visibile (comunicazioni controllate da hideNotificationGestore)
+    // Gestore: tutto visibile (comunicazioni sempre abilitate)
     if (ruolo === 'gestore') {
-      const hideCom = this._isHideComunicazioniGestore();
-      return { servizi: true, adesioni: true, client: true, comunicazioni: !hideCom, utenti: true };
+      return { servizi: true, adesioni: true, client: true, comunicazioni: true, utenti: true };
     }
 
     // Coordinatore: servizi, adesioni, comunicazioni, utenti
@@ -118,12 +118,7 @@ export class DashboardService {
   }
 
   getRuoliProfilo(): Observable<ProfiloRuoli> {
-    if (!this._ruoliProfilo$) {
-      this._ruoliProfilo$ = this.apiService.getList('profilo/ruoli').pipe(
-        shareReplay(1)
-      );
-    }
-    return this._ruoliProfilo$;
+    return this.apiService.getList('profilo/ruoli');
   }
 
   private _dashboardOptions(): any {
@@ -143,7 +138,24 @@ export class DashboardService {
   }
 
   getComunicazioni(): Observable<DashboardPagedResponse<DashboardItemComunicazione>> {
-    return this.apiService.getList('notifiche', this._dashboardOptions());
+    const params = new HttpParams().set('stato_notifica', 'nuova');
+    return this.apiService.getList('notifiche', { params });
+  }
+
+  getComunicazioniUnreadCount(): Observable<number> {
+    const params = this.utilService._queryToHttpParams({ stato_notifica: 'nuova' });
+    return this.apiService.getDetails('notifiche', 'count', '', { params }).pipe(
+      map((r: any) => r?.count || 0),
+      catchError(() => of(0))
+    );
+  }
+
+  getComunicazioniViewAllCount(): Observable<number> {
+    const params = new HttpParams().set('stato_notifica', 'nuova,letta').set('size', '0');
+    return this.apiService.getList('notifiche', { params }).pipe(
+      map((r: any) => r?.page?.totalElements || 0),
+      catchError(() => of(0))
+    );
   }
 
   getUtenti(): Observable<DashboardPagedResponse<DashboardItemUtente>> {
@@ -151,17 +163,19 @@ export class DashboardService {
   }
 
   getDashboardCount(timerMs: number): Observable<number> {
-    this._dashboardCount$ ??= this._resolveRoleConfig().pipe(
-      switchMap(roleConfig => {
-        return timer(1, timerMs).pipe(
-          switchMap(() => this._fetchTotalCount(roleConfig)),
-          retry(3),
-          catchError(() => of(0)),
-          share(),
-          takeUntil(this._stopPolling)
-        );
-      })
-    );
+    if (!this._dashboardCount$) {
+      this._dashboardCount$ = this._resolveRoleConfig().pipe(
+        switchMap(roleConfig => {
+          return timer(1, timerMs).pipe(
+            switchMap(() => this._fetchTotalCount(roleConfig)),
+            retry(3),
+            catchError(() => of(0)),
+            share(),
+            takeUntil(this._stopPolling)
+          );
+        })
+      );
+    }
     return this._dashboardCount$;
   }
 
@@ -207,9 +221,7 @@ export class DashboardService {
       ));
     }
     if (roleConfig.comunicazioni) {
-      calls.push(this.apiService.getList('notifiche', countOptions).pipe(
-        map((r: any) => r?.page?.totalElements || 0), catchError(() => of(0))
-      ));
+      calls.push(this.getComunicazioniUnreadCount());
     }
     if (roleConfig.utenti) {
       calls.push(this.apiService.getList('utenti', countOptions).pipe(

@@ -18,27 +18,32 @@
  */
 import { AfterContentChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { HttpParams } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
-import { ConfigService } from '@linkit/components';
-import { Tools } from '@linkit/components';
-import { EventsManagerService } from '@linkit/components';
+import { ConfigService, Tools, EventsManagerService, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 
-import { SearchBarFormComponent } from '@linkit/components';
-
 import { NavigationService } from '@app/services/navigation.service';
-import { Page} from '../../models/page';
+import { Page } from '../../models/page';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
 
 @Component({
   selector: 'app-classi-utente',
   templateUrl: 'classi-utente.component.html',
   styleUrls: ['classi-utente.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...COMPONENTS_IMPORTS,
+    HasPermissionDirective
+  ]
 })
 export class ClassiUtenteComponent implements OnInit, AfterContentChecked, OnDestroy {
   static readonly Name = 'ClassiUtenteComponent';

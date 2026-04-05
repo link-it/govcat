@@ -43,6 +43,8 @@
 				"LogicID": "Logic ID",
 				"NotRequested": "Non richiesto",
 				"Referents": "Referenti adesione",
+				"RolesContacts": "Ruoli e contatti",
+				"RolesContacts_sub": "",
 				"ServiceReferents": "Referenti servizio",
 				"ShowApi": "API",
 				"ShowApi_sub": "Mostra API",
@@ -365,6 +367,8 @@
 			"Utenti": "Utenti",
 			"ViewAll": "Vedi tutti",
 			"NoResults": "Nessuna azione pending",
+			"NoResultsComunicazioni": "Nessuna comunicazione",
+			"UnreadComunicazioni": "Comunicazioni non lette",
 			"LastUpdate": "Ultimo aggiornamento",
 			"TotalItems": "{{count}} elementi",
 			"RUOLO": {
@@ -575,6 +579,9 @@
 			"MyServices": "I miei servizi",
 			"Open": "Aperti",
 			"Production": "Produzione",
+			"ReferenteAdesione": "Referente adesione",
+			"ReferenteServizioDominio": "Referente servizio/dominio",
+			"Richiedente": "Richiedente",
 			"SelectAll": "Seleziona tutto",
 			"Testing": "Collaudo",
 			"Unread": "Non letti"
@@ -868,6 +875,7 @@
 			"protocollo": "Tipo Interfaccia",
 			"PurposeId": "Purpose ID",
 			"referente": "Referente",
+			"referente_self": "Sono il referente dell'adesione",
 			"referente_tecnico": "Referente tecnico",
 			"ReferenteTecnico": "Referente tecnico",
 			"ReportTimeInterval": "Unità di tempo",
@@ -883,6 +891,7 @@
 			"Role": "Ruolo",
 			"RootGroup": "Nessun padre",
 			"ruolo": "Ruolo",
+			"ruolo_referente": "Ruolo referente",
 			"ScheduledExpeditionDate": "Data di spedizione pianificata",
 			"SearchType": "Tipo ricerca",
 			"ServerURL": "Server URL",
@@ -923,6 +932,8 @@
 			"Taxonomy": "Tassonomia",
 			"Target": "Destinatari",
 			"TargetAderenti": "Aderenti",
+			"TargetCoordinatore": "Coordinatore",
+			"TargetGestore": "Gestore",
 			"TargetPubblica": "Pubblica",
 			"TargetReferentiAdesione": "Referenti adesione",
 			"TargetReferentiDominio": "Referenti dominio",
@@ -933,6 +944,7 @@
 			"TargetRichiedenteServizio": "Richiedente servizio",
 			"TargetSoloAderenti": "Solo aderenti",
 			"TargetSoloReferenti": "Solo referenti",
+			"TargetSeleziona": "Seleziona destinatari",
 			"TargetTutti": "Tutti",
 			"tempo_medio_risposta": "Tempo medio risposta",
 			"TempoRisposta": "Tempo risposta",
@@ -989,6 +1001,9 @@
 		},
 		"LABEL_HELP": {
 			"ADESIONE": {
+				"id_logico": "Identificativo univoco dell'adesione, utile per distinguere più adesioni della stessa organizzazione allo stesso servizio.",
+				"referente": "Indica il responsabile organizzativo di questa adesione (es. responsabile CED, referente aziendale). Riceverà le comunicazioni istituzionali relative al servizio.",
+				"referente_tecnico": "Indica chi gestirà l'integrazione tecnica e supporterà nella compilazione dell'adesione (es. fornitore software, system integrator). Può coincidere con il referente se è la stessa persona. Riceverà le comunicazioni di natura tecnica.",
 				"FORM": {
 					"POPOVER": {
 						"id_servizio-": "Descrizione campo **id_servizio** con più righe e testo markdown.\n- Item 1\n- item 2",
@@ -1093,6 +1108,10 @@
 			"WorkflowSendRequest": "Invia richiesta"
 		},
 		"MESSAGE": {
+			"AdesioneDisabilitata": "L'adesione è disabilitata per questo servizio",
+			"AdesioneGiaEsistente": "La tua organizzazione ha già un'adesione attiva. Questo servizio non consente adesioni multiple",
+			"AdesioneNonConsentita": "Il servizio non è in uno stato che consente l'adesione",
+			"AdesioniPrecedenti": "Sono presenti adesioni create in precedenza",
 			"AreYouSure": "Sei sicuro di voler eliminare l'elemento selezionato?",
 			"ChooseEnvironment": "Scegli un'ambiente",
 			"ChooseEnvironmentHelp": "Collaudo o Produzione",
@@ -1102,30 +1121,62 @@
 			"ProfileSaved": "Profilo salvato con successo",
 			"EmailModified": "Email modificata con successo",
 			"EmailRemoved": "Email rimossa con successo",
+			"OrgNonAmmissibile": "La tua organizzazione non è autorizzata ad aderire a questo servizio",
 			"ERROR": {
 				"ADE": {
 					"400": {
-						"STATE": "Stato adesione non valido per questa operazione"
+						"STATE": {
+						"DEFAULT": "Stato adesione [{{stato}}] non valido per questa operazione",
+						"MONITORING": "Stato adesione [{{idAdesione}}] non valido [{{stato}}] per il monitoraggio",
+						"SERVICE": "Lo stato del servizio [{{servizio}}] non consente adesioni"
+					}
 					},
 					"403": {
-						"REFERENT": "Referente adesione non autorizzato"
+						"REFERENT": "Referente adesione [{{referente}}] non autorizzato"
 					},
-					"404": "Adesione [{{idAdesione}}] non trovata",
+					"404": {
+						"DEFAULT": "Adesione [{{idAdesione}}] non trovata",
+						"BY": {
+							"CONTEXT": "Adesione non trovata per soggetto [{{nomeSoggetto}}] e servizio [{{nomeServizio}} v{{versioneServizio}}]"
+						}
+					},
 					"409": {
 						"DEFAULT": "Adesione per soggetto [{{soggetto}}] al servizio [{{servizio}} v{{versione}}] già esistente",
-						"STATE": "Impossibile modificare adesione nello stato corrente"
+						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] già presente come [{{tipoReferente}}]",
+						"STATE": {
+							"DEFAULT": "Impossibile modificare adesione nello stato corrente",
+							"SKIP": {
+								"COLLAUDO": "Skip collaudo non consentito dal servizio [{{nomeServizio}} v{{versioneServizio}}]"
+							},
+							"DISABLED": "Adesione disabilitata per il servizio [{{servizio}}]",
+							"VISIBILITY": "Visibilità del servizio [{{servizio}}] non consente adesioni dirette",
+							"SUBJECT": {
+								"MISMATCH": "Soggetto [{{soggetto}}] non corrisponde al soggetto interno [{{soggettoInterno}}] della fruizione [{{servizio}}]"
+							}
+						}
 					}
 				},
 				"API": {
 					"400": {
 						"DELETE": "Impossibile eliminare l'API [{{nome}}/{{versione}}] perché è utilizzata in [{{numeroAdesioni}}] adesioni",
 						"DUPLICATE": "Allegato [{{allegato}}] duplicato",
+						"HAS": {
+							"EROGATIONS": "API [{{nome}} v{{versione}}] ha [{{count}}] erogazioni attive, non eliminabile"
+						},
 						"SPEC": "Specifica non presente",
 						"VISIBILITY": "Visibilita [{{visibilita}}] non consentita"
 					},
 					"404": {
 						"DEFAULT": "API [{{idApi}}] non trovata",
-						"ATTACHMENT": "Allegato [{{idAllegato}}] non trovato per l'API [{{idApi}}]"
+						"ACCESS": "API [{{idApi}}] non trovata o non accessibile",
+						"ATTACHMENT": "Allegato [{{idAllegato}}] non trovato per l'API [{{idApi}}]",
+						"BY": {
+							"NAME": "API [{{nomeApi}} v{{versione}}] non trovata per erogatore [{{erogatore}}]"
+						},
+						"EROGATION": "Erogazione [{{idErogazione}}] non trovata per l'adesione [{{idAdesione}}]",
+						"FOR": {
+							"SERVICE": "Nessuna API trovata per il servizio [{{idServizio}}]"
+						}
 					},
 					"409": "API [{{nome}}/{{versione}}/{{soggetto}}] esiste gia"
 				},
@@ -1139,15 +1190,29 @@
 					"403": {
 						"DEFAULT": "Accesso non autorizzato",
 						"ORG": {
+							"ADHESION": "Organizzazione [{{nomeOrganizzazione}}] non corrisponde per l'adesione",
 							"MISMATCH": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] associato all'organizzazione [{{userOrgNome}}]",
 							"MISSING": "Organizzazione [{{orgNome}}] interna, ma utente [{{userIdUtente}}] non associato ad alcuna organizzazione"
+						},
+						"REFERENT": {
+							"NOT": {
+								"ELIGIBLE": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato come referente"
+							}
 						},
 						"RESOURCE": "Accesso negato alla risorsa [{{idTraccia}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force"
 					}
 				},
 				"CAT": {
-					"404": "Categoria [{{nome}}] non trovata",
+					"400": {
+						"EMPTY": {
+							"TAXONOMY": "Tassonomia visibile senza categorie"
+						},
+						"HAS": {
+							"CHILDREN": "Impossibile eliminare la categoria [{{nome}}] perché ha sotto-categorie"
+						}
+					},
+					"404": "Categoria [{{idCategoria}}] non trovata",
 					"409": "Categoria [{{nome}}] già esistente per tassonomia [{{tassonomia}}]"
 				},
 				"CheckPrivateKey": "E stato riscontrato un'errore nei dati inseriti. Ricontrolla i dati inseriti e riprova.",
@@ -1157,21 +1222,49 @@
 				},
 				"CLT": {
 					"400": {
+						"ALARM": {
+							"CONFIG": "Configurazione client non valida per allarme"
+						},
+						"AUTH": {
+							"MISMATCH": "Auth type [{{authTypeTrovato}}] non corrisponde al profilo [{{profilo}}] (atteso [{{authTypeRichiesto}}])"
+						},
 						"CONFIG": "Configurazione client non valida",
-						"EXTENSION": "Estensione client [{{tipo}}] non supportata"
+						"CONFIGURED": "Client [{{nome}}] per soggetto [{{soggetto}}] e ambiente [{{ambiente}}] già configurato",
+						"EXTENSION": "Estensione client [{{tipo}}] non supportata",
+						"HAS": {
+							"ADHESIONS": "Client [{{nome}}] per soggetto [{{soggetto}}] e ambiente [{{ambiente}}] ha [{{numAdesioni}}] adesioni attive"
+						}
 					},
-					"404": "Client [{{nomeClient}}] non trovato",
-					"409": "Client [{{nome}}] già esistente per soggetto [{{soggetto}}] e ambiente [{{ambiente}}]"
+					"404": {
+						"DEFAULT": "Client non trovato",
+						"NO": {
+							"ADHESION": "Client [{{nomeClient}}] senza adesioni valide"
+						},
+						"BY": {
+							"NAME": "Client [{{nomeClient}}] non trovato per soggetto [{{nomeSoggetto}}] e ambiente [{{ambiente}}]"
+						},
+						"PROFILE": "Profilo [{{profilo}}] non trovato per l'adesione [{{idAdesione}}]"
+					},
+					"409": {
+						"DEFAULT": "Client [{{nome}}] già esistente per soggetto [{{soggetto}}] e ambiente [{{ambiente}}]",
+						"DUPLICATES": "Client duplicati trovati: [{{duplicati}}]"
+					}
 				},
 				"Default": "Si è verificato un problema non previsto",
 				"DefaultHelp": "Si prega di riprovare più tardi",
 				"DOC": {
 					"400": {
-						"FORMAT": "Formato documento non supportato",
+						"FORMAT": "Formato documento [{{formato}}] non supportato",
 						"SIZE": "Dimensione documento [{{dimensione}}] eccede il limite di [{{limite}}]"
 					},
 					"404": {
-						"DEFAULT": "Documento [{{idAllegato}}] non trovato per l'adesione [{{idAdesione}}]",
+						"DEFAULT": "Documento non trovato",
+						"ALLEGATO": {
+							"DEFAULT": "Allegato [{{idAllegato}}] non trovato per l'adesione [{{idAdesione}}]",
+							"SERVIZIO": "Allegato [{{idAllegato}}] non trovato per il servizio"
+						},
+						"IMAGE": "Immagine non trovata per il servizio [{{idServizio}}]",
+						"MESSAGGIO": "Messaggio [{{idMessaggio}}] non trovato",
 						"VERSION": "Documento con UUID [{{uuid}}] e versione [{{versione}}] non trovato"
 					},
 					"500": "Impossibile elaborare il documento: {{errore}}"
@@ -1183,14 +1276,23 @@
 				"GEN": {
 					"400": {
 						"DEFAULT": "Operazione non consentita",
-						"REQUEST": "Richiesta non valida"
+						"HAS": {
+							"SERVICES": "Dominio [{{nome}}] ha [{{numServizi}}] servizi attivi"
+						},
+						"REPORT": {
+							"TYPE": "Tipo report non valido"
+						},
+						"REQUEST": "Richiesta non valida",
+						"SKIP": {
+							"COLLAUDO": "Skip collaudo vincolato dall'entità padre"
+						}
 					},
-					"404": "Risorsa non trovata",
+					"404": "Risorsa [{{risorsa}}] non trovata",
 					"409": {
-						"DEFAULT": "Risorsa già esistente",
-						"STATE": "Conflitto con stato attuale"
+						"DEFAULT": "Risorsa [{{risorsa}}] già esistente",
+						"STATE": "Conflitto con stato attuale: {{dettagli}}"
 					},
-					"500": "Errore interno"
+					"500": ""
 				},
 				"GRP": {
 					"404": "Gruppo [{{idGruppo}}] non trovato",
@@ -1211,13 +1313,17 @@
 				"INT": {
 					"500": {
 						"DEFAULT": "Errore di integrazione con servizio esterno",
+						"ALARM": "Errore comunicazione allarme [{{idAllarme}}]",
 						"COMMUNICATION": "Errore di comunicazione con servizio esterno",
 						"CONFIG": "Errore di configurazione integrazione",
 						"DB": "Errore di accesso al database di integrazione",
 						"GOVWAY": "Errore GovWay: {{dettagli}}",
 						"PDND": "Errore PDND: {{dettagli}}"
 					},
-					"502": "Risposta non valida dal servizio esterno",
+					"502": {
+						"DEFAULT": "Risposta non valida dal servizio esterno",
+						"STATUS": "Risposta non valida dal servizio per allarme [{{idAllarme}}], status code: [{{statusCode}}]"
+					},
 					"503": "Servizio esterno temporaneamente non disponibile",
 					"504": "Timeout nella chiamata al servizio esterno"
 				},
@@ -1229,10 +1335,10 @@
 						"INTERVAL": "Intervallo temporale [{{inizio}} - {{fine}}] non valido"
 					},
 					"404": {
-						"DEFAULT": "Dati di monitoraggio non disponibili",
+						"DEFAULT": "Dati di monitoraggio non disponibili per il servizio [{{servizio}}]",
 						"ALARM": "Allarme [{{idAllarme}}] non trovato",
 						"METRIC": "Metrica [{{metrica}}] non trovata",
-						"STATS": "Statistiche di tipo [{{tipo}}] non disponibili"
+						"STATS": "Statistiche non disponibili per il periodo [{{periodo}}]"
 					}
 				},
 				"NoAddCategorie": "Non è stato possibile aggiungere la categoria.",
@@ -1250,8 +1356,20 @@
 					"500": "Impossibile inviare notifica: {{errore}}"
 				},
 				"ORG": {
-					"404": "Organizzazione [{{nome}}] non trovata",
-					"409": "Organizzazione [{{nome}}] già esistente"
+					"400": {
+						"CONSTRAINT": {
+							"VIOLATION": "Vincolo organizzazione non rispettato"
+						},
+						"HAS": {
+							"DEPENDENCIES": "Organizzazione [{{nome}}] ha dipendenze attive, non eliminabile"
+						}
+					},
+					"404": "Organizzazione [{{idOrganizzazione}}] non trovata",
+					"409": {
+						"DEFAULT": "Organizzazione [{{nome}}] già esistente",
+						"ADERENTE": "Soggetto aderente vincolato, impossibile modificare",
+						"REFERENT": "Referente [{{nomeUtente}} {{cognomeUtente}}] di tipo [{{tipoReferente}}] già presente per il dominio [{{nomeDominio}}]"
+					}
 				},
 				"PRF": {
 					"400": {
@@ -1300,8 +1418,40 @@
 					}
 				},
 				"SOG": {
-					"404": "Soggetto [{{nome}}] non trovato",
-					"409": "Soggetto [{{nome}}] già esistente"
+					"400": {
+						"DEFAULT": {
+							"ORG": {
+								"ADERENTE": "Il soggetto [{{nome}}] è il soggetto default dell'organizzazione aderente [{{organizzazione}}] e non può essere reso non aderente"
+							}
+						},
+						"HAS": {
+							"DOMAINS": "Soggetto [{{nome}}] ha domini attivi"
+						},
+						"IS": {
+							"DEFAULT": "Soggetto [{{nome}}] è il soggetto default dell'organizzazione"
+						},
+						"NOT": {
+							"ADERENTE": "Soggetto [{{nomeSoggetto}}] non è aderente"
+						},
+						"ORG": {
+							"MISMATCH": "Soggetto [{{nomeSoggetto}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]"
+						}
+					},
+					"404": {
+						"DEFAULT": "Soggetto [{{idSoggetto}}] non trovato",
+						"BY": {
+							"NAME": "Soggetto [{{nomeSoggetto}}] non trovato"
+						},
+						"IN": {
+							"ORG": "Soggetto [{{nomeSoggetto}}] non trovato nell'organizzazione [{{nomeOrganizzazione}}]"
+						}
+					},
+					"409": {
+						"DEFAULT": "Soggetto [{{nome}}] già esistente",
+						"IN": {
+							"ORG": "Soggetto [{{nome}}] già esistente nell'organizzazione [{{orgNome}}]"
+						}
+					}
 				},
 				"SRV": {
 					"400": {
@@ -1310,6 +1460,8 @@
 								"LEAF": "Impossibile associare la Categoria [{{categoria}}] al servizio [{{nome}}/{{versione}}]. categoria non foglia"
 							}
 						},
+						"DUPLICATE": "Allegato duplicato per il servizio",
+						"INVALID": "Operazione non valida sul servizio",
 						"NOT": {
 							"DELETABLE": "Il servizio non è eliminabile",
 							"REGISTERED": "Utente non registrato, impossibile recuperare servizi in attesa"
@@ -1326,27 +1478,37 @@
 					},
 					"404": {
 						"DEFAULT": "Servizio [{{idServizio}}] non trovato",
-						"IMAGE": "Immagine per il gruppo [{{idGruppo}}] non trovata"
+						"IMAGE": "Immagine per il gruppo [{{idGruppo}}] non trovata",
+						"PACKAGE": "Package [{{idPackage}}] non trovato"
 					},
 					"409": {
 						"DEFAULT": "Servizio [{{nome}} v{{versione}}] esiste gia",
 						"CATEGORY": "Categoria [{{categoria}}] gia associato al servizio [{{nome}}/{{versione}}]",
+						"CONFLICT": "Servizio con stesso nome e versione gia esistente",
 						"GROUP": "Gruppo [{{gruppo}}] gia associato al servizio [{{nome}}/{{versione}}]",
 						"STATE": ""
 					}
 				},
 				"SYS": {
 					"500": {
-						"DEFAULT": "Errore interno del sistema",
-						"CONFIG": "Configurazione sistema non valida",
-						"DB": "Errore di accesso al database",
-						"IO": "Errore di I/O"
+						"DEFAULT": "Errore interno del sistema: {{dettagli}}",
+						"CONFIG": "Configurazione sistema non valida: {{dettagli}}",
+						"DB": "Errore di accesso al database: {{dettagli}}",
+						"IO": "Errore di I/O: {{dettagli}}"
 					},
-					"501": "Operazione non supportata",
-					"503": "Risorsa temporaneamente non disponibile"
+					"501": "Operazione [{{operazione}}] non supportata",
+					"503": "Risorsa [{{risorsa}}] temporaneamente non disponibile"
 				},
 				"TAX": {
-					"404": "Tassonomia [{{nome}}] non trovata",
+					"400": {
+						"CATEGORY": {
+							"MISMATCH": "Categoria padre [{{idCategoria}}] appartiene ad una tassonomia diversa [{{tassonomia}}]"
+						},
+						"HAS": {
+							"CATEGORIES": "Tassonomia [{{nome}}] ha categorie, non eliminabile"
+						}
+					},
+					"404": "Tassonomia [{{idTassonomia}}] non trovata",
 					"409": "Tassonomia [{{nome}}] già esistente"
 				},
 				"Timeout": "Timeout durante il download. Riprova più tardi.",
@@ -1358,13 +1520,28 @@
 				"Unauthorized": "Non autorizzato",
 				"Unprocessable Entity": "Entità non elaborabile",
 				"UT": {
+					"400": {
+						"COORDINATORE": {
+							"DISABLED": "Ruolo coordinatore non abilitato"
+						},
+						"NOT": {
+							"ENABLED": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato"
+						},
+						"ORG": {
+							"MISMATCH": "Utente [{{nomeUtente}} {{cognomeUtente}}] non appartiene all'organizzazione [{{nomeOrganizzazione}}]"
+						}
+					},
 					"403": {
-						"DEFAULT": "Utente non abilitato",
 						"EMAIL": {
 							"CHANGE": "Modifica email non consentita. Utilizzare il flusso di verifica email."
 						}
 					},
-					"404": "Utente [{{idUtente}}] non trovato",
+					"404": {
+						"DEFAULT": "Utente non trovato",
+						"BY": {
+							"NAME": "Utente [{{nomeUtente}} {{cognomeUtente}}] non trovato"
+						}
+					},
 					"409": "Utente [{{principal}}] già esistente"
 				},
 				"VAL": {
@@ -1372,17 +1549,39 @@
 						"CF": "Codice fiscale [{{codiceFiscale}}] non valido",
 						"DATE": "Data [{{data}}] non valida",
 						"EMAIL": "Email [{{email}}] non valida",
+						"ENUM": "Impossibile convertire [{{source}}] nel tipo [{{tipo}}]",
+						"ENVIRONMENT": {
+							"MISMATCH": "Ambiente nell'URL [{{ambienteUrl}}] non corrisponde all'ambiente nel body [{{ambienteBody}}]"
+						},
 						"FORMAT": "Formato non valido",
+						"GROUP": {
+							"DEFAULT": "Gruppo API [{{gruppo}}] non valido",
+							"ROLE": "Ruolo [{{ruoloRichiesto}}] non corrispondente per API [{{nomeApi}} v{{versioneApi}}] nel gruppo [{{gruppo}}] (ruolo API: [{{ruoloApi}}])"
+						},
 						"LENGTH": "Lunghezza campo [{{campo}}] non valida: attesa {{lunghezzaAttesa}}, trovata {{lunghezzaTrovata}}",
+						"ORIGIN": "Origine [{{origine}}] non valida per il parsing",
 						"PATTERN": "Pattern [{{pattern}}] non rispettato per il campo [{{campo}}]",
 						"PIVA": "Partita IVA [{{partitaIva}}] non valida",
 						"RANGE": "Valore [{{valore}}] fuori dal range consentito [{{min}} - {{max}}]",
-						"REQUIRED": "Campo obbligatorio mancante",
+						"REQUIRED": "Campo obbligatorio [{{campo}}] mancante",
 						"URL": "URL [{{url}}] non valido"
 					},
 					"422": {
+						"API": {
+							"SERVICE": {
+								"MISMATCH": "API [{{nomeApi}} v{{versioneApi}}] non appartiene al servizio [{{nomeServizio}} v{{versioneServizio}}]"
+							}
+						},
+						"CLIENT": {
+							"HAS": {
+								"ADHESIONS": "Impossibile eliminare client [{{nome}}] per soggetto [{{soggetto}}] e ambiente [{{ambiente}}] perché ha [{{numAdesioni}}] adesioni"
+							}
+						},
+						"COMPLEX": "Update entità complessa non valida semanticamente",
 						"DEFAULT": "Richiesta non valida semanticamente",
-						"COMPLEX": "Update entità complessa non valida semanticamente"
+						"SKIP": {
+							"COLLAUDO": "Skip collaudo non consentito per il servizio [{{servizio}}]"
+						}
 					}
 				},
 				"WFL": {
@@ -1574,7 +1773,9 @@
 			"PasteYourPrivateKey": "Incolla qui la tua chiave privata...",
 			"Search": "Cerca...",
 			"SelectCategoria": "Seleziona una categoria",
-			"SelectOrganization": "Seleziona un'ente",
+			"SelectOrganization": "Seleziona un'organizzazione",
+			"SelectReferente": "Cerca un referente...",
+			"SelectReferenteTecnico": "Cerca un referente tecnico...",
 			"SelectService": "Seleziona un servizio",
 			"SelectTassonomia": "Seleziona una tassonomia",
 			"TypeMessage": "Scrivi un messaggio...",
@@ -1713,6 +1914,8 @@
 			"referente_tecnico_adesione": "Referente tecnico adesione",
 			"referente_tecnico_dominio": "Referente tecnico dominio",
 			"referente_tecnico_servizio": "Referente tecnico servizio",
+			"richiedente_adesione": "Richiedente adesione",
+			"richiedente_servizio": "Richiedente servizio",
 			"ServiceContact": "Referente servizio"
 		},
 		"SEARCH": {
@@ -1811,6 +2014,12 @@
 				"EmettiPerTag": "Emetti per tag",
 				"EmettiPerTipi": "Emetti per tipi",
 				"EnableNotifications": "Abilita notifiche",
+				"NotificheComunicazioni": "Comunicazioni",
+				"NotificheComunicazioniDesc": "Ricevi notifiche per le comunicazioni",
+				"NotificheCambioStato": "Cambio di stato",
+				"NotificheCambioStatoDesc": "Ricevi notifiche per i cambi di stato",
+				"CambioStatoDisabledHint": "Abilita almeno una notifica comunicazioni (in-app o email) per attivare le notifiche di cambio stato.",
+				"NotificationsDisclaimer": "Le modifiche alle impostazioni di notifica impattano tutte le comunicazioni ricevute.",
 				"FillBox": "Riempi box",
 				"ForAll": "Tutte",
 				"ForNo": "Nessuna notifica",
@@ -2061,6 +2270,7 @@
 			"BulkEsitoKo": "Errori",
 			"BulkEsitoOk": "Successo",
 			"CancelEdit": "Annulla modifica",
+			"GoToAdesione": "Vai al dettaglio dell'adesione",
 			"CancelNew": "Annulla inserimento",
 			"CannotArchive": "Non hai i permessi per archiviare. Contatta un gestore.",
 			"ChangeStatus": "Cambia stato",
@@ -2171,6 +2381,7 @@
 			"ServiceList": "Lista dei servizi",
 			"Show": "Mostra",
 			"ShowDetails": "Mostra dettagli",
+			"SoggettoReferente": "Soggetto referente: {{soggetto}}",
 			"StatoConfigurazioneAutomatica": "Stato configurazione automatica",
 			"StatusChange": "Cambio di stato",
 			"TempoRispostaServizio": "Tempo Risposta Servizio",
@@ -2421,7 +2632,8 @@
 				"Operation": "Operation",
 				"Pattern": "Pattern",
 				"SOAPAction": "SOAPAction",
-				"Version": "Versione"
+				"Version": "Versione",
+				"UrlInvocazione": "URL di esposizione"
 			}
 		}
 	}

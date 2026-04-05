@@ -31,10 +31,12 @@ public class AdesioneCsv {
 	private String referenteTecnicoAdesione;
 	private String applicativiAutorizzatiProduzione;
 	private String autenticazioneValoreProduzione;
+	private String scadenzaCertificatoProduzione;
 	private String rateLimitingProduzione;
 	private String proprietaProduzione;
 	private String applicativiAutorizzatiCollaudo;
 	private String autenticazioneValoreCollaudo;
+	private String scadenzaCertificatoCollaudo;
 	private String rateLimitingCollaudo;
 	private String proprietaCollaudo;
 
@@ -98,6 +100,12 @@ public class AdesioneCsv {
 	public void setAutenticazioneValoreProduzione(String autenticazioneValoreProduzione) {
 		this.autenticazioneValoreProduzione = autenticazioneValoreProduzione;
 	}
+	public String getScadenzaCertificatoProduzione() {
+		return scadenzaCertificatoProduzione;
+	}
+	public void setScadenzaCertificatoProduzione(String scadenzaCertificatoProduzione) {
+		this.scadenzaCertificatoProduzione = scadenzaCertificatoProduzione;
+	}
 	public String getRateLimitingProduzione() {
 		return rateLimitingProduzione;
 	}
@@ -115,6 +123,12 @@ public class AdesioneCsv {
 	}
 	public void setAutenticazioneValoreCollaudo(String autenticazioneValoreCollaudo) {
 		this.autenticazioneValoreCollaudo = autenticazioneValoreCollaudo;
+	}
+	public String getScadenzaCertificatoCollaudo() {
+		return scadenzaCertificatoCollaudo;
+	}
+	public void setScadenzaCertificatoCollaudo(String scadenzaCertificatoCollaudo) {
+		this.scadenzaCertificatoCollaudo = scadenzaCertificatoCollaudo;
 	}
 	public String getRateLimitingCollaudo() {
 		return rateLimitingCollaudo;

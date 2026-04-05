@@ -17,756 +17,1073 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div id="route-section" class="">
-    <div class="top-area container-fluid container-limited limit-container-width px-0">
-        <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
-        <div class="d-flex flex-grow-1">&nbsp;</div>
-        <div class="nav-controls">
-            <app-monitor-dropdown *ngIf="data"
-                [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
-                [returnWeb]="true"
-                [otherActions]="_showExternalOtherActions ? _otherActions : []"
-                (action)="onActionMonitor($event)"
-            ></app-monitor-dropdown>
-        </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    <ui-breadcrumb [breadcrumbs]="breadcrumbs" [useGroups]="true" [classContainer]="'limit-container-width'" (onClick)="onBreadcrumb($event)"></ui-breadcrumb>
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    <div class="nav-controls">
+      @if (data) {
+        <app-monitor-dropdown
+          [showMonitoring]="Tools.Configurazione?.servizio?.api?.transazioni && _canJoin() && (_updateData | mapper:_canMonitoraggioMapper)"
+          [returnWeb]="true"
+          [otherActions]="_showExternalOtherActions ? _otherActions : []"
+          (action)="onActionMonitor($event)"
+        ></app-monitor-dropdown>
+      }
     </div>
-    <div class="top-area container-fluid container-limited limit-container-width px-0">
-        <h3 class="page-title" *ngIf="_isEdit && !_isNew">{{ 'APP.TITLE.EditService' | translate }}</h3>
-        <h3 class="page-title" *ngIf="_isEdit && _isNew">{{ 'APP.TITLE.NewService' | translate }}</h3>
-        <div class="d-flex flex-grow-1">&nbsp;</div>
-        <div class="nav-controls" *ngIf="_data?.id_servizio">
-            <ng-container *ngIf="!_isEdit">
-                <ng-container *ngIf="!_spin && !_isNew">
-                    <ng-container *ngFor="let link of _otherLinks">
-                        <ng-container [ngSwitch]="link.type">
-                            <ng-container *ngSwitchCase="'dropdown'">
-                                <div class="btn-group- me-2 d-inline-block" *ngIf="link.show">
-                                    <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="other_actions">
-                                        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
-                                            <span>{{ link.title | translate }}</span> <i class="bi bi-chevron-down ms-1"></i>
-                                        </button>
-                                        <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
-                                            <div class="gl-new-dropdown-inner">
-                                                <div class="gl-new-dropdown-contents" *ngFor="let menu of link.submenu">
-                                                    <li class="gl-new-dropdown-item" *ngIf="menu.show">
-                                                        <button role="menuitem" type="button" class="dropdown-item"
-                                                            [routerLink]="[menu.route]"
-                                                            [relativeTo]="route">
-                                                            <div class="gl-new-dropdown-item-text-wrapper">
-                                                                <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
-                                                            </div>
-                                                        </button>
-                                                    </li>
-                                                </div>
-                                            </div>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </ng-container>
-                            <ng-container *ngSwitchDefault>
-                                <div class="position-relative me-2 d-none d-inline-block" *ngIf="link.show">
-                                    <lnk-button
-                                        [type]="'button'"
-                                        [label]="link.buttonTitle"
-                                        [tooltip]=""
-                                        [icon]="link.buttonIcon"
-                                        [btnTooltip]="link.title"
-                                        (onAction)="onLinkClick(link)"
-                                    ></lnk-button>
-                                </div>
-                            </ng-container>
-                        </ng-container>
-                    </ng-container>
-                </ng-container>
-                <div class="btn-group me-2 d-inline-block" *ngIf="!_spin && data">
-                    <lnk-button *ngIf="_changingStatus"
+  </div>
+  <div class="top-area container-fluid container-limited limit-container-width px-0">
+    @if (_isEdit && !_isNew) {
+      <h3 class="page-title">{{ 'APP.TITLE.EditService' | translate }}</h3>
+    }
+    @if (_isEdit && _isNew) {
+      <h3 class="page-title">{{ 'APP.TITLE.NewService' | translate }}</h3>
+    }
+    <div class="d-flex flex-grow-1">&nbsp;</div>
+    @if (_data.id_servizio) {
+      <div class="nav-controls">
+        @if (!_isEdit) {
+          @if (!_spin && !_isNew) {
+            @for (link of _otherLinks; track link) {
+              @switch (link.type) {
+                @case ('dropdown') {
+                  @if (link.show) {
+                    <div class="btn-group- me-2 d-inline-block">
+                      <div class="dropdown b-dropdown gl-new-dropdown btn-group" id="other_actions">
+                        <button aria-haspopup="true" aria-expanded="false" type="button" class="btn dropdown-toggle btn-default btn-md gl-button gl-dropdown-toggle dropdown-icon-only dropdown-toggle-no-caret" data-bs-toggle="dropdown" data-bs-display="static">
+                          <span>{{ link.title | translate }}</span> <i class="bi bi-chevron-down ms-1"></i>
+                        </button>
+                        <ul tabindex="-1" class="dropdown-menu dropdown-menu-end">
+                          <div class="gl-new-dropdown-inner">
+                            @for (menu of link.submenu; track menu) {
+                              <div class="gl-new-dropdown-contents">
+                                @if (menu.show) {
+                                  <li class="gl-new-dropdown-item">
+                                    <button role="menuitem" type="button" class="dropdown-item"
+                                      [routerLink]="[menu.route]"
+                                      [relativeTo]="route">
+                                      <div class="gl-new-dropdown-item-text-wrapper">
+                                        <p class="gl-new-dropdown-item-text-primary">{{ menu.title | translate }}</p>
+                                      </div>
+                                    </button>
+                                  </li>
+                                }
+                              </div>
+                            }
+                          </div>
+                        </ul>
+                      </div>
+                    </div>
+                  }
+                }
+                @default {
+                  @if (link.show) {
+                    <div class="position-relative me-2 d-none d-inline-block">
+                      <lnk-button
                         [type]="'button'"
-                        [spinner]="true"
-                        [onlySpinner]="true"
-                    ></lnk-button>
-                    <ui-workflow *ngIf="!_changingStatus && generalConfig"
-                        [data]="data"
-                        [module]="'servizio'"
-                        [grant]="_grant"
-                        [config]="config"
-                        [workflow]="data.package ? generalConfig?.package?.workflow : generalConfig?.servizio?.workflow"
-                        (action)="onWorkflowAction($event)"
-                    ></ui-workflow>
-                </div>
-                <div class="position-relative d-inline-block" *ngIf="!_isEdit && !_spin && _editable">
-                    <lnk-button
-                        [type]="'button'"
-                        [icon]="'bi bi-pencil'"
-                        [onlyIcon]="true"
-                        [ariaLabel]="'APP.TOOLTIP.EditService' | translate"
-                        [disabled]="!(_updateData | mapper:_canEditMapper)"
-                        [btnTooltip]="'APP.TOOLTIP.EditService'"
-                        (onAction)="_editService()"
-                    ></lnk-button>
-                </div>
-                <div class="btn-group- ms-2 d-inline-block" *ngIf="!_isEdit && !_spin && _showDeleteActions">
-                    <lnk-button
-                        [type]="'button'"
-                        [icon]="'bi bi-trash text-danger'"
-                        [onlyIcon]="true"
-                        [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate"
-                        [btnTooltip]="'APP.TOOLTIP.DeleteService'"
-                        (onAction)="_confirmDelection()"
-                    ></lnk-button>
-                </div>
-            </ng-container>
-            <div class="gl-w-full btn-group- position-relative" *ngIf="_isEdit && !_spin">
+                        [label]="link.buttonTitle"
+                        [tooltip]=""
+                        [icon]="link.buttonIcon"
+                        [btnTooltip]="link.title"
+                        (onAction)="onLinkClick(link)"
+                      ></lnk-button>
+                    </div>
+                  }
+                }
+              }
+            }
+          }
+          @if (!_spin && data) {
+            <div class="btn-group me-2 d-inline-block">
+              @if (_changingStatus) {
                 <lnk-button
-                    [type]="'button'"
-                    [icon]="'bi bi-x-lg'"
-                    [onlyIcon]="true"
-                    [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate"
-                    [tertiary]="true"
-                    [otherClass]="'ms-2'"
-                    [disabled]="!(_updateData | mapper:_canEditMapper)"
-                    [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"
-                    (onAction)="_onCancelEdit()"
+                  [type]="'button'"
+                  [spinner]="true"
+                  [onlySpinner]="true"
                 ></lnk-button>
+              }
+              @if (!_changingStatus && generalConfig) {
+                <ui-workflow
+                  [data]="data"
+                  [module]="'servizio'"
+                  [grant]="_grant"
+                  [config]="config"
+                  [workflow]="data.package ? generalConfig?.package?.workflow : generalConfig?.servizio?.workflow"
+                  (action)="onWorkflowAction($event)"
+                ></ui-workflow>
+              }
             </div>
-        </div>
-    </div>
-    <div class="notification-area container-fluid container-limited limit-container-width px-0" *ngIf="!_spin && (_notification || _notificationId)">
-        <app-notification-bar
-            [notification]="_notification"
-            [notificationId]="_notification ? '' : _notificationId"
-            [top]="0"
-            (close)="_onCloseNotificationBar($event)"
-        ></app-notification-bar>
-    </div>
-    <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search" [class.container-notifications]="_notification">
-
-        <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3" *ngIf="_spin && !_isNew"></ui-box-spinner>
-
-        <ui-box-message *ngIf="!data && !_spin && !_isNew"
-            [image]="'./assets/images/illustrations/no-data.svg'"
-            [message]="'APP.MESSAGE.NoData' | translate"
-            [subMessage]="'APP.MESSAGE.NoDataHelp' | translate"
-        ></ui-box-message>
-
-        <div class="settings" *ngIf="(data && !_spin) || _isNew">
-            <div class="settings-content">
-                <div class="gl-alert gl-alert-danger col-12 mb-5" *ngIf="!_isEdit && _error">
-                    <span *ngIf="!_errors.length">{{ _errorMsg }}</span>
-                    <ui-error-view *ngIf="_errors.length"
-                        [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
-                        [errors]="_errors"
-                    ></ui-error-view>
-                </div>
-                <div class="edit-form">
-                    <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
-                        <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
-                            <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
-                                <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</h4>
-                                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.GeneralInformations_sub' | translate }}</div>
-
-                                <div class="row logo mt-4">
-                                    <div class="col-12">
-                                        <div class="form-group logo">
-                                            <div class="" *ngIf="_isEdit">
-                                                <app-photo-base64
-                                                    [boxWidth]="'250px'"
-                                                    [boxHeight]="'auto'"
-                                                    [maxSize]="_maxImageSize"
-                                                    [placeHolder]="_imagePlaceHolder"
-                                                    [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"
-                                                    [isImageSaved]="data?.immagine"
-                                                    [removeLabel]="'APP.BUTTON.Remove' | translate"
-                                                    (imageLoaded)="_onImageLoaded($event)"
-                                                ></app-photo-base64>
-                                            </div>
-                                            <div class="mt-2" *ngIf="!_isEdit">
-                                                <img class="img-space" alt="Logo servizio" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
-                                <div class="row tipo" *ngIf="hasServiziApi && hasGenerico">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <label class="label-bold" for="tipo">{{ 'APP.LABEL.tipo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tipo'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <select class="form-select" id="tipo" formControlName="tipo" [class.gl-field-error-outline]="_hasControlError('tipo')" (change)="_onChangeType($event)">
-                                                    <option *ngFor="let item of _tipiServizio" [value]="item.value" [disabled]="!item.enabled">{{ 'APP.TIPO.' + item.label | translate }}</option>
-                                                </select>
-                                                <p *ngIf="f['tipo'].invalid && (f['tipo'].dirty || f['tipo'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['tipo'].errors && f['tipo'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="tipo" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" [value]="data?.tipo">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row stato">
-                                    <div class="" [class.col-4]="(_updateData | mapper:_isGestoreMapper)" [class.col-8]="!(_updateData | mapper:_isGestoreMapper)">
-                                        <div class="form-group">
-                                            <label class="label-bold" for="stato">{{ 'APP.LABEL.stato' | translate }}</label>
-                                            <div class="">
-                                                <span class="spinner-border spinner-border-sm" *ngIf="_changingStatus"></span>
-                                                <ui-data-type *ngIf="data && !_changingStatus"
-                                                    [data]="data"
-                                                    [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
-                                                    [config]="config"
-                                                ></ui-data-type>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4" *ngIf="(_updateData | mapper:_isGestoreMapper)">
-                                        <div class="form-group package mt-2-">
-                                            <div class="form-group">
-                                                <label class="label-bold" for="package" *ngIf="_isEdit || !isComponente">{{ 'APP.LABEL.package' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'" *ngIf="_isEdit"></span></label>
-                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                                                    <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
-                                                    <label class="custom-control-label" for="package"></label>
-                                                    <span class="ms-1" *ngIf="hasHelpPackage" [tooltip]="helpTooltipPackage | translate" container="body"><i class="bi bi-question-circle"></i></span>
-                                                </div>
-                                                <div class="" *ngIf="!_isEdit && !isComponente">
-                                                    <span class="">
-                                                        <i class="bi bi-square" *ngIf="!data.package"></i>
-                                                        <i class="bi bi-check-square" *ngIf="data.package"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-4" *ngIf="(_updateData | mapper:_isGestoreMapper)">
-                                        <div class="form-group fruizione mt-2-">
-                                            <div class="form-group">
-                                                <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'fruizione'" *ngIf="_isEdit"></span></label>
-                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                                                    <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
-                                                    <label class="custom-control-label" for="fruizione"></label>
-                                                </div>
-                                                <div class="" *ngIf="!_isEdit">
-                                                    <span class="">
-                                                        <i class="bi bi-square" *ngIf="!data.fruizione"></i>
-                                                        <i class="bi bi-check-square" *ngIf="data.fruizione"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row nome versione">
-                                    <div [class.col-8]="!hideVersions || _isEdit" [class.col-12]="hideVersions && !_isEdit">
-                                        <lnk-form-field
-                                            name="nome"
-                                            [label]="'APP.LABEL.nome' | translate"
-                                            [formGroup]="_formGroup"
-                                            [value]="data?.nome"
-                                            [isEdit]="_isEdit"
-                                            [plainText]="true"
-                                            [helpContext]="'SERVICE.POPOVER'"
-                                        ></lnk-form-field>
-                                    </div>
-                                    <div class="col-4" *ngIf="!hideVersions || _isEdit">
-                                        <lnk-form-field
-                                            type="number"
-                                            name="versione"
-                                            [label]="'APP.LABEL.versione' | translate"
-                                            [formGroup]="_formGroup"
-                                            [value]="data?.versione"
-                                            [isEdit]="_isEdit"
-                                            [plainText]="true"
-                                            [helpContext]="'SERVICE.POPOVER'"
-                                        ></lnk-form-field>
-                                    </div>
-                                </div>
-                                <div class="form-group dominio" *ngIf="_hasMultiDominio">
-                                    <label class="label-bold" for="id_dominio">{{ 'APP.LABEL.id_dominio' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_dominio'" *ngIf="_isEdit"></span></label>
-                                    <div class="" *ngIf="_isEdit">
-                                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')"
-                                            [items]="domini$ | async"
-                                            [trackByFn]="trackByFn"
-                                            [typeahead]="dominiInput$"
-                                            [minTermLength]="minLengthTerm" 
-                                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                                            bindValue="id_dominio"
-                                            labelForId="id_dominio"
-                                            [editableSearchTerm]="true"
-                                            formControlName="id_dominio"
-                                            disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
-                                            (change)="_onChangeDominio($event)"
-                                        >
-                                            <ng-template ng-label-tmp let-item="item">
-                                                {{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}
-                                            </ng-template>
-                                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                                <div class="fw-bold d-flex justify-content-between align-items-center">
-                                                    <span>{{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}</span>
-                                                    <span class="badge bg-secondary text-black" *ngIf="item.deprecato">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }}</span>
-                                                </div>
-                                                <div class="">
-                                                    <span class="small text-muted">{{ item.descrizione }}</span>
-                                                </div>
-                                            </ng-template>
-                                        </ng-select>
-                                        <p *ngIf="f['id_dominio'].invalid && (f['id_dominio'].dirty || f['id_dominio'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['id_dominio'].errors && f['id_dominio'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                        </p>
-                                        <ui-input-help field="id_dominio" context="SERVICE" [params]="{ email: _multiDominioEmail }" *ngIf="_multiDominioEmail && !_isDominioDeprecato"></ui-input-help>
-                                        <ui-input-help field="id_dominio_deprecato" context="SERVICE" *ngIf="_isDominioDeprecato"></ui-input-help>
-                                    </div>
-                                    <div class="" *ngIf="!_isEdit">
-                                        <input type="text" readonly class="form-control-plaintext" id="id_dominio" [value]="data.dominio?.soggetto_referente?.organizzazione?.nome + ' - ' + data.dominio?.nome ">
-                                    </div>
-                                </div>
-
-                                <div class="row visibilita" *ngIf="(_updateData | mapper:_isGestoreMapper)">
-                                    <div class="col-6">
-                                        <lnk-form-field *ngIf="_isEdit"
-                                            type="select"
-                                            name="visibilita"
-                                            [label]="'APP.LABEL.VisibilitaServizio' | translate"
-                                            [selectOptions]="_tipiVisibilitaServizio"
-                                            [clearable]="false"
-                                            [placeholder]="'APP.MESSAGE.SelectVisibilty' | translate"
-                                            [formGroup]="_formGroup"
-                                            [value]="{ labe: 'visibilita', value: data?.value }"
-                                            [isEdit]="_isEdit"
-                                            [plainText]="false"
-                                            [helpContext]="'SERVICE.POPOVER'"
-                                        ></lnk-form-field>
-                                        <div class="form-group mt-1" *ngIf="!_isEdit">
-                                            <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'" *ngIf="_isEdit"></span></label>
-                                            <div class="">
-                                                <ng-container *ngIf="data && data.visibilita">
-                                                    <ui-data-type
-                                                        [data]="data"
-                                                        [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-                                                        [config]="config"
-                                                    ></ui-data-type>
-                                                </ng-container>
-                                                <ng-container *ngIf="!data.visibilita">
-                                                    <ui-data-type
-                                                        [data]="{ visibilita: data.dominio.visibilita + '_dominio' }"
-                                                        [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
-                                                        [config]="config"
-                                                    ></ui-data-type>
-                                                </ng-container>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-group classi" *ngIf="_isVisibilita('riservato')">
-                                            <label class="label-bold" for="classi">{{ 'APP.LABEL.classi' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
-                                                    [items]="anagrafiche['classi-utente']"
-                                                    [multiple]="true"
-                                                    [compareWith]="_compareClassiFn"
-                                                    bindValue="id_classe_utente"
-                                                    bindLabel="nome"
-                                                    labelForId="classi"
-                                                    [closeOnSelect]="false"
-                                                    formControlName="classi"
-                                                    disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
-                                                >
-                                                    <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                                                        <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
-                                                    </ng-template>
-                                                </ng-select>
-                                                <p *ngIf="f['classi'].invalid && (f['classi'].dirty || f['classi'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['classi'].errors && f['classi'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="classi" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="mt-1" *ngIf="!_isEdit">
-                                                <span id="classi" class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1" *ngFor="let classe of data?.classi">{{ classe.nome }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row organizzazione_interna soggetto_interno" *ngIf="_isDominioEsterno">
-
-                                    <div class="col-6 form-group organizazione_interna">
-                                        <label class="label-bold" for="id_organizzazione_interna">{{ 'APP.LABEL.OrganizzazioneInterna' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione_interna'" *ngIf="_isEdit"></span></label>
-                                        <div class="" *ngIf="_isEdit">
-                                            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione_interna')"
-                                                [items]="organizzazioniInterne$ | async"
-                                                [trackByFn]="trackByFn"
-                                                [typeahead]="organizzazioniInterneInput$"
-                                                [minTermLength]="minLengthTerm" 
-                                                [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                                                [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                                                bindValue="id_organizzazione"
-                                                bindLabel="nome"
-                                                labelForId="id_organizzazione_interna"
-                                                [editableSearchTerm]="true"
-                                                formControlName="id_organizzazione_interna"
-                                                disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
-                                                (change)="onChangeSelect($event, 'organizzazione')"
-                                            >
-                                                <ng-template ng-label-tmp let-item="item">
-                                                    {{ item.nome }}
-                                                </ng-template>
-                                                <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                                    <div class="fw-bold">{{ item.nome }}</div>
-                                                    <div class="">
-                                                        <span class="small text-muted">{{ item.descrizione }}</span>
-                                                    </div>
-                                                </ng-template>
-                                            </ng-select>
-                                            <p *ngIf="f['id_organizzazione_interna'].invalid && (f['id_organizzazione_interna'].dirty || f['id_organizzazione_interna'].touched)" class="form-text text-danger">
-                                                <span *ngIf="f['id_organizzazione_interna'].errors && f['id_organizzazione_interna'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                            </p>
-                                            <ui-input-help field="id_organizzazione_interna" context="SERVICE"></ui-input-help>
-                                        </div>
-                                        <div class="" *ngIf="!_isEdit">
-                                            <input type="text" readonly class="form-control-plaintext" id="id_organizzazione_interna" [value]="data.soggetto_interno?.organizzazione?.nome|| '-'">
-                                        </div>
-                                    </div>
-
-                                    <div class="col-6 form-group soggetto_interno">
-                                        <div class="" *ngIf="_isEdit" [hidden]="_hideSoggettoDropdown">
-                                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_interno'" *ngIf="_isEdit"></span></label>
-                                            <select class="form-select" id="id_soggetto_interno" name="id_soggetto_interno" formControlName="id_soggetto_interno" [class.gl-field-error-outline]="_hasControlError('id_soggetto_interno')" (change)="onChangeSelect($event, 'soggetto')">
-                                                <option *ngFor="let el of _elencoSoggetti" [value]="el.id_soggetto">
-                                                    {{el.nome}}
-                                                </option>
-                                            </select>
-                                            <p *ngIf="f['id_soggetto_interno'].invalid && (f['id_soggetto_interno'].dirty || f['id_soggetto_interno'].touched)" class="form-text text-danger">
-                                                <span *ngIf="f['id_soggetto_interno'].errors && f['id_soggetto_interno'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                            </p>
-                                            <ui-input-help field="id_soggetto_interno" context="SERVICE"></ui-input-help>
-                                        </div>
-                                        <div class="" *ngIf="!_isEdit">
-                                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }}</label>
-                                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_interno?.nome || '-'">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row referenti" *ngIf="_isNew && showReferenti">
-                                    <div class="col-6 form-group referente">
-                                        <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'" *ngIf="_isEdit"></span></label>
-                                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')"
-                                            [items]="referenti$ | async"
-                                            [trackByFn]="trackByFn"
-                                            [typeahead]="referentiInput$"
-                                            [minTermLength]="minLengthTerm"
-                                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                                            bindValue="id_utente"
-                                            bindLabel="nome_completo"
-                                            labelForId="referente"
-                                            [editableSearchTerm]="true"
-                                            formControlName="referente"
-                                        >
-                                            <ng-template ng-label-tmp let-item="item">
-                                                {{ item.nome }} {{ item.cognome }}
-                                            </ng-template>
-                                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                                <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
-                                                <div class="">
-                                                    <span class="small text-muted">{{ item.email_aziendale }}</span>
-                                                </div>
-                                            </ng-template>
-                                        </ng-select>
-                                        <p *ngIf="f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['referente'].errors && f['referente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                        </p>
-                                        <ui-input-help field="referente" context="SERVICE"></ui-input-help>
-                                    </div>    
-                                    <div class="col-6 form-group referente_tecnico">
-                                        <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'" *ngIf="_isEdit"></span></label>
-                                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')"
-                                            [items]="referentiTecnici$ | async"
-                                            [trackByFn]="trackByFn"
-                                            [typeahead]="referentiTecniciInput$"
-                                            [minTermLength]="minLengthTerm"
-                                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
-                                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
-                                            bindValue="id_utente"
-                                            bindLabel="nome_completo"
-                                            labelForId="referente_tecnico"
-                                            [editableSearchTerm]="true"
-                                            formControlName="referente_tecnico"
-                                        >
-                                            <ng-template ng-label-tmp let-item="item">
-                                                {{ item.nome }} {{ item.cognome }}
-                                            </ng-template>
-                                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
-                                                <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
-                                                <div class="">
-                                                    <span class="small text-muted">{{ item.email_aziendale }}</span>
-                                                </div>
-                                            </ng-template>
-                                        </ng-select>
-                                        <p *ngIf="f['referente_tecnico'].invalid && (f['referente_tecnico'].dirty || f['referente_tecnico'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['referente_tecnico'].errors && f['referente_tecnico'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                        </p>
-                                        <ui-input-help field="referente_tecnico" context="SERVICE"></ui-input-help>
-                                    </div>
-                                </div>
-
-                                <div class="form-group descrizione_sintetica">
-                                    <label class="label-bold" for="descrizione_sintetica">{{ 'APP.LABEL.DescrizioneSintetica' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione_sintetica'" *ngIf="_isEdit"></span></label>
-                                    <div class="" *ngIf="_isEdit">
-                                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
-                                        <p *ngIf="f['descrizione_sintetica'].invalid && (f['descrizione_sintetica'].dirty || f['descrizione_sintetica'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                            <span *ngIf="f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione_sintetica'].errors['maxlength'].requiredLength } }}</span>
-                                        </p>
-                                        <ui-input-help field="descrizione_sintetica" context="SERVICE"></ui-input-help>
-                                    </div>
-                                    <div class="" *ngIf="!_isEdit">
-                                        <span class="mt-1 white-space-pre text-wrap">{{ data?.descrizione_sintetica || '-' }}</span>
-                                    </div>
-                                </div>
-                                <div class="form-group descrizione">
-                                    <label class="label-bold w-100" for="descrizione">{{ 'APP.LABEL.DocumentazioneTecnica' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'" *ngIf="_isEdit"></span> <span class="btn btn-default btn-sm gl-button btn-default-tertiary float-end" [class.btn-secondary]="_showMarkdownPreview" (click)="_toggleMarkdownPreview()" *ngIf="_isEdit" [class.disabled]="!f['descrizione'].value">{{ (_showMarkdownPreview ? 'APP.BUTTON.Write' : 'APP.BUTTON.Preview') | translate }}</span></label>
-                                    <div class="" *ngIf="_isEdit && !_showMarkdownPreview">
-                                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" placeholder="{{ 'APP.PLACEHOLDER.DocumentazioneTecnica' | translate }}" id="descrizione" formControlName="descrizione" rows="8" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
-                                        <p *ngIf="f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                            <span *ngIf="f['descrizione'].errors && f['descrizione'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
-                                        </p>
-                                        <ui-input-help field="descrizione" context="SERVICE"></ui-input-help>
-                                    </div>
-                                    <div class="mb-2 markdown-container" [ngClass]="{ 'p-2 border border-info': _showMarkdownPreview, 'parent-': !_isEdit }" *ngIf="(!_isEdit && _showMarkdown) || _showMarkdownPreview">
-                                        <div class="" [class.scroll-shadows-]="!_isEdit">
-                                            <markdown ngPreserveWhitespaces
-                                                [data]="_showMarkdownPreview ? f['descrizione'].value: (data.descrizione || '- ')"
-                                                class="markdown"
-                                            >
-                                            </markdown>
-                                        </div>
-                                    </div>
-                                    <div class="my-2" *ngIf="!_isEdit && !_showMarkdown">
-                                        <span class="mt-1 white-space-pre">{{ data?.descrizione || '-' }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="form-group tags">
-                                    <label class="label-bold" for="tags">{{ 'APP.LABEL.tags' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tags'" *ngIf="_isEdit"></span></label>
-                                    <div class="" *ngIf="_isEdit">
-                                        <ng-select [class.gl-field-error-outline]="_hasControlError('tags')"
-                                            [items]="anagrafiche['tags']"
-                                            [multiple]="true"
-                                            [addTag]="true"
-                                            [hideSelected]="true"
-                                            bindValue="nome"
-                                            bindLabel="nome"
-                                            labelForId="tags"
-                                            formControlName="tags"
-                                            disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
-                                        ></ng-select>
-                                        <p *ngIf="f['tags'].invalid && (f['tags'].dirty || f['tags'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['tags'].errors && f['tags'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                        </p>
-                                        <ui-input-help field="tags" context="SERVICE"></ui-input-help>
-                                    </div>
-                                    <div class="mt-1" *ngIf="!_isEdit">
-                                        <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1" *ngFor="let tag of data?.tags">{{ tag }}</span>
-                                        <span class="" *ngIf="!data?.tags?.length">-</span>
-                                    </div>
-                                </div>
-                                <div class="form-group termini_ricerca">
-                                    <label class="label-bold" for="termini_ricerca">{{ 'APP.LABEL.termini_ricerca' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'termini_ricerca'" *ngIf="_isEdit"></span></label>
-                                    <div class="" *ngIf="_isEdit">
-                                        <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('termini_ricerca')" type="text" name="termini_ricerca" id="termini_ricerca" formControlName="termini_ricerca" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
-                                        <p *ngIf="f['termini_ricerca'].invalid && (f['termini_ricerca'].dirty || f['termini_ricerca'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['termini_ricerca'].errors && f['termini_ricerca'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                            <span *ngIf="f['termini_ricerca'].errors && f['termini_ricerca'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['termini_ricerca'].errors['maxlength'].requiredLength } }}</span>
-                                        </p>
-                                        <ui-input-help field="termini_ricerca" context="SERVICE"></ui-input-help>
-                                    </div>
-                                    <div class="" *ngIf="!_isEdit">
-                                        <input type="text" readonly class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
-                                    </div>
-                                </div>
-                                <div class="form-group note">
-                                    <label class="label-bold" for="note">{{ 'APP.LABEL.note' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'note'" *ngIf="_isEdit"></span></label>
-                                    <div class="" *ngIf="_isEdit">
-                                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
-                                        <p *ngIf="f['note'].invalid && (f['note'].dirty || f['note'].touched)" class="form-text text-danger">
-                                            <span *ngIf="f['note'].errors && f['note'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                            <span *ngIf="f['note'].errors && f['note'].errors['maxlength']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors['maxlength'].requiredLength } }}</span>
-                                        </p>
-                                        <ui-input-help field="note" context="SERVICE"></ui-input-help>
-                                    </div>
-                                    <div class="" *ngIf="!_isEdit">
-                                        <span class="mt-1 white-space-pre">{{ data?.note || '-' }}</span>
-                                    </div>
-                                </div>
-                                <div class="row utente_richiedente data_creazione" *ngIf="!_isNew && _showDateCreationModification">
-                                    <div class="col-6">
-                                        <div class="form-group utente_richiedente">
-                                            <label class="label-bold" for="utente_richiedente">{{ 'APP.LABEL.utente_richiedente' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'utente_richiedente'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input type="text" readonly class="form-control" id="utente_richiedente" [value]="richiedente?.nome + ' ' + richiedente?.cognome" disabled>
-                                                <p *ngIf="f['utente_richiedente'].invalid && (f['utente_richiedente'].dirty || f['utente_richiedente'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['utente_richiedente'].errors && f['utente_richiedente'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="utente_richiedente" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="utente_richiedente" [value]="richiedente?.nome + ' ' + richiedente?.cognome">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-group data_creazione">
-                                            <label class="label-bold" for="data_creazione">{{ 'APP.LABEL.data_creazione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'data_creazione'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input class="form-control" [class.gl-field-error-outline]="_hasControlError('data_creazione')" type="datetime" name="data_creazione" id="data_creazione" formControlName="data_creazione">
-                                                <p *ngIf="f['data_creazione'].invalid && (f['data_creazione'].dirty || f['data_creazione'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['data_creazione'].errors && f['data_creazione'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="data_creazione" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="mt-1" *ngIf="!_isEdit">
-                                                <ui-data-type *ngIf="data"
-                                                    [data]="data"
-                                                    [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
-                                                    [config]="config"
-                                                ></ui-data-type>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row utente_ultima_modifica data_ultima_modifica" *ngIf="!_isNew && _showDateCreationModification">
-                                    <div class="col-6">
-                                        <div class="form-group utente_ultima_modifica">
-                                            <label class="label-bold" for="utente_ultima_modifica">{{ 'APP.LABEL.utente_ultima_modifica' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'utente_ultima_modifica'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input type="text" readonly class="form-control" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome" disabled>
-                                                <p *ngIf="f['utente_ultima_modifica'].invalid && (f['utente_ultima_modifica'].dirty || f['utente_ultima_modifica'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['utente_ultima_modifica'].errors && f['utente_ultima_modifica'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="utente_ultima_modifica" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <input type="text" readonly class="form-control-plaintext" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="form-group data_ultima_modifica">
-                                            <label class="label-bold" for="data_ultima_modifica">{{ 'APP.LABEL.data_ultima_modifica' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'data_ultima_modifica'" *ngIf="_isEdit"></span></label>
-                                            <div class="" *ngIf="_isEdit">
-                                                <input class="form-control" [class.gl-field-error-outline]="_hasControlError('data_ultima_modifica')" type="datetime" name="data_ultima_modifica" id="data_ultima_modifica" formControlName="data_ultima_modifica">
-                                                <p *ngIf="f['data_ultima_modifica'].invalid && (f['data_ultima_modifica'].dirty || f['data_ultima_modifica'].touched)" class="form-text text-danger">
-                                                    <span *ngIf="f['data_ultima_modifica'].errors && f['data_ultima_modifica'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
-                                                </p>
-                                                <ui-input-help field="data_ultima_modifica" context="SERVICE"></ui-input-help>
-                                            </div>
-                                            <div class="mt-1" *ngIf="!_isEdit">
-                                                <ui-data-type *ngIf="data"
-                                                    [data]="data"
-                                                    [elem]="{ field: 'data_ultima_modifica', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
-                                                    [config]="config"
-                                                ></ui-data-type>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4" [class.justify-content-center]="(_isNew || _singleColumn)" *ngIf="(_updateData | mapper:_isGestoreMapper)">
-                            <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
-                                <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h4>
-                                <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.AdhesionInformations_sub' | translate }}</div>
-                            </div>
-                            <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
-
-                                <div class="row adesione_disabilitata">
-                                    <div class="col-6" *ngIf="_hasFlagConsentiNonSottoscrivibile">
-                                        <div class="form-group">
-                                            <label class="label-bold" for="adesione_disabilitata" *ngIf="_isEdit || !isComponente">{{ 'APP.LABEL.DisabilitaAdesione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'adesione_disabilitata'" *ngIf="_isEdit"></span></label>
-                                            <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                                                <input class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
-                                                <label class="custom-control-label" for="adesione_disabilitata"></label>
-                                                <span class="ms-1" *ngIf="isComponente" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit && !isComponente">
-                                                <span class="">
-                                                    <i class="bi bi-square" *ngIf="!data.adesione_disabilitata"></i>
-                                                    <i class="bi bi-check-square" *ngIf="data.adesione_disabilitata"></i>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row multi_adesione" *ngIf="_hasAdesioniMultiple">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            <div class="form-group">
-                                                <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'multi_adesione'" *ngIf="_isEdit && false"></span></label>
-                                                <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                                                    <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
-                                                    <label class="custom-control-label" for="multi_adesione"></label>
-                                                </div>
-                                                <div class="" *ngIf="!_isEdit">
-                                                    <span class="text-">
-                                                        <i class="bi bi-square" *ngIf="!data.multi_adesione"></i>
-                                                        <i class="bi bi-check-square" *ngIf="data.multi_adesione"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row skip_collaudo">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }} <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'skip_collaudo'" *ngIf="_isEdit"></span>
-                                            </label>
-                                            <div class="gl-form-checkbox custom-control custom-checkbox" *ngIf="_isEdit">
-                                                <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
-                                                <label class="custom-control-label" for="skip_collaudo"></label>
-                                            </div>
-                                            <div class="" *ngIf="!_isEdit">
-                                                <span class="">
-                                                    <i class="bi bi-square" *ngIf="!data.skip_collaudo"></i>
-                                                    <i class="bi bi-check-square" *ngIf="data.skip_collaudo"></i>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="gl-alert gl-alert-danger col-12 mt-3" *ngIf="_isEdit && _error">
-                            <span *ngIf="!_errors.length">{{ _errorMsg }}</span>
-                            <ui-error-view *ngIf="_errors.length"
-                                [errTitle]="'Errori'"
-                                [errors]="_errors"
-                            ></ui-error-view>
-                        </div>
-
-                        <div class="row-content-block footer-block" *ngIf="_isEdit">
-                            <lnk-button
-                                [type]="'submit'"
-                                [label]="'APP.BUTTON.Save'"
-                                [primary]="true"
-                                [otherClass]="'gl-mr-2'"
-                                [disabled]="_formGroup.invalid || _spin"
-                            ></lnk-button>
-                            <lnk-button
-                                [type]="'button'"
-                                [label]="'APP.BUTTON.Cancel'"
-                                (onAction)="_onCancelEdit()"
-                            ></lnk-button>
-                        </div>
-                    </form>
-                </div>
-
+          }
+          @if (!_isEdit && !_spin && _editable) {
+            <div class="position-relative d-inline-block">
+              <lnk-button
+                [type]="'button'"
+                [icon]="'bi bi-pencil'"
+                [onlyIcon]="true"
+                [ariaLabel]="'APP.TOOLTIP.EditService' | translate"
+                [disabled]="!(_updateData | mapper:_canEditMapper)"
+                [btnTooltip]="'APP.TOOLTIP.EditService'"
+                (onAction)="_editService()"
+              ></lnk-button>
             </div>
-        </div>
+          }
+          @if (!_isEdit && !_spin && _showDeleteActions) {
+            <div class="btn-group- ms-2 d-inline-block">
+              <lnk-button
+                [type]="'button'"
+                [icon]="'bi bi-trash text-danger'"
+                [onlyIcon]="true"
+                [ariaLabel]="'APP.TOOLTIP.DeleteService' | translate"
+                [btnTooltip]="'APP.TOOLTIP.DeleteService'"
+                (onAction)="_confirmDelection()"
+              ></lnk-button>
+            </div>
+          }
+        }
+        @if (_isEdit && !_spin) {
+          <div class="gl-w-full btn-group- position-relative">
+            <lnk-button
+              [type]="'button'"
+              [icon]="'bi bi-x-lg'"
+              [onlyIcon]="true"
+              [ariaLabel]="'APP.TOOLTIP.CancelEdit' | translate"
+              [tertiary]="true"
+              [otherClass]="'ms-2'"
+              [disabled]="!(_updateData | mapper:_canEditMapper)"
+              [btnTooltip]="(_isNew ? 'APP.TOOLTIP.CancelNew' : 'APP.TOOLTIP.CancelEdit')"
+              (onAction)="_onCancelEdit()"
+            ></lnk-button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+  @if (!_spin && (_notification || _notificationId)) {
+    <div class="notification-area container-fluid container-limited limit-container-width px-0">
+      <app-notification-bar
+        [notification]="_notification"
+        [notificationId]="_notification ? '' : _notificationId"
+        [top]="0"
+        (close)="_onCloseNotificationBar($event)"
+      ></app-notification-bar>
+    </div>
+  }
+  <section class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search" [class.container-notifications]="_notification">
 
-    </section>
+    @if (_spin && !_isNew) {
+      <ui-box-spinner [color]="'primary'" [diameter]="36" [strokeWidth]="3"></ui-box-spinner>
+    }
+
+    @if (!data && !_spin && !_isNew) {
+      <ui-box-message
+        [image]="'./assets/images/illustrations/no-data.svg'"
+        [message]="'APP.MESSAGE.NoData' | translate"
+        [subMessage]="'APP.MESSAGE.NoDataHelp' | translate"
+      ></ui-box-message>
+    }
+
+    @if ((data && !_spin) || _isNew) {
+      <div class="settings">
+        <div class="settings-content">
+          @if (!_isEdit && _error) {
+            <div class="gl-alert gl-alert-danger col-12 mb-5">
+              @if (!_errors.length) {
+                <span>{{ _errorMsg }}</span>
+              }
+              @if (_errors.length) {
+                <ui-error-view
+                  [errTitle]="'APP.WORKFLOW.ERROR.CambioStato' | translate:{from: _fromStatus, to: _toStatus}"
+                  [errors]="_errors"
+                ></ui-error-view>
+              }
+            </div>
+          }
+          <div class="edit-form">
+            <form novalidate class="issue-form common-note-form mt-3 gl-show-field-errors gfm-form" [class.form-readonly]="!_isEdit" [formGroup]="_formGroup" (submit)="_onSubmit(_formGroup.getRawValue())">
+              <div class="row gl-mt-3" [class.justify-content-center]="_isNew || _singleColumn">
+                <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
+                  <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.GeneralInformations' | translate }}</h4>
+                  <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.GeneralInformations_sub' | translate }}</div>
+                  <div class="row logo mt-4">
+                    <div class="col-12">
+                      <div class="form-group logo">
+                        @if (_isEdit) {
+                          <div class="">
+                            <app-photo-base64
+                              [boxWidth]="'250px'"
+                              [boxHeight]="'auto'"
+                              [maxSize]="_maxImageSize"
+                              [placeHolder]="_imagePlaceHolder"
+                              [imageSaved]="{ path: data | mapper:_getLogoMapper } | httpImgSrc"
+                              [isImageSaved]="data?.immagine"
+                              [removeLabel]="'APP.BUTTON.Remove' | translate"
+                              (imageLoaded)="_onImageLoaded($event)"
+                            ></app-photo-base64>
+                          </div>
+                        }
+                        @if (!_isEdit) {
+                          <div class="mt-2">
+                            <img class="img-space" alt="Logo servizio" style="width: 250px;height: auto;" [src]="{ path: data | mapper:_getLogoMapper } | httpImgSrc" />
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                  @if (hasServiziApi && hasGenerico) {
+                    <div class="row tipo">
+                      <div class="col-6">
+                        <div class="form-group">
+                          <label class="label-bold" for="tipo">{{ 'APP.LABEL.tipo' | translate }} @if (_isEdit) {
+                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tipo'"></span>
+                          }</label>
+                          @if (_isEdit) {
+                            <div class="">
+                              <select class="form-select" id="tipo" formControlName="tipo" [class.gl-field-error-outline]="_hasControlError('tipo')" (change)="_onChangeType($event)">
+                                @for (item of _tipiServizio; track item) {
+                                  <option [value]="item.value" [disabled]="!item.enabled">{{ 'APP.TIPO.' + item.label | translate }}</option>
+                                }
+                              </select>
+                              @if (f['tipo'].invalid && (f['tipo'].dirty || f['tipo'].touched)) {
+                                <p class="form-text text-danger">
+                                  @if (f['tipo'].errors && f['tipo'].errors['required']) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                              <ui-input-help field="tipo" context="SERVICE"></ui-input-help>
+                            </div>
+                          }
+                          @if (!_isEdit) {
+                            <div class="">
+                              <input type="text" readonly class="form-control-plaintext" [value]="data?.tipo">
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                  <div class="row stato">
+                    <div class="" [class.col-4]="(_updateData | mapper:_isGestoreMapper)" [class.col-8]="!(_updateData | mapper:_isGestoreMapper)">
+                      <div class="form-group">
+                        <label class="label-bold" for="stato">{{ 'APP.LABEL.stato' | translate }}</label>
+                        <div class="">
+                          @if (_changingStatus) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          }
+                          @if (data && !_changingStatus) {
+                            <ui-data-type
+                              [data]="data"
+                              [elem]="{ field: 'stato', type: 'tag', options: 'status' }"
+                              [config]="config"
+                            ></ui-data-type>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    @if ((_updateData | mapper:_isGestoreMapper)) {
+                      <div class="col-4">
+                        <div class="form-group package mt-2-">
+                          <div class="form-group">
+                            @if (_isEdit || !isComponente) {
+                              <label class="label-bold" for="package">{{ 'APP.LABEL.package' | translate }} @if (_isEdit) {
+                                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'package'"></span>
+                              }</label>
+                            }
+                            @if (_isEdit) {
+                              <div class="gl-form-checkbox custom-control custom-checkbox">
+                                <input class="custom-control-input" type="checkbox" name="package" id="package" formControlName="package" (change)="_onChangePackage($event)">
+                                <label class="custom-control-label" for="package"></label>
+                                @if (hasHelpPackage) {
+                                  <span class="ms-1" [tooltip]="helpTooltipPackage | translate" container="body"><i class="bi bi-question-circle"></i></span>
+                                }
+                              </div>
+                            }
+                            @if (!_isEdit && !isComponente) {
+                              <div class="">
+                                <span class="">
+                                  @if (!data.package) {
+                                    <i class="bi bi-square"></i>
+                                  }
+                                  @if (data.package) {
+                                    <i class="bi bi-check-square"></i>
+                                  }
+                                </span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    @if ((_updateData | mapper:_isGestoreMapper)) {
+                      <div class="col-4">
+                        <div class="form-group fruizione mt-2-">
+                          <div class="form-group">
+                            <label class="label-bold" for="fruizione">{{ 'APP.LABEL.fruizione' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'fruizione'"></span>
+                            }</label>
+                            @if (_isEdit) {
+                              <div class="gl-form-checkbox custom-control custom-checkbox">
+                                <input class="custom-control-input" type="checkbox" name="fruizione" id="fruizione" formControlName="fruizione" (change)="_onChangeFruizione($event)">
+                                <label class="custom-control-label" for="fruizione"></label>
+                              </div>
+                            }
+                            @if (!_isEdit) {
+                              <div class="">
+                                <span class="">
+                                  @if (!data.fruizione) {
+                                    <i class="bi bi-square"></i>
+                                  }
+                                  @if (data.fruizione) {
+                                    <i class="bi bi-check-square"></i>
+                                  }
+                                </span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                  <div class="row nome versione">
+                    <div [class.col-8]="!hideVersions || _isEdit" [class.col-12]="hideVersions && !_isEdit">
+                      <lnk-form-field
+                        name="nome"
+                        [label]="'APP.LABEL.nome' | translate"
+                        [formGroup]="_formGroup"
+                        [value]="data?.nome"
+                        [isEdit]="_isEdit"
+                        [plainText]="true"
+                        [helpContext]="'SERVICE.POPOVER'"
+                      ></lnk-form-field>
+                    </div>
+                    @if (!hideVersions || _isEdit) {
+                      <div class="col-4">
+                        <lnk-form-field
+                          type="number"
+                          name="versione"
+                          [label]="'APP.LABEL.versione' | translate"
+                          [formGroup]="_formGroup"
+                          [value]="data?.versione"
+                          [isEdit]="_isEdit"
+                          [plainText]="true"
+                          [helpContext]="'SERVICE.POPOVER'"
+                        ></lnk-form-field>
+                      </div>
+                    }
+                  </div>
+                  @if (_hasMultiDominio) {
+                    <div class="form-group dominio">
+                      <label class="label-bold" for="id_dominio">{{ 'APP.LABEL.id_dominio' | translate }} @if (_isEdit) {
+                        <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_dominio'"></span>
+                      }</label>
+                      @if (_isEdit) {
+                        <div class="">
+                          <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_dominio')"
+                            [items]="(domini$ | async) || []"
+                            [typeahead]="dominiInput$"
+                            [minTermLength]="minLengthTerm"
+                            [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                            [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                            bindValue="id_dominio"
+                            labelForId="id_dominio"
+                            [editableSearchTerm]="true"
+                            formControlName="id_dominio"
+                            disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
+                            (change)="_onChangeDominio($event)"
+                            >
+                            <ng-template ng-label-tmp let-item="item">
+                              {{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}
+                            </ng-template>
+                            <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                              <div class="fw-bold d-flex justify-content-between align-items-center">
+                                <span>{{ item.soggetto_referente?.organizzazione?.nome }} - {{ item.nome }}</span>
+                                @if (item.deprecato) {
+                                  <span class="badge bg-secondary text-black">{{ 'APP.DOMINI.LABEL.Deprecato' | translate }}</span>
+                                }
+                              </div>
+                              <div class="">
+                                <span class="small text-muted">{{ item.descrizione }}</span>
+                              </div>
+                            </ng-template>
+                          </ng-select>
+                          @if (f['id_dominio'].invalid && (f['id_dominio'].dirty || f['id_dominio'].touched)) {
+                            <p class="form-text text-danger">
+                              @if (f['id_dominio'].errors && f['id_dominio'].errors['required']) {
+                                <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                              }
+                            </p>
+                          }
+                          @if (_multiDominioEmail && !_isDominioDeprecato) {
+                            <ui-input-help field="id_dominio" context="SERVICE" [params]="{ email: _multiDominioEmail }"></ui-input-help>
+                          }
+                          @if (_isDominioDeprecato) {
+                            <ui-input-help field="id_dominio_deprecato" context="SERVICE"></ui-input-help>
+                          }
+                        </div>
+                      }
+                      @if (!_isEdit) {
+                        <div class="">
+                          <input type="text" readonly class="form-control-plaintext" id="id_dominio" [value]="data.dominio?.soggetto_referente?.organizzazione?.nome + ' - ' + data.dominio?.nome ">
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if ((_updateData | mapper:_isGestoreMapper)) {
+                    <div class="row visibilita">
+                      <div class="col-6">
+                        @if (_isEdit) {
+                          <lnk-form-field
+                            type="select"
+                            name="visibilita"
+                            [label]="'APP.LABEL.VisibilitaServizio' | translate"
+                            [selectOptions]="_tipiVisibilitaServizio"
+                            [clearable]="false"
+                            [placeholder]="'APP.MESSAGE.SelectVisibilty' | translate"
+                            [formGroup]="_formGroup"
+                            [value]="{ labe: 'visibilita', value: data?.value }"
+                            [isEdit]="_isEdit"
+                            [plainText]="false"
+                            [helpContext]="'SERVICE.POPOVER'"
+                          ></lnk-form-field>
+                        }
+                        @if (!_isEdit) {
+                          <div class="form-group mt-1">
+                            <label class="label-bold" for="visibilita">{{ 'APP.LABEL.VisibilitaServizio' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'visibilita'"></span>
+                            }</label>
+                            <div class="">
+                              @if (data && data.visibilita) {
+                                <ui-data-type
+                                  [data]="data"
+                                  [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
+                                  [config]="config"
+                                ></ui-data-type>
+                              }
+                              @if (!data.visibilita) {
+                                <ui-data-type
+                                  [data]="{ visibilita: data.dominio.visibilita + '_dominio' }"
+                                  [elem]="{ field: 'visibilita', type: 'tag', options: 'visibility' }"
+                                  [config]="config"
+                                ></ui-data-type>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                      <div class="col-6">
+                        @if (_isVisibilita('riservato')) {
+                          <div class="form-group classi">
+                            <label class="label-bold" for="classi">{{ 'APP.LABEL.classi' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'classi'"></span>
+                            }</label>
+                            @if (_isEdit) {
+                              <div class="">
+                                <ng-select [class.gl-field-error-outline]="_hasControlError('classi')"
+                                  [items]="anagrafiche['classi-utente'] || []"
+                                  [multiple]="true"
+                                  [compareWith]="_compareClassiFn"
+                                  bindValue="id_classe_utente"
+                                  bindLabel="nome"
+                                  labelForId="classi"
+                                  [closeOnSelect]="false"
+                                  formControlName="classi"
+                                  disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
+                                  >
+                                  <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                                    <input id="item-{{index}}" type="checkbox" [checked]="item$.selected"/> {{ item.nome }}
+                                  </ng-template>
+                                </ng-select>
+                                @if (f['classi'].invalid && (f['classi'].dirty || f['classi'].touched)) {
+                                  <p class="form-text text-danger">
+                                    @if (f['classi'].errors && f['classi'].errors['required']) {
+                                      <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                    }
+                                  </p>
+                                }
+                                <ui-input-help field="classi" context="SERVICE"></ui-input-help>
+                              </div>
+                            }
+                            @if (!_isEdit) {
+                              <div class="mt-1">
+                                @for (classe of data?.classi; track classe) {
+                                  <span id="classi" class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ classe.nome }}</span>
+                                }
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (_isDominioEsterno) {
+                    <div class="row organizzazione_interna soggetto_interno">
+                      <div class="col-6 form-group organizazione_interna">
+                        <label class="label-bold" for="id_organizzazione_interna">{{ 'APP.LABEL.OrganizzazioneInterna' | translate }} @if (_isEdit) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_organizzazione_interna'"></span>
+                        }</label>
+                        @if (_isEdit) {
+                          <div class="">
+                            <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('id_organizzazione_interna')"
+                              [items]="(organizzazioniInterne$ | async) || []"
+                              [typeahead]="organizzazioniInterneInput$"
+                              [minTermLength]="minLengthTerm"
+                              [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                              [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                              bindValue="id_organizzazione"
+                              bindLabel="nome"
+                              labelForId="id_organizzazione_interna"
+                              [editableSearchTerm]="true"
+                              formControlName="id_organizzazione_interna"
+                              disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
+                              (change)="onChangeSelect($event, 'organizzazione')"
+                              >
+                              <ng-template ng-label-tmp let-item="item">
+                                {{ item.nome }}
+                              </ng-template>
+                              <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                                <div class="fw-bold">{{ item.nome }}</div>
+                                <div class="">
+                                  <span class="small text-muted">{{ item.descrizione }}</span>
+                                </div>
+                              </ng-template>
+                            </ng-select>
+                            @if (f['id_organizzazione_interna'].invalid && (f['id_organizzazione_interna'].dirty || f['id_organizzazione_interna'].touched)) {
+                              <p class="form-text text-danger">
+                                @if (f['id_organizzazione_interna'].errors && f['id_organizzazione_interna'].errors['required']) {
+                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                }
+                              </p>
+                            }
+                            <ui-input-help field="id_organizzazione_interna" context="SERVICE"></ui-input-help>
+                          </div>
+                        }
+                        @if (!_isEdit) {
+                          <div class="">
+                            <input type="text" readonly class="form-control-plaintext" id="id_organizzazione_interna" [value]="data.soggetto_interno?.organizzazione?.nome|| '-'">
+                          </div>
+                        }
+                      </div>
+                      <div class="col-6 form-group soggetto_interno">
+                        @if (_isEdit) {
+                          <div class="" [hidden]="_hideSoggettoDropdown">
+                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }} @if (_isEdit) {
+                              <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'id_soggetto_interno'"></span>
+                            }</label>
+                            <select class="form-select" id="id_soggetto_interno" name="id_soggetto_interno" formControlName="id_soggetto_interno" [class.gl-field-error-outline]="_hasControlError('id_soggetto_interno')" (change)="onChangeSelect($event, 'soggetto')">
+                              @for (el of _elencoSoggetti; track el) {
+                                <option [value]="el.id_soggetto">
+                                  {{el.nome}}
+                                </option>
+                              }
+                            </select>
+                            @if (f['id_soggetto_interno'].invalid && (f['id_soggetto_interno'].dirty || f['id_soggetto_interno'].touched)) {
+                              <p class="form-text text-danger">
+                                @if (f['id_soggetto_interno'].errors && f['id_soggetto_interno'].errors['required']) {
+                                  <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                }
+                              </p>
+                            }
+                            <ui-input-help field="id_soggetto_interno" context="SERVICE"></ui-input-help>
+                          </div>
+                        }
+                        @if (!_isEdit) {
+                          <div class="">
+                            <label class="label-bold" for="id_soggetto_interno">{{ 'APP.LABEL.SoggettoInterno' | translate }}</label>
+                            <input type="text" readonly class="form-control-plaintext" [value]="data.soggetto_interno?.nome || '-'">
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (_isNew && showReferenti) {
+                    <div class="row referenti">
+                      <div class="col-6 form-group referente">
+                        <label class="label-bold" for="referente">{{ 'APP.LABEL.referente' | translate }} @if (_isEdit) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente'"></span>
+                        }</label>
+                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente')"
+                          [items]="(referenti$ | async) || []"
+                          [typeahead]="referentiInput$"
+                          [minTermLength]="minLengthTerm"
+                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                          bindValue="id_utente"
+                          bindLabel="nome_completo"
+                          labelForId="referente"
+                          [editableSearchTerm]="true"
+                          formControlName="referente"
+                          >
+                          <ng-template ng-label-tmp let-item="item">
+                            {{ item.nome }} {{ item.cognome }}
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                            <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                            <div class="">
+                              <span class="small text-muted">{{ item.email_aziendale }}</span>
+                            </div>
+                          </ng-template>
+                        </ng-select>
+                        @if (f['referente'].invalid && (f['referente'].dirty || f['referente'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['referente'].errors && f['referente'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                          </p>
+                        }
+                        <ui-input-help field="referente" context="SERVICE"></ui-input-help>
+                      </div>
+                      <div class="col-6 form-group referente_tecnico">
+                        <label class="label-bold" for="referente_tecnico">{{ 'APP.LABEL.referente_tecnico' | translate }} @if (_isEdit) {
+                          <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'referente_tecnico'"></span>
+                        }</label>
+                        <ng-select class="select-custom" [class.gl-field-error-outline]="_hasControlError('referente_tecnico')"
+                          [items]="(referentiTecnici$ | async) || []"
+                          [typeahead]="referentiTecniciInput$"
+                          [minTermLength]="minLengthTerm"
+                          [notFoundText]="'APP.MESSAGE.NotFoundItem' | translate"
+                          [typeToSearchText]="'APP.MESSAGE.PleaseEnterMin' | translate:{ lengthTerm: minLengthTerm }"
+                          bindValue="id_utente"
+                          bindLabel="nome_completo"
+                          labelForId="referente_tecnico"
+                          [editableSearchTerm]="true"
+                          formControlName="referente_tecnico"
+                          >
+                          <ng-template ng-label-tmp let-item="item">
+                            {{ item.nome }} {{ item.cognome }}
+                          </ng-template>
+                          <ng-template ng-option-tmp let-item="item" let-index="index" let-search="searchTerm">
+                            <div class="fw-bold">{{ item.nome }} {{ item.cognome }}</div>
+                            <div class="">
+                              <span class="small text-muted">{{ item.email_aziendale }}</span>
+                            </div>
+                          </ng-template>
+                        </ng-select>
+                        @if (f['referente_tecnico'].invalid && (f['referente_tecnico'].dirty || f['referente_tecnico'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['referente_tecnico'].errors && f['referente_tecnico'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                          </p>
+                        }
+                        <ui-input-help field="referente_tecnico" context="SERVICE"></ui-input-help>
+                      </div>
+                    </div>
+                  }
+                  <div class="form-group descrizione_sintetica">
+                    <label class="label-bold" for="descrizione_sintetica">{{ 'APP.LABEL.DescrizioneSintetica' | translate }} @if (_isEdit) {
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione_sintetica'"></span>
+                    }</label>
+                    @if (_isEdit) {
+                      <div class="">
+                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione_sintetica')" name="descrizione_sintetica" placeholder="{{ 'APP.LABEL.DescrizioneSintetica' | translate }}" id="descrizione_sintetica" formControlName="descrizione_sintetica" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                        @if (f['descrizione_sintetica'].invalid && (f['descrizione_sintetica'].dirty || f['descrizione_sintetica'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                            @if (f['descrizione_sintetica'].errors && f['descrizione_sintetica'].errors['maxlength']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione_sintetica'].errors['maxlength'].requiredLength } }}</span>
+                            }
+                          </p>
+                        }
+                        <ui-input-help field="descrizione_sintetica" context="SERVICE"></ui-input-help>
+                      </div>
+                    }
+                    @if (!_isEdit) {
+                      <div class="">
+                        <span class="mt-1 white-space-pre text-wrap">{{ data?.descrizione_sintetica || '-' }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="form-group descrizione">
+                    <label class="label-bold w-100" for="descrizione">{{ 'APP.LABEL.DocumentazioneTecnica' | translate }} @if (_isEdit) {
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'descrizione'"></span>
+                      } @if (_isEdit) {
+                      <span class="btn btn-default btn-sm gl-button btn-default-tertiary float-end" [class.btn-secondary]="_showMarkdownPreview" (click)="_toggleMarkdownPreview()" [class.disabled]="!f['descrizione'].value">{{ (_showMarkdownPreview ? 'APP.BUTTON.Write' : 'APP.BUTTON.Preview') | translate }}</span>
+                    }</label>
+                    @if (_isEdit && !_showMarkdownPreview) {
+                      <div class="">
+                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('descrizione')" name="descrizione" placeholder="{{ 'APP.PLACEHOLDER.DocumentazioneTecnica' | translate }}" id="descrizione" formControlName="descrizione" rows="8" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                        @if (f['descrizione'].invalid && (f['descrizione'].dirty || f['descrizione'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['descrizione'].errors && f['descrizione'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                            @if (f['descrizione'].errors && f['descrizione'].errors['maxlength']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['descrizione'].errors['maxlength'].requiredLength } }}</span>
+                            }
+                          </p>
+                        }
+                        <ui-input-help field="descrizione" context="SERVICE"></ui-input-help>
+                      </div>
+                    }
+                    @if ((!_isEdit && _showMarkdown) || _showMarkdownPreview) {
+                      <div class="mb-2 markdown-container" [ngClass]="{ 'p-2 border border-info': _showMarkdownPreview, 'parent-': !_isEdit }">
+                        <div class="" [class.scroll-shadows-]="!_isEdit">
+                          <markdown ngPreserveWhitespaces
+                            [data]="_showMarkdownPreview ? f['descrizione'].value: (data.descrizione || '- ')"
+                            class="markdown"
+                            >
+                          </markdown>
+                        </div>
+                      </div>
+                    }
+                    @if (!_isEdit && !_showMarkdown) {
+                      <div class="my-2">
+                        <span class="mt-1 white-space-pre-wrap">{{ data?.descrizione || '-' }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="form-group tags">
+                    <label class="label-bold" for="tags">{{ 'APP.LABEL.tags' | translate }} @if (_isEdit) {
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'tags'"></span>
+                    }</label>
+                    @if (_isEdit) {
+                      <div class="">
+                        <ng-select [class.gl-field-error-outline]="_hasControlError('tags')"
+                          [items]="anagrafiche['tags'] || []"
+                          [multiple]="true"
+                          [addTag]="true"
+                          [hideSelected]="true"
+                          bindValue="nome"
+                          bindLabel="nome"
+                          labelForId="tags"
+                          formControlName="tags"
+                          disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"
+                        ></ng-select>
+                        @if (f['tags'].invalid && (f['tags'].dirty || f['tags'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['tags'].errors && f['tags'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                          </p>
+                        }
+                        <ui-input-help field="tags" context="SERVICE"></ui-input-help>
+                      </div>
+                    }
+                    @if (!_isEdit) {
+                      <div class="mt-1">
+                        @for (tag of data?.tags; track tag) {
+                          <span class="badge rounded-pill badge-tag text-bg-tags me-1 mb-1">{{ tag }}</span>
+                        }
+                        @if (!data?.tags?.length) {
+                          <span class="">-</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div class="form-group termini_ricerca">
+                    <label class="label-bold" for="termini_ricerca">{{ 'APP.LABEL.termini_ricerca' | translate }} @if (_isEdit) {
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'termini_ricerca'"></span>
+                    }</label>
+                    @if (_isEdit) {
+                      <div class="">
+                        <input aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('termini_ricerca')" type="text" name="termini_ricerca" id="termini_ricerca" formControlName="termini_ricerca" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
+                        @if (f['termini_ricerca'].invalid && (f['termini_ricerca'].dirty || f['termini_ricerca'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['termini_ricerca'].errors && f['termini_ricerca'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                            @if (f['termini_ricerca'].errors && f['termini_ricerca'].errors['maxlength']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['termini_ricerca'].errors['maxlength'].requiredLength } }}</span>
+                            }
+                          </p>
+                        }
+                        <ui-input-help field="termini_ricerca" context="SERVICE"></ui-input-help>
+                      </div>
+                    }
+                    @if (!_isEdit) {
+                      <div class="">
+                        <input type="text" readonly class="form-control-plaintext" [value]="data?.termini_ricerca || '-'">
+                      </div>
+                    }
+                  </div>
+                  <div class="form-group note">
+                    <label class="label-bold" for="note">{{ 'APP.LABEL.note' | translate }} @if (_isEdit) {
+                      <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'note'"></span>
+                    }</label>
+                    @if (_isEdit) {
+                      <div class="">
+                        <textarea aria-required="true" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('note')" type="text" name="note" id="note" formControlName="note" rows="3" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant"></textarea>
+                        @if (f['note'].invalid && (f['note'].dirty || f['note'].touched)) {
+                          <p class="form-text text-danger">
+                            @if (f['note'].errors && f['note'].errors['required']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                            }
+                            @if (f['note'].errors && f['note'].errors['maxlength']) {
+                              <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.MaxLength' | translate: { length: f['note'].errors['maxlength'].requiredLength } }}</span>
+                            }
+                          </p>
+                        }
+                        <ui-input-help field="note" context="SERVICE"></ui-input-help>
+                      </div>
+                    }
+                    @if (!_isEdit) {
+                      <div class="">
+                        <span class="mt-1 white-space-pre">{{ data?.note || '-' }}</span>
+                      </div>
+                    }
+                  </div>
+                  @if (!_isNew && _showDateCreationModification) {
+                    <div class="row utente_richiedente data_creazione">
+                      <div class="col-6">
+                        <div class="form-group utente_richiedente">
+                          <label class="label-bold" for="utente_richiedente">{{ 'APP.LABEL.utente_richiedente' | translate }} @if (_isEdit) {
+                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'utente_richiedente'"></span>
+                          }</label>
+                          @if (_isEdit) {
+                            <div class="">
+                              <input type="text" readonly class="form-control" id="utente_richiedente" [value]="richiedente?.nome + ' ' + richiedente?.cognome" disabled>
+                              @if (f['utente_richiedente'].invalid && (f['utente_richiedente'].dirty || f['utente_richiedente'].touched)) {
+                                <p class="form-text text-danger">
+                                  @if (f['utente_richiedente'].errors && f['utente_richiedente'].errors['required']) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                              <ui-input-help field="utente_richiedente" context="SERVICE"></ui-input-help>
+                            </div>
+                          }
+                          @if (!_isEdit) {
+                            <div class="">
+                              <input type="text" readonly class="form-control-plaintext" id="utente_richiedente" [value]="richiedente?.nome + ' ' + richiedente?.cognome">
+                            </div>
+                          }
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-group data_creazione">
+                          <label class="label-bold" for="data_creazione">{{ 'APP.LABEL.data_creazione' | translate }} @if (_isEdit) {
+                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'data_creazione'"></span>
+                          }</label>
+                          @if (_isEdit) {
+                            <div class="">
+                              <input class="form-control" [class.gl-field-error-outline]="_hasControlError('data_creazione')" type="datetime" name="data_creazione" id="data_creazione" formControlName="data_creazione">
+                              @if (f['data_creazione'].invalid && (f['data_creazione'].dirty || f['data_creazione'].touched)) {
+                                <p class="form-text text-danger">
+                                  @if (f['data_creazione'].errors && f['data_creazione'].errors['required']) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                              <ui-input-help field="data_creazione" context="SERVICE"></ui-input-help>
+                            </div>
+                          }
+                          @if (!_isEdit) {
+                            <div class="mt-1">
+                              @if (data) {
+                                <ui-data-type
+                                  [data]="data"
+                                  [elem]="{ field: 'data_creazione', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
+                                  [config]="config"
+                                ></ui-data-type>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                  @if (!_isNew && _showDateCreationModification) {
+                    <div class="row utente_ultima_modifica data_ultima_modifica">
+                      <div class="col-6">
+                        <div class="form-group utente_ultima_modifica">
+                          <label class="label-bold" for="utente_ultima_modifica">{{ 'APP.LABEL.utente_ultima_modifica' | translate }} @if (_isEdit) {
+                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'utente_ultima_modifica'"></span>
+                          }</label>
+                          @if (_isEdit) {
+                            <div class="">
+                              <input type="text" readonly class="form-control" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome" disabled>
+                              @if (f['utente_ultima_modifica'].invalid && (f['utente_ultima_modifica'].dirty || f['utente_ultima_modifica'].touched)) {
+                                <p class="form-text text-danger">
+                                  @if (f['utente_ultima_modifica'].errors && f['utente_ultima_modifica'].errors['required']) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                              <ui-input-help field="utente_ultima_modifica" context="SERVICE"></ui-input-help>
+                            </div>
+                          }
+                          @if (!_isEdit) {
+                            <div class="">
+                              <input type="text" readonly class="form-control-plaintext" id="utente_ultima_modifica" [value]="utenteUltimaModifica?.nome + ' ' + utenteUltimaModifica?.cognome">
+                            </div>
+                          }
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-group data_ultima_modifica">
+                          <label class="label-bold" for="data_ultima_modifica">{{ 'APP.LABEL.data_ultima_modifica' | translate }} @if (_isEdit) {
+                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'data_ultima_modifica'"></span>
+                          }</label>
+                          @if (_isEdit) {
+                            <div class="">
+                              <input class="form-control" [class.gl-field-error-outline]="_hasControlError('data_ultima_modifica')" type="datetime" name="data_ultima_modifica" id="data_ultima_modifica" formControlName="data_ultima_modifica">
+                              @if (f['data_ultima_modifica'].invalid && (f['data_ultima_modifica'].dirty || f['data_ultima_modifica'].touched)) {
+                                <p class="form-text text-danger">
+                                  @if (f['data_ultima_modifica'].errors && f['data_ultima_modifica'].errors['required']) {
+                                    <span class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>
+                                  }
+                                </p>
+                              }
+                              <ui-input-help field="data_ultima_modifica" context="SERVICE"></ui-input-help>
+                            </div>
+                          }
+                          @if (!_isEdit) {
+                            <div class="mt-1">
+                              @if (data) {
+                                <ui-data-type
+                                  [data]="data"
+                                  [elem]="{ field: 'data_ultima_modifica', type: 'date', format: 'DD-MM-YYYY HH:mm:ss' }"
+                                  [config]="config"
+                                ></ui-data-type>
+                              }
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+              @if ((_updateData | mapper:_isGestoreMapper)) {
+                <div class="row mt-4" [class.justify-content-center]="(_isNew || _singleColumn)">
+                  <div class="" [class.col-lg-4]="!_singleColumn" [class.col-lg-9]="_singleColumn" [class.mb-5]="_singleColumn">
+                    <h4 class="gl-mt-0 text-break">{{ 'APP.SERVICES.TITLE.AdhesionInformations' | translate }}</h4>
+                    <div class="text-break mb-sm-4 mb-lg-1" markdown>{{ 'APP.SERVICES.TITLE.AdhesionInformations_sub' | translate }}</div>
+                  </div>
+                  <div class="" [class.col-lg-8]="!_singleColumn" [class.col-lg-9]="_singleColumn">
+                    <div class="row adesione_disabilitata">
+                      @if (_hasFlagConsentiNonSottoscrivibile) {
+                        <div class="col-6">
+                          <div class="form-group">
+                            @if (_isEdit || !isComponente) {
+                              <label class="label-bold" for="adesione_disabilitata">{{ 'APP.LABEL.DisabilitaAdesione' | translate }} @if (_isEdit) {
+                                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'adesione_disabilitata'"></span>
+                              }</label>
+                            }
+                            @if (_isEdit) {
+                              <div class="gl-form-checkbox custom-control custom-checkbox">
+                                <input class="custom-control-input" type="checkbox" name="adesione_disabilitata" id="adesione_disabilitata" formControlName="adesione_disabilitata">
+                                <label class="custom-control-label" for="adesione_disabilitata"></label>
+                                @if (isComponente) {
+                                  <span class="ms-1" [tooltip]="helpTooltipAdesioneConsentita | translate" container="body"><i class="bi bi-question-circle"></i></span>
+                                }
+                              </div>
+                            }
+                            @if (!_isEdit && !isComponente) {
+                              <div class="">
+                                <span class="">
+                                  @if (!data.adesione_disabilitata) {
+                                    <i class="bi bi-square"></i>
+                                  }
+                                  @if (data.adesione_disabilitata) {
+                                    <i class="bi bi-check-square"></i>
+                                  }
+                                </span>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                    @if (_hasAdesioniMultiple) {
+                      <div class="row multi_adesione">
+                        <div class="col-6">
+                          <div class="form-group">
+                            <div class="form-group">
+                              <label class="label-bold" for="multi_adesione">{{ 'APP.LABEL.multi_adesione' | translate }} @if (_isEdit && false) {
+                                <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'multi_adesione'"></span>
+                              }</label>
+                              @if (_isEdit) {
+                                <div class="gl-form-checkbox custom-control custom-checkbox">
+                                  <input class="custom-control-input" type="checkbox" name="multi_adesione" id="multi_adesione" formControlName="multi_adesione" disablePermission [isNew]="_isNew" [module]="'servizio'" [submodule]="'servizio'" [state]="data?.stato" [grant]="_grant">
+                                  <label class="custom-control-label" for="multi_adesione"></label>
+                                </div>
+                              }
+                              @if (!_isEdit) {
+                                <div class="">
+                                  <span class="text-">
+                                    @if (!data.multi_adesione) {
+                                      <i class="bi bi-square"></i>
+                                    }
+                                    @if (data.multi_adesione) {
+                                      <i class="bi bi-check-square"></i>
+                                    }
+                                  </span>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    <div class="row skip_collaudo">
+                      <div class="col-md-6">
+                        <div class="form-group">
+                          <label class="label-bold" for="skip_collaudo">{{ 'APP.LABEL.SkipCollaudo' | translate }} @if (_isEdit) {
+                            <span appMarkAsterisk [formGroup]="_formGroup" [controlName]="'skip_collaudo'"></span>
+                          }
+                        </label>
+                        @if (_isEdit) {
+                          <div class="gl-form-checkbox custom-control custom-checkbox">
+                            <input class="custom-control-input" type="checkbox" name="skip_collaudo" id="skip_collaudo" formControlName="skip_collaudo">
+                            <label class="custom-control-label" for="skip_collaudo"></label>
+                          </div>
+                        }
+                        @if (!_isEdit) {
+                          <div class="">
+                            <span class="">
+                              @if (!data.skip_collaudo) {
+                                <i class="bi bi-square"></i>
+                              }
+                              @if (data.skip_collaudo) {
+                                <i class="bi bi-check-square"></i>
+                              }
+                            </span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            @if (_isEdit && _error) {
+              <div class="gl-alert gl-alert-danger col-12 mt-3">
+                @if (!_errors.length) {
+                  <span>{{ _errorMsg }}</span>
+                }
+                @if (_errors.length) {
+                  <ui-error-view
+                    [errTitle]="'Errori'"
+                    [errors]="_errors"
+                  ></ui-error-view>
+                }
+              </div>
+            }
+            @if (_isEdit) {
+              <div class="row-content-block footer-block">
+                <lnk-button
+                  [type]="'submit'"
+                  [label]="'APP.BUTTON.Save'"
+                  [primary]="true"
+                  [otherClass]="'gl-mr-2'"
+                  [disabled]="_formGroup.invalid || _spin"
+                ></lnk-button>
+                <lnk-button
+                  [type]="'button'"
+                  [label]="'APP.BUTTON.Cancel'"
+                  (onAction)="_onCancelEdit()"
+                ></lnk-button>
+              </div>
+            }
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+</section>
 </div>

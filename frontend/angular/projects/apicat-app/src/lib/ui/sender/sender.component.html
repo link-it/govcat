@@ -1,0 +1,77 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div #msgBar class="message-bar">
+  <form class="" [formGroup]="_formGroup" (submit)="__send(_formGroup.value)">
+    <!-- Message input row -->
+    <div class="d-flex align-items-center position-relative">
+      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" (click)="__browse($event)" type="button" [tooltip]="'APP.TOOLTIP.AttachFiles' | translate" container="body" placement="right">
+        <em class="bi bi-paperclip fs-5"></em>
+        <input #browse type="file" hidden (change)="__onChange($event)">
+      </button>
+      <div class="flex-grow-1 ">
+        <input class="form-control form-control-sm" formControlName="messaggio" [placeholder]="'APP.PLACEHOLDER.TypeMessage' | translate">
+      </div>
+      <button class="btn btn-default btn-md btn-icon gl-button btn-default-tertiary" type="submit" [disabled]="!_formGroup.valid">
+        <em class="bi bi-send fs-5"></em>
+      </button>
+    </div>
+    <div class="chips-list d-flex flex-wrap align-items-center">
+      @for (_allegato of _allegati; track _allegato; let i = $index) {
+        <div class="chip d-flex align-items-center">
+          <em class="bi bi-file-earmark"></em>
+          <div class="chip-name">{{ _allegato.file }}</div>
+          <span class="btn btn-default btn-sm btn-icon" (click)="__chipClick(i)"><em class="bi bi-x-lg"></em></span>
+        </div>
+      }
+    </div>
+    <!-- Target selection row -->
+    @if (showTarget) {
+      <div class="d-flex align-items-center mt-2 mx-2 gap-2">
+        <span class="small text-muted">{{ 'APP.LABEL.Target' | translate }}:</span>
+        <div class="target-dropdown" #targetDropdown>
+          <button type="button" class="target-dropdown-trigger" (click)="_toggleDropdown()">
+            <span>{{ targetLabel }}</span>
+            <i class="bi" [class.bi-chevron-down]="!_dropdownOpen" [class.bi-chevron-up]="_dropdownOpen"></i>
+          </button>
+          @if (_dropdownOpen) {
+            <div class="target-dropdown-menu">
+              @for (option of targetOptions; track option) {
+                <div class="target-dropdown-item"
+                  (click)="toggleTarget(option.value, !isTargetSelected(option.value))">
+                  <input class="form-check-input" type="checkbox"
+                    [checked]="isTargetSelected(option.value)"
+                    (click)="$event.preventDefault()">
+                  <label>{{ option.label | translate }}</label>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        @if (_targetCtrl.value?.length > 0) {
+          <div class="form-check mb-0 ms-2">
+            <input class="form-check-input" type="checkbox" id="includi_tecnici" formControlName="includi_tecnici">
+            <label class="form-check-label small" for="includi_tecnici">
+              {{ includiTecniciLabel | translate }}
+            </label>
+          </div>
+        }
+      </div>
+    }
+  </form>
+</div>

@@ -1,0 +1,213 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<div class="item-row-mobile" [class.cursor-pointer]="hasLink || rowClick" [class.supports-new-tab]="hasLink || rowClick" (click)="__itemClick($event)" (auxclick)="__itemClick($event)">
+  <!-- Header: Avatar + Primary Text + Action -->
+  <div class="mobile-header">
+    @if (_itemRowConfig?.avatar) {
+      <div class="mobile-avatar">
+        <ui-item-type
+          [data]="_data"
+          [elem]="_itemRowConfig?.avatar"
+          [config]="_config">
+        </ui-item-type>
+      </div>
+    }
+
+    <div class="mobile-primary flex-grow-1">
+      <div class="primary-text text-break fw-bold-600 {{ primaryClass }}">
+        @for (elem of _itemRowConfig?.primaryText; track elem) {
+          @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+            <ui-item-type
+              [data]="_data"
+              [elem]="elem"
+              [config]="_config">
+            </ui-item-type>
+          }
+        }
+        @if (enableOpenInNewTab && hasLink && linkRoute) {
+          <span class="open-new-tab-icon bi bi-box-arrow-up-right"
+            [title]="openInNewTabTooltip"
+          (click)="__openInNewTab($event)"></span>
+        }
+      </div>
+
+      <!-- Metadata labels directly under primary text -->
+      @if (_itemRowConfig?.metadata?.label.length > 0) {
+        <div class="mobile-labels">
+          @for (elem of _itemRowConfig?.metadata.label; track elem) {
+            @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+              <ui-item-type
+                [data]="_data"
+                [elem]="elem"
+                [config]="_config">
+              </ui-item-type>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    @if (hasAction) {
+      <div class="mobile-action">
+        <button class="btn btn-default btn-sm gl-button btn-icon" [tooltip]="actionTooltip" (click)="__actionlick($event)">
+          @if (iconAction) {
+            <i class="bi bi-{{ iconAction }}"></i>
+          }
+          @if (!iconAction) {
+            <span>{{ actionText }}</span>
+          }
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Metadata text -->
+  @if (_itemRowConfig?.metadata?.text.length > 0) {
+    <div class="mobile-metadata">
+      @for (elem of _itemRowConfig?.metadata.text; track elem) {
+        @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+          <ui-item-type
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        }
+      }
+    </div>
+  }
+
+  <!-- Secondary Text -->
+  @if (_itemRowConfig?.secondaryText?.length > 0) {
+    <div class="mobile-secondary">
+      @for (elem of _itemRowConfig?.secondaryText; track elem) {
+        @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+          <ui-item-type
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        }
+      }
+    </div>
+  }
+
+  <!-- Secondary Metadata -->
+  @if (_itemRowConfig?.secondaryMetadata?.length > 0) {
+    <div class="mobile-secondary-meta">
+      @for (elem of _itemRowConfig?.secondaryMetadata; track elem) {
+        @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+          <ui-item-type
+            [data]="_data"
+            [elem]="elem"
+            [config]="_config">
+          </ui-item-type>
+        }
+      }
+    </div>
+  }
+
+  <!-- Box Status -->
+  @if (_itemRowConfig?.boxStatus1 || _itemRowConfig?.boxStatus2) {
+    <div class="mobile-box-status">
+      <ng-template #tooltipBox1Template><div [innerHtml]="_tooltipBox1"></div></ng-template>
+      @if (_itemRowConfig?.boxStatus1) {
+        <div class="box-status"
+          [style.background-color]="_getBackground(_itemRowConfig?.boxStatus1)"
+          [style.color]="_getColor(_itemRowConfig?.boxStatus1)"
+          [tooltip]="tooltipBox1Template"
+          [placement]="_tooltipPlacementBox1"
+          [delay]="_tooltipDelay"
+          container="body">
+          <div class="box-primary">
+            @for (elem of _itemRowConfig?.boxStatus1?.primaryText; track elem) {
+              @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                <ui-item-type
+                  [data]="_data"
+                  [elem]="elem"
+                  [config]="_config">
+                </ui-item-type>
+              }
+            }
+          </div>
+          <div class="box-meta">
+            @for (elem of _itemRowConfig?.boxStatus1?.metadata; track elem) {
+              @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                <ui-item-type
+                  [data]="_data"
+                  [elem]="elem"
+                  [config]="_config">
+                </ui-item-type>
+              }
+            }
+          </div>
+        </div>
+      }
+      <ng-template #tooltipBox2Template><div [innerHtml]="_tooltipBox2"></div></ng-template>
+      @if (_itemRowConfig?.boxStatus2) {
+        <div class="box-status"
+          [style.background-color]="_getBackground(_itemRowConfig?.boxStatus2)"
+          [style.color]="_getColor(_itemRowConfig?.boxStatus2)"
+          [tooltip]="tooltipBox2Template"
+          [placement]="_tooltipPlacementBox2"
+          [delay]="_tooltipDelay"
+          container="body">
+          <div class="box-primary">
+            @for (elem of _itemRowConfig?.boxStatus2?.primaryText; track elem) {
+              @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                <ui-item-type
+                  [data]="_data"
+                  [elem]="elem"
+                  [config]="_config">
+                </ui-item-type>
+              }
+            }
+          </div>
+          <div class="box-meta">
+            @for (elem of _itemRowConfig?.boxStatus2?.metadata; track elem) {
+              @if (_showEmpty(elem) && !_hideAnonymous(elem) && _checkConfigDependency(elem)) {
+                <ui-item-type
+                  [data]="_data"
+                  [elem]="elem"
+                  [config]="_config">
+                </ui-item-type>
+              }
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Footer -->
+  @if (_itemRowConfig?.footer) {
+    <div class="mobile-footer">
+      @for (elem of _itemRowConfig?.footer; track elem) {
+        @if (_showEmpty(elem) && _checkConfigDependency(elem)) {
+          <div class="footer-item">
+            <ui-item-type
+              [data]="_data"
+              [elem]="elem"
+              [config]="_config">
+            </ui-item-type>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

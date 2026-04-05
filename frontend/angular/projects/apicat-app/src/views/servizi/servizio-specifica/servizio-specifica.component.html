@@ -143,7 +143,7 @@
             [maxUpload]="null"
           ></ui-allegato>
           <div class="form-group filename">
-            <label class="label-bold" for="filename">{{ 'APP.LABEL.filename' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'gruppo'"></span></label>
+            <label class="label-bold" for="filename">{{ 'APP.LABEL.filename' | translate }} <span appMarkAsterisk [formGroup]="_editFormGroup" [controlName]="'filename'"></span></label>
             <input aria-required="true" autofocus="autofocus" autocomplete="off" class="form-control" [class.gl-field-error-outline]="_hasControlError('filename')" type="text" name="filename" id="filename" formControlName="filename">
             <p *ngIf="f['filename'].invalid && (f['filename'].dirty || f['filename'].touched)" class="form-text text-danger">
               <span *ngIf="f['filename'].errors && f['filename'].errors['required']" class="d-block">{{ 'APP.MESSAGE.VALIDATION.FieldRequired' | translate }}</span>

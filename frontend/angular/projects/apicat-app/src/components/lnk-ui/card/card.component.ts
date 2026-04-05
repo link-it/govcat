@@ -16,14 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+
+import { TranslateModule } from '@ngx-translate/core';
 import { ConfigService } from '@linkit/components';
+
+import { SetBackgroundImageDirective } from '@app/lib/directives/set-background-image.directive';
+import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
+import { DataTypeComponent } from '@app/lib/ui/data-type/data-type.component';
 
 @Component({
   selector: 'lnk-card',
   templateUrl: './card.component.html',
   styleUrls: ['./card.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [CommonModule, TranslateModule, SetBackgroundImageDirective, HttpImgSrcPipe, DataTypeComponent]
 })
 export class LnkCardComponent implements OnInit {
 
@@ -48,8 +56,6 @@ export class LnkCardComponent implements OnInit {
   @Input('isAnonymous') isAnonymous: boolean = false;
   @Input('showGroupIcon') showGroupIcon: boolean = false;
   @Input('showGroupLabel') showGroupLabel: boolean = false;
-  @Input('imagePosition') imagePosition: string = 'cover';
-  @Input('defaultBackColor') defaultBackColor: string = '#f1f1f1';
   @Input('groupLabel') groupLabel: string = 'Group';
 
   @Output() editSelection: EventEmitter<any> = new EventEmitter();
@@ -66,7 +72,7 @@ export class LnkCardComponent implements OnInit {
   ngOnInit() {
     this._logoText = this._primaryText.slice(0, this._numberCharLogoText);
     if (this._image) {
-      this._backColor = this.defaultBackColor;
+      this._backColor = '#f1f1f1';
     }
     this._textColor = '#111111'; // this.utilsLib.contrast(this._backColor);
 

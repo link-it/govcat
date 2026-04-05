@@ -26,7 +26,7 @@ import { catchError } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { ConfigService, EventsManagerService, MenuAction, EventType, Tools } from '@linkit/components';
+import { ConfigService, EventsManagerService, MenuAction, EventType, Tools, COMPONENTS_IMPORTS } from '@linkit/components';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -42,6 +42,17 @@ import { CodeGrantDialogComponent } from '@app/components/authemtications-dialog
 import { AgidJwtSignatureTrackingEvidenceDialogComponent } from '@app/components/authemtications-dialogs/agid-jwt-signature-tracking-evidence-dialog/agid-jwt-signature-tracking-evidence-dialog.component';
 
 import { environment } from '@app/environments/environment';
+
+import { CommonModule } from '@angular/common';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { ScrollComponent } from '@app/components/scroll/scroll.component';
+import { SwaggerComponent } from '@app/components/swagger/swagger.component';
+import { WsdlComponent } from '@app/components/wsdl/wsdl.component';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { MarkdownModule } from 'ngx-markdown';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
+import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
 
 export const EROGATO_SOGGETTO_DOMINIO: string = 'erogato_soggetto_dominio';
 export const EROGATO_SOGGETTO_ADERENTE: string = 'erogato_soggetto_aderente';
@@ -97,7 +108,20 @@ export enum ApiMode {
     selector: 'app-servizio-view',
     templateUrl: 'servizio-view.component.html',
     styleUrls: ['servizio-view.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        ScrollComponent,
+        SwaggerComponent,
+        WsdlComponent,
+        MonitorDropdwnComponent,
+        MarkdownModule,
+        MapperPipe,
+        HttpImgSrcPipe,
+        PluralTranslatePipe
+    ]
 })
 export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioViewComponent';
@@ -168,6 +192,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _updateData: string = '';
 
     _hasJoined: boolean = false;
+    _adesioneDataReady: boolean = false;
 
     _modalInfoRef!: BsModalRef;
 
@@ -275,14 +300,16 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this._grant = grant;
                 this.apiService.getDetails(this.model, this.id).subscribe({
                     next: (response: any) => {
-                        this.data = response; // new Servizio({ ...response });
+                        this.data = response;
                         this._spin = false;
                         this._initBreadcrumb();
                         this.loadCurrentData();
 
-                        if (!this.data.adesione_disabilitata && !this.authenticationService.isAnonymous()) {
-                            this._loadJoined(false);
-                            this._loadAmmissibili(false);
+                        if (!this.authenticationService.isAnonymous()) {
+                            this._adesioneDataReady = false;
+                            this._loadAdesioneData();
+                        } else {
+                            this._adesioneDataReady = true;
                         }
                     },
                     error: (error: any) => {
@@ -299,45 +326,31 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         }
     }
 
-    _loadJoined(spin: boolean = true) {
-        if (this.id) {
-            this._spin = spin;
-            if (spin) { this.data = null; }
-            let aux: any;
-            const query: any = { id_servizio: this.id };
-            aux = { params: this.utils._queryToHttpParams(query) };
-            this.apiService.getList('adesioni', aux).subscribe({
-                next: (response: any) => {
-                    this._hasJoined = response.content.length > 0;
-                },
-                error: (error: any) => {
-                    Tools.OnError(error);
-                    this._spin = false;
-                }
-            });
-        }
-    }
-
-    _loadAmmissibili(spin: boolean = true) {
-        if (this.id) {
-            this._spin = spin;
-            if (spin) { this.data = null; }
-            this.apiService.getDetails('servizi', this.id, 'ammissibili').subscribe({
-                next: (response: any) => {
-                    this._ammissibili = response.content;
-                    this._updateData = new Date().getTime().toString();
-                },
-                error: (error: any) => {
-                    Tools.OnError(error);
-                    this._spin = false;
-                }
-            });
-        }
+    _loadAdesioneData() {
+        if (!this.id) { return; }
+        const query: any = { id_servizio: this.id };
+        const aux = { params: this.utils._queryToHttpParams(query) };
+        forkJoin({
+            joined: this.apiService.getList('adesioni', aux),
+            ammissibili: this.apiService.getDetails('servizi', this.id, 'ammissibili')
+        }).subscribe({
+            next: (response: any) => {
+                this._hasJoined = response.joined.content.length > 0;
+                this._ammissibili = response.ammissibili.content;
+                this._adesioneDataReady = true;
+                this._updateData = Date.now().toString();
+            },
+            error: (error: any) => {
+                Tools.OnError(error);
+                this._adesioneDataReady = true;
+            }
+        });
     }
 
     loadCurrentData() {
         this.richiedente = this.data.utente_richiedente;
 
+        this._showReferents = Tools.Configurazione?.servizio?.mostra_referenti === 'enabled';
         this.loadReferenti();
         this._loadServiceApi();
     }
@@ -393,8 +406,8 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     _loadServiceApi() {
         this.configService.getConfig('api').subscribe(
             (config: any) => {
-                this.apiConfigCopy = JSON.parse(JSON.stringify(config));
-                this.apiConfig = JSON.parse(JSON.stringify(config));
+                this.apiConfigCopy = structuredClone(config);
+                this.apiConfig = structuredClone(config);
                 this._loadApis();
             }
         );
@@ -438,9 +451,9 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         const profiloLabelI18n = this.translate.instant(`APP.LABEL.Profilo`);
         const defaultLabelI18n = this.translate.instant(`APP.LABEL.Multipli`);
 
-        forkJoin(reqs).subscribe(
-            (results: Array<any>) => {
-                this.apiConfig = JSON.parse(JSON.stringify(this.apiConfigCopy));
+        forkJoin(reqs).subscribe({
+            next: (results: Array<any>) => {
+                this.apiConfig = structuredClone(this.apiConfigCopy);
                 this.serviceApiDominio = results[0].content.map((api: ApiReadDetails) => {
                     type Vetrina = CustomProperty & {gruppo: string};
 
@@ -515,11 +528,11 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this.serviceApiLoading = false;
                 this._singleApi = (this.serviceApiDominio.length === 1) && (this.serviceApiAderente.length === 0);
             },
-            (error: any) => {
+            error: (error: any) => {
                 console.log('_loadApis forkJoin error', error);
                 this.serviceApiLoading = false;
             }
-        );
+        });
     }
 
     _initBreadcrumb() {
@@ -608,13 +621,6 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
         event.stopImmediatePropagation();
         event.preventDefault();
         const route = ['servizi', this.id, 'adesioni', 'new', 'edit'];
-        this.navigationService.openInNewTab(route);
-    }
-
-    _openAdesioneInNewTab(event: MouseEvent) {
-        event.stopImmediatePropagation();
-        event.preventDefault();
-        const route = ['servizi', this.id, 'adesioni'];
         this.navigationService.openInNewTab(route);
     }
 
@@ -721,7 +727,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
                 this.generateJwtOpened = false;
                 // Fix: when the nested modal is closed it removes the "modal-open" class from the body
                 document.body.classList.add('modal-open');
-                if (data && data.result) {
+                if (data?.result) {
                     this.resultGenerazioneJwt = Object.keys(data.result).length > 0 ? data.result : null;
                     if (this.resultGenerazioneJwt) {
                         this.resultGenerazioneJwtList = Object.keys(this.resultGenerazioneJwt).map((key: any) => {
@@ -765,7 +771,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _isAmmissibile() {
         const user = this.authenticationService.getUser();
-        const id_organizzazione = user && user.organizzazione ? user.organizzazione.id_organizzazione : '';
+        const id_organizzazione = user?.organizzazione ? user.organizzazione.id_organizzazione : '';
         const index = this._ammissibili.findIndex((item: any) => item.id_organizzazione === id_organizzazione);
         return (index !== -1);
     }
@@ -784,6 +790,10 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
 
     _isReferenteTecnicoAdesioneMapper = (): boolean => {
         return (_.indexOf(this._grant?.ruoli, 'referente_tecnico') !== -1);
+    }
+
+    _isAnonymousMapper = (): boolean => {
+        return this.authenticationService.isAnonymous();
     }
 
     onActionMonitor(event: any) {
@@ -836,7 +846,7 @@ export class ServizioViewComponent implements OnInit, OnChanges, AfterContentChe
     }
     
     _scrollTo(element: any, to: any, duration: number) {
-        var start = element.scrollTop,
+        const start = element.scrollTop,
             change = to - start;
 
         element.scrollTop = start + change;

@@ -259,7 +259,7 @@ public class NotificheController implements NotificheApi {
 
 		ServizioEntity servizio = null;
 		if(idServizio != null) {
-			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_409, Map.of("idServizio", idServizio.toString())));
+			servizio= this.servizioService.find(idServizio).orElseThrow(() -> new NotFoundException(ErrorCode.SRV_404, Map.of("idServizio", idServizio.toString())));
 		}
 
 		AdesioneEntity adesione = null;
@@ -274,10 +274,9 @@ public class NotificheController implements NotificheApi {
 		specification.setServizio(Optional.ofNullable(servizio));
 		specification.setAdesione(Optional.ofNullable(adesione));
 
-		// Se dashboard=true, forza tipo=COMUNICAZIONE e stato=NUOVA
+		// Se dashboard=true, prende tutte le notifiche (di tutti i tipi) con stato NUOVA o LETTA (esclude ARCHIVIATA)
 		if (dashboard != null && dashboard) {
-			specification.setTipo(Optional.of(TIPO.COMUNICAZIONE));
-			specification.setStati(Arrays.asList(STATO.NUOVA));
+			specification.setStati(Arrays.asList(STATO.NUOVA, STATO.LETTA));
 		} else {
 			if(statoNotifica != null) {
 				specification.setStati(statoNotifica.stream().map(s -> this.engineAssembler.getStato(s)).collect(Collectors.toList()));
@@ -374,7 +373,7 @@ public class NotificheController implements NotificheApi {
 
 				if(!this.coreAuthorization.isAdmin()) {
 					if(!this.coreAuthorization.getUtenteSessione().getId().equals(entity.getDestinatario().getId())) {
-						throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING);
+						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					}
 				}
 				

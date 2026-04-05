@@ -19,6 +19,8 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { TranslateModule } from '@ngx-translate/core';
+
 import { AuthenticationService } from '@app/services/authentication.service';
 
 import { ConfigService, MenuAction } from '@linkit/components';
@@ -27,7 +29,8 @@ import { ConfigService, MenuAction } from '@linkit/components';
   selector: 'app-monitor-dropdown',
   templateUrl: './monitor-dropdown.component.html',
   styleUrls: ['./monitor-dropdown.component.scss'],
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule]
 })
 export class MonitorDropdwnComponent implements OnInit, OnChanges {
 

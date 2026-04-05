@@ -18,6 +18,7 @@
  */
 
 // ng-select-wrapper.component.ts
+import { CommonModule } from '@angular/common';
 import {
     Component,
     Input,
@@ -31,12 +32,21 @@ import {
 import {
     ControlValueAccessor,
     FormGroup,
+    FormsModule,
     NG_VALUE_ACCESSOR,
+    ReactiveFormsModule,
 } from "@angular/forms";
 import {BehaviorSubject, concat, Observable, of, Subject} from "rxjs";
 import {catchError, debounceTime, distinctUntilChanged, scan, startWith, switchMap, tap} from "rxjs/operators";
 
+import { TranslateModule } from '@ngx-translate/core';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
+
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { PopoverHelpComponent } from '@app/components/lnk-ui/popover-help/popover-help.component';
+import { LnkFormFieldErrorComponent } from '@app/components/lnk-ui/form-field-error/form-field-error.component';
 
 @Component({
     selector: "lnk-form-live-search",
@@ -49,7 +59,8 @@ import { AvailableBSPositions } from 'ngx-bootstrap/positioning';
             multi: true,
         },
     ],
-    standalone: false
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, TranslateModule, NgSelectModule, MapperPipe, MarkAsteriskDirective, PopoverHelpComponent, LnkFormFieldErrorComponent]
 })
 export class LnkFormLiveSearchComponent implements ControlValueAccessor, OnInit, OnChanges {
     @Input() id: string = '';

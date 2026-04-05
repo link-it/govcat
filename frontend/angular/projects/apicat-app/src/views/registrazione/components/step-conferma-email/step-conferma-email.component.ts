@@ -1,9 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 
+import { TranslateModule } from '@ngx-translate/core';
+
+import { LnkButtonComponent } from '@app/components/lnk-ui/button/button.component';
+
 @Component({
   selector: 'app-step-conferma-email',
   templateUrl: './step-conferma-email.component.html',
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, LnkButtonComponent]
 })
 export class StepConfermaEmailComponent {
 

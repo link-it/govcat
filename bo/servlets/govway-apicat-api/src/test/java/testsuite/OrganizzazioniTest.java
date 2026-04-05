@@ -298,7 +298,7 @@ public class OrganizzazioniTest {
             controller.deleteOrganizzazione(id);
         });
 
-        assertEquals("ORG.404", exception.getMessage());
+        assertEquals("ORG.400.HAS.DEPENDENCIES", exception.getMessage());
     }
 
     @Test

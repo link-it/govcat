@@ -17,18 +17,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { TranslateModule } from '@ngx-translate/core';
+import { BsLocaleService } from 'ngx-bootstrap/datepicker';
+
 import { AppComponent } from './app.component';
+import { ConfigService } from '@linkit/components';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        AppComponent,
+        TranslateModule.forRoot()
       ],
-      declarations: [
-        AppComponent
-      ],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        BsLocaleService,
+        { provide: ConfigService, useValue: { getConfiguration: () => ({ AppConfig: { GOVAPI: { HOST: '', HOST_PDND: '', HOST_MONITOR: '' } } }) } }
+      ]
     }).compileComponents();
   });
 
@@ -44,10 +55,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('apicat-app');
   });
 
-  it('should render title', () => {
+  it('should render router-outlet', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('apicat-app app is running!');
+    expect(compiled.querySelector('router-outlet')).toBeTruthy();
   });
 });

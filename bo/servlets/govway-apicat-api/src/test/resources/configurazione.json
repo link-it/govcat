@@ -1156,6 +1156,7 @@
     "riuso_client_obbligatorio": false,
     "visualizza_elenco_client_esistenti": false,
     "referente_obbligatorio": false,
+    "abilita_selezione_soggetto": true,
     "workflow_produzione_senza_collaudo": "disabilitato",
     "workflow": {
       "stati": [
@@ -1411,6 +1412,12 @@
       "autorizzato_produzione",
       "in_configurazione_produzione",
       "pubblicato_produzione"
+    ],
+    "dati_sempre_modificabili": [
+      {
+        "classe_dato": "referenti",
+        "ruoli": ["referente", "referente_superiore", "gestore"]
+      }
     ],
   "proprieta_custom": [
         {

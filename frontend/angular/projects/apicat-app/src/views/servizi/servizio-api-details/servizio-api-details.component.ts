@@ -18,13 +18,13 @@
  */
 import { AfterContentChecked, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { TranslateService } from '@ngx-translate/core';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 
-import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent } from '@linkit/components';
-import { UtilsLib } from 'projects/linkit/components/src/lib/utils/utils.lib';
+import { MenuAction, ConfigService, Tools, EventsManagerService, EventType, AllegatoComponent, COMPONENTS_IMPORTS } from '@linkit/components';
+import { UtilsLib } from '@app/lib/utils/utils.lib';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
@@ -35,8 +35,19 @@ import { ServizioApiCreate } from './servizio-api-create';
 
 import { ModalChoicesComponent } from '@app/components/modal-choices/modal-choices.component';
 
-import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiCustomProperty, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
+import { ApiAuthTypeGroup, ApiConfiguration, ApiCreateRequest, ApiReadDetails, ApiUpdateRequest, IHistory, Profile } from './servizio-api-interfaces';
 import { Grant } from '@app/model/grant';
+
+import { CommonModule } from '@angular/common';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { DisablePermissionDirective } from '@app/directives/disable-permission/disable-permission.directive';
+import { AuthFilterPipe } from '@app/pipes/service-filters';
+import { MonitorDropdwnComponent } from '../components/monitor-dropdown/monitor-dropdown.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { PluralTranslatePipe } from '@app/lib/pipes/plural-translate.pipe';
+import { MarkdownModule } from 'ngx-markdown';
 
 import * as _ from 'lodash';
 declare const saveAs: any;
@@ -62,7 +73,21 @@ export type GruppiCampi = Record<string, Campo[]>;
     selector: 'app-servizio-api-details',
     templateUrl: 'servizio-api-details.component.html',
     styleUrls: ['servizio-api-details.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        MarkAsteriskDirective,
+        DisablePermissionDirective,
+        AuthFilterPipe,
+        MonitorDropdwnComponent,
+        ErrorViewComponent,
+        MarkdownModule,
+        MapperPipe,
+        PluralTranslatePipe
+    ]
 })
 export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterContentChecked {
     static readonly Name = 'ServizioApiDetailsComponent';
@@ -190,6 +215,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     _componentBreadcrumbs: ComponentBreadcrumbsData | null = null;
 
     _fromDashboard: boolean = false;
+    _dashboardSection: string = '';
 
     debugMandatoryFields: boolean = false;
 
@@ -226,6 +252,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         this.route.queryParams.subscribe((val) => {
             if (val.from === 'dashboard') {
                 this._fromDashboard = true;
+                this._dashboardSection = val.section || '';
                 this._initBreadcrumb();
             }
         });
@@ -268,7 +295,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                                     this._initBreadcrumb();
                                     this._initRuoli();
                                     this._initOtherActionMenu();
-                    
+
                                     if (this.servizioApi) {
                                         this.eventsManagerService.broadcast('INIT_DATA');
                                     }
@@ -334,7 +361,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _hasControlError(name: string) {
-        return (this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name].errors && this.f[name].touched);
     }
 
     get f(): { [key: string]: AbstractControl } {
@@ -593,7 +620,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 this._spin--;
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
-                this._errors = error.errori || [];
+                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
             }
         );
     }
@@ -635,26 +662,52 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             }
         }
 
-        if (this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length && !this._isPDND) {
-            const proprieta_custom: ApiCustomProperty[] = [];
-            _newBody.dati_custom = {proprieta_custom: proprieta_custom};
-            Object.keys(this._apiProprietaCustomGrouped).forEach(k => {
-                // Use nome_gruppo from the first item in the group instead of the grouping key
-                const firstItem = this._apiProprietaCustomGrouped[k][0];
-                const _customGrouped: any = {
-                    gruppo: firstItem.nome_gruppo,
-                    proprieta: []
-                };
-                this._apiProprietaCustomGrouped[k].forEach((kk: any) => {
-                    if (body.proprieta_custom[firstItem.nome_gruppo] && body.proprieta_custom[firstItem.nome_gruppo][kk.nome]) {
-                        _customGrouped.proprieta.push({
-                            nome: kk.nome,
-                            valore: body.proprieta_custom[firstItem.nome_gruppo][kk.nome]
-                        });
+        const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
+        const hasOriginalCustomProps = this._servizioApi?.proprieta_custom?.length;
+        if ((hasCurrentCustomProps || hasOriginalCustomProps) && !this._isPDND) {
+            const risultato: Record<string, { nome: string; valore: string }[]> = {};
+
+            if (hasCurrentCustomProps) {
+                Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
+                    this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
+                        const valoriGruppo = body.proprieta_custom?.[campo.nome_gruppo];
+
+                        if (!risultato[campo.nome_gruppo]) {
+                            risultato[campo.nome_gruppo] = [];
+                        }
+
+                        if (!valoriGruppo) return;
+
+                        const nome = campo.nome;
+                        const valore = valoriGruppo[nome];
+
+                        const valoreNonValido =
+                            valore === undefined ||
+                            valore === null ||
+                            (typeof valore === 'string' && valore.trim() === '') ||
+                            (typeof valore === 'number' && Number.isNaN(valore));
+
+                        if (!valoreNonValido) {
+                            risultato[campo.nome_gruppo].push({ nome, valore });
+                        }
+                    });
+                });
+            }
+
+            if (hasOriginalCustomProps) {
+                this._servizioApi?.proprieta_custom?.forEach((originalGroup: any) => {
+                    if (!risultato[originalGroup.gruppo]) {
+                        risultato[originalGroup.gruppo] = [];
                     }
                 });
-                proprieta_custom.push(_customGrouped);
-            });
+            }
+
+            _newBody.dati_custom = {
+                proprieta_custom: Object.entries(risultato).map(([gruppo, proprieta]) => ({
+                    gruppo,
+                    proprieta
+                }))
+            };
         }
 
         return this.authenticationService._removeDNM('servizio', this.service.stato, _newBody, this._grant?.ruoli);
@@ -696,7 +749,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
             error: (error) => {
                 this._error = true;
                 this._errorMsg = this.utils.GetErrorMsg(error);
-                this._errors = error.errori || [];
+                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
             }
         });
     }
@@ -875,7 +928,8 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         }
 
         if (this._fromDashboard && !this._componentBreadcrumbs) {
-            this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' };
+            const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
+            this.breadcrumbs[0] = { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams };
         }
     }
 
@@ -927,7 +981,11 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
     onBreadcrumb(event: any) {
         if (this._useRoute) {
-            this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+            if (event.params) {
+                this.router.navigate([event.url], { queryParams: event.params });
+            } else {
+                this.router.navigate([event.url], { queryParamsHandling: 'preserve' });
+            }
         } else {
             this._onClose();
         }
@@ -1316,7 +1374,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
         const _auth: any = {
             profilo: [data.profilo, [Validators.required]],
             resources: [data.resources, [Validators.required]],
-            note: [data.note]
+            note: [data.note, [Validators.maxLength(255)]]
         };
 
         const _customProperties = this._getProfilo(data.profilo)?.proprieta_custom || [];

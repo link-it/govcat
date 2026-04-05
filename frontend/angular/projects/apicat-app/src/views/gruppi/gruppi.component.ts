@@ -18,23 +18,33 @@
  */
 import { AfterContentChecked, AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CustomValidators } from '@linkit/validators';
 
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 
-import { Tools, ConfigService, SearchBarFormComponent } from '@linkit/components';
+import { Tools, ConfigService, SearchBarFormComponent, COMPONENTS_IMPORTS } from '@linkit/components';
 import { ModalGroupChoiceComponent } from '@app/components/modal-group-choice/modal-group-choice.component';
 
 import { OpenAPIService } from '@services/openAPI.service';
 import { UtilService } from '@app/services/utils.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 
-import { Page} from '../../models/page';
-import { CardType } from 'projects/linkit/components/src/lib/ui/card/card.component';
+import { HasPermissionDirective } from '@app/directives/has-permission/has-permission.directive';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
+import { TrimOnBlurDirective } from '@app/directives/trim-on-blur/trim-on-blur.directive';
+import { AutoFillScrollDirective } from '@app/lib/directives/auto-fill-scroll.directive';
+import { PhotoBase64Component } from '@app/lib/ui/photo-base64/photo-base64.component';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { HttpImgSrcPipe } from '@app/lib/pipes/http-img-src.pipe';
+import { TreeViewComponent } from '@app/components/tree-view/tree-view.component';
+
+import { Page } from '../../models/page';
+import { CardType } from '@app/lib/ui/card/card.component';
 
 export interface Gruppo {
     id_gruppo: string;
@@ -64,7 +74,21 @@ interface Immagine {
     selector: 'app-gruppi',
     templateUrl: 'gruppi.component.html',
     styleUrls: ['gruppi.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        TranslateModule,
+        InfiniteScrollDirective,
+        ...COMPONENTS_IMPORTS,
+        HasPermissionDirective,
+        MarkAsteriskDirective,
+        TrimOnBlurDirective,
+        AutoFillScrollDirective,
+        PhotoBase64Component,
+        MapperPipe,
+        HttpImgSrcPipe,
+        TreeViewComponent
+    ]
 })
 export class GruppiComponent implements OnInit, AfterViewInit, AfterContentChecked {
     static readonly Name = 'GruppiComponent';
@@ -396,6 +420,9 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
         _resultObject.subscribe({
             next: (response: any) => {
                 this._saving = false;
+                if (this._editCurrent?.id_gruppo) {
+                    HttpImgSrcPipe.invalidateCache(`/gruppi/${this._editCurrent.id_gruppo}/immagine`);
+                }
                 this._modalEditRef.hide();
                 this._onCloseEdit(null);
                 this._loadGruppi();
@@ -456,7 +483,7 @@ export class GruppiComponent implements OnInit, AfterViewInit, AfterContentCheck
     }
 
     _hasControlError(name: string) {
-        return (this.f[name] && this.f[name].errors && this.f[name].touched);
+        return !!(this.f[name] && this.f[name].errors && this.f[name].touched);
     }
 
     _onImageLoaded(event: any) {

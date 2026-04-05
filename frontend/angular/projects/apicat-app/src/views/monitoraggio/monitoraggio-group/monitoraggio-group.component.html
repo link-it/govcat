@@ -17,8 +17,8 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <div class="card-group mb-3">
-  <ng-container *ngFor="let section of sections">
-    <ng-container *ngIf="section.enabled">
+  @for (section of sections; track section) {
+    @if (section.enabled) {
       <app-monitoraggio-card remove-host
         [environmentId]="environmentId"
         [section]="section"
@@ -28,6 +28,6 @@
         [reduced]="reduced"
         (action)="onAction($event, section)">
       </app-monitoraggio-card>
-    </ng-container>
-  </ng-container>  
+    }
+  }
 </div>

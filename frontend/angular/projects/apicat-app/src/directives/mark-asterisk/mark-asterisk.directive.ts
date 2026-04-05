@@ -22,7 +22,7 @@ import { Subject, takeUntil, merge } from 'rxjs';
 
 @Directive({
   selector: '[appMarkAsterisk]',
-  standalone: false
+  standalone: true
 
 })
 export class MarkAsteriskDirective implements OnInit, OnDestroy {

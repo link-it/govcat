@@ -25,7 +25,7 @@
  * invece che globalmente (per l'approccio globale, usare Scrollbar.hideOnIdle nel config).
  *
  * Uso:
- *   1. Importare ScrollbarHoverModule nel modulo del componente
+ *   1. Importare ScrollbarHoverDirective nel modulo del componente
  *   2. Applicare la direttiva all'elemento con overflow:
  *      <div class="my-scrollable-container" [scrollbarHover]="true">...</div>
  *   3. Assicurarsi che Scrollbar.hideOnIdle sia true nel config
@@ -37,7 +37,7 @@ import { ConfigService } from '@linkit/components';
 
 @Directive({
   selector: '[scrollbarHover]',
-  standalone: false
+  standalone: true
 })
 export class ScrollbarHoverDirective implements OnInit, OnDestroy {
 

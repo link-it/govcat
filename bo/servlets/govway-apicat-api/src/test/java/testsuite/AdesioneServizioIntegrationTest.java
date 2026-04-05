@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,6 +84,7 @@ import org.govway.catalogo.servlets.model.Soggetto;
 import org.govway.catalogo.servlets.model.SoggettoCreate;
 import org.govway.catalogo.servlets.model.StatoUpdate;
 import org.govway.catalogo.servlets.model.StatoUtenteEnum;
+import org.govway.catalogo.servlets.model.TargetComunicazioneServizioEnum;
 import org.govway.catalogo.servlets.model.TipoReferenteEnum;
 import org.govway.catalogo.servlets.model.Utente;
 import org.govway.catalogo.servlets.model.UtenteCreate;
@@ -656,6 +658,7 @@ public class AdesioneServizioIntegrationTest {
         messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Comunicazione");
         messaggioComunicazione.setTesto("Si richiede di procedere con la configurazione dell'adesione al servizio");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         ResponseEntity<ItemMessaggio> comunicazione = serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
         assertNotNull(comunicazione.getBody().getData());
         assertEquals(messaggioComunicazione.getTesto(), comunicazione.getBody().getTesto());
@@ -676,6 +679,7 @@ public class AdesioneServizioIntegrationTest {
         messaggioComunicazione = new MessaggioCreate();
         messaggioComunicazione.setOggetto("Oggetto Comunicazione");
         messaggioComunicazione.setTesto("Configurazione effettuata");
+        messaggioComunicazione.setTarget(Arrays.asList(TargetComunicazioneServizioEnum.REFERENTI_SERVIZIO));
         ResponseEntity<ItemMessaggio> comunicazione = serviziController.createMessaggioServizio(idServizio, messaggioComunicazione);
         assertNotNull(comunicazione.getBody().getData());
         assertEquals(messaggioComunicazione.getTesto(), comunicazione.getBody().getTesto());

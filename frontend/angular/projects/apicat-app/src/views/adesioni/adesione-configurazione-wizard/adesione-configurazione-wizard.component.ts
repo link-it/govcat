@@ -19,15 +19,25 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
-import { ConfigService, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
+import { ConfigService, COMPONENTS_IMPORTS, EventsManagerService, Tools, EventType, FieldClass, MenuAction } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { WorkflowComponent } from '@app/components/workflow/workflow.component';
+import { MonitorDropdwnComponent } from '@app/views/servizi/components/monitor-dropdown/monitor-dropdown.component';
+import { ApiCustomPropertiesComponent } from '@app/components/api-custom-properties/api-custom-properties.component';
+import { ErrorViewComponent } from '@app/components/error-view/error-view.component';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
 
 import { ModalAddReferentComponent } from './modal-add-referent/modal-add-referent.component';
+import { AdesioneListaClientsComponent } from './adesione-lista-clients/adesione-lista-clients.component';
+import { AdesioneListaErogazioniComponent } from './adesione-lista-erogazioni/adesione-lista-erogazioni.component';
+import { AdesioneFormComponent } from './adesione-form/adesione-form.component';
 
 import { ServiceBreadcrumbsData } from '@app/views/servizi/route-resolver/service-breadcrumbs.resolver';
 
@@ -41,6 +51,7 @@ import * as _ from 'lodash';
 declare const saveAs: any;
 
 import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.provider';
+import { NotificationBarComponent } from '@app/views/notifications/notification-bar/notification-bar.component';
 
 export enum AccordionType {
     GENERAL_INFO = 'accordion-general-info',
@@ -53,7 +64,22 @@ export enum AccordionType {
     selector: 'app-adesione-configurazione-wizard',
     templateUrl: './adesione-configurazione-wizard.component.html',
     styleUrls: ['./adesione-configurazione-wizard.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        MapperPipe,
+        TooltipModule,
+        MonitorDropdwnComponent,
+        ApiCustomPropertiesComponent,
+        ErrorViewComponent,
+        AdesioneListaClientsComponent,
+        AdesioneListaErogazioniComponent,
+        AdesioneFormComponent,
+        NotificationBarComponent,
+        WorkflowComponent
+    ]
 })
 export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
@@ -97,6 +123,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     _fromStatus: string = '';
     _toStatus: string = '';
 
+    _fromDashboard: boolean = false;
+    _dashboardSection: string = '';
+    _notification: any = null;
+    _notificationId: string = '';
+    _notificationMessageId: string = '';
+
     breadcrumbs: any[] = [
         { label: 'APP.TITLE.Subscriptions', url: '', type: 'title', iconBs: 'display' },
         { label: '...', url: '', type: 'title' },
@@ -104,7 +136,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     ];
 
     serviceBreadcrumbs: ServiceBreadcrumbsData|null = null;
-    private _fromDashboard: boolean = false;
 
     grant: Grant | null = null;
     updateMapper: string = '';
@@ -177,6 +208,27 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 this.config = config;
             }
         );
+
+        this.route.queryParams.subscribe((val) => {
+            this._notification = null;
+            this._notificationId = '';
+            this._notificationMessageId = '';
+            if (val.from === 'dashboard') {
+                this._fromDashboard = true;
+                this._dashboardSection = val.section || '';
+                this._initBreadcrumb();
+            }
+            if (val.notificationId && val.messageid) {
+                this._notificationId = val.notificationId;
+                this._notificationMessageId = val.messageid;
+            }
+            if (val.notification) {
+                const _notification = JSON.parse(decodeURI(atob(val.notification)));
+                this._notification = _notification;
+                this._notificationId = this._notification.id_notifica;
+                this._notificationMessageId = this._notification.entita.id_entita;
+            }
+        });
     }
 
     ngOnInit() {
@@ -191,7 +243,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 const _referentiConfig: Observable<any> = this.configService.getConfig('referenti');
 
                 const combined = forkJoin([_grant, _configClients, _configErogaz, _apiConfig, _referentiConfig]);
-                combined.subscribe(result => {
+                combined.subscribe(result => {                    
                     this.grant = result[0];
                     this.adesioniClientsConfig = result[1];
                     this.adesioniErogazConfig = result[2];
@@ -202,13 +254,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
                     this.loadAdesione(true);
                 });
-            }
-        });
-
-        this.route.queryParams.subscribe((val) => {
-            if (val.from === 'dashboard') {
-                this._fromDashboard = true;
-                this._initBreadcrumb();
             }
         });
 
@@ -293,7 +338,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             };
         }
         const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === statoAdesione) : -1;
-        const currentState = (index !== -1) ? workflow.cambi_stato[index] : null;
+        const currentState = (index === -1) ? null : workflow.cambi_stato[index];
         if (statoAdesione === Tools.StatoAdesione.BOZZA.Code && this.adesione.skip_collaudo) {
             const stati_ulteriori = currentState?.stati_ulteriori;
             if (stati_ulteriori?.length > 0) {
@@ -314,7 +359,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             const stato = currentState.stato_successivo?.nome || currentState.nome;
             const workflow = Tools.Configurazione?.adesione.workflow || null;
             const index = workflow ? workflow.cambi_stato.findIndex((item: any) => item.stato_attuale === stato) : -1;
-            return (index !== -1) ? workflow.cambi_stato[index] : null;
+            return (index === -1) ? null : workflow.cambi_stato[index];
         }
         return null;
     }
@@ -346,7 +391,11 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     onBreadcrumb(event: any) {
-        this.router.navigate([event.url]);
+        if (event.params) {
+            this.router.navigate([event.url], { queryParams: event.params });
+        } else {
+            this.router.navigate([event.url]);
+        }
     }
 
     _geServicetTitle() {
@@ -375,37 +424,40 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             title = `${this.adesione.id_logico} (${_organizzazione})`;
         }
 
+        const _dashboardParams = this._dashboardSection ? { section: this._dashboardSection } : null;
         if (this._fromDashboard && !this.serviceBreadcrumbs) {
             if (this.config?.useEditWizard) {
                 this.breadcrumbs = [
-                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
+                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
                     { label: title, url: '', type: 'link' },
                 ];
             } else {
                 this.breadcrumbs = [
-                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2' },
-                    { label: title, url: `${baseUrl}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
+                    { label: 'APP.TITLE.Dashboard', url: '/dashboard', type: 'link', iconBs: 'speedometer2', params: _dashboardParams },
+                    { label: title, url: `/${this.model}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
                     { label: 'APP.TITLE.SubscriptionConfiguration', url: ``, type: 'link' }
                 ];
             }
+        } else if (this.config?.useEditWizard) {
+            this.breadcrumbs = [
+                { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
+                { label: title, url: '', type: 'link' },
+            ];
         } else {
-            if (this.config?.useEditWizard) {
-                this.breadcrumbs = [
-                    { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-                    { label: title, url: '', type: 'link' },
-                ];
-            } else {
-                this.breadcrumbs = [
-                    { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
-                    { label: title, url: `${baseUrl}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
-                    { label: 'APP.TITLE.SubscriptionConfiguration', url: ``, type: 'link' }
-                ];
-            }
-
-            if (this.serviceBreadcrumbs){
-                this.breadcrumbs.unshift(...this.serviceBreadcrumbs.breadcrumbs);
-            }
+            this.breadcrumbs = [
+                { label: 'APP.TITLE.Subscriptions', url: `${baseUrl}/`, type: 'link', iconBs: 'display' },
+                { label: title, url: `${baseUrl}/${_adesione}/view`, type: 'link', tooltip: _toolTipAdesione },
+                { label: 'APP.TITLE.SubscriptionConfiguration', url: ``, type: 'link' }
+            ];
         }
+
+        if (this.serviceBreadcrumbs) {
+            this.breadcrumbs.unshift(...this.serviceBreadcrumbs.breadcrumbs);
+        }
+    }
+
+    _onCloseNotificationBar(event: any) {
+        this.router.navigate([this.model, this.id]);
     }
 
     backAdesione() {
@@ -569,10 +621,12 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     public serviceReferents: any[] = [];
     public domainReferents: any[] = [];
     public referentiLoading: boolean = true;
+    private _referentsLoadCount: number = 0;
     private modalAddReferentRef!: BsModalRef;
 
     private loadReferents() {
         this.referentiLoading = true;
+        this._referentsLoadCount++;
         forkJoin({
             referenti: this.apiService.getDetails(this.model, this.id, 'referenti'),
             referentiDominio: this.apiService.getDetails('domini', this.adesione?.servizio.dominio.id_dominio, 'referenti'),
@@ -598,9 +652,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     return acc;
                 };
 
-                let _list: any = referents.map((referent: any) => {
+                const _lc = this._referentsLoadCount;
+                let _list: any = referents.map((referent: any, index: number) => {
                     const element = {
-                        id: referent.id,
+                        id: `${referent.utente?.id_utente || index}_${referent.tipo}_${_lc}`,
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
@@ -609,9 +664,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 });
                 this.referents = [ ..._list ];
 
-                _list = serviceReferents.map((referent: any) => {
+                _list = serviceReferents.map((referent: any, index: number) => {
                     const element = {
-                        id: referent.id,
+                        id: `${referent.utente?.id_utente || index}_${referent.tipo}_${_lc}`,
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
@@ -620,9 +675,9 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                 });
                 this.serviceReferents = [ ..._list ];
 
-                _list = domainReferents.map((referent: any) => {
+                _list = domainReferents.map((referent: any, index: number) => {
                     const element = {
-                        id: referent.id,
+                        id: `${referent.utente?.id_utente || index}_${referent.tipo}_${_lc}`,
                         editMode: false,
                         enableCollapse: true,
                         source: { ...referent }
@@ -685,7 +740,6 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
                     this.loadReferents();
                 },
                 error: (error: any) => {
-                    // this._error = true;
                     const _message = this.translate.instant('APP.MESSAGE.ERROR.NoDeleteReferent');
                     Tools.showMessage(_message, 'danger', true);
                 }
@@ -693,6 +747,10 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
     }
 
     canAddMapper = (): boolean => {
+        const _grant: any = this.grant?.ruoli || [];
+        if (this.authenticationService._isDatoSempreModificabile('adesione', 'referenti', _grant)) {
+            return true;
+        }
         const _cnm = this.authenticationService._getClassesNotModifiable('adesione', 'adesione', this.adesione?.stato);
         const _lstPerm = [];
         if (_.indexOf(_cnm, 'referente') === -1) {
@@ -761,7 +819,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
             (error: any) => {
                 this._error = true;
                 this._errorMsg = Tools.WorkflowErrorMsg(error);
-                this._errors = error.error.errori || [];
+                this._errors = (error.error.errori || []).filter((e: any) => Object.keys(e).length > 0);
                 this._fromStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + this.adesione.stato);
                 this._toStatus = this.translate.instant('APP.WORKFLOW.STATUS.' + newStatus);
                 const _msg: string = this.translate.instant('APP.WORKFLOW.MESSAGE.ChangeStatusError', {status: this._toStatus});

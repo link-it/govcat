@@ -18,8 +18,12 @@
  */
 import { Component, HostListener, Input, SimpleChanges } from '@angular/core';
 
+import { TranslateModule } from '@ngx-translate/core';
+
+import { COMPONENTS_IMPORTS } from '@linkit/components';
 import { UtilService } from '@app/services/utils.service';
 import { OpenAPIService } from '@app/services/openAPI.service';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
 
 import _ from 'lodash';
 import { Observable, forkJoin, of } from 'rxjs';
@@ -31,7 +35,8 @@ import { ViewType } from '../verifiche.component';
   selector: 'ui-verifica-api',
   styleUrls: ['./verifica-api.component.scss'],
   templateUrl: './verifica-api.component.html',
-  standalone: false
+  standalone: true,
+  imports: [TranslateModule, ...COMPONENTS_IMPORTS, MapperPipe]
 })
 export class VerificaApiComponent {
 

@@ -109,15 +109,15 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 		
 		TIPO_REFERENTE tipoReferente = toTipoReferente(src.getTipo());
 		UtenteEntity utente = utenteService.find(src.getIdUtente())
-				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404));
-		
+				.orElseThrow(() -> new NotFoundException(ErrorCode.UT_404, java.util.Map.of("idUtente", src.getIdUtente().toString())));
+
 		if(!utente.getStato().equals(Stato.ABILITATO) && !utente.getStato().equals(Stato.PENDING_UPDATE)) {
-			throw new BadRequestException(ErrorCode.UT_404, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
+			throw new BadRequestException(ErrorCode.UT_404_BY_NAME, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome()));
 		}
 
 		if(tipoReferente.equals(TIPO_REFERENTE.REFERENTE)) {
 			if(utente.getOrganizzazione() == null || !utente.getOrganizzazione().getId().equals(adesione.getSoggetto().getOrganizzazione().getId())) {
-				throw new BadRequestException(ErrorCode.UT_404, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "nomeOrganizzazione", adesione.getSoggetto().getOrganizzazione().getNome()));
+				throw new BadRequestException(ErrorCode.UT_404_BY_NAME, java.util.Map.of("nomeUtente", utente.getNome(), "cognomeUtente", utente.getCognome(), "nomeOrganizzazione", adesione.getSoggetto().getOrganizzazione().getNome()));
 			}
 		}
 
@@ -128,7 +128,7 @@ public class ReferenteClasseUtenteAssembler extends RepresentationModelAssembler
 		boolean exists = adesione.getReferenti().stream().anyMatch(r -> r.getReferente().equals(entity.getReferente()) && r.getTipo().equals(entity.getTipo()));
 
 		if(exists) {
-			throw new BadRequestException(ErrorCode.UT_404, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString()));
+			throw new BadRequestException(ErrorCode.UT_404_BY_NAME, java.util.Map.of("nomeUtente", entity.getReferente().getNome(), "cognomeUtente", entity.getReferente().getCognome(), "tipoReferente", entity.getTipo().toString()));
 		}
 		
 		return entity;

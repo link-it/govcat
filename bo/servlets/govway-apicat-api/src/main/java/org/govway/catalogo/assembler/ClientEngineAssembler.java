@@ -156,7 +156,7 @@ public class ClientEngineAssembler extends CoreEngineAssembler {
 		String duplicati = assembler.checkDuplicati(estensioni);
 
 		if(duplicati != null) {
-			throw new ConflictException(ErrorCode.CLT_409, java.util.Map.of("duplicati", duplicati));
+			throw new ConflictException(ErrorCode.CLT_409_DUPLICATES, java.util.Map.of("duplicati", duplicati));
 		}
 		
 		return estensioni;

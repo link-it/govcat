@@ -17,11 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
-import { EventsManagerService, EventType } from '@linkit/components';
+import { COMPONENTS_IMPORTS, EventsManagerService, EventType } from '@linkit/components';
+import { APP_COMPONENTS_IMPORTS } from '@app/components/components-imports';
+import { MapperPipe } from '@app/lib/pipes/mapper.pipe';
+import { MarkAsteriskDirective } from '@app/directives/mark-asterisk/mark-asterisk.directive';
 import { OpenAPIService } from '@app/services/openAPI.service';
 import { AuthenticationService } from '@app/services/authentication.service';
 import { UtilService } from '@app/services/utils.service';
@@ -37,7 +42,16 @@ import { CkeckProvider, ClassiEnum, DataStructure } from '@app/provider/check.pr
     selector: 'app-adesione-lista-erogazioni',
     templateUrl: './adesione-lista-erogazioni.component.html',
     styleUrls: ['./adesione-lista-erogazioni.component.scss'],
-    standalone: false
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        TranslateModule,
+        ...COMPONENTS_IMPORTS,
+        ...APP_COMPONENTS_IMPORTS,
+        MapperPipe,
+        TooltipModule,
+        MarkAsteriskDirective
+    ]
 })
 export class AdesioneListaErogazioniComponent implements OnInit, OnChanges {
 

@@ -135,7 +135,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				this.logger.debug("Autorizzazione completata con successo");     
 	
 				if(entity.getUtenti().size() > 0) {
-					throw new BadRequestException(ErrorCode.ORG_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.ORG_400_HAS_DEPENDENCIES, Map.of("nome", entity.getNome()));
 				}
 
 				SoggettoEntity sd = null;
@@ -143,7 +143,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 					sd = entity.getSoggettoDefault();
 
 					if(!sd.getDomini().isEmpty()) {
-						throw new BadRequestException(ErrorCode.SOG_404, Map.of("nome", sd.getNome(), "numDomini", String.valueOf(sd.getDomini().size())));
+						throw new BadRequestException(ErrorCode.SOG_400_HAS_DOMAINS, Map.of("nome", sd.getNome(), "numDomini", String.valueOf(sd.getDomini().size())));
 					}
 
 					entity.setAderente(false); //altrimenti no nla fa aggiornare senza il soggetto defult
@@ -156,7 +156,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				int size = sd == null ? 0: 1;
 				
 				if(entity.getSoggetti().size() > size) {
-					throw new BadRequestException(ErrorCode.ORG_404, Map.of("nome", entity.getNome()));
+					throw new BadRequestException(ErrorCode.ORG_400_HAS_DEPENDENCIES, Map.of("nome", entity.getNome()));
 				}
 
 				this.service.delete(entity);
@@ -274,7 +274,7 @@ public class OrganizzazioniController implements OrganizzazioniApi {
 				String customCamelCaseName = this.service.customCamelCase(organizzazioneUpdate.getNome(), true);
 				Optional<SoggettoEntity> soggetto = soggettoService.findByNome(customCamelCaseName);
 				if(soggetto.isPresent() && !soggetto.get().getOrganizzazione().getIdOrganizzazione().equals(idOrganizzazione.toString())) {
-					throw new ConflictException(ErrorCode.SOG_409, Map.of("nome", customCamelCaseName, "orgNome", soggetto.get().getOrganizzazione().getNome()));
+					throw new ConflictException(ErrorCode.SOG_409_IN_ORG, Map.of("nome", customCamelCaseName, "orgNome", soggetto.get().getOrganizzazione().getNome()));
 				}
 
 				this.service.save(entity);
