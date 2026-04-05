@@ -77,7 +77,7 @@ wait_for_keycloak() {
     local max_attempts=60
     local attempt=0
 
-    while [ $attempt -lt $max_attempts ]; do
+    while [[ $attempt -lt $max_attempts ]]; do
         if curl -s -f "http://localhost:$KEYCLOAK_PORT" > /dev/null 2>&1; then
             print_success "Keycloak è pronto!"
             return 0

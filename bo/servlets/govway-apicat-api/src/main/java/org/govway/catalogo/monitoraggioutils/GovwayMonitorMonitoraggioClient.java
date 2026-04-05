@@ -701,7 +701,7 @@ public class GovwayMonitorMonitoraggioClient extends AbstractGovwayMonitorClient
 			if(apis.size() > 0) {
 				return;
 			} else {
-				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("idTraccia", transazione.getIdTraccia().toString()));
+				throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("resource", transazione.getIdTraccia().toString()));
 			}
 
 			

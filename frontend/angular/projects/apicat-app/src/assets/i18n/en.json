@@ -1199,7 +1199,7 @@
 								"ELIGIBLE": "User [{{nomeUtente}} {{cognomeUtente}}] not eligible as referent"
 							}
 						},
-						"RESOURCE": "Access denied to resource [{{idTraccia}}]",
+						"RESOURCE": "Access denied to resource [{{resource}}]",
 						"ROLE": "User must have one of the roles [{{ruoli}}] to execute the force"
 					}
 				},
