@@ -1,9 +1,16 @@
-2026-04-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-04-07  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.6
+
+2026-04-03  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
+	Issue 252: fix update tags del servizio.
 	Issue 227: aggiunge configurazione abilita_selezione_soggetto (default è true).
 	Issue 251: aggiunge controllo in update soggetto aderente per evitare
 	  incongruenze del flag aderente tra soggetto e organizzazione.
+
+2026-04-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
 	Issue 251: aggiunte label errore per controllo incongruenza soggetto/organizzazione.
@@ -20,12 +27,15 @@
 	  flag isEdit generale, usando canAddMapper per rispettare
 	  dati_sempre_modificabili.
 
-2026-04-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-04-02  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
 	Issue 244: fix valori di default per il tipo delle api statistiche di govway.
 	Aggiunta campi isConsumerDelegable e isClientAccessDelegable al modello
 	  EService PDND e tolleranza a campi sconosciuti nel client.
+	Fix label errore SRV_409_CONFLICT.
+
+2026-04-02  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
 	Aggiornamento dipendenze per vulnerabilità OWASP: Angular 21.2.6,
@@ -40,7 +50,6 @@
 	  duplicazione e visualizzazione errata dopo aggiunta/rimozione.
 	Issue #249: corretto TypeError su anagrafiche null nel dettaglio servizio,
 	  inizializzato come oggetto vuoto.
-	Fix label errore SRV_409_CONFLICT.
 
 2026-04-01  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -57,10 +66,12 @@
 	Aggiornati test per allineamento a refactoring servizio-view,
 	  adesione-details e client-adesioni.
 
-2026-03-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-03-31  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
 	Issue 240: label configurabili da file di properties per pdf scheda adesione.
+
+2026-03-31  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
 	Issue #234: migliorata sidebar vetrina servizi con pulsanti adesione più
@@ -70,10 +81,12 @@
 	  Ruolo.GESTOERE, unificato uso enum Ruolo e allineato RuoloUtenteEnum
 	  all'OpenAPI.
 
-2026-03-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-03-30  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
 	Cambia label richiedente in pdf scheda adesione.
+
+2026-03-30  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
 	Issue #230: nascosto bottone "Aggiungi servizio" a utenti con ruolo null
@@ -88,20 +101,24 @@
 	  (race condition con Tools.Configurazione).
 	Fix messaggi di errore applicativi.
 
-2026-03-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-03-26  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
 	Fix listAdesioni API per ruolo coordinatore.
 	Fix messaggi di errore applicativi.
 
+2026-03-26  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
 	* [Frontend]
 	Issue #169: nascosti roleTabs e filtro ruolo_referente per gestore
 	  in adesioni, aggiunto tab Trovati con loading.
 
-2026-03-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-03-25  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
 	Fix messaggi di errore applicativi.
+
+2026-03-25  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
 	Issue #220: fix tasto Salva disabilitato in creazione adesione.
@@ -131,11 +148,21 @@
 	Cache immagini servizi e gruppi per evitare richieste HTTP ripetute.
 	Aggiornato test servizi: aggiunto controllo form control ruolo_referente.
 
-2026-03-20  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+2026-03-20  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* [GovwayAPICatalogo]
-	Add notifications cleanup in v2.3.6 DB patch.
-	Issue 216: review first login and update email verification email templates.
+	Aggiunta pulizia notifiche nella patch DB v2.3.6.
+	Issue 216: revisione primo login e aggiornamento template email di verifica.
+
+2026-03-19  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 169: aggiunge filtri per ruolo_referente sia nella lista dei servizi
+	  che nella lista delle adesioni (miei servizi e mie adesioni suddivise
+	  per ruolo).
+
+	* [CI/CD]
+	Fix warning pipeline per node.js 20. Aggiornamento pipeline actions a v6.
 
 2026-03-19  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -173,11 +200,26 @@
 	- Azioni hover su items: archivia, segna come letto/non letto
 	- Aggiornamento in-place degli items senza reset scroll
 
+2026-03-17  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Risoluzione vulnerabilità OWASP: upgrade Jetty 11→12 e suppression PDFBox.
+	Fix posizione e nomi file patch sql.
+
 2026-03-17  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
 	Ripristino vista dashboard espansa su navigazione back.
 	Fix NG01203/NG0306 in AdesioneFormComponent.
+
+2026-03-16  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 105: configurazione per abilitare/disabilitare ruolo coordinatore,
+	  target required nelle comunicazioni, ripristino default notifiche per
+	  ruolo gestore + fix stato PENDING_UPDATE, valori di default stabiliti
+	  per le notifiche + patch sql, nuovo filtro dashboard notifiche per
+	  recuperare tutte le notifiche lette e non lette di tutti i tipi.
 
 2026-03-16  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -208,7 +250,15 @@
 
 	* [CI/CD]
 	Fix pipeline CI: risolto conflitto peer dependency @swimlane/ngx-charts
-	con Angular 21.
+	con Angular 21. Ripristinata pipeline CI su tutti i branch. Rimosso step
+	build-packages. Fix npx e npm ci per build in ambiente CI.
+
+2026-03-12  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 181: aggiunge data di scadenza certificato sia nel CSV di export
+	  adesioni che nel PDF della scheda adesione + fix bug pregressi nelle
+	  stampe pdf.
 
 2026-03-12  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
@@ -233,6 +283,20 @@
 	* [CI/CD]
 	Modificata pipeline GitHub per ignorare branch di sviluppo
 	"angular-21-standalone".
+
+2026-03-11  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 205: aggiunge configurazione per dati sempre modificabili in base
+	  al ruolo e modifica workflow authorization.
+	Issue 203: aggiunto rate limiting alla Scheda Adesione PDF.
+
+2026-03-10  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 209: fix ToolsController LazyInitializationException e aggiunta test.
+	Issue 204: aggiunge url di esposizione per le API SOAP in
+	  lisa-operazioni-wsdl API.
 
 2026-03-09  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
