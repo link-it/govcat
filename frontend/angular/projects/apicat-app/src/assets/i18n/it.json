@@ -1199,7 +1199,7 @@
 								"ELIGIBLE": "Utente [{{nomeUtente}} {{cognomeUtente}}] non abilitato come referente"
 							}
 						},
-						"RESOURCE": "Accesso negato alla risorsa [{{idTraccia}}]",
+						"RESOURCE": "Accesso negato alla risorsa [{{resource}}]",
 						"ROLE": "L'utente deve avere uno dei ruoli [{{ruoli}}] per eseguire la force"
 					}
 				},

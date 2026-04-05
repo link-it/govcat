@@ -413,7 +413,7 @@ public class ServiziController implements ServiziApi {
 					if(referenteEntity.getReferente().getOrganizzazione()!=null) {
 						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					} else {
-						throw new NotAuthorizedException(ErrorCode.AUT_403);
+						throw new NotAuthorizedException(ErrorCode.AUT_403_RESOURCE, Map.of("resource", servizioEntity.getNome() + " v" + servizioEntity.getVersione()));
 					}
 				}
 				
@@ -443,9 +443,9 @@ public class ServiziController implements ServiziApi {
 		
 		if(!organizzazione.equals(referenteEntity.getReferente().getOrganizzazione())) {
 			if(referenteEntity.getReferente().getOrganizzazione()!=null) {
-			throw new NotAuthorizedException(ErrorCode.AUT_403);
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISMATCH, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente(), "userOrgNome", referenteEntity.getReferente().getOrganizzazione().getNome()));
 			} else {
-			throw new NotAuthorizedException(ErrorCode.AUT_403);
+			throw new NotAuthorizedException(ErrorCode.AUT_403_ORG_MISSING, Map.of("orgNome", organizzazione.getNome(), "userIdUtente", referenteEntity.getReferente().getIdUtente()));
 			}
 		}
 		
