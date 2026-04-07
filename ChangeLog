@@ -5,6 +5,9 @@
 	  tramite npm audit fix (11 vulnerabilità: immutable, tar, serialize-javascript,
 	  hono, @hono/node-server, minimatch, qs) e aggiunta override lodash-es 4.18.1
 	  per risolvere le restanti 8 vulnerabilità in chevrotain via mermaid.
+	Aggiornamento vite a 6.4.2 e override vite 7.3.2 per @angular/build:
+	  risolte vulnerabilità GHSA-p9ff-h696-f583 (CVSS 10.0) e GHSA-4w7w-66w2-5vf9
+	  (CVSS 6.9).
 
 2026-04-03  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
