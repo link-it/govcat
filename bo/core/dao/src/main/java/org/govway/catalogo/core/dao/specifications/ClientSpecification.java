@@ -22,6 +22,7 @@ package org.govway.catalogo.core.dao.specifications;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -57,12 +58,24 @@ public class ClientSpecification implements Specification<ClientEntity> {
 	private Optional<AmbienteEnum> ambiente = Optional.empty();
 	private Optional<AuthType> authType = Optional.empty();
 	private List<String> adesioniStati = null;
+	private Set<Long> orClientIds = null;
 
 
 	@Override
 	public Predicate toPredicate(Root<ClientEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 		List<Predicate> predLst = this._toPredicateList(root, query, cb);
-		
+
+		if (orClientIds != null && !orClientIds.isEmpty()) {
+			Predicate orPredicate = root.get(ClientEntity_.id).in(orClientIds);
+			if (predLst.isEmpty()) {
+				query.distinct(true);
+				return orPredicate;
+			}
+			Predicate mainPredicate = cb.and(predLst.toArray(new Predicate[]{}));
+			query.distinct(true);
+			return cb.or(mainPredicate, orPredicate);
+		}
+
 		if(predLst.isEmpty()) {
 			return null;
 		}
@@ -109,7 +122,8 @@ public class ClientSpecification implements Specification<ClientEntity> {
 		}
 
 		if (adesioniStati != null && !adesioniStati.isEmpty()) {
-			Join<ClientEntity, ClientAdesioneEntity> clientAdesioneJoin = root.join(ClientEntity_.adesioni, JoinType.INNER);
+			JoinType joinType = (orClientIds != null && !orClientIds.isEmpty()) ? JoinType.LEFT : JoinType.INNER;
+			Join<ClientEntity, ClientAdesioneEntity> clientAdesioneJoin = root.join(ClientEntity_.adesioni, joinType);
 			predLst.add(clientAdesioneJoin.get(ClientAdesioneEntity_.adesione).get(AdesioneEntity_.stato).in(adesioniStati));
 			query.distinct(true);
 		}
@@ -187,6 +201,14 @@ public class ClientSpecification implements Specification<ClientEntity> {
 
 	public void setAdesioniStati(List<String> adesioniStati) {
 		this.adesioniStati = adesioniStati;
+	}
+
+	public Set<Long> getOrClientIds() {
+		return orClientIds;
+	}
+
+	public void setOrClientIds(Set<Long> orClientIds) {
+		this.orClientIds = orClientIds;
 	}
 
 }

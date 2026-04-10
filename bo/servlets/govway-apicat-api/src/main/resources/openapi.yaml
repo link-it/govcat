@@ -7627,6 +7627,9 @@ components:
           $ref: "#/components/schemas/String255"
         dati_specifici:
           $ref: "#/components/schemas/DatiSpecificiClient"
+        scadenza_certificato:
+          type: "string"
+          format: "date-time"
     Client:
       type: "object"
       required:

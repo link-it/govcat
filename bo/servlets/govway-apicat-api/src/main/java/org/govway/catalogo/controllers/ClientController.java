@@ -19,10 +19,14 @@
  */
 package org.govway.catalogo.controllers;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -58,6 +62,7 @@ import org.govway.catalogo.servlets.model.StatoClientUpdate;
 import org.govway.catalogo.authorization.CoreAuthorization;
 import org.govway.catalogo.servlets.model.Configurazione;
 import org.govway.catalogo.exception.NotAuthorizedException;
+import org.govway.catalogo.services.CertificatoScadenzaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +107,9 @@ public class ClientController implements ClientApi {
 
 	@Autowired
 	private Configurazione configurazione;
+
+	@Autowired
+	private CertificatoScadenzaService certScadenzaService;
 
 	private Logger logger = LoggerFactory.getLogger(ClientController.class);
 
@@ -247,6 +255,12 @@ public class ClientController implements ClientApi {
 					if(statiDashboardClient != null && !statiDashboardClient.isEmpty()) {
 						spec.setAdesioniStati(statiDashboardClient);
 					}
+
+					// Aggiungi client con certificato in scadenza (indipendentemente dallo stato)
+					Set<Long> clientIdsInScadenza = this.certScadenzaService.getClientIdsInScadenza();
+					if(!clientIdsInScadenza.isEmpty()) {
+						spec.setOrClientIds(clientIdsInScadenza);
+					}
 				}
 
 				CustomPageRequest pageable = new CustomPageRequest(page, size, sort, Arrays.asList("nome"));
@@ -257,6 +271,18 @@ public class ClientController implements ClientApi {
 
 				PagedModel<ItemClient> lst = pagedResourceAssembler.toModel(findAll, this.itemAssembler, link);
 
+				// Popola la data di scadenza certificato per i client in scadenza (solo dashboard)
+				if(dashboard != null && dashboard) {
+					Map<UUID, Date> scadenze = this.certScadenzaService.getClientScadenzeCertificato();
+					if(!scadenze.isEmpty()) {
+						for(ItemClient item : lst.getContent()) {
+							Date scadenza = scadenze.get(item.getIdClient());
+							if(scadenza != null) {
+								item.setScadenzaCertificato(scadenza.toInstant().atOffset(ZoneOffset.UTC));
+							}
+						}
+					}
+				}
 
 				PagedModelItemClient list = new PagedModelItemClient();
 				list.setContent(lst.getContent().stream().collect(Collectors.toList()));
