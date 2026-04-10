@@ -1,3 +1,14 @@
+2026-04-10  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* Rilasciata versione 2.3.6.p1
+
+2026-04-10  Giovanni De Luca <giovanni.deluca@link.it>
+
+	* [GovwayAPICatalogo]
+	Issue 256: resi opzionali i campi isSignalHubEnabled, isConsumerDelegable e
+	  isClientAccessDelegable nel modello EService PDND per compatibilità con
+	  risposte JSON che non li includono.
+
 2026-04-07  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.3.6
