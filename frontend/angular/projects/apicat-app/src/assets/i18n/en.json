@@ -371,6 +371,8 @@
 			"UnreadComunicazioni": "Unread communications",
 			"LastUpdate": "Last update",
 			"TotalItems": "{{count}} items",
+			"CertExpiring": "Certificate expiring",
+			"CertExpired": "Certificate expired",
 			"RUOLO": {
 				"referente_dominio": "Domain ref.",
 				"referente_tecnico_dominio": "Domain tech ref.",

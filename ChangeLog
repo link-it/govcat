@@ -1,3 +1,12 @@
+2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
+	Issue 182: aggiunto nella dashboard la visualizzazione dei client con
+	  certificato scaduto o in scadenza. Mostrato il nuovo campo
+	  scadenza_certificato (restituito dalla GET /client?dashboard=true) sia
+	  nel pannello Client che nella vista espansa, con badge giallo per i
+	  certificati in scadenza e badge rosso per quelli scaduti.
+
 2026-04-10  Giovanni De Luca <giovanni.deluca@link.it>
 
 	* Rilasciata versione 2.3.6.p1
