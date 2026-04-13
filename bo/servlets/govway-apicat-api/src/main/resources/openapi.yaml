@@ -5909,6 +5909,30 @@ components:
           type: "array"
           items:
             $ref: "#/components/schemas/ConfigurazioneDatoSempreModificabile"
+        step_wizard:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneStepWizard"
+    ConfigurazioneStepWizard:
+      type: "object"
+      required:
+        - code
+        - descrizione
+        - stati_adesione
+        - sezioni_attive
+      properties:
+        code:
+          $ref: "#/components/schemas/String255"
+        descrizione:
+          $ref: "#/components/schemas/String255"
+        stati_adesione:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigurazioneNomeStato"
+        sezioni_attive:
+          type: array
+          items:
+            $ref: "#/components/schemas/String255"
     ConfigurazioneProfilo:
       type: "object"
       required:
