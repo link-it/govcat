@@ -90,8 +90,7 @@ public class SecurityConfig {
    			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
    		.and()
    			.headers()
-   			.xssProtection().and()
-				.contentSecurityPolicy("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'")
+   			.xssProtection()
 		;
    		
    		return http.build();
