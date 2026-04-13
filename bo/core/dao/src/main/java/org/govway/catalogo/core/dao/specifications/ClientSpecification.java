@@ -55,6 +55,7 @@ public class ClientSpecification implements Specification<ClientEntity> {
 	private Optional<UUID> idOrganizzazione = Optional.empty();
 	private Optional<String> nome = Optional.empty();
 	private Optional<StatoEnum> stato = Optional.empty();
+	private Optional<StatoEnum> dashboardStato = Optional.empty();
 	private Optional<AmbienteEnum> ambiente = Optional.empty();
 	private Optional<AuthType> authType = Optional.empty();
 	private List<String> adesioniStati = null;
@@ -63,23 +64,58 @@ public class ClientSpecification implements Specification<ClientEntity> {
 
 	@Override
 	public Predicate toPredicate(Root<ClientEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-		List<Predicate> predLst = this._toPredicateList(root, query, cb);
+		List<Predicate> userPreds = this._toPredicateList(root, query, cb);
 
-		if (orClientIds != null && !orClientIds.isEmpty()) {
-			Predicate orPredicate = root.get(ClientEntity_.id).in(orClientIds);
-			if (predLst.isEmpty()) {
-				query.distinct(true);
-				return orPredicate;
-			}
-			Predicate mainPredicate = cb.and(predLst.toArray(new Predicate[]{}));
+		Predicate dashboardPredicate = buildDashboardPredicate(root, query, cb);
+
+		if (dashboardPredicate != null) {
 			query.distinct(true);
-			return cb.or(mainPredicate, orPredicate);
+			if (!userPreds.isEmpty()) {
+				userPreds.add(dashboardPredicate);
+				return cb.and(userPreds.toArray(new Predicate[]{}));
+			}
+			return dashboardPredicate;
 		}
 
-		if(predLst.isEmpty()) {
+		if(userPreds.isEmpty()) {
 			return null;
 		}
-		return cb.and(predLst.toArray(new Predicate[]{}));
+		return cb.and(userPreds.toArray(new Predicate[]{}));
+	}
+
+	private Predicate buildDashboardPredicate(Root<ClientEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+		boolean hasDashboardFilters = dashboardStato.isPresent() || (adesioniStati != null && !adesioniStati.isEmpty());
+		boolean hasOrClientIds = orClientIds != null && !orClientIds.isEmpty();
+
+		if (!hasDashboardFilters && !hasOrClientIds) {
+			return null;
+		}
+
+		List<Predicate> dashPreds = new ArrayList<>();
+
+		if (dashboardStato.isPresent()) {
+			dashPreds.add(cb.equal(root.get(ClientEntity_.stato), dashboardStato.get()));
+		}
+
+		if (adesioniStati != null && !adesioniStati.isEmpty()) {
+			JoinType joinType = hasOrClientIds ? JoinType.LEFT : JoinType.INNER;
+			Join<ClientEntity, ClientAdesioneEntity> join = root.join(ClientEntity_.adesioni, joinType);
+			dashPreds.add(join.get(ClientAdesioneEntity_.adesione).get(AdesioneEntity_.stato).in(adesioniStati));
+		}
+
+		if (hasOrClientIds) {
+			Predicate orPredicate = root.get(ClientEntity_.id).in(orClientIds);
+			if (dashPreds.isEmpty()) {
+				return orPredicate;
+			}
+			Predicate mainBranch = cb.and(dashPreds.toArray(new Predicate[]{}));
+			return cb.or(mainBranch, orPredicate);
+		}
+
+		if (dashPreds.isEmpty()) {
+			return null;
+		}
+		return cb.and(dashPreds.toArray(new Predicate[]{}));
 	}
 	
 	protected List<Predicate> _toPredicateList(Root<ClientEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
@@ -119,13 +155,6 @@ public class ClientSpecification implements Specification<ClientEntity> {
 		
 		if (authType.isPresent()) {
 			predLst.add(cb.equal(root.get(ClientEntity_.authType), authType.get()));
-		}
-
-		if (adesioniStati != null && !adesioniStati.isEmpty()) {
-			JoinType joinType = (orClientIds != null && !orClientIds.isEmpty()) ? JoinType.LEFT : JoinType.INNER;
-			Join<ClientEntity, ClientAdesioneEntity> clientAdesioneJoin = root.join(ClientEntity_.adesioni, joinType);
-			predLst.add(clientAdesioneJoin.get(ClientAdesioneEntity_.adesione).get(AdesioneEntity_.stato).in(adesioniStati));
-			query.distinct(true);
 		}
 
 		return predLst;
@@ -185,6 +214,14 @@ public class ClientSpecification implements Specification<ClientEntity> {
 
 	public void setStato(Optional<StatoEnum> stato) {
 		this.stato = stato;
+	}
+
+	public Optional<StatoEnum> getDashboardStato() {
+		return dashboardStato;
+	}
+
+	public void setDashboardStato(Optional<StatoEnum> dashboardStato) {
+		this.dashboardStato = dashboardStato;
 	}
 
 	public Optional<UUID> getIdOrganizzazione() {

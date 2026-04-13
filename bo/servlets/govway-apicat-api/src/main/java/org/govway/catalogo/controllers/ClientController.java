@@ -247,8 +247,8 @@ public class ClientController implements ClientApi {
 						throw new NotAuthorizedException(ErrorCode.AUT_403);
 					}
 
-					// Filtra client in stato NUOVO
-					spec.setStato(Optional.of(StatoEnum.NUOVO));
+					// Filtra client in stato NUOVO (filtro base dashboard)
+					spec.setDashboardStato(Optional.of(StatoEnum.NUOVO));
 
 					// Filtra client associati ad adesioni negli stati configurati
 					List<String> statiDashboardClient = this.configurazione.getAdesione().getStatiDashboardClient();
