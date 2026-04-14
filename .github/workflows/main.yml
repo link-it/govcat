@@ -12,6 +12,7 @@ permissions:
   contents: write
   id-token: write
   actions: write
+  security-events: write
 
 jobs:
   build_BE:
@@ -129,6 +130,38 @@ jobs:
           set -euo pipefail
           mvn clean package -DskipTests -Dowasp=none
 
+  osv_scan_BE:
+    if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OSV_JOB == 'true') }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.5"
+    with:
+      scan-args: |-
+        -r
+        ./bo
+        -r
+        ./configuratore
+        -r
+        ./web
+        -r
+        ./tools
+        --lockfile
+        ./pom.xml
+
+  osv_scan_FE:
+    if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OSV_JOB == 'true') }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.5"
+    with:
+      scan-args: |-
+        -r
+        ./frontend/angular
+
   build_FE:
     runs-on: ubuntu-latest
     steps:
@@ -151,6 +184,8 @@ jobs:
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
         uses: dependency-check/Dependency-Check_Action@main
         continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         with:
           project: ${{ github.repository }}
           path: 'frontend/angular'
@@ -160,6 +195,8 @@ jobs:
             --failOnCVSS 0
             --nodeAuditSkipDevDependencies
             --nodePackageSkipDevDependencies
+            --disableOssIndex
+            --nvdApiKey ${{ secrets.NVD_API_KEY }}
       - name: Upload HTML report artifact
         uses: actions/upload-artifact@v6
         with:
