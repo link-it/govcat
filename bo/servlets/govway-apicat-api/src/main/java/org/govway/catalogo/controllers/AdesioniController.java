@@ -77,6 +77,7 @@ import org.govway.catalogo.exception.InternalException;
 import org.govway.catalogo.exception.ErrorCode;
 import org.govway.catalogo.exception.NotAuthorizedException;
 import org.govway.catalogo.exception.NotFoundException;
+import org.govway.catalogo.services.DisclaimerService;
 import org.govway.catalogo.exception.UpdateEntitaComplessaNonValidaSemanticamenteException;
 import org.govway.catalogo.servlets.api.AdesioniApi;
 import org.govway.catalogo.servlets.model.Adesione;
@@ -202,6 +203,9 @@ public class AdesioniController implements AdesioniApi {
 
 	@Autowired
 	private UtenteService utenteService;
+
+	@Autowired
+	private DisclaimerService disclaimerService;
 
 	@Override
 	public ResponseEntity<Adesione> createAdesione(AdesioneCreate adesioneCreate) {
@@ -2295,6 +2299,32 @@ public class AdesioniController implements AdesioniApi {
 		}
 		Boolean abilitato = this.configurazione.getUtente().isCoordinatoreAbilitato();
 		return abilitato == null || abilitato; // default: true
+	}
+
+	@Override
+	public ResponseEntity<List<String>> getDisclaimersAdesione(UUID idAdesione, String languageCode) {
+		try {
+			return this.service.runTransaction(() -> {
+
+				this.logger.info("Invocazione in corso ...");
+				AdesioneEntity entity = findOne(idAdesione);
+
+				this.logger.debug("Autorizzazione completata con successo");
+
+				List<String> disclaimers = this.disclaimerService.resolveDisclaimers(entity, languageCode);
+
+				this.logger.info("Invocazione completata con successo");
+
+				return ResponseEntity.ok(disclaimers);
+			});
+
+		} catch (RuntimeException e) {
+			this.logger.error("Invocazione terminata con errore '4xx': " + e.getMessage(), e);
+			throw e;
+		} catch (Throwable e) {
+			this.logger.error("Invocazione terminata con errore: " + e.getMessage(), e);
+			throw new InternalException(ErrorCode.SYS_500);
+		}
 	}
 
 }

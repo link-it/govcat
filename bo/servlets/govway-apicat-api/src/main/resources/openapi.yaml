@@ -4245,6 +4245,46 @@ paths:
           $ref: "#/components/responses/503ServiceUnavailable"
         "default":
           $ref: "#/components/responses/default"
+  /adesioni/{id_adesione}/disclaimers:
+    parameters:
+      - $ref: "#/components/parameters/id_adesione"
+    get:
+      tags:
+      - "Adesioni"
+      description: "Lista dei disclaimer applicabili all'adesione, risolti gerarchicamente in base a stato, profilo client e dominio del servizio"
+      operationId: "getDisclaimersAdesione"
+      parameters:
+      - name: "language_code"
+        in: "query"
+        description: "Codice lingua dei disclaimer (it, en). Default: it"
+        required: false
+        schema:
+          type: "string"
+          default: "it"
+          enum:
+            - "it"
+            - "en"
+      responses:
+        "200":
+          description: "Operazione completata con successo"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  type: "string"
+        "401":
+          $ref: "#/components/responses/401Unauthorized"
+        "403":
+          $ref: "#/components/responses/403Forbidden"
+        "404":
+          $ref: "#/components/responses/404NotFound"
+        "429":
+          $ref: "#/components/responses/429TooManyRequests"
+        "503":
+          $ref: "#/components/responses/503ServiceUnavailable"
+        "default":
+          $ref: "#/components/responses/default"
   /adesioni/{id_adesione}/allegato/{id_allegato}/download:
     parameters:
       - $ref: "#/components/parameters/id_adesione"

@@ -1,0 +1,34 @@
+# Disclaimer per le adesioni - Lingua: Italiano
+#
+# Chiavi gerarchiche con dot-notation: stato.codice_interno_profilo.nome_dominio
+# La risoluzione avviene dal piu' specifico al meno specifico:
+#   1. {stato}.{codice_interno}.{dominio}  (piu' specifico)
+#   2. {stato}.{codice_interno}
+#   3. {stato}
+#   4. default                             (fallback)
+#
+# I valori sono normalizzati in lowercase.
+# Il contenuto e' in formato Markdown.
+#
+# Se il nome del dominio contiene spazi, racchiudere la chiave tra virgolette:
+#   "bozza.pdnd.dominio con spazi": |
+#     Testo del disclaimer...
+#
+# Per sovrascrivere questi disclaimer dall'esterno, copiare questo file in:
+#   /var/govcat/conf/disclaimers_it.yml
+#
+
+default: |
+  Procedendo con l'adesione, l'ente accetta i termini e le condizioni del servizio.
+
+# Esempio: disclaimer specifico per profilo PDND sul dominio PDND
+bozza.pdnd.pdnd: |
+  ## Adesione PDND in bozza
+  L'adesione utilizza il profilo **PDND**. Prima di procedere, assicurarsi di aver
+  completato la registrazione sulla piattaforma PDND e di disporre di un e-service attivo.
+
+# Esempio: chiave con spazi nel nome del dominio (racchiusa tra virgolette)
+"bozza.interno_https.dominio di test": |
+  ## Adesione mTLS in bozza
+  Questa adesione utilizza il profilo **mTLS** sul dominio **Dominio di Test**.
+  Verificare di avere un certificato client valido prima di procedere.
