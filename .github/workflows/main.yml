@@ -138,6 +138,8 @@ jobs:
       security-events: write
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.5"
     with:
+      matrix-property: 'be-'
+      fail-on-vuln: ${{ github.ref_name == 'main' || github.ref_type == 'tag' }}
       scan-args: |-
         -r
         ./bo
@@ -158,6 +160,8 @@ jobs:
       security-events: write
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.5"
     with:
+      matrix-property: 'fe-'
+      fail-on-vuln: ${{ github.ref_name == 'main' || github.ref_type == 'tag' }}
       scan-args: |-
         -r
         ./frontend/angular
