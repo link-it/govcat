@@ -1,6 +1,27 @@
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
 	* [Frontend]
+	Fix dettaglio API: corretto rendering proprietà custom di tipo "select",
+	  che mostrava "undefined" invece della etichetta e generava errore in
+	  console (mapper cercava il gruppo per nome_gruppo mentre il template
+	  passa label_gruppo). Risolto inoltre il problema per cui in fase di
+	  update le proprietà custom appartenenti allo stesso nome_gruppo
+	  venivano cancellate/sovrascritte: la inizializzazione del FormGroup
+	  ricreava ad ogni iterazione il sotto-gruppo, conservando solo
+	  l'ultima proprietà. Stesso fix applicato a
+	  servizio-api-configuration. Rimossa inoltre l'asimmetria per cui le
+	  proprietà custom venivano inviate in creazione API ma non in
+	  modifica (era presente una condizione !_isPDND assente nel flusso
+	  di create). Corretto infine il submit in update che non includeva
+	  i valori delle proprietà custom quando i relativi controlli erano
+	  disabilitati dalla directive disablePermission: il body viene ora
+	  popolato leggendo direttamente dai FormControl (che mantengono il
+	  valore anche se disabilitati) invece che da _formGroup.value (che
+	  li esclude).
+
+2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
+
+	* [Frontend]
 	Issue 182: aggiunto nella dashboard la visualizzazione dei client con
 	  certificato scaduto o in scadenza. Mostrato il nuovo campo
 	  scadenza_certificato (restituito dalla GET /client?dashboard=true) sia

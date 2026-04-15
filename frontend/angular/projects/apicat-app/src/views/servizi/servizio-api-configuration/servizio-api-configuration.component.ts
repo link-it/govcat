@@ -681,8 +681,10 @@ export class ServizioApiConfigurationComponent implements OnInit, AfterContentCh
             if (required) { _validators.push(Validators.required); }
             if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
   
-            this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
-  
+            if (!this.proprietaCustom.contains(item[this.fieldToGroup])) {
+              this.proprietaCustom.addControl(item[this.fieldToGroup], this.formBuilder.group({}));
+            }
+
             const _gruppo = this.servizioApi?.proprieta_custom?.find((pc: any) => {
               return (pc.gruppo === item.nome_gruppo);
             });

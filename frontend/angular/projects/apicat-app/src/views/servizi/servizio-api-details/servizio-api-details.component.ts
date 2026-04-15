@@ -643,7 +643,7 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                 ..._newBody.dati_specifica,
                 gruppi_auth_type: body.authTypes?.map((item: any) => {
                     const _proprietaCustom: any[] = [];
-                    Object.keys(item.customProperties || {}).map((key: string) => {
+                    Object.keys(item.customProperties || {}).forEach((key: string) => {
                         if (item.customProperties[key]) {
                             _proprietaCustom.push({
                                 nome: key,
@@ -664,22 +664,25 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
 
         const hasCurrentCustomProps = this._apiProprietaCustomGrouped && Object.keys(this._apiProprietaCustomGrouped).length;
         const hasOriginalCustomProps = this._servizioApi?.proprieta_custom?.length;
-        if ((hasCurrentCustomProps || hasOriginalCustomProps) && !this._isPDND) {
+        if (hasCurrentCustomProps || hasOriginalCustomProps) {
             const risultato: Record<string, { nome: string; valore: string }[]> = {};
 
             if (hasCurrentCustomProps) {
+                // Leggiamo dai FormControl direttamente (non da body) perché i controlli disabilitati
+                // tramite disablePermission non sono inclusi in _formGroup.value.
+                const proprietaCustomGroup = this._formGroup.controls['proprieta_custom'] as FormGroup | undefined;
                 Object.keys(this._apiProprietaCustomGrouped).forEach(labelGruppo => {
                     this._apiProprietaCustomGrouped[labelGruppo].forEach((campo: any) => {
-                        const valoriGruppo = body.proprieta_custom?.[campo.nome_gruppo];
-
                         if (!risultato[campo.nome_gruppo]) {
                             risultato[campo.nome_gruppo] = [];
                         }
 
-                        if (!valoriGruppo) return;
+                        const gruppoControl = proprietaCustomGroup?.get(campo.nome_gruppo) as FormGroup | null;
+                        const control = gruppoControl?.get(campo.nome);
+                        if (!control) return;
 
                         const nome = campo.nome;
-                        const valore = valoriGruppo[nome];
+                        const valore = control.value;
 
                         const valoreNonValido =
                             valore === undefined ||
@@ -1686,7 +1689,9 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
                     if (required) { _validators.push(Validators.required); }
                     if (item.regular_expression) { _validators.push(Validators.pattern(item.regular_expression)); }
 
-                    this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
+                    if (!this.proprietaCustom.contains(item.nome_gruppo)) {
+                        this.proprietaCustom.addControl(item.nome_gruppo, this.formBuilder.group({}));
+                    }
 
                     const _gruppo = this._servizioApi.proprieta_custom?.find((pc: any) => {
                         return (pc.gruppo === item.nome_gruppo);
@@ -1753,11 +1758,15 @@ export class ServizioApiDetailsComponent implements OnInit, OnChanges, AfterCont
     }
 
     _getCustomSelectLabelMapper = (cod: string, name: string, group: string) => {
+        if (!cod) return cod;
         const _srv: any = Tools.Configurazione?.servizio;
         const _proprietaCustom = (_srv?.api) ? _srv.api.proprieta_custom : [];
-        const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group);
-        const _pItem = _group.proprieta.find((item: any) => item.nome === name);
-        const _label = _pItem.valori.find((item: any) => item.nome === cod)?.etichetta;
+        // Il template passa apc.key, che corrisponde a label_gruppo (chiave usata in _.groupBy).
+        // Per retro-compatibilità cerchiamo prima per nome_gruppo, poi per label_gruppo.
+        const _group = _proprietaCustom.find((item: any) => item.nome_gruppo === group)
+            || _proprietaCustom.find((item: any) => item.label_gruppo === group);
+        const _pItem = _group?.proprieta?.find((item: any) => item.nome === name);
+        const _label = _pItem?.valori?.find((item: any) => item.nome === cod)?.etichetta;
 
         return _label || cod;
     }
