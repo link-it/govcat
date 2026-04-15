@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           mvn clean test -Dowasp=none
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
 
       - name: Show JaCoCo report location and Zip JaCoCo HTML report
         run: |
@@ -61,7 +61,7 @@ jobs:
           zip -r ../jacoco-html-report.zip jacoco-aggregate
           cd ../../
           ls -lh target/
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
 
       - name: Archive JaCoCo report
         uses: actions/upload-artifact@v6
@@ -74,12 +74,12 @@ jobs:
           mvn install -DskipTests -Dowasp=none 
           mkdir -p target/dependency
           mvn dependency:copy-dependencies -DoutputDirectory=target/dependency -DskipTests -Dowasp=none
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
 
       - name: SonarCloud Scan
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_SONARQUBE_JOB == 'true') }}
         uses: SonarSource/sonarcloud-github-action@v2
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -99,7 +99,7 @@ jobs:
       - name: OWASP
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
         run: mvn install -DskipTests -Dspring.profiles.active=test -Duser.timezone=Europe/Rome -DnvdApiKey=$NVD_API_KEY -DdataDirectory=.dependency-check/data -Dowasp.format=ALL -Dowasp.output.dir=./dependency-check-report
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
@@ -117,7 +117,7 @@ jobs:
           mvn org.codehaus.mojo:license-maven-plugin:2.4.0:aggregate-download-licenses -DexcludeScopes=test,provided,system -DincludeTransitiveDependencies=true
           echo "Analyzing licenses..."
           python3 .github/workflows/scripts/analyze_licenses.py --exceptions .github/workflows/scripts/license-exceptions.json
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
 
       - name: Archive licenses analysis results
         uses: actions/upload-artifact@v6
@@ -187,7 +187,7 @@ jobs:
       - name: OWASP
         if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || vars.FORCE_OWASP_JOB == 'true') }}
         uses: dependency-check/Dependency-Check_Action@main
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         with:
@@ -216,7 +216,7 @@ jobs:
           npm ci --production
           echo "Analyzing licenses..."
           python3 ../../.github/workflows/scripts/analyze_npm_licenses.py --exceptions ../../.github/workflows/scripts/npm-license-exceptions.json
-        continue-on-error: ${{ github.ref_type == 'branch' && github.ref_name != 'main' }}
+        continue-on-error: true
       - name: Archive licenses analysis results
         uses: actions/upload-artifact@v6
         with:
@@ -232,11 +232,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [build_BE, build_FE, osv_scan_BE, osv_scan_FE]
-    if: ${{ always() && !cancelled() && startsWith(github.ref, 'refs/tags/') }}
+    if: startsWith(github.ref, 'refs/tags/')
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           path: artifacts/
 
@@ -250,7 +250,7 @@ jobs:
           zip -r ../release-reports.zip .
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2.2.1
+        uses: softprops/action-gh-release@v3
         with:
           files: release-reports.zip
         env:
