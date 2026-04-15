@@ -1,0 +1,197 @@
+/*
+GovCat - GovWay API Catalogue
+https://github.com/link-it/govcat
+
+Copyright (c) 2021-2026 Link.it srl (https://link.it).
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3, as published by
+the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.adesione-step-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0;
+  padding: 1rem 0;
+  width: 100%;
+
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    flex: 1 1 0;
+    min-width: 0;
+
+    &:last-child {
+      flex: 0 0 auto;
+    }
+
+    .step-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+      min-width: 6rem;
+      max-width: 14rem;
+      padding: 0.5rem 0.5rem;
+      border-radius: 0.5rem;
+      transition: background-color 0.15s ease, transform 0.15s ease;
+      outline: none;
+    }
+
+    &.clickable .step-indicator {
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.08);
+      }
+
+      &:focus-visible {
+        box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.35);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+
+    .step-circle {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      border: 2px solid var(--bs-gray-400, #ced4da);
+      background-color: var(--bs-body-bg, #ffffff);
+      color: var(--bs-gray-600, #6c757d);
+      font-weight: 600;
+      font-size: 0.95rem;
+      line-height: 1;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    // Piccolo indicatore a pallino presente sullo step reale (quello che
+    // corrisponde allo stato effettivo dell'adesione): sempre visibile per
+    // dare un riferimento immediato anche quando l'utente sta navigando una
+    // tappa passata.
+    .step-real-marker {
+      position: absolute;
+      top: -0.15rem;
+      right: -0.15rem;
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+      background-color: var(--bs-success, #198754);
+      border: 2px solid var(--bs-body-bg, #ffffff);
+      box-shadow: 0 0 0 1px var(--bs-success, #198754);
+    }
+
+    .step-badge {
+      display: inline-block;
+      margin-top: 0.15rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+      white-space: nowrap;
+
+      &.step-badge-real {
+        background-color: var(--bs-success, #198754);
+        color: #fff;
+      }
+
+      &.step-badge-preview {
+        background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.12);
+        color: var(--bs-primary, #0d6efd);
+        border: 1px dashed var(--bs-primary, #0d6efd);
+      }
+    }
+
+    .step-label {
+      font-size: 0.875rem;
+      text-align: center;
+      color: var(--bs-gray-700, #495057);
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .step-connector {
+      flex: 1 1 auto;
+      height: 2px;
+      margin: 1.5rem 0.5rem 0 0.5rem;
+      background-color: var(--bs-gray-400, #ced4da);
+      min-width: 1.5rem;
+      transition: background-color 0.2s ease;
+
+      &.connector-completed {
+        background-color: var(--bs-primary, #0d6efd);
+      }
+    }
+
+    &.completed {
+      .step-circle {
+        background-color: var(--bs-primary, #0d6efd);
+        border-color: var(--bs-primary, #0d6efd);
+        color: #fff;
+      }
+
+      .step-label {
+        color: var(--bs-gray-700, #495057);
+      }
+    }
+
+    &.current {
+      .step-circle {
+        background-color: var(--bs-body-bg, #ffffff);
+        border-color: var(--bs-primary, #0d6efd);
+        color: var(--bs-primary, #0d6efd);
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+      }
+
+      .step-label {
+        color: var(--bs-primary, #0d6efd);
+        font-weight: 600;
+      }
+    }
+
+    // Step in anteprima: l'utente sta navigando una tappa diversa da quella
+    // reale. Il bordo del cerchio passa a dashed per distinguere la vista
+    // "preview" dallo stato attuale dell'adesione.
+    &.is-preview {
+      .step-circle {
+        border-style: dashed;
+      }
+    }
+
+    &.pending {
+      .step-circle {
+        background-color: var(--bs-body-bg, #ffffff);
+        border-color: var(--bs-gray-400, #ced4da);
+        color: var(--bs-gray-500, #adb5bd);
+      }
+
+      .step-label {
+        color: var(--bs-gray-500, #adb5bd);
+      }
+    }
+  }
+}

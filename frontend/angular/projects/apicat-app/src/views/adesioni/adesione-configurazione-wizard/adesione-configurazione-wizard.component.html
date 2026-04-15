@@ -67,7 +67,7 @@
       }
     </div>
   </div>
-  <section #myScroll class="container-fluid container-limited container-scroller container-scroller-no-search">
+  <section #myScroll class="container-fluid container-limited limit-container-width container-scroller container-scroller-no-search">
 
     <div class="mt-5">
 
@@ -112,7 +112,10 @@
               </div>
             </div>
             @if (showSkipCollaudo) {
-              <div class="">
+              <div class=""
+                  [tooltip]="'APP.ADESIONI.LABEL.SkipCollaudoTooltip' | translate"
+                  placement="left"
+                  container="body">
                 <lnk-button
                   [label]="'APP.LABEL.SkipCollaudo' | translate"
                   [icon]="adesione.skip_collaudo ? 'bi bi-check-square-fill text-primary' : 'bi bi-square'"
@@ -122,11 +125,69 @@
               </div>
             }
           </div>
+          @if (stepWizard.length > 0) {
+            <div class="adesione-step-bar-wrapper mb-4">
+              @if (debugSwitchesEnabled) {
+                <div class="wizard-debug-toggle">
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      id="wizardShowAllSectionsSwitch"
+                      [checked]="wizardShowAllSections"
+                      [attr.aria-checked]="wizardShowAllSections"
+                      (change)="toggleWizardShowAllSections()">
+                    <label class="form-check-label" for="wizardShowAllSectionsSwitch">
+                      {{ 'APP.ADESIONI.LABEL.WizardShowAllSections' | translate }}
+                    </label>
+                  </div>
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      id="wizardShowStateBadgesSwitch"
+                      [checked]="showStateBadges"
+                      [attr.aria-checked]="showStateBadges"
+                      (change)="toggleShowStateBadges()">
+                    <label class="form-check-label" for="wizardShowStateBadgesSwitch">
+                      {{ 'APP.ADESIONI.LABEL.WizardShowStateBadges' | translate }}
+                    </label>
+                  </div>
+                </div>
+              }
+              <app-adesione-step-bar
+                [steps]="stepWizard"
+                [currentState]="adesione.stato"
+                [selectedCode]="selectedStepCode"
+                [showStateBadges]="showStateBadges"
+                (stepClick)="onStepBarClick($event)"
+              ></app-adesione-step-bar>
+            </div>
+          }
+          @if (disclaimers.length > 0) {
+            <div class="adesione-disclaimers mb-4">
+              @for (disclaimer of disclaimers; track $index) {
+                <div class="alert alert-info mb-2" role="alert">
+                  <markdown [data]="disclaimer"></markdown>
+                </div>
+              }
+            </div>
+          }
           <div class="mt-5 border-">
             <div class="accordion accordion-flush" id="accordionWizard">
-              <div id="accordion-general-info" class="accordion-item mb-3 border">
+              @if (isSectionVisible('info_generali')) {
+              <div id="accordion-general-info" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('info_generali')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#general-info" aria-expanded="false" aria-controls="general-info">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('info_generali')"
+                    [class.disabled]="isSectionDisabled('info_generali')"
+                    [attr.data-bs-toggle]="isSectionDisabled('info_generali') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('info_generali') ? null : '#general-info'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('info_generali')"
+                    [attr.aria-disabled]="isSectionDisabled('info_generali') ? true : null"
+                    aria-controls="general-info">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.GENERALE"
@@ -137,7 +198,7 @@
                     </div>
                   </button>
                 </h2>
-                <div id="general-info" class="accordion-collapse collapse" data-bs-parent="#accordion-general-info_">
+                <div id="general-info" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('info_generali')" data-bs-parent="#accordion-general-info_">
                   <div class="accordion-body">
                     <app-adesione-form
                       [id]="id"
@@ -151,9 +212,18 @@
                   </div>
                 </div>
               </div>
-              <div id="accordion-referenti" class="accordion-item mb-3 border">
+              }
+              @if (isSectionVisible('referenti')) {
+              <div id="accordion-referenti" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('referenti')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#referenti" aria-expanded="false" aria-controls="referenti">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('referenti')"
+                    [class.disabled]="isSectionDisabled('referenti')"
+                    [attr.data-bs-toggle]="isSectionDisabled('referenti') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('referenti') ? null : '#referenti'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('referenti')"
+                    [attr.aria-disabled]="isSectionDisabled('referenti') ? true : null"
+                    aria-controls="referenti">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:ClassiEnum.REFERENTI"
@@ -164,7 +234,7 @@
                     </div>
                   </button>
                 </h2>
-                <div id="referenti" class="accordion-collapse collapse" data-bs-parent="#accordion-referenti_">
+                <div id="referenti" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('referenti')" data-bs-parent="#accordion-referenti_">
                   <div class="accordion-body">
                     <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
                       <h5 class="mb-0">{{ 'APP.ADESIONI.TITLE.Referents' | translate }}</h5>
@@ -208,7 +278,7 @@
                             </ui-collapse-row>
                             <div class="mt-3">
                               @if ((updateMapper | mapper:canAddMapper) || isEdit) {
-                                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" (click)="confirmDeleteReferente(referent)">
+                                <button type="button" class="btn btn-default btn-md gl-button btn-icon" [tooltip]="'APP.TOOLTIP.Remove' | translate" container="body" (click)="confirmDeleteReferente(referent)">
                                   <i class="bi bi-trash text-danger"></i>
                                 </button>
                               }
@@ -311,9 +381,18 @@
                   </div>
                 </div>
               </div>
-              <div id="accordion-collaudo" class="accordion-item mb-3 border">
+              }
+              @if (isSectionVisible('collaudo')) {
+              <div id="accordion-collaudo" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('collaudo')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#collaudo" aria-expanded="false" aria-controls="collaudo">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('collaudo')"
+                    [class.disabled]="isSectionDisabled('collaudo')"
+                    [attr.data-bs-toggle]="isSectionDisabled('collaudo') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('collaudo') ? null : '#collaudo'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('collaudo')"
+                    [attr.aria-disabled]="isSectionDisabled('collaudo') ? true : null"
+                    aria-controls="collaudo">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Collaudo"
@@ -324,7 +403,7 @@
                     </div>
                   </button>
                 </h2>
-                <div id="collaudo" class="accordion-collapse collapse" data-bs-parent="#accordion-collaudo_">
+                <div id="collaudo" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('collaudo')" data-bs-parent="#accordion-collaudo_">
                   <div class="accordion-body">
                     <app-adesione-lista-clients
                       [id]="id"
@@ -388,9 +467,18 @@
                   </div>
                 </div>
               </div>
-              <div id="accordion-produzione" class="accordion-item mb-3 border">
+              }
+              @if (isSectionVisible('produzione')) {
+              <div id="accordion-produzione" class="accordion-item mb-3 border" [class.section-disabled]="isSectionDisabled('produzione')">
                 <h2 class="accordion-header">
-                  <button tabindex="0" class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#produzione" aria-expanded="false" aria-controls="produzione">
+                  <button tabindex="0" class="accordion-button"
+                    [class.collapsed]="!isSectionOpenByDefault('produzione')"
+                    [class.disabled]="isSectionDisabled('produzione')"
+                    [attr.data-bs-toggle]="isSectionDisabled('produzione') ? null : 'collapse'"
+                    [attr.data-bs-target]="isSectionDisabled('produzione') ? null : '#produzione'"
+                    [attr.aria-expanded]="isSectionOpenByDefault('produzione')"
+                    [attr.aria-disabled]="isSectionDisabled('produzione') ? true : null"
+                    aria-controls="produzione">
                     <div class="d-flex align-items-center gap-2">
                       <lnk-icon-toggle
                         [value]="loadingCheckDati | mapper:getStatusCompleteMapper:AmbienteEnum.Produzione"
@@ -401,7 +489,7 @@
                     </div>
                   </button>
                 </h2>
-                <div id="produzione" class="accordion-collapse collapse" data-bs-parent="#accordion-produzione_">
+                <div id="produzione" class="accordion-collapse collapse" [class.show]="isSectionOpenByDefault('produzione')" data-bs-parent="#accordion-produzione_">
                   <div class="accordion-body">
                     <app-adesione-lista-clients
                       [id]="id"
@@ -464,6 +552,7 @@
                   </div>
                 </div>
               </div>
+              }
             </div>
           </div>
           <div class="d-flex justify-content-end gap-2 mt-5">

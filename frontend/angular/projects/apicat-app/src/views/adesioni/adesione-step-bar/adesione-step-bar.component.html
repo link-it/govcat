@@ -1,0 +1,60 @@
+<!--
+-- GovCat - GovWay API Catalogue
+-- https://github.com/link-it/govcat
+--
+-- Copyright (c) 2021-2026 Link.it srl (https://link.it).
+--
+-- This program is free software: you can redistribute it and/or modify
+-- it under the terms of the GNU General Public License version 3, as published by
+-- the Free Software Foundation.
+--
+-- This program is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-- GNU General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+@if (items.length > 0) {
+  <div class="adesione-step-bar" role="group" aria-label="Avanzamento adesione">
+    @for (item of items; track item.code; let last = $last) {
+      <div class="step-item"
+           [class.completed]="item.state === 'completed'"
+           [class.current]="item.state === 'current'"
+           [class.pending]="item.state === 'pending'"
+           [class.clickable]="item.clickable"
+           [class.is-real]="item.isReal"
+           [class.is-preview]="!item.isReal && item.state === 'current'">
+        <div class="step-indicator"
+             [attr.role]="item.clickable ? 'button' : null"
+             [attr.tabindex]="item.clickable ? 0 : null"
+             [attr.aria-current]="item.state === 'current' ? 'step' : null"
+             (click)="onStepClick(item)"
+             (keydown.enter)="onStepClick(item)"
+             (keydown.space)="onStepClick(item); $event.preventDefault()">
+          <div class="step-circle">
+            @if (item.state === 'completed') {
+              <i class="bi bi-check-lg" aria-hidden="true"></i>
+            } @else {
+              <span>{{ item.index + 1 }}</span>
+            }
+            @if (item.isReal) {
+              <span class="step-real-marker" aria-hidden="true"></span>
+            }
+          </div>
+          <div class="step-label">{{ item.label }}</div>
+          @if (showStateBadges && item.isReal) {
+            <span class="step-badge step-badge-real">{{ 'APP.ADESIONI.STEP_WIZARD.CurrentStateBadge' | translate }}</span>
+          }
+          @if (showStateBadges && !item.isReal && item.state === 'current') {
+            <span class="step-badge step-badge-preview">{{ 'APP.ADESIONI.STEP_WIZARD.PreviewBadge' | translate }}</span>
+          }
+        </div>
+        @if (!last) {
+          <div class="step-connector" [class.connector-completed]="item.state === 'completed'"></div>
+        }
+      </div>
+    }
+  </div>
+}

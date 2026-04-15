@@ -22,8 +22,18 @@
 				"RateLimiting": "Rate limiting",
 				"ScegliCredenziali": "Choose your credentials…",
 				"Service": "Service",
+				"SkipCollaudoTooltip": "Enabling this option makes the subscription skip the testing phase and move directly to production configuration. Production configuration cannot be modified once published.",
 				"Subject": "Subject",
-				"UsaClientEsistente": "Use existing client"
+				"UsaClientEsistente": "Use existing client",
+				"WizardShowAllSections": "Show all sections (debug)",
+				"WizardShowStateBadges": "Show step badges (debug)"
+			},
+			"STEP_WIZARD": {
+				"adesione_creata": "Subscription Created",
+				"configurato_collaudo": "Subscription Configured in Testing",
+				"configurato_produzione": "Subscription Configured in Production",
+				"CurrentStateBadge": "Current",
+				"PreviewBadge": "Preview"
 			},
 			"TITLE": {
 				"ApiInformations": "Api",
