@@ -475,17 +475,17 @@
           "--group-button-color": "#303030",
           "--message-bar-color": "#000000",
           "--message-bar-chips-color": "#d1d1d1",
-          "--step-completed-bg": "#ff4050",
+          "--step-completed-bg": "#1f75cb",
           "--step-completed-color": "#ffffff",
-          "--step-current-bg": "#fde8ea",
-          "--step-current-color": "#ff4050",
-          "--step-pending-bg": "#edf1f4",
+          "--step-current-bg": "#e4eef7",
+          "--step-current-color": "#1f75cb",
+          "--step-pending-bg": "#ededed",
           "--step-pending-color": "#606060",
-          "--step-preview-bg": "#e6eaef",
-          "--step-preview-color": "#243848",
+          "--step-preview-bg": "#e2ddf9",
+          "--step-preview-color": "#4c4c94",
           "--step-real-bg": "#e6f4ed",
           "--step-real-color": "#198754",
-          "--step-bar-bg": "transparent"
+          "--step-bar-bg": "#f8f9fa"
         }
       },
       {

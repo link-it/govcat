@@ -126,73 +126,72 @@
             }
           </div>
           @if (stepWizard.length > 0) {
-            <div class="adesione-step-bar-wrapper mb-4">
-              @if (debugSwitchesEnabled) {
-                <div class="wizard-debug-toggle">
-                  <div class="form-check form-switch">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      role="switch"
-                      id="wizardShowAllSectionsSwitch"
-                      [checked]="wizardShowAllSections"
-                      [attr.aria-checked]="wizardShowAllSections"
-                      (change)="toggleWizardShowAllSections()">
-                    <label class="form-check-label" for="wizardShowAllSectionsSwitch">
-                      {{ 'APP.ADESIONI.LABEL.WizardShowAllSections' | translate }}
-                    </label>
-                  </div>
-                  <div class="form-check form-switch">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      role="switch"
-                      id="wizardShowStateBadgesSwitch"
-                      [checked]="showStateBadges"
-                      [attr.aria-checked]="showStateBadges"
-                      (change)="toggleShowStateBadges()">
-                    <label class="form-check-label" for="wizardShowStateBadgesSwitch">
-                      {{ 'APP.ADESIONI.LABEL.WizardShowStateBadges' | translate }}
-                    </label>
-                  </div>
-                  <div class="form-check form-switch">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      role="switch"
-                      id="wizardChevronVariantSwitch"
-                      [checked]="stepBarVariant === 'chevron'"
-                      [attr.aria-checked]="stepBarVariant === 'chevron'"
-                      (change)="toggleStepBarVariant()">
-                    <label class="form-check-label" for="wizardChevronVariantSwitch">
-                      {{ 'APP.ADESIONI.LABEL.WizardChevronVariant' | translate }}
-                    </label>
-                  </div>
-                  <div class="form-check form-switch">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      role="switch"
-                      id="wizardDarkModeSwitch"
-                      [checked]="stepBarDarkMode"
-                      [attr.aria-checked]="stepBarDarkMode"
-                      (change)="toggleStepBarDarkMode()">
-                    <label class="form-check-label" for="wizardDarkModeSwitch">
-                      {{ 'APP.ADESIONI.LABEL.WizardDarkMode' | translate }}
-                    </label>
-                  </div>
+            @if (debugSwitchesEnabled) {
+              <div class="wizard-debug-toggle mb-2">
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardShowAllSectionsSwitch"
+                    [checked]="wizardShowAllSections"
+                    [attr.aria-checked]="wizardShowAllSections"
+                    (change)="toggleWizardShowAllSections()">
+                  <label class="form-check-label" for="wizardShowAllSectionsSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardShowAllSections' | translate }}
+                  </label>
                 </div>
-              }
-              <app-adesione-step-bar
-                [steps]="stepWizard"
-                [currentState]="adesione.stato"
-                [selectedCode]="selectedStepCode"
-                [showStateBadges]="showStateBadges"
-                [variant]="stepBarVariant"
-                [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
-                (stepClick)="onStepBarClick($event)"
-              ></app-adesione-step-bar>
-            </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardShowStateBadgesSwitch"
+                    [checked]="showStateBadges"
+                    [attr.aria-checked]="showStateBadges"
+                    (change)="toggleShowStateBadges()">
+                  <label class="form-check-label" for="wizardShowStateBadgesSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardShowStateBadges' | translate }}
+                  </label>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardChevronVariantSwitch"
+                    [checked]="stepBarVariant === 'chevron'"
+                    [attr.aria-checked]="stepBarVariant === 'chevron'"
+                    (change)="toggleStepBarVariant()">
+                  <label class="form-check-label" for="wizardChevronVariantSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardChevronVariant' | translate }}
+                  </label>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wizardDarkModeSwitch"
+                    [checked]="stepBarDarkMode"
+                    [attr.aria-checked]="stepBarDarkMode"
+                    (change)="toggleStepBarDarkMode()">
+                  <label class="form-check-label" for="wizardDarkModeSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardDarkMode' | translate }}
+                  </label>
+                </div>
+              </div>
+            }
+            <app-adesione-step-bar
+              class="mb-4"
+              [steps]="stepWizard"
+              [currentState]="adesione.stato"
+              [selectedCode]="selectedStepCode"
+              [showStateBadges]="showStateBadges"
+              [variant]="stepBarVariant"
+              [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
+              (stepClick)="onStepBarClick($event)"
+            ></app-adesione-step-bar>
           }
           @if (disclaimers.length > 0) {
             <div class="adesione-disclaimers mb-4">

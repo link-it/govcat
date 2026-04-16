@@ -40,6 +40,13 @@ $border-color: var(--border-color, #dbdbdb);
   width: 100%;
 }
 
+.adesione-step-bar-wrapper {
+  padding: 0rem 1rem;
+  background-color: #{$step-bar-bg};
+  border: 1px solid #{$border-color};
+  border-radius: 0.5rem;
+}
+
 // ══════════════════════════════════════════════════════════════════════════
 // Variante CIRCLES
 // ══════════════════════════════════════════════════════════════════════════
@@ -233,7 +240,7 @@ $chevron-arrow-width: 14px;
     height: 4rem;
     padding: 0.5rem 1rem 0.5rem calc(#{$chevron-arrow-width} + 0.75rem);
     background-color: #{$step-pending-bg};
-    color: #{$body-color};
+    color: #{$step-pending-color};
     transition: background-color 0.2s ease, color 0.2s ease;
     clip-path: polygon(
       0 0,
@@ -294,7 +301,7 @@ $chevron-arrow-width: 14px;
       }
 
       .chevron-label {
-        color: #{$body-color};
+        color: color-mix(in srgb, #{$step-current-color} 70%, transparent);
       }
     }
 
@@ -306,7 +313,7 @@ $chevron-arrow-width: 14px;
       }
 
       .chevron-label {
-        color: color-mix(in srgb, #{$body-color} 65%, transparent);
+        color: color-mix(in srgb, #{$step-preview-color} 65%, transparent);
         font-style: italic;
       }
     }
@@ -319,7 +326,7 @@ $chevron-arrow-width: 14px;
       }
 
       .chevron-label {
-        color: #{$body-color};
+        color: color-mix(in srgb, #{$step-real-color} 70%, transparent);
       }
     }
 

@@ -17,24 +17,25 @@
 -- along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 @if (items.length > 0) {
+  <div class="adesione-step-bar-wrapper">
   <!-- Variante CIRCLES (default) -->
   @if (variant === 'circles') {
     <div class="adesione-step-bar" role="group" aria-label="Avanzamento adesione">
       @for (item of items; track item.code; let last = $last) {
         <div class="step-item"
-             [class.completed]="item.state === 'completed'"
-             [class.current]="item.state === 'current'"
-             [class.pending]="item.state === 'pending'"
-             [class.clickable]="item.clickable"
-             [class.is-real]="item.isReal"
-             [class.is-preview]="!item.isReal && item.state === 'current'">
+            [class.completed]="item.state === 'completed'"
+            [class.current]="item.state === 'current'"
+            [class.pending]="item.state === 'pending'"
+            [class.clickable]="item.clickable"
+            [class.is-real]="item.isReal"
+            [class.is-preview]="!item.isReal && item.state === 'current'">
           <div class="step-indicator"
-               [attr.role]="item.clickable ? 'button' : null"
-               [attr.tabindex]="item.clickable ? 0 : null"
-               [attr.aria-current]="item.state === 'current' ? 'step' : null"
-               (click)="onStepClick(item)"
-               (keydown.enter)="onStepClick(item)"
-               (keydown.space)="onStepClick(item); $event.preventDefault()">
+              [attr.role]="item.clickable ? 'button' : null"
+              [attr.tabindex]="item.clickable ? 0 : null"
+              [attr.aria-current]="item.state === 'current' ? 'step' : null"
+              (click)="onStepClick(item)"
+              (keydown.enter)="onStepClick(item)"
+              (keydown.space)="onStepClick(item); $event.preventDefault()">
             <div class="step-circle">
               @if (item.state === 'completed') {
                 <i class="bi bi-check-lg" aria-hidden="true"></i>
@@ -66,21 +67,21 @@
     <div class="step-bar-chevron" role="group" aria-label="Avanzamento adesione">
       @for (item of items; track item.code; let first = $first; let last = $last) {
         <div class="chevron-item"
-             [class.completed]="item.state === 'completed'"
-             [class.current]="item.state === 'current'"
-             [class.pending]="item.state === 'pending'"
-             [class.is-preview]="!item.isReal && item.state === 'current'"
-             [class.is-real]="item.isReal"
-             [class.is-real-hidden]="item.isReal && item.state !== 'current'"
-             [class.clickable]="item.clickable"
-             [class.first]="first"
-             [class.last]="last"
-             [attr.role]="item.clickable ? 'button' : null"
-             [attr.tabindex]="item.clickable ? 0 : null"
-             [attr.aria-current]="item.state === 'current' ? 'step' : null"
-             (click)="onStepClick(item)"
-             (keydown.enter)="onStepClick(item)"
-             (keydown.space)="onStepClick(item); $event.preventDefault()">
+            [class.completed]="item.state === 'completed'"
+            [class.current]="item.state === 'current'"
+            [class.pending]="item.state === 'pending'"
+            [class.is-preview]="!item.isReal && item.state === 'current'"
+            [class.is-real]="item.isReal"
+            [class.is-real-hidden]="item.isReal && item.state !== 'current'"
+            [class.clickable]="item.clickable"
+            [class.first]="first"
+            [class.last]="last"
+            [attr.role]="item.clickable ? 'button' : null"
+            [attr.tabindex]="item.clickable ? 0 : null"
+            [attr.aria-current]="item.state === 'current' ? 'step' : null"
+            (click)="onStepClick(item)"
+            (keydown.enter)="onStepClick(item)"
+            (keydown.space)="onStepClick(item); $event.preventDefault()">
           <div class="chevron-content">
             <div class="chevron-step-number">
               Step {{ item.index + 1 }}
@@ -97,4 +98,5 @@
       }
     </div>
   }
+  </div>
 }

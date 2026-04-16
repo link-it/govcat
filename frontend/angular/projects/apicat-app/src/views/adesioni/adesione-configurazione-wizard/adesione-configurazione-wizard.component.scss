@@ -17,34 +17,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-.adesione-step-bar-wrapper {
-  padding: 0.75rem 1rem;
-  background-color: var(--bs-light, #f8f9fa);
-  border: 1px solid var(--bs-border-color, #dee2e6);
-  border-radius: 0.5rem;
+.wizard-debug-toggle {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--border-color, #dbdbdb);
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--body-color, #303030) 60%, transparent);
 
-  .wizard-debug-toggle {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px dashed var(--bs-border-color, #dee2e6);
-    font-size: 0.8rem;
-    color: var(--bs-gray-600, #6c757d);
+  .form-check {
+    margin: 0;
+    min-height: auto;
+  }
 
-    .form-check {
-      margin: 0;
-      min-height: auto;
-    }
-
-    .form-check-label {
-      user-select: none;
-      cursor: pointer;
-    }
+  .form-check-label {
+    user-select: none;
+    cursor: pointer;
   }
 }
 

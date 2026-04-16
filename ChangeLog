@@ -63,6 +63,11 @@
 	  tutti i 6 temi in app-config.json, con fallback di default nel
 	  SCSS per temi non aggiornati. Aggiunto preset dark (palette
 	  Catppuccin Mocha) attivabile a runtime tramite switch di debug.
+	  Spostato il wrapper `adesione-step-bar-wrapper` dentro il
+	  componente AdesioneStepBarComponent; gli switch di debug sono
+	  ora esterni al componente. Rimosso l'uso di `$body-color` nella
+	  variante chevron: ogni stato usa la propria variabile `--step-*`
+	  per garantire la compatibilità col preset dark.
 
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 
