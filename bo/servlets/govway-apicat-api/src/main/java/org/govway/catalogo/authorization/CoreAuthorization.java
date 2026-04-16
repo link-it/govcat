@@ -20,7 +20,10 @@
 package org.govway.catalogo.authorization;
 
 import org.govway.catalogo.InfoProfilo;
+import org.govway.catalogo.OrganizationContext;
 import org.govway.catalogo.RequestUtils;
+import org.govway.catalogo.core.orm.entity.OrganizzazioneEntity;
+import org.govway.catalogo.core.orm.entity.RuoloOrganizzazione;
 import org.govway.catalogo.core.orm.entity.UtenteEntity;
 import org.govway.catalogo.core.orm.entity.UtenteEntity.Ruolo;
 import org.govway.catalogo.exception.NotAuthorizedException;
@@ -32,9 +35,12 @@ public class CoreAuthorization {
 
 	@Autowired
 	private RequestUtils requestUtils;
-	
+
 	@Autowired
 	protected Configurazione configurazione;
+
+	@Autowired
+	private OrganizationContext organizationContext;
 	
 	public UtenteEntity getUtenteSessione() {
 		boolean consentiAnonimo = this.configurazione.getUtente().isConsentiAccessoAnonimo();
@@ -121,6 +127,33 @@ public class CoreAuthorization {
 
 	public boolean isWhiteListed() {
 		return this.requestUtils.isWhiteListed();
+	}
+
+	/**
+	 * @return il contesto organizzazione della richiesta corrente, può essere vuoto
+	 */
+	public OrganizationContext getOrganizationContext() {
+		return this.organizationContext;
+	}
+
+	/**
+	 * @return l'organizzazione attiva di sessione, o null se non impostata
+	 */
+	public OrganizzazioneEntity getOrganizzazioneSessione() {
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizationContext.getOrganizzazione();
+		}
+		return null;
+	}
+
+	/**
+	 * @return il ruolo dell'utente nell'organizzazione di sessione, o null se non impostata
+	 */
+	public RuoloOrganizzazione getRuoloOrganizzazioneSessione() {
+		if (this.organizationContext != null && this.organizationContext.hasOrganizzazione()) {
+			return this.organizationContext.getRuoloOrganizzazione();
+		}
+		return null;
 	}
 
 }

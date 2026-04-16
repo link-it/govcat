@@ -45,6 +45,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private ReadOnlyModeInterceptor readOnlyModeInterceptor;
 
+    @Autowired
+    private OrganizationContextInterceptor organizationContextInterceptor;
+
     @Value("${email.notifiche.messages.path:/var/govcat/conf}")
     private String externalMessagesPath;
 
@@ -52,6 +55,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // Registra l'interceptor per la modalità readonly su tutti i path
         registry.addInterceptor(readOnlyModeInterceptor)
+                .addPathPatterns("/**");
+        // Registra l'interceptor per il contesto organizzazione su tutti i path
+        registry.addInterceptor(organizationContextInterceptor)
                 .addPathPatterns("/**");
     }
 
