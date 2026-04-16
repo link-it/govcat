@@ -56,6 +56,13 @@
 	  grigio per pending). La variante è selezionabile a runtime tramite
 	  switch di debug ed è impostata come default. Supporta la proprietà
 	  `variant` con valori 'circles' (classica) e 'chevron'.
+	  Tematizzata la step-bar con 11 variabili CSS dedicate
+	  (`--step-bar-bg`, `--step-completed-bg/color`,
+	  `--step-current-bg/color`, `--step-pending-bg/color`,
+	  `--step-preview-bg/color`, `--step-real-bg/color`) aggiunte a
+	  tutti i 6 temi in app-config.json, con fallback di default nel
+	  SCSS per temi non aggiornati. Aggiunto preset dark (palette
+	  Catppuccin Mocha) attivabile a runtime tramite switch di debug.
 
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

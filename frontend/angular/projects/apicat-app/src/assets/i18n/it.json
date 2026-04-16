@@ -27,7 +27,8 @@
 				"UsaClientEsistente": "Usa client esistente",
 				"WizardShowAllSections": "Mostra tutte le sezioni (debug)",
 				"WizardShowStateBadges": "Mostra badge step (debug)",
-				"WizardChevronVariant": "Step-bar a chevron (debug)"
+				"WizardChevronVariant": "Step-bar a chevron (debug)",
+				"WizardDarkMode": "Preset dark step-bar (debug)"
 			},
 			"STEP_WIZARD": {
 				"adesione_creata": "Adesione Creata",

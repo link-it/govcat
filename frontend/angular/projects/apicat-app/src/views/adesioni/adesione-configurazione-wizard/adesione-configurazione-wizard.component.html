@@ -168,6 +168,19 @@
                       {{ 'APP.ADESIONI.LABEL.WizardChevronVariant' | translate }}
                     </label>
                   </div>
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      id="wizardDarkModeSwitch"
+                      [checked]="stepBarDarkMode"
+                      [attr.aria-checked]="stepBarDarkMode"
+                      (change)="toggleStepBarDarkMode()">
+                    <label class="form-check-label" for="wizardDarkModeSwitch">
+                      {{ 'APP.ADESIONI.LABEL.WizardDarkMode' | translate }}
+                    </label>
+                  </div>
                 </div>
               }
               <app-adesione-step-bar
@@ -176,6 +189,7 @@
                 [selectedCode]="selectedStepCode"
                 [showStateBadges]="showStateBadges"
                 [variant]="stepBarVariant"
+                [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
                 (stepClick)="onStepBarClick($event)"
               ></app-adesione-step-bar>
             </div>

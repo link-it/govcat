@@ -263,6 +263,26 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
         this.stepBarVariant = this.stepBarVariant === 'circles' ? 'chevron' : 'circles';
     }
 
+    /** Preset colori dark per la step-bar (override runtime via CSS vars). */
+    stepBarDarkMode: boolean = false;
+    stepBarDarkVars: Record<string, string> = {
+        '--step-bar-bg': '#1e1e2e',
+        '--step-completed-bg': '#89b4fa',
+        '--step-completed-color': '#1e1e2e',
+        '--step-current-bg': '#313244',
+        '--step-current-color': '#cdd6f4',
+        '--step-pending-bg': '#11111b',
+        '--step-pending-color': '#6c7086',
+        '--step-preview-bg': '#2a2a3c',
+        '--step-preview-color': '#b4befe',
+        '--step-real-bg': '#1e3a2a',
+        '--step-real-color': '#a6e3a1'
+    };
+
+    toggleStepBarDarkMode(): void {
+        this.stepBarDarkMode = !this.stepBarDarkMode;
+    }
+
     // Disclaimer markdown caricati dall'API `/adesioni/{id}/disclaimers`
     disclaimers: string[] = [];
     disclaimersLoading: boolean = false;

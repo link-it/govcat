@@ -17,10 +17,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ── Variabili step-bar (con fallback se il tema non le definisce) ───────
+$step-completed-bg: var(--step-completed-bg, #1f75cb);
+$step-completed-color: var(--step-completed-color, #ffffff);
+$step-current-bg: var(--step-current-bg, #e4eef7);
+$step-current-color: var(--step-current-color, #1f75cb);
+$step-pending-bg: var(--step-pending-bg, #ededed);
+$step-pending-color: var(--step-pending-color, #606060);
+$step-preview-bg: var(--step-preview-bg, #eceaf5);
+$step-preview-color: var(--step-preview-color, #4c4c94);
+$step-real-bg: var(--step-real-bg, #e6f4ed);
+$step-real-color: var(--step-real-color, #198754);
+$step-bar-bg: var(--step-bar-bg, transparent);
+
+// Variabili generiche (bordi, sfondo body)
+$body-color: var(--body-color, #303030);
+$body-bg: var(--body-back-color, #ffffff);
+$border-color: var(--border-color, #dbdbdb);
+
 :host {
   display: block;
   width: 100%;
 }
+
+// ══════════════════════════════════════════════════════════════════════════
+// Variante CIRCLES
+// ══════════════════════════════════════════════════════════════════════════
 
 .adesione-step-bar {
   display: flex;
@@ -29,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   gap: 0;
   padding: 1rem 0;
   width: 100%;
+  background-color: #{$step-bar-bg};
 
   .step-item {
     display: flex;
@@ -58,11 +81,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       cursor: pointer;
 
       &:hover {
-        background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.08);
+        background-color: color-mix(in srgb, #{$step-completed-bg} 8%, transparent);
       }
 
       &:focus-visible {
-        box-shadow: 0 0 0 2px rgba(var(--bs-primary-rgb, 13, 110, 253), 0.35);
+        box-shadow: 0 0 0 2px color-mix(in srgb, #{$step-completed-bg} 35%, transparent);
       }
 
       &:active {
@@ -78,19 +101,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       width: 2.25rem;
       height: 2.25rem;
       border-radius: 50%;
-      border: 2px solid var(--bs-gray-400, #ced4da);
-      background-color: var(--bs-body-bg, #ffffff);
-      color: var(--bs-gray-600, #6c757d);
+      border: 2px solid #{$border-color};
+      background-color: #{$body-bg};
+      color: color-mix(in srgb, #{$body-color} 60%, transparent);
       font-weight: 600;
       font-size: 0.95rem;
       line-height: 1;
       transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
-    // Piccolo indicatore a pallino presente sullo step reale (quello che
-    // corrisponde allo stato effettivo dell'adesione): sempre visibile per
-    // dare un riferimento immediato anche quando l'utente sta navigando una
-    // tappa passata.
     .step-real-marker {
       position: absolute;
       top: -0.15rem;
@@ -98,9 +117,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       width: 0.7rem;
       height: 0.7rem;
       border-radius: 50%;
-      background-color: var(--bs-success, #198754);
-      border: 2px solid var(--bs-body-bg, #ffffff);
-      box-shadow: 0 0 0 1px var(--bs-success, #198754);
+      background-color: #{$step-real-color};
+      border: 2px solid #{$body-bg};
+      box-shadow: 0 0 0 1px #{$step-real-color};
     }
 
     .step-badge {
@@ -115,21 +134,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       white-space: nowrap;
 
       &.step-badge-real {
-        background-color: var(--bs-success, #198754);
+        background-color: #{$step-real-color};
         color: #fff;
       }
 
       &.step-badge-preview {
-        background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.12);
-        color: var(--bs-primary, #0d6efd);
-        border: 1px dashed var(--bs-primary, #0d6efd);
+        background-color: color-mix(in srgb, #{$step-preview-color} 12%, transparent);
+        color: #{$step-preview-color};
+        border: 1px dashed #{$step-preview-color};
       }
     }
 
     .step-label {
       font-size: 0.875rem;
       text-align: center;
-      color: var(--bs-gray-700, #495057);
+      color: #{$body-color};
       line-height: 1.2;
       word-break: break-word;
     }
@@ -138,44 +157,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       flex: 1 1 auto;
       height: 2px;
       margin: 1.5rem 0.5rem 0 0.5rem;
-      background-color: var(--bs-gray-400, #ced4da);
+      background-color: #{$border-color};
       min-width: 1.5rem;
       transition: background-color 0.2s ease;
 
       &.connector-completed {
-        background-color: var(--bs-primary, #0d6efd);
+        background-color: #{$step-completed-bg};
       }
     }
 
     &.completed {
       .step-circle {
-        background-color: var(--bs-primary, #0d6efd);
-        border-color: var(--bs-primary, #0d6efd);
-        color: #fff;
+        background-color: #{$step-completed-bg};
+        border-color: #{$step-completed-bg};
+        color: #{$step-completed-color};
       }
 
       .step-label {
-        color: var(--bs-gray-700, #495057);
+        color: #{$body-color};
       }
     }
 
     &.current {
       .step-circle {
-        background-color: var(--bs-body-bg, #ffffff);
-        border-color: var(--bs-primary, #0d6efd);
-        color: var(--bs-primary, #0d6efd);
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        background-color: #{$body-bg};
+        border-color: #{$step-current-color};
+        color: #{$step-current-color};
+        box-shadow: 0 0 0 3px color-mix(in srgb, #{$step-current-color} 15%, transparent);
       }
 
       .step-label {
-        color: var(--bs-primary, #0d6efd);
+        color: #{$step-current-color};
         font-weight: 600;
       }
     }
 
-    // Step in anteprima: l'utente sta navigando una tappa diversa da quella
-    // reale. Il bordo del cerchio passa a dashed per distinguere la vista
-    // "preview" dallo stato attuale dell'adesione.
     &.is-preview {
       .step-circle {
         border-style: dashed;
@@ -184,19 +200,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     &.pending {
       .step-circle {
-        background-color: var(--bs-body-bg, #ffffff);
-        border-color: var(--bs-gray-400, #ced4da);
-        color: var(--bs-gray-500, #adb5bd);
+        background-color: #{$body-bg};
+        border-color: #{$border-color};
+        color: color-mix(in srgb, #{$body-color} 45%, transparent);
       }
 
       .step-label {
-        color: var(--bs-gray-500, #adb5bd);
+        color: color-mix(in srgb, #{$body-color} 45%, transparent);
       }
     }
   }
 }
 
-// ── Variante CHEVRON ────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════
+// Variante CHEVRON
+// ══════════════════════════════════════════════════════════════════════════
 
 $chevron-arrow-width: 14px;
 
@@ -204,6 +222,7 @@ $chevron-arrow-width: 14px;
   display: flex;
   width: 100%;
   padding: 1rem 0;
+  background-color: #{$step-bar-bg};
 
   .chevron-item {
     position: relative;
@@ -213,8 +232,8 @@ $chevron-arrow-width: 14px;
     min-width: 0;
     height: 4rem;
     padding: 0.5rem 1rem 0.5rem calc(#{$chevron-arrow-width} + 0.75rem);
-    background-color: var(--bs-gray-200, #e9ecef);
-    color: var(--bs-gray-700, #495057);
+    background-color: #{$step-pending-bg};
+    color: #{$body-color};
     transition: background-color 0.2s ease, color 0.2s ease;
     clip-path: polygon(
       0 0,
@@ -255,74 +274,64 @@ $chevron-arrow-width: 14px;
 
     // ── Stati ───────────────────────────────────────────────────────
 
-    // Completato: blu pieno
     &.completed {
-      background-color: var(--bs-primary, #0d6efd);
+      background-color: #{$step-completed-bg};
 
       .chevron-step-number {
-        color: #fff;
+        color: #{$step-completed-color};
       }
 
       .chevron-label {
-        color: rgba(255, 255, 255, 0.8);
+        color: color-mix(in srgb, #{$step-completed-color} 80%, transparent);
       }
     }
 
-    // Corrente (step reale, non ultimato): sfondo blu chiaro, nettamente
-    // diverso sia dal blu pieno (completed) che dal grigio (pending).
     &.current {
-      background-color: rgba(var(--bs-primary-rgb, 13, 110, 253), 0.15);
+      background-color: #{$step-current-bg};
 
       .chevron-step-number {
-        color: var(--bs-primary, #0d6efd);
+        color: #{$step-current-color};
       }
 
       .chevron-label {
-        color: var(--bs-gray-700, #495057);
+        color: #{$body-color};
       }
     }
 
-    // Anteprima: l'utente sta navigando uno step precedente a quello reale.
-    // Sfondo ciano chiaro per distinguerlo chiaramente dal current e dal completed.
     &.is-preview {
-      background-color: rgba(var(--bs-info-rgb, 13, 202, 240), 0.15);
+      background-color: #{$step-preview-bg};
 
       .chevron-step-number {
-        color: #0a8a9e;
+        color: #{$step-preview-color};
       }
 
       .chevron-label {
-        color: var(--bs-gray-600, #6c757d);
+        color: color-mix(in srgb, #{$body-color} 65%, transparent);
         font-style: italic;
       }
     }
 
-    // Step reale evidenziato quando l'utente naviga su un altro step:
-    // lo step reale non è più "current" (diventa pending/completed dal punto
-    // di vista del display) ma deve restare riconoscibile. Sfondo verde
-    // chiaro + pallino verde inline.
     &.is-real-hidden {
-      background-color: rgba(var(--bs-success-rgb, 25, 135, 84), 0.12);
+      background-color: #{$step-real-bg};
 
       .chevron-step-number {
-        color: var(--bs-success, #198754);
+        color: #{$step-real-color};
       }
 
       .chevron-label {
-        color: var(--bs-gray-700, #495057);
+        color: #{$body-color};
       }
     }
 
-    // Pending: grigio chiaro
     &.pending:not(.is-real-hidden) {
-      background-color: var(--bs-gray-200, #e9ecef);
+      background-color: #{$step-pending-bg};
 
       .chevron-step-number {
-        color: var(--bs-gray-700, #495057);
+        color: #{$step-pending-color};
       }
 
       .chevron-label {
-        color: var(--bs-gray-500, #adb5bd);
+        color: color-mix(in srgb, #{$step-pending-color} 70%, transparent);
       }
     }
 
@@ -335,7 +344,7 @@ $chevron-arrow-width: 14px;
       }
 
       &:focus-visible {
-        outline: 2px solid var(--bs-primary, #0d6efd);
+        outline: 2px solid #{$step-completed-bg};
         outline-offset: 2px;
         z-index: 1;
       }
@@ -368,15 +377,15 @@ $chevron-arrow-width: 14px;
       width: 0.5rem;
       height: 0.5rem;
       border-radius: 50%;
-      background-color: var(--bs-success, #198754);
-      box-shadow: 0 0 0 2px rgba(25, 135, 84, 0.25);
+      background-color: #{$step-real-color};
+      box-shadow: 0 0 0 2px color-mix(in srgb, #{$step-real-color} 25%, transparent);
       flex-shrink: 0;
     }
 
     .chevron-preview-badge {
       font-weight: 400;
       font-size: 0.65rem;
-      color: var(--bs-info, #0dcaf0);
+      color: #{$step-preview-color};
       opacity: 0.85;
     }
 
