@@ -59,15 +59,18 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		return null;
 	}
 
+	// TODO [MULTI-ORG] Aggiornare i mapping quando la spec OpenAPI introdurrà
+	// il nuovo valore UTENTE_ORGANIZZAZIONE al posto di REFERENTE_SERVIZIO.
+	// Valutare se il mapping dovrà considerare anche i ruoli per-organizzazione.
 	public RuoloUtenteEnum toRuolo(Ruolo ruolo) {
 		switch(ruolo) {
 		case AMMINISTRATORE: return RuoloUtenteEnum.GESTORE;
 		case COORDINATORE: return RuoloUtenteEnum.COORDINATORE;
-		case REFERENTE_SERVIZIO: return RuoloUtenteEnum.REFERENTE_SERVIZIO;
+		case RUOLO_ORGANIZZAZIONE: return RuoloUtenteEnum.REFERENTE_SERVIZIO;
 		default:
 			break;
 		}
-		
+
 		return null;
 	}
 
@@ -75,22 +78,22 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		if(ruolo == null || ruolo.isEmpty()) {
 			return null;
 		}
-		
+
 		List<Ruolo> r = new ArrayList<>();
-		
+
 		for(RuoloUtenteEnumSearch rr: ruolo) {
 			switch(rr) {
 			case GESTORE: r.add(Ruolo.AMMINISTRATORE);
 				break;
 			case COORDINATORE: r.add(Ruolo.COORDINATORE);
 			break;
-			case REFERENTE_SERVIZIO: r.add(Ruolo.REFERENTE_SERVIZIO);
+			case REFERENTE_SERVIZIO: r.add(Ruolo.RUOLO_ORGANIZZAZIONE);
 				break;
 			default:
 				break;
 			}
 		}
-		
+
 		return r;
 	}
 
@@ -98,9 +101,9 @@ public class UtenteEngineAssembler extends CoreEngineAssembler {
 		switch(ruolo) {
 		case GESTORE: return Ruolo.AMMINISTRATORE;
 		case COORDINATORE: return Ruolo.COORDINATORE;
-		case REFERENTE_SERVIZIO: return Ruolo.REFERENTE_SERVIZIO;
+		case REFERENTE_SERVIZIO: return Ruolo.RUOLO_ORGANIZZAZIONE;
 		}
-		
+
 		return null;
 	}
 

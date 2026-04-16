@@ -340,13 +340,16 @@ public abstract class AbstractRequestUtils implements RequestUtils {
         return null;
     }
 
+    // TODO [MULTI-ORG] Rivedere il mapping da ruolo IDM a ruolo interno.
+    // Il ruolo IDM "referenteServizio" ora mappa a RUOLO_ORGANIZZAZIONE;
+    // valutare se servono nuovi mapping IDM per i ruoli per-organizzazione.
     private Ruolo getRuoloCodificatoDB(List<String> ruoli) {
         if (ruoli != null) {
             if (ruoli.stream().anyMatch(r -> r.equals(this.ruoloGestoreIdm))) {
                 return Ruolo.AMMINISTRATORE;
             }
             if (ruoli.stream().anyMatch(r -> r.equals(this.ruoloReferenteServizioIdm))) {
-                return Ruolo.REFERENTE_SERVIZIO;
+                return Ruolo.RUOLO_ORGANIZZAZIONE;
             }
         }
         return null;

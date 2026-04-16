@@ -30,6 +30,7 @@ create sequence seq_stati_servizio start with 1 increment by 1;
 create sequence seq_tags start with 1 increment by 1;
 create sequence seq_tassonomie start with 1 increment by 1;
 create sequence seq_utenti start with 1 increment by 1;
+create sequence seq_utenti_organizzazioni start with 1 increment by 1;
 create sequence seq_registrazioni_utenti start with 1 increment by 1;
 create sequence seq_email_update_verifications start with 1 increment by 1;
 
@@ -489,6 +490,7 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
         tipi_notifiche_abilitate varchar(255),
         id_organizzazione bigint,
         id_organizzazione_pending bigint,
+        organizzazione_esterna varchar(255),
         primary key (id)
     );
 
@@ -496,6 +498,14 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
        id_classe bigint not null,
         id_utente bigint not null,
         primary key (id_classe, id_utente)
+    );
+
+    create table utenti_organizzazioni (
+       id bigint not null,
+        id_utente bigint not null,
+        id_organizzazione bigint not null,
+        ruolo_organizzazione varchar(255),
+        primary key (id)
     );
 
     create table registrazioni_utenti (
@@ -539,7 +549,20 @@ create sequence seq_email_update_verifications start with 1 increment by 1;
        foreign key (id_utente)
        references utenti;
 
-    alter table organizations 
+    alter table utenti_organizzazioni
+       add constraint uk_utenti_org_utente_org unique (id_utente, id_organizzazione);
+
+    alter table utenti_organizzazioni
+       add constraint fk_utenti_org_utente
+       foreign key (id_utente)
+       references utenti;
+
+    alter table utenti_organizzazioni
+       add constraint fk_utenti_org_organizzazione
+       foreign key (id_organizzazione)
+       references organizations;
+
+    alter table organizations
        add constraint UK_p9pbw3flq9hkay8hdx3ypsldy unique (name);
 
     alter table soggetti 

@@ -86,8 +86,10 @@ public class CoreAuthorization {
 		}
 	}
 
+	// TODO [MULTI-ORG] Rivedere i controlli di accesso: il check su isRuoloOrganizzazione()
+	// dovrà verificare il ruolo specifico dell'utente nel contesto dell'organizzazione di sessione.
 	public void requireReferenteTecnico() {
-		if(!isAdmin() && !isReferenteServizio() && !isReferenteTecnico()) {
+		if(!isAdmin() && !isRuoloOrganizzazione() && !isReferenteTecnico()) {
 			throw new NotAuthorizedException(ErrorCode.AUT_403);
 		}
 	}
@@ -101,13 +103,15 @@ public class CoreAuthorization {
 		return principal.utente.isReferenteTecnico();
 	}
 
-	private boolean isReferenteServizio() {
+	// TODO [MULTI-ORG] Rivedere questo metodo alla luce dei nuovi ruoli per-organizzazione.
+	// Attualmente verifica solo il ruolo globale; dovrà considerare il contesto organizzazione di sessione.
+	private boolean isRuoloOrganizzazione() {
 		InfoProfilo principal = this.requestUtils.getPrincipal(false);
 		if(principal == null || principal.utente == null) {
 			return false;
 		}
-		
-		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.REFERENTE_SERVIZIO);
+
+		return principal.utente.getRuolo() != null && principal.utente.getRuolo().equals(Ruolo.RUOLO_ORGANIZZAZIONE);
 	}
 
 	public boolean isAnounymous() {
