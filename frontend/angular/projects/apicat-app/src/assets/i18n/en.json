@@ -28,6 +28,7 @@
 				"WizardShowAllSections": "Show all sections (debug)",
 				"WizardShowStateBadges": "Show step badges (debug)",
 				"WizardChevronVariant": "Chevron step-bar (debug)",
+				"WizardCirclesLabelRight": "Label right (circles) (debug)",
 				"WizardDarkMode": "Dark step-bar preset (debug)"
 			},
 			"STEP_WIZARD": {

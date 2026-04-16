@@ -28,6 +28,7 @@
 				"WizardShowAllSections": "Mostra tutte le sezioni (debug)",
 				"WizardShowStateBadges": "Mostra badge step (debug)",
 				"WizardChevronVariant": "Step-bar a chevron (debug)",
+				"WizardCirclesLabelRight": "Label a destra (circles) (debug)",
 				"WizardDarkMode": "Preset dark step-bar (debug)"
 			},
 			"STEP_WIZARD": {

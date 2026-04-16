@@ -85,6 +85,12 @@ export class AdesioneStepBarComponent implements OnChanges {
    * - 'chevron': blocchi orizzontali a freccia/chevron
    */
   @Input() variant: StepBarVariant = 'chevron';
+  /**
+   * Posizione della label nella variante circles:
+   * - 'bottom': sotto il cerchio (default)
+   * - 'right': a destra del cerchio
+   */
+  @Input() circlesLabelPosition: 'bottom' | 'right' = 'bottom';
 
   @Output() stepClick = new EventEmitter<string>();
 

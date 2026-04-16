@@ -172,6 +172,19 @@
                     class="form-check-input"
                     type="checkbox"
                     role="switch"
+                    id="wizardCirclesLabelRightSwitch"
+                    [checked]="circlesLabelRight"
+                    [attr.aria-checked]="circlesLabelRight"
+                    (change)="circlesLabelRight = !circlesLabelRight">
+                  <label class="form-check-label" for="wizardCirclesLabelRightSwitch">
+                    {{ 'APP.ADESIONI.LABEL.WizardCirclesLabelRight' | translate }}
+                  </label>
+                </div>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
                     id="wizardDarkModeSwitch"
                     [checked]="stepBarDarkMode"
                     [attr.aria-checked]="stepBarDarkMode"
@@ -189,6 +202,7 @@
               [selectedCode]="selectedStepCode"
               [showStateBadges]="showStateBadges"
               [variant]="stepBarVariant"
+              [circlesLabelPosition]="circlesLabelRight ? 'right' : 'bottom'"
               [ngStyle]="stepBarDarkMode ? stepBarDarkVars : null"
               (stepClick)="onStepBarClick($event)"
             ></app-adesione-step-bar>

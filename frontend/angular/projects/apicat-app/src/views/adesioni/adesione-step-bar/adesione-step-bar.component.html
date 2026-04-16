@@ -20,7 +20,9 @@
   <div class="adesione-step-bar-wrapper">
   <!-- Variante CIRCLES (default) -->
   @if (variant === 'circles') {
-    <div class="adesione-step-bar" role="group" aria-label="Avanzamento adesione">
+    <div class="adesione-step-bar"
+         [class.label-right]="circlesLabelPosition === 'right'"
+         role="group" aria-label="Avanzamento adesione">
       @for (item of items; track item.code; let last = $last) {
         <div class="step-item"
             [class.completed]="item.state === 'completed'"

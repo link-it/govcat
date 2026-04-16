@@ -217,6 +217,34 @@ $border-color: var(--border-color, #dbdbdb);
       }
     }
   }
+
+  // ── Modificatore: label a destra del cerchio ──────────────────────────
+  &.label-right {
+    .step-item {
+      .step-indicator {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .step-circle {
+        flex-shrink: 0;
+      }
+
+      .step-label {
+        flex: 1 1 0;
+        min-width: 0;
+        text-align: left;
+        white-space: normal;
+      }
+
+      .step-badge {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════

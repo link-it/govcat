@@ -68,6 +68,10 @@
 	  ora esterni al componente. Rimosso l'uso di `$body-color` nella
 	  variante chevron: ogni stato usa la propria variabile `--step-*`
 	  per garantire la compatibilità col preset dark.
+	  Aggiunta opzione `circlesLabelPosition` alla variante circles
+	  che permette di posizionare la label a destra del cerchio
+	  ('right') invece che sotto ('bottom', default), con wrap del
+	  testo e badge sempre sotto. Switch di debug aggiunto.
 
 2026-04-13  Alfonso Tatarelli <alfonso.tatarelli@link.it>
 

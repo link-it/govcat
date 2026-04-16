@@ -265,6 +265,7 @@ export class AdesioneConfigurazioneWizardComponent implements OnInit {
 
     /** Preset colori dark per la step-bar (override runtime via CSS vars). */
     stepBarDarkMode: boolean = false;
+    circlesLabelRight: boolean = false;
     stepBarDarkVars: Record<string, string> = {
         '--step-bar-bg': '#1e1e2e',
         '--step-completed-bg': '#89b4fa',
